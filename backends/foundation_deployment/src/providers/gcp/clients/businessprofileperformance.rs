@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,8 +27,8 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `businessprofileperformance_locations_fetch_multi_daily_metrics_time_series_execute()` to send, or `businessprofileperformance_locations_fetch_multi_daily_metrics_time_series` for simplest API.
 
-pub fn businessprofileperformance_locations_fetch_multi_daily_metrics_time_series_builder(
-    client: &SimpleHttpClient,
+pub fn businessprofileperformance_locations_fetch_multi_daily_metrics_time_series_builder<R>(
+    client: &SimpleHttpClient<R>,
     location: &String,
     dailyMetrics: &Option<Option<String>>,
     dailyRange_endDate_day: &Option<Option<String>>,
@@ -36,7 +37,10 @@ pub fn businessprofileperformance_locations_fetch_multi_daily_metrics_time_serie
     dailyRange_startDate_day: &Option<Option<String>>,
     dailyRange_startDate_month: &Option<Option<String>>,
     dailyRange_startDate_year: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://businessprofileperformance.googleapis.com/v1/locations/{}:fetchMultiDailyMetricsTimeSeries",
@@ -253,8 +257,8 @@ pub fn businessprofileperformance_locations_fetch_multi_daily_metrics_time_serie
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `businessprofileperformance_locations_get_daily_metrics_time_series_execute()` to send, or `businessprofileperformance_locations_get_daily_metrics_time_series` for simplest API.
 
-pub fn businessprofileperformance_locations_get_daily_metrics_time_series_builder(
-    client: &SimpleHttpClient,
+pub fn businessprofileperformance_locations_get_daily_metrics_time_series_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     dailyMetric: &Option<Option<String>>,
     dailyRange_endDate_day: &Option<Option<String>>,
@@ -268,7 +272,10 @@ pub fn businessprofileperformance_locations_get_daily_metrics_time_series_builde
     dailySubEntityType_timeOfDay_minutes: &Option<Option<String>>,
     dailySubEntityType_timeOfDay_nanos: &Option<Option<String>>,
     dailySubEntityType_timeOfDay_seconds: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://businessprofileperformance.googleapis.com/v1/locations/{}:getDailyMetricsTimeSeries",
@@ -513,8 +520,8 @@ pub fn businessprofileperformance_locations_get_daily_metrics_time_series(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `businessprofileperformance_locations_searchkeywords_impressions_monthly_list_execute()` to send, or `businessprofileperformance_locations_searchkeywords_impressions_monthly_list` for simplest API.
 
-pub fn businessprofileperformance_locations_searchkeywords_impressions_monthly_list_builder(
-    client: &SimpleHttpClient,
+pub fn businessprofileperformance_locations_searchkeywords_impressions_monthly_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     monthlyRange_endMonth_day: &Option<Option<String>>,
     monthlyRange_endMonth_month: &Option<Option<String>>,
@@ -524,7 +531,10 @@ pub fn businessprofileperformance_locations_searchkeywords_impressions_monthly_l
     monthlyRange_startMonth_year: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://businessprofileperformance.googleapis.com/v1/locations/{}/searchkeywords/impressions/monthly",

@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `youtubereporting_jobs_create_execute()` to send, or `youtubereporting_jobs_create` for simplest API.
 
-pub fn youtubereporting_jobs_create_builder(
-    client: &SimpleHttpClient,
+pub fn youtubereporting_jobs_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     onBehalfOfContentOwner: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://youtubereporting.googleapis.com/v1/jobs",);
 
@@ -191,11 +195,14 @@ pub fn youtubereporting_jobs_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `youtubereporting_jobs_delete_execute()` to send, or `youtubereporting_jobs_delete` for simplest API.
 
-pub fn youtubereporting_jobs_delete_builder(
-    client: &SimpleHttpClient,
+pub fn youtubereporting_jobs_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     jobId: &String,
     onBehalfOfContentOwner: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://youtubereporting.googleapis.com/v1/jobs/{}", jobId,);
 
@@ -360,11 +367,14 @@ pub fn youtubereporting_jobs_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `youtubereporting_jobs_get_execute()` to send, or `youtubereporting_jobs_get` for simplest API.
 
-pub fn youtubereporting_jobs_get_builder(
-    client: &SimpleHttpClient,
+pub fn youtubereporting_jobs_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     jobId: &String,
     onBehalfOfContentOwner: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://youtubereporting.googleapis.com/v1/jobs/{}", jobId,);
 
@@ -529,13 +539,16 @@ pub fn youtubereporting_jobs_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `youtubereporting_jobs_list_execute()` to send, or `youtubereporting_jobs_list` for simplest API.
 
-pub fn youtubereporting_jobs_list_builder(
-    client: &SimpleHttpClient,
+pub fn youtubereporting_jobs_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     includeSystemManaged: &Option<Option<String>>,
     onBehalfOfContentOwner: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://youtubereporting.googleapis.com/v1/jobs",);
 
@@ -722,12 +735,15 @@ pub fn youtubereporting_jobs_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `youtubereporting_jobs_reports_get_execute()` to send, or `youtubereporting_jobs_reports_get` for simplest API.
 
-pub fn youtubereporting_jobs_reports_get_builder(
-    client: &SimpleHttpClient,
+pub fn youtubereporting_jobs_reports_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     jobId: &String,
     reportId: &String,
     onBehalfOfContentOwner: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://youtubereporting.googleapis.com/v1/jobs/{}/reports/{}",
@@ -901,8 +917,8 @@ pub fn youtubereporting_jobs_reports_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `youtubereporting_jobs_reports_list_execute()` to send, or `youtubereporting_jobs_reports_list` for simplest API.
 
-pub fn youtubereporting_jobs_reports_list_builder(
-    client: &SimpleHttpClient,
+pub fn youtubereporting_jobs_reports_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     jobId: &String,
     createdAfter: &Option<Option<String>>,
     onBehalfOfContentOwner: &Option<Option<String>>,
@@ -910,7 +926,10 @@ pub fn youtubereporting_jobs_reports_list_builder(
     pageToken: &Option<Option<String>>,
     startTimeAtOrAfter: &Option<Option<String>>,
     startTimeBefore: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://youtubereporting.googleapis.com/v1/jobs/{}/reports",
@@ -1115,10 +1134,13 @@ pub fn youtubereporting_jobs_reports_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `youtubereporting_media_download_execute()` to send, or `youtubereporting_media_download` for simplest API.
 
-pub fn youtubereporting_media_download_builder(
-    client: &SimpleHttpClient,
+pub fn youtubereporting_media_download_builder<R>(
+    client: &SimpleHttpClient<R>,
     resourceName: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://youtubereporting.googleapis.com/v1/media/{}",
@@ -1272,13 +1294,16 @@ pub fn youtubereporting_media_download(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `youtubereporting_report_types_list_execute()` to send, or `youtubereporting_report_types_list` for simplest API.
 
-pub fn youtubereporting_report_types_list_builder(
-    client: &SimpleHttpClient,
+pub fn youtubereporting_report_types_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     includeSystemManaged: &Option<Option<String>>,
     onBehalfOfContentOwner: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://youtubereporting.googleapis.com/v1/reportTypes",);
 

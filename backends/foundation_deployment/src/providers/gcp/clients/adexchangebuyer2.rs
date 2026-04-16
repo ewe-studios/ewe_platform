@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `adexchangebuyer2_accounts_clients_create_execute()` to send, or `adexchangebuyer2_accounts_clients_create` for simplest API.
 
-pub fn adexchangebuyer2_accounts_clients_create_builder(
-    client: &SimpleHttpClient,
+pub fn adexchangebuyer2_accounts_clients_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     accountId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/accounts/{}/clients",
@@ -183,11 +187,14 @@ pub fn adexchangebuyer2_accounts_clients_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `adexchangebuyer2_accounts_clients_get_execute()` to send, or `adexchangebuyer2_accounts_clients_get` for simplest API.
 
-pub fn adexchangebuyer2_accounts_clients_get_builder(
-    client: &SimpleHttpClient,
+pub fn adexchangebuyer2_accounts_clients_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     accountId: &String,
     clientAccountId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/accounts/{}/clients/{}",
@@ -347,13 +354,16 @@ pub fn adexchangebuyer2_accounts_clients_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `adexchangebuyer2_accounts_clients_list_execute()` to send, or `adexchangebuyer2_accounts_clients_list` for simplest API.
 
-pub fn adexchangebuyer2_accounts_clients_list_builder(
-    client: &SimpleHttpClient,
+pub fn adexchangebuyer2_accounts_clients_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     accountId: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     partnerClientId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/accounts/{}/clients",
@@ -540,11 +550,14 @@ pub fn adexchangebuyer2_accounts_clients_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `adexchangebuyer2_accounts_clients_update_execute()` to send, or `adexchangebuyer2_accounts_clients_update` for simplest API.
 
-pub fn adexchangebuyer2_accounts_clients_update_builder(
-    client: &SimpleHttpClient,
+pub fn adexchangebuyer2_accounts_clients_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     accountId: &String,
     clientAccountId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/accounts/{}/clients/{}",
@@ -704,11 +717,14 @@ pub fn adexchangebuyer2_accounts_clients_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `adexchangebuyer2_accounts_clients_invitations_create_execute()` to send, or `adexchangebuyer2_accounts_clients_invitations_create` for simplest API.
 
-pub fn adexchangebuyer2_accounts_clients_invitations_create_builder(
-    client: &SimpleHttpClient,
+pub fn adexchangebuyer2_accounts_clients_invitations_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     accountId: &String,
     clientAccountId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/accounts/{}/clients/{}/invitations",
@@ -872,12 +888,15 @@ pub fn adexchangebuyer2_accounts_clients_invitations_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `adexchangebuyer2_accounts_clients_invitations_get_execute()` to send, or `adexchangebuyer2_accounts_clients_invitations_get` for simplest API.
 
-pub fn adexchangebuyer2_accounts_clients_invitations_get_builder(
-    client: &SimpleHttpClient,
+pub fn adexchangebuyer2_accounts_clients_invitations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     accountId: &String,
     clientAccountId: &String,
     invitationId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/accounts/{}/clients/{}/invitations/{}",
@@ -1044,13 +1063,16 @@ pub fn adexchangebuyer2_accounts_clients_invitations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `adexchangebuyer2_accounts_clients_invitations_list_execute()` to send, or `adexchangebuyer2_accounts_clients_invitations_list` for simplest API.
 
-pub fn adexchangebuyer2_accounts_clients_invitations_list_builder(
-    client: &SimpleHttpClient,
+pub fn adexchangebuyer2_accounts_clients_invitations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     accountId: &String,
     clientAccountId: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/accounts/{}/clients/{}/invitations",
@@ -1238,12 +1260,15 @@ pub fn adexchangebuyer2_accounts_clients_invitations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `adexchangebuyer2_accounts_clients_users_get_execute()` to send, or `adexchangebuyer2_accounts_clients_users_get` for simplest API.
 
-pub fn adexchangebuyer2_accounts_clients_users_get_builder(
-    client: &SimpleHttpClient,
+pub fn adexchangebuyer2_accounts_clients_users_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     accountId: &String,
     clientAccountId: &String,
     userId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/accounts/{}/clients/{}/users/{}",
@@ -1406,13 +1431,16 @@ pub fn adexchangebuyer2_accounts_clients_users_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `adexchangebuyer2_accounts_clients_users_list_execute()` to send, or `adexchangebuyer2_accounts_clients_users_list` for simplest API.
 
-pub fn adexchangebuyer2_accounts_clients_users_list_builder(
-    client: &SimpleHttpClient,
+pub fn adexchangebuyer2_accounts_clients_users_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     accountId: &String,
     clientAccountId: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/accounts/{}/clients/{}/users",
@@ -1596,12 +1624,15 @@ pub fn adexchangebuyer2_accounts_clients_users_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `adexchangebuyer2_accounts_clients_users_update_execute()` to send, or `adexchangebuyer2_accounts_clients_users_update` for simplest API.
 
-pub fn adexchangebuyer2_accounts_clients_users_update_builder(
-    client: &SimpleHttpClient,
+pub fn adexchangebuyer2_accounts_clients_users_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     accountId: &String,
     clientAccountId: &String,
     userId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/accounts/{}/clients/{}/users/{}",
@@ -1764,11 +1795,14 @@ pub fn adexchangebuyer2_accounts_clients_users_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `adexchangebuyer2_accounts_creatives_create_execute()` to send, or `adexchangebuyer2_accounts_creatives_create` for simplest API.
 
-pub fn adexchangebuyer2_accounts_creatives_create_builder(
-    client: &SimpleHttpClient,
+pub fn adexchangebuyer2_accounts_creatives_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     accountId: &String,
     duplicateIdMode: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/accounts/{}/creatives",
@@ -1939,11 +1973,14 @@ pub fn adexchangebuyer2_accounts_creatives_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `adexchangebuyer2_accounts_creatives_get_execute()` to send, or `adexchangebuyer2_accounts_creatives_get` for simplest API.
 
-pub fn adexchangebuyer2_accounts_creatives_get_builder(
-    client: &SimpleHttpClient,
+pub fn adexchangebuyer2_accounts_creatives_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     accountId: &String,
     creativeId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/accounts/{}/creatives/{}",
@@ -2100,13 +2137,16 @@ pub fn adexchangebuyer2_accounts_creatives_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `adexchangebuyer2_accounts_creatives_list_execute()` to send, or `adexchangebuyer2_accounts_creatives_list` for simplest API.
 
-pub fn adexchangebuyer2_accounts_creatives_list_builder(
-    client: &SimpleHttpClient,
+pub fn adexchangebuyer2_accounts_creatives_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     accountId: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     query: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/accounts/{}/creatives",
@@ -2293,11 +2333,14 @@ pub fn adexchangebuyer2_accounts_creatives_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `adexchangebuyer2_accounts_creatives_stop_watching_execute()` to send, or `adexchangebuyer2_accounts_creatives_stop_watching` for simplest API.
 
-pub fn adexchangebuyer2_accounts_creatives_stop_watching_builder(
-    client: &SimpleHttpClient,
+pub fn adexchangebuyer2_accounts_creatives_stop_watching_builder<R>(
+    client: &SimpleHttpClient<R>,
     accountId: &String,
     creativeId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/accounts/{}/creatives/{}:stopWatching",
@@ -2457,11 +2500,14 @@ pub fn adexchangebuyer2_accounts_creatives_stop_watching(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `adexchangebuyer2_accounts_creatives_update_execute()` to send, or `adexchangebuyer2_accounts_creatives_update` for simplest API.
 
-pub fn adexchangebuyer2_accounts_creatives_update_builder(
-    client: &SimpleHttpClient,
+pub fn adexchangebuyer2_accounts_creatives_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     accountId: &String,
     creativeId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/accounts/{}/creatives/{}",
@@ -2621,11 +2667,14 @@ pub fn adexchangebuyer2_accounts_creatives_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `adexchangebuyer2_accounts_creatives_watch_execute()` to send, or `adexchangebuyer2_accounts_creatives_watch` for simplest API.
 
-pub fn adexchangebuyer2_accounts_creatives_watch_builder(
-    client: &SimpleHttpClient,
+pub fn adexchangebuyer2_accounts_creatives_watch_builder<R>(
+    client: &SimpleHttpClient<R>,
     accountId: &String,
     creativeId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/accounts/{}/creatives/{}:watch",
@@ -2785,11 +2834,14 @@ pub fn adexchangebuyer2_accounts_creatives_watch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `adexchangebuyer2_accounts_creatives_deal_associations_add_execute()` to send, or `adexchangebuyer2_accounts_creatives_deal_associations_add` for simplest API.
 
-pub fn adexchangebuyer2_accounts_creatives_deal_associations_add_builder(
-    client: &SimpleHttpClient,
+pub fn adexchangebuyer2_accounts_creatives_deal_associations_add_builder<R>(
+    client: &SimpleHttpClient<R>,
     accountId: &String,
     creativeId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/accounts/{}/creatives/{}/dealAssociations:add",
@@ -2950,14 +3002,17 @@ pub fn adexchangebuyer2_accounts_creatives_deal_associations_add(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `adexchangebuyer2_accounts_creatives_deal_associations_list_execute()` to send, or `adexchangebuyer2_accounts_creatives_deal_associations_list` for simplest API.
 
-pub fn adexchangebuyer2_accounts_creatives_deal_associations_list_builder(
-    client: &SimpleHttpClient,
+pub fn adexchangebuyer2_accounts_creatives_deal_associations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     accountId: &String,
     creativeId: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     query: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/accounts/{}/creatives/{}/dealAssociations",
@@ -3151,11 +3206,14 @@ pub fn adexchangebuyer2_accounts_creatives_deal_associations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `adexchangebuyer2_accounts_creatives_deal_associations_remove_execute()` to send, or `adexchangebuyer2_accounts_creatives_deal_associations_remove` for simplest API.
 
-pub fn adexchangebuyer2_accounts_creatives_deal_associations_remove_builder(
-    client: &SimpleHttpClient,
+pub fn adexchangebuyer2_accounts_creatives_deal_associations_remove_builder<R>(
+    client: &SimpleHttpClient<R>,
     accountId: &String,
     creativeId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/accounts/{}/creatives/{}/dealAssociations:remove",
@@ -3316,14 +3374,17 @@ pub fn adexchangebuyer2_accounts_creatives_deal_associations_remove(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `adexchangebuyer2_accounts_finalized_proposals_list_execute()` to send, or `adexchangebuyer2_accounts_finalized_proposals_list` for simplest API.
 
-pub fn adexchangebuyer2_accounts_finalized_proposals_list_builder(
-    client: &SimpleHttpClient,
+pub fn adexchangebuyer2_accounts_finalized_proposals_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     accountId: &String,
     filter: &Option<Option<String>>,
     filterSyntax: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/accounts/{}/finalizedProposals",
@@ -3516,11 +3577,14 @@ pub fn adexchangebuyer2_accounts_finalized_proposals_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `adexchangebuyer2_accounts_finalized_proposals_pause_execute()` to send, or `adexchangebuyer2_accounts_finalized_proposals_pause` for simplest API.
 
-pub fn adexchangebuyer2_accounts_finalized_proposals_pause_builder(
-    client: &SimpleHttpClient,
+pub fn adexchangebuyer2_accounts_finalized_proposals_pause_builder<R>(
+    client: &SimpleHttpClient<R>,
     accountId: &String,
     proposalId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/accounts/{}/finalizedProposals/{}:pause",
@@ -3680,11 +3744,14 @@ pub fn adexchangebuyer2_accounts_finalized_proposals_pause(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `adexchangebuyer2_accounts_finalized_proposals_resume_execute()` to send, or `adexchangebuyer2_accounts_finalized_proposals_resume` for simplest API.
 
-pub fn adexchangebuyer2_accounts_finalized_proposals_resume_builder(
-    client: &SimpleHttpClient,
+pub fn adexchangebuyer2_accounts_finalized_proposals_resume_builder<R>(
+    client: &SimpleHttpClient<R>,
     accountId: &String,
     proposalId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/accounts/{}/finalizedProposals/{}:resume",
@@ -3844,11 +3911,14 @@ pub fn adexchangebuyer2_accounts_finalized_proposals_resume(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `adexchangebuyer2_accounts_products_get_execute()` to send, or `adexchangebuyer2_accounts_products_get` for simplest API.
 
-pub fn adexchangebuyer2_accounts_products_get_builder(
-    client: &SimpleHttpClient,
+pub fn adexchangebuyer2_accounts_products_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     accountId: &String,
     productId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/accounts/{}/products/{}",
@@ -4005,13 +4075,16 @@ pub fn adexchangebuyer2_accounts_products_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `adexchangebuyer2_accounts_products_list_execute()` to send, or `adexchangebuyer2_accounts_products_list` for simplest API.
 
-pub fn adexchangebuyer2_accounts_products_list_builder(
-    client: &SimpleHttpClient,
+pub fn adexchangebuyer2_accounts_products_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     accountId: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/accounts/{}/products",
@@ -4198,11 +4271,14 @@ pub fn adexchangebuyer2_accounts_products_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `adexchangebuyer2_accounts_proposals_accept_execute()` to send, or `adexchangebuyer2_accounts_proposals_accept` for simplest API.
 
-pub fn adexchangebuyer2_accounts_proposals_accept_builder(
-    client: &SimpleHttpClient,
+pub fn adexchangebuyer2_accounts_proposals_accept_builder<R>(
+    client: &SimpleHttpClient<R>,
     accountId: &String,
     proposalId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/accounts/{}/proposals/{}:accept",
@@ -4362,11 +4438,14 @@ pub fn adexchangebuyer2_accounts_proposals_accept(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `adexchangebuyer2_accounts_proposals_add_note_execute()` to send, or `adexchangebuyer2_accounts_proposals_add_note` for simplest API.
 
-pub fn adexchangebuyer2_accounts_proposals_add_note_builder(
-    client: &SimpleHttpClient,
+pub fn adexchangebuyer2_accounts_proposals_add_note_builder<R>(
+    client: &SimpleHttpClient<R>,
     accountId: &String,
     proposalId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/accounts/{}/proposals/{}:addNote",
@@ -4526,11 +4605,14 @@ pub fn adexchangebuyer2_accounts_proposals_add_note(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `adexchangebuyer2_accounts_proposals_cancel_negotiation_execute()` to send, or `adexchangebuyer2_accounts_proposals_cancel_negotiation` for simplest API.
 
-pub fn adexchangebuyer2_accounts_proposals_cancel_negotiation_builder(
-    client: &SimpleHttpClient,
+pub fn adexchangebuyer2_accounts_proposals_cancel_negotiation_builder<R>(
+    client: &SimpleHttpClient<R>,
     accountId: &String,
     proposalId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/accounts/{}/proposals/{}:cancelNegotiation",
@@ -4690,11 +4772,14 @@ pub fn adexchangebuyer2_accounts_proposals_cancel_negotiation(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `adexchangebuyer2_accounts_proposals_complete_setup_execute()` to send, or `adexchangebuyer2_accounts_proposals_complete_setup` for simplest API.
 
-pub fn adexchangebuyer2_accounts_proposals_complete_setup_builder(
-    client: &SimpleHttpClient,
+pub fn adexchangebuyer2_accounts_proposals_complete_setup_builder<R>(
+    client: &SimpleHttpClient<R>,
     accountId: &String,
     proposalId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/accounts/{}/proposals/{}:completeSetup",
@@ -4854,10 +4939,13 @@ pub fn adexchangebuyer2_accounts_proposals_complete_setup(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `adexchangebuyer2_accounts_proposals_create_execute()` to send, or `adexchangebuyer2_accounts_proposals_create` for simplest API.
 
-pub fn adexchangebuyer2_accounts_proposals_create_builder(
-    client: &SimpleHttpClient,
+pub fn adexchangebuyer2_accounts_proposals_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     accountId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/accounts/{}/proposals",
@@ -5011,11 +5099,14 @@ pub fn adexchangebuyer2_accounts_proposals_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `adexchangebuyer2_accounts_proposals_get_execute()` to send, or `adexchangebuyer2_accounts_proposals_get` for simplest API.
 
-pub fn adexchangebuyer2_accounts_proposals_get_builder(
-    client: &SimpleHttpClient,
+pub fn adexchangebuyer2_accounts_proposals_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     accountId: &String,
     proposalId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/accounts/{}/proposals/{}",
@@ -5172,14 +5263,17 @@ pub fn adexchangebuyer2_accounts_proposals_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `adexchangebuyer2_accounts_proposals_list_execute()` to send, or `adexchangebuyer2_accounts_proposals_list` for simplest API.
 
-pub fn adexchangebuyer2_accounts_proposals_list_builder(
-    client: &SimpleHttpClient,
+pub fn adexchangebuyer2_accounts_proposals_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     accountId: &String,
     filter: &Option<Option<String>>,
     filterSyntax: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/accounts/{}/proposals",
@@ -5372,11 +5466,14 @@ pub fn adexchangebuyer2_accounts_proposals_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `adexchangebuyer2_accounts_proposals_pause_execute()` to send, or `adexchangebuyer2_accounts_proposals_pause` for simplest API.
 
-pub fn adexchangebuyer2_accounts_proposals_pause_builder(
-    client: &SimpleHttpClient,
+pub fn adexchangebuyer2_accounts_proposals_pause_builder<R>(
+    client: &SimpleHttpClient<R>,
     accountId: &String,
     proposalId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/accounts/{}/proposals/{}:pause",
@@ -5536,11 +5633,14 @@ pub fn adexchangebuyer2_accounts_proposals_pause(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `adexchangebuyer2_accounts_proposals_resume_execute()` to send, or `adexchangebuyer2_accounts_proposals_resume` for simplest API.
 
-pub fn adexchangebuyer2_accounts_proposals_resume_builder(
-    client: &SimpleHttpClient,
+pub fn adexchangebuyer2_accounts_proposals_resume_builder<R>(
+    client: &SimpleHttpClient<R>,
     accountId: &String,
     proposalId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/accounts/{}/proposals/{}:resume",
@@ -5700,11 +5800,14 @@ pub fn adexchangebuyer2_accounts_proposals_resume(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `adexchangebuyer2_accounts_proposals_update_execute()` to send, or `adexchangebuyer2_accounts_proposals_update` for simplest API.
 
-pub fn adexchangebuyer2_accounts_proposals_update_builder(
-    client: &SimpleHttpClient,
+pub fn adexchangebuyer2_accounts_proposals_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     accountId: &String,
     proposalId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/accounts/{}/proposals/{}",
@@ -5864,11 +5967,14 @@ pub fn adexchangebuyer2_accounts_proposals_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `adexchangebuyer2_accounts_publisher_profiles_get_execute()` to send, or `adexchangebuyer2_accounts_publisher_profiles_get` for simplest API.
 
-pub fn adexchangebuyer2_accounts_publisher_profiles_get_builder(
-    client: &SimpleHttpClient,
+pub fn adexchangebuyer2_accounts_publisher_profiles_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     accountId: &String,
     publisherProfileId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/accounts/{}/publisherProfiles/{}",
@@ -6032,12 +6138,15 @@ pub fn adexchangebuyer2_accounts_publisher_profiles_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `adexchangebuyer2_accounts_publisher_profiles_list_execute()` to send, or `adexchangebuyer2_accounts_publisher_profiles_list` for simplest API.
 
-pub fn adexchangebuyer2_accounts_publisher_profiles_list_builder(
-    client: &SimpleHttpClient,
+pub fn adexchangebuyer2_accounts_publisher_profiles_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     accountId: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/accounts/{}/publisherProfiles",
@@ -6222,11 +6331,14 @@ pub fn adexchangebuyer2_accounts_publisher_profiles_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `adexchangebuyer2_bidders_accounts_filter_sets_create_execute()` to send, or `adexchangebuyer2_bidders_accounts_filter_sets_create` for simplest API.
 
-pub fn adexchangebuyer2_bidders_accounts_filter_sets_create_builder(
-    client: &SimpleHttpClient,
+pub fn adexchangebuyer2_bidders_accounts_filter_sets_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     ownerName: &String,
     isTransient: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/bidders/{}/accounts/{accountsId}/filterSets",
@@ -6397,10 +6509,13 @@ pub fn adexchangebuyer2_bidders_accounts_filter_sets_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `adexchangebuyer2_bidders_accounts_filter_sets_delete_execute()` to send, or `adexchangebuyer2_bidders_accounts_filter_sets_delete` for simplest API.
 
-pub fn adexchangebuyer2_bidders_accounts_filter_sets_delete_builder(
-    client: &SimpleHttpClient,
+pub fn adexchangebuyer2_bidders_accounts_filter_sets_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/bidders/{}/accounts/{accountsId}/filterSets/{filterSetsId}",
@@ -6554,10 +6669,13 @@ pub fn adexchangebuyer2_bidders_accounts_filter_sets_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `adexchangebuyer2_bidders_accounts_filter_sets_get_execute()` to send, or `adexchangebuyer2_bidders_accounts_filter_sets_get` for simplest API.
 
-pub fn adexchangebuyer2_bidders_accounts_filter_sets_get_builder(
-    client: &SimpleHttpClient,
+pub fn adexchangebuyer2_bidders_accounts_filter_sets_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/bidders/{}/accounts/{accountsId}/filterSets/{filterSetsId}",
@@ -6711,12 +6829,15 @@ pub fn adexchangebuyer2_bidders_accounts_filter_sets_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `adexchangebuyer2_bidders_accounts_filter_sets_list_execute()` to send, or `adexchangebuyer2_bidders_accounts_filter_sets_list` for simplest API.
 
-pub fn adexchangebuyer2_bidders_accounts_filter_sets_list_builder(
-    client: &SimpleHttpClient,
+pub fn adexchangebuyer2_bidders_accounts_filter_sets_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     ownerName: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/bidders/{}/accounts/{accountsId}/filterSets",
@@ -6897,12 +7018,15 @@ pub fn adexchangebuyer2_bidders_accounts_filter_sets_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `adexchangebuyer2_bidders_accounts_filter_sets_bid_metrics_list_execute()` to send, or `adexchangebuyer2_bidders_accounts_filter_sets_bid_metrics_list` for simplest API.
 
-pub fn adexchangebuyer2_bidders_accounts_filter_sets_bid_metrics_list_builder(
-    client: &SimpleHttpClient,
+pub fn adexchangebuyer2_bidders_accounts_filter_sets_bid_metrics_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     filterSetName: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/bidders/{}/accounts/{accountsId}/filterSets/{filterSetsId}/bidMetrics",
@@ -7083,12 +7207,15 @@ pub fn adexchangebuyer2_bidders_accounts_filter_sets_bid_metrics_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `adexchangebuyer2_bidders_accounts_filter_sets_bid_response_errors_list_execute()` to send, or `adexchangebuyer2_bidders_accounts_filter_sets_bid_response_errors_list` for simplest API.
 
-pub fn adexchangebuyer2_bidders_accounts_filter_sets_bid_response_errors_list_builder(
-    client: &SimpleHttpClient,
+pub fn adexchangebuyer2_bidders_accounts_filter_sets_bid_response_errors_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     filterSetName: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/bidders/{}/accounts/{accountsId}/filterSets/{filterSetsId}/bidResponseErrors",
@@ -7274,12 +7401,15 @@ pub fn adexchangebuyer2_bidders_accounts_filter_sets_bid_response_errors_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `adexchangebuyer2_bidders_accounts_filter_sets_bid_responses_without_bids_list_execute()` to send, or `adexchangebuyer2_bidders_accounts_filter_sets_bid_responses_without_bids_list` for simplest API.
 
-pub fn adexchangebuyer2_bidders_accounts_filter_sets_bid_responses_without_bids_list_builder(
-    client: &SimpleHttpClient,
+pub fn adexchangebuyer2_bidders_accounts_filter_sets_bid_responses_without_bids_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     filterSetName: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/bidders/{}/accounts/{accountsId}/filterSets/{filterSetsId}/bidResponsesWithoutBids",
@@ -7467,12 +7597,15 @@ pub fn adexchangebuyer2_bidders_accounts_filter_sets_bid_responses_without_bids_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `adexchangebuyer2_bidders_accounts_filter_sets_filtered_bid_requests_list_execute()` to send, or `adexchangebuyer2_bidders_accounts_filter_sets_filtered_bid_requests_list` for simplest API.
 
-pub fn adexchangebuyer2_bidders_accounts_filter_sets_filtered_bid_requests_list_builder(
-    client: &SimpleHttpClient,
+pub fn adexchangebuyer2_bidders_accounts_filter_sets_filtered_bid_requests_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     filterSetName: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/bidders/{}/accounts/{accountsId}/filterSets/{filterSetsId}/filteredBidRequests",
@@ -7658,12 +7791,15 @@ pub fn adexchangebuyer2_bidders_accounts_filter_sets_filtered_bid_requests_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `adexchangebuyer2_bidders_accounts_filter_sets_filtered_bids_list_execute()` to send, or `adexchangebuyer2_bidders_accounts_filter_sets_filtered_bids_list` for simplest API.
 
-pub fn adexchangebuyer2_bidders_accounts_filter_sets_filtered_bids_list_builder(
-    client: &SimpleHttpClient,
+pub fn adexchangebuyer2_bidders_accounts_filter_sets_filtered_bids_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     filterSetName: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/bidders/{}/accounts/{accountsId}/filterSets/{filterSetsId}/filteredBids",
@@ -7844,13 +7980,16 @@ pub fn adexchangebuyer2_bidders_accounts_filter_sets_filtered_bids_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `adexchangebuyer2_bidders_accounts_filter_sets_filtered_bids_creatives_list_execute()` to send, or `adexchangebuyer2_bidders_accounts_filter_sets_filtered_bids_creatives_list` for simplest API.
 
-pub fn adexchangebuyer2_bidders_accounts_filter_sets_filtered_bids_creatives_list_builder(
-    client: &SimpleHttpClient,
+pub fn adexchangebuyer2_bidders_accounts_filter_sets_filtered_bids_creatives_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     filterSetName: &String,
     creativeStatusId: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/bidders/{}/accounts/{}/filterSets/{filterSetsId}/filteredBids/{creativeStatusId}/creatives",
@@ -8042,13 +8181,16 @@ pub fn adexchangebuyer2_bidders_accounts_filter_sets_filtered_bids_creatives_lis
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `adexchangebuyer2_bidders_accounts_filter_sets_filtered_bids_details_list_execute()` to send, or `adexchangebuyer2_bidders_accounts_filter_sets_filtered_bids_details_list` for simplest API.
 
-pub fn adexchangebuyer2_bidders_accounts_filter_sets_filtered_bids_details_list_builder(
-    client: &SimpleHttpClient,
+pub fn adexchangebuyer2_bidders_accounts_filter_sets_filtered_bids_details_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     filterSetName: &String,
     creativeStatusId: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/bidders/{}/accounts/{}/filterSets/{filterSetsId}/filteredBids/{creativeStatusId}/details",
@@ -8239,12 +8381,15 @@ pub fn adexchangebuyer2_bidders_accounts_filter_sets_filtered_bids_details_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `adexchangebuyer2_bidders_accounts_filter_sets_impression_metrics_list_execute()` to send, or `adexchangebuyer2_bidders_accounts_filter_sets_impression_metrics_list` for simplest API.
 
-pub fn adexchangebuyer2_bidders_accounts_filter_sets_impression_metrics_list_builder(
-    client: &SimpleHttpClient,
+pub fn adexchangebuyer2_bidders_accounts_filter_sets_impression_metrics_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     filterSetName: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/bidders/{}/accounts/{accountsId}/filterSets/{filterSetsId}/impressionMetrics",
@@ -8429,12 +8574,15 @@ pub fn adexchangebuyer2_bidders_accounts_filter_sets_impression_metrics_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `adexchangebuyer2_bidders_accounts_filter_sets_losing_bids_list_execute()` to send, or `adexchangebuyer2_bidders_accounts_filter_sets_losing_bids_list` for simplest API.
 
-pub fn adexchangebuyer2_bidders_accounts_filter_sets_losing_bids_list_builder(
-    client: &SimpleHttpClient,
+pub fn adexchangebuyer2_bidders_accounts_filter_sets_losing_bids_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     filterSetName: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/bidders/{}/accounts/{accountsId}/filterSets/{filterSetsId}/losingBids",
@@ -8615,12 +8763,15 @@ pub fn adexchangebuyer2_bidders_accounts_filter_sets_losing_bids_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `adexchangebuyer2_bidders_accounts_filter_sets_non_billable_winning_bids_list_execute()` to send, or `adexchangebuyer2_bidders_accounts_filter_sets_non_billable_winning_bids_list` for simplest API.
 
-pub fn adexchangebuyer2_bidders_accounts_filter_sets_non_billable_winning_bids_list_builder(
-    client: &SimpleHttpClient,
+pub fn adexchangebuyer2_bidders_accounts_filter_sets_non_billable_winning_bids_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     filterSetName: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/bidders/{}/accounts/{accountsId}/filterSets/{filterSetsId}/nonBillableWinningBids",
@@ -8807,11 +8958,14 @@ pub fn adexchangebuyer2_bidders_accounts_filter_sets_non_billable_winning_bids_l
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `adexchangebuyer2_bidders_filter_sets_create_execute()` to send, or `adexchangebuyer2_bidders_filter_sets_create` for simplest API.
 
-pub fn adexchangebuyer2_bidders_filter_sets_create_builder(
-    client: &SimpleHttpClient,
+pub fn adexchangebuyer2_bidders_filter_sets_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     ownerName: &String,
     isTransient: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/bidders/{}/filterSets",
@@ -8982,10 +9136,13 @@ pub fn adexchangebuyer2_bidders_filter_sets_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `adexchangebuyer2_bidders_filter_sets_delete_execute()` to send, or `adexchangebuyer2_bidders_filter_sets_delete` for simplest API.
 
-pub fn adexchangebuyer2_bidders_filter_sets_delete_builder(
-    client: &SimpleHttpClient,
+pub fn adexchangebuyer2_bidders_filter_sets_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/bidders/{}/filterSets/{filterSetsId}",
@@ -9139,10 +9296,13 @@ pub fn adexchangebuyer2_bidders_filter_sets_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `adexchangebuyer2_bidders_filter_sets_get_execute()` to send, or `adexchangebuyer2_bidders_filter_sets_get` for simplest API.
 
-pub fn adexchangebuyer2_bidders_filter_sets_get_builder(
-    client: &SimpleHttpClient,
+pub fn adexchangebuyer2_bidders_filter_sets_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/bidders/{}/filterSets/{filterSetsId}",
@@ -9296,12 +9456,15 @@ pub fn adexchangebuyer2_bidders_filter_sets_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `adexchangebuyer2_bidders_filter_sets_list_execute()` to send, or `adexchangebuyer2_bidders_filter_sets_list` for simplest API.
 
-pub fn adexchangebuyer2_bidders_filter_sets_list_builder(
-    client: &SimpleHttpClient,
+pub fn adexchangebuyer2_bidders_filter_sets_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     ownerName: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/bidders/{}/filterSets",
@@ -9482,12 +9645,15 @@ pub fn adexchangebuyer2_bidders_filter_sets_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `adexchangebuyer2_bidders_filter_sets_bid_metrics_list_execute()` to send, or `adexchangebuyer2_bidders_filter_sets_bid_metrics_list` for simplest API.
 
-pub fn adexchangebuyer2_bidders_filter_sets_bid_metrics_list_builder(
-    client: &SimpleHttpClient,
+pub fn adexchangebuyer2_bidders_filter_sets_bid_metrics_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     filterSetName: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/bidders/{}/filterSets/{filterSetsId}/bidMetrics",
@@ -9668,12 +9834,15 @@ pub fn adexchangebuyer2_bidders_filter_sets_bid_metrics_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `adexchangebuyer2_bidders_filter_sets_bid_response_errors_list_execute()` to send, or `adexchangebuyer2_bidders_filter_sets_bid_response_errors_list` for simplest API.
 
-pub fn adexchangebuyer2_bidders_filter_sets_bid_response_errors_list_builder(
-    client: &SimpleHttpClient,
+pub fn adexchangebuyer2_bidders_filter_sets_bid_response_errors_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     filterSetName: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/bidders/{}/filterSets/{filterSetsId}/bidResponseErrors",
@@ -9858,12 +10027,15 @@ pub fn adexchangebuyer2_bidders_filter_sets_bid_response_errors_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `adexchangebuyer2_bidders_filter_sets_bid_responses_without_bids_list_execute()` to send, or `adexchangebuyer2_bidders_filter_sets_bid_responses_without_bids_list` for simplest API.
 
-pub fn adexchangebuyer2_bidders_filter_sets_bid_responses_without_bids_list_builder(
-    client: &SimpleHttpClient,
+pub fn adexchangebuyer2_bidders_filter_sets_bid_responses_without_bids_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     filterSetName: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/bidders/{}/filterSets/{filterSetsId}/bidResponsesWithoutBids",
@@ -10048,12 +10220,15 @@ pub fn adexchangebuyer2_bidders_filter_sets_bid_responses_without_bids_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `adexchangebuyer2_bidders_filter_sets_filtered_bid_requests_list_execute()` to send, or `adexchangebuyer2_bidders_filter_sets_filtered_bid_requests_list` for simplest API.
 
-pub fn adexchangebuyer2_bidders_filter_sets_filtered_bid_requests_list_builder(
-    client: &SimpleHttpClient,
+pub fn adexchangebuyer2_bidders_filter_sets_filtered_bid_requests_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     filterSetName: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/bidders/{}/filterSets/{filterSetsId}/filteredBidRequests",
@@ -10238,12 +10413,15 @@ pub fn adexchangebuyer2_bidders_filter_sets_filtered_bid_requests_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `adexchangebuyer2_bidders_filter_sets_filtered_bids_list_execute()` to send, or `adexchangebuyer2_bidders_filter_sets_filtered_bids_list` for simplest API.
 
-pub fn adexchangebuyer2_bidders_filter_sets_filtered_bids_list_builder(
-    client: &SimpleHttpClient,
+pub fn adexchangebuyer2_bidders_filter_sets_filtered_bids_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     filterSetName: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/bidders/{}/filterSets/{filterSetsId}/filteredBids",
@@ -10424,13 +10602,16 @@ pub fn adexchangebuyer2_bidders_filter_sets_filtered_bids_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `adexchangebuyer2_bidders_filter_sets_filtered_bids_creatives_list_execute()` to send, or `adexchangebuyer2_bidders_filter_sets_filtered_bids_creatives_list` for simplest API.
 
-pub fn adexchangebuyer2_bidders_filter_sets_filtered_bids_creatives_list_builder(
-    client: &SimpleHttpClient,
+pub fn adexchangebuyer2_bidders_filter_sets_filtered_bids_creatives_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     filterSetName: &String,
     creativeStatusId: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/bidders/{}/filterSets/{}/filteredBids/{creativeStatusId}/creatives",
@@ -10620,13 +10801,16 @@ pub fn adexchangebuyer2_bidders_filter_sets_filtered_bids_creatives_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `adexchangebuyer2_bidders_filter_sets_filtered_bids_details_list_execute()` to send, or `adexchangebuyer2_bidders_filter_sets_filtered_bids_details_list` for simplest API.
 
-pub fn adexchangebuyer2_bidders_filter_sets_filtered_bids_details_list_builder(
-    client: &SimpleHttpClient,
+pub fn adexchangebuyer2_bidders_filter_sets_filtered_bids_details_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     filterSetName: &String,
     creativeStatusId: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/bidders/{}/filterSets/{}/filteredBids/{creativeStatusId}/details",
@@ -10816,12 +11000,15 @@ pub fn adexchangebuyer2_bidders_filter_sets_filtered_bids_details_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `adexchangebuyer2_bidders_filter_sets_impression_metrics_list_execute()` to send, or `adexchangebuyer2_bidders_filter_sets_impression_metrics_list` for simplest API.
 
-pub fn adexchangebuyer2_bidders_filter_sets_impression_metrics_list_builder(
-    client: &SimpleHttpClient,
+pub fn adexchangebuyer2_bidders_filter_sets_impression_metrics_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     filterSetName: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/bidders/{}/filterSets/{filterSetsId}/impressionMetrics",
@@ -11006,12 +11193,15 @@ pub fn adexchangebuyer2_bidders_filter_sets_impression_metrics_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `adexchangebuyer2_bidders_filter_sets_losing_bids_list_execute()` to send, or `adexchangebuyer2_bidders_filter_sets_losing_bids_list` for simplest API.
 
-pub fn adexchangebuyer2_bidders_filter_sets_losing_bids_list_builder(
-    client: &SimpleHttpClient,
+pub fn adexchangebuyer2_bidders_filter_sets_losing_bids_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     filterSetName: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/bidders/{}/filterSets/{filterSetsId}/losingBids",
@@ -11192,12 +11382,15 @@ pub fn adexchangebuyer2_bidders_filter_sets_losing_bids_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `adexchangebuyer2_bidders_filter_sets_non_billable_winning_bids_list_execute()` to send, or `adexchangebuyer2_bidders_filter_sets_non_billable_winning_bids_list` for simplest API.
 
-pub fn adexchangebuyer2_bidders_filter_sets_non_billable_winning_bids_list_builder(
-    client: &SimpleHttpClient,
+pub fn adexchangebuyer2_bidders_filter_sets_non_billable_winning_bids_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     filterSetName: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/bidders/{}/filterSets/{filterSetsId}/nonBillableWinningBids",
@@ -11382,11 +11575,14 @@ pub fn adexchangebuyer2_bidders_filter_sets_non_billable_winning_bids_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `adexchangebuyer2_buyers_filter_sets_create_execute()` to send, or `adexchangebuyer2_buyers_filter_sets_create` for simplest API.
 
-pub fn adexchangebuyer2_buyers_filter_sets_create_builder(
-    client: &SimpleHttpClient,
+pub fn adexchangebuyer2_buyers_filter_sets_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     ownerName: &String,
     isTransient: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/buyers/{}/filterSets",
@@ -11557,10 +11753,13 @@ pub fn adexchangebuyer2_buyers_filter_sets_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `adexchangebuyer2_buyers_filter_sets_delete_execute()` to send, or `adexchangebuyer2_buyers_filter_sets_delete` for simplest API.
 
-pub fn adexchangebuyer2_buyers_filter_sets_delete_builder(
-    client: &SimpleHttpClient,
+pub fn adexchangebuyer2_buyers_filter_sets_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/buyers/{}/filterSets/{filterSetsId}",
@@ -11714,10 +11913,13 @@ pub fn adexchangebuyer2_buyers_filter_sets_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `adexchangebuyer2_buyers_filter_sets_get_execute()` to send, or `adexchangebuyer2_buyers_filter_sets_get` for simplest API.
 
-pub fn adexchangebuyer2_buyers_filter_sets_get_builder(
-    client: &SimpleHttpClient,
+pub fn adexchangebuyer2_buyers_filter_sets_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/buyers/{}/filterSets/{filterSetsId}",
@@ -11871,12 +12073,15 @@ pub fn adexchangebuyer2_buyers_filter_sets_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `adexchangebuyer2_buyers_filter_sets_list_execute()` to send, or `adexchangebuyer2_buyers_filter_sets_list` for simplest API.
 
-pub fn adexchangebuyer2_buyers_filter_sets_list_builder(
-    client: &SimpleHttpClient,
+pub fn adexchangebuyer2_buyers_filter_sets_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     ownerName: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/buyers/{}/filterSets",
@@ -12057,12 +12262,15 @@ pub fn adexchangebuyer2_buyers_filter_sets_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `adexchangebuyer2_buyers_filter_sets_bid_metrics_list_execute()` to send, or `adexchangebuyer2_buyers_filter_sets_bid_metrics_list` for simplest API.
 
-pub fn adexchangebuyer2_buyers_filter_sets_bid_metrics_list_builder(
-    client: &SimpleHttpClient,
+pub fn adexchangebuyer2_buyers_filter_sets_bid_metrics_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     filterSetName: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/buyers/{}/filterSets/{filterSetsId}/bidMetrics",
@@ -12243,12 +12451,15 @@ pub fn adexchangebuyer2_buyers_filter_sets_bid_metrics_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `adexchangebuyer2_buyers_filter_sets_bid_response_errors_list_execute()` to send, or `adexchangebuyer2_buyers_filter_sets_bid_response_errors_list` for simplest API.
 
-pub fn adexchangebuyer2_buyers_filter_sets_bid_response_errors_list_builder(
-    client: &SimpleHttpClient,
+pub fn adexchangebuyer2_buyers_filter_sets_bid_response_errors_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     filterSetName: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/buyers/{}/filterSets/{filterSetsId}/bidResponseErrors",
@@ -12433,12 +12644,15 @@ pub fn adexchangebuyer2_buyers_filter_sets_bid_response_errors_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `adexchangebuyer2_buyers_filter_sets_bid_responses_without_bids_list_execute()` to send, or `adexchangebuyer2_buyers_filter_sets_bid_responses_without_bids_list` for simplest API.
 
-pub fn adexchangebuyer2_buyers_filter_sets_bid_responses_without_bids_list_builder(
-    client: &SimpleHttpClient,
+pub fn adexchangebuyer2_buyers_filter_sets_bid_responses_without_bids_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     filterSetName: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/buyers/{}/filterSets/{filterSetsId}/bidResponsesWithoutBids",
@@ -12623,12 +12837,15 @@ pub fn adexchangebuyer2_buyers_filter_sets_bid_responses_without_bids_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `adexchangebuyer2_buyers_filter_sets_filtered_bid_requests_list_execute()` to send, or `adexchangebuyer2_buyers_filter_sets_filtered_bid_requests_list` for simplest API.
 
-pub fn adexchangebuyer2_buyers_filter_sets_filtered_bid_requests_list_builder(
-    client: &SimpleHttpClient,
+pub fn adexchangebuyer2_buyers_filter_sets_filtered_bid_requests_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     filterSetName: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/buyers/{}/filterSets/{filterSetsId}/filteredBidRequests",
@@ -12813,12 +13030,15 @@ pub fn adexchangebuyer2_buyers_filter_sets_filtered_bid_requests_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `adexchangebuyer2_buyers_filter_sets_filtered_bids_list_execute()` to send, or `adexchangebuyer2_buyers_filter_sets_filtered_bids_list` for simplest API.
 
-pub fn adexchangebuyer2_buyers_filter_sets_filtered_bids_list_builder(
-    client: &SimpleHttpClient,
+pub fn adexchangebuyer2_buyers_filter_sets_filtered_bids_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     filterSetName: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/buyers/{}/filterSets/{filterSetsId}/filteredBids",
@@ -12999,13 +13219,16 @@ pub fn adexchangebuyer2_buyers_filter_sets_filtered_bids_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `adexchangebuyer2_buyers_filter_sets_filtered_bids_creatives_list_execute()` to send, or `adexchangebuyer2_buyers_filter_sets_filtered_bids_creatives_list` for simplest API.
 
-pub fn adexchangebuyer2_buyers_filter_sets_filtered_bids_creatives_list_builder(
-    client: &SimpleHttpClient,
+pub fn adexchangebuyer2_buyers_filter_sets_filtered_bids_creatives_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     filterSetName: &String,
     creativeStatusId: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/buyers/{}/filterSets/{}/filteredBids/{creativeStatusId}/creatives",
@@ -13195,13 +13418,16 @@ pub fn adexchangebuyer2_buyers_filter_sets_filtered_bids_creatives_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `adexchangebuyer2_buyers_filter_sets_filtered_bids_details_list_execute()` to send, or `adexchangebuyer2_buyers_filter_sets_filtered_bids_details_list` for simplest API.
 
-pub fn adexchangebuyer2_buyers_filter_sets_filtered_bids_details_list_builder(
-    client: &SimpleHttpClient,
+pub fn adexchangebuyer2_buyers_filter_sets_filtered_bids_details_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     filterSetName: &String,
     creativeStatusId: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/buyers/{}/filterSets/{}/filteredBids/{creativeStatusId}/details",
@@ -13391,12 +13617,15 @@ pub fn adexchangebuyer2_buyers_filter_sets_filtered_bids_details_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `adexchangebuyer2_buyers_filter_sets_impression_metrics_list_execute()` to send, or `adexchangebuyer2_buyers_filter_sets_impression_metrics_list` for simplest API.
 
-pub fn adexchangebuyer2_buyers_filter_sets_impression_metrics_list_builder(
-    client: &SimpleHttpClient,
+pub fn adexchangebuyer2_buyers_filter_sets_impression_metrics_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     filterSetName: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/buyers/{}/filterSets/{filterSetsId}/impressionMetrics",
@@ -13581,12 +13810,15 @@ pub fn adexchangebuyer2_buyers_filter_sets_impression_metrics_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `adexchangebuyer2_buyers_filter_sets_losing_bids_list_execute()` to send, or `adexchangebuyer2_buyers_filter_sets_losing_bids_list` for simplest API.
 
-pub fn adexchangebuyer2_buyers_filter_sets_losing_bids_list_builder(
-    client: &SimpleHttpClient,
+pub fn adexchangebuyer2_buyers_filter_sets_losing_bids_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     filterSetName: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/buyers/{}/filterSets/{filterSetsId}/losingBids",
@@ -13767,12 +13999,15 @@ pub fn adexchangebuyer2_buyers_filter_sets_losing_bids_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `adexchangebuyer2_buyers_filter_sets_non_billable_winning_bids_list_execute()` to send, or `adexchangebuyer2_buyers_filter_sets_non_billable_winning_bids_list` for simplest API.
 
-pub fn adexchangebuyer2_buyers_filter_sets_non_billable_winning_bids_list_builder(
-    client: &SimpleHttpClient,
+pub fn adexchangebuyer2_buyers_filter_sets_non_billable_winning_bids_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     filterSetName: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/buyers/{}/filterSets/{filterSetsId}/nonBillableWinningBids",

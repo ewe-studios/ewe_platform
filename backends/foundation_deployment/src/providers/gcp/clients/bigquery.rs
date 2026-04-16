@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,12 +27,15 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigquery_datasets_delete_execute()` to send, or `bigquery_datasets_delete` for simplest API.
 
-pub fn bigquery_datasets_delete_builder(
-    client: &SimpleHttpClient,
+pub fn bigquery_datasets_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     datasetId: &String,
     deleteContents: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigquery.googleapis.com/bigquery/v2/projects/{}/datasets/{}",
@@ -202,13 +206,16 @@ pub fn bigquery_datasets_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigquery_datasets_get_execute()` to send, or `bigquery_datasets_get` for simplest API.
 
-pub fn bigquery_datasets_get_builder(
-    client: &SimpleHttpClient,
+pub fn bigquery_datasets_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     datasetId: &String,
     accessPolicyVersion: &Option<Option<String>>,
     datasetView: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigquery.googleapis.com/bigquery/v2/projects/{}/datasets/{}",
@@ -388,11 +395,14 @@ pub fn bigquery_datasets_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigquery_datasets_insert_execute()` to send, or `bigquery_datasets_insert` for simplest API.
 
-pub fn bigquery_datasets_insert_builder(
-    client: &SimpleHttpClient,
+pub fn bigquery_datasets_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     accessPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigquery.googleapis.com/bigquery/v2/projects/{}/datasets",
@@ -560,14 +570,17 @@ pub fn bigquery_datasets_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigquery_datasets_list_execute()` to send, or `bigquery_datasets_list` for simplest API.
 
-pub fn bigquery_datasets_list_builder(
-    client: &SimpleHttpClient,
+pub fn bigquery_datasets_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     all: &Option<Option<String>>,
     filter: &Option<Option<String>>,
     maxResults: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigquery.googleapis.com/bigquery/v2/projects/{}/datasets",
@@ -756,13 +769,16 @@ pub fn bigquery_datasets_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigquery_datasets_patch_execute()` to send, or `bigquery_datasets_patch` for simplest API.
 
-pub fn bigquery_datasets_patch_builder(
-    client: &SimpleHttpClient,
+pub fn bigquery_datasets_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     datasetId: &String,
     accessPolicyVersion: &Option<Option<String>>,
     updateMode: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigquery.googleapis.com/bigquery/v2/projects/{}/datasets/{}",
@@ -942,11 +958,14 @@ pub fn bigquery_datasets_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigquery_datasets_undelete_execute()` to send, or `bigquery_datasets_undelete` for simplest API.
 
-pub fn bigquery_datasets_undelete_builder(
-    client: &SimpleHttpClient,
+pub fn bigquery_datasets_undelete_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     datasetId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigquery.googleapis.com/bigquery/v2/projects/{}/datasets/{}:undelete",
@@ -1102,13 +1121,16 @@ pub fn bigquery_datasets_undelete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigquery_datasets_update_execute()` to send, or `bigquery_datasets_update` for simplest API.
 
-pub fn bigquery_datasets_update_builder(
-    client: &SimpleHttpClient,
+pub fn bigquery_datasets_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     datasetId: &String,
     accessPolicyVersion: &Option<Option<String>>,
     updateMode: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigquery.googleapis.com/bigquery/v2/projects/{}/datasets/{}",
@@ -1288,12 +1310,15 @@ pub fn bigquery_datasets_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigquery_jobs_cancel_execute()` to send, or `bigquery_jobs_cancel` for simplest API.
 
-pub fn bigquery_jobs_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn bigquery_jobs_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     jobId: &String,
     location: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigquery.googleapis.com/bigquery/v2/projects/{}/jobs/{}/cancel",
@@ -1467,12 +1492,15 @@ pub fn bigquery_jobs_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigquery_jobs_delete_execute()` to send, or `bigquery_jobs_delete` for simplest API.
 
-pub fn bigquery_jobs_delete_builder(
-    client: &SimpleHttpClient,
+pub fn bigquery_jobs_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     jobId: &String,
     location: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigquery.googleapis.com/bigquery/v2/projects/{}/jobs/{}/delete",
@@ -1639,12 +1667,15 @@ pub fn bigquery_jobs_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigquery_jobs_get_execute()` to send, or `bigquery_jobs_get` for simplest API.
 
-pub fn bigquery_jobs_get_builder(
-    client: &SimpleHttpClient,
+pub fn bigquery_jobs_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     jobId: &String,
     location: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigquery.googleapis.com/bigquery/v2/projects/{}/jobs/{}",
@@ -1813,8 +1844,8 @@ pub fn bigquery_jobs_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigquery_jobs_get_query_results_execute()` to send, or `bigquery_jobs_get_query_results` for simplest API.
 
-pub fn bigquery_jobs_get_query_results_builder(
-    client: &SimpleHttpClient,
+pub fn bigquery_jobs_get_query_results_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     jobId: &String,
     formatOptions_timestampOutputFormat: &Option<Option<String>>,
@@ -1824,7 +1855,10 @@ pub fn bigquery_jobs_get_query_results_builder(
     pageToken: &Option<Option<String>>,
     startIndex: &Option<Option<String>>,
     timeoutMs: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigquery.googleapis.com/bigquery/v2/projects/{}/queries/{}",
@@ -2038,10 +2072,13 @@ pub fn bigquery_jobs_get_query_results(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigquery_jobs_insert_execute()` to send, or `bigquery_jobs_insert` for simplest API.
 
-pub fn bigquery_jobs_insert_builder(
-    client: &SimpleHttpClient,
+pub fn bigquery_jobs_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigquery.googleapis.com/bigquery/v2/projects/{}/jobs",
@@ -2195,8 +2232,8 @@ pub fn bigquery_jobs_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigquery_jobs_list_execute()` to send, or `bigquery_jobs_list` for simplest API.
 
-pub fn bigquery_jobs_list_builder(
-    client: &SimpleHttpClient,
+pub fn bigquery_jobs_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     allUsers: &Option<Option<String>>,
     maxCreationTime: &Option<Option<String>>,
@@ -2206,7 +2243,10 @@ pub fn bigquery_jobs_list_builder(
     parentJobId: &Option<Option<String>>,
     projection: &Option<Option<String>>,
     stateFilter: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigquery.googleapis.com/bigquery/v2/projects/{}/jobs",
@@ -2419,10 +2459,13 @@ pub fn bigquery_jobs_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigquery_jobs_query_execute()` to send, or `bigquery_jobs_query` for simplest API.
 
-pub fn bigquery_jobs_query_builder(
-    client: &SimpleHttpClient,
+pub fn bigquery_jobs_query_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigquery.googleapis.com/bigquery/v2/projects/{}/queries",
@@ -2580,12 +2623,15 @@ pub fn bigquery_jobs_query(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigquery_models_delete_execute()` to send, or `bigquery_models_delete` for simplest API.
 
-pub fn bigquery_models_delete_builder(
-    client: &SimpleHttpClient,
+pub fn bigquery_models_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     datasetId: &String,
     modelId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigquery.googleapis.com/bigquery/v2/projects/{}/datasets/{}/models/{}",
@@ -2741,12 +2787,15 @@ pub fn bigquery_models_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigquery_models_get_execute()` to send, or `bigquery_models_get` for simplest API.
 
-pub fn bigquery_models_get_builder(
-    client: &SimpleHttpClient,
+pub fn bigquery_models_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     datasetId: &String,
     modelId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigquery.googleapis.com/bigquery/v2/projects/{}/datasets/{}/models/{}",
@@ -2905,13 +2954,16 @@ pub fn bigquery_models_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigquery_models_list_execute()` to send, or `bigquery_models_list` for simplest API.
 
-pub fn bigquery_models_list_builder(
-    client: &SimpleHttpClient,
+pub fn bigquery_models_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     datasetId: &String,
     maxResults: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigquery.googleapis.com/bigquery/v2/projects/{}/datasets/{}/models",
@@ -3095,12 +3147,15 @@ pub fn bigquery_models_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigquery_models_patch_execute()` to send, or `bigquery_models_patch` for simplest API.
 
-pub fn bigquery_models_patch_builder(
-    client: &SimpleHttpClient,
+pub fn bigquery_models_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     datasetId: &String,
     modelId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigquery.googleapis.com/bigquery/v2/projects/{}/datasets/{}/models/{}",
@@ -3259,10 +3314,13 @@ pub fn bigquery_models_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigquery_projects_get_service_account_execute()` to send, or `bigquery_projects_get_service_account` for simplest API.
 
-pub fn bigquery_projects_get_service_account_builder(
-    client: &SimpleHttpClient,
+pub fn bigquery_projects_get_service_account_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigquery.googleapis.com/bigquery/v2/projects/{}/serviceAccount",
@@ -3420,11 +3478,14 @@ pub fn bigquery_projects_get_service_account(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigquery_projects_list_execute()` to send, or `bigquery_projects_list` for simplest API.
 
-pub fn bigquery_projects_list_builder(
-    client: &SimpleHttpClient,
+pub fn bigquery_projects_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     maxResults: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://bigquery.googleapis.com/bigquery/v2/projects",);
 
@@ -3591,12 +3652,15 @@ pub fn bigquery_projects_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigquery_routines_delete_execute()` to send, or `bigquery_routines_delete` for simplest API.
 
-pub fn bigquery_routines_delete_builder(
-    client: &SimpleHttpClient,
+pub fn bigquery_routines_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     datasetId: &String,
     routineId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigquery.googleapis.com/bigquery/v2/projects/{}/datasets/{}/routines/{}",
@@ -3756,13 +3820,16 @@ pub fn bigquery_routines_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigquery_routines_get_execute()` to send, or `bigquery_routines_get` for simplest API.
 
-pub fn bigquery_routines_get_builder(
-    client: &SimpleHttpClient,
+pub fn bigquery_routines_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     datasetId: &String,
     routineId: &String,
     readMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigquery.googleapis.com/bigquery/v2/projects/{}/datasets/{}/routines/{}",
@@ -3939,10 +4006,13 @@ pub fn bigquery_routines_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigquery_routines_get_iam_policy_execute()` to send, or `bigquery_routines_get_iam_policy` for simplest API.
 
-pub fn bigquery_routines_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn bigquery_routines_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigquery.googleapis.com/bigquery/v2/projects/{}/datasets/{datasetsId}/routines/{routinesId}:getIamPolicy",
@@ -4096,11 +4166,14 @@ pub fn bigquery_routines_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigquery_routines_insert_execute()` to send, or `bigquery_routines_insert` for simplest API.
 
-pub fn bigquery_routines_insert_builder(
-    client: &SimpleHttpClient,
+pub fn bigquery_routines_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     datasetId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigquery.googleapis.com/bigquery/v2/projects/{}/datasets/{}/routines",
@@ -4256,15 +4329,18 @@ pub fn bigquery_routines_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigquery_routines_list_execute()` to send, or `bigquery_routines_list` for simplest API.
 
-pub fn bigquery_routines_list_builder(
-    client: &SimpleHttpClient,
+pub fn bigquery_routines_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     datasetId: &String,
     filter: &Option<Option<String>>,
     maxResults: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     readMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigquery.googleapis.com/bigquery/v2/projects/{}/datasets/{}/routines",
@@ -4460,10 +4536,13 @@ pub fn bigquery_routines_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigquery_routines_set_iam_policy_execute()` to send, or `bigquery_routines_set_iam_policy` for simplest API.
 
-pub fn bigquery_routines_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn bigquery_routines_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigquery.googleapis.com/bigquery/v2/projects/{}/datasets/{datasetsId}/routines/{routinesId}:setIamPolicy",
@@ -4617,10 +4696,13 @@ pub fn bigquery_routines_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigquery_routines_test_iam_permissions_execute()` to send, or `bigquery_routines_test_iam_permissions` for simplest API.
 
-pub fn bigquery_routines_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn bigquery_routines_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigquery.googleapis.com/bigquery/v2/projects/{}/datasets/{datasetsId}/routines/{routinesId}:testIamPermissions",
@@ -4782,12 +4864,15 @@ pub fn bigquery_routines_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigquery_routines_update_execute()` to send, or `bigquery_routines_update` for simplest API.
 
-pub fn bigquery_routines_update_builder(
-    client: &SimpleHttpClient,
+pub fn bigquery_routines_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     datasetId: &String,
     routineId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigquery.googleapis.com/bigquery/v2/projects/{}/datasets/{}/routines/{}",
@@ -4950,12 +5035,15 @@ pub fn bigquery_routines_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigquery_row_access_policies_batch_delete_execute()` to send, or `bigquery_row_access_policies_batch_delete` for simplest API.
 
-pub fn bigquery_row_access_policies_batch_delete_builder(
-    client: &SimpleHttpClient,
+pub fn bigquery_row_access_policies_batch_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     datasetId: &String,
     tableId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigquery.googleapis.com/bigquery/v2/projects/{}/datasets/{}/tables/{}/rowAccessPolicies:batchDelete",
@@ -5117,14 +5205,17 @@ pub fn bigquery_row_access_policies_batch_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigquery_row_access_policies_delete_execute()` to send, or `bigquery_row_access_policies_delete` for simplest API.
 
-pub fn bigquery_row_access_policies_delete_builder(
-    client: &SimpleHttpClient,
+pub fn bigquery_row_access_policies_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     datasetId: &String,
     tableId: &String,
     policyId: &String,
     force: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigquery.googleapis.com/bigquery/v2/projects/{}/datasets/{}/tables/{}/rowAccessPolicies/{}",
@@ -5304,13 +5395,16 @@ pub fn bigquery_row_access_policies_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigquery_row_access_policies_get_execute()` to send, or `bigquery_row_access_policies_get` for simplest API.
 
-pub fn bigquery_row_access_policies_get_builder(
-    client: &SimpleHttpClient,
+pub fn bigquery_row_access_policies_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     datasetId: &String,
     tableId: &String,
     policyId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigquery.googleapis.com/bigquery/v2/projects/{}/datasets/{}/tables/{}/rowAccessPolicies/{}",
@@ -5483,10 +5577,13 @@ pub fn bigquery_row_access_policies_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigquery_row_access_policies_get_iam_policy_execute()` to send, or `bigquery_row_access_policies_get_iam_policy` for simplest API.
 
-pub fn bigquery_row_access_policies_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn bigquery_row_access_policies_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigquery.googleapis.com/bigquery/v2/projects/{}/datasets/{datasetsId}/tables/{tablesId}/rowAccessPolicies/{rowAccessPoliciesId}:getIamPolicy",
@@ -5640,12 +5737,15 @@ pub fn bigquery_row_access_policies_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigquery_row_access_policies_insert_execute()` to send, or `bigquery_row_access_policies_insert` for simplest API.
 
-pub fn bigquery_row_access_policies_insert_builder(
-    client: &SimpleHttpClient,
+pub fn bigquery_row_access_policies_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     datasetId: &String,
     tableId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigquery.googleapis.com/bigquery/v2/projects/{}/datasets/{}/tables/{}/rowAccessPolicies",
@@ -5814,14 +5914,17 @@ pub fn bigquery_row_access_policies_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigquery_row_access_policies_list_execute()` to send, or `bigquery_row_access_policies_list` for simplest API.
 
-pub fn bigquery_row_access_policies_list_builder(
-    client: &SimpleHttpClient,
+pub fn bigquery_row_access_policies_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     datasetId: &String,
     tableId: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigquery.googleapis.com/bigquery/v2/projects/{}/datasets/{}/tables/{}/rowAccessPolicies",
@@ -6014,10 +6117,13 @@ pub fn bigquery_row_access_policies_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigquery_row_access_policies_test_iam_permissions_execute()` to send, or `bigquery_row_access_policies_test_iam_permissions` for simplest API.
 
-pub fn bigquery_row_access_policies_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn bigquery_row_access_policies_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigquery.googleapis.com/bigquery/v2/projects/{}/datasets/{datasetsId}/tables/{tablesId}/rowAccessPolicies/{rowAccessPoliciesId}:testIamPermissions",
@@ -6180,13 +6286,16 @@ pub fn bigquery_row_access_policies_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigquery_row_access_policies_update_execute()` to send, or `bigquery_row_access_policies_update` for simplest API.
 
-pub fn bigquery_row_access_policies_update_builder(
-    client: &SimpleHttpClient,
+pub fn bigquery_row_access_policies_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     datasetId: &String,
     tableId: &String,
     policyId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigquery.googleapis.com/bigquery/v2/projects/{}/datasets/{}/tables/{}/rowAccessPolicies/{}",
@@ -6359,12 +6468,15 @@ pub fn bigquery_row_access_policies_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigquery_tabledata_insert_all_execute()` to send, or `bigquery_tabledata_insert_all` for simplest API.
 
-pub fn bigquery_tabledata_insert_all_builder(
-    client: &SimpleHttpClient,
+pub fn bigquery_tabledata_insert_all_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     datasetId: &String,
     tableId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigquery.googleapis.com/bigquery/v2/projects/{}/datasets/{}/tables/{}/insertAll",
@@ -6535,8 +6647,8 @@ pub fn bigquery_tabledata_insert_all(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigquery_tabledata_list_execute()` to send, or `bigquery_tabledata_list` for simplest API.
 
-pub fn bigquery_tabledata_list_builder(
-    client: &SimpleHttpClient,
+pub fn bigquery_tabledata_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     datasetId: &String,
     tableId: &String,
@@ -6546,7 +6658,10 @@ pub fn bigquery_tabledata_list_builder(
     pageToken: &Option<Option<String>>,
     selectedFields: &Option<Option<String>>,
     startIndex: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigquery.googleapis.com/bigquery/v2/projects/{}/datasets/{}/tables/{}/data",
@@ -6757,12 +6872,15 @@ pub fn bigquery_tabledata_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigquery_tables_delete_execute()` to send, or `bigquery_tables_delete` for simplest API.
 
-pub fn bigquery_tables_delete_builder(
-    client: &SimpleHttpClient,
+pub fn bigquery_tables_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     datasetId: &String,
     tableId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigquery.googleapis.com/bigquery/v2/projects/{}/datasets/{}/tables/{}",
@@ -6918,14 +7036,17 @@ pub fn bigquery_tables_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigquery_tables_get_execute()` to send, or `bigquery_tables_get` for simplest API.
 
-pub fn bigquery_tables_get_builder(
-    client: &SimpleHttpClient,
+pub fn bigquery_tables_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     datasetId: &String,
     tableId: &String,
     selectedFields: &Option<Option<String>>,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigquery.googleapis.com/bigquery/v2/projects/{}/datasets/{}/tables/{}",
@@ -7108,10 +7229,13 @@ pub fn bigquery_tables_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigquery_tables_get_iam_policy_execute()` to send, or `bigquery_tables_get_iam_policy` for simplest API.
 
-pub fn bigquery_tables_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn bigquery_tables_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigquery.googleapis.com/bigquery/v2/projects/{}/datasets/{datasetsId}/tables/{tablesId}:getIamPolicy",
@@ -7265,11 +7389,14 @@ pub fn bigquery_tables_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigquery_tables_insert_execute()` to send, or `bigquery_tables_insert` for simplest API.
 
-pub fn bigquery_tables_insert_builder(
-    client: &SimpleHttpClient,
+pub fn bigquery_tables_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     datasetId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigquery.googleapis.com/bigquery/v2/projects/{}/datasets/{}/tables",
@@ -7425,13 +7552,16 @@ pub fn bigquery_tables_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigquery_tables_list_execute()` to send, or `bigquery_tables_list` for simplest API.
 
-pub fn bigquery_tables_list_builder(
-    client: &SimpleHttpClient,
+pub fn bigquery_tables_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     datasetId: &String,
     maxResults: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigquery.googleapis.com/bigquery/v2/projects/{}/datasets/{}/tables",
@@ -7611,13 +7741,16 @@ pub fn bigquery_tables_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigquery_tables_patch_execute()` to send, or `bigquery_tables_patch` for simplest API.
 
-pub fn bigquery_tables_patch_builder(
-    client: &SimpleHttpClient,
+pub fn bigquery_tables_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     datasetId: &String,
     tableId: &String,
     autodetect_schema: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigquery.googleapis.com/bigquery/v2/projects/{}/datasets/{}/tables/{}",
@@ -7794,10 +7927,13 @@ pub fn bigquery_tables_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigquery_tables_set_iam_policy_execute()` to send, or `bigquery_tables_set_iam_policy` for simplest API.
 
-pub fn bigquery_tables_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn bigquery_tables_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigquery.googleapis.com/bigquery/v2/projects/{}/datasets/{datasetsId}/tables/{tablesId}:setIamPolicy",
@@ -7951,10 +8087,13 @@ pub fn bigquery_tables_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigquery_tables_test_iam_permissions_execute()` to send, or `bigquery_tables_test_iam_permissions` for simplest API.
 
-pub fn bigquery_tables_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn bigquery_tables_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigquery.googleapis.com/bigquery/v2/projects/{}/datasets/{datasetsId}/tables/{tablesId}:testIamPermissions",
@@ -8116,13 +8255,16 @@ pub fn bigquery_tables_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigquery_tables_update_execute()` to send, or `bigquery_tables_update` for simplest API.
 
-pub fn bigquery_tables_update_builder(
-    client: &SimpleHttpClient,
+pub fn bigquery_tables_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     datasetId: &String,
     tableId: &String,
     autodetect_schema: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigquery.googleapis.com/bigquery/v2/projects/{}/datasets/{}/tables/{}",

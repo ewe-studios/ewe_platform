@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,11 +27,14 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigqueryconnection_projects_locations_connections_create_execute()` to send, or `bigqueryconnection_projects_locations_connections_create` for simplest API.
 
-pub fn bigqueryconnection_projects_locations_connections_create_builder(
-    client: &SimpleHttpClient,
+pub fn bigqueryconnection_projects_locations_connections_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     connectionId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigqueryconnection.googleapis.com/v1/projects/{}/locations/{locationsId}/connections",
@@ -201,10 +205,13 @@ pub fn bigqueryconnection_projects_locations_connections_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigqueryconnection_projects_locations_connections_delete_execute()` to send, or `bigqueryconnection_projects_locations_connections_delete` for simplest API.
 
-pub fn bigqueryconnection_projects_locations_connections_delete_builder(
-    client: &SimpleHttpClient,
+pub fn bigqueryconnection_projects_locations_connections_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigqueryconnection.googleapis.com/v1/projects/{}/locations/{locationsId}/connections/{connectionsId}",
@@ -359,10 +366,13 @@ pub fn bigqueryconnection_projects_locations_connections_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigqueryconnection_projects_locations_connections_get_execute()` to send, or `bigqueryconnection_projects_locations_connections_get` for simplest API.
 
-pub fn bigqueryconnection_projects_locations_connections_get_builder(
-    client: &SimpleHttpClient,
+pub fn bigqueryconnection_projects_locations_connections_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigqueryconnection.googleapis.com/v1/projects/{}/locations/{locationsId}/connections/{connectionsId}",
@@ -517,10 +527,13 @@ pub fn bigqueryconnection_projects_locations_connections_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigqueryconnection_projects_locations_connections_get_iam_policy_execute()` to send, or `bigqueryconnection_projects_locations_connections_get_iam_policy` for simplest API.
 
-pub fn bigqueryconnection_projects_locations_connections_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn bigqueryconnection_projects_locations_connections_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigqueryconnection.googleapis.com/v1/projects/{}/locations/{locationsId}/connections/{connectionsId}:getIamPolicy",
@@ -677,12 +690,15 @@ pub fn bigqueryconnection_projects_locations_connections_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigqueryconnection_projects_locations_connections_list_execute()` to send, or `bigqueryconnection_projects_locations_connections_list` for simplest API.
 
-pub fn bigqueryconnection_projects_locations_connections_list_builder(
-    client: &SimpleHttpClient,
+pub fn bigqueryconnection_projects_locations_connections_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigqueryconnection.googleapis.com/v1/projects/{}/locations/{locationsId}/connections",
@@ -863,11 +879,14 @@ pub fn bigqueryconnection_projects_locations_connections_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigqueryconnection_projects_locations_connections_patch_execute()` to send, or `bigqueryconnection_projects_locations_connections_patch` for simplest API.
 
-pub fn bigqueryconnection_projects_locations_connections_patch_builder(
-    client: &SimpleHttpClient,
+pub fn bigqueryconnection_projects_locations_connections_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigqueryconnection.googleapis.com/v1/projects/{}/locations/{locationsId}/connections/{connectionsId}",
@@ -1038,10 +1057,13 @@ pub fn bigqueryconnection_projects_locations_connections_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigqueryconnection_projects_locations_connections_set_iam_policy_execute()` to send, or `bigqueryconnection_projects_locations_connections_set_iam_policy` for simplest API.
 
-pub fn bigqueryconnection_projects_locations_connections_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn bigqueryconnection_projects_locations_connections_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigqueryconnection.googleapis.com/v1/projects/{}/locations/{locationsId}/connections/{connectionsId}:setIamPolicy",
@@ -1198,10 +1220,13 @@ pub fn bigqueryconnection_projects_locations_connections_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigqueryconnection_projects_locations_connections_test_iam_permissions_execute()` to send, or `bigqueryconnection_projects_locations_connections_test_iam_permissions` for simplest API.
 
-pub fn bigqueryconnection_projects_locations_connections_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn bigqueryconnection_projects_locations_connections_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigqueryconnection.googleapis.com/v1/projects/{}/locations/{locationsId}/connections/{connectionsId}:testIamPermissions",

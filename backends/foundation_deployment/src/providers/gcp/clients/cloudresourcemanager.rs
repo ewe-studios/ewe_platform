@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,12 +27,15 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudresourcemanager_effective_tags_list_execute()` to send, or `cloudresourcemanager_effective_tags_list` for simplest API.
 
-pub fn cloudresourcemanager_effective_tags_list_builder(
-    client: &SimpleHttpClient,
+pub fn cloudresourcemanager_effective_tags_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     parent: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://cloudresourcemanager.googleapis.com/v3/effectiveTags",);
 
@@ -212,9 +216,12 @@ pub fn cloudresourcemanager_effective_tags_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudresourcemanager_folders_create_execute()` to send, or `cloudresourcemanager_folders_create` for simplest API.
 
-pub fn cloudresourcemanager_folders_create_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn cloudresourcemanager_folders_create_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://cloudresourcemanager.googleapis.com/v3/folders",);
 
@@ -357,10 +364,13 @@ pub fn cloudresourcemanager_folders_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudresourcemanager_folders_delete_execute()` to send, or `cloudresourcemanager_folders_delete` for simplest API.
 
-pub fn cloudresourcemanager_folders_delete_builder(
-    client: &SimpleHttpClient,
+pub fn cloudresourcemanager_folders_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudresourcemanager.googleapis.com/v3/folders/{}",
@@ -514,10 +524,13 @@ pub fn cloudresourcemanager_folders_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudresourcemanager_folders_get_execute()` to send, or `cloudresourcemanager_folders_get` for simplest API.
 
-pub fn cloudresourcemanager_folders_get_builder(
-    client: &SimpleHttpClient,
+pub fn cloudresourcemanager_folders_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudresourcemanager.googleapis.com/v3/folders/{}",
@@ -671,10 +684,13 @@ pub fn cloudresourcemanager_folders_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudresourcemanager_folders_get_iam_policy_execute()` to send, or `cloudresourcemanager_folders_get_iam_policy` for simplest API.
 
-pub fn cloudresourcemanager_folders_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn cloudresourcemanager_folders_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudresourcemanager.googleapis.com/v3/folders/{}:getIamPolicy",
@@ -828,13 +844,16 @@ pub fn cloudresourcemanager_folders_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudresourcemanager_folders_list_execute()` to send, or `cloudresourcemanager_folders_list` for simplest API.
 
-pub fn cloudresourcemanager_folders_list_builder(
-    client: &SimpleHttpClient,
+pub fn cloudresourcemanager_folders_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     parent: &Option<Option<String>>,
     showDeleted: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://cloudresourcemanager.googleapis.com/v3/folders",);
 
@@ -1021,10 +1040,13 @@ pub fn cloudresourcemanager_folders_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudresourcemanager_folders_move_execute()` to send, or `cloudresourcemanager_folders_move` for simplest API.
 
-pub fn cloudresourcemanager_folders_move_builder(
-    client: &SimpleHttpClient,
+pub fn cloudresourcemanager_folders_move_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudresourcemanager.googleapis.com/v3/folders/{}:move",
@@ -1178,11 +1200,14 @@ pub fn cloudresourcemanager_folders_move(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudresourcemanager_folders_patch_execute()` to send, or `cloudresourcemanager_folders_patch` for simplest API.
 
-pub fn cloudresourcemanager_folders_patch_builder(
-    client: &SimpleHttpClient,
+pub fn cloudresourcemanager_folders_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudresourcemanager.googleapis.com/v3/folders/{}",
@@ -1349,12 +1374,15 @@ pub fn cloudresourcemanager_folders_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudresourcemanager_folders_search_execute()` to send, or `cloudresourcemanager_folders_search` for simplest API.
 
-pub fn cloudresourcemanager_folders_search_builder(
-    client: &SimpleHttpClient,
+pub fn cloudresourcemanager_folders_search_builder<R>(
+    client: &SimpleHttpClient<R>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     query: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://cloudresourcemanager.googleapis.com/v3/folders:search",);
 
@@ -1535,10 +1563,13 @@ pub fn cloudresourcemanager_folders_search(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudresourcemanager_folders_set_iam_policy_execute()` to send, or `cloudresourcemanager_folders_set_iam_policy` for simplest API.
 
-pub fn cloudresourcemanager_folders_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn cloudresourcemanager_folders_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudresourcemanager.googleapis.com/v3/folders/{}:setIamPolicy",
@@ -1692,10 +1723,13 @@ pub fn cloudresourcemanager_folders_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudresourcemanager_folders_test_iam_permissions_execute()` to send, or `cloudresourcemanager_folders_test_iam_permissions` for simplest API.
 
-pub fn cloudresourcemanager_folders_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn cloudresourcemanager_folders_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudresourcemanager.googleapis.com/v3/folders/{}:testIamPermissions",
@@ -1858,10 +1892,13 @@ pub fn cloudresourcemanager_folders_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudresourcemanager_folders_undelete_execute()` to send, or `cloudresourcemanager_folders_undelete` for simplest API.
 
-pub fn cloudresourcemanager_folders_undelete_builder(
-    client: &SimpleHttpClient,
+pub fn cloudresourcemanager_folders_undelete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudresourcemanager.googleapis.com/v3/folders/{}:undelete",
@@ -2015,10 +2052,13 @@ pub fn cloudresourcemanager_folders_undelete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudresourcemanager_folders_capabilities_get_execute()` to send, or `cloudresourcemanager_folders_capabilities_get` for simplest API.
 
-pub fn cloudresourcemanager_folders_capabilities_get_builder(
-    client: &SimpleHttpClient,
+pub fn cloudresourcemanager_folders_capabilities_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudresourcemanager.googleapis.com/v3/folders/{}/capabilities/{capabilitiesId}",
@@ -2172,11 +2212,14 @@ pub fn cloudresourcemanager_folders_capabilities_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudresourcemanager_folders_capabilities_patch_execute()` to send, or `cloudresourcemanager_folders_capabilities_patch` for simplest API.
 
-pub fn cloudresourcemanager_folders_capabilities_patch_builder(
-    client: &SimpleHttpClient,
+pub fn cloudresourcemanager_folders_capabilities_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudresourcemanager.googleapis.com/v3/folders/{}/capabilities/{capabilitiesId}",
@@ -2347,9 +2390,12 @@ pub fn cloudresourcemanager_folders_capabilities_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudresourcemanager_liens_create_execute()` to send, or `cloudresourcemanager_liens_create` for simplest API.
 
-pub fn cloudresourcemanager_liens_create_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn cloudresourcemanager_liens_create_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://cloudresourcemanager.googleapis.com/v3/liens",);
 
@@ -2492,10 +2538,13 @@ pub fn cloudresourcemanager_liens_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudresourcemanager_liens_delete_execute()` to send, or `cloudresourcemanager_liens_delete` for simplest API.
 
-pub fn cloudresourcemanager_liens_delete_builder(
-    client: &SimpleHttpClient,
+pub fn cloudresourcemanager_liens_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudresourcemanager.googleapis.com/v3/liens/{}",
@@ -2649,10 +2698,13 @@ pub fn cloudresourcemanager_liens_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudresourcemanager_liens_get_execute()` to send, or `cloudresourcemanager_liens_get` for simplest API.
 
-pub fn cloudresourcemanager_liens_get_builder(
-    client: &SimpleHttpClient,
+pub fn cloudresourcemanager_liens_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudresourcemanager.googleapis.com/v3/liens/{}",
@@ -2806,12 +2858,15 @@ pub fn cloudresourcemanager_liens_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudresourcemanager_liens_list_execute()` to send, or `cloudresourcemanager_liens_list` for simplest API.
 
-pub fn cloudresourcemanager_liens_list_builder(
-    client: &SimpleHttpClient,
+pub fn cloudresourcemanager_liens_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     parent: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://cloudresourcemanager.googleapis.com/v3/liens",);
 
@@ -2992,10 +3047,13 @@ pub fn cloudresourcemanager_liens_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudresourcemanager_locations_effective_tag_binding_collections_get_execute()` to send, or `cloudresourcemanager_locations_effective_tag_binding_collections_get` for simplest API.
 
-pub fn cloudresourcemanager_locations_effective_tag_binding_collections_get_builder(
-    client: &SimpleHttpClient,
+pub fn cloudresourcemanager_locations_effective_tag_binding_collections_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudresourcemanager.googleapis.com/v3/locations/{}/effectiveTagBindingCollections/{effectiveTagBindingCollectionsId}",
@@ -3159,10 +3217,13 @@ pub fn cloudresourcemanager_locations_effective_tag_binding_collections_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudresourcemanager_locations_tag_binding_collections_get_execute()` to send, or `cloudresourcemanager_locations_tag_binding_collections_get` for simplest API.
 
-pub fn cloudresourcemanager_locations_tag_binding_collections_get_builder(
-    client: &SimpleHttpClient,
+pub fn cloudresourcemanager_locations_tag_binding_collections_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudresourcemanager.googleapis.com/v3/locations/{}/tagBindingCollections/{tagBindingCollectionsId}",
@@ -3321,11 +3382,14 @@ pub fn cloudresourcemanager_locations_tag_binding_collections_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudresourcemanager_locations_tag_binding_collections_patch_execute()` to send, or `cloudresourcemanager_locations_tag_binding_collections_patch` for simplest API.
 
-pub fn cloudresourcemanager_locations_tag_binding_collections_patch_builder(
-    client: &SimpleHttpClient,
+pub fn cloudresourcemanager_locations_tag_binding_collections_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudresourcemanager.googleapis.com/v3/locations/{}/tagBindingCollections/{tagBindingCollectionsId}",
@@ -3496,10 +3560,13 @@ pub fn cloudresourcemanager_locations_tag_binding_collections_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudresourcemanager_operations_get_execute()` to send, or `cloudresourcemanager_operations_get` for simplest API.
 
-pub fn cloudresourcemanager_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn cloudresourcemanager_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudresourcemanager.googleapis.com/v3/operations/{}",
@@ -3653,10 +3720,13 @@ pub fn cloudresourcemanager_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudresourcemanager_organizations_get_execute()` to send, or `cloudresourcemanager_organizations_get` for simplest API.
 
-pub fn cloudresourcemanager_organizations_get_builder(
-    client: &SimpleHttpClient,
+pub fn cloudresourcemanager_organizations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudresourcemanager.googleapis.com/v3/organizations/{}",
@@ -3814,10 +3884,13 @@ pub fn cloudresourcemanager_organizations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudresourcemanager_organizations_get_iam_policy_execute()` to send, or `cloudresourcemanager_organizations_get_iam_policy` for simplest API.
 
-pub fn cloudresourcemanager_organizations_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn cloudresourcemanager_organizations_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudresourcemanager.googleapis.com/v3/organizations/{}:getIamPolicy",
@@ -3972,12 +4045,15 @@ pub fn cloudresourcemanager_organizations_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudresourcemanager_organizations_search_execute()` to send, or `cloudresourcemanager_organizations_search` for simplest API.
 
-pub fn cloudresourcemanager_organizations_search_builder(
-    client: &SimpleHttpClient,
+pub fn cloudresourcemanager_organizations_search_builder<R>(
+    client: &SimpleHttpClient<R>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     query: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://cloudresourcemanager.googleapis.com/v3/organizations:search",);
@@ -4163,10 +4239,13 @@ pub fn cloudresourcemanager_organizations_search(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudresourcemanager_organizations_set_iam_policy_execute()` to send, or `cloudresourcemanager_organizations_set_iam_policy` for simplest API.
 
-pub fn cloudresourcemanager_organizations_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn cloudresourcemanager_organizations_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudresourcemanager.googleapis.com/v3/organizations/{}:setIamPolicy",
@@ -4321,10 +4400,13 @@ pub fn cloudresourcemanager_organizations_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudresourcemanager_organizations_test_iam_permissions_execute()` to send, or `cloudresourcemanager_organizations_test_iam_permissions` for simplest API.
 
-pub fn cloudresourcemanager_organizations_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn cloudresourcemanager_organizations_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudresourcemanager.googleapis.com/v3/organizations/{}:testIamPermissions",
@@ -4487,9 +4569,12 @@ pub fn cloudresourcemanager_organizations_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudresourcemanager_projects_create_execute()` to send, or `cloudresourcemanager_projects_create` for simplest API.
 
-pub fn cloudresourcemanager_projects_create_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn cloudresourcemanager_projects_create_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://cloudresourcemanager.googleapis.com/v3/projects",);
 
@@ -4632,10 +4717,13 @@ pub fn cloudresourcemanager_projects_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudresourcemanager_projects_delete_execute()` to send, or `cloudresourcemanager_projects_delete` for simplest API.
 
-pub fn cloudresourcemanager_projects_delete_builder(
-    client: &SimpleHttpClient,
+pub fn cloudresourcemanager_projects_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudresourcemanager.googleapis.com/v3/projects/{}",
@@ -4789,10 +4877,13 @@ pub fn cloudresourcemanager_projects_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudresourcemanager_projects_get_execute()` to send, or `cloudresourcemanager_projects_get` for simplest API.
 
-pub fn cloudresourcemanager_projects_get_builder(
-    client: &SimpleHttpClient,
+pub fn cloudresourcemanager_projects_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudresourcemanager.googleapis.com/v3/projects/{}",
@@ -4946,10 +5037,13 @@ pub fn cloudresourcemanager_projects_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudresourcemanager_projects_get_iam_policy_execute()` to send, or `cloudresourcemanager_projects_get_iam_policy` for simplest API.
 
-pub fn cloudresourcemanager_projects_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn cloudresourcemanager_projects_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudresourcemanager.googleapis.com/v3/projects/{}:getIamPolicy",
@@ -5103,13 +5197,16 @@ pub fn cloudresourcemanager_projects_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudresourcemanager_projects_list_execute()` to send, or `cloudresourcemanager_projects_list` for simplest API.
 
-pub fn cloudresourcemanager_projects_list_builder(
-    client: &SimpleHttpClient,
+pub fn cloudresourcemanager_projects_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     parent: &Option<Option<String>>,
     showDeleted: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://cloudresourcemanager.googleapis.com/v3/projects",);
 
@@ -5296,10 +5393,13 @@ pub fn cloudresourcemanager_projects_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudresourcemanager_projects_move_execute()` to send, or `cloudresourcemanager_projects_move` for simplest API.
 
-pub fn cloudresourcemanager_projects_move_builder(
-    client: &SimpleHttpClient,
+pub fn cloudresourcemanager_projects_move_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudresourcemanager.googleapis.com/v3/projects/{}:move",
@@ -5453,11 +5553,14 @@ pub fn cloudresourcemanager_projects_move(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudresourcemanager_projects_patch_execute()` to send, or `cloudresourcemanager_projects_patch` for simplest API.
 
-pub fn cloudresourcemanager_projects_patch_builder(
-    client: &SimpleHttpClient,
+pub fn cloudresourcemanager_projects_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudresourcemanager.googleapis.com/v3/projects/{}",
@@ -5625,12 +5728,15 @@ pub fn cloudresourcemanager_projects_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudresourcemanager_projects_search_execute()` to send, or `cloudresourcemanager_projects_search` for simplest API.
 
-pub fn cloudresourcemanager_projects_search_builder(
-    client: &SimpleHttpClient,
+pub fn cloudresourcemanager_projects_search_builder<R>(
+    client: &SimpleHttpClient<R>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     query: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://cloudresourcemanager.googleapis.com/v3/projects:search",);
 
@@ -5811,10 +5917,13 @@ pub fn cloudresourcemanager_projects_search(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudresourcemanager_projects_set_iam_policy_execute()` to send, or `cloudresourcemanager_projects_set_iam_policy` for simplest API.
 
-pub fn cloudresourcemanager_projects_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn cloudresourcemanager_projects_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudresourcemanager.googleapis.com/v3/projects/{}:setIamPolicy",
@@ -5968,10 +6077,13 @@ pub fn cloudresourcemanager_projects_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudresourcemanager_projects_test_iam_permissions_execute()` to send, or `cloudresourcemanager_projects_test_iam_permissions` for simplest API.
 
-pub fn cloudresourcemanager_projects_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn cloudresourcemanager_projects_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudresourcemanager.googleapis.com/v3/projects/{}:testIamPermissions",
@@ -6134,10 +6246,13 @@ pub fn cloudresourcemanager_projects_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudresourcemanager_projects_undelete_execute()` to send, or `cloudresourcemanager_projects_undelete` for simplest API.
 
-pub fn cloudresourcemanager_projects_undelete_builder(
-    client: &SimpleHttpClient,
+pub fn cloudresourcemanager_projects_undelete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudresourcemanager.googleapis.com/v3/projects/{}:undelete",
@@ -6291,10 +6406,13 @@ pub fn cloudresourcemanager_projects_undelete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudresourcemanager_tag_bindings_create_execute()` to send, or `cloudresourcemanager_tag_bindings_create` for simplest API.
 
-pub fn cloudresourcemanager_tag_bindings_create_builder(
-    client: &SimpleHttpClient,
+pub fn cloudresourcemanager_tag_bindings_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://cloudresourcemanager.googleapis.com/v3/tagBindings",);
 
@@ -6456,10 +6574,13 @@ pub fn cloudresourcemanager_tag_bindings_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudresourcemanager_tag_bindings_delete_execute()` to send, or `cloudresourcemanager_tag_bindings_delete` for simplest API.
 
-pub fn cloudresourcemanager_tag_bindings_delete_builder(
-    client: &SimpleHttpClient,
+pub fn cloudresourcemanager_tag_bindings_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudresourcemanager.googleapis.com/v3/tagBindings/{}",
@@ -6613,12 +6734,15 @@ pub fn cloudresourcemanager_tag_bindings_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudresourcemanager_tag_bindings_list_execute()` to send, or `cloudresourcemanager_tag_bindings_list` for simplest API.
 
-pub fn cloudresourcemanager_tag_bindings_list_builder(
-    client: &SimpleHttpClient,
+pub fn cloudresourcemanager_tag_bindings_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     parent: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://cloudresourcemanager.googleapis.com/v3/tagBindings",);
 
@@ -6799,10 +6923,13 @@ pub fn cloudresourcemanager_tag_bindings_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudresourcemanager_tag_keys_create_execute()` to send, or `cloudresourcemanager_tag_keys_create` for simplest API.
 
-pub fn cloudresourcemanager_tag_keys_create_builder(
-    client: &SimpleHttpClient,
+pub fn cloudresourcemanager_tag_keys_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://cloudresourcemanager.googleapis.com/v3/tagKeys",);
 
@@ -6964,12 +7091,15 @@ pub fn cloudresourcemanager_tag_keys_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudresourcemanager_tag_keys_delete_execute()` to send, or `cloudresourcemanager_tag_keys_delete` for simplest API.
 
-pub fn cloudresourcemanager_tag_keys_delete_builder(
-    client: &SimpleHttpClient,
+pub fn cloudresourcemanager_tag_keys_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     etag: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudresourcemanager.googleapis.com/v3/tagKeys/{}",
@@ -7146,10 +7276,13 @@ pub fn cloudresourcemanager_tag_keys_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudresourcemanager_tag_keys_get_execute()` to send, or `cloudresourcemanager_tag_keys_get` for simplest API.
 
-pub fn cloudresourcemanager_tag_keys_get_builder(
-    client: &SimpleHttpClient,
+pub fn cloudresourcemanager_tag_keys_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudresourcemanager.googleapis.com/v3/tagKeys/{}",
@@ -7303,10 +7436,13 @@ pub fn cloudresourcemanager_tag_keys_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudresourcemanager_tag_keys_get_iam_policy_execute()` to send, or `cloudresourcemanager_tag_keys_get_iam_policy` for simplest API.
 
-pub fn cloudresourcemanager_tag_keys_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn cloudresourcemanager_tag_keys_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudresourcemanager.googleapis.com/v3/tagKeys/{}:getIamPolicy",
@@ -7460,10 +7596,13 @@ pub fn cloudresourcemanager_tag_keys_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudresourcemanager_tag_keys_get_namespaced_execute()` to send, or `cloudresourcemanager_tag_keys_get_namespaced` for simplest API.
 
-pub fn cloudresourcemanager_tag_keys_get_namespaced_builder(
-    client: &SimpleHttpClient,
+pub fn cloudresourcemanager_tag_keys_get_namespaced_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://cloudresourcemanager.googleapis.com/v3/tagKeys/namespaced",);
@@ -7626,12 +7765,15 @@ pub fn cloudresourcemanager_tag_keys_get_namespaced(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudresourcemanager_tag_keys_list_execute()` to send, or `cloudresourcemanager_tag_keys_list` for simplest API.
 
-pub fn cloudresourcemanager_tag_keys_list_builder(
-    client: &SimpleHttpClient,
+pub fn cloudresourcemanager_tag_keys_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     parent: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://cloudresourcemanager.googleapis.com/v3/tagKeys",);
 
@@ -7812,12 +7954,15 @@ pub fn cloudresourcemanager_tag_keys_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudresourcemanager_tag_keys_patch_execute()` to send, or `cloudresourcemanager_tag_keys_patch` for simplest API.
 
-pub fn cloudresourcemanager_tag_keys_patch_builder(
-    client: &SimpleHttpClient,
+pub fn cloudresourcemanager_tag_keys_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudresourcemanager.googleapis.com/v3/tagKeys/{}",
@@ -7994,10 +8139,13 @@ pub fn cloudresourcemanager_tag_keys_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudresourcemanager_tag_keys_set_iam_policy_execute()` to send, or `cloudresourcemanager_tag_keys_set_iam_policy` for simplest API.
 
-pub fn cloudresourcemanager_tag_keys_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn cloudresourcemanager_tag_keys_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudresourcemanager.googleapis.com/v3/tagKeys/{}:setIamPolicy",
@@ -8151,10 +8299,13 @@ pub fn cloudresourcemanager_tag_keys_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudresourcemanager_tag_keys_test_iam_permissions_execute()` to send, or `cloudresourcemanager_tag_keys_test_iam_permissions` for simplest API.
 
-pub fn cloudresourcemanager_tag_keys_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn cloudresourcemanager_tag_keys_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudresourcemanager.googleapis.com/v3/tagKeys/{}:testIamPermissions",
@@ -8317,10 +8468,13 @@ pub fn cloudresourcemanager_tag_keys_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudresourcemanager_tag_values_create_execute()` to send, or `cloudresourcemanager_tag_values_create` for simplest API.
 
-pub fn cloudresourcemanager_tag_values_create_builder(
-    client: &SimpleHttpClient,
+pub fn cloudresourcemanager_tag_values_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://cloudresourcemanager.googleapis.com/v3/tagValues",);
 
@@ -8482,12 +8636,15 @@ pub fn cloudresourcemanager_tag_values_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudresourcemanager_tag_values_delete_execute()` to send, or `cloudresourcemanager_tag_values_delete` for simplest API.
 
-pub fn cloudresourcemanager_tag_values_delete_builder(
-    client: &SimpleHttpClient,
+pub fn cloudresourcemanager_tag_values_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     etag: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudresourcemanager.googleapis.com/v3/tagValues/{}",
@@ -8664,10 +8821,13 @@ pub fn cloudresourcemanager_tag_values_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudresourcemanager_tag_values_get_execute()` to send, or `cloudresourcemanager_tag_values_get` for simplest API.
 
-pub fn cloudresourcemanager_tag_values_get_builder(
-    client: &SimpleHttpClient,
+pub fn cloudresourcemanager_tag_values_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudresourcemanager.googleapis.com/v3/tagValues/{}",
@@ -8821,10 +8981,13 @@ pub fn cloudresourcemanager_tag_values_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudresourcemanager_tag_values_get_iam_policy_execute()` to send, or `cloudresourcemanager_tag_values_get_iam_policy` for simplest API.
 
-pub fn cloudresourcemanager_tag_values_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn cloudresourcemanager_tag_values_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudresourcemanager.googleapis.com/v3/tagValues/{}:getIamPolicy",
@@ -8978,10 +9141,13 @@ pub fn cloudresourcemanager_tag_values_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudresourcemanager_tag_values_get_namespaced_execute()` to send, or `cloudresourcemanager_tag_values_get_namespaced` for simplest API.
 
-pub fn cloudresourcemanager_tag_values_get_namespaced_builder(
-    client: &SimpleHttpClient,
+pub fn cloudresourcemanager_tag_values_get_namespaced_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://cloudresourcemanager.googleapis.com/v3/tagValues/namespaced",);
@@ -9144,12 +9310,15 @@ pub fn cloudresourcemanager_tag_values_get_namespaced(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudresourcemanager_tag_values_list_execute()` to send, or `cloudresourcemanager_tag_values_list` for simplest API.
 
-pub fn cloudresourcemanager_tag_values_list_builder(
-    client: &SimpleHttpClient,
+pub fn cloudresourcemanager_tag_values_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     parent: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://cloudresourcemanager.googleapis.com/v3/tagValues",);
 
@@ -9330,12 +9499,15 @@ pub fn cloudresourcemanager_tag_values_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudresourcemanager_tag_values_patch_execute()` to send, or `cloudresourcemanager_tag_values_patch` for simplest API.
 
-pub fn cloudresourcemanager_tag_values_patch_builder(
-    client: &SimpleHttpClient,
+pub fn cloudresourcemanager_tag_values_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudresourcemanager.googleapis.com/v3/tagValues/{}",
@@ -9512,10 +9684,13 @@ pub fn cloudresourcemanager_tag_values_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudresourcemanager_tag_values_set_iam_policy_execute()` to send, or `cloudresourcemanager_tag_values_set_iam_policy` for simplest API.
 
-pub fn cloudresourcemanager_tag_values_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn cloudresourcemanager_tag_values_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudresourcemanager.googleapis.com/v3/tagValues/{}:setIamPolicy",
@@ -9669,10 +9844,13 @@ pub fn cloudresourcemanager_tag_values_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudresourcemanager_tag_values_test_iam_permissions_execute()` to send, or `cloudresourcemanager_tag_values_test_iam_permissions` for simplest API.
 
-pub fn cloudresourcemanager_tag_values_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn cloudresourcemanager_tag_values_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudresourcemanager.googleapis.com/v3/tagValues/{}:testIamPermissions",
@@ -9835,11 +10013,14 @@ pub fn cloudresourcemanager_tag_values_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudresourcemanager_tag_values_tag_holds_create_execute()` to send, or `cloudresourcemanager_tag_values_tag_holds_create` for simplest API.
 
-pub fn cloudresourcemanager_tag_values_tag_holds_create_builder(
-    client: &SimpleHttpClient,
+pub fn cloudresourcemanager_tag_values_tag_holds_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudresourcemanager.googleapis.com/v3/tagValues/{}/tagHolds",
@@ -10010,11 +10191,14 @@ pub fn cloudresourcemanager_tag_values_tag_holds_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudresourcemanager_tag_values_tag_holds_delete_execute()` to send, or `cloudresourcemanager_tag_values_tag_holds_delete` for simplest API.
 
-pub fn cloudresourcemanager_tag_values_tag_holds_delete_builder(
-    client: &SimpleHttpClient,
+pub fn cloudresourcemanager_tag_values_tag_holds_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudresourcemanager.googleapis.com/v3/tagValues/{}/tagHolds/{tagHoldsId}",
@@ -10185,13 +10369,16 @@ pub fn cloudresourcemanager_tag_values_tag_holds_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudresourcemanager_tag_values_tag_holds_list_execute()` to send, or `cloudresourcemanager_tag_values_tag_holds_list` for simplest API.
 
-pub fn cloudresourcemanager_tag_values_tag_holds_list_builder(
-    client: &SimpleHttpClient,
+pub fn cloudresourcemanager_tag_values_tag_holds_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudresourcemanager.googleapis.com/v3/tagValues/{}/tagHolds",

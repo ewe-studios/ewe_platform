@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,11 +27,14 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `homegraph_agent_users_delete_execute()` to send, or `homegraph_agent_users_delete` for simplest API.
 
-pub fn homegraph_agent_users_delete_builder(
-    client: &SimpleHttpClient,
+pub fn homegraph_agent_users_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     agentUserId: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://homegraph.googleapis.com/v1/agentUsers/{}",
@@ -197,9 +201,12 @@ pub fn homegraph_agent_users_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `homegraph_devices_query_execute()` to send, or `homegraph_devices_query` for simplest API.
 
-pub fn homegraph_devices_query_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn homegraph_devices_query_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://homegraph.googleapis.com/v1/devices:query",);
 
@@ -346,9 +353,12 @@ pub fn homegraph_devices_query(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `homegraph_devices_report_state_and_notification_execute()` to send, or `homegraph_devices_report_state_and_notification` for simplest API.
 
-pub fn homegraph_devices_report_state_and_notification_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn homegraph_devices_report_state_and_notification_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://homegraph.googleapis.com/v1/devices:reportStateAndNotification",);
@@ -500,9 +510,12 @@ pub fn homegraph_devices_report_state_and_notification(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `homegraph_devices_request_sync_execute()` to send, or `homegraph_devices_request_sync` for simplest API.
 
-pub fn homegraph_devices_request_sync_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn homegraph_devices_request_sync_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://homegraph.googleapis.com/v1/devices:requestSync",);
 
@@ -653,9 +666,12 @@ pub fn homegraph_devices_request_sync(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `homegraph_devices_sync_execute()` to send, or `homegraph_devices_sync` for simplest API.
 
-pub fn homegraph_devices_sync_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn homegraph_devices_sync_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://homegraph.googleapis.com/v1/devices:sync",);
 

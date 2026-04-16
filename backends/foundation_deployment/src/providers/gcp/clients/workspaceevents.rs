@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,9 +27,12 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `workspaceevents_message_stream_execute()` to send, or `workspaceevents_message_stream` for simplest API.
 
-pub fn workspaceevents_message_stream_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn workspaceevents_message_stream_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://workspaceevents.googleapis.com/v1/message:stream",);
 
@@ -175,10 +179,13 @@ pub fn workspaceevents_message_stream(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `workspaceevents_operations_get_execute()` to send, or `workspaceevents_operations_get` for simplest API.
 
-pub fn workspaceevents_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn workspaceevents_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://workspaceevents.googleapis.com/v1/operations/{}",
@@ -332,10 +339,13 @@ pub fn workspaceevents_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `workspaceevents_subscriptions_create_execute()` to send, or `workspaceevents_subscriptions_create` for simplest API.
 
-pub fn workspaceevents_subscriptions_create_builder(
-    client: &SimpleHttpClient,
+pub fn workspaceevents_subscriptions_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://workspaceevents.googleapis.com/v1/subscriptions",);
 
@@ -497,13 +507,16 @@ pub fn workspaceevents_subscriptions_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `workspaceevents_subscriptions_delete_execute()` to send, or `workspaceevents_subscriptions_delete` for simplest API.
 
-pub fn workspaceevents_subscriptions_delete_builder(
-    client: &SimpleHttpClient,
+pub fn workspaceevents_subscriptions_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     allowMissing: &Option<Option<String>>,
     etag: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://workspaceevents.googleapis.com/v1/subscriptions/{}",
@@ -686,10 +699,13 @@ pub fn workspaceevents_subscriptions_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `workspaceevents_subscriptions_get_execute()` to send, or `workspaceevents_subscriptions_get` for simplest API.
 
-pub fn workspaceevents_subscriptions_get_builder(
-    client: &SimpleHttpClient,
+pub fn workspaceevents_subscriptions_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://workspaceevents.googleapis.com/v1/subscriptions/{}",
@@ -847,12 +863,15 @@ pub fn workspaceevents_subscriptions_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `workspaceevents_subscriptions_list_execute()` to send, or `workspaceevents_subscriptions_list` for simplest API.
 
-pub fn workspaceevents_subscriptions_list_builder(
-    client: &SimpleHttpClient,
+pub fn workspaceevents_subscriptions_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://workspaceevents.googleapis.com/v1/subscriptions",);
 
@@ -1033,12 +1052,15 @@ pub fn workspaceevents_subscriptions_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `workspaceevents_subscriptions_patch_execute()` to send, or `workspaceevents_subscriptions_patch` for simplest API.
 
-pub fn workspaceevents_subscriptions_patch_builder(
-    client: &SimpleHttpClient,
+pub fn workspaceevents_subscriptions_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://workspaceevents.googleapis.com/v1/subscriptions/{}",
@@ -1215,10 +1237,13 @@ pub fn workspaceevents_subscriptions_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `workspaceevents_subscriptions_reactivate_execute()` to send, or `workspaceevents_subscriptions_reactivate` for simplest API.
 
-pub fn workspaceevents_subscriptions_reactivate_builder(
-    client: &SimpleHttpClient,
+pub fn workspaceevents_subscriptions_reactivate_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://workspaceevents.googleapis.com/v1/subscriptions/{}:reactivate",
@@ -1372,10 +1397,13 @@ pub fn workspaceevents_subscriptions_reactivate(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `workspaceevents_tasks_cancel_execute()` to send, or `workspaceevents_tasks_cancel` for simplest API.
 
-pub fn workspaceevents_tasks_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn workspaceevents_tasks_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://workspaceevents.googleapis.com/v1/tasks/{}:cancel",
@@ -1529,12 +1557,15 @@ pub fn workspaceevents_tasks_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `workspaceevents_tasks_get_execute()` to send, or `workspaceevents_tasks_get` for simplest API.
 
-pub fn workspaceevents_tasks_get_builder(
-    client: &SimpleHttpClient,
+pub fn workspaceevents_tasks_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     historyLength: &Option<Option<String>>,
     tenant: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://workspaceevents.googleapis.com/v1/tasks/{}", name,);
 
@@ -1704,11 +1735,14 @@ pub fn workspaceevents_tasks_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `workspaceevents_tasks_subscribe_execute()` to send, or `workspaceevents_tasks_subscribe` for simplest API.
 
-pub fn workspaceevents_tasks_subscribe_builder(
-    client: &SimpleHttpClient,
+pub fn workspaceevents_tasks_subscribe_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     tenant: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://workspaceevents.googleapis.com/v1/tasks/{}:subscribe",
@@ -1879,12 +1913,15 @@ pub fn workspaceevents_tasks_subscribe(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `workspaceevents_tasks_push_notification_configs_create_execute()` to send, or `workspaceevents_tasks_push_notification_configs_create` for simplest API.
 
-pub fn workspaceevents_tasks_push_notification_configs_create_builder(
-    client: &SimpleHttpClient,
+pub fn workspaceevents_tasks_push_notification_configs_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     configId: &Option<Option<String>>,
     tenant: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://workspaceevents.googleapis.com/v1/tasks/{}/pushNotificationConfigs",
@@ -2069,11 +2106,14 @@ pub fn workspaceevents_tasks_push_notification_configs_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `workspaceevents_tasks_push_notification_configs_delete_execute()` to send, or `workspaceevents_tasks_push_notification_configs_delete` for simplest API.
 
-pub fn workspaceevents_tasks_push_notification_configs_delete_builder(
-    client: &SimpleHttpClient,
+pub fn workspaceevents_tasks_push_notification_configs_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     tenant: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://workspaceevents.googleapis.com/v1/tasks/{}/pushNotificationConfigs/{pushNotificationConfigsId}",
@@ -2244,11 +2284,14 @@ pub fn workspaceevents_tasks_push_notification_configs_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `workspaceevents_tasks_push_notification_configs_get_execute()` to send, or `workspaceevents_tasks_push_notification_configs_get` for simplest API.
 
-pub fn workspaceevents_tasks_push_notification_configs_get_builder(
-    client: &SimpleHttpClient,
+pub fn workspaceevents_tasks_push_notification_configs_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     tenant: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://workspaceevents.googleapis.com/v1/tasks/{}/pushNotificationConfigs/{pushNotificationConfigsId}",
@@ -2427,13 +2470,16 @@ pub fn workspaceevents_tasks_push_notification_configs_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `workspaceevents_tasks_push_notification_configs_list_execute()` to send, or `workspaceevents_tasks_push_notification_configs_list` for simplest API.
 
-pub fn workspaceevents_tasks_push_notification_configs_list_builder(
-    client: &SimpleHttpClient,
+pub fn workspaceevents_tasks_push_notification_configs_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     tenant: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://workspaceevents.googleapis.com/v1/tasks/{}/pushNotificationConfigs",

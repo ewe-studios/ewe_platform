@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudkms_folders_get_autokey_config_execute()` to send, or `cloudkms_folders_get_autokey_config` for simplest API.
 
-pub fn cloudkms_folders_get_autokey_config_builder(
-    client: &SimpleHttpClient,
+pub fn cloudkms_folders_get_autokey_config_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudkms.googleapis.com/v1/folders/{}/autokeyConfig",
@@ -187,10 +191,13 @@ pub fn cloudkms_folders_get_autokey_config(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudkms_folders_get_kaj_policy_config_execute()` to send, or `cloudkms_folders_get_kaj_policy_config` for simplest API.
 
-pub fn cloudkms_folders_get_kaj_policy_config_builder(
-    client: &SimpleHttpClient,
+pub fn cloudkms_folders_get_kaj_policy_config_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudkms.googleapis.com/v1/folders/{}/kajPolicyConfig",
@@ -352,11 +359,14 @@ pub fn cloudkms_folders_get_kaj_policy_config(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudkms_folders_update_autokey_config_execute()` to send, or `cloudkms_folders_update_autokey_config` for simplest API.
 
-pub fn cloudkms_folders_update_autokey_config_builder(
-    client: &SimpleHttpClient,
+pub fn cloudkms_folders_update_autokey_config_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudkms.googleapis.com/v1/folders/{}/autokeyConfig",
@@ -528,11 +538,14 @@ pub fn cloudkms_folders_update_autokey_config(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudkms_folders_update_kaj_policy_config_execute()` to send, or `cloudkms_folders_update_kaj_policy_config` for simplest API.
 
-pub fn cloudkms_folders_update_kaj_policy_config_builder(
-    client: &SimpleHttpClient,
+pub fn cloudkms_folders_update_kaj_policy_config_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudkms.googleapis.com/v1/folders/{}/kajPolicyConfig",
@@ -708,10 +721,13 @@ pub fn cloudkms_folders_update_kaj_policy_config(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudkms_organizations_get_kaj_policy_config_execute()` to send, or `cloudkms_organizations_get_kaj_policy_config` for simplest API.
 
-pub fn cloudkms_organizations_get_kaj_policy_config_builder(
-    client: &SimpleHttpClient,
+pub fn cloudkms_organizations_get_kaj_policy_config_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudkms.googleapis.com/v1/organizations/{}/kajPolicyConfig",
@@ -873,11 +889,14 @@ pub fn cloudkms_organizations_get_kaj_policy_config(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudkms_organizations_update_kaj_policy_config_execute()` to send, or `cloudkms_organizations_update_kaj_policy_config` for simplest API.
 
-pub fn cloudkms_organizations_update_kaj_policy_config_builder(
-    client: &SimpleHttpClient,
+pub fn cloudkms_organizations_update_kaj_policy_config_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudkms.googleapis.com/v1/organizations/{}/kajPolicyConfig",
@@ -1056,10 +1075,13 @@ pub fn cloudkms_organizations_update_kaj_policy_config(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudkms_projects_get_autokey_config_execute()` to send, or `cloudkms_projects_get_autokey_config` for simplest API.
 
-pub fn cloudkms_projects_get_autokey_config_builder(
-    client: &SimpleHttpClient,
+pub fn cloudkms_projects_get_autokey_config_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudkms.googleapis.com/v1/projects/{}/autokeyConfig",
@@ -1217,10 +1239,13 @@ pub fn cloudkms_projects_get_autokey_config(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudkms_projects_get_kaj_policy_config_execute()` to send, or `cloudkms_projects_get_kaj_policy_config` for simplest API.
 
-pub fn cloudkms_projects_get_kaj_policy_config_builder(
-    client: &SimpleHttpClient,
+pub fn cloudkms_projects_get_kaj_policy_config_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudkms.googleapis.com/v1/projects/{}/kajPolicyConfig",
@@ -1382,10 +1407,13 @@ pub fn cloudkms_projects_get_kaj_policy_config(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudkms_projects_show_effective_autokey_config_execute()` to send, or `cloudkms_projects_show_effective_autokey_config` for simplest API.
 
-pub fn cloudkms_projects_show_effective_autokey_config_builder(
-    client: &SimpleHttpClient,
+pub fn cloudkms_projects_show_effective_autokey_config_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudkms.googleapis.com/v1/projects/{}:showEffectiveAutokeyConfig",
@@ -1547,10 +1575,13 @@ pub fn cloudkms_projects_show_effective_autokey_config(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudkms_projects_show_effective_key_access_justifications_enrollment_config_execute()` to send, or `cloudkms_projects_show_effective_key_access_justifications_enrollment_config` for simplest API.
 
-pub fn cloudkms_projects_show_effective_key_access_justifications_enrollment_config_builder(
-    client: &SimpleHttpClient,
+pub fn cloudkms_projects_show_effective_key_access_justifications_enrollment_config_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudkms.googleapis.com/v1/projects/{}:showEffectiveKeyAccessJustificationsEnrollmentConfig",
@@ -1727,10 +1758,13 @@ pub fn cloudkms_projects_show_effective_key_access_justifications_enrollment_con
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudkms_projects_show_effective_key_access_justifications_policy_config_execute()` to send, or `cloudkms_projects_show_effective_key_access_justifications_policy_config` for simplest API.
 
-pub fn cloudkms_projects_show_effective_key_access_justifications_policy_config_builder(
-    client: &SimpleHttpClient,
+pub fn cloudkms_projects_show_effective_key_access_justifications_policy_config_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudkms.googleapis.com/v1/projects/{}:showEffectiveKeyAccessJustificationsPolicyConfig",
@@ -1906,11 +1940,14 @@ pub fn cloudkms_projects_show_effective_key_access_justifications_policy_config(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudkms_projects_update_autokey_config_execute()` to send, or `cloudkms_projects_update_autokey_config` for simplest API.
 
-pub fn cloudkms_projects_update_autokey_config_builder(
-    client: &SimpleHttpClient,
+pub fn cloudkms_projects_update_autokey_config_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudkms.googleapis.com/v1/projects/{}/autokeyConfig",
@@ -2082,11 +2119,14 @@ pub fn cloudkms_projects_update_autokey_config(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudkms_projects_update_kaj_policy_config_execute()` to send, or `cloudkms_projects_update_kaj_policy_config` for simplest API.
 
-pub fn cloudkms_projects_update_kaj_policy_config_builder(
-    client: &SimpleHttpClient,
+pub fn cloudkms_projects_update_kaj_policy_config_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudkms.googleapis.com/v1/projects/{}/kajPolicyConfig",
@@ -2262,10 +2302,13 @@ pub fn cloudkms_projects_update_kaj_policy_config(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudkms_projects_locations_generate_random_bytes_execute()` to send, or `cloudkms_projects_locations_generate_random_bytes` for simplest API.
 
-pub fn cloudkms_projects_locations_generate_random_bytes_builder(
-    client: &SimpleHttpClient,
+pub fn cloudkms_projects_locations_generate_random_bytes_builder<R>(
+    client: &SimpleHttpClient<R>,
     location: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudkms.googleapis.com/v1/projects/{}/locations/{locationsId}:generateRandomBytes",
@@ -2428,10 +2471,13 @@ pub fn cloudkms_projects_locations_generate_random_bytes(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudkms_projects_locations_get_execute()` to send, or `cloudkms_projects_locations_get` for simplest API.
 
-pub fn cloudkms_projects_locations_get_builder(
-    client: &SimpleHttpClient,
+pub fn cloudkms_projects_locations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudkms.googleapis.com/v1/projects/{}/locations/{locationsId}",
@@ -2585,10 +2631,13 @@ pub fn cloudkms_projects_locations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudkms_projects_locations_get_ekm_config_execute()` to send, or `cloudkms_projects_locations_get_ekm_config` for simplest API.
 
-pub fn cloudkms_projects_locations_get_ekm_config_builder(
-    client: &SimpleHttpClient,
+pub fn cloudkms_projects_locations_get_ekm_config_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudkms.googleapis.com/v1/projects/{}/locations/{locationsId}/ekmConfig",
@@ -2742,14 +2791,17 @@ pub fn cloudkms_projects_locations_get_ekm_config(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudkms_projects_locations_list_execute()` to send, or `cloudkms_projects_locations_list` for simplest API.
 
-pub fn cloudkms_projects_locations_list_builder(
-    client: &SimpleHttpClient,
+pub fn cloudkms_projects_locations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     extraLocationTypes: &Option<Option<String>>,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudkms.googleapis.com/v1/projects/{}/locations",
@@ -2942,11 +2994,14 @@ pub fn cloudkms_projects_locations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudkms_projects_locations_update_ekm_config_execute()` to send, or `cloudkms_projects_locations_update_ekm_config` for simplest API.
 
-pub fn cloudkms_projects_locations_update_ekm_config_builder(
-    client: &SimpleHttpClient,
+pub fn cloudkms_projects_locations_update_ekm_config_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudkms.googleapis.com/v1/projects/{}/locations/{locationsId}/ekmConfig",
@@ -3117,11 +3172,14 @@ pub fn cloudkms_projects_locations_update_ekm_config(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudkms_projects_locations_ekm_config_get_iam_policy_execute()` to send, or `cloudkms_projects_locations_ekm_config_get_iam_policy` for simplest API.
 
-pub fn cloudkms_projects_locations_ekm_config_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn cloudkms_projects_locations_ekm_config_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudkms.googleapis.com/v1/projects/{}/locations/{locationsId}/ekmConfig:getIamPolicy",
@@ -3292,10 +3350,13 @@ pub fn cloudkms_projects_locations_ekm_config_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudkms_projects_locations_ekm_config_set_iam_policy_execute()` to send, or `cloudkms_projects_locations_ekm_config_set_iam_policy` for simplest API.
 
-pub fn cloudkms_projects_locations_ekm_config_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn cloudkms_projects_locations_ekm_config_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudkms.googleapis.com/v1/projects/{}/locations/{locationsId}/ekmConfig:setIamPolicy",
@@ -3450,10 +3511,13 @@ pub fn cloudkms_projects_locations_ekm_config_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudkms_projects_locations_ekm_config_test_iam_permissions_execute()` to send, or `cloudkms_projects_locations_ekm_config_test_iam_permissions` for simplest API.
 
-pub fn cloudkms_projects_locations_ekm_config_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn cloudkms_projects_locations_ekm_config_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudkms.googleapis.com/v1/projects/{}/locations/{locationsId}/ekmConfig:testIamPermissions",
@@ -3618,11 +3682,14 @@ pub fn cloudkms_projects_locations_ekm_config_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudkms_projects_locations_ekm_connections_create_execute()` to send, or `cloudkms_projects_locations_ekm_connections_create` for simplest API.
 
-pub fn cloudkms_projects_locations_ekm_connections_create_builder(
-    client: &SimpleHttpClient,
+pub fn cloudkms_projects_locations_ekm_connections_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     ekmConnectionId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudkms.googleapis.com/v1/projects/{}/locations/{locationsId}/ekmConnections",
@@ -3797,10 +3864,13 @@ pub fn cloudkms_projects_locations_ekm_connections_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudkms_projects_locations_ekm_connections_get_execute()` to send, or `cloudkms_projects_locations_ekm_connections_get` for simplest API.
 
-pub fn cloudkms_projects_locations_ekm_connections_get_builder(
-    client: &SimpleHttpClient,
+pub fn cloudkms_projects_locations_ekm_connections_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudkms.googleapis.com/v1/projects/{}/locations/{locationsId}/ekmConnections/{ekmConnectionsId}",
@@ -3958,11 +4028,14 @@ pub fn cloudkms_projects_locations_ekm_connections_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudkms_projects_locations_ekm_connections_get_iam_policy_execute()` to send, or `cloudkms_projects_locations_ekm_connections_get_iam_policy` for simplest API.
 
-pub fn cloudkms_projects_locations_ekm_connections_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn cloudkms_projects_locations_ekm_connections_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudkms.googleapis.com/v1/projects/{}/locations/{locationsId}/ekmConnections/{ekmConnectionsId}:getIamPolicy",
@@ -4133,14 +4206,17 @@ pub fn cloudkms_projects_locations_ekm_connections_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudkms_projects_locations_ekm_connections_list_execute()` to send, or `cloudkms_projects_locations_ekm_connections_list` for simplest API.
 
-pub fn cloudkms_projects_locations_ekm_connections_list_builder(
-    client: &SimpleHttpClient,
+pub fn cloudkms_projects_locations_ekm_connections_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudkms.googleapis.com/v1/projects/{}/locations/{locationsId}/ekmConnections",
@@ -4337,11 +4413,14 @@ pub fn cloudkms_projects_locations_ekm_connections_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudkms_projects_locations_ekm_connections_patch_execute()` to send, or `cloudkms_projects_locations_ekm_connections_patch` for simplest API.
 
-pub fn cloudkms_projects_locations_ekm_connections_patch_builder(
-    client: &SimpleHttpClient,
+pub fn cloudkms_projects_locations_ekm_connections_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudkms.googleapis.com/v1/projects/{}/locations/{locationsId}/ekmConnections/{ekmConnectionsId}",
@@ -4516,10 +4595,13 @@ pub fn cloudkms_projects_locations_ekm_connections_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudkms_projects_locations_ekm_connections_set_iam_policy_execute()` to send, or `cloudkms_projects_locations_ekm_connections_set_iam_policy` for simplest API.
 
-pub fn cloudkms_projects_locations_ekm_connections_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn cloudkms_projects_locations_ekm_connections_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudkms.googleapis.com/v1/projects/{}/locations/{locationsId}/ekmConnections/{ekmConnectionsId}:setIamPolicy",
@@ -4674,10 +4756,13 @@ pub fn cloudkms_projects_locations_ekm_connections_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudkms_projects_locations_ekm_connections_test_iam_permissions_execute()` to send, or `cloudkms_projects_locations_ekm_connections_test_iam_permissions` for simplest API.
 
-pub fn cloudkms_projects_locations_ekm_connections_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn cloudkms_projects_locations_ekm_connections_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudkms.googleapis.com/v1/projects/{}/locations/{locationsId}/ekmConnections/{ekmConnectionsId}:testIamPermissions",
@@ -4842,10 +4927,13 @@ pub fn cloudkms_projects_locations_ekm_connections_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudkms_projects_locations_ekm_connections_verify_connectivity_execute()` to send, or `cloudkms_projects_locations_ekm_connections_verify_connectivity` for simplest API.
 
-pub fn cloudkms_projects_locations_ekm_connections_verify_connectivity_builder(
-    client: &SimpleHttpClient,
+pub fn cloudkms_projects_locations_ekm_connections_verify_connectivity_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudkms.googleapis.com/v1/projects/{}/locations/{locationsId}/ekmConnections/{ekmConnectionsId}:verifyConnectivity",
@@ -5009,11 +5097,14 @@ pub fn cloudkms_projects_locations_ekm_connections_verify_connectivity(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudkms_projects_locations_key_handles_create_execute()` to send, or `cloudkms_projects_locations_key_handles_create` for simplest API.
 
-pub fn cloudkms_projects_locations_key_handles_create_builder(
-    client: &SimpleHttpClient,
+pub fn cloudkms_projects_locations_key_handles_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     keyHandleId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudkms.googleapis.com/v1/projects/{}/locations/{locationsId}/keyHandles",
@@ -5184,10 +5275,13 @@ pub fn cloudkms_projects_locations_key_handles_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudkms_projects_locations_key_handles_get_execute()` to send, or `cloudkms_projects_locations_key_handles_get` for simplest API.
 
-pub fn cloudkms_projects_locations_key_handles_get_builder(
-    client: &SimpleHttpClient,
+pub fn cloudkms_projects_locations_key_handles_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudkms.googleapis.com/v1/projects/{}/locations/{locationsId}/keyHandles/{keyHandlesId}",
@@ -5341,13 +5435,16 @@ pub fn cloudkms_projects_locations_key_handles_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudkms_projects_locations_key_handles_list_execute()` to send, or `cloudkms_projects_locations_key_handles_list` for simplest API.
 
-pub fn cloudkms_projects_locations_key_handles_list_builder(
-    client: &SimpleHttpClient,
+pub fn cloudkms_projects_locations_key_handles_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudkms.googleapis.com/v1/projects/{}/locations/{locationsId}/keyHandles",
@@ -5534,11 +5631,14 @@ pub fn cloudkms_projects_locations_key_handles_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudkms_projects_locations_key_rings_create_execute()` to send, or `cloudkms_projects_locations_key_rings_create` for simplest API.
 
-pub fn cloudkms_projects_locations_key_rings_create_builder(
-    client: &SimpleHttpClient,
+pub fn cloudkms_projects_locations_key_rings_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     keyRingId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudkms.googleapis.com/v1/projects/{}/locations/{locationsId}/keyRings",
@@ -5709,10 +5809,13 @@ pub fn cloudkms_projects_locations_key_rings_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudkms_projects_locations_key_rings_get_execute()` to send, or `cloudkms_projects_locations_key_rings_get` for simplest API.
 
-pub fn cloudkms_projects_locations_key_rings_get_builder(
-    client: &SimpleHttpClient,
+pub fn cloudkms_projects_locations_key_rings_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudkms.googleapis.com/v1/projects/{}/locations/{locationsId}/keyRings/{keyRingsId}",
@@ -5866,11 +5969,14 @@ pub fn cloudkms_projects_locations_key_rings_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudkms_projects_locations_key_rings_get_iam_policy_execute()` to send, or `cloudkms_projects_locations_key_rings_get_iam_policy` for simplest API.
 
-pub fn cloudkms_projects_locations_key_rings_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn cloudkms_projects_locations_key_rings_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudkms.googleapis.com/v1/projects/{}/locations/{locationsId}/keyRings/{keyRingsId}:getIamPolicy",
@@ -6041,14 +6147,17 @@ pub fn cloudkms_projects_locations_key_rings_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudkms_projects_locations_key_rings_list_execute()` to send, or `cloudkms_projects_locations_key_rings_list` for simplest API.
 
-pub fn cloudkms_projects_locations_key_rings_list_builder(
-    client: &SimpleHttpClient,
+pub fn cloudkms_projects_locations_key_rings_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudkms.googleapis.com/v1/projects/{}/locations/{locationsId}/keyRings",
@@ -6241,10 +6350,13 @@ pub fn cloudkms_projects_locations_key_rings_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudkms_projects_locations_key_rings_set_iam_policy_execute()` to send, or `cloudkms_projects_locations_key_rings_set_iam_policy` for simplest API.
 
-pub fn cloudkms_projects_locations_key_rings_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn cloudkms_projects_locations_key_rings_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudkms.googleapis.com/v1/projects/{}/locations/{locationsId}/keyRings/{keyRingsId}:setIamPolicy",
@@ -6399,10 +6511,13 @@ pub fn cloudkms_projects_locations_key_rings_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudkms_projects_locations_key_rings_test_iam_permissions_execute()` to send, or `cloudkms_projects_locations_key_rings_test_iam_permissions` for simplest API.
 
-pub fn cloudkms_projects_locations_key_rings_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn cloudkms_projects_locations_key_rings_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudkms.googleapis.com/v1/projects/{}/locations/{locationsId}/keyRings/{keyRingsId}:testIamPermissions",
@@ -6565,12 +6680,15 @@ pub fn cloudkms_projects_locations_key_rings_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudkms_projects_locations_key_rings_crypto_keys_create_execute()` to send, or `cloudkms_projects_locations_key_rings_crypto_keys_create` for simplest API.
 
-pub fn cloudkms_projects_locations_key_rings_crypto_keys_create_builder(
-    client: &SimpleHttpClient,
+pub fn cloudkms_projects_locations_key_rings_crypto_keys_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     cryptoKeyId: &Option<Option<String>>,
     skipInitialVersionCreation: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudkms.googleapis.com/v1/projects/{}/locations/{locationsId}/keyRings/{keyRingsId}/cryptoKeys",
@@ -6747,10 +6865,13 @@ pub fn cloudkms_projects_locations_key_rings_crypto_keys_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudkms_projects_locations_key_rings_crypto_keys_decrypt_execute()` to send, or `cloudkms_projects_locations_key_rings_crypto_keys_decrypt` for simplest API.
 
-pub fn cloudkms_projects_locations_key_rings_crypto_keys_decrypt_builder(
-    client: &SimpleHttpClient,
+pub fn cloudkms_projects_locations_key_rings_crypto_keys_decrypt_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudkms.googleapis.com/v1/projects/{}/locations/{locationsId}/keyRings/{keyRingsId}/cryptoKeys/{cryptoKeysId}:decrypt",
@@ -6909,10 +7030,13 @@ pub fn cloudkms_projects_locations_key_rings_crypto_keys_decrypt(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudkms_projects_locations_key_rings_crypto_keys_delete_execute()` to send, or `cloudkms_projects_locations_key_rings_crypto_keys_delete` for simplest API.
 
-pub fn cloudkms_projects_locations_key_rings_crypto_keys_delete_builder(
-    client: &SimpleHttpClient,
+pub fn cloudkms_projects_locations_key_rings_crypto_keys_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudkms.googleapis.com/v1/projects/{}/locations/{locationsId}/keyRings/{keyRingsId}/cryptoKeys/{cryptoKeysId}",
@@ -7067,10 +7191,13 @@ pub fn cloudkms_projects_locations_key_rings_crypto_keys_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudkms_projects_locations_key_rings_crypto_keys_encrypt_execute()` to send, or `cloudkms_projects_locations_key_rings_crypto_keys_encrypt` for simplest API.
 
-pub fn cloudkms_projects_locations_key_rings_crypto_keys_encrypt_builder(
-    client: &SimpleHttpClient,
+pub fn cloudkms_projects_locations_key_rings_crypto_keys_encrypt_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudkms.googleapis.com/v1/projects/{}/locations/{locationsId}/keyRings/{keyRingsId}/cryptoKeys/{cryptoKeysId}:encrypt",
@@ -7229,10 +7356,13 @@ pub fn cloudkms_projects_locations_key_rings_crypto_keys_encrypt(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudkms_projects_locations_key_rings_crypto_keys_get_execute()` to send, or `cloudkms_projects_locations_key_rings_crypto_keys_get` for simplest API.
 
-pub fn cloudkms_projects_locations_key_rings_crypto_keys_get_builder(
-    client: &SimpleHttpClient,
+pub fn cloudkms_projects_locations_key_rings_crypto_keys_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudkms.googleapis.com/v1/projects/{}/locations/{locationsId}/keyRings/{keyRingsId}/cryptoKeys/{cryptoKeysId}",
@@ -7387,11 +7517,14 @@ pub fn cloudkms_projects_locations_key_rings_crypto_keys_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudkms_projects_locations_key_rings_crypto_keys_get_iam_policy_execute()` to send, or `cloudkms_projects_locations_key_rings_crypto_keys_get_iam_policy` for simplest API.
 
-pub fn cloudkms_projects_locations_key_rings_crypto_keys_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn cloudkms_projects_locations_key_rings_crypto_keys_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudkms.googleapis.com/v1/projects/{}/locations/{locationsId}/keyRings/{keyRingsId}/cryptoKeys/{cryptoKeysId}:getIamPolicy",
@@ -7562,15 +7695,18 @@ pub fn cloudkms_projects_locations_key_rings_crypto_keys_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudkms_projects_locations_key_rings_crypto_keys_list_execute()` to send, or `cloudkms_projects_locations_key_rings_crypto_keys_list` for simplest API.
 
-pub fn cloudkms_projects_locations_key_rings_crypto_keys_list_builder(
-    client: &SimpleHttpClient,
+pub fn cloudkms_projects_locations_key_rings_crypto_keys_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     versionView: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudkms.googleapis.com/v1/projects/{}/locations/{locationsId}/keyRings/{keyRingsId}/cryptoKeys",
@@ -7769,11 +7905,14 @@ pub fn cloudkms_projects_locations_key_rings_crypto_keys_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudkms_projects_locations_key_rings_crypto_keys_patch_execute()` to send, or `cloudkms_projects_locations_key_rings_crypto_keys_patch` for simplest API.
 
-pub fn cloudkms_projects_locations_key_rings_crypto_keys_patch_builder(
-    client: &SimpleHttpClient,
+pub fn cloudkms_projects_locations_key_rings_crypto_keys_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudkms.googleapis.com/v1/projects/{}/locations/{locationsId}/keyRings/{keyRingsId}/cryptoKeys/{cryptoKeysId}",
@@ -7944,10 +8083,13 @@ pub fn cloudkms_projects_locations_key_rings_crypto_keys_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudkms_projects_locations_key_rings_crypto_keys_set_iam_policy_execute()` to send, or `cloudkms_projects_locations_key_rings_crypto_keys_set_iam_policy` for simplest API.
 
-pub fn cloudkms_projects_locations_key_rings_crypto_keys_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn cloudkms_projects_locations_key_rings_crypto_keys_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudkms.googleapis.com/v1/projects/{}/locations/{locationsId}/keyRings/{keyRingsId}/cryptoKeys/{cryptoKeysId}:setIamPolicy",
@@ -8104,10 +8246,13 @@ pub fn cloudkms_projects_locations_key_rings_crypto_keys_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudkms_projects_locations_key_rings_crypto_keys_test_iam_permissions_execute()` to send, or `cloudkms_projects_locations_key_rings_crypto_keys_test_iam_permissions` for simplest API.
 
-pub fn cloudkms_projects_locations_key_rings_crypto_keys_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn cloudkms_projects_locations_key_rings_crypto_keys_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudkms.googleapis.com/v1/projects/{}/locations/{locationsId}/keyRings/{keyRingsId}/cryptoKeys/{cryptoKeysId}:testIamPermissions",
@@ -8273,10 +8418,13 @@ pub fn cloudkms_projects_locations_key_rings_crypto_keys_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudkms_projects_locations_key_rings_crypto_keys_update_primary_version_execute()` to send, or `cloudkms_projects_locations_key_rings_crypto_keys_update_primary_version` for simplest API.
 
-pub fn cloudkms_projects_locations_key_rings_crypto_keys_update_primary_version_builder(
-    client: &SimpleHttpClient,
+pub fn cloudkms_projects_locations_key_rings_crypto_keys_update_primary_version_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudkms.googleapis.com/v1/projects/{}/locations/{locationsId}/keyRings/{keyRingsId}/cryptoKeys/{cryptoKeysId}:updatePrimaryVersion",
@@ -8433,10 +8581,15 @@ pub fn cloudkms_projects_locations_key_rings_crypto_keys_update_primary_version(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_asymmetric_decrypt_execute()` to send, or `cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_asymmetric_decrypt` for simplest API.
 
-pub fn cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_asymmetric_decrypt_builder(
-    client: &SimpleHttpClient,
+pub fn cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_asymmetric_decrypt_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudkms.googleapis.com/v1/projects/{}/locations/{locationsId}/keyRings/{keyRingsId}/cryptoKeys/{cryptoKeysId}/cryptoKeyVersions/{cryptoKeyVersionsId}:asymmetricDecrypt",
@@ -8596,10 +8749,15 @@ pub fn cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_asy
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_asymmetric_sign_execute()` to send, or `cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_asymmetric_sign` for simplest API.
 
-pub fn cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_asymmetric_sign_builder(
-    client: &SimpleHttpClient,
+pub fn cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_asymmetric_sign_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudkms.googleapis.com/v1/projects/{}/locations/{locationsId}/keyRings/{keyRingsId}/cryptoKeys/{cryptoKeysId}/cryptoKeyVersions/{cryptoKeyVersionsId}:asymmetricSign",
@@ -8762,10 +8920,13 @@ pub fn cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_asy
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_create_execute()` to send, or `cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_create` for simplest API.
 
-pub fn cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_create_builder(
-    client: &SimpleHttpClient,
+pub fn cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudkms.googleapis.com/v1/projects/{}/locations/{locationsId}/keyRings/{keyRingsId}/cryptoKeys/{cryptoKeysId}/cryptoKeyVersions",
@@ -8928,10 +9089,15 @@ pub fn cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_cre
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_decapsulate_execute()` to send, or `cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_decapsulate` for simplest API.
 
-pub fn cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_decapsulate_builder(
-    client: &SimpleHttpClient,
+pub fn cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_decapsulate_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudkms.googleapis.com/v1/projects/{}/locations/{locationsId}/keyRings/{keyRingsId}/cryptoKeys/{cryptoKeysId}/cryptoKeyVersions/{cryptoKeyVersionsId}:decapsulate",
@@ -9097,10 +9263,13 @@ pub fn cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_dec
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_delete_execute()` to send, or `cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_delete` for simplest API.
 
-pub fn cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_delete_builder(
-    client: &SimpleHttpClient,
+pub fn cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudkms.googleapis.com/v1/projects/{}/locations/{locationsId}/keyRings/{keyRingsId}/cryptoKeys/{cryptoKeysId}/cryptoKeyVersions/{cryptoKeyVersionsId}",
@@ -9258,10 +9427,13 @@ pub fn cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_del
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_destroy_execute()` to send, or `cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_destroy` for simplest API.
 
-pub fn cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_destroy_builder(
-    client: &SimpleHttpClient,
+pub fn cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_destroy_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudkms.googleapis.com/v1/projects/{}/locations/{locationsId}/keyRings/{keyRingsId}/cryptoKeys/{cryptoKeysId}/cryptoKeyVersions/{cryptoKeyVersionsId}:destroy",
@@ -9424,10 +9596,13 @@ pub fn cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_des
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_get_execute()` to send, or `cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_get` for simplest API.
 
-pub fn cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_get_builder(
-    client: &SimpleHttpClient,
+pub fn cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudkms.googleapis.com/v1/projects/{}/locations/{locationsId}/keyRings/{keyRingsId}/cryptoKeys/{cryptoKeysId}/cryptoKeyVersions/{cryptoKeyVersionsId}",
@@ -9589,11 +9764,16 @@ pub fn cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_get
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_get_public_key_execute()` to send, or `cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_get_public_key` for simplest API.
 
-pub fn cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_get_public_key_builder(
-    client: &SimpleHttpClient,
+pub fn cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_get_public_key_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     publicKeyFormat: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudkms.googleapis.com/v1/projects/{}/locations/{locationsId}/keyRings/{keyRingsId}/cryptoKeys/{cryptoKeysId}/cryptoKeyVersions/{cryptoKeyVersionsId}/publicKey",
@@ -9765,10 +9945,13 @@ pub fn cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_get
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_import_execute()` to send, or `cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_import` for simplest API.
 
-pub fn cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_import_builder(
-    client: &SimpleHttpClient,
+pub fn cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_import_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudkms.googleapis.com/v1/projects/{}/locations/{locationsId}/keyRings/{keyRingsId}/cryptoKeys/{cryptoKeysId}/cryptoKeyVersions:import",
@@ -9931,15 +10114,18 @@ pub fn cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_imp
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_list_execute()` to send, or `cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_list` for simplest API.
 
-pub fn cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_list_builder(
-    client: &SimpleHttpClient,
+pub fn cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudkms.googleapis.com/v1/projects/{}/locations/{locationsId}/keyRings/{keyRingsId}/cryptoKeys/{cryptoKeysId}/cryptoKeyVersions",
@@ -10144,10 +10330,13 @@ pub fn cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_lis
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_mac_sign_execute()` to send, or `cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_mac_sign` for simplest API.
 
-pub fn cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_mac_sign_builder(
-    client: &SimpleHttpClient,
+pub fn cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_mac_sign_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudkms.googleapis.com/v1/projects/{}/locations/{locationsId}/keyRings/{keyRingsId}/cryptoKeys/{cryptoKeysId}/cryptoKeyVersions/{cryptoKeyVersionsId}:macSign",
@@ -10310,10 +10499,13 @@ pub fn cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_mac
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_mac_verify_execute()` to send, or `cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_mac_verify` for simplest API.
 
-pub fn cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_mac_verify_builder(
-    client: &SimpleHttpClient,
+pub fn cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_mac_verify_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudkms.googleapis.com/v1/projects/{}/locations/{locationsId}/keyRings/{keyRingsId}/cryptoKeys/{cryptoKeysId}/cryptoKeyVersions/{cryptoKeyVersionsId}:macVerify",
@@ -10479,11 +10671,14 @@ pub fn cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_mac
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_patch_execute()` to send, or `cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_patch` for simplest API.
 
-pub fn cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_patch_builder(
-    client: &SimpleHttpClient,
+pub fn cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudkms.googleapis.com/v1/projects/{}/locations/{locationsId}/keyRings/{keyRingsId}/cryptoKeys/{cryptoKeysId}/cryptoKeyVersions/{cryptoKeyVersionsId}",
@@ -10660,10 +10855,15 @@ pub fn cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_pat
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_raw_decrypt_execute()` to send, or `cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_raw_decrypt` for simplest API.
 
-pub fn cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_raw_decrypt_builder(
-    client: &SimpleHttpClient,
+pub fn cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_raw_decrypt_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudkms.googleapis.com/v1/projects/{}/locations/{locationsId}/keyRings/{keyRingsId}/cryptoKeys/{cryptoKeysId}/cryptoKeyVersions/{cryptoKeyVersionsId}:rawDecrypt",
@@ -10829,10 +11029,15 @@ pub fn cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_raw
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_raw_encrypt_execute()` to send, or `cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_raw_encrypt` for simplest API.
 
-pub fn cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_raw_encrypt_builder(
-    client: &SimpleHttpClient,
+pub fn cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_raw_encrypt_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudkms.googleapis.com/v1/projects/{}/locations/{locationsId}/keyRings/{keyRingsId}/cryptoKeys/{cryptoKeysId}/cryptoKeyVersions/{cryptoKeyVersionsId}:rawEncrypt",
@@ -10998,10 +11203,13 @@ pub fn cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_raw
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_restore_execute()` to send, or `cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_restore` for simplest API.
 
-pub fn cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_restore_builder(
-    client: &SimpleHttpClient,
+pub fn cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_restore_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudkms.googleapis.com/v1/projects/{}/locations/{locationsId}/keyRings/{keyRingsId}/cryptoKeys/{cryptoKeysId}/cryptoKeyVersions/{cryptoKeyVersionsId}:restore",
@@ -11164,11 +11372,14 @@ pub fn cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_res
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudkms_projects_locations_key_rings_import_jobs_create_execute()` to send, or `cloudkms_projects_locations_key_rings_import_jobs_create` for simplest API.
 
-pub fn cloudkms_projects_locations_key_rings_import_jobs_create_builder(
-    client: &SimpleHttpClient,
+pub fn cloudkms_projects_locations_key_rings_import_jobs_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     importJobId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudkms.googleapis.com/v1/projects/{}/locations/{locationsId}/keyRings/{keyRingsId}/importJobs",
@@ -11339,10 +11550,13 @@ pub fn cloudkms_projects_locations_key_rings_import_jobs_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudkms_projects_locations_key_rings_import_jobs_get_execute()` to send, or `cloudkms_projects_locations_key_rings_import_jobs_get` for simplest API.
 
-pub fn cloudkms_projects_locations_key_rings_import_jobs_get_builder(
-    client: &SimpleHttpClient,
+pub fn cloudkms_projects_locations_key_rings_import_jobs_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudkms.googleapis.com/v1/projects/{}/locations/{locationsId}/keyRings/{keyRingsId}/importJobs/{importJobsId}",
@@ -11497,11 +11711,14 @@ pub fn cloudkms_projects_locations_key_rings_import_jobs_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudkms_projects_locations_key_rings_import_jobs_get_iam_policy_execute()` to send, or `cloudkms_projects_locations_key_rings_import_jobs_get_iam_policy` for simplest API.
 
-pub fn cloudkms_projects_locations_key_rings_import_jobs_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn cloudkms_projects_locations_key_rings_import_jobs_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudkms.googleapis.com/v1/projects/{}/locations/{locationsId}/keyRings/{keyRingsId}/importJobs/{importJobsId}:getIamPolicy",
@@ -11672,14 +11889,17 @@ pub fn cloudkms_projects_locations_key_rings_import_jobs_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudkms_projects_locations_key_rings_import_jobs_list_execute()` to send, or `cloudkms_projects_locations_key_rings_import_jobs_list` for simplest API.
 
-pub fn cloudkms_projects_locations_key_rings_import_jobs_list_builder(
-    client: &SimpleHttpClient,
+pub fn cloudkms_projects_locations_key_rings_import_jobs_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudkms.googleapis.com/v1/projects/{}/locations/{locationsId}/keyRings/{keyRingsId}/importJobs",
@@ -11872,10 +12092,13 @@ pub fn cloudkms_projects_locations_key_rings_import_jobs_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudkms_projects_locations_key_rings_import_jobs_set_iam_policy_execute()` to send, or `cloudkms_projects_locations_key_rings_import_jobs_set_iam_policy` for simplest API.
 
-pub fn cloudkms_projects_locations_key_rings_import_jobs_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn cloudkms_projects_locations_key_rings_import_jobs_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudkms.googleapis.com/v1/projects/{}/locations/{locationsId}/keyRings/{keyRingsId}/importJobs/{importJobsId}:setIamPolicy",
@@ -12032,10 +12255,13 @@ pub fn cloudkms_projects_locations_key_rings_import_jobs_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudkms_projects_locations_key_rings_import_jobs_test_iam_permissions_execute()` to send, or `cloudkms_projects_locations_key_rings_import_jobs_test_iam_permissions` for simplest API.
 
-pub fn cloudkms_projects_locations_key_rings_import_jobs_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn cloudkms_projects_locations_key_rings_import_jobs_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudkms.googleapis.com/v1/projects/{}/locations/{locationsId}/keyRings/{keyRingsId}/importJobs/{importJobsId}:testIamPermissions",
@@ -12201,10 +12427,13 @@ pub fn cloudkms_projects_locations_key_rings_import_jobs_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudkms_projects_locations_operations_get_execute()` to send, or `cloudkms_projects_locations_operations_get` for simplest API.
 
-pub fn cloudkms_projects_locations_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn cloudkms_projects_locations_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudkms.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -12358,10 +12587,13 @@ pub fn cloudkms_projects_locations_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudkms_projects_locations_retired_resources_get_execute()` to send, or `cloudkms_projects_locations_retired_resources_get` for simplest API.
 
-pub fn cloudkms_projects_locations_retired_resources_get_builder(
-    client: &SimpleHttpClient,
+pub fn cloudkms_projects_locations_retired_resources_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudkms.googleapis.com/v1/projects/{}/locations/{locationsId}/retiredResources/{retiredResourcesId}",
@@ -12519,12 +12751,15 @@ pub fn cloudkms_projects_locations_retired_resources_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudkms_projects_locations_retired_resources_list_execute()` to send, or `cloudkms_projects_locations_retired_resources_list` for simplest API.
 
-pub fn cloudkms_projects_locations_retired_resources_list_builder(
-    client: &SimpleHttpClient,
+pub fn cloudkms_projects_locations_retired_resources_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudkms.googleapis.com/v1/projects/{}/locations/{locationsId}/retiredResources",
@@ -12709,11 +12944,14 @@ pub fn cloudkms_projects_locations_retired_resources_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudkms_projects_locations_single_tenant_hsm_instances_create_execute()` to send, or `cloudkms_projects_locations_single_tenant_hsm_instances_create` for simplest API.
 
-pub fn cloudkms_projects_locations_single_tenant_hsm_instances_create_builder(
-    client: &SimpleHttpClient,
+pub fn cloudkms_projects_locations_single_tenant_hsm_instances_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     singleTenantHsmInstanceId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudkms.googleapis.com/v1/projects/{}/locations/{locationsId}/singleTenantHsmInstances",
@@ -12884,10 +13122,13 @@ pub fn cloudkms_projects_locations_single_tenant_hsm_instances_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudkms_projects_locations_single_tenant_hsm_instances_get_execute()` to send, or `cloudkms_projects_locations_single_tenant_hsm_instances_get` for simplest API.
 
-pub fn cloudkms_projects_locations_single_tenant_hsm_instances_get_builder(
-    client: &SimpleHttpClient,
+pub fn cloudkms_projects_locations_single_tenant_hsm_instances_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudkms.googleapis.com/v1/projects/{}/locations/{locationsId}/singleTenantHsmInstances/{singleTenantHsmInstancesId}",
@@ -13046,15 +13287,18 @@ pub fn cloudkms_projects_locations_single_tenant_hsm_instances_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudkms_projects_locations_single_tenant_hsm_instances_list_execute()` to send, or `cloudkms_projects_locations_single_tenant_hsm_instances_list` for simplest API.
 
-pub fn cloudkms_projects_locations_single_tenant_hsm_instances_list_builder(
-    client: &SimpleHttpClient,
+pub fn cloudkms_projects_locations_single_tenant_hsm_instances_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     showDeleted: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudkms.googleapis.com/v1/projects/{}/locations/{locationsId}/singleTenantHsmInstances",
@@ -13257,10 +13501,13 @@ pub fn cloudkms_projects_locations_single_tenant_hsm_instances_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudkms_projects_locations_single_tenant_hsm_instances_proposals_approve_execute()` to send, or `cloudkms_projects_locations_single_tenant_hsm_instances_proposals_approve` for simplest API.
 
-pub fn cloudkms_projects_locations_single_tenant_hsm_instances_proposals_approve_builder(
-    client: &SimpleHttpClient,
+pub fn cloudkms_projects_locations_single_tenant_hsm_instances_proposals_approve_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudkms.googleapis.com/v1/projects/{}/locations/{locationsId}/singleTenantHsmInstances/{singleTenantHsmInstancesId}/proposals/{proposalsId}:approve",
@@ -13427,11 +13674,14 @@ pub fn cloudkms_projects_locations_single_tenant_hsm_instances_proposals_approve
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudkms_projects_locations_single_tenant_hsm_instances_proposals_create_execute()` to send, or `cloudkms_projects_locations_single_tenant_hsm_instances_proposals_create` for simplest API.
 
-pub fn cloudkms_projects_locations_single_tenant_hsm_instances_proposals_create_builder(
-    client: &SimpleHttpClient,
+pub fn cloudkms_projects_locations_single_tenant_hsm_instances_proposals_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     singleTenantHsmInstanceProposalId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudkms.googleapis.com/v1/projects/{}/locations/{locationsId}/singleTenantHsmInstances/{singleTenantHsmInstancesId}/proposals",
@@ -13603,10 +13853,13 @@ pub fn cloudkms_projects_locations_single_tenant_hsm_instances_proposals_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudkms_projects_locations_single_tenant_hsm_instances_proposals_delete_execute()` to send, or `cloudkms_projects_locations_single_tenant_hsm_instances_proposals_delete` for simplest API.
 
-pub fn cloudkms_projects_locations_single_tenant_hsm_instances_proposals_delete_builder(
-    client: &SimpleHttpClient,
+pub fn cloudkms_projects_locations_single_tenant_hsm_instances_proposals_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudkms.googleapis.com/v1/projects/{}/locations/{locationsId}/singleTenantHsmInstances/{singleTenantHsmInstancesId}/proposals/{proposalsId}",
@@ -13763,10 +14016,13 @@ pub fn cloudkms_projects_locations_single_tenant_hsm_instances_proposals_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudkms_projects_locations_single_tenant_hsm_instances_proposals_execute_execute()` to send, or `cloudkms_projects_locations_single_tenant_hsm_instances_proposals_execute` for simplest API.
 
-pub fn cloudkms_projects_locations_single_tenant_hsm_instances_proposals_execute_builder(
-    client: &SimpleHttpClient,
+pub fn cloudkms_projects_locations_single_tenant_hsm_instances_proposals_execute_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudkms.googleapis.com/v1/projects/{}/locations/{locationsId}/singleTenantHsmInstances/{singleTenantHsmInstancesId}/proposals/{proposalsId}:execute",
@@ -13924,10 +14180,13 @@ pub fn cloudkms_projects_locations_single_tenant_hsm_instances_proposals_execute
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudkms_projects_locations_single_tenant_hsm_instances_proposals_get_execute()` to send, or `cloudkms_projects_locations_single_tenant_hsm_instances_proposals_get` for simplest API.
 
-pub fn cloudkms_projects_locations_single_tenant_hsm_instances_proposals_get_builder(
-    client: &SimpleHttpClient,
+pub fn cloudkms_projects_locations_single_tenant_hsm_instances_proposals_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudkms.googleapis.com/v1/projects/{}/locations/{locationsId}/singleTenantHsmInstances/{singleTenantHsmInstancesId}/proposals/{proposalsId}",
@@ -14091,15 +14350,18 @@ pub fn cloudkms_projects_locations_single_tenant_hsm_instances_proposals_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudkms_projects_locations_single_tenant_hsm_instances_proposals_list_execute()` to send, or `cloudkms_projects_locations_single_tenant_hsm_instances_proposals_list` for simplest API.
 
-pub fn cloudkms_projects_locations_single_tenant_hsm_instances_proposals_list_builder(
-    client: &SimpleHttpClient,
+pub fn cloudkms_projects_locations_single_tenant_hsm_instances_proposals_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     showDeleted: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudkms.googleapis.com/v1/projects/{}/locations/{locationsId}/singleTenantHsmInstances/{singleTenantHsmInstancesId}/proposals",

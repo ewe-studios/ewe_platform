@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `mybusinessplaceactions_locations_place_action_links_create_execute()` to send, or `mybusinessplaceactions_locations_place_action_links_create` for simplest API.
 
-pub fn mybusinessplaceactions_locations_place_action_links_create_builder(
-    client: &SimpleHttpClient,
+pub fn mybusinessplaceactions_locations_place_action_links_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://mybusinessplaceactions.googleapis.com/v1/locations/{}/placeActionLinks",
@@ -188,10 +192,13 @@ pub fn mybusinessplaceactions_locations_place_action_links_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `mybusinessplaceactions_locations_place_action_links_delete_execute()` to send, or `mybusinessplaceactions_locations_place_action_links_delete` for simplest API.
 
-pub fn mybusinessplaceactions_locations_place_action_links_delete_builder(
-    client: &SimpleHttpClient,
+pub fn mybusinessplaceactions_locations_place_action_links_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://mybusinessplaceactions.googleapis.com/v1/locations/{}/placeActionLinks/{placeActionLinksId}",
@@ -346,10 +353,13 @@ pub fn mybusinessplaceactions_locations_place_action_links_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `mybusinessplaceactions_locations_place_action_links_get_execute()` to send, or `mybusinessplaceactions_locations_place_action_links_get` for simplest API.
 
-pub fn mybusinessplaceactions_locations_place_action_links_get_builder(
-    client: &SimpleHttpClient,
+pub fn mybusinessplaceactions_locations_place_action_links_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://mybusinessplaceactions.googleapis.com/v1/locations/{}/placeActionLinks/{placeActionLinksId}",
@@ -508,13 +518,16 @@ pub fn mybusinessplaceactions_locations_place_action_links_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `mybusinessplaceactions_locations_place_action_links_list_execute()` to send, or `mybusinessplaceactions_locations_place_action_links_list` for simplest API.
 
-pub fn mybusinessplaceactions_locations_place_action_links_list_builder(
-    client: &SimpleHttpClient,
+pub fn mybusinessplaceactions_locations_place_action_links_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://mybusinessplaceactions.googleapis.com/v1/locations/{}/placeActionLinks",
@@ -705,11 +718,14 @@ pub fn mybusinessplaceactions_locations_place_action_links_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `mybusinessplaceactions_locations_place_action_links_patch_execute()` to send, or `mybusinessplaceactions_locations_place_action_links_patch` for simplest API.
 
-pub fn mybusinessplaceactions_locations_place_action_links_patch_builder(
-    client: &SimpleHttpClient,
+pub fn mybusinessplaceactions_locations_place_action_links_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://mybusinessplaceactions.googleapis.com/v1/locations/{}/placeActionLinks/{placeActionLinksId}",
@@ -884,13 +900,16 @@ pub fn mybusinessplaceactions_locations_place_action_links_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `mybusinessplaceactions_place_action_type_metadata_list_execute()` to send, or `mybusinessplaceactions_place_action_type_metadata_list` for simplest API.
 
-pub fn mybusinessplaceactions_place_action_type_metadata_list_builder(
-    client: &SimpleHttpClient,
+pub fn mybusinessplaceactions_place_action_type_metadata_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     filter: &Option<Option<String>>,
     languageCode: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://mybusinessplaceactions.googleapis.com/v1/placeActionTypeMetadata",);

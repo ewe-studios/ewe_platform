@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudprofiler_projects_profiles_create_execute()` to send, or `cloudprofiler_projects_profiles_create` for simplest API.
 
-pub fn cloudprofiler_projects_profiles_create_builder(
-    client: &SimpleHttpClient,
+pub fn cloudprofiler_projects_profiles_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudprofiler.googleapis.com/v2/projects/{}/profiles",
@@ -183,10 +187,13 @@ pub fn cloudprofiler_projects_profiles_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudprofiler_projects_profiles_create_offline_execute()` to send, or `cloudprofiler_projects_profiles_create_offline` for simplest API.
 
-pub fn cloudprofiler_projects_profiles_create_offline_builder(
-    client: &SimpleHttpClient,
+pub fn cloudprofiler_projects_profiles_create_offline_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudprofiler.googleapis.com/v2/projects/{}/profiles:createOffline",
@@ -340,12 +347,15 @@ pub fn cloudprofiler_projects_profiles_create_offline(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudprofiler_projects_profiles_list_execute()` to send, or `cloudprofiler_projects_profiles_list` for simplest API.
 
-pub fn cloudprofiler_projects_profiles_list_builder(
-    client: &SimpleHttpClient,
+pub fn cloudprofiler_projects_profiles_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudprofiler.googleapis.com/v2/projects/{}/profiles",
@@ -526,11 +536,14 @@ pub fn cloudprofiler_projects_profiles_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudprofiler_projects_profiles_patch_execute()` to send, or `cloudprofiler_projects_profiles_patch` for simplest API.
 
-pub fn cloudprofiler_projects_profiles_patch_builder(
-    client: &SimpleHttpClient,
+pub fn cloudprofiler_projects_profiles_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudprofiler.googleapis.com/v2/projects/{}/profiles/{profilesId}",

@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `policysimulator_folders_locations_access_policy_simulations_operations_get_execute()` to send, or `policysimulator_folders_locations_access_policy_simulations_operations_get` for simplest API.
 
-pub fn policysimulator_folders_locations_access_policy_simulations_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn policysimulator_folders_locations_access_policy_simulations_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://policysimulator.googleapis.com/v1/folders/{}/locations/{locationsId}/accessPolicySimulations/{accessPolicySimulationsId}/operations/{operationsId}",
@@ -195,10 +199,13 @@ pub fn policysimulator_folders_locations_access_policy_simulations_operations_ge
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `policysimulator_folders_locations_org_policy_violations_previews_operations_get_execute()` to send, or `policysimulator_folders_locations_org_policy_violations_previews_operations_get` for simplest API.
 
-pub fn policysimulator_folders_locations_org_policy_violations_previews_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn policysimulator_folders_locations_org_policy_violations_previews_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://policysimulator.googleapis.com/v1/folders/{}/locations/{locationsId}/orgPolicyViolationsPreviews/{orgPolicyViolationsPreviewsId}/operations/{operationsId}",
@@ -366,10 +373,13 @@ pub fn policysimulator_folders_locations_org_policy_violations_previews_operatio
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `policysimulator_folders_locations_replays_create_execute()` to send, or `policysimulator_folders_locations_replays_create` for simplest API.
 
-pub fn policysimulator_folders_locations_replays_create_builder(
-    client: &SimpleHttpClient,
+pub fn policysimulator_folders_locations_replays_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://policysimulator.googleapis.com/v1/folders/{}/locations/{locationsId}/replays",
@@ -531,10 +541,13 @@ pub fn policysimulator_folders_locations_replays_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `policysimulator_folders_locations_replays_get_execute()` to send, or `policysimulator_folders_locations_replays_get` for simplest API.
 
-pub fn policysimulator_folders_locations_replays_get_builder(
-    client: &SimpleHttpClient,
+pub fn policysimulator_folders_locations_replays_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://policysimulator.googleapis.com/v1/folders/{}/locations/{locationsId}/replays/{replaysId}",
@@ -696,10 +709,13 @@ pub fn policysimulator_folders_locations_replays_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `policysimulator_folders_locations_replays_operations_get_execute()` to send, or `policysimulator_folders_locations_replays_operations_get` for simplest API.
 
-pub fn policysimulator_folders_locations_replays_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn policysimulator_folders_locations_replays_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://policysimulator.googleapis.com/v1/folders/{}/locations/{locationsId}/replays/{replaysId}/operations/{operationsId}",
@@ -862,14 +878,17 @@ pub fn policysimulator_folders_locations_replays_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `policysimulator_folders_locations_replays_operations_list_execute()` to send, or `policysimulator_folders_locations_replays_operations_list` for simplest API.
 
-pub fn policysimulator_folders_locations_replays_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn policysimulator_folders_locations_replays_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://policysimulator.googleapis.com/v1/folders/{}/locations/{locationsId}/replays/{replaysId}/operations",
@@ -1067,12 +1086,15 @@ pub fn policysimulator_folders_locations_replays_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `policysimulator_folders_locations_replays_results_list_execute()` to send, or `policysimulator_folders_locations_replays_results_list` for simplest API.
 
-pub fn policysimulator_folders_locations_replays_results_list_builder(
-    client: &SimpleHttpClient,
+pub fn policysimulator_folders_locations_replays_results_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://policysimulator.googleapis.com/v1/folders/{}/locations/{locationsId}/replays/{replaysId}/results",
@@ -1267,10 +1289,13 @@ pub fn policysimulator_folders_locations_replays_results_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `policysimulator_operations_get_execute()` to send, or `policysimulator_operations_get` for simplest API.
 
-pub fn policysimulator_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn policysimulator_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://policysimulator.googleapis.com/v1/operations/{}",
@@ -1432,13 +1457,16 @@ pub fn policysimulator_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `policysimulator_operations_list_execute()` to send, or `policysimulator_operations_list` for simplest API.
 
-pub fn policysimulator_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn policysimulator_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://policysimulator.googleapis.com/v1/operations",);
 
@@ -1630,10 +1658,13 @@ pub fn policysimulator_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `policysimulator_organizations_locations_access_policy_simulations_operations_get_execute()` to send, or `policysimulator_organizations_locations_access_policy_simulations_operations_get` for simplest API.
 
-pub fn policysimulator_organizations_locations_access_policy_simulations_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn policysimulator_organizations_locations_access_policy_simulations_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://policysimulator.googleapis.com/v1/organizations/{}/locations/{locationsId}/accessPolicySimulations/{accessPolicySimulationsId}/operations/{operationsId}",
@@ -1803,11 +1834,14 @@ pub fn policysimulator_organizations_locations_access_policy_simulations_operati
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `policysimulator_organizations_locations_org_policy_violations_previews_create_execute()` to send, or `policysimulator_organizations_locations_org_policy_violations_previews_create` for simplest API.
 
-pub fn policysimulator_organizations_locations_org_policy_violations_previews_create_builder(
-    client: &SimpleHttpClient,
+pub fn policysimulator_organizations_locations_org_policy_violations_previews_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     orgPolicyViolationsPreviewId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://policysimulator.googleapis.com/v1/organizations/{}/locations/{locationsId}/orgPolicyViolationsPreviews",
@@ -1989,10 +2023,13 @@ pub fn policysimulator_organizations_locations_org_policy_violations_previews_cr
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `policysimulator_organizations_locations_org_policy_violations_previews_get_execute()` to send, or `policysimulator_organizations_locations_org_policy_violations_previews_get` for simplest API.
 
-pub fn policysimulator_organizations_locations_org_policy_violations_previews_get_builder(
-    client: &SimpleHttpClient,
+pub fn policysimulator_organizations_locations_org_policy_violations_previews_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://policysimulator.googleapis.com/v1/organizations/{}/locations/{locationsId}/orgPolicyViolationsPreviews/{orgPolicyViolationsPreviewsId}",
@@ -2168,12 +2205,15 @@ pub fn policysimulator_organizations_locations_org_policy_violations_previews_ge
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `policysimulator_organizations_locations_org_policy_violations_previews_list_execute()` to send, or `policysimulator_organizations_locations_org_policy_violations_previews_list` for simplest API.
 
-pub fn policysimulator_organizations_locations_org_policy_violations_previews_list_builder(
-    client: &SimpleHttpClient,
+pub fn policysimulator_organizations_locations_org_policy_violations_previews_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://policysimulator.googleapis.com/v1/organizations/{}/locations/{locationsId}/orgPolicyViolationsPreviews",
@@ -2370,10 +2410,15 @@ pub fn policysimulator_organizations_locations_org_policy_violations_previews_li
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `policysimulator_organizations_locations_org_policy_violations_previews_operations_get_execute()` to send, or `policysimulator_organizations_locations_org_policy_violations_previews_operations_get` for simplest API.
 
-pub fn policysimulator_organizations_locations_org_policy_violations_previews_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn policysimulator_organizations_locations_org_policy_violations_previews_operations_get_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://policysimulator.googleapis.com/v1/organizations/{}/locations/{locationsId}/orgPolicyViolationsPreviews/{orgPolicyViolationsPreviewsId}/operations/{operationsId}",
@@ -2540,12 +2585,17 @@ pub fn policysimulator_organizations_locations_org_policy_violations_previews_op
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `policysimulator_organizations_locations_org_policy_violations_previews_org_policy_violations_list_execute()` to send, or `policysimulator_organizations_locations_org_policy_violations_previews_org_policy_violations_list` for simplest API.
 
-pub fn policysimulator_organizations_locations_org_policy_violations_previews_org_policy_violations_list_builder(
-    client: &SimpleHttpClient,
+pub fn policysimulator_organizations_locations_org_policy_violations_previews_org_policy_violations_list_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://policysimulator.googleapis.com/v1/organizations/{}/locations/{locationsId}/orgPolicyViolationsPreviews/{orgPolicyViolationsPreviewsId}/orgPolicyViolations",
@@ -2736,10 +2786,13 @@ pub fn policysimulator_organizations_locations_org_policy_violations_previews_or
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `policysimulator_organizations_locations_replays_create_execute()` to send, or `policysimulator_organizations_locations_replays_create` for simplest API.
 
-pub fn policysimulator_organizations_locations_replays_create_builder(
-    client: &SimpleHttpClient,
+pub fn policysimulator_organizations_locations_replays_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://policysimulator.googleapis.com/v1/organizations/{}/locations/{locationsId}/replays",
@@ -2902,10 +2955,13 @@ pub fn policysimulator_organizations_locations_replays_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `policysimulator_organizations_locations_replays_get_execute()` to send, or `policysimulator_organizations_locations_replays_get` for simplest API.
 
-pub fn policysimulator_organizations_locations_replays_get_builder(
-    client: &SimpleHttpClient,
+pub fn policysimulator_organizations_locations_replays_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://policysimulator.googleapis.com/v1/organizations/{}/locations/{locationsId}/replays/{replaysId}",
@@ -3067,10 +3123,13 @@ pub fn policysimulator_organizations_locations_replays_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `policysimulator_organizations_locations_replays_operations_get_execute()` to send, or `policysimulator_organizations_locations_replays_operations_get` for simplest API.
 
-pub fn policysimulator_organizations_locations_replays_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn policysimulator_organizations_locations_replays_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://policysimulator.googleapis.com/v1/organizations/{}/locations/{locationsId}/replays/{replaysId}/operations/{operationsId}",
@@ -3233,14 +3292,17 @@ pub fn policysimulator_organizations_locations_replays_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `policysimulator_organizations_locations_replays_operations_list_execute()` to send, or `policysimulator_organizations_locations_replays_operations_list` for simplest API.
 
-pub fn policysimulator_organizations_locations_replays_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn policysimulator_organizations_locations_replays_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://policysimulator.googleapis.com/v1/organizations/{}/locations/{locationsId}/replays/{replaysId}/operations",
@@ -3438,12 +3500,15 @@ pub fn policysimulator_organizations_locations_replays_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `policysimulator_organizations_locations_replays_results_list_execute()` to send, or `policysimulator_organizations_locations_replays_results_list` for simplest API.
 
-pub fn policysimulator_organizations_locations_replays_results_list_builder(
-    client: &SimpleHttpClient,
+pub fn policysimulator_organizations_locations_replays_results_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://policysimulator.googleapis.com/v1/organizations/{}/locations/{locationsId}/replays/{replaysId}/results",
@@ -3638,10 +3703,13 @@ pub fn policysimulator_organizations_locations_replays_results_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `policysimulator_projects_locations_access_policy_simulations_operations_get_execute()` to send, or `policysimulator_projects_locations_access_policy_simulations_operations_get` for simplest API.
 
-pub fn policysimulator_projects_locations_access_policy_simulations_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn policysimulator_projects_locations_access_policy_simulations_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://policysimulator.googleapis.com/v1/projects/{}/locations/{locationsId}/accessPolicySimulations/{accessPolicySimulationsId}/operations/{operationsId}",
@@ -3807,10 +3875,13 @@ pub fn policysimulator_projects_locations_access_policy_simulations_operations_g
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `policysimulator_projects_locations_org_policy_violations_previews_operations_get_execute()` to send, or `policysimulator_projects_locations_org_policy_violations_previews_operations_get` for simplest API.
 
-pub fn policysimulator_projects_locations_org_policy_violations_previews_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn policysimulator_projects_locations_org_policy_violations_previews_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://policysimulator.googleapis.com/v1/projects/{}/locations/{locationsId}/orgPolicyViolationsPreviews/{orgPolicyViolationsPreviewsId}/operations/{operationsId}",
@@ -3980,10 +4051,13 @@ pub fn policysimulator_projects_locations_org_policy_violations_previews_operati
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `policysimulator_projects_locations_replays_create_execute()` to send, or `policysimulator_projects_locations_replays_create` for simplest API.
 
-pub fn policysimulator_projects_locations_replays_create_builder(
-    client: &SimpleHttpClient,
+pub fn policysimulator_projects_locations_replays_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://policysimulator.googleapis.com/v1/projects/{}/locations/{locationsId}/replays",
@@ -4145,10 +4219,13 @@ pub fn policysimulator_projects_locations_replays_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `policysimulator_projects_locations_replays_get_execute()` to send, or `policysimulator_projects_locations_replays_get` for simplest API.
 
-pub fn policysimulator_projects_locations_replays_get_builder(
-    client: &SimpleHttpClient,
+pub fn policysimulator_projects_locations_replays_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://policysimulator.googleapis.com/v1/projects/{}/locations/{locationsId}/replays/{replaysId}",
@@ -4310,10 +4387,13 @@ pub fn policysimulator_projects_locations_replays_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `policysimulator_projects_locations_replays_operations_get_execute()` to send, or `policysimulator_projects_locations_replays_operations_get` for simplest API.
 
-pub fn policysimulator_projects_locations_replays_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn policysimulator_projects_locations_replays_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://policysimulator.googleapis.com/v1/projects/{}/locations/{locationsId}/replays/{replaysId}/operations/{operationsId}",
@@ -4476,14 +4556,17 @@ pub fn policysimulator_projects_locations_replays_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `policysimulator_projects_locations_replays_operations_list_execute()` to send, or `policysimulator_projects_locations_replays_operations_list` for simplest API.
 
-pub fn policysimulator_projects_locations_replays_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn policysimulator_projects_locations_replays_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://policysimulator.googleapis.com/v1/projects/{}/locations/{locationsId}/replays/{replaysId}/operations",
@@ -4681,12 +4764,15 @@ pub fn policysimulator_projects_locations_replays_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `policysimulator_projects_locations_replays_results_list_execute()` to send, or `policysimulator_projects_locations_replays_results_list` for simplest API.
 
-pub fn policysimulator_projects_locations_replays_results_list_builder(
-    client: &SimpleHttpClient,
+pub fn policysimulator_projects_locations_replays_results_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://policysimulator.googleapis.com/v1/projects/{}/locations/{locationsId}/replays/{replaysId}/results",

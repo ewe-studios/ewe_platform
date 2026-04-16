@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigquerydatapolicy_projects_locations_data_policies_add_grantees_execute()` to send, or `bigquerydatapolicy_projects_locations_data_policies_add_grantees` for simplest API.
 
-pub fn bigquerydatapolicy_projects_locations_data_policies_add_grantees_builder(
-    client: &SimpleHttpClient,
+pub fn bigquerydatapolicy_projects_locations_data_policies_add_grantees_builder<R>(
+    client: &SimpleHttpClient<R>,
     dataPolicy: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigquerydatapolicy.googleapis.com/v2/projects/{}/locations/{locationsId}/dataPolicies/{dataPoliciesId}:addGrantees",
@@ -186,10 +190,13 @@ pub fn bigquerydatapolicy_projects_locations_data_policies_add_grantees(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigquerydatapolicy_projects_locations_data_policies_create_execute()` to send, or `bigquerydatapolicy_projects_locations_data_policies_create` for simplest API.
 
-pub fn bigquerydatapolicy_projects_locations_data_policies_create_builder(
-    client: &SimpleHttpClient,
+pub fn bigquerydatapolicy_projects_locations_data_policies_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigquerydatapolicy.googleapis.com/v2/projects/{}/locations/{locationsId}/dataPolicies",
@@ -344,10 +351,13 @@ pub fn bigquerydatapolicy_projects_locations_data_policies_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigquerydatapolicy_projects_locations_data_policies_delete_execute()` to send, or `bigquerydatapolicy_projects_locations_data_policies_delete` for simplest API.
 
-pub fn bigquerydatapolicy_projects_locations_data_policies_delete_builder(
-    client: &SimpleHttpClient,
+pub fn bigquerydatapolicy_projects_locations_data_policies_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigquerydatapolicy.googleapis.com/v2/projects/{}/locations/{locationsId}/dataPolicies/{dataPoliciesId}",
@@ -502,10 +512,13 @@ pub fn bigquerydatapolicy_projects_locations_data_policies_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigquerydatapolicy_projects_locations_data_policies_get_execute()` to send, or `bigquerydatapolicy_projects_locations_data_policies_get` for simplest API.
 
-pub fn bigquerydatapolicy_projects_locations_data_policies_get_builder(
-    client: &SimpleHttpClient,
+pub fn bigquerydatapolicy_projects_locations_data_policies_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigquerydatapolicy.googleapis.com/v2/projects/{}/locations/{locationsId}/dataPolicies/{dataPoliciesId}",
@@ -660,10 +673,13 @@ pub fn bigquerydatapolicy_projects_locations_data_policies_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigquerydatapolicy_projects_locations_data_policies_get_iam_policy_execute()` to send, or `bigquerydatapolicy_projects_locations_data_policies_get_iam_policy` for simplest API.
 
-pub fn bigquerydatapolicy_projects_locations_data_policies_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn bigquerydatapolicy_projects_locations_data_policies_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigquerydatapolicy.googleapis.com/v2/projects/{}/locations/{locationsId}/dataPolicies/{dataPoliciesId}:getIamPolicy",
@@ -820,13 +836,16 @@ pub fn bigquerydatapolicy_projects_locations_data_policies_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigquerydatapolicy_projects_locations_data_policies_list_execute()` to send, or `bigquerydatapolicy_projects_locations_data_policies_list` for simplest API.
 
-pub fn bigquerydatapolicy_projects_locations_data_policies_list_builder(
-    client: &SimpleHttpClient,
+pub fn bigquerydatapolicy_projects_locations_data_policies_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigquerydatapolicy.googleapis.com/v2/projects/{}/locations/{locationsId}/dataPolicies",
@@ -1013,12 +1032,15 @@ pub fn bigquerydatapolicy_projects_locations_data_policies_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigquerydatapolicy_projects_locations_data_policies_patch_execute()` to send, or `bigquerydatapolicy_projects_locations_data_policies_patch` for simplest API.
 
-pub fn bigquerydatapolicy_projects_locations_data_policies_patch_builder(
-    client: &SimpleHttpClient,
+pub fn bigquerydatapolicy_projects_locations_data_policies_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     allowMissing: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigquerydatapolicy.googleapis.com/v2/projects/{}/locations/{locationsId}/dataPolicies/{dataPoliciesId}",
@@ -1195,10 +1217,13 @@ pub fn bigquerydatapolicy_projects_locations_data_policies_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigquerydatapolicy_projects_locations_data_policies_remove_grantees_execute()` to send, or `bigquerydatapolicy_projects_locations_data_policies_remove_grantees` for simplest API.
 
-pub fn bigquerydatapolicy_projects_locations_data_policies_remove_grantees_builder(
-    client: &SimpleHttpClient,
+pub fn bigquerydatapolicy_projects_locations_data_policies_remove_grantees_builder<R>(
+    client: &SimpleHttpClient<R>,
     dataPolicy: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigquerydatapolicy.googleapis.com/v2/projects/{}/locations/{locationsId}/dataPolicies/{dataPoliciesId}:removeGrantees",
@@ -1355,10 +1380,13 @@ pub fn bigquerydatapolicy_projects_locations_data_policies_remove_grantees(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigquerydatapolicy_projects_locations_data_policies_set_iam_policy_execute()` to send, or `bigquerydatapolicy_projects_locations_data_policies_set_iam_policy` for simplest API.
 
-pub fn bigquerydatapolicy_projects_locations_data_policies_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn bigquerydatapolicy_projects_locations_data_policies_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigquerydatapolicy.googleapis.com/v2/projects/{}/locations/{locationsId}/dataPolicies/{dataPoliciesId}:setIamPolicy",
@@ -1515,10 +1543,13 @@ pub fn bigquerydatapolicy_projects_locations_data_policies_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigquerydatapolicy_projects_locations_data_policies_test_iam_permissions_execute()` to send, or `bigquerydatapolicy_projects_locations_data_policies_test_iam_permissions` for simplest API.
 
-pub fn bigquerydatapolicy_projects_locations_data_policies_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn bigquerydatapolicy_projects_locations_data_policies_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigquerydatapolicy.googleapis.com/v2/projects/{}/locations/{locationsId}/dataPolicies/{dataPoliciesId}:testIamPermissions",

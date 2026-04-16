@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataform_projects_locations_get_execute()` to send, or `dataform_projects_locations_get` for simplest API.
 
-pub fn dataform_projects_locations_get_builder(
-    client: &SimpleHttpClient,
+pub fn dataform_projects_locations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataform.googleapis.com/v1/projects/{}/locations/{locationsId}",
@@ -183,10 +187,13 @@ pub fn dataform_projects_locations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataform_projects_locations_get_config_execute()` to send, or `dataform_projects_locations_get_config` for simplest API.
 
-pub fn dataform_projects_locations_get_config_builder(
-    client: &SimpleHttpClient,
+pub fn dataform_projects_locations_get_config_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataform.googleapis.com/v1/projects/{}/locations/{locationsId}/config",
@@ -340,14 +347,17 @@ pub fn dataform_projects_locations_get_config(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataform_projects_locations_list_execute()` to send, or `dataform_projects_locations_list` for simplest API.
 
-pub fn dataform_projects_locations_list_builder(
-    client: &SimpleHttpClient,
+pub fn dataform_projects_locations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     extraLocationTypes: &Option<Option<String>>,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataform.googleapis.com/v1/projects/{}/locations",
@@ -540,14 +550,17 @@ pub fn dataform_projects_locations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataform_projects_locations_query_user_root_contents_execute()` to send, or `dataform_projects_locations_query_user_root_contents` for simplest API.
 
-pub fn dataform_projects_locations_query_user_root_contents_builder(
-    client: &SimpleHttpClient,
+pub fn dataform_projects_locations_query_user_root_contents_builder<R>(
+    client: &SimpleHttpClient<R>,
     location: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataform.googleapis.com/v1/projects/{}/locations/{locationsId}:queryUserRootContents",
@@ -744,11 +757,14 @@ pub fn dataform_projects_locations_query_user_root_contents(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataform_projects_locations_update_config_execute()` to send, or `dataform_projects_locations_update_config` for simplest API.
 
-pub fn dataform_projects_locations_update_config_builder(
-    client: &SimpleHttpClient,
+pub fn dataform_projects_locations_update_config_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataform.googleapis.com/v1/projects/{}/locations/{locationsId}/config",
@@ -916,10 +932,13 @@ pub fn dataform_projects_locations_update_config(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataform_projects_locations_folders_create_execute()` to send, or `dataform_projects_locations_folders_create` for simplest API.
 
-pub fn dataform_projects_locations_folders_create_builder(
-    client: &SimpleHttpClient,
+pub fn dataform_projects_locations_folders_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataform.googleapis.com/v1/projects/{}/locations/{locationsId}/folders",
@@ -1073,10 +1092,13 @@ pub fn dataform_projects_locations_folders_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataform_projects_locations_folders_delete_execute()` to send, or `dataform_projects_locations_folders_delete` for simplest API.
 
-pub fn dataform_projects_locations_folders_delete_builder(
-    client: &SimpleHttpClient,
+pub fn dataform_projects_locations_folders_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataform.googleapis.com/v1/projects/{}/locations/{locationsId}/folders/{foldersId}",
@@ -1230,10 +1252,13 @@ pub fn dataform_projects_locations_folders_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataform_projects_locations_folders_delete_tree_execute()` to send, or `dataform_projects_locations_folders_delete_tree` for simplest API.
 
-pub fn dataform_projects_locations_folders_delete_tree_builder(
-    client: &SimpleHttpClient,
+pub fn dataform_projects_locations_folders_delete_tree_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataform.googleapis.com/v1/projects/{}/locations/{locationsId}/folders/{foldersId}:deleteTree",
@@ -1387,10 +1412,13 @@ pub fn dataform_projects_locations_folders_delete_tree(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataform_projects_locations_folders_get_execute()` to send, or `dataform_projects_locations_folders_get` for simplest API.
 
-pub fn dataform_projects_locations_folders_get_builder(
-    client: &SimpleHttpClient,
+pub fn dataform_projects_locations_folders_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataform.googleapis.com/v1/projects/{}/locations/{locationsId}/folders/{foldersId}",
@@ -1544,11 +1572,14 @@ pub fn dataform_projects_locations_folders_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataform_projects_locations_folders_get_iam_policy_execute()` to send, or `dataform_projects_locations_folders_get_iam_policy` for simplest API.
 
-pub fn dataform_projects_locations_folders_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn dataform_projects_locations_folders_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataform.googleapis.com/v1/projects/{}/locations/{locationsId}/folders/{foldersId}:getIamPolicy",
@@ -1719,10 +1750,13 @@ pub fn dataform_projects_locations_folders_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataform_projects_locations_folders_move_execute()` to send, or `dataform_projects_locations_folders_move` for simplest API.
 
-pub fn dataform_projects_locations_folders_move_builder(
-    client: &SimpleHttpClient,
+pub fn dataform_projects_locations_folders_move_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataform.googleapis.com/v1/projects/{}/locations/{locationsId}/folders/{foldersId}:move",
@@ -1876,11 +1910,14 @@ pub fn dataform_projects_locations_folders_move(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataform_projects_locations_folders_patch_execute()` to send, or `dataform_projects_locations_folders_patch` for simplest API.
 
-pub fn dataform_projects_locations_folders_patch_builder(
-    client: &SimpleHttpClient,
+pub fn dataform_projects_locations_folders_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataform.googleapis.com/v1/projects/{}/locations/{locationsId}/folders/{foldersId}",
@@ -2048,14 +2085,17 @@ pub fn dataform_projects_locations_folders_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataform_projects_locations_folders_query_folder_contents_execute()` to send, or `dataform_projects_locations_folders_query_folder_contents` for simplest API.
 
-pub fn dataform_projects_locations_folders_query_folder_contents_builder(
-    client: &SimpleHttpClient,
+pub fn dataform_projects_locations_folders_query_folder_contents_builder<R>(
+    client: &SimpleHttpClient<R>,
     folder: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataform.googleapis.com/v1/projects/{}/locations/{locationsId}/folders/{foldersId}:queryFolderContents",
@@ -2252,10 +2292,13 @@ pub fn dataform_projects_locations_folders_query_folder_contents(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataform_projects_locations_folders_set_iam_policy_execute()` to send, or `dataform_projects_locations_folders_set_iam_policy` for simplest API.
 
-pub fn dataform_projects_locations_folders_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn dataform_projects_locations_folders_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataform.googleapis.com/v1/projects/{}/locations/{locationsId}/folders/{foldersId}:setIamPolicy",
@@ -2410,10 +2453,13 @@ pub fn dataform_projects_locations_folders_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataform_projects_locations_folders_test_iam_permissions_execute()` to send, or `dataform_projects_locations_folders_test_iam_permissions` for simplest API.
 
-pub fn dataform_projects_locations_folders_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn dataform_projects_locations_folders_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataform.googleapis.com/v1/projects/{}/locations/{locationsId}/folders/{foldersId}:testIamPermissions",
@@ -2576,10 +2622,13 @@ pub fn dataform_projects_locations_folders_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataform_projects_locations_operations_cancel_execute()` to send, or `dataform_projects_locations_operations_cancel` for simplest API.
 
-pub fn dataform_projects_locations_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn dataform_projects_locations_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataform.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}:cancel",
@@ -2733,10 +2782,13 @@ pub fn dataform_projects_locations_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataform_projects_locations_operations_delete_execute()` to send, or `dataform_projects_locations_operations_delete` for simplest API.
 
-pub fn dataform_projects_locations_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn dataform_projects_locations_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataform.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -2890,10 +2942,13 @@ pub fn dataform_projects_locations_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataform_projects_locations_operations_get_execute()` to send, or `dataform_projects_locations_operations_get` for simplest API.
 
-pub fn dataform_projects_locations_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn dataform_projects_locations_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataform.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -3047,14 +3102,17 @@ pub fn dataform_projects_locations_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataform_projects_locations_operations_list_execute()` to send, or `dataform_projects_locations_operations_list` for simplest API.
 
-pub fn dataform_projects_locations_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn dataform_projects_locations_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataform.googleapis.com/v1/projects/{}/locations/{locationsId}/operations",
@@ -3247,10 +3305,13 @@ pub fn dataform_projects_locations_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataform_projects_locations_repositories_commit_execute()` to send, or `dataform_projects_locations_repositories_commit` for simplest API.
 
-pub fn dataform_projects_locations_repositories_commit_builder(
-    client: &SimpleHttpClient,
+pub fn dataform_projects_locations_repositories_commit_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataform.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}:commit",
@@ -3412,10 +3473,13 @@ pub fn dataform_projects_locations_repositories_commit(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataform_projects_locations_repositories_compute_access_token_status_execute()` to send, or `dataform_projects_locations_repositories_compute_access_token_status` for simplest API.
 
-pub fn dataform_projects_locations_repositories_compute_access_token_status_builder(
-    client: &SimpleHttpClient,
+pub fn dataform_projects_locations_repositories_compute_access_token_status_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataform.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}:computeAccessTokenStatus",
@@ -3580,11 +3644,14 @@ pub fn dataform_projects_locations_repositories_compute_access_token_status(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataform_projects_locations_repositories_create_execute()` to send, or `dataform_projects_locations_repositories_create` for simplest API.
 
-pub fn dataform_projects_locations_repositories_create_builder(
-    client: &SimpleHttpClient,
+pub fn dataform_projects_locations_repositories_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     repositoryId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataform.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories",
@@ -3755,11 +3822,14 @@ pub fn dataform_projects_locations_repositories_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataform_projects_locations_repositories_delete_execute()` to send, or `dataform_projects_locations_repositories_delete` for simplest API.
 
-pub fn dataform_projects_locations_repositories_delete_builder(
-    client: &SimpleHttpClient,
+pub fn dataform_projects_locations_repositories_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     force: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataform.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}",
@@ -3927,12 +3997,15 @@ pub fn dataform_projects_locations_repositories_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataform_projects_locations_repositories_fetch_history_execute()` to send, or `dataform_projects_locations_repositories_fetch_history` for simplest API.
 
-pub fn dataform_projects_locations_repositories_fetch_history_builder(
-    client: &SimpleHttpClient,
+pub fn dataform_projects_locations_repositories_fetch_history_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataform.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}:fetchHistory",
@@ -4117,10 +4190,13 @@ pub fn dataform_projects_locations_repositories_fetch_history(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataform_projects_locations_repositories_fetch_remote_branches_execute()` to send, or `dataform_projects_locations_repositories_fetch_remote_branches` for simplest API.
 
-pub fn dataform_projects_locations_repositories_fetch_remote_branches_builder(
-    client: &SimpleHttpClient,
+pub fn dataform_projects_locations_repositories_fetch_remote_branches_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataform.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}:fetchRemoteBranches",
@@ -4283,10 +4359,13 @@ pub fn dataform_projects_locations_repositories_fetch_remote_branches(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataform_projects_locations_repositories_get_execute()` to send, or `dataform_projects_locations_repositories_get` for simplest API.
 
-pub fn dataform_projects_locations_repositories_get_builder(
-    client: &SimpleHttpClient,
+pub fn dataform_projects_locations_repositories_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataform.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}",
@@ -4440,11 +4519,14 @@ pub fn dataform_projects_locations_repositories_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataform_projects_locations_repositories_get_iam_policy_execute()` to send, or `dataform_projects_locations_repositories_get_iam_policy` for simplest API.
 
-pub fn dataform_projects_locations_repositories_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn dataform_projects_locations_repositories_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataform.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}:getIamPolicy",
@@ -4615,14 +4697,17 @@ pub fn dataform_projects_locations_repositories_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataform_projects_locations_repositories_list_execute()` to send, or `dataform_projects_locations_repositories_list` for simplest API.
 
-pub fn dataform_projects_locations_repositories_list_builder(
-    client: &SimpleHttpClient,
+pub fn dataform_projects_locations_repositories_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataform.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories",
@@ -4815,10 +4900,13 @@ pub fn dataform_projects_locations_repositories_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataform_projects_locations_repositories_move_execute()` to send, or `dataform_projects_locations_repositories_move` for simplest API.
 
-pub fn dataform_projects_locations_repositories_move_builder(
-    client: &SimpleHttpClient,
+pub fn dataform_projects_locations_repositories_move_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataform.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}:move",
@@ -4972,11 +5060,14 @@ pub fn dataform_projects_locations_repositories_move(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataform_projects_locations_repositories_patch_execute()` to send, or `dataform_projects_locations_repositories_patch` for simplest API.
 
-pub fn dataform_projects_locations_repositories_patch_builder(
-    client: &SimpleHttpClient,
+pub fn dataform_projects_locations_repositories_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataform.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}",
@@ -5147,14 +5238,17 @@ pub fn dataform_projects_locations_repositories_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataform_projects_locations_repositories_query_directory_contents_execute()` to send, or `dataform_projects_locations_repositories_query_directory_contents` for simplest API.
 
-pub fn dataform_projects_locations_repositories_query_directory_contents_builder(
-    client: &SimpleHttpClient,
+pub fn dataform_projects_locations_repositories_query_directory_contents_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     commitSha: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     path: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataform.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}:queryDirectoryContents",
@@ -5351,12 +5445,15 @@ pub fn dataform_projects_locations_repositories_query_directory_contents(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataform_projects_locations_repositories_read_file_execute()` to send, or `dataform_projects_locations_repositories_read_file` for simplest API.
 
-pub fn dataform_projects_locations_repositories_read_file_builder(
-    client: &SimpleHttpClient,
+pub fn dataform_projects_locations_repositories_read_file_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     commitSha: &Option<Option<String>>,
     path: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataform.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}:readFile",
@@ -5541,10 +5638,13 @@ pub fn dataform_projects_locations_repositories_read_file(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataform_projects_locations_repositories_set_iam_policy_execute()` to send, or `dataform_projects_locations_repositories_set_iam_policy` for simplest API.
 
-pub fn dataform_projects_locations_repositories_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn dataform_projects_locations_repositories_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataform.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}:setIamPolicy",
@@ -5699,10 +5799,13 @@ pub fn dataform_projects_locations_repositories_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataform_projects_locations_repositories_test_iam_permissions_execute()` to send, or `dataform_projects_locations_repositories_test_iam_permissions` for simplest API.
 
-pub fn dataform_projects_locations_repositories_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn dataform_projects_locations_repositories_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataform.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}:testIamPermissions",
@@ -5867,10 +5970,13 @@ pub fn dataform_projects_locations_repositories_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataform_projects_locations_repositories_compilation_results_create_execute()` to send, or `dataform_projects_locations_repositories_compilation_results_create` for simplest API.
 
-pub fn dataform_projects_locations_repositories_compilation_results_create_builder(
-    client: &SimpleHttpClient,
+pub fn dataform_projects_locations_repositories_compilation_results_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataform.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/compilationResults",
@@ -6031,10 +6137,13 @@ pub fn dataform_projects_locations_repositories_compilation_results_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataform_projects_locations_repositories_compilation_results_get_execute()` to send, or `dataform_projects_locations_repositories_compilation_results_get` for simplest API.
 
-pub fn dataform_projects_locations_repositories_compilation_results_get_builder(
-    client: &SimpleHttpClient,
+pub fn dataform_projects_locations_repositories_compilation_results_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataform.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/compilationResults/{compilationResultsId}",
@@ -6194,14 +6303,17 @@ pub fn dataform_projects_locations_repositories_compilation_results_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataform_projects_locations_repositories_compilation_results_list_execute()` to send, or `dataform_projects_locations_repositories_compilation_results_list` for simplest API.
 
-pub fn dataform_projects_locations_repositories_compilation_results_list_builder(
-    client: &SimpleHttpClient,
+pub fn dataform_projects_locations_repositories_compilation_results_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataform.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/compilationResults",
@@ -6398,13 +6510,16 @@ pub fn dataform_projects_locations_repositories_compilation_results_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataform_projects_locations_repositories_compilation_results_query_execute()` to send, or `dataform_projects_locations_repositories_compilation_results_query` for simplest API.
 
-pub fn dataform_projects_locations_repositories_compilation_results_query_builder(
-    client: &SimpleHttpClient,
+pub fn dataform_projects_locations_repositories_compilation_results_query_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataform.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/compilationResults/{compilationResultsId}:query",
@@ -6595,11 +6710,14 @@ pub fn dataform_projects_locations_repositories_compilation_results_query(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataform_projects_locations_repositories_release_configs_create_execute()` to send, or `dataform_projects_locations_repositories_release_configs_create` for simplest API.
 
-pub fn dataform_projects_locations_repositories_release_configs_create_builder(
-    client: &SimpleHttpClient,
+pub fn dataform_projects_locations_repositories_release_configs_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     releaseConfigId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataform.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/releaseConfigs",
@@ -6774,10 +6892,13 @@ pub fn dataform_projects_locations_repositories_release_configs_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataform_projects_locations_repositories_release_configs_delete_execute()` to send, or `dataform_projects_locations_repositories_release_configs_delete` for simplest API.
 
-pub fn dataform_projects_locations_repositories_release_configs_delete_builder(
-    client: &SimpleHttpClient,
+pub fn dataform_projects_locations_repositories_release_configs_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataform.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/releaseConfigs/{releaseConfigsId}",
@@ -6933,10 +7054,13 @@ pub fn dataform_projects_locations_repositories_release_configs_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataform_projects_locations_repositories_release_configs_get_execute()` to send, or `dataform_projects_locations_repositories_release_configs_get` for simplest API.
 
-pub fn dataform_projects_locations_repositories_release_configs_get_builder(
-    client: &SimpleHttpClient,
+pub fn dataform_projects_locations_repositories_release_configs_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataform.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/releaseConfigs/{releaseConfigsId}",
@@ -7095,12 +7219,15 @@ pub fn dataform_projects_locations_repositories_release_configs_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataform_projects_locations_repositories_release_configs_list_execute()` to send, or `dataform_projects_locations_repositories_release_configs_list` for simplest API.
 
-pub fn dataform_projects_locations_repositories_release_configs_list_builder(
-    client: &SimpleHttpClient,
+pub fn dataform_projects_locations_repositories_release_configs_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataform.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/releaseConfigs",
@@ -7285,11 +7412,14 @@ pub fn dataform_projects_locations_repositories_release_configs_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataform_projects_locations_repositories_release_configs_patch_execute()` to send, or `dataform_projects_locations_repositories_release_configs_patch` for simplest API.
 
-pub fn dataform_projects_locations_repositories_release_configs_patch_builder(
-    client: &SimpleHttpClient,
+pub fn dataform_projects_locations_repositories_release_configs_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataform.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/releaseConfigs/{releaseConfigsId}",
@@ -7464,11 +7594,14 @@ pub fn dataform_projects_locations_repositories_release_configs_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataform_projects_locations_repositories_workflow_configs_create_execute()` to send, or `dataform_projects_locations_repositories_workflow_configs_create` for simplest API.
 
-pub fn dataform_projects_locations_repositories_workflow_configs_create_builder(
-    client: &SimpleHttpClient,
+pub fn dataform_projects_locations_repositories_workflow_configs_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     workflowConfigId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataform.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/workflowConfigs",
@@ -7643,10 +7776,13 @@ pub fn dataform_projects_locations_repositories_workflow_configs_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataform_projects_locations_repositories_workflow_configs_delete_execute()` to send, or `dataform_projects_locations_repositories_workflow_configs_delete` for simplest API.
 
-pub fn dataform_projects_locations_repositories_workflow_configs_delete_builder(
-    client: &SimpleHttpClient,
+pub fn dataform_projects_locations_repositories_workflow_configs_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataform.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/workflowConfigs/{workflowConfigsId}",
@@ -7802,10 +7938,13 @@ pub fn dataform_projects_locations_repositories_workflow_configs_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataform_projects_locations_repositories_workflow_configs_get_execute()` to send, or `dataform_projects_locations_repositories_workflow_configs_get` for simplest API.
 
-pub fn dataform_projects_locations_repositories_workflow_configs_get_builder(
-    client: &SimpleHttpClient,
+pub fn dataform_projects_locations_repositories_workflow_configs_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataform.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/workflowConfigs/{workflowConfigsId}",
@@ -7964,12 +8103,15 @@ pub fn dataform_projects_locations_repositories_workflow_configs_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataform_projects_locations_repositories_workflow_configs_list_execute()` to send, or `dataform_projects_locations_repositories_workflow_configs_list` for simplest API.
 
-pub fn dataform_projects_locations_repositories_workflow_configs_list_builder(
-    client: &SimpleHttpClient,
+pub fn dataform_projects_locations_repositories_workflow_configs_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataform.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/workflowConfigs",
@@ -8154,11 +8296,14 @@ pub fn dataform_projects_locations_repositories_workflow_configs_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataform_projects_locations_repositories_workflow_configs_patch_execute()` to send, or `dataform_projects_locations_repositories_workflow_configs_patch` for simplest API.
 
-pub fn dataform_projects_locations_repositories_workflow_configs_patch_builder(
-    client: &SimpleHttpClient,
+pub fn dataform_projects_locations_repositories_workflow_configs_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataform.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/workflowConfigs/{workflowConfigsId}",
@@ -8333,10 +8478,13 @@ pub fn dataform_projects_locations_repositories_workflow_configs_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataform_projects_locations_repositories_workflow_invocations_cancel_execute()` to send, or `dataform_projects_locations_repositories_workflow_invocations_cancel` for simplest API.
 
-pub fn dataform_projects_locations_repositories_workflow_invocations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn dataform_projects_locations_repositories_workflow_invocations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataform.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/workflowInvocations/{workflowInvocationsId}:cancel",
@@ -8500,10 +8648,13 @@ pub fn dataform_projects_locations_repositories_workflow_invocations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataform_projects_locations_repositories_workflow_invocations_create_execute()` to send, or `dataform_projects_locations_repositories_workflow_invocations_create` for simplest API.
 
-pub fn dataform_projects_locations_repositories_workflow_invocations_create_builder(
-    client: &SimpleHttpClient,
+pub fn dataform_projects_locations_repositories_workflow_invocations_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataform.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/workflowInvocations",
@@ -8664,10 +8815,13 @@ pub fn dataform_projects_locations_repositories_workflow_invocations_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataform_projects_locations_repositories_workflow_invocations_delete_execute()` to send, or `dataform_projects_locations_repositories_workflow_invocations_delete` for simplest API.
 
-pub fn dataform_projects_locations_repositories_workflow_invocations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn dataform_projects_locations_repositories_workflow_invocations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataform.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/workflowInvocations/{workflowInvocationsId}",
@@ -8823,10 +8977,13 @@ pub fn dataform_projects_locations_repositories_workflow_invocations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataform_projects_locations_repositories_workflow_invocations_get_execute()` to send, or `dataform_projects_locations_repositories_workflow_invocations_get` for simplest API.
 
-pub fn dataform_projects_locations_repositories_workflow_invocations_get_builder(
-    client: &SimpleHttpClient,
+pub fn dataform_projects_locations_repositories_workflow_invocations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataform.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/workflowInvocations/{workflowInvocationsId}",
@@ -8986,14 +9143,17 @@ pub fn dataform_projects_locations_repositories_workflow_invocations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataform_projects_locations_repositories_workflow_invocations_list_execute()` to send, or `dataform_projects_locations_repositories_workflow_invocations_list` for simplest API.
 
-pub fn dataform_projects_locations_repositories_workflow_invocations_list_builder(
-    client: &SimpleHttpClient,
+pub fn dataform_projects_locations_repositories_workflow_invocations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataform.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/workflowInvocations",
@@ -9190,12 +9350,15 @@ pub fn dataform_projects_locations_repositories_workflow_invocations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataform_projects_locations_repositories_workflow_invocations_query_execute()` to send, or `dataform_projects_locations_repositories_workflow_invocations_query` for simplest API.
 
-pub fn dataform_projects_locations_repositories_workflow_invocations_query_builder(
-    client: &SimpleHttpClient,
+pub fn dataform_projects_locations_repositories_workflow_invocations_query_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataform.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/workflowInvocations/{workflowInvocationsId}:query",
@@ -9380,10 +9543,13 @@ pub fn dataform_projects_locations_repositories_workflow_invocations_query(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataform_projects_locations_repositories_workspaces_commit_execute()` to send, or `dataform_projects_locations_repositories_workspaces_commit` for simplest API.
 
-pub fn dataform_projects_locations_repositories_workspaces_commit_builder(
-    client: &SimpleHttpClient,
+pub fn dataform_projects_locations_repositories_workspaces_commit_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataform.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/workspaces/{workspacesId}:commit",
@@ -9546,11 +9712,14 @@ pub fn dataform_projects_locations_repositories_workspaces_commit(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataform_projects_locations_repositories_workspaces_create_execute()` to send, or `dataform_projects_locations_repositories_workspaces_create` for simplest API.
 
-pub fn dataform_projects_locations_repositories_workspaces_create_builder(
-    client: &SimpleHttpClient,
+pub fn dataform_projects_locations_repositories_workspaces_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     workspaceId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataform.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/workspaces",
@@ -9721,10 +9890,13 @@ pub fn dataform_projects_locations_repositories_workspaces_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataform_projects_locations_repositories_workspaces_delete_execute()` to send, or `dataform_projects_locations_repositories_workspaces_delete` for simplest API.
 
-pub fn dataform_projects_locations_repositories_workspaces_delete_builder(
-    client: &SimpleHttpClient,
+pub fn dataform_projects_locations_repositories_workspaces_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataform.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/workspaces/{workspacesId}",
@@ -9879,11 +10051,14 @@ pub fn dataform_projects_locations_repositories_workspaces_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataform_projects_locations_repositories_workspaces_fetch_file_diff_execute()` to send, or `dataform_projects_locations_repositories_workspaces_fetch_file_diff` for simplest API.
 
-pub fn dataform_projects_locations_repositories_workspaces_fetch_file_diff_builder(
-    client: &SimpleHttpClient,
+pub fn dataform_projects_locations_repositories_workspaces_fetch_file_diff_builder<R>(
+    client: &SimpleHttpClient<R>,
     workspace: &String,
     path: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataform.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/workspaces/{workspacesId}:fetchFileDiff",
@@ -10058,10 +10233,13 @@ pub fn dataform_projects_locations_repositories_workspaces_fetch_file_diff(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataform_projects_locations_repositories_workspaces_fetch_file_git_statuses_execute()` to send, or `dataform_projects_locations_repositories_workspaces_fetch_file_git_statuses` for simplest API.
 
-pub fn dataform_projects_locations_repositories_workspaces_fetch_file_git_statuses_builder(
-    client: &SimpleHttpClient,
+pub fn dataform_projects_locations_repositories_workspaces_fetch_file_git_statuses_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataform.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/workspaces/{workspacesId}:fetchFileGitStatuses",
@@ -10227,11 +10405,14 @@ pub fn dataform_projects_locations_repositories_workspaces_fetch_file_git_status
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataform_projects_locations_repositories_workspaces_fetch_git_ahead_behind_execute()` to send, or `dataform_projects_locations_repositories_workspaces_fetch_git_ahead_behind` for simplest API.
 
-pub fn dataform_projects_locations_repositories_workspaces_fetch_git_ahead_behind_builder(
-    client: &SimpleHttpClient,
+pub fn dataform_projects_locations_repositories_workspaces_fetch_git_ahead_behind_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     remoteBranch: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataform.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/workspaces/{workspacesId}:fetchGitAheadBehind",
@@ -10412,10 +10593,13 @@ pub fn dataform_projects_locations_repositories_workspaces_fetch_git_ahead_behin
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataform_projects_locations_repositories_workspaces_get_execute()` to send, or `dataform_projects_locations_repositories_workspaces_get` for simplest API.
 
-pub fn dataform_projects_locations_repositories_workspaces_get_builder(
-    client: &SimpleHttpClient,
+pub fn dataform_projects_locations_repositories_workspaces_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataform.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/workspaces/{workspacesId}",
@@ -10570,11 +10754,14 @@ pub fn dataform_projects_locations_repositories_workspaces_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataform_projects_locations_repositories_workspaces_get_iam_policy_execute()` to send, or `dataform_projects_locations_repositories_workspaces_get_iam_policy` for simplest API.
 
-pub fn dataform_projects_locations_repositories_workspaces_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn dataform_projects_locations_repositories_workspaces_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataform.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/workspaces/{workspacesId}:getIamPolicy",
@@ -10745,10 +10932,13 @@ pub fn dataform_projects_locations_repositories_workspaces_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataform_projects_locations_repositories_workspaces_install_npm_packages_execute()` to send, or `dataform_projects_locations_repositories_workspaces_install_npm_packages` for simplest API.
 
-pub fn dataform_projects_locations_repositories_workspaces_install_npm_packages_builder(
-    client: &SimpleHttpClient,
+pub fn dataform_projects_locations_repositories_workspaces_install_npm_packages_builder<R>(
+    client: &SimpleHttpClient<R>,
     workspace: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataform.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/workspaces/{workspacesId}:installNpmPackages",
@@ -10914,14 +11104,17 @@ pub fn dataform_projects_locations_repositories_workspaces_install_npm_packages(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataform_projects_locations_repositories_workspaces_list_execute()` to send, or `dataform_projects_locations_repositories_workspaces_list` for simplest API.
 
-pub fn dataform_projects_locations_repositories_workspaces_list_builder(
-    client: &SimpleHttpClient,
+pub fn dataform_projects_locations_repositories_workspaces_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataform.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/workspaces",
@@ -11114,10 +11307,13 @@ pub fn dataform_projects_locations_repositories_workspaces_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataform_projects_locations_repositories_workspaces_make_directory_execute()` to send, or `dataform_projects_locations_repositories_workspaces_make_directory` for simplest API.
 
-pub fn dataform_projects_locations_repositories_workspaces_make_directory_builder(
-    client: &SimpleHttpClient,
+pub fn dataform_projects_locations_repositories_workspaces_make_directory_builder<R>(
+    client: &SimpleHttpClient<R>,
     workspace: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataform.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/workspaces/{workspacesId}:makeDirectory",
@@ -11278,10 +11474,13 @@ pub fn dataform_projects_locations_repositories_workspaces_make_directory(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataform_projects_locations_repositories_workspaces_move_directory_execute()` to send, or `dataform_projects_locations_repositories_workspaces_move_directory` for simplest API.
 
-pub fn dataform_projects_locations_repositories_workspaces_move_directory_builder(
-    client: &SimpleHttpClient,
+pub fn dataform_projects_locations_repositories_workspaces_move_directory_builder<R>(
+    client: &SimpleHttpClient<R>,
     workspace: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataform.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/workspaces/{workspacesId}:moveDirectory",
@@ -11442,10 +11641,13 @@ pub fn dataform_projects_locations_repositories_workspaces_move_directory(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataform_projects_locations_repositories_workspaces_move_file_execute()` to send, or `dataform_projects_locations_repositories_workspaces_move_file` for simplest API.
 
-pub fn dataform_projects_locations_repositories_workspaces_move_file_builder(
-    client: &SimpleHttpClient,
+pub fn dataform_projects_locations_repositories_workspaces_move_file_builder<R>(
+    client: &SimpleHttpClient<R>,
     workspace: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataform.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/workspaces/{workspacesId}:moveFile",
@@ -11606,10 +11808,13 @@ pub fn dataform_projects_locations_repositories_workspaces_move_file(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataform_projects_locations_repositories_workspaces_pull_execute()` to send, or `dataform_projects_locations_repositories_workspaces_pull` for simplest API.
 
-pub fn dataform_projects_locations_repositories_workspaces_pull_builder(
-    client: &SimpleHttpClient,
+pub fn dataform_projects_locations_repositories_workspaces_pull_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataform.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/workspaces/{workspacesId}:pull",
@@ -11768,10 +11973,13 @@ pub fn dataform_projects_locations_repositories_workspaces_pull(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataform_projects_locations_repositories_workspaces_push_execute()` to send, or `dataform_projects_locations_repositories_workspaces_push` for simplest API.
 
-pub fn dataform_projects_locations_repositories_workspaces_push_builder(
-    client: &SimpleHttpClient,
+pub fn dataform_projects_locations_repositories_workspaces_push_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataform.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/workspaces/{workspacesId}:push",
@@ -11930,14 +12138,17 @@ pub fn dataform_projects_locations_repositories_workspaces_push(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataform_projects_locations_repositories_workspaces_query_directory_contents_execute()` to send, or `dataform_projects_locations_repositories_workspaces_query_directory_contents` for simplest API.
 
-pub fn dataform_projects_locations_repositories_workspaces_query_directory_contents_builder(
-    client: &SimpleHttpClient,
+pub fn dataform_projects_locations_repositories_workspaces_query_directory_contents_builder<R>(
+    client: &SimpleHttpClient<R>,
     workspace: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     path: &Option<Option<String>>,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataform.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/workspaces/{workspacesId}:queryDirectoryContents",
@@ -12136,12 +12347,15 @@ pub fn dataform_projects_locations_repositories_workspaces_query_directory_conte
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataform_projects_locations_repositories_workspaces_read_file_execute()` to send, or `dataform_projects_locations_repositories_workspaces_read_file` for simplest API.
 
-pub fn dataform_projects_locations_repositories_workspaces_read_file_builder(
-    client: &SimpleHttpClient,
+pub fn dataform_projects_locations_repositories_workspaces_read_file_builder<R>(
+    client: &SimpleHttpClient<R>,
     workspace: &String,
     path: &Option<Option<String>>,
     revision: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataform.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/workspaces/{workspacesId}:readFile",
@@ -12322,10 +12536,13 @@ pub fn dataform_projects_locations_repositories_workspaces_read_file(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataform_projects_locations_repositories_workspaces_remove_directory_execute()` to send, or `dataform_projects_locations_repositories_workspaces_remove_directory` for simplest API.
 
-pub fn dataform_projects_locations_repositories_workspaces_remove_directory_builder(
-    client: &SimpleHttpClient,
+pub fn dataform_projects_locations_repositories_workspaces_remove_directory_builder<R>(
+    client: &SimpleHttpClient<R>,
     workspace: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataform.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/workspaces/{workspacesId}:removeDirectory",
@@ -12486,10 +12703,13 @@ pub fn dataform_projects_locations_repositories_workspaces_remove_directory(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataform_projects_locations_repositories_workspaces_remove_file_execute()` to send, or `dataform_projects_locations_repositories_workspaces_remove_file` for simplest API.
 
-pub fn dataform_projects_locations_repositories_workspaces_remove_file_builder(
-    client: &SimpleHttpClient,
+pub fn dataform_projects_locations_repositories_workspaces_remove_file_builder<R>(
+    client: &SimpleHttpClient<R>,
     workspace: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataform.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/workspaces/{workspacesId}:removeFile",
@@ -12650,10 +12870,13 @@ pub fn dataform_projects_locations_repositories_workspaces_remove_file(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataform_projects_locations_repositories_workspaces_reset_execute()` to send, or `dataform_projects_locations_repositories_workspaces_reset` for simplest API.
 
-pub fn dataform_projects_locations_repositories_workspaces_reset_builder(
-    client: &SimpleHttpClient,
+pub fn dataform_projects_locations_repositories_workspaces_reset_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataform.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/workspaces/{workspacesId}:reset",
@@ -12816,13 +13039,16 @@ pub fn dataform_projects_locations_repositories_workspaces_reset(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataform_projects_locations_repositories_workspaces_search_files_execute()` to send, or `dataform_projects_locations_repositories_workspaces_search_files` for simplest API.
 
-pub fn dataform_projects_locations_repositories_workspaces_search_files_builder(
-    client: &SimpleHttpClient,
+pub fn dataform_projects_locations_repositories_workspaces_search_files_builder<R>(
+    client: &SimpleHttpClient<R>,
     workspace: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataform.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/workspaces/{workspacesId}:searchFiles",
@@ -13009,10 +13235,13 @@ pub fn dataform_projects_locations_repositories_workspaces_search_files(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataform_projects_locations_repositories_workspaces_set_iam_policy_execute()` to send, or `dataform_projects_locations_repositories_workspaces_set_iam_policy` for simplest API.
 
-pub fn dataform_projects_locations_repositories_workspaces_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn dataform_projects_locations_repositories_workspaces_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataform.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/workspaces/{workspacesId}:setIamPolicy",
@@ -13169,10 +13398,13 @@ pub fn dataform_projects_locations_repositories_workspaces_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataform_projects_locations_repositories_workspaces_test_iam_permissions_execute()` to send, or `dataform_projects_locations_repositories_workspaces_test_iam_permissions` for simplest API.
 
-pub fn dataform_projects_locations_repositories_workspaces_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn dataform_projects_locations_repositories_workspaces_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataform.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/workspaces/{workspacesId}:testIamPermissions",
@@ -13338,10 +13570,13 @@ pub fn dataform_projects_locations_repositories_workspaces_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataform_projects_locations_repositories_workspaces_write_file_execute()` to send, or `dataform_projects_locations_repositories_workspaces_write_file` for simplest API.
 
-pub fn dataform_projects_locations_repositories_workspaces_write_file_builder(
-    client: &SimpleHttpClient,
+pub fn dataform_projects_locations_repositories_workspaces_write_file_builder<R>(
+    client: &SimpleHttpClient<R>,
     workspace: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataform.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/workspaces/{workspacesId}:writeFile",
@@ -13502,10 +13737,13 @@ pub fn dataform_projects_locations_repositories_workspaces_write_file(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataform_projects_locations_team_folders_create_execute()` to send, or `dataform_projects_locations_team_folders_create` for simplest API.
 
-pub fn dataform_projects_locations_team_folders_create_builder(
-    client: &SimpleHttpClient,
+pub fn dataform_projects_locations_team_folders_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataform.googleapis.com/v1/projects/{}/locations/{locationsId}/teamFolders",
@@ -13659,10 +13897,13 @@ pub fn dataform_projects_locations_team_folders_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataform_projects_locations_team_folders_delete_execute()` to send, or `dataform_projects_locations_team_folders_delete` for simplest API.
 
-pub fn dataform_projects_locations_team_folders_delete_builder(
-    client: &SimpleHttpClient,
+pub fn dataform_projects_locations_team_folders_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataform.googleapis.com/v1/projects/{}/locations/{locationsId}/teamFolders/{teamFoldersId}",
@@ -13816,10 +14057,13 @@ pub fn dataform_projects_locations_team_folders_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataform_projects_locations_team_folders_delete_tree_execute()` to send, or `dataform_projects_locations_team_folders_delete_tree` for simplest API.
 
-pub fn dataform_projects_locations_team_folders_delete_tree_builder(
-    client: &SimpleHttpClient,
+pub fn dataform_projects_locations_team_folders_delete_tree_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataform.googleapis.com/v1/projects/{}/locations/{locationsId}/teamFolders/{teamFoldersId}:deleteTree",
@@ -13973,10 +14217,13 @@ pub fn dataform_projects_locations_team_folders_delete_tree(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataform_projects_locations_team_folders_get_execute()` to send, or `dataform_projects_locations_team_folders_get` for simplest API.
 
-pub fn dataform_projects_locations_team_folders_get_builder(
-    client: &SimpleHttpClient,
+pub fn dataform_projects_locations_team_folders_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataform.googleapis.com/v1/projects/{}/locations/{locationsId}/teamFolders/{teamFoldersId}",
@@ -14130,11 +14377,14 @@ pub fn dataform_projects_locations_team_folders_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataform_projects_locations_team_folders_get_iam_policy_execute()` to send, or `dataform_projects_locations_team_folders_get_iam_policy` for simplest API.
 
-pub fn dataform_projects_locations_team_folders_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn dataform_projects_locations_team_folders_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataform.googleapis.com/v1/projects/{}/locations/{locationsId}/teamFolders/{teamFoldersId}:getIamPolicy",
@@ -14305,11 +14555,14 @@ pub fn dataform_projects_locations_team_folders_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataform_projects_locations_team_folders_patch_execute()` to send, or `dataform_projects_locations_team_folders_patch` for simplest API.
 
-pub fn dataform_projects_locations_team_folders_patch_builder(
-    client: &SimpleHttpClient,
+pub fn dataform_projects_locations_team_folders_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataform.googleapis.com/v1/projects/{}/locations/{locationsId}/teamFolders/{teamFoldersId}",
@@ -14480,14 +14733,17 @@ pub fn dataform_projects_locations_team_folders_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataform_projects_locations_team_folders_query_contents_execute()` to send, or `dataform_projects_locations_team_folders_query_contents` for simplest API.
 
-pub fn dataform_projects_locations_team_folders_query_contents_builder(
-    client: &SimpleHttpClient,
+pub fn dataform_projects_locations_team_folders_query_contents_builder<R>(
+    client: &SimpleHttpClient<R>,
     teamFolder: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataform.googleapis.com/v1/projects/{}/locations/{locationsId}/teamFolders/{teamFoldersId}:queryContents",
@@ -14684,14 +14940,17 @@ pub fn dataform_projects_locations_team_folders_query_contents(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataform_projects_locations_team_folders_search_execute()` to send, or `dataform_projects_locations_team_folders_search` for simplest API.
 
-pub fn dataform_projects_locations_team_folders_search_builder(
-    client: &SimpleHttpClient,
+pub fn dataform_projects_locations_team_folders_search_builder<R>(
+    client: &SimpleHttpClient<R>,
     location: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataform.googleapis.com/v1/projects/{}/locations/{locationsId}/teamFolders:search",
@@ -14884,10 +15143,13 @@ pub fn dataform_projects_locations_team_folders_search(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataform_projects_locations_team_folders_set_iam_policy_execute()` to send, or `dataform_projects_locations_team_folders_set_iam_policy` for simplest API.
 
-pub fn dataform_projects_locations_team_folders_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn dataform_projects_locations_team_folders_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataform.googleapis.com/v1/projects/{}/locations/{locationsId}/teamFolders/{teamFoldersId}:setIamPolicy",
@@ -15042,10 +15304,13 @@ pub fn dataform_projects_locations_team_folders_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataform_projects_locations_team_folders_test_iam_permissions_execute()` to send, or `dataform_projects_locations_team_folders_test_iam_permissions` for simplest API.
 
-pub fn dataform_projects_locations_team_folders_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn dataform_projects_locations_team_folders_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataform.googleapis.com/v1/projects/{}/locations/{locationsId}/teamFolders/{teamFoldersId}:testIamPermissions",

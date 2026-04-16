@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,13 +27,16 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidmanagement_enterprises_create_execute()` to send, or `androidmanagement_enterprises_create` for simplest API.
 
-pub fn androidmanagement_enterprises_create_builder(
-    client: &SimpleHttpClient,
+pub fn androidmanagement_enterprises_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     agreementAccepted: &Option<Option<String>>,
     enterpriseToken: &Option<Option<String>>,
     projectId: &Option<Option<String>>,
     signupUrlName: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://androidmanagement.googleapis.com/v1/enterprises",);
 
@@ -215,10 +219,13 @@ pub fn androidmanagement_enterprises_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidmanagement_enterprises_delete_execute()` to send, or `androidmanagement_enterprises_delete` for simplest API.
 
-pub fn androidmanagement_enterprises_delete_builder(
-    client: &SimpleHttpClient,
+pub fn androidmanagement_enterprises_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidmanagement.googleapis.com/v1/enterprises/{}",
@@ -372,10 +379,13 @@ pub fn androidmanagement_enterprises_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidmanagement_enterprises_generate_enterprise_upgrade_url_execute()` to send, or `androidmanagement_enterprises_generate_enterprise_upgrade_url` for simplest API.
 
-pub fn androidmanagement_enterprises_generate_enterprise_upgrade_url_builder(
-    client: &SimpleHttpClient,
+pub fn androidmanagement_enterprises_generate_enterprise_upgrade_url_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidmanagement.googleapis.com/v1/enterprises/{}:generateEnterpriseUpgradeUrl",
@@ -538,10 +548,13 @@ pub fn androidmanagement_enterprises_generate_enterprise_upgrade_url(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidmanagement_enterprises_get_execute()` to send, or `androidmanagement_enterprises_get` for simplest API.
 
-pub fn androidmanagement_enterprises_get_builder(
-    client: &SimpleHttpClient,
+pub fn androidmanagement_enterprises_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidmanagement.googleapis.com/v1/enterprises/{}",
@@ -695,13 +708,16 @@ pub fn androidmanagement_enterprises_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidmanagement_enterprises_list_execute()` to send, or `androidmanagement_enterprises_list` for simplest API.
 
-pub fn androidmanagement_enterprises_list_builder(
-    client: &SimpleHttpClient,
+pub fn androidmanagement_enterprises_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     projectId: &Option<Option<String>>,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://androidmanagement.googleapis.com/v1/enterprises",);
 
@@ -888,11 +904,14 @@ pub fn androidmanagement_enterprises_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidmanagement_enterprises_patch_execute()` to send, or `androidmanagement_enterprises_patch` for simplest API.
 
-pub fn androidmanagement_enterprises_patch_builder(
-    client: &SimpleHttpClient,
+pub fn androidmanagement_enterprises_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidmanagement.googleapis.com/v1/enterprises/{}",
@@ -1060,11 +1079,14 @@ pub fn androidmanagement_enterprises_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidmanagement_enterprises_applications_get_execute()` to send, or `androidmanagement_enterprises_applications_get` for simplest API.
 
-pub fn androidmanagement_enterprises_applications_get_builder(
-    client: &SimpleHttpClient,
+pub fn androidmanagement_enterprises_applications_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     languageCode: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidmanagement.googleapis.com/v1/enterprises/{}/applications/{applicationsId}",
@@ -1235,12 +1257,15 @@ pub fn androidmanagement_enterprises_applications_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidmanagement_enterprises_devices_delete_execute()` to send, or `androidmanagement_enterprises_devices_delete` for simplest API.
 
-pub fn androidmanagement_enterprises_devices_delete_builder(
-    client: &SimpleHttpClient,
+pub fn androidmanagement_enterprises_devices_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     wipeDataFlags: &Option<Option<String>>,
     wipeReasonMessage: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidmanagement.googleapis.com/v1/enterprises/{}/devices/{devicesId}",
@@ -1417,10 +1442,13 @@ pub fn androidmanagement_enterprises_devices_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidmanagement_enterprises_devices_get_execute()` to send, or `androidmanagement_enterprises_devices_get` for simplest API.
 
-pub fn androidmanagement_enterprises_devices_get_builder(
-    client: &SimpleHttpClient,
+pub fn androidmanagement_enterprises_devices_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidmanagement.googleapis.com/v1/enterprises/{}/devices/{devicesId}",
@@ -1574,10 +1602,13 @@ pub fn androidmanagement_enterprises_devices_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidmanagement_enterprises_devices_issue_command_execute()` to send, or `androidmanagement_enterprises_devices_issue_command` for simplest API.
 
-pub fn androidmanagement_enterprises_devices_issue_command_builder(
-    client: &SimpleHttpClient,
+pub fn androidmanagement_enterprises_devices_issue_command_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidmanagement.googleapis.com/v1/enterprises/{}/devices/{devicesId}:issueCommand",
@@ -1731,12 +1762,15 @@ pub fn androidmanagement_enterprises_devices_issue_command(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidmanagement_enterprises_devices_list_execute()` to send, or `androidmanagement_enterprises_devices_list` for simplest API.
 
-pub fn androidmanagement_enterprises_devices_list_builder(
-    client: &SimpleHttpClient,
+pub fn androidmanagement_enterprises_devices_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidmanagement.googleapis.com/v1/enterprises/{}/devices",
@@ -1917,11 +1951,14 @@ pub fn androidmanagement_enterprises_devices_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidmanagement_enterprises_devices_patch_execute()` to send, or `androidmanagement_enterprises_devices_patch` for simplest API.
 
-pub fn androidmanagement_enterprises_devices_patch_builder(
-    client: &SimpleHttpClient,
+pub fn androidmanagement_enterprises_devices_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidmanagement.googleapis.com/v1/enterprises/{}/devices/{devicesId}",
@@ -2089,10 +2126,13 @@ pub fn androidmanagement_enterprises_devices_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidmanagement_enterprises_devices_operations_cancel_execute()` to send, or `androidmanagement_enterprises_devices_operations_cancel` for simplest API.
 
-pub fn androidmanagement_enterprises_devices_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn androidmanagement_enterprises_devices_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidmanagement.googleapis.com/v1/enterprises/{}/devices/{devicesId}/operations/{operationsId}:cancel",
@@ -2247,10 +2287,13 @@ pub fn androidmanagement_enterprises_devices_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidmanagement_enterprises_devices_operations_get_execute()` to send, or `androidmanagement_enterprises_devices_operations_get` for simplest API.
 
-pub fn androidmanagement_enterprises_devices_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn androidmanagement_enterprises_devices_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidmanagement.googleapis.com/v1/enterprises/{}/devices/{devicesId}/operations/{operationsId}",
@@ -2404,14 +2447,17 @@ pub fn androidmanagement_enterprises_devices_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidmanagement_enterprises_devices_operations_list_execute()` to send, or `androidmanagement_enterprises_devices_operations_list` for simplest API.
 
-pub fn androidmanagement_enterprises_devices_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn androidmanagement_enterprises_devices_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidmanagement.googleapis.com/v1/enterprises/{}/devices/{devicesId}/operations",
@@ -2604,10 +2650,13 @@ pub fn androidmanagement_enterprises_devices_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidmanagement_enterprises_enrollment_tokens_create_execute()` to send, or `androidmanagement_enterprises_enrollment_tokens_create` for simplest API.
 
-pub fn androidmanagement_enterprises_enrollment_tokens_create_builder(
-    client: &SimpleHttpClient,
+pub fn androidmanagement_enterprises_enrollment_tokens_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidmanagement.googleapis.com/v1/enterprises/{}/enrollmentTokens",
@@ -2766,10 +2815,13 @@ pub fn androidmanagement_enterprises_enrollment_tokens_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidmanagement_enterprises_enrollment_tokens_delete_execute()` to send, or `androidmanagement_enterprises_enrollment_tokens_delete` for simplest API.
 
-pub fn androidmanagement_enterprises_enrollment_tokens_delete_builder(
-    client: &SimpleHttpClient,
+pub fn androidmanagement_enterprises_enrollment_tokens_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidmanagement.googleapis.com/v1/enterprises/{}/enrollmentTokens/{enrollmentTokensId}",
@@ -2924,10 +2976,13 @@ pub fn androidmanagement_enterprises_enrollment_tokens_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidmanagement_enterprises_enrollment_tokens_get_execute()` to send, or `androidmanagement_enterprises_enrollment_tokens_get` for simplest API.
 
-pub fn androidmanagement_enterprises_enrollment_tokens_get_builder(
-    client: &SimpleHttpClient,
+pub fn androidmanagement_enterprises_enrollment_tokens_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidmanagement.googleapis.com/v1/enterprises/{}/enrollmentTokens/{enrollmentTokensId}",
@@ -3085,12 +3140,15 @@ pub fn androidmanagement_enterprises_enrollment_tokens_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidmanagement_enterprises_enrollment_tokens_list_execute()` to send, or `androidmanagement_enterprises_enrollment_tokens_list` for simplest API.
 
-pub fn androidmanagement_enterprises_enrollment_tokens_list_builder(
-    client: &SimpleHttpClient,
+pub fn androidmanagement_enterprises_enrollment_tokens_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidmanagement.googleapis.com/v1/enterprises/{}/enrollmentTokens",
@@ -3275,10 +3333,13 @@ pub fn androidmanagement_enterprises_enrollment_tokens_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidmanagement_enterprises_migration_tokens_create_execute()` to send, or `androidmanagement_enterprises_migration_tokens_create` for simplest API.
 
-pub fn androidmanagement_enterprises_migration_tokens_create_builder(
-    client: &SimpleHttpClient,
+pub fn androidmanagement_enterprises_migration_tokens_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidmanagement.googleapis.com/v1/enterprises/{}/migrationTokens",
@@ -3437,10 +3498,13 @@ pub fn androidmanagement_enterprises_migration_tokens_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidmanagement_enterprises_migration_tokens_get_execute()` to send, or `androidmanagement_enterprises_migration_tokens_get` for simplest API.
 
-pub fn androidmanagement_enterprises_migration_tokens_get_builder(
-    client: &SimpleHttpClient,
+pub fn androidmanagement_enterprises_migration_tokens_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidmanagement.googleapis.com/v1/enterprises/{}/migrationTokens/{migrationTokensId}",
@@ -3598,12 +3662,15 @@ pub fn androidmanagement_enterprises_migration_tokens_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidmanagement_enterprises_migration_tokens_list_execute()` to send, or `androidmanagement_enterprises_migration_tokens_list` for simplest API.
 
-pub fn androidmanagement_enterprises_migration_tokens_list_builder(
-    client: &SimpleHttpClient,
+pub fn androidmanagement_enterprises_migration_tokens_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidmanagement.googleapis.com/v1/enterprises/{}/migrationTokens",
@@ -3788,10 +3855,13 @@ pub fn androidmanagement_enterprises_migration_tokens_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidmanagement_enterprises_policies_delete_execute()` to send, or `androidmanagement_enterprises_policies_delete` for simplest API.
 
-pub fn androidmanagement_enterprises_policies_delete_builder(
-    client: &SimpleHttpClient,
+pub fn androidmanagement_enterprises_policies_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidmanagement.googleapis.com/v1/enterprises/{}/policies/{policiesId}",
@@ -3945,10 +4015,13 @@ pub fn androidmanagement_enterprises_policies_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidmanagement_enterprises_policies_get_execute()` to send, or `androidmanagement_enterprises_policies_get` for simplest API.
 
-pub fn androidmanagement_enterprises_policies_get_builder(
-    client: &SimpleHttpClient,
+pub fn androidmanagement_enterprises_policies_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidmanagement.googleapis.com/v1/enterprises/{}/policies/{policiesId}",
@@ -4102,12 +4175,15 @@ pub fn androidmanagement_enterprises_policies_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidmanagement_enterprises_policies_list_execute()` to send, or `androidmanagement_enterprises_policies_list` for simplest API.
 
-pub fn androidmanagement_enterprises_policies_list_builder(
-    client: &SimpleHttpClient,
+pub fn androidmanagement_enterprises_policies_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidmanagement.googleapis.com/v1/enterprises/{}/policies",
@@ -4288,10 +4364,13 @@ pub fn androidmanagement_enterprises_policies_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidmanagement_enterprises_policies_modify_policy_applications_execute()` to send, or `androidmanagement_enterprises_policies_modify_policy_applications` for simplest API.
 
-pub fn androidmanagement_enterprises_policies_modify_policy_applications_builder(
-    client: &SimpleHttpClient,
+pub fn androidmanagement_enterprises_policies_modify_policy_applications_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidmanagement.googleapis.com/v1/enterprises/{}/policies/{policiesId}:modifyPolicyApplications",
@@ -4455,11 +4534,14 @@ pub fn androidmanagement_enterprises_policies_modify_policy_applications(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidmanagement_enterprises_policies_patch_execute()` to send, or `androidmanagement_enterprises_policies_patch` for simplest API.
 
-pub fn androidmanagement_enterprises_policies_patch_builder(
-    client: &SimpleHttpClient,
+pub fn androidmanagement_enterprises_policies_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidmanagement.googleapis.com/v1/enterprises/{}/policies/{policiesId}",
@@ -4627,10 +4709,13 @@ pub fn androidmanagement_enterprises_policies_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidmanagement_enterprises_policies_remove_policy_applications_execute()` to send, or `androidmanagement_enterprises_policies_remove_policy_applications` for simplest API.
 
-pub fn androidmanagement_enterprises_policies_remove_policy_applications_builder(
-    client: &SimpleHttpClient,
+pub fn androidmanagement_enterprises_policies_remove_policy_applications_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidmanagement.googleapis.com/v1/enterprises/{}/policies/{policiesId}:removePolicyApplications",
@@ -4794,10 +4879,13 @@ pub fn androidmanagement_enterprises_policies_remove_policy_applications(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidmanagement_enterprises_web_apps_create_execute()` to send, or `androidmanagement_enterprises_web_apps_create` for simplest API.
 
-pub fn androidmanagement_enterprises_web_apps_create_builder(
-    client: &SimpleHttpClient,
+pub fn androidmanagement_enterprises_web_apps_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidmanagement.googleapis.com/v1/enterprises/{}/webApps",
@@ -4951,10 +5039,13 @@ pub fn androidmanagement_enterprises_web_apps_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidmanagement_enterprises_web_apps_delete_execute()` to send, or `androidmanagement_enterprises_web_apps_delete` for simplest API.
 
-pub fn androidmanagement_enterprises_web_apps_delete_builder(
-    client: &SimpleHttpClient,
+pub fn androidmanagement_enterprises_web_apps_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidmanagement.googleapis.com/v1/enterprises/{}/webApps/{webAppsId}",
@@ -5108,10 +5199,13 @@ pub fn androidmanagement_enterprises_web_apps_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidmanagement_enterprises_web_apps_get_execute()` to send, or `androidmanagement_enterprises_web_apps_get` for simplest API.
 
-pub fn androidmanagement_enterprises_web_apps_get_builder(
-    client: &SimpleHttpClient,
+pub fn androidmanagement_enterprises_web_apps_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidmanagement.googleapis.com/v1/enterprises/{}/webApps/{webAppsId}",
@@ -5265,12 +5359,15 @@ pub fn androidmanagement_enterprises_web_apps_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidmanagement_enterprises_web_apps_list_execute()` to send, or `androidmanagement_enterprises_web_apps_list` for simplest API.
 
-pub fn androidmanagement_enterprises_web_apps_list_builder(
-    client: &SimpleHttpClient,
+pub fn androidmanagement_enterprises_web_apps_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidmanagement.googleapis.com/v1/enterprises/{}/webApps",
@@ -5451,11 +5548,14 @@ pub fn androidmanagement_enterprises_web_apps_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidmanagement_enterprises_web_apps_patch_execute()` to send, or `androidmanagement_enterprises_web_apps_patch` for simplest API.
 
-pub fn androidmanagement_enterprises_web_apps_patch_builder(
-    client: &SimpleHttpClient,
+pub fn androidmanagement_enterprises_web_apps_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidmanagement.googleapis.com/v1/enterprises/{}/webApps/{webAppsId}",
@@ -5623,10 +5723,13 @@ pub fn androidmanagement_enterprises_web_apps_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidmanagement_enterprises_web_tokens_create_execute()` to send, or `androidmanagement_enterprises_web_tokens_create` for simplest API.
 
-pub fn androidmanagement_enterprises_web_tokens_create_builder(
-    client: &SimpleHttpClient,
+pub fn androidmanagement_enterprises_web_tokens_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidmanagement.googleapis.com/v1/enterprises/{}/webTokens",
@@ -5780,10 +5883,13 @@ pub fn androidmanagement_enterprises_web_tokens_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidmanagement_provisioning_info_get_execute()` to send, or `androidmanagement_provisioning_info_get` for simplest API.
 
-pub fn androidmanagement_provisioning_info_get_builder(
-    client: &SimpleHttpClient,
+pub fn androidmanagement_provisioning_info_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidmanagement.googleapis.com/v1/provisioningInfo/{}",
@@ -5941,13 +6047,16 @@ pub fn androidmanagement_provisioning_info_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidmanagement_signup_urls_create_execute()` to send, or `androidmanagement_signup_urls_create` for simplest API.
 
-pub fn androidmanagement_signup_urls_create_builder(
-    client: &SimpleHttpClient,
+pub fn androidmanagement_signup_urls_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     adminEmail: &Option<Option<String>>,
     allowedDomains: &Option<Option<String>>,
     callbackUrl: &Option<Option<String>>,
     projectId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://androidmanagement.googleapis.com/v1/signupUrls",);
 

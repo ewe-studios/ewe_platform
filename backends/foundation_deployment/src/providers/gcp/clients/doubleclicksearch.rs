@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,8 +27,8 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `doubleclicksearch_conversion_get_execute()` to send, or `doubleclicksearch_conversion_get` for simplest API.
 
-pub fn doubleclicksearch_conversion_get_builder(
-    client: &SimpleHttpClient,
+pub fn doubleclicksearch_conversion_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     agencyId: &String,
     advertiserId: &String,
     engineAccountId: &String,
@@ -40,7 +41,10 @@ pub fn doubleclicksearch_conversion_get_builder(
     rowCount: &Option<Option<String>>,
     startDate: &Option<Option<String>>,
     startRow: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://doubleclicksearch.googleapis.com/doubleclicksearch/v2/agency/{}/advertiser/{}/engine/{}/conversion",
@@ -271,8 +275,8 @@ pub fn doubleclicksearch_conversion_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `doubleclicksearch_conversion_get_by_customer_id_execute()` to send, or `doubleclicksearch_conversion_get_by_customer_id` for simplest API.
 
-pub fn doubleclicksearch_conversion_get_by_customer_id_builder(
-    client: &SimpleHttpClient,
+pub fn doubleclicksearch_conversion_get_by_customer_id_builder<R>(
+    client: &SimpleHttpClient<R>,
     customerId: &String,
     adGroupId: &Option<Option<String>>,
     adId: &Option<Option<String>>,
@@ -285,7 +289,10 @@ pub fn doubleclicksearch_conversion_get_by_customer_id_builder(
     rowCount: &Option<Option<String>>,
     startDate: &Option<Option<String>>,
     startRow: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://doubleclicksearch.googleapis.com/doubleclicksearch/v2/customer/{}/conversion",
@@ -520,9 +527,12 @@ pub fn doubleclicksearch_conversion_get_by_customer_id(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `doubleclicksearch_conversion_insert_execute()` to send, or `doubleclicksearch_conversion_insert` for simplest API.
 
-pub fn doubleclicksearch_conversion_insert_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn doubleclicksearch_conversion_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://doubleclicksearch.googleapis.com/doubleclicksearch/v2/conversion",);
@@ -670,9 +680,12 @@ pub fn doubleclicksearch_conversion_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `doubleclicksearch_conversion_update_execute()` to send, or `doubleclicksearch_conversion_update` for simplest API.
 
-pub fn doubleclicksearch_conversion_update_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn doubleclicksearch_conversion_update_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://doubleclicksearch.googleapis.com/doubleclicksearch/v2/conversion",);
@@ -820,9 +833,12 @@ pub fn doubleclicksearch_conversion_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `doubleclicksearch_conversion_update_availability_execute()` to send, or `doubleclicksearch_conversion_update_availability` for simplest API.
 
-pub fn doubleclicksearch_conversion_update_availability_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn doubleclicksearch_conversion_update_availability_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://doubleclicksearch.googleapis.com/doubleclicksearch/v2/conversion/updateAvailability",
@@ -975,9 +991,12 @@ pub fn doubleclicksearch_conversion_update_availability(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `doubleclicksearch_reports_generate_execute()` to send, or `doubleclicksearch_reports_generate` for simplest API.
 
-pub fn doubleclicksearch_reports_generate_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn doubleclicksearch_reports_generate_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://doubleclicksearch.googleapis.com/doubleclicksearch/v2/reports/generate",);
@@ -1121,10 +1140,13 @@ pub fn doubleclicksearch_reports_generate(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `doubleclicksearch_reports_get_execute()` to send, or `doubleclicksearch_reports_get` for simplest API.
 
-pub fn doubleclicksearch_reports_get_builder(
-    client: &SimpleHttpClient,
+pub fn doubleclicksearch_reports_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     reportId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://doubleclicksearch.googleapis.com/doubleclicksearch/v2/reports/{}",
@@ -1278,11 +1300,14 @@ pub fn doubleclicksearch_reports_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `doubleclicksearch_reports_get_file_execute()` to send, or `doubleclicksearch_reports_get_file` for simplest API.
 
-pub fn doubleclicksearch_reports_get_file_builder(
-    client: &SimpleHttpClient,
+pub fn doubleclicksearch_reports_get_file_builder<R>(
+    client: &SimpleHttpClient<R>,
     reportId: &String,
     reportFragment: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://doubleclicksearch.googleapis.com/doubleclicksearch/v2/reports/{}/files/{}",
@@ -1436,11 +1461,14 @@ pub fn doubleclicksearch_reports_get_file(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `doubleclicksearch_reports_get_id_mapping_file_execute()` to send, or `doubleclicksearch_reports_get_id_mapping_file` for simplest API.
 
-pub fn doubleclicksearch_reports_get_id_mapping_file_builder(
-    client: &SimpleHttpClient,
+pub fn doubleclicksearch_reports_get_id_mapping_file_builder<R>(
+    client: &SimpleHttpClient<R>,
     agencyId: &String,
     advertiserId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://doubleclicksearch.googleapis.com/doubleclicksearch/v2/agency/{}/advertiser/{}/idmapping",
@@ -1605,9 +1633,12 @@ pub fn doubleclicksearch_reports_get_id_mapping_file(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `doubleclicksearch_reports_request_execute()` to send, or `doubleclicksearch_reports_request` for simplest API.
 
-pub fn doubleclicksearch_reports_request_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn doubleclicksearch_reports_request_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://doubleclicksearch.googleapis.com/doubleclicksearch/v2/reports",);
@@ -1751,11 +1782,14 @@ pub fn doubleclicksearch_reports_request(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `doubleclicksearch_saved_columns_list_execute()` to send, or `doubleclicksearch_saved_columns_list` for simplest API.
 
-pub fn doubleclicksearch_saved_columns_list_builder(
-    client: &SimpleHttpClient,
+pub fn doubleclicksearch_saved_columns_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     agencyId: &String,
     advertiserId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://doubleclicksearch.googleapis.com/doubleclicksearch/v2/agency/{}/advertiser/{}/savedcolumns",

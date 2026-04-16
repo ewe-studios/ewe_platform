@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -24,12 +25,15 @@ use serde::Serialize;
 /// Creates a backup for a Cloud SQL instance. This API can be used only to create on-demand backups.
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `sql__backups__create_backup_execute()` to send, or `sql__backups__create_backup` for simplest API.
+/// Use `sql_backups_create_backup_execute()` to send, or `sql_backups_create_backup` for simplest API.
 
-pub fn sql__backups__create_backup_builder(
-    client: &SimpleHttpClient,
+pub fn sql_backups_create_backup_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}/backups",
@@ -55,17 +59,17 @@ pub fn sql__backups__create_backup_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `sql__backups__create_backup_execute()` or `sql__backups__create_backup`.
+/// For direct execution, use `sql_backups_create_backup_execute()` or `sql_backups_create_backup`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `sql__backups__create_backup_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `sql_backups_create_backup_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn sql__backups__create_backup_task(
+pub fn sql_backups_create_backup_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -124,31 +128,31 @@ pub fn sql__backups__create_backup_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `sql__backups__create_backup_builder()` to create the builder,
+/// For full customization, use `sql_backups_create_backup_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `sql__backups__create_backup_task()`.
-/// For the simplest API, use `sql__backups__create_backup()`.
+/// For task-level control, use `sql_backups_create_backup_task()`.
+/// For the simplest API, use `sql_backups_create_backup()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `sql__backups__create_backup_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `sql_backups_create_backup_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn sql__backups__create_backup_execute(
+pub fn sql_backups_create_backup_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let task = sql__backups__create_backup_task(builder)?;
+    let task = sql_backups_create_backup_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`sql__backups__create_backup`].
+/// Arguments for [`sql_backups_create_backup`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SqlBackupsCreateBackupArgs {
     /// Path parameter: parent
@@ -159,34 +163,37 @@ pub struct SqlBackupsCreateBackupArgs {
 /// Creates a backup for a Cloud SQL instance. This API can be used only to create on-demand backups.
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `sql__backups__create_backup_builder()` + `sql__backups__create_backup_execute()`.
-/// For task-level control, use `sql__backups__create_backup_task()`.
+/// For customization, use `sql_backups_create_backup_builder()` + `sql_backups_create_backup_execute()`.
+/// For task-level control, use `sql_backups_create_backup_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn sql__backups__create_backup(
+pub fn sql_backups_create_backup(
     client: &SimpleHttpClient,
     args: &SqlBackupsCreateBackupArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = sql__backups__create_backup_builder(client, &args.parent)?;
-    sql__backups__create_backup_execute(builder)
+    let builder = sql_backups_create_backup_builder(client, &args.parent)?;
+    sql_backups_create_backup_execute(builder)
 }
 
 /// DELETE v1/projects/{projectsId}/backups/{backupsId}
 /// Deletes the backup.
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `sql__backups__delete_backup_execute()` to send, or `sql__backups__delete_backup` for simplest API.
+/// Use `sql_backups_delete_backup_execute()` to send, or `sql_backups_delete_backup` for simplest API.
 
-pub fn sql__backups__delete_backup_builder(
-    client: &SimpleHttpClient,
+pub fn sql_backups_delete_backup_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}/backups/{backupsId}",
@@ -212,17 +219,17 @@ pub fn sql__backups__delete_backup_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `sql__backups__delete_backup_execute()` or `sql__backups__delete_backup`.
+/// For direct execution, use `sql_backups_delete_backup_execute()` or `sql_backups_delete_backup`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `sql__backups__delete_backup_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `sql_backups_delete_backup_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn sql__backups__delete_backup_task(
+pub fn sql_backups_delete_backup_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -281,31 +288,31 @@ pub fn sql__backups__delete_backup_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `sql__backups__delete_backup_builder()` to create the builder,
+/// For full customization, use `sql_backups_delete_backup_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `sql__backups__delete_backup_task()`.
-/// For the simplest API, use `sql__backups__delete_backup()`.
+/// For task-level control, use `sql_backups_delete_backup_task()`.
+/// For the simplest API, use `sql_backups_delete_backup()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `sql__backups__delete_backup_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `sql_backups_delete_backup_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn sql__backups__delete_backup_execute(
+pub fn sql_backups_delete_backup_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let task = sql__backups__delete_backup_task(builder)?;
+    let task = sql_backups_delete_backup_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`sql__backups__delete_backup`].
+/// Arguments for [`sql_backups_delete_backup`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SqlBackupsDeleteBackupArgs {
     /// Path parameter: name
@@ -316,34 +323,37 @@ pub struct SqlBackupsDeleteBackupArgs {
 /// Deletes the backup.
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `sql__backups__delete_backup_builder()` + `sql__backups__delete_backup_execute()`.
-/// For task-level control, use `sql__backups__delete_backup_task()`.
+/// For customization, use `sql_backups_delete_backup_builder()` + `sql_backups_delete_backup_execute()`.
+/// For task-level control, use `sql_backups_delete_backup_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn sql__backups__delete_backup(
+pub fn sql_backups_delete_backup(
     client: &SimpleHttpClient,
     args: &SqlBackupsDeleteBackupArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = sql__backups__delete_backup_builder(client, &args.name)?;
-    sql__backups__delete_backup_execute(builder)
+    let builder = sql_backups_delete_backup_builder(client, &args.name)?;
+    sql_backups_delete_backup_execute(builder)
 }
 
 /// GET v1/projects/{projectsId}/backups/{backupsId}
 /// Retrieves a resource containing information about a backup.
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `sql__backups__get_backup_execute()` to send, or `sql__backups__get_backup` for simplest API.
+/// Use `sql_backups_get_backup_execute()` to send, or `sql_backups_get_backup` for simplest API.
 
-pub fn sql__backups__get_backup_builder(
-    client: &SimpleHttpClient,
+pub fn sql_backups_get_backup_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}/backups/{backupsId}",
@@ -369,17 +379,17 @@ pub fn sql__backups__get_backup_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `sql__backups__get_backup_execute()` or `sql__backups__get_backup`.
+/// For direct execution, use `sql_backups_get_backup_execute()` or `sql_backups_get_backup`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `sql__backups__get_backup_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `sql_backups_get_backup_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn sql__backups__get_backup_task(
+pub fn sql_backups_get_backup_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -438,31 +448,31 @@ pub fn sql__backups__get_backup_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `sql__backups__get_backup_builder()` to create the builder,
+/// For full customization, use `sql_backups_get_backup_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `sql__backups__get_backup_task()`.
-/// For the simplest API, use `sql__backups__get_backup()`.
+/// For task-level control, use `sql_backups_get_backup_task()`.
+/// For the simplest API, use `sql_backups_get_backup()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `sql__backups__get_backup_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `sql_backups_get_backup_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn sql__backups__get_backup_execute(
+pub fn sql_backups_get_backup_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Backup>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let task = sql__backups__get_backup_task(builder)?;
+    let task = sql_backups_get_backup_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`sql__backups__get_backup`].
+/// Arguments for [`sql_backups_get_backup`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SqlBackupsGetBackupArgs {
     /// Path parameter: name
@@ -473,37 +483,40 @@ pub struct SqlBackupsGetBackupArgs {
 /// Retrieves a resource containing information about a backup.
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `sql__backups__get_backup_builder()` + `sql__backups__get_backup_execute()`.
-/// For task-level control, use `sql__backups__get_backup_task()`.
+/// For customization, use `sql_backups_get_backup_builder()` + `sql_backups_get_backup_execute()`.
+/// For task-level control, use `sql_backups_get_backup_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn sql__backups__get_backup(
+pub fn sql_backups_get_backup(
     client: &SimpleHttpClient,
     args: &SqlBackupsGetBackupArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Backup>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = sql__backups__get_backup_builder(client, &args.name)?;
-    sql__backups__get_backup_execute(builder)
+    let builder = sql_backups_get_backup_builder(client, &args.name)?;
+    sql_backups_get_backup_execute(builder)
 }
 
 /// GET v1/projects/{projectsId}/backups
 /// Lists all backups associated with the project.
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `sql__backups__list_backups_execute()` to send, or `sql__backups__list_backups` for simplest API.
+/// Use `sql_backups_list_backups_execute()` to send, or `sql_backups_list_backups` for simplest API.
 
-pub fn sql__backups__list_backups_builder(
-    client: &SimpleHttpClient,
+pub fn sql_backups_list_backups_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}/backups",
@@ -546,17 +559,17 @@ pub fn sql__backups__list_backups_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `sql__backups__list_backups_execute()` or `sql__backups__list_backups`.
+/// For direct execution, use `sql_backups_list_backups_execute()` or `sql_backups_list_backups`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `sql__backups__list_backups_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `sql_backups_list_backups_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn sql__backups__list_backups_task(
+pub fn sql_backups_list_backups_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -615,21 +628,21 @@ pub fn sql__backups__list_backups_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `sql__backups__list_backups_builder()` to create the builder,
+/// For full customization, use `sql_backups_list_backups_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `sql__backups__list_backups_task()`.
-/// For the simplest API, use `sql__backups__list_backups()`.
+/// For task-level control, use `sql_backups_list_backups_task()`.
+/// For the simplest API, use `sql_backups_list_backups()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `sql__backups__list_backups_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `sql_backups_list_backups_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn sql__backups__list_backups_execute(
+pub fn sql_backups_list_backups_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListBackupsResponse>, ApiError>, P = ApiPending>
@@ -637,11 +650,11 @@ pub fn sql__backups__list_backups_execute(
         + 'static,
     ApiError,
 > {
-    let task = sql__backups__list_backups_task(builder)?;
+    let task = sql_backups_list_backups_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`sql__backups__list_backups`].
+/// Arguments for [`sql_backups_list_backups`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SqlBackupsListBackupsArgs {
     /// Path parameter: parent
@@ -658,14 +671,14 @@ pub struct SqlBackupsListBackupsArgs {
 /// Lists all backups associated with the project.
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `sql__backups__list_backups_builder()` + `sql__backups__list_backups_execute()`.
-/// For task-level control, use `sql__backups__list_backups_task()`.
+/// For customization, use `sql_backups_list_backups_builder()` + `sql_backups_list_backups_execute()`.
+/// For task-level control, use `sql_backups_list_backups_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn sql__backups__list_backups(
+pub fn sql_backups_list_backups(
     client: &SimpleHttpClient,
     args: &SqlBackupsListBackupsArgs,
 ) -> Result<
@@ -674,27 +687,30 @@ pub fn sql__backups__list_backups(
         + 'static,
     ApiError,
 > {
-    let builder = sql__backups__list_backups_builder(
+    let builder = sql_backups_list_backups_builder(
         client,
         &args.parent,
         &args.filter,
         &args.pageSize,
         &args.pageToken,
     )?;
-    sql__backups__list_backups_execute(builder)
+    sql_backups_list_backups_execute(builder)
 }
 
 /// PATCH v1/projects/{projectsId}/backups/{backupsId}
 /// Updates the retention period and description of the backup. You can use this API to update final backups only.
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `sql__backups__update_backup_execute()` to send, or `sql__backups__update_backup` for simplest API.
+/// Use `sql_backups_update_backup_execute()` to send, or `sql_backups_update_backup` for simplest API.
 
-pub fn sql__backups__update_backup_builder(
-    client: &SimpleHttpClient,
+pub fn sql_backups_update_backup_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}/backups/{backupsId}",
@@ -731,17 +747,17 @@ pub fn sql__backups__update_backup_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `sql__backups__update_backup_execute()` or `sql__backups__update_backup`.
+/// For direct execution, use `sql_backups_update_backup_execute()` or `sql_backups_update_backup`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `sql__backups__update_backup_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `sql_backups_update_backup_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn sql__backups__update_backup_task(
+pub fn sql_backups_update_backup_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -800,31 +816,31 @@ pub fn sql__backups__update_backup_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `sql__backups__update_backup_builder()` to create the builder,
+/// For full customization, use `sql_backups_update_backup_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `sql__backups__update_backup_task()`.
-/// For the simplest API, use `sql__backups__update_backup()`.
+/// For task-level control, use `sql_backups_update_backup_task()`.
+/// For the simplest API, use `sql_backups_update_backup()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `sql__backups__update_backup_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `sql_backups_update_backup_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn sql__backups__update_backup_execute(
+pub fn sql_backups_update_backup_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let task = sql__backups__update_backup_task(builder)?;
+    let task = sql_backups_update_backup_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`sql__backups__update_backup`].
+/// Arguments for [`sql_backups_update_backup`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SqlBackupsUpdateBackupArgs {
     /// Path parameter: name
@@ -837,22 +853,22 @@ pub struct SqlBackupsUpdateBackupArgs {
 /// Updates the retention period and description of the backup. You can use this API to update final backups only.
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `sql__backups__update_backup_builder()` + `sql__backups__update_backup_execute()`.
-/// For task-level control, use `sql__backups__update_backup_task()`.
+/// For customization, use `sql_backups_update_backup_builder()` + `sql_backups_update_backup_execute()`.
+/// For task-level control, use `sql_backups_update_backup_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn sql__backups__update_backup(
+pub fn sql_backups_update_backup(
     client: &SimpleHttpClient,
     args: &SqlBackupsUpdateBackupArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = sql__backups__update_backup_builder(client, &args.name, &args.updateMask)?;
-    sql__backups__update_backup_execute(builder)
+    let builder = sql_backups_update_backup_builder(client, &args.name, &args.updateMask)?;
+    sql_backups_update_backup_execute(builder)
 }
 
 /// DELETE v1/projects/{project}/instances/{instance}/backupRuns/{id}
@@ -861,12 +877,15 @@ pub fn sql__backups__update_backup(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `sql_backup_runs_delete_execute()` to send, or `sql_backup_runs_delete` for simplest API.
 
-pub fn sql_backup_runs_delete_builder(
-    client: &SimpleHttpClient,
+pub fn sql_backup_runs_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     instance: &String,
     id: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}/instances/{}/backupRuns/{}",
@@ -1024,12 +1043,15 @@ pub fn sql_backup_runs_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `sql_backup_runs_get_execute()` to send, or `sql_backup_runs_get` for simplest API.
 
-pub fn sql_backup_runs_get_builder(
-    client: &SimpleHttpClient,
+pub fn sql_backup_runs_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     instance: &String,
     id: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}/instances/{}/backupRuns/{}",
@@ -1187,11 +1209,14 @@ pub fn sql_backup_runs_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `sql_backup_runs_insert_execute()` to send, or `sql_backup_runs_insert` for simplest API.
 
-pub fn sql_backup_runs_insert_builder(
-    client: &SimpleHttpClient,
+pub fn sql_backup_runs_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     instance: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}/instances/{}/backupRuns",
@@ -1347,13 +1372,16 @@ pub fn sql_backup_runs_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `sql_backup_runs_list_execute()` to send, or `sql_backup_runs_list` for simplest API.
 
-pub fn sql_backup_runs_list_builder(
-    client: &SimpleHttpClient,
+pub fn sql_backup_runs_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     instance: &String,
     maxResults: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}/instances/{}/backupRuns",
@@ -1537,11 +1565,14 @@ pub fn sql_backup_runs_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `sql_connect_generate_ephemeral_execute()` to send, or `sql_connect_generate_ephemeral` for simplest API.
 
-pub fn sql_connect_generate_ephemeral_builder(
-    client: &SimpleHttpClient,
+pub fn sql_connect_generate_ephemeral_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     instance: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}/instances/{}:generateEphemeralCert",
@@ -1705,12 +1736,15 @@ pub fn sql_connect_generate_ephemeral(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `sql_connect_get_execute()` to send, or `sql_connect_get` for simplest API.
 
-pub fn sql_connect_get_builder(
-    client: &SimpleHttpClient,
+pub fn sql_connect_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     instance: &String,
     readTime: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}/instances/{}/connectSettings",
@@ -1883,12 +1917,15 @@ pub fn sql_connect_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `sql_databases_delete_execute()` to send, or `sql_databases_delete` for simplest API.
 
-pub fn sql_databases_delete_builder(
-    client: &SimpleHttpClient,
+pub fn sql_databases_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     instance: &String,
     database: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}/instances/{}/databases/{}",
@@ -2047,12 +2084,15 @@ pub fn sql_databases_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `sql_databases_get_execute()` to send, or `sql_databases_get` for simplest API.
 
-pub fn sql_databases_get_builder(
-    client: &SimpleHttpClient,
+pub fn sql_databases_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     instance: &String,
     database: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}/instances/{}/databases/{}",
@@ -2210,11 +2250,14 @@ pub fn sql_databases_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `sql_databases_insert_execute()` to send, or `sql_databases_insert` for simplest API.
 
-pub fn sql_databases_insert_builder(
-    client: &SimpleHttpClient,
+pub fn sql_databases_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     instance: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}/instances/{}/databases",
@@ -2370,11 +2413,14 @@ pub fn sql_databases_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `sql_databases_list_execute()` to send, or `sql_databases_list` for simplest API.
 
-pub fn sql_databases_list_builder(
-    client: &SimpleHttpClient,
+pub fn sql_databases_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     instance: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}/instances/{}/databases",
@@ -2534,12 +2580,15 @@ pub fn sql_databases_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `sql_databases_patch_execute()` to send, or `sql_databases_patch` for simplest API.
 
-pub fn sql_databases_patch_builder(
-    client: &SimpleHttpClient,
+pub fn sql_databases_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     instance: &String,
     database: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}/instances/{}/databases/{}",
@@ -2698,12 +2747,15 @@ pub fn sql_databases_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `sql_databases_update_execute()` to send, or `sql_databases_update` for simplest API.
 
-pub fn sql_databases_update_builder(
-    client: &SimpleHttpClient,
+pub fn sql_databases_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     instance: &String,
     database: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}/instances/{}/databases/{}",
@@ -2862,11 +2914,14 @@ pub fn sql_databases_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `sql_flags_list_execute()` to send, or `sql_flags_list` for simplest API.
 
-pub fn sql_flags_list_builder(
-    client: &SimpleHttpClient,
+pub fn sql_flags_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     databaseVersion: &Option<Option<String>>,
     flagScope: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://sqladmin.googleapis.com/v1/flags",);
 
@@ -3035,13 +3090,16 @@ pub fn sql_flags_list(
 /// Lists all versions of EntraID certificates for the specified instance. There can be up to three sets of certificates listed: the certificate that is currently in use, a future that has been added but not yet used to sign a certificate, and a certificate that has been rotated out.
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `sql_instances__list_entra_id_certificates_execute()` to send, or `sql_instances__list_entra_id_certificates` for simplest API.
+/// Use `sql_instances_list_entra_id_certificates_execute()` to send, or `sql_instances_list_entra_id_certificates` for simplest API.
 
-pub fn sql_instances__list_entra_id_certificates_builder(
-    client: &SimpleHttpClient,
+pub fn sql_instances_list_entra_id_certificates_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     instance: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}/instances/{}/listEntraIdCertificates",
@@ -3067,17 +3125,17 @@ pub fn sql_instances__list_entra_id_certificates_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `sql_instances__list_entra_id_certificates_execute()` or `sql_instances__list_entra_id_certificates`.
+/// For direct execution, use `sql_instances_list_entra_id_certificates_execute()` or `sql_instances_list_entra_id_certificates`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `sql_instances__list_entra_id_certificates_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `sql_instances_list_entra_id_certificates_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn sql_instances__list_entra_id_certificates_task(
+pub fn sql_instances_list_entra_id_certificates_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -3136,21 +3194,21 @@ pub fn sql_instances__list_entra_id_certificates_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `sql_instances__list_entra_id_certificates_builder()` to create the builder,
+/// For full customization, use `sql_instances_list_entra_id_certificates_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `sql_instances__list_entra_id_certificates_task()`.
-/// For the simplest API, use `sql_instances__list_entra_id_certificates()`.
+/// For task-level control, use `sql_instances_list_entra_id_certificates_task()`.
+/// For the simplest API, use `sql_instances_list_entra_id_certificates()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `sql_instances__list_entra_id_certificates_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `sql_instances_list_entra_id_certificates_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn sql_instances__list_entra_id_certificates_execute(
+pub fn sql_instances_list_entra_id_certificates_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<
@@ -3160,11 +3218,11 @@ pub fn sql_instances__list_entra_id_certificates_execute(
         + 'static,
     ApiError,
 > {
-    let task = sql_instances__list_entra_id_certificates_task(builder)?;
+    let task = sql_instances_list_entra_id_certificates_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`sql_instances__list_entra_id_certificates`].
+/// Arguments for [`sql_instances_list_entra_id_certificates`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SqlInstancesListEntraIdCertificatesArgs {
     /// Path parameter: project
@@ -3177,14 +3235,14 @@ pub struct SqlInstancesListEntraIdCertificatesArgs {
 /// Lists all versions of EntraID certificates for the specified instance. There can be up to three sets of certificates listed: the certificate that is currently in use, a future that has been added but not yet used to sign a certificate, and a certificate that has been rotated out.
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `sql_instances__list_entra_id_certificates_builder()` + `sql_instances__list_entra_id_certificates_execute()`.
-/// For task-level control, use `sql_instances__list_entra_id_certificates_task()`.
+/// For customization, use `sql_instances_list_entra_id_certificates_builder()` + `sql_instances_list_entra_id_certificates_execute()`.
+/// For task-level control, use `sql_instances_list_entra_id_certificates_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn sql_instances__list_entra_id_certificates(
+pub fn sql_instances_list_entra_id_certificates(
     client: &SimpleHttpClient,
     args: &SqlInstancesListEntraIdCertificatesArgs,
 ) -> Result<
@@ -3196,21 +3254,24 @@ pub fn sql_instances__list_entra_id_certificates(
     ApiError,
 > {
     let builder =
-        sql_instances__list_entra_id_certificates_builder(client, &args.project, &args.instance)?;
-    sql_instances__list_entra_id_certificates_execute(builder)
+        sql_instances_list_entra_id_certificates_builder(client, &args.project, &args.instance)?;
+    sql_instances_list_entra_id_certificates_execute(builder)
 }
 
 /// GET v1/projects/{project}/instances/{instance}/listServerCertificates
 /// Lists all versions of server certificates and certificate authorities (CAs) for the specified instance. There can be up to three sets of certs listed: the certificate that is currently in use, a future that has been added but not yet used to sign a certificate, and a certificate that has been rotated out. For instances not using Certificate Authority Service (CAS) server CA, use ListServerCas instead.
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `sql_instances__list_server_certificates_execute()` to send, or `sql_instances__list_server_certificates` for simplest API.
+/// Use `sql_instances_list_server_certificates_execute()` to send, or `sql_instances_list_server_certificates` for simplest API.
 
-pub fn sql_instances__list_server_certificates_builder(
-    client: &SimpleHttpClient,
+pub fn sql_instances_list_server_certificates_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     instance: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}/instances/{}/listServerCertificates",
@@ -3236,17 +3297,17 @@ pub fn sql_instances__list_server_certificates_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `sql_instances__list_server_certificates_execute()` or `sql_instances__list_server_certificates`.
+/// For direct execution, use `sql_instances_list_server_certificates_execute()` or `sql_instances_list_server_certificates`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `sql_instances__list_server_certificates_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `sql_instances_list_server_certificates_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn sql_instances__list_server_certificates_task(
+pub fn sql_instances_list_server_certificates_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -3306,21 +3367,21 @@ pub fn sql_instances__list_server_certificates_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `sql_instances__list_server_certificates_builder()` to create the builder,
+/// For full customization, use `sql_instances_list_server_certificates_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `sql_instances__list_server_certificates_task()`.
-/// For the simplest API, use `sql_instances__list_server_certificates()`.
+/// For task-level control, use `sql_instances_list_server_certificates_task()`.
+/// For the simplest API, use `sql_instances_list_server_certificates()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `sql_instances__list_server_certificates_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `sql_instances_list_server_certificates_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn sql_instances__list_server_certificates_execute(
+pub fn sql_instances_list_server_certificates_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<
@@ -3330,11 +3391,11 @@ pub fn sql_instances__list_server_certificates_execute(
         + 'static,
     ApiError,
 > {
-    let task = sql_instances__list_server_certificates_task(builder)?;
+    let task = sql_instances_list_server_certificates_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`sql_instances__list_server_certificates`].
+/// Arguments for [`sql_instances_list_server_certificates`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SqlInstancesListServerCertificatesArgs {
     /// Path parameter: project
@@ -3347,14 +3408,14 @@ pub struct SqlInstancesListServerCertificatesArgs {
 /// Lists all versions of server certificates and certificate authorities (CAs) for the specified instance. There can be up to three sets of certs listed: the certificate that is currently in use, a future that has been added but not yet used to sign a certificate, and a certificate that has been rotated out. For instances not using Certificate Authority Service (CAS) server CA, use ListServerCas instead.
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `sql_instances__list_server_certificates_builder()` + `sql_instances__list_server_certificates_execute()`.
-/// For task-level control, use `sql_instances__list_server_certificates_task()`.
+/// For customization, use `sql_instances_list_server_certificates_builder()` + `sql_instances_list_server_certificates_execute()`.
+/// For task-level control, use `sql_instances_list_server_certificates_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn sql_instances__list_server_certificates(
+pub fn sql_instances_list_server_certificates(
     client: &SimpleHttpClient,
     args: &SqlInstancesListServerCertificatesArgs,
 ) -> Result<
@@ -3366,21 +3427,24 @@ pub fn sql_instances__list_server_certificates(
     ApiError,
 > {
     let builder =
-        sql_instances__list_server_certificates_builder(client, &args.project, &args.instance)?;
-    sql_instances__list_server_certificates_execute(builder)
+        sql_instances_list_server_certificates_builder(client, &args.project, &args.instance)?;
+    sql_instances_list_server_certificates_execute(builder)
 }
 
 /// POST v1/projects/{project}/instances/{instance}/rotateEntraIdCertificate
 /// Rotates the server certificate version to one previously added with the `addEntraIdCertificate` method.
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `sql_instances__rotate_entra_id_certificate_execute()` to send, or `sql_instances__rotate_entra_id_certificate` for simplest API.
+/// Use `sql_instances_rotate_entra_id_certificate_execute()` to send, or `sql_instances_rotate_entra_id_certificate` for simplest API.
 
-pub fn sql_instances__rotate_entra_id_certificate_builder(
-    client: &SimpleHttpClient,
+pub fn sql_instances_rotate_entra_id_certificate_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     instance: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}/instances/{}/rotateEntraIdCertificate",
@@ -3406,17 +3470,17 @@ pub fn sql_instances__rotate_entra_id_certificate_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `sql_instances__rotate_entra_id_certificate_execute()` or `sql_instances__rotate_entra_id_certificate`.
+/// For direct execution, use `sql_instances_rotate_entra_id_certificate_execute()` or `sql_instances_rotate_entra_id_certificate`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `sql_instances__rotate_entra_id_certificate_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `sql_instances_rotate_entra_id_certificate_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn sql_instances__rotate_entra_id_certificate_task(
+pub fn sql_instances_rotate_entra_id_certificate_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -3475,31 +3539,31 @@ pub fn sql_instances__rotate_entra_id_certificate_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `sql_instances__rotate_entra_id_certificate_builder()` to create the builder,
+/// For full customization, use `sql_instances_rotate_entra_id_certificate_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `sql_instances__rotate_entra_id_certificate_task()`.
-/// For the simplest API, use `sql_instances__rotate_entra_id_certificate()`.
+/// For task-level control, use `sql_instances_rotate_entra_id_certificate_task()`.
+/// For the simplest API, use `sql_instances_rotate_entra_id_certificate()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `sql_instances__rotate_entra_id_certificate_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `sql_instances_rotate_entra_id_certificate_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn sql_instances__rotate_entra_id_certificate_execute(
+pub fn sql_instances_rotate_entra_id_certificate_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let task = sql_instances__rotate_entra_id_certificate_task(builder)?;
+    let task = sql_instances_rotate_entra_id_certificate_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`sql_instances__rotate_entra_id_certificate`].
+/// Arguments for [`sql_instances_rotate_entra_id_certificate`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SqlInstancesRotateEntraIdCertificateArgs {
     /// Path parameter: project
@@ -3512,14 +3576,14 @@ pub struct SqlInstancesRotateEntraIdCertificateArgs {
 /// Rotates the server certificate version to one previously added with the `addEntraIdCertificate` method.
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `sql_instances__rotate_entra_id_certificate_builder()` + `sql_instances__rotate_entra_id_certificate_execute()`.
-/// For task-level control, use `sql_instances__rotate_entra_id_certificate_task()`.
+/// For customization, use `sql_instances_rotate_entra_id_certificate_builder()` + `sql_instances_rotate_entra_id_certificate_execute()`.
+/// For task-level control, use `sql_instances_rotate_entra_id_certificate_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn sql_instances__rotate_entra_id_certificate(
+pub fn sql_instances_rotate_entra_id_certificate(
     client: &SimpleHttpClient,
     args: &SqlInstancesRotateEntraIdCertificateArgs,
 ) -> Result<
@@ -3527,21 +3591,24 @@ pub fn sql_instances__rotate_entra_id_certificate(
     ApiError,
 > {
     let builder =
-        sql_instances__rotate_entra_id_certificate_builder(client, &args.project, &args.instance)?;
-    sql_instances__rotate_entra_id_certificate_execute(builder)
+        sql_instances_rotate_entra_id_certificate_builder(client, &args.project, &args.instance)?;
+    sql_instances_rotate_entra_id_certificate_execute(builder)
 }
 
 /// POST v1/projects/{project}/instances/{instance}/rotateServerCertificate
 /// Rotates the server certificate version to one previously added with the `addServerCertificate` method. For instances not using Certificate Authority Service (CAS) server CA, use RotateServerCa instead.
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `sql_instances__rotate_server_certificate_execute()` to send, or `sql_instances__rotate_server_certificate` for simplest API.
+/// Use `sql_instances_rotate_server_certificate_execute()` to send, or `sql_instances_rotate_server_certificate` for simplest API.
 
-pub fn sql_instances__rotate_server_certificate_builder(
-    client: &SimpleHttpClient,
+pub fn sql_instances_rotate_server_certificate_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     instance: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}/instances/{}/rotateServerCertificate",
@@ -3567,17 +3634,17 @@ pub fn sql_instances__rotate_server_certificate_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `sql_instances__rotate_server_certificate_execute()` or `sql_instances__rotate_server_certificate`.
+/// For direct execution, use `sql_instances_rotate_server_certificate_execute()` or `sql_instances_rotate_server_certificate`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `sql_instances__rotate_server_certificate_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `sql_instances_rotate_server_certificate_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn sql_instances__rotate_server_certificate_task(
+pub fn sql_instances_rotate_server_certificate_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -3636,31 +3703,31 @@ pub fn sql_instances__rotate_server_certificate_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `sql_instances__rotate_server_certificate_builder()` to create the builder,
+/// For full customization, use `sql_instances_rotate_server_certificate_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `sql_instances__rotate_server_certificate_task()`.
-/// For the simplest API, use `sql_instances__rotate_server_certificate()`.
+/// For task-level control, use `sql_instances_rotate_server_certificate_task()`.
+/// For the simplest API, use `sql_instances_rotate_server_certificate()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `sql_instances__rotate_server_certificate_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `sql_instances_rotate_server_certificate_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn sql_instances__rotate_server_certificate_execute(
+pub fn sql_instances_rotate_server_certificate_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let task = sql_instances__rotate_server_certificate_task(builder)?;
+    let task = sql_instances_rotate_server_certificate_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`sql_instances__rotate_server_certificate`].
+/// Arguments for [`sql_instances_rotate_server_certificate`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SqlInstancesRotateServerCertificateArgs {
     /// Path parameter: project
@@ -3673,14 +3740,14 @@ pub struct SqlInstancesRotateServerCertificateArgs {
 /// Rotates the server certificate version to one previously added with the `addServerCertificate` method. For instances not using Certificate Authority Service (CAS) server CA, use RotateServerCa instead.
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `sql_instances__rotate_server_certificate_builder()` + `sql_instances__rotate_server_certificate_execute()`.
-/// For task-level control, use `sql_instances__rotate_server_certificate_task()`.
+/// For customization, use `sql_instances_rotate_server_certificate_builder()` + `sql_instances_rotate_server_certificate_execute()`.
+/// For task-level control, use `sql_instances_rotate_server_certificate_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn sql_instances__rotate_server_certificate(
+pub fn sql_instances_rotate_server_certificate(
     client: &SimpleHttpClient,
     args: &SqlInstancesRotateServerCertificateArgs,
 ) -> Result<
@@ -3688,8 +3755,8 @@ pub fn sql_instances__rotate_server_certificate(
     ApiError,
 > {
     let builder =
-        sql_instances__rotate_server_certificate_builder(client, &args.project, &args.instance)?;
-    sql_instances__rotate_server_certificate_execute(builder)
+        sql_instances_rotate_server_certificate_builder(client, &args.project, &args.instance)?;
+    sql_instances_rotate_server_certificate_execute(builder)
 }
 
 /// POST v1/projects/{project}/instances/{instance}/acquireSsrsLease
@@ -3698,11 +3765,14 @@ pub fn sql_instances__rotate_server_certificate(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `sql_instances_acquire_ssrs_lease_execute()` to send, or `sql_instances_acquire_ssrs_lease` for simplest API.
 
-pub fn sql_instances_acquire_ssrs_lease_builder(
-    client: &SimpleHttpClient,
+pub fn sql_instances_acquire_ssrs_lease_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     instance: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}/instances/{}/acquireSsrsLease",
@@ -3866,11 +3936,14 @@ pub fn sql_instances_acquire_ssrs_lease(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `sql_instances_add_entra_id_certificate_execute()` to send, or `sql_instances_add_entra_id_certificate` for simplest API.
 
-pub fn sql_instances_add_entra_id_certificate_builder(
-    client: &SimpleHttpClient,
+pub fn sql_instances_add_entra_id_certificate_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     instance: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}/instances/{}/addEntraIdCertificate",
@@ -4027,11 +4100,14 @@ pub fn sql_instances_add_entra_id_certificate(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `sql_instances_add_server_ca_execute()` to send, or `sql_instances_add_server_ca` for simplest API.
 
-pub fn sql_instances_add_server_ca_builder(
-    client: &SimpleHttpClient,
+pub fn sql_instances_add_server_ca_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     instance: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}/instances/{}/addServerCa",
@@ -4187,11 +4263,14 @@ pub fn sql_instances_add_server_ca(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `sql_instances_add_server_certificate_execute()` to send, or `sql_instances_add_server_certificate` for simplest API.
 
-pub fn sql_instances_add_server_certificate_builder(
-    client: &SimpleHttpClient,
+pub fn sql_instances_add_server_certificate_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     instance: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}/instances/{}/addServerCertificate",
@@ -4348,11 +4427,14 @@ pub fn sql_instances_add_server_certificate(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `sql_instances_clone_execute()` to send, or `sql_instances_clone` for simplest API.
 
-pub fn sql_instances_clone_builder(
-    client: &SimpleHttpClient,
+pub fn sql_instances_clone_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     instance: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}/instances/{}/clone",
@@ -4508,15 +4590,18 @@ pub fn sql_instances_clone(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `sql_instances_delete_execute()` to send, or `sql_instances_delete` for simplest API.
 
-pub fn sql_instances_delete_builder(
-    client: &SimpleHttpClient,
+pub fn sql_instances_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     instance: &String,
     enableFinalBackup: &Option<Option<String>>,
     finalBackupDescription: &Option<Option<String>>,
     finalBackupExpiryTime: &Option<Option<String>>,
     finalBackupTtlDays: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}/instances/{}",
@@ -4708,11 +4793,14 @@ pub fn sql_instances_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `sql_instances_demote_execute()` to send, or `sql_instances_demote` for simplest API.
 
-pub fn sql_instances_demote_builder(
-    client: &SimpleHttpClient,
+pub fn sql_instances_demote_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     instance: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}/instances/{}/demote",
@@ -4868,11 +4956,14 @@ pub fn sql_instances_demote(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `sql_instances_demote_master_execute()` to send, or `sql_instances_demote_master` for simplest API.
 
-pub fn sql_instances_demote_master_builder(
-    client: &SimpleHttpClient,
+pub fn sql_instances_demote_master_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     instance: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}/instances/{}/demoteMaster",
@@ -5028,11 +5119,14 @@ pub fn sql_instances_demote_master(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `sql_instances_execute_sql_execute()` to send, or `sql_instances_execute_sql` for simplest API.
 
-pub fn sql_instances_execute_sql_builder(
-    client: &SimpleHttpClient,
+pub fn sql_instances_execute_sql_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     instance: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}/instances/{}/executeSql",
@@ -5196,11 +5290,14 @@ pub fn sql_instances_execute_sql(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `sql_instances_export_execute()` to send, or `sql_instances_export` for simplest API.
 
-pub fn sql_instances_export_builder(
-    client: &SimpleHttpClient,
+pub fn sql_instances_export_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     instance: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}/instances/{}/export",
@@ -5356,11 +5453,14 @@ pub fn sql_instances_export(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `sql_instances_failover_execute()` to send, or `sql_instances_failover` for simplest API.
 
-pub fn sql_instances_failover_builder(
-    client: &SimpleHttpClient,
+pub fn sql_instances_failover_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     instance: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}/instances/{}/failover",
@@ -5516,11 +5616,14 @@ pub fn sql_instances_failover(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `sql_instances_get_execute()` to send, or `sql_instances_get` for simplest API.
 
-pub fn sql_instances_get_builder(
-    client: &SimpleHttpClient,
+pub fn sql_instances_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     instance: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}/instances/{}",
@@ -5680,11 +5783,14 @@ pub fn sql_instances_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `sql_instances_import_execute()` to send, or `sql_instances_import` for simplest API.
 
-pub fn sql_instances_import_builder(
-    client: &SimpleHttpClient,
+pub fn sql_instances_import_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     instance: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}/instances/{}/import",
@@ -5840,10 +5946,13 @@ pub fn sql_instances_import(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `sql_instances_insert_execute()` to send, or `sql_instances_insert` for simplest API.
 
-pub fn sql_instances_insert_builder(
-    client: &SimpleHttpClient,
+pub fn sql_instances_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}/instances",
@@ -5997,13 +6106,16 @@ pub fn sql_instances_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `sql_instances_list_execute()` to send, or `sql_instances_list` for simplest API.
 
-pub fn sql_instances_list_builder(
-    client: &SimpleHttpClient,
+pub fn sql_instances_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     filter: &Option<Option<String>>,
     maxResults: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}/instances",
@@ -6190,11 +6302,14 @@ pub fn sql_instances_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `sql_instances_list_server_cas_execute()` to send, or `sql_instances_list_server_cas` for simplest API.
 
-pub fn sql_instances_list_server_cas_builder(
-    client: &SimpleHttpClient,
+pub fn sql_instances_list_server_cas_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     instance: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}/instances/{}/listServerCas",
@@ -6358,11 +6473,14 @@ pub fn sql_instances_list_server_cas(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `sql_instances_patch_execute()` to send, or `sql_instances_patch` for simplest API.
 
-pub fn sql_instances_patch_builder(
-    client: &SimpleHttpClient,
+pub fn sql_instances_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     instance: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}/instances/{}",
@@ -6518,10 +6636,13 @@ pub fn sql_instances_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `sql_instances_point_in_time_restore_execute()` to send, or `sql_instances_point_in_time_restore` for simplest API.
 
-pub fn sql_instances_point_in_time_restore_builder(
-    client: &SimpleHttpClient,
+pub fn sql_instances_point_in_time_restore_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}:pointInTimeRestore",
@@ -6675,11 +6796,14 @@ pub fn sql_instances_point_in_time_restore(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `sql_instances_pre_check_major_version_upgrade_execute()` to send, or `sql_instances_pre_check_major_version_upgrade` for simplest API.
 
-pub fn sql_instances_pre_check_major_version_upgrade_builder(
-    client: &SimpleHttpClient,
+pub fn sql_instances_pre_check_major_version_upgrade_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     instance: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}/instances/{}/preCheckMajorVersionUpgrade",
@@ -6839,12 +6963,15 @@ pub fn sql_instances_pre_check_major_version_upgrade(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `sql_instances_promote_replica_execute()` to send, or `sql_instances_promote_replica` for simplest API.
 
-pub fn sql_instances_promote_replica_builder(
-    client: &SimpleHttpClient,
+pub fn sql_instances_promote_replica_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     instance: &String,
     failover: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}/instances/{}/promoteReplica",
@@ -7018,11 +7145,14 @@ pub fn sql_instances_promote_replica(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `sql_instances_reencrypt_execute()` to send, or `sql_instances_reencrypt` for simplest API.
 
-pub fn sql_instances_reencrypt_builder(
-    client: &SimpleHttpClient,
+pub fn sql_instances_reencrypt_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     instance: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}/instances/{}/reencrypt",
@@ -7178,11 +7308,14 @@ pub fn sql_instances_reencrypt(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `sql_instances_release_ssrs_lease_execute()` to send, or `sql_instances_release_ssrs_lease` for simplest API.
 
-pub fn sql_instances_release_ssrs_lease_builder(
-    client: &SimpleHttpClient,
+pub fn sql_instances_release_ssrs_lease_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     instance: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}/instances/{}/releaseSsrsLease",
@@ -7346,12 +7479,15 @@ pub fn sql_instances_release_ssrs_lease(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `sql_instances_reset_ssl_config_execute()` to send, or `sql_instances_reset_ssl_config` for simplest API.
 
-pub fn sql_instances_reset_ssl_config_builder(
-    client: &SimpleHttpClient,
+pub fn sql_instances_reset_ssl_config_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     instance: &String,
     mode: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}/instances/{}/resetSslConfig",
@@ -7521,11 +7657,14 @@ pub fn sql_instances_reset_ssl_config(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `sql_instances_restart_execute()` to send, or `sql_instances_restart` for simplest API.
 
-pub fn sql_instances_restart_builder(
-    client: &SimpleHttpClient,
+pub fn sql_instances_restart_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     instance: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}/instances/{}/restart",
@@ -7681,11 +7820,14 @@ pub fn sql_instances_restart(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `sql_instances_restore_backup_execute()` to send, or `sql_instances_restore_backup` for simplest API.
 
-pub fn sql_instances_restore_backup_builder(
-    client: &SimpleHttpClient,
+pub fn sql_instances_restore_backup_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     instance: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}/instances/{}/restoreBackup",
@@ -7841,11 +7983,14 @@ pub fn sql_instances_restore_backup(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `sql_instances_rotate_server_ca_execute()` to send, or `sql_instances_rotate_server_ca` for simplest API.
 
-pub fn sql_instances_rotate_server_ca_builder(
-    client: &SimpleHttpClient,
+pub fn sql_instances_rotate_server_ca_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     instance: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}/instances/{}/rotateServerCa",
@@ -8001,11 +8146,14 @@ pub fn sql_instances_rotate_server_ca(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `sql_instances_start_replica_execute()` to send, or `sql_instances_start_replica` for simplest API.
 
-pub fn sql_instances_start_replica_builder(
-    client: &SimpleHttpClient,
+pub fn sql_instances_start_replica_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     instance: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}/instances/{}/startReplica",
@@ -8161,11 +8309,14 @@ pub fn sql_instances_start_replica(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `sql_instances_stop_replica_execute()` to send, or `sql_instances_stop_replica` for simplest API.
 
-pub fn sql_instances_stop_replica_builder(
-    client: &SimpleHttpClient,
+pub fn sql_instances_stop_replica_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     instance: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}/instances/{}/stopReplica",
@@ -8321,12 +8472,15 @@ pub fn sql_instances_stop_replica(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `sql_instances_switchover_execute()` to send, or `sql_instances_switchover` for simplest API.
 
-pub fn sql_instances_switchover_builder(
-    client: &SimpleHttpClient,
+pub fn sql_instances_switchover_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     instance: &String,
     dbTimeout: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}/instances/{}/switchover",
@@ -8496,11 +8650,14 @@ pub fn sql_instances_switchover(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `sql_instances_truncate_log_execute()` to send, or `sql_instances_truncate_log` for simplest API.
 
-pub fn sql_instances_truncate_log_builder(
-    client: &SimpleHttpClient,
+pub fn sql_instances_truncate_log_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     instance: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}/instances/{}/truncateLog",
@@ -8656,11 +8813,14 @@ pub fn sql_instances_truncate_log(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `sql_instances_update_execute()` to send, or `sql_instances_update` for simplest API.
 
-pub fn sql_instances_update_builder(
-    client: &SimpleHttpClient,
+pub fn sql_instances_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     instance: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}/instances/{}",
@@ -8816,11 +8976,14 @@ pub fn sql_instances_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `sql_operations_cancel_execute()` to send, or `sql_operations_cancel` for simplest API.
 
-pub fn sql_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn sql_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     operation: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}/operations/{}/cancel",
@@ -8976,11 +9139,14 @@ pub fn sql_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `sql_operations_get_execute()` to send, or `sql_operations_get` for simplest API.
 
-pub fn sql_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn sql_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     operation: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}/operations/{}",
@@ -9136,13 +9302,16 @@ pub fn sql_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `sql_operations_list_execute()` to send, or `sql_operations_list` for simplest API.
 
-pub fn sql_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn sql_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     instance: &Option<Option<String>>,
     maxResults: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}/operations",
@@ -9329,11 +9498,14 @@ pub fn sql_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `sql_projects_instances_get_disk_shrink_config_execute()` to send, or `sql_projects_instances_get_disk_shrink_config` for simplest API.
 
-pub fn sql_projects_instances_get_disk_shrink_config_builder(
-    client: &SimpleHttpClient,
+pub fn sql_projects_instances_get_disk_shrink_config_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     instance: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}/instances/{}/getDiskShrinkConfig",
@@ -9502,12 +9674,15 @@ pub fn sql_projects_instances_get_disk_shrink_config(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `sql_projects_instances_get_latest_recovery_time_execute()` to send, or `sql_projects_instances_get_latest_recovery_time` for simplest API.
 
-pub fn sql_projects_instances_get_latest_recovery_time_builder(
-    client: &SimpleHttpClient,
+pub fn sql_projects_instances_get_latest_recovery_time_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     instance: &String,
     sourceInstanceDeletionTime: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}/instances/{}/getLatestRecoveryTime",
@@ -9689,11 +9864,14 @@ pub fn sql_projects_instances_get_latest_recovery_time(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `sql_projects_instances_perform_disk_shrink_execute()` to send, or `sql_projects_instances_perform_disk_shrink` for simplest API.
 
-pub fn sql_projects_instances_perform_disk_shrink_builder(
-    client: &SimpleHttpClient,
+pub fn sql_projects_instances_perform_disk_shrink_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     instance: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}/instances/{}/performDiskShrink",
@@ -9850,11 +10028,14 @@ pub fn sql_projects_instances_perform_disk_shrink(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `sql_projects_instances_reschedule_maintenance_execute()` to send, or `sql_projects_instances_reschedule_maintenance` for simplest API.
 
-pub fn sql_projects_instances_reschedule_maintenance_builder(
-    client: &SimpleHttpClient,
+pub fn sql_projects_instances_reschedule_maintenance_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     instance: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}/instances/{}/rescheduleMaintenance",
@@ -10014,11 +10195,14 @@ pub fn sql_projects_instances_reschedule_maintenance(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `sql_projects_instances_reset_replica_size_execute()` to send, or `sql_projects_instances_reset_replica_size` for simplest API.
 
-pub fn sql_projects_instances_reset_replica_size_builder(
-    client: &SimpleHttpClient,
+pub fn sql_projects_instances_reset_replica_size_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     instance: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}/instances/{}/resetReplicaSize",
@@ -10175,11 +10359,14 @@ pub fn sql_projects_instances_reset_replica_size(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `sql_projects_instances_start_external_sync_execute()` to send, or `sql_projects_instances_start_external_sync` for simplest API.
 
-pub fn sql_projects_instances_start_external_sync_builder(
-    client: &SimpleHttpClient,
+pub fn sql_projects_instances_start_external_sync_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     instance: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}/instances/{}/startExternalSync",
@@ -10336,11 +10523,14 @@ pub fn sql_projects_instances_start_external_sync(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `sql_projects_instances_verify_external_sync_settings_execute()` to send, or `sql_projects_instances_verify_external_sync_settings` for simplest API.
 
-pub fn sql_projects_instances_verify_external_sync_settings_builder(
-    client: &SimpleHttpClient,
+pub fn sql_projects_instances_verify_external_sync_settings_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     instance: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}/instances/{}/verifyExternalSyncSettings",
@@ -10509,11 +10699,14 @@ pub fn sql_projects_instances_verify_external_sync_settings(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `sql_ssl_certs_create_ephemeral_execute()` to send, or `sql_ssl_certs_create_ephemeral` for simplest API.
 
-pub fn sql_ssl_certs_create_ephemeral_builder(
-    client: &SimpleHttpClient,
+pub fn sql_ssl_certs_create_ephemeral_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     instance: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}/instances/{}/createEphemeral",
@@ -10669,12 +10862,15 @@ pub fn sql_ssl_certs_create_ephemeral(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `sql_ssl_certs_delete_execute()` to send, or `sql_ssl_certs_delete` for simplest API.
 
-pub fn sql_ssl_certs_delete_builder(
-    client: &SimpleHttpClient,
+pub fn sql_ssl_certs_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     instance: &String,
     sha1Fingerprint: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}/instances/{}/sslCerts/{}",
@@ -10833,12 +11029,15 @@ pub fn sql_ssl_certs_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `sql_ssl_certs_get_execute()` to send, or `sql_ssl_certs_get` for simplest API.
 
-pub fn sql_ssl_certs_get_builder(
-    client: &SimpleHttpClient,
+pub fn sql_ssl_certs_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     instance: &String,
     sha1Fingerprint: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}/instances/{}/sslCerts/{}",
@@ -10997,11 +11196,14 @@ pub fn sql_ssl_certs_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `sql_ssl_certs_insert_execute()` to send, or `sql_ssl_certs_insert` for simplest API.
 
-pub fn sql_ssl_certs_insert_builder(
-    client: &SimpleHttpClient,
+pub fn sql_ssl_certs_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     instance: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}/instances/{}/sslCerts",
@@ -11161,11 +11363,14 @@ pub fn sql_ssl_certs_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `sql_ssl_certs_list_execute()` to send, or `sql_ssl_certs_list` for simplest API.
 
-pub fn sql_ssl_certs_list_builder(
-    client: &SimpleHttpClient,
+pub fn sql_ssl_certs_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     instance: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}/instances/{}/sslCerts",
@@ -11325,10 +11530,13 @@ pub fn sql_ssl_certs_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `sql_tiers_list_execute()` to send, or `sql_tiers_list` for simplest API.
 
-pub fn sql_tiers_list_builder(
-    client: &SimpleHttpClient,
+pub fn sql_tiers_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}/tiers",
@@ -11486,13 +11694,16 @@ pub fn sql_tiers_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `sql_users_delete_execute()` to send, or `sql_users_delete` for simplest API.
 
-pub fn sql_users_delete_builder(
-    client: &SimpleHttpClient,
+pub fn sql_users_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     instance: &String,
     host: &Option<Option<String>>,
     name: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}/instances/{}/users",
@@ -11672,13 +11883,16 @@ pub fn sql_users_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `sql_users_get_execute()` to send, or `sql_users_get` for simplest API.
 
-pub fn sql_users_get_builder(
-    client: &SimpleHttpClient,
+pub fn sql_users_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     instance: &String,
     name: &String,
     host: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}/instances/{}/users/{}",
@@ -11855,11 +12069,14 @@ pub fn sql_users_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `sql_users_insert_execute()` to send, or `sql_users_insert` for simplest API.
 
-pub fn sql_users_insert_builder(
-    client: &SimpleHttpClient,
+pub fn sql_users_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     instance: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}/instances/{}/users",
@@ -12015,11 +12232,14 @@ pub fn sql_users_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `sql_users_list_execute()` to send, or `sql_users_list` for simplest API.
 
-pub fn sql_users_list_builder(
-    client: &SimpleHttpClient,
+pub fn sql_users_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     instance: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}/instances/{}/users",
@@ -12179,15 +12399,18 @@ pub fn sql_users_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `sql_users_update_execute()` to send, or `sql_users_update` for simplest API.
 
-pub fn sql_users_update_builder(
-    client: &SimpleHttpClient,
+pub fn sql_users_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     instance: &String,
     databaseRoles: &Option<Option<String>>,
     host: &Option<Option<String>>,
     name: &Option<Option<String>>,
     revokeExistingRoles: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}/instances/{}/users",

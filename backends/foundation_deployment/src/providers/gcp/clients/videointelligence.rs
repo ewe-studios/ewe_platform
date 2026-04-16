@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `videointelligence_operations_projects_locations_operations_cancel_execute()` to send, or `videointelligence_operations_projects_locations_operations_cancel` for simplest API.
 
-pub fn videointelligence_operations_projects_locations_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn videointelligence_operations_projects_locations_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://videointelligence.googleapis.com/v1/operations/projects/{}/locations/{locationsId}/operations/{operationsId}:cancel",
@@ -189,10 +193,13 @@ pub fn videointelligence_operations_projects_locations_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `videointelligence_operations_projects_locations_operations_delete_execute()` to send, or `videointelligence_operations_projects_locations_operations_delete` for simplest API.
 
-pub fn videointelligence_operations_projects_locations_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn videointelligence_operations_projects_locations_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://videointelligence.googleapis.com/v1/operations/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -352,10 +359,13 @@ pub fn videointelligence_operations_projects_locations_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `videointelligence_operations_projects_locations_operations_get_execute()` to send, or `videointelligence_operations_projects_locations_operations_get` for simplest API.
 
-pub fn videointelligence_operations_projects_locations_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn videointelligence_operations_projects_locations_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://videointelligence.googleapis.com/v1/operations/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -518,10 +528,13 @@ pub fn videointelligence_operations_projects_locations_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `videointelligence_projects_locations_operations_cancel_execute()` to send, or `videointelligence_projects_locations_operations_cancel` for simplest API.
 
-pub fn videointelligence_projects_locations_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn videointelligence_projects_locations_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://videointelligence.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}:cancel",
@@ -680,10 +693,13 @@ pub fn videointelligence_projects_locations_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `videointelligence_projects_locations_operations_delete_execute()` to send, or `videointelligence_projects_locations_operations_delete` for simplest API.
 
-pub fn videointelligence_projects_locations_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn videointelligence_projects_locations_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://videointelligence.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -842,10 +858,13 @@ pub fn videointelligence_projects_locations_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `videointelligence_projects_locations_operations_get_execute()` to send, or `videointelligence_projects_locations_operations_get` for simplest API.
 
-pub fn videointelligence_projects_locations_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn videointelligence_projects_locations_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://videointelligence.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -1007,14 +1026,17 @@ pub fn videointelligence_projects_locations_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `videointelligence_projects_locations_operations_list_execute()` to send, or `videointelligence_projects_locations_operations_list` for simplest API.
 
-pub fn videointelligence_projects_locations_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn videointelligence_projects_locations_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://videointelligence.googleapis.com/v1/projects/{}/locations/{locationsId}/operations",
@@ -1212,9 +1234,12 @@ pub fn videointelligence_projects_locations_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `videointelligence_videos_annotate_execute()` to send, or `videointelligence_videos_annotate` for simplest API.
 
-pub fn videointelligence_videos_annotate_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn videointelligence_videos_annotate_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://videointelligence.googleapis.com/v1/videos:annotate",);
 

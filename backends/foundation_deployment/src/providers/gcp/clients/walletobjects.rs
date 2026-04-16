@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `walletobjects_eventticketclass_addmessage_execute()` to send, or `walletobjects_eventticketclass_addmessage` for simplest API.
 
-pub fn walletobjects_eventticketclass_addmessage_builder(
-    client: &SimpleHttpClient,
+pub fn walletobjects_eventticketclass_addmessage_builder<R>(
+    client: &SimpleHttpClient<R>,
     resourceId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/eventTicketClass/{}/addMessage",
@@ -191,10 +195,13 @@ pub fn walletobjects_eventticketclass_addmessage(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `walletobjects_eventticketclass_get_execute()` to send, or `walletobjects_eventticketclass_get` for simplest API.
 
-pub fn walletobjects_eventticketclass_get_builder(
-    client: &SimpleHttpClient,
+pub fn walletobjects_eventticketclass_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     resourceId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/eventTicketClass/{}",
@@ -352,9 +359,12 @@ pub fn walletobjects_eventticketclass_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `walletobjects_eventticketclass_insert_execute()` to send, or `walletobjects_eventticketclass_insert` for simplest API.
 
-pub fn walletobjects_eventticketclass_insert_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn walletobjects_eventticketclass_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://walletobjects.googleapis.com/walletobjects/v1/eventTicketClass",);
@@ -502,12 +512,15 @@ pub fn walletobjects_eventticketclass_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `walletobjects_eventticketclass_list_execute()` to send, or `walletobjects_eventticketclass_list` for simplest API.
 
-pub fn walletobjects_eventticketclass_list_builder(
-    client: &SimpleHttpClient,
+pub fn walletobjects_eventticketclass_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     issuerId: &Option<Option<String>>,
     maxResults: &Option<Option<String>>,
     token: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://walletobjects.googleapis.com/walletobjects/v1/eventTicketClass",);
@@ -693,10 +706,13 @@ pub fn walletobjects_eventticketclass_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `walletobjects_eventticketclass_patch_execute()` to send, or `walletobjects_eventticketclass_patch` for simplest API.
 
-pub fn walletobjects_eventticketclass_patch_builder(
-    client: &SimpleHttpClient,
+pub fn walletobjects_eventticketclass_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     resourceId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/eventTicketClass/{}",
@@ -854,10 +870,13 @@ pub fn walletobjects_eventticketclass_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `walletobjects_eventticketclass_update_execute()` to send, or `walletobjects_eventticketclass_update` for simplest API.
 
-pub fn walletobjects_eventticketclass_update_builder(
-    client: &SimpleHttpClient,
+pub fn walletobjects_eventticketclass_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     resourceId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/eventTicketClass/{}",
@@ -1015,10 +1034,13 @@ pub fn walletobjects_eventticketclass_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `walletobjects_eventticketobject_addmessage_execute()` to send, or `walletobjects_eventticketobject_addmessage` for simplest API.
 
-pub fn walletobjects_eventticketobject_addmessage_builder(
-    client: &SimpleHttpClient,
+pub fn walletobjects_eventticketobject_addmessage_builder<R>(
+    client: &SimpleHttpClient<R>,
     resourceId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/eventTicketObject/{}/addMessage",
@@ -1180,10 +1202,13 @@ pub fn walletobjects_eventticketobject_addmessage(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `walletobjects_eventticketobject_get_execute()` to send, or `walletobjects_eventticketobject_get` for simplest API.
 
-pub fn walletobjects_eventticketobject_get_builder(
-    client: &SimpleHttpClient,
+pub fn walletobjects_eventticketobject_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     resourceId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/eventTicketObject/{}",
@@ -1341,9 +1366,12 @@ pub fn walletobjects_eventticketobject_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `walletobjects_eventticketobject_insert_execute()` to send, or `walletobjects_eventticketobject_insert` for simplest API.
 
-pub fn walletobjects_eventticketobject_insert_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn walletobjects_eventticketobject_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://walletobjects.googleapis.com/walletobjects/v1/eventTicketObject",);
@@ -1491,12 +1519,15 @@ pub fn walletobjects_eventticketobject_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `walletobjects_eventticketobject_list_execute()` to send, or `walletobjects_eventticketobject_list` for simplest API.
 
-pub fn walletobjects_eventticketobject_list_builder(
-    client: &SimpleHttpClient,
+pub fn walletobjects_eventticketobject_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     classId: &Option<Option<String>>,
     maxResults: &Option<Option<String>>,
     token: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://walletobjects.googleapis.com/walletobjects/v1/eventTicketObject",);
@@ -1682,10 +1713,13 @@ pub fn walletobjects_eventticketobject_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `walletobjects_eventticketobject_modifylinkedofferobjects_execute()` to send, or `walletobjects_eventticketobject_modifylinkedofferobjects` for simplest API.
 
-pub fn walletobjects_eventticketobject_modifylinkedofferobjects_builder(
-    client: &SimpleHttpClient,
+pub fn walletobjects_eventticketobject_modifylinkedofferobjects_builder<R>(
+    client: &SimpleHttpClient<R>,
     resourceId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/eventTicketObject/{}/modifyLinkedOfferObjects",
@@ -1844,10 +1878,13 @@ pub fn walletobjects_eventticketobject_modifylinkedofferobjects(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `walletobjects_eventticketobject_patch_execute()` to send, or `walletobjects_eventticketobject_patch` for simplest API.
 
-pub fn walletobjects_eventticketobject_patch_builder(
-    client: &SimpleHttpClient,
+pub fn walletobjects_eventticketobject_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     resourceId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/eventTicketObject/{}",
@@ -2005,10 +2042,13 @@ pub fn walletobjects_eventticketobject_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `walletobjects_eventticketobject_update_execute()` to send, or `walletobjects_eventticketobject_update` for simplest API.
 
-pub fn walletobjects_eventticketobject_update_builder(
-    client: &SimpleHttpClient,
+pub fn walletobjects_eventticketobject_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     resourceId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/eventTicketObject/{}",
@@ -2166,10 +2206,13 @@ pub fn walletobjects_eventticketobject_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `walletobjects_flightclass_addmessage_execute()` to send, or `walletobjects_flightclass_addmessage` for simplest API.
 
-pub fn walletobjects_flightclass_addmessage_builder(
-    client: &SimpleHttpClient,
+pub fn walletobjects_flightclass_addmessage_builder<R>(
+    client: &SimpleHttpClient<R>,
     resourceId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/flightClass/{}/addMessage",
@@ -2331,10 +2374,13 @@ pub fn walletobjects_flightclass_addmessage(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `walletobjects_flightclass_get_execute()` to send, or `walletobjects_flightclass_get` for simplest API.
 
-pub fn walletobjects_flightclass_get_builder(
-    client: &SimpleHttpClient,
+pub fn walletobjects_flightclass_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     resourceId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/flightClass/{}",
@@ -2488,9 +2534,12 @@ pub fn walletobjects_flightclass_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `walletobjects_flightclass_insert_execute()` to send, or `walletobjects_flightclass_insert` for simplest API.
 
-pub fn walletobjects_flightclass_insert_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn walletobjects_flightclass_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://walletobjects.googleapis.com/walletobjects/v1/flightClass",);
@@ -2634,12 +2683,15 @@ pub fn walletobjects_flightclass_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `walletobjects_flightclass_list_execute()` to send, or `walletobjects_flightclass_list` for simplest API.
 
-pub fn walletobjects_flightclass_list_builder(
-    client: &SimpleHttpClient,
+pub fn walletobjects_flightclass_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     issuerId: &Option<Option<String>>,
     maxResults: &Option<Option<String>>,
     token: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://walletobjects.googleapis.com/walletobjects/v1/flightClass",);
@@ -2821,10 +2873,13 @@ pub fn walletobjects_flightclass_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `walletobjects_flightclass_patch_execute()` to send, or `walletobjects_flightclass_patch` for simplest API.
 
-pub fn walletobjects_flightclass_patch_builder(
-    client: &SimpleHttpClient,
+pub fn walletobjects_flightclass_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     resourceId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/flightClass/{}",
@@ -2978,10 +3033,13 @@ pub fn walletobjects_flightclass_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `walletobjects_flightclass_update_execute()` to send, or `walletobjects_flightclass_update` for simplest API.
 
-pub fn walletobjects_flightclass_update_builder(
-    client: &SimpleHttpClient,
+pub fn walletobjects_flightclass_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     resourceId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/flightClass/{}",
@@ -3135,10 +3193,13 @@ pub fn walletobjects_flightclass_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `walletobjects_flightobject_addmessage_execute()` to send, or `walletobjects_flightobject_addmessage` for simplest API.
 
-pub fn walletobjects_flightobject_addmessage_builder(
-    client: &SimpleHttpClient,
+pub fn walletobjects_flightobject_addmessage_builder<R>(
+    client: &SimpleHttpClient<R>,
     resourceId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/flightObject/{}/addMessage",
@@ -3300,10 +3361,13 @@ pub fn walletobjects_flightobject_addmessage(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `walletobjects_flightobject_get_execute()` to send, or `walletobjects_flightobject_get` for simplest API.
 
-pub fn walletobjects_flightobject_get_builder(
-    client: &SimpleHttpClient,
+pub fn walletobjects_flightobject_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     resourceId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/flightObject/{}",
@@ -3461,9 +3525,12 @@ pub fn walletobjects_flightobject_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `walletobjects_flightobject_insert_execute()` to send, or `walletobjects_flightobject_insert` for simplest API.
 
-pub fn walletobjects_flightobject_insert_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn walletobjects_flightobject_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://walletobjects.googleapis.com/walletobjects/v1/flightObject",);
@@ -3611,12 +3678,15 @@ pub fn walletobjects_flightobject_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `walletobjects_flightobject_list_execute()` to send, or `walletobjects_flightobject_list` for simplest API.
 
-pub fn walletobjects_flightobject_list_builder(
-    client: &SimpleHttpClient,
+pub fn walletobjects_flightobject_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     classId: &Option<Option<String>>,
     maxResults: &Option<Option<String>>,
     token: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://walletobjects.googleapis.com/walletobjects/v1/flightObject",);
@@ -3798,10 +3868,13 @@ pub fn walletobjects_flightobject_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `walletobjects_flightobject_patch_execute()` to send, or `walletobjects_flightobject_patch` for simplest API.
 
-pub fn walletobjects_flightobject_patch_builder(
-    client: &SimpleHttpClient,
+pub fn walletobjects_flightobject_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     resourceId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/flightObject/{}",
@@ -3959,10 +4032,13 @@ pub fn walletobjects_flightobject_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `walletobjects_flightobject_update_execute()` to send, or `walletobjects_flightobject_update` for simplest API.
 
-pub fn walletobjects_flightobject_update_builder(
-    client: &SimpleHttpClient,
+pub fn walletobjects_flightobject_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     resourceId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/flightObject/{}",
@@ -4120,10 +4196,13 @@ pub fn walletobjects_flightobject_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `walletobjects_genericclass_addmessage_execute()` to send, or `walletobjects_genericclass_addmessage` for simplest API.
 
-pub fn walletobjects_genericclass_addmessage_builder(
-    client: &SimpleHttpClient,
+pub fn walletobjects_genericclass_addmessage_builder<R>(
+    client: &SimpleHttpClient<R>,
     resourceId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/genericClass/{}/addMessage",
@@ -4285,10 +4364,13 @@ pub fn walletobjects_genericclass_addmessage(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `walletobjects_genericclass_get_execute()` to send, or `walletobjects_genericclass_get` for simplest API.
 
-pub fn walletobjects_genericclass_get_builder(
-    client: &SimpleHttpClient,
+pub fn walletobjects_genericclass_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     resourceId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/genericClass/{}",
@@ -4446,9 +4528,12 @@ pub fn walletobjects_genericclass_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `walletobjects_genericclass_insert_execute()` to send, or `walletobjects_genericclass_insert` for simplest API.
 
-pub fn walletobjects_genericclass_insert_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn walletobjects_genericclass_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://walletobjects.googleapis.com/walletobjects/v1/genericClass",);
@@ -4596,12 +4681,15 @@ pub fn walletobjects_genericclass_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `walletobjects_genericclass_list_execute()` to send, or `walletobjects_genericclass_list` for simplest API.
 
-pub fn walletobjects_genericclass_list_builder(
-    client: &SimpleHttpClient,
+pub fn walletobjects_genericclass_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     issuerId: &Option<Option<String>>,
     maxResults: &Option<Option<String>>,
     token: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://walletobjects.googleapis.com/walletobjects/v1/genericClass",);
@@ -4783,10 +4871,13 @@ pub fn walletobjects_genericclass_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `walletobjects_genericclass_patch_execute()` to send, or `walletobjects_genericclass_patch` for simplest API.
 
-pub fn walletobjects_genericclass_patch_builder(
-    client: &SimpleHttpClient,
+pub fn walletobjects_genericclass_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     resourceId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/genericClass/{}",
@@ -4944,10 +5035,13 @@ pub fn walletobjects_genericclass_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `walletobjects_genericclass_update_execute()` to send, or `walletobjects_genericclass_update` for simplest API.
 
-pub fn walletobjects_genericclass_update_builder(
-    client: &SimpleHttpClient,
+pub fn walletobjects_genericclass_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     resourceId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/genericClass/{}",
@@ -5105,10 +5199,13 @@ pub fn walletobjects_genericclass_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `walletobjects_genericobject_addmessage_execute()` to send, or `walletobjects_genericobject_addmessage` for simplest API.
 
-pub fn walletobjects_genericobject_addmessage_builder(
-    client: &SimpleHttpClient,
+pub fn walletobjects_genericobject_addmessage_builder<R>(
+    client: &SimpleHttpClient<R>,
     resourceId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/genericObject/{}/addMessage",
@@ -5270,10 +5367,13 @@ pub fn walletobjects_genericobject_addmessage(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `walletobjects_genericobject_get_execute()` to send, or `walletobjects_genericobject_get` for simplest API.
 
-pub fn walletobjects_genericobject_get_builder(
-    client: &SimpleHttpClient,
+pub fn walletobjects_genericobject_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     resourceId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/genericObject/{}",
@@ -5431,9 +5531,12 @@ pub fn walletobjects_genericobject_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `walletobjects_genericobject_insert_execute()` to send, or `walletobjects_genericobject_insert` for simplest API.
 
-pub fn walletobjects_genericobject_insert_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn walletobjects_genericobject_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://walletobjects.googleapis.com/walletobjects/v1/genericObject",);
@@ -5581,12 +5684,15 @@ pub fn walletobjects_genericobject_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `walletobjects_genericobject_list_execute()` to send, or `walletobjects_genericobject_list` for simplest API.
 
-pub fn walletobjects_genericobject_list_builder(
-    client: &SimpleHttpClient,
+pub fn walletobjects_genericobject_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     classId: &Option<Option<String>>,
     maxResults: &Option<Option<String>>,
     token: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://walletobjects.googleapis.com/walletobjects/v1/genericObject",);
@@ -5768,10 +5874,13 @@ pub fn walletobjects_genericobject_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `walletobjects_genericobject_patch_execute()` to send, or `walletobjects_genericobject_patch` for simplest API.
 
-pub fn walletobjects_genericobject_patch_builder(
-    client: &SimpleHttpClient,
+pub fn walletobjects_genericobject_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     resourceId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/genericObject/{}",
@@ -5929,10 +6038,13 @@ pub fn walletobjects_genericobject_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `walletobjects_genericobject_update_execute()` to send, or `walletobjects_genericobject_update` for simplest API.
 
-pub fn walletobjects_genericobject_update_builder(
-    client: &SimpleHttpClient,
+pub fn walletobjects_genericobject_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     resourceId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/genericObject/{}",
@@ -6090,10 +6202,13 @@ pub fn walletobjects_genericobject_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `walletobjects_giftcardclass_addmessage_execute()` to send, or `walletobjects_giftcardclass_addmessage` for simplest API.
 
-pub fn walletobjects_giftcardclass_addmessage_builder(
-    client: &SimpleHttpClient,
+pub fn walletobjects_giftcardclass_addmessage_builder<R>(
+    client: &SimpleHttpClient<R>,
     resourceId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/giftCardClass/{}/addMessage",
@@ -6255,10 +6370,13 @@ pub fn walletobjects_giftcardclass_addmessage(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `walletobjects_giftcardclass_get_execute()` to send, or `walletobjects_giftcardclass_get` for simplest API.
 
-pub fn walletobjects_giftcardclass_get_builder(
-    client: &SimpleHttpClient,
+pub fn walletobjects_giftcardclass_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     resourceId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/giftCardClass/{}",
@@ -6416,9 +6534,12 @@ pub fn walletobjects_giftcardclass_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `walletobjects_giftcardclass_insert_execute()` to send, or `walletobjects_giftcardclass_insert` for simplest API.
 
-pub fn walletobjects_giftcardclass_insert_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn walletobjects_giftcardclass_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://walletobjects.googleapis.com/walletobjects/v1/giftCardClass",);
@@ -6566,12 +6687,15 @@ pub fn walletobjects_giftcardclass_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `walletobjects_giftcardclass_list_execute()` to send, or `walletobjects_giftcardclass_list` for simplest API.
 
-pub fn walletobjects_giftcardclass_list_builder(
-    client: &SimpleHttpClient,
+pub fn walletobjects_giftcardclass_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     issuerId: &Option<Option<String>>,
     maxResults: &Option<Option<String>>,
     token: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://walletobjects.googleapis.com/walletobjects/v1/giftCardClass",);
@@ -6753,10 +6877,13 @@ pub fn walletobjects_giftcardclass_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `walletobjects_giftcardclass_patch_execute()` to send, or `walletobjects_giftcardclass_patch` for simplest API.
 
-pub fn walletobjects_giftcardclass_patch_builder(
-    client: &SimpleHttpClient,
+pub fn walletobjects_giftcardclass_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     resourceId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/giftCardClass/{}",
@@ -6914,10 +7041,13 @@ pub fn walletobjects_giftcardclass_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `walletobjects_giftcardclass_update_execute()` to send, or `walletobjects_giftcardclass_update` for simplest API.
 
-pub fn walletobjects_giftcardclass_update_builder(
-    client: &SimpleHttpClient,
+pub fn walletobjects_giftcardclass_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     resourceId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/giftCardClass/{}",
@@ -7075,10 +7205,13 @@ pub fn walletobjects_giftcardclass_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `walletobjects_giftcardobject_addmessage_execute()` to send, or `walletobjects_giftcardobject_addmessage` for simplest API.
 
-pub fn walletobjects_giftcardobject_addmessage_builder(
-    client: &SimpleHttpClient,
+pub fn walletobjects_giftcardobject_addmessage_builder<R>(
+    client: &SimpleHttpClient<R>,
     resourceId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/giftCardObject/{}/addMessage",
@@ -7240,10 +7373,13 @@ pub fn walletobjects_giftcardobject_addmessage(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `walletobjects_giftcardobject_get_execute()` to send, or `walletobjects_giftcardobject_get` for simplest API.
 
-pub fn walletobjects_giftcardobject_get_builder(
-    client: &SimpleHttpClient,
+pub fn walletobjects_giftcardobject_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     resourceId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/giftCardObject/{}",
@@ -7401,9 +7537,12 @@ pub fn walletobjects_giftcardobject_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `walletobjects_giftcardobject_insert_execute()` to send, or `walletobjects_giftcardobject_insert` for simplest API.
 
-pub fn walletobjects_giftcardobject_insert_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn walletobjects_giftcardobject_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://walletobjects.googleapis.com/walletobjects/v1/giftCardObject",);
@@ -7551,12 +7690,15 @@ pub fn walletobjects_giftcardobject_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `walletobjects_giftcardobject_list_execute()` to send, or `walletobjects_giftcardobject_list` for simplest API.
 
-pub fn walletobjects_giftcardobject_list_builder(
-    client: &SimpleHttpClient,
+pub fn walletobjects_giftcardobject_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     classId: &Option<Option<String>>,
     maxResults: &Option<Option<String>>,
     token: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://walletobjects.googleapis.com/walletobjects/v1/giftCardObject",);
@@ -7742,10 +7884,13 @@ pub fn walletobjects_giftcardobject_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `walletobjects_giftcardobject_patch_execute()` to send, or `walletobjects_giftcardobject_patch` for simplest API.
 
-pub fn walletobjects_giftcardobject_patch_builder(
-    client: &SimpleHttpClient,
+pub fn walletobjects_giftcardobject_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     resourceId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/giftCardObject/{}",
@@ -7903,10 +8048,13 @@ pub fn walletobjects_giftcardobject_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `walletobjects_giftcardobject_update_execute()` to send, or `walletobjects_giftcardobject_update` for simplest API.
 
-pub fn walletobjects_giftcardobject_update_builder(
-    client: &SimpleHttpClient,
+pub fn walletobjects_giftcardobject_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     resourceId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/giftCardObject/{}",
@@ -8064,10 +8212,13 @@ pub fn walletobjects_giftcardobject_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `walletobjects_issuer_get_execute()` to send, or `walletobjects_issuer_get` for simplest API.
 
-pub fn walletobjects_issuer_get_builder(
-    client: &SimpleHttpClient,
+pub fn walletobjects_issuer_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     resourceId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/issuer/{}",
@@ -8221,9 +8372,12 @@ pub fn walletobjects_issuer_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `walletobjects_issuer_insert_execute()` to send, or `walletobjects_issuer_insert` for simplest API.
 
-pub fn walletobjects_issuer_insert_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn walletobjects_issuer_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://walletobjects.googleapis.com/walletobjects/v1/issuer",);
 
@@ -8366,9 +8520,12 @@ pub fn walletobjects_issuer_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `walletobjects_issuer_list_execute()` to send, or `walletobjects_issuer_list` for simplest API.
 
-pub fn walletobjects_issuer_list_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn walletobjects_issuer_list_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://walletobjects.googleapis.com/walletobjects/v1/issuer",);
 
@@ -8515,10 +8672,13 @@ pub fn walletobjects_issuer_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `walletobjects_issuer_patch_execute()` to send, or `walletobjects_issuer_patch` for simplest API.
 
-pub fn walletobjects_issuer_patch_builder(
-    client: &SimpleHttpClient,
+pub fn walletobjects_issuer_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     resourceId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/issuer/{}",
@@ -8672,10 +8832,13 @@ pub fn walletobjects_issuer_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `walletobjects_issuer_update_execute()` to send, or `walletobjects_issuer_update` for simplest API.
 
-pub fn walletobjects_issuer_update_builder(
-    client: &SimpleHttpClient,
+pub fn walletobjects_issuer_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     resourceId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/issuer/{}",
@@ -8829,9 +8992,12 @@ pub fn walletobjects_issuer_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `walletobjects_jwt_insert_execute()` to send, or `walletobjects_jwt_insert` for simplest API.
 
-pub fn walletobjects_jwt_insert_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn walletobjects_jwt_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://walletobjects.googleapis.com/walletobjects/v1/jwt",);
 
@@ -8978,10 +9144,13 @@ pub fn walletobjects_jwt_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `walletobjects_loyaltyclass_addmessage_execute()` to send, or `walletobjects_loyaltyclass_addmessage` for simplest API.
 
-pub fn walletobjects_loyaltyclass_addmessage_builder(
-    client: &SimpleHttpClient,
+pub fn walletobjects_loyaltyclass_addmessage_builder<R>(
+    client: &SimpleHttpClient<R>,
     resourceId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/loyaltyClass/{}/addMessage",
@@ -9143,10 +9312,13 @@ pub fn walletobjects_loyaltyclass_addmessage(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `walletobjects_loyaltyclass_get_execute()` to send, or `walletobjects_loyaltyclass_get` for simplest API.
 
-pub fn walletobjects_loyaltyclass_get_builder(
-    client: &SimpleHttpClient,
+pub fn walletobjects_loyaltyclass_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     resourceId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/loyaltyClass/{}",
@@ -9304,9 +9476,12 @@ pub fn walletobjects_loyaltyclass_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `walletobjects_loyaltyclass_insert_execute()` to send, or `walletobjects_loyaltyclass_insert` for simplest API.
 
-pub fn walletobjects_loyaltyclass_insert_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn walletobjects_loyaltyclass_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://walletobjects.googleapis.com/walletobjects/v1/loyaltyClass",);
@@ -9454,12 +9629,15 @@ pub fn walletobjects_loyaltyclass_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `walletobjects_loyaltyclass_list_execute()` to send, or `walletobjects_loyaltyclass_list` for simplest API.
 
-pub fn walletobjects_loyaltyclass_list_builder(
-    client: &SimpleHttpClient,
+pub fn walletobjects_loyaltyclass_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     issuerId: &Option<Option<String>>,
     maxResults: &Option<Option<String>>,
     token: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://walletobjects.googleapis.com/walletobjects/v1/loyaltyClass",);
@@ -9641,10 +9819,13 @@ pub fn walletobjects_loyaltyclass_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `walletobjects_loyaltyclass_patch_execute()` to send, or `walletobjects_loyaltyclass_patch` for simplest API.
 
-pub fn walletobjects_loyaltyclass_patch_builder(
-    client: &SimpleHttpClient,
+pub fn walletobjects_loyaltyclass_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     resourceId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/loyaltyClass/{}",
@@ -9802,10 +9983,13 @@ pub fn walletobjects_loyaltyclass_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `walletobjects_loyaltyclass_update_execute()` to send, or `walletobjects_loyaltyclass_update` for simplest API.
 
-pub fn walletobjects_loyaltyclass_update_builder(
-    client: &SimpleHttpClient,
+pub fn walletobjects_loyaltyclass_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     resourceId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/loyaltyClass/{}",
@@ -9963,10 +10147,13 @@ pub fn walletobjects_loyaltyclass_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `walletobjects_loyaltyobject_addmessage_execute()` to send, or `walletobjects_loyaltyobject_addmessage` for simplest API.
 
-pub fn walletobjects_loyaltyobject_addmessage_builder(
-    client: &SimpleHttpClient,
+pub fn walletobjects_loyaltyobject_addmessage_builder<R>(
+    client: &SimpleHttpClient<R>,
     resourceId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/loyaltyObject/{}/addMessage",
@@ -10128,10 +10315,13 @@ pub fn walletobjects_loyaltyobject_addmessage(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `walletobjects_loyaltyobject_get_execute()` to send, or `walletobjects_loyaltyobject_get` for simplest API.
 
-pub fn walletobjects_loyaltyobject_get_builder(
-    client: &SimpleHttpClient,
+pub fn walletobjects_loyaltyobject_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     resourceId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/loyaltyObject/{}",
@@ -10289,9 +10479,12 @@ pub fn walletobjects_loyaltyobject_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `walletobjects_loyaltyobject_insert_execute()` to send, or `walletobjects_loyaltyobject_insert` for simplest API.
 
-pub fn walletobjects_loyaltyobject_insert_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn walletobjects_loyaltyobject_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://walletobjects.googleapis.com/walletobjects/v1/loyaltyObject",);
@@ -10439,12 +10632,15 @@ pub fn walletobjects_loyaltyobject_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `walletobjects_loyaltyobject_list_execute()` to send, or `walletobjects_loyaltyobject_list` for simplest API.
 
-pub fn walletobjects_loyaltyobject_list_builder(
-    client: &SimpleHttpClient,
+pub fn walletobjects_loyaltyobject_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     classId: &Option<Option<String>>,
     maxResults: &Option<Option<String>>,
     token: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://walletobjects.googleapis.com/walletobjects/v1/loyaltyObject",);
@@ -10626,10 +10822,13 @@ pub fn walletobjects_loyaltyobject_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `walletobjects_loyaltyobject_modifylinkedofferobjects_execute()` to send, or `walletobjects_loyaltyobject_modifylinkedofferobjects` for simplest API.
 
-pub fn walletobjects_loyaltyobject_modifylinkedofferobjects_builder(
-    client: &SimpleHttpClient,
+pub fn walletobjects_loyaltyobject_modifylinkedofferobjects_builder<R>(
+    client: &SimpleHttpClient<R>,
     resourceId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/loyaltyObject/{}/modifyLinkedOfferObjects",
@@ -10788,10 +10987,13 @@ pub fn walletobjects_loyaltyobject_modifylinkedofferobjects(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `walletobjects_loyaltyobject_patch_execute()` to send, or `walletobjects_loyaltyobject_patch` for simplest API.
 
-pub fn walletobjects_loyaltyobject_patch_builder(
-    client: &SimpleHttpClient,
+pub fn walletobjects_loyaltyobject_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     resourceId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/loyaltyObject/{}",
@@ -10949,10 +11151,13 @@ pub fn walletobjects_loyaltyobject_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `walletobjects_loyaltyobject_update_execute()` to send, or `walletobjects_loyaltyobject_update` for simplest API.
 
-pub fn walletobjects_loyaltyobject_update_builder(
-    client: &SimpleHttpClient,
+pub fn walletobjects_loyaltyobject_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     resourceId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/loyaltyObject/{}",
@@ -11110,10 +11315,13 @@ pub fn walletobjects_loyaltyobject_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `walletobjects_media_download_execute()` to send, or `walletobjects_media_download` for simplest API.
 
-pub fn walletobjects_media_download_builder(
-    client: &SimpleHttpClient,
+pub fn walletobjects_media_download_builder<R>(
+    client: &SimpleHttpClient<R>,
     resourceId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/transitObject/{}/downloadRotatingBarcodeValues",
@@ -11267,10 +11475,13 @@ pub fn walletobjects_media_download(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `walletobjects_media_upload_execute()` to send, or `walletobjects_media_upload` for simplest API.
 
-pub fn walletobjects_media_upload_builder(
-    client: &SimpleHttpClient,
+pub fn walletobjects_media_upload_builder<R>(
+    client: &SimpleHttpClient<R>,
     resourceId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/transitObject/{}/uploadRotatingBarcodeValues",
@@ -11433,10 +11644,13 @@ pub fn walletobjects_media_upload(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `walletobjects_offerclass_addmessage_execute()` to send, or `walletobjects_offerclass_addmessage` for simplest API.
 
-pub fn walletobjects_offerclass_addmessage_builder(
-    client: &SimpleHttpClient,
+pub fn walletobjects_offerclass_addmessage_builder<R>(
+    client: &SimpleHttpClient<R>,
     resourceId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/offerClass/{}/addMessage",
@@ -11598,10 +11812,13 @@ pub fn walletobjects_offerclass_addmessage(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `walletobjects_offerclass_get_execute()` to send, or `walletobjects_offerclass_get` for simplest API.
 
-pub fn walletobjects_offerclass_get_builder(
-    client: &SimpleHttpClient,
+pub fn walletobjects_offerclass_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     resourceId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/offerClass/{}",
@@ -11755,9 +11972,12 @@ pub fn walletobjects_offerclass_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `walletobjects_offerclass_insert_execute()` to send, or `walletobjects_offerclass_insert` for simplest API.
 
-pub fn walletobjects_offerclass_insert_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn walletobjects_offerclass_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://walletobjects.googleapis.com/walletobjects/v1/offerClass",);
 
@@ -11900,12 +12120,15 @@ pub fn walletobjects_offerclass_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `walletobjects_offerclass_list_execute()` to send, or `walletobjects_offerclass_list` for simplest API.
 
-pub fn walletobjects_offerclass_list_builder(
-    client: &SimpleHttpClient,
+pub fn walletobjects_offerclass_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     issuerId: &Option<Option<String>>,
     maxResults: &Option<Option<String>>,
     token: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://walletobjects.googleapis.com/walletobjects/v1/offerClass",);
 
@@ -12086,10 +12309,13 @@ pub fn walletobjects_offerclass_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `walletobjects_offerclass_patch_execute()` to send, or `walletobjects_offerclass_patch` for simplest API.
 
-pub fn walletobjects_offerclass_patch_builder(
-    client: &SimpleHttpClient,
+pub fn walletobjects_offerclass_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     resourceId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/offerClass/{}",
@@ -12243,10 +12469,13 @@ pub fn walletobjects_offerclass_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `walletobjects_offerclass_update_execute()` to send, or `walletobjects_offerclass_update` for simplest API.
 
-pub fn walletobjects_offerclass_update_builder(
-    client: &SimpleHttpClient,
+pub fn walletobjects_offerclass_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     resourceId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/offerClass/{}",
@@ -12400,10 +12629,13 @@ pub fn walletobjects_offerclass_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `walletobjects_offerobject_addmessage_execute()` to send, or `walletobjects_offerobject_addmessage` for simplest API.
 
-pub fn walletobjects_offerobject_addmessage_builder(
-    client: &SimpleHttpClient,
+pub fn walletobjects_offerobject_addmessage_builder<R>(
+    client: &SimpleHttpClient<R>,
     resourceId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/offerObject/{}/addMessage",
@@ -12565,10 +12797,13 @@ pub fn walletobjects_offerobject_addmessage(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `walletobjects_offerobject_get_execute()` to send, or `walletobjects_offerobject_get` for simplest API.
 
-pub fn walletobjects_offerobject_get_builder(
-    client: &SimpleHttpClient,
+pub fn walletobjects_offerobject_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     resourceId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/offerObject/{}",
@@ -12722,9 +12957,12 @@ pub fn walletobjects_offerobject_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `walletobjects_offerobject_insert_execute()` to send, or `walletobjects_offerobject_insert` for simplest API.
 
-pub fn walletobjects_offerobject_insert_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn walletobjects_offerobject_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://walletobjects.googleapis.com/walletobjects/v1/offerObject",);
@@ -12868,12 +13106,15 @@ pub fn walletobjects_offerobject_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `walletobjects_offerobject_list_execute()` to send, or `walletobjects_offerobject_list` for simplest API.
 
-pub fn walletobjects_offerobject_list_builder(
-    client: &SimpleHttpClient,
+pub fn walletobjects_offerobject_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     classId: &Option<Option<String>>,
     maxResults: &Option<Option<String>>,
     token: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://walletobjects.googleapis.com/walletobjects/v1/offerObject",);
@@ -13055,10 +13296,13 @@ pub fn walletobjects_offerobject_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `walletobjects_offerobject_patch_execute()` to send, or `walletobjects_offerobject_patch` for simplest API.
 
-pub fn walletobjects_offerobject_patch_builder(
-    client: &SimpleHttpClient,
+pub fn walletobjects_offerobject_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     resourceId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/offerObject/{}",
@@ -13212,10 +13456,13 @@ pub fn walletobjects_offerobject_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `walletobjects_offerobject_update_execute()` to send, or `walletobjects_offerobject_update` for simplest API.
 
-pub fn walletobjects_offerobject_update_builder(
-    client: &SimpleHttpClient,
+pub fn walletobjects_offerobject_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     resourceId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/offerObject/{}",
@@ -13369,10 +13616,13 @@ pub fn walletobjects_offerobject_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `walletobjects_permissions_get_execute()` to send, or `walletobjects_permissions_get` for simplest API.
 
-pub fn walletobjects_permissions_get_builder(
-    client: &SimpleHttpClient,
+pub fn walletobjects_permissions_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     resourceId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/permissions/{}",
@@ -13526,10 +13776,13 @@ pub fn walletobjects_permissions_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `walletobjects_permissions_update_execute()` to send, or `walletobjects_permissions_update` for simplest API.
 
-pub fn walletobjects_permissions_update_builder(
-    client: &SimpleHttpClient,
+pub fn walletobjects_permissions_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     resourceId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/permissions/{}",
@@ -13683,9 +13936,12 @@ pub fn walletobjects_permissions_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `walletobjects_smarttap_insert_execute()` to send, or `walletobjects_smarttap_insert` for simplest API.
 
-pub fn walletobjects_smarttap_insert_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn walletobjects_smarttap_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://walletobjects.googleapis.com/walletobjects/v1/smartTap",);
 
@@ -13828,10 +14084,13 @@ pub fn walletobjects_smarttap_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `walletobjects_transitclass_addmessage_execute()` to send, or `walletobjects_transitclass_addmessage` for simplest API.
 
-pub fn walletobjects_transitclass_addmessage_builder(
-    client: &SimpleHttpClient,
+pub fn walletobjects_transitclass_addmessage_builder<R>(
+    client: &SimpleHttpClient<R>,
     resourceId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/transitClass/{}/addMessage",
@@ -13993,10 +14252,13 @@ pub fn walletobjects_transitclass_addmessage(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `walletobjects_transitclass_get_execute()` to send, or `walletobjects_transitclass_get` for simplest API.
 
-pub fn walletobjects_transitclass_get_builder(
-    client: &SimpleHttpClient,
+pub fn walletobjects_transitclass_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     resourceId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/transitClass/{}",
@@ -14154,9 +14416,12 @@ pub fn walletobjects_transitclass_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `walletobjects_transitclass_insert_execute()` to send, or `walletobjects_transitclass_insert` for simplest API.
 
-pub fn walletobjects_transitclass_insert_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn walletobjects_transitclass_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://walletobjects.googleapis.com/walletobjects/v1/transitClass",);
@@ -14304,12 +14569,15 @@ pub fn walletobjects_transitclass_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `walletobjects_transitclass_list_execute()` to send, or `walletobjects_transitclass_list` for simplest API.
 
-pub fn walletobjects_transitclass_list_builder(
-    client: &SimpleHttpClient,
+pub fn walletobjects_transitclass_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     issuerId: &Option<Option<String>>,
     maxResults: &Option<Option<String>>,
     token: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://walletobjects.googleapis.com/walletobjects/v1/transitClass",);
@@ -14491,10 +14759,13 @@ pub fn walletobjects_transitclass_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `walletobjects_transitclass_patch_execute()` to send, or `walletobjects_transitclass_patch` for simplest API.
 
-pub fn walletobjects_transitclass_patch_builder(
-    client: &SimpleHttpClient,
+pub fn walletobjects_transitclass_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     resourceId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/transitClass/{}",
@@ -14652,10 +14923,13 @@ pub fn walletobjects_transitclass_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `walletobjects_transitclass_update_execute()` to send, or `walletobjects_transitclass_update` for simplest API.
 
-pub fn walletobjects_transitclass_update_builder(
-    client: &SimpleHttpClient,
+pub fn walletobjects_transitclass_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     resourceId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/transitClass/{}",
@@ -14813,10 +15087,13 @@ pub fn walletobjects_transitclass_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `walletobjects_transitobject_addmessage_execute()` to send, or `walletobjects_transitobject_addmessage` for simplest API.
 
-pub fn walletobjects_transitobject_addmessage_builder(
-    client: &SimpleHttpClient,
+pub fn walletobjects_transitobject_addmessage_builder<R>(
+    client: &SimpleHttpClient<R>,
     resourceId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/transitObject/{}/addMessage",
@@ -14978,10 +15255,13 @@ pub fn walletobjects_transitobject_addmessage(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `walletobjects_transitobject_get_execute()` to send, or `walletobjects_transitobject_get` for simplest API.
 
-pub fn walletobjects_transitobject_get_builder(
-    client: &SimpleHttpClient,
+pub fn walletobjects_transitobject_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     resourceId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/transitObject/{}",
@@ -15139,9 +15419,12 @@ pub fn walletobjects_transitobject_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `walletobjects_transitobject_insert_execute()` to send, or `walletobjects_transitobject_insert` for simplest API.
 
-pub fn walletobjects_transitobject_insert_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn walletobjects_transitobject_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://walletobjects.googleapis.com/walletobjects/v1/transitObject",);
@@ -15289,12 +15572,15 @@ pub fn walletobjects_transitobject_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `walletobjects_transitobject_list_execute()` to send, or `walletobjects_transitobject_list` for simplest API.
 
-pub fn walletobjects_transitobject_list_builder(
-    client: &SimpleHttpClient,
+pub fn walletobjects_transitobject_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     classId: &Option<Option<String>>,
     maxResults: &Option<Option<String>>,
     token: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://walletobjects.googleapis.com/walletobjects/v1/transitObject",);
@@ -15476,10 +15762,13 @@ pub fn walletobjects_transitobject_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `walletobjects_transitobject_patch_execute()` to send, or `walletobjects_transitobject_patch` for simplest API.
 
-pub fn walletobjects_transitobject_patch_builder(
-    client: &SimpleHttpClient,
+pub fn walletobjects_transitobject_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     resourceId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/transitObject/{}",
@@ -15637,10 +15926,13 @@ pub fn walletobjects_transitobject_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `walletobjects_transitobject_update_execute()` to send, or `walletobjects_transitobject_update` for simplest API.
 
-pub fn walletobjects_transitobject_update_builder(
-    client: &SimpleHttpClient,
+pub fn walletobjects_transitobject_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     resourceId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/transitObject/{}",
@@ -15798,9 +16090,12 @@ pub fn walletobjects_transitobject_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `walletobjects_walletobjects_v1_private_content_set_pass_update_notice_execute()` to send, or `walletobjects_walletobjects_v1_private_content_set_pass_update_notice` for simplest API.
 
-pub fn walletobjects_walletobjects_v1_private_content_set_pass_update_notice_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn walletobjects_walletobjects_v1_private_content_set_pass_update_notice_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/privateContent/setPassUpdateNotice",

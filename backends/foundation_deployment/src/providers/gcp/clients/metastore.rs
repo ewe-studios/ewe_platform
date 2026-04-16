@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `metastore_projects_locations_get_execute()` to send, or `metastore_projects_locations_get` for simplest API.
 
-pub fn metastore_projects_locations_get_builder(
-    client: &SimpleHttpClient,
+pub fn metastore_projects_locations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://metastore.googleapis.com/v1/projects/{}/locations/{locationsId}",
@@ -183,14 +187,17 @@ pub fn metastore_projects_locations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `metastore_projects_locations_list_execute()` to send, or `metastore_projects_locations_list` for simplest API.
 
-pub fn metastore_projects_locations_list_builder(
-    client: &SimpleHttpClient,
+pub fn metastore_projects_locations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     extraLocationTypes: &Option<Option<String>>,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://metastore.googleapis.com/v1/projects/{}/locations",
@@ -383,12 +390,15 @@ pub fn metastore_projects_locations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `metastore_projects_locations_federations_create_execute()` to send, or `metastore_projects_locations_federations_create` for simplest API.
 
-pub fn metastore_projects_locations_federations_create_builder(
-    client: &SimpleHttpClient,
+pub fn metastore_projects_locations_federations_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     federationId: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://metastore.googleapis.com/v1/projects/{}/locations/{locationsId}/federations",
@@ -565,11 +575,14 @@ pub fn metastore_projects_locations_federations_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `metastore_projects_locations_federations_delete_execute()` to send, or `metastore_projects_locations_federations_delete` for simplest API.
 
-pub fn metastore_projects_locations_federations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn metastore_projects_locations_federations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://metastore.googleapis.com/v1/projects/{}/locations/{locationsId}/federations/{federationsId}",
@@ -740,10 +753,13 @@ pub fn metastore_projects_locations_federations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `metastore_projects_locations_federations_get_execute()` to send, or `metastore_projects_locations_federations_get` for simplest API.
 
-pub fn metastore_projects_locations_federations_get_builder(
-    client: &SimpleHttpClient,
+pub fn metastore_projects_locations_federations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://metastore.googleapis.com/v1/projects/{}/locations/{locationsId}/federations/{federationsId}",
@@ -897,11 +913,14 @@ pub fn metastore_projects_locations_federations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `metastore_projects_locations_federations_get_iam_policy_execute()` to send, or `metastore_projects_locations_federations_get_iam_policy` for simplest API.
 
-pub fn metastore_projects_locations_federations_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn metastore_projects_locations_federations_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://metastore.googleapis.com/v1/projects/{}/locations/{locationsId}/federations/{federationsId}:getIamPolicy",
@@ -1072,14 +1091,17 @@ pub fn metastore_projects_locations_federations_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `metastore_projects_locations_federations_list_execute()` to send, or `metastore_projects_locations_federations_list` for simplest API.
 
-pub fn metastore_projects_locations_federations_list_builder(
-    client: &SimpleHttpClient,
+pub fn metastore_projects_locations_federations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://metastore.googleapis.com/v1/projects/{}/locations/{locationsId}/federations",
@@ -1272,12 +1294,15 @@ pub fn metastore_projects_locations_federations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `metastore_projects_locations_federations_patch_execute()` to send, or `metastore_projects_locations_federations_patch` for simplest API.
 
-pub fn metastore_projects_locations_federations_patch_builder(
-    client: &SimpleHttpClient,
+pub fn metastore_projects_locations_federations_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://metastore.googleapis.com/v1/projects/{}/locations/{locationsId}/federations/{federationsId}",
@@ -1454,10 +1479,13 @@ pub fn metastore_projects_locations_federations_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `metastore_projects_locations_federations_set_iam_policy_execute()` to send, or `metastore_projects_locations_federations_set_iam_policy` for simplest API.
 
-pub fn metastore_projects_locations_federations_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn metastore_projects_locations_federations_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://metastore.googleapis.com/v1/projects/{}/locations/{locationsId}/federations/{federationsId}:setIamPolicy",
@@ -1612,10 +1640,13 @@ pub fn metastore_projects_locations_federations_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `metastore_projects_locations_federations_test_iam_permissions_execute()` to send, or `metastore_projects_locations_federations_test_iam_permissions` for simplest API.
 
-pub fn metastore_projects_locations_federations_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn metastore_projects_locations_federations_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://metastore.googleapis.com/v1/projects/{}/locations/{locationsId}/federations/{federationsId}:testIamPermissions",
@@ -1780,10 +1811,13 @@ pub fn metastore_projects_locations_federations_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `metastore_projects_locations_operations_cancel_execute()` to send, or `metastore_projects_locations_operations_cancel` for simplest API.
 
-pub fn metastore_projects_locations_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn metastore_projects_locations_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://metastore.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}:cancel",
@@ -1937,10 +1971,13 @@ pub fn metastore_projects_locations_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `metastore_projects_locations_operations_delete_execute()` to send, or `metastore_projects_locations_operations_delete` for simplest API.
 
-pub fn metastore_projects_locations_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn metastore_projects_locations_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://metastore.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -2094,10 +2131,13 @@ pub fn metastore_projects_locations_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `metastore_projects_locations_operations_get_execute()` to send, or `metastore_projects_locations_operations_get` for simplest API.
 
-pub fn metastore_projects_locations_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn metastore_projects_locations_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://metastore.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -2251,14 +2291,17 @@ pub fn metastore_projects_locations_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `metastore_projects_locations_operations_list_execute()` to send, or `metastore_projects_locations_operations_list` for simplest API.
 
-pub fn metastore_projects_locations_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn metastore_projects_locations_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://metastore.googleapis.com/v1/projects/{}/locations/{locationsId}/operations",
@@ -2451,10 +2494,13 @@ pub fn metastore_projects_locations_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `metastore_projects_locations_services_alter_location_execute()` to send, or `metastore_projects_locations_services_alter_location` for simplest API.
 
-pub fn metastore_projects_locations_services_alter_location_builder(
-    client: &SimpleHttpClient,
+pub fn metastore_projects_locations_services_alter_location_builder<R>(
+    client: &SimpleHttpClient<R>,
     service: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://metastore.googleapis.com/v1/projects/{}/locations/{locationsId}/services/{servicesId}:alterLocation",
@@ -2609,10 +2655,13 @@ pub fn metastore_projects_locations_services_alter_location(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `metastore_projects_locations_services_alter_table_properties_execute()` to send, or `metastore_projects_locations_services_alter_table_properties` for simplest API.
 
-pub fn metastore_projects_locations_services_alter_table_properties_builder(
-    client: &SimpleHttpClient,
+pub fn metastore_projects_locations_services_alter_table_properties_builder<R>(
+    client: &SimpleHttpClient<R>,
     service: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://metastore.googleapis.com/v1/projects/{}/locations/{locationsId}/services/{servicesId}:alterTableProperties",
@@ -2769,10 +2818,13 @@ pub fn metastore_projects_locations_services_alter_table_properties(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `metastore_projects_locations_services_cancel_migration_execute()` to send, or `metastore_projects_locations_services_cancel_migration` for simplest API.
 
-pub fn metastore_projects_locations_services_cancel_migration_builder(
-    client: &SimpleHttpClient,
+pub fn metastore_projects_locations_services_cancel_migration_builder<R>(
+    client: &SimpleHttpClient<R>,
     service: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://metastore.googleapis.com/v1/projects/{}/locations/{locationsId}/services/{servicesId}:cancelMigration",
@@ -2927,10 +2979,13 @@ pub fn metastore_projects_locations_services_cancel_migration(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `metastore_projects_locations_services_complete_migration_execute()` to send, or `metastore_projects_locations_services_complete_migration` for simplest API.
 
-pub fn metastore_projects_locations_services_complete_migration_builder(
-    client: &SimpleHttpClient,
+pub fn metastore_projects_locations_services_complete_migration_builder<R>(
+    client: &SimpleHttpClient<R>,
     service: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://metastore.googleapis.com/v1/projects/{}/locations/{locationsId}/services/{servicesId}:completeMigration",
@@ -3085,12 +3140,15 @@ pub fn metastore_projects_locations_services_complete_migration(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `metastore_projects_locations_services_create_execute()` to send, or `metastore_projects_locations_services_create` for simplest API.
 
-pub fn metastore_projects_locations_services_create_builder(
-    client: &SimpleHttpClient,
+pub fn metastore_projects_locations_services_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     requestId: &Option<Option<String>>,
     serviceId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://metastore.googleapis.com/v1/projects/{}/locations/{locationsId}/services",
@@ -3267,11 +3325,14 @@ pub fn metastore_projects_locations_services_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `metastore_projects_locations_services_delete_execute()` to send, or `metastore_projects_locations_services_delete` for simplest API.
 
-pub fn metastore_projects_locations_services_delete_builder(
-    client: &SimpleHttpClient,
+pub fn metastore_projects_locations_services_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://metastore.googleapis.com/v1/projects/{}/locations/{locationsId}/services/{servicesId}",
@@ -3439,10 +3500,13 @@ pub fn metastore_projects_locations_services_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `metastore_projects_locations_services_export_metadata_execute()` to send, or `metastore_projects_locations_services_export_metadata` for simplest API.
 
-pub fn metastore_projects_locations_services_export_metadata_builder(
-    client: &SimpleHttpClient,
+pub fn metastore_projects_locations_services_export_metadata_builder<R>(
+    client: &SimpleHttpClient<R>,
     service: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://metastore.googleapis.com/v1/projects/{}/locations/{locationsId}/services/{servicesId}:exportMetadata",
@@ -3597,10 +3661,13 @@ pub fn metastore_projects_locations_services_export_metadata(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `metastore_projects_locations_services_get_execute()` to send, or `metastore_projects_locations_services_get` for simplest API.
 
-pub fn metastore_projects_locations_services_get_builder(
-    client: &SimpleHttpClient,
+pub fn metastore_projects_locations_services_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://metastore.googleapis.com/v1/projects/{}/locations/{locationsId}/services/{servicesId}",
@@ -3754,11 +3821,14 @@ pub fn metastore_projects_locations_services_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `metastore_projects_locations_services_get_iam_policy_execute()` to send, or `metastore_projects_locations_services_get_iam_policy` for simplest API.
 
-pub fn metastore_projects_locations_services_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn metastore_projects_locations_services_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://metastore.googleapis.com/v1/projects/{}/locations/{locationsId}/services/{servicesId}:getIamPolicy",
@@ -3929,14 +3999,17 @@ pub fn metastore_projects_locations_services_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `metastore_projects_locations_services_list_execute()` to send, or `metastore_projects_locations_services_list` for simplest API.
 
-pub fn metastore_projects_locations_services_list_builder(
-    client: &SimpleHttpClient,
+pub fn metastore_projects_locations_services_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://metastore.googleapis.com/v1/projects/{}/locations/{locationsId}/services",
@@ -4129,10 +4202,13 @@ pub fn metastore_projects_locations_services_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `metastore_projects_locations_services_move_table_to_database_execute()` to send, or `metastore_projects_locations_services_move_table_to_database` for simplest API.
 
-pub fn metastore_projects_locations_services_move_table_to_database_builder(
-    client: &SimpleHttpClient,
+pub fn metastore_projects_locations_services_move_table_to_database_builder<R>(
+    client: &SimpleHttpClient<R>,
     service: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://metastore.googleapis.com/v1/projects/{}/locations/{locationsId}/services/{servicesId}:moveTableToDatabase",
@@ -4289,12 +4365,15 @@ pub fn metastore_projects_locations_services_move_table_to_database(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `metastore_projects_locations_services_patch_execute()` to send, or `metastore_projects_locations_services_patch` for simplest API.
 
-pub fn metastore_projects_locations_services_patch_builder(
-    client: &SimpleHttpClient,
+pub fn metastore_projects_locations_services_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://metastore.googleapis.com/v1/projects/{}/locations/{locationsId}/services/{servicesId}",
@@ -4471,10 +4550,13 @@ pub fn metastore_projects_locations_services_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `metastore_projects_locations_services_query_metadata_execute()` to send, or `metastore_projects_locations_services_query_metadata` for simplest API.
 
-pub fn metastore_projects_locations_services_query_metadata_builder(
-    client: &SimpleHttpClient,
+pub fn metastore_projects_locations_services_query_metadata_builder<R>(
+    client: &SimpleHttpClient<R>,
     service: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://metastore.googleapis.com/v1/projects/{}/locations/{locationsId}/services/{servicesId}:queryMetadata",
@@ -4629,10 +4711,13 @@ pub fn metastore_projects_locations_services_query_metadata(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `metastore_projects_locations_services_restore_execute()` to send, or `metastore_projects_locations_services_restore` for simplest API.
 
-pub fn metastore_projects_locations_services_restore_builder(
-    client: &SimpleHttpClient,
+pub fn metastore_projects_locations_services_restore_builder<R>(
+    client: &SimpleHttpClient<R>,
     service: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://metastore.googleapis.com/v1/projects/{}/locations/{locationsId}/services/{servicesId}:restore",
@@ -4786,10 +4871,13 @@ pub fn metastore_projects_locations_services_restore(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `metastore_projects_locations_services_set_iam_policy_execute()` to send, or `metastore_projects_locations_services_set_iam_policy` for simplest API.
 
-pub fn metastore_projects_locations_services_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn metastore_projects_locations_services_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://metastore.googleapis.com/v1/projects/{}/locations/{locationsId}/services/{servicesId}:setIamPolicy",
@@ -4944,10 +5032,13 @@ pub fn metastore_projects_locations_services_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `metastore_projects_locations_services_start_migration_execute()` to send, or `metastore_projects_locations_services_start_migration` for simplest API.
 
-pub fn metastore_projects_locations_services_start_migration_builder(
-    client: &SimpleHttpClient,
+pub fn metastore_projects_locations_services_start_migration_builder<R>(
+    client: &SimpleHttpClient<R>,
     service: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://metastore.googleapis.com/v1/projects/{}/locations/{locationsId}/services/{servicesId}:startMigration",
@@ -5102,10 +5193,13 @@ pub fn metastore_projects_locations_services_start_migration(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `metastore_projects_locations_services_test_iam_permissions_execute()` to send, or `metastore_projects_locations_services_test_iam_permissions` for simplest API.
 
-pub fn metastore_projects_locations_services_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn metastore_projects_locations_services_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://metastore.googleapis.com/v1/projects/{}/locations/{locationsId}/services/{servicesId}:testIamPermissions",
@@ -5268,12 +5362,15 @@ pub fn metastore_projects_locations_services_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `metastore_projects_locations_services_backups_create_execute()` to send, or `metastore_projects_locations_services_backups_create` for simplest API.
 
-pub fn metastore_projects_locations_services_backups_create_builder(
-    client: &SimpleHttpClient,
+pub fn metastore_projects_locations_services_backups_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     backupId: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://metastore.googleapis.com/v1/projects/{}/locations/{locationsId}/services/{servicesId}/backups",
@@ -5450,11 +5547,14 @@ pub fn metastore_projects_locations_services_backups_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `metastore_projects_locations_services_backups_delete_execute()` to send, or `metastore_projects_locations_services_backups_delete` for simplest API.
 
-pub fn metastore_projects_locations_services_backups_delete_builder(
-    client: &SimpleHttpClient,
+pub fn metastore_projects_locations_services_backups_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://metastore.googleapis.com/v1/projects/{}/locations/{locationsId}/services/{servicesId}/backups/{backupsId}",
@@ -5625,10 +5725,13 @@ pub fn metastore_projects_locations_services_backups_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `metastore_projects_locations_services_backups_get_execute()` to send, or `metastore_projects_locations_services_backups_get` for simplest API.
 
-pub fn metastore_projects_locations_services_backups_get_builder(
-    client: &SimpleHttpClient,
+pub fn metastore_projects_locations_services_backups_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://metastore.googleapis.com/v1/projects/{}/locations/{locationsId}/services/{servicesId}/backups/{backupsId}",
@@ -5782,11 +5885,14 @@ pub fn metastore_projects_locations_services_backups_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `metastore_projects_locations_services_backups_get_iam_policy_execute()` to send, or `metastore_projects_locations_services_backups_get_iam_policy` for simplest API.
 
-pub fn metastore_projects_locations_services_backups_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn metastore_projects_locations_services_backups_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://metastore.googleapis.com/v1/projects/{}/locations/{locationsId}/services/{servicesId}/backups/{backupsId}:getIamPolicy",
@@ -5957,14 +6063,17 @@ pub fn metastore_projects_locations_services_backups_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `metastore_projects_locations_services_backups_list_execute()` to send, or `metastore_projects_locations_services_backups_list` for simplest API.
 
-pub fn metastore_projects_locations_services_backups_list_builder(
-    client: &SimpleHttpClient,
+pub fn metastore_projects_locations_services_backups_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://metastore.googleapis.com/v1/projects/{}/locations/{locationsId}/services/{servicesId}/backups",
@@ -6157,10 +6266,13 @@ pub fn metastore_projects_locations_services_backups_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `metastore_projects_locations_services_backups_set_iam_policy_execute()` to send, or `metastore_projects_locations_services_backups_set_iam_policy` for simplest API.
 
-pub fn metastore_projects_locations_services_backups_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn metastore_projects_locations_services_backups_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://metastore.googleapis.com/v1/projects/{}/locations/{locationsId}/services/{servicesId}/backups/{backupsId}:setIamPolicy",
@@ -6317,11 +6429,14 @@ pub fn metastore_projects_locations_services_backups_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `metastore_projects_locations_services_databases_get_iam_policy_execute()` to send, or `metastore_projects_locations_services_databases_get_iam_policy` for simplest API.
 
-pub fn metastore_projects_locations_services_databases_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn metastore_projects_locations_services_databases_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://metastore.googleapis.com/v1/projects/{}/locations/{locationsId}/services/{servicesId}/databases/{databasesId}:getIamPolicy",
@@ -6492,10 +6607,13 @@ pub fn metastore_projects_locations_services_databases_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `metastore_projects_locations_services_databases_set_iam_policy_execute()` to send, or `metastore_projects_locations_services_databases_set_iam_policy` for simplest API.
 
-pub fn metastore_projects_locations_services_databases_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn metastore_projects_locations_services_databases_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://metastore.googleapis.com/v1/projects/{}/locations/{locationsId}/services/{servicesId}/databases/{databasesId}:setIamPolicy",
@@ -6652,11 +6770,14 @@ pub fn metastore_projects_locations_services_databases_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `metastore_projects_locations_services_databases_tables_get_iam_policy_execute()` to send, or `metastore_projects_locations_services_databases_tables_get_iam_policy` for simplest API.
 
-pub fn metastore_projects_locations_services_databases_tables_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn metastore_projects_locations_services_databases_tables_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://metastore.googleapis.com/v1/projects/{}/locations/{locationsId}/services/{servicesId}/databases/{databasesId}/tables/{tablesId}:getIamPolicy",
@@ -6827,10 +6948,13 @@ pub fn metastore_projects_locations_services_databases_tables_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `metastore_projects_locations_services_databases_tables_set_iam_policy_execute()` to send, or `metastore_projects_locations_services_databases_tables_set_iam_policy` for simplest API.
 
-pub fn metastore_projects_locations_services_databases_tables_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn metastore_projects_locations_services_databases_tables_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://metastore.googleapis.com/v1/projects/{}/locations/{locationsId}/services/{servicesId}/databases/{databasesId}/tables/{tablesId}:setIamPolicy",
@@ -6987,12 +7111,15 @@ pub fn metastore_projects_locations_services_databases_tables_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `metastore_projects_locations_services_metadata_imports_create_execute()` to send, or `metastore_projects_locations_services_metadata_imports_create` for simplest API.
 
-pub fn metastore_projects_locations_services_metadata_imports_create_builder(
-    client: &SimpleHttpClient,
+pub fn metastore_projects_locations_services_metadata_imports_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     metadataImportId: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://metastore.googleapis.com/v1/projects/{}/locations/{locationsId}/services/{servicesId}/metadataImports",
@@ -7169,10 +7296,13 @@ pub fn metastore_projects_locations_services_metadata_imports_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `metastore_projects_locations_services_metadata_imports_get_execute()` to send, or `metastore_projects_locations_services_metadata_imports_get` for simplest API.
 
-pub fn metastore_projects_locations_services_metadata_imports_get_builder(
-    client: &SimpleHttpClient,
+pub fn metastore_projects_locations_services_metadata_imports_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://metastore.googleapis.com/v1/projects/{}/locations/{locationsId}/services/{servicesId}/metadataImports/{metadataImportsId}",
@@ -7331,14 +7461,17 @@ pub fn metastore_projects_locations_services_metadata_imports_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `metastore_projects_locations_services_metadata_imports_list_execute()` to send, or `metastore_projects_locations_services_metadata_imports_list` for simplest API.
 
-pub fn metastore_projects_locations_services_metadata_imports_list_builder(
-    client: &SimpleHttpClient,
+pub fn metastore_projects_locations_services_metadata_imports_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://metastore.googleapis.com/v1/projects/{}/locations/{locationsId}/services/{servicesId}/metadataImports",
@@ -7535,12 +7668,15 @@ pub fn metastore_projects_locations_services_metadata_imports_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `metastore_projects_locations_services_metadata_imports_patch_execute()` to send, or `metastore_projects_locations_services_metadata_imports_patch` for simplest API.
 
-pub fn metastore_projects_locations_services_metadata_imports_patch_builder(
-    client: &SimpleHttpClient,
+pub fn metastore_projects_locations_services_metadata_imports_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://metastore.googleapis.com/v1/projects/{}/locations/{locationsId}/services/{servicesId}/metadataImports/{metadataImportsId}",
@@ -7717,11 +7853,14 @@ pub fn metastore_projects_locations_services_metadata_imports_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `metastore_projects_locations_services_migration_executions_delete_execute()` to send, or `metastore_projects_locations_services_migration_executions_delete` for simplest API.
 
-pub fn metastore_projects_locations_services_migration_executions_delete_builder(
-    client: &SimpleHttpClient,
+pub fn metastore_projects_locations_services_migration_executions_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://metastore.googleapis.com/v1/projects/{}/locations/{locationsId}/services/{servicesId}/migrationExecutions/{migrationExecutionsId}",
@@ -7892,10 +8031,13 @@ pub fn metastore_projects_locations_services_migration_executions_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `metastore_projects_locations_services_migration_executions_get_execute()` to send, or `metastore_projects_locations_services_migration_executions_get` for simplest API.
 
-pub fn metastore_projects_locations_services_migration_executions_get_builder(
-    client: &SimpleHttpClient,
+pub fn metastore_projects_locations_services_migration_executions_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://metastore.googleapis.com/v1/projects/{}/locations/{locationsId}/services/{servicesId}/migrationExecutions/{migrationExecutionsId}",
@@ -8054,14 +8196,17 @@ pub fn metastore_projects_locations_services_migration_executions_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `metastore_projects_locations_services_migration_executions_list_execute()` to send, or `metastore_projects_locations_services_migration_executions_list` for simplest API.
 
-pub fn metastore_projects_locations_services_migration_executions_list_builder(
-    client: &SimpleHttpClient,
+pub fn metastore_projects_locations_services_migration_executions_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://metastore.googleapis.com/v1/projects/{}/locations/{locationsId}/services/{servicesId}/migrationExecutions",

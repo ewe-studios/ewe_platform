@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `looker_projects_locations_get_execute()` to send, or `looker_projects_locations_get` for simplest API.
 
-pub fn looker_projects_locations_get_builder(
-    client: &SimpleHttpClient,
+pub fn looker_projects_locations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://looker.googleapis.com/v1/projects/{}/locations/{locationsId}",
@@ -183,14 +187,17 @@ pub fn looker_projects_locations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `looker_projects_locations_list_execute()` to send, or `looker_projects_locations_list` for simplest API.
 
-pub fn looker_projects_locations_list_builder(
-    client: &SimpleHttpClient,
+pub fn looker_projects_locations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     extraLocationTypes: &Option<Option<String>>,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://looker.googleapis.com/v1/projects/{}/locations",
@@ -383,11 +390,14 @@ pub fn looker_projects_locations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `looker_projects_locations_instances_create_execute()` to send, or `looker_projects_locations_instances_create` for simplest API.
 
-pub fn looker_projects_locations_instances_create_builder(
-    client: &SimpleHttpClient,
+pub fn looker_projects_locations_instances_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     instanceId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://looker.googleapis.com/v1/projects/{}/locations/{locationsId}/instances",
@@ -555,11 +565,14 @@ pub fn looker_projects_locations_instances_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `looker_projects_locations_instances_delete_execute()` to send, or `looker_projects_locations_instances_delete` for simplest API.
 
-pub fn looker_projects_locations_instances_delete_builder(
-    client: &SimpleHttpClient,
+pub fn looker_projects_locations_instances_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     force: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://looker.googleapis.com/v1/projects/{}/locations/{locationsId}/instances/{instancesId}",
@@ -727,10 +740,13 @@ pub fn looker_projects_locations_instances_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `looker_projects_locations_instances_export_execute()` to send, or `looker_projects_locations_instances_export` for simplest API.
 
-pub fn looker_projects_locations_instances_export_builder(
-    client: &SimpleHttpClient,
+pub fn looker_projects_locations_instances_export_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://looker.googleapis.com/v1/projects/{}/locations/{locationsId}/instances/{instancesId}:export",
@@ -884,10 +900,13 @@ pub fn looker_projects_locations_instances_export(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `looker_projects_locations_instances_get_execute()` to send, or `looker_projects_locations_instances_get` for simplest API.
 
-pub fn looker_projects_locations_instances_get_builder(
-    client: &SimpleHttpClient,
+pub fn looker_projects_locations_instances_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://looker.googleapis.com/v1/projects/{}/locations/{locationsId}/instances/{instancesId}",
@@ -1041,10 +1060,13 @@ pub fn looker_projects_locations_instances_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `looker_projects_locations_instances_import_execute()` to send, or `looker_projects_locations_instances_import` for simplest API.
 
-pub fn looker_projects_locations_instances_import_builder(
-    client: &SimpleHttpClient,
+pub fn looker_projects_locations_instances_import_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://looker.googleapis.com/v1/projects/{}/locations/{locationsId}/instances/{instancesId}:import",
@@ -1198,12 +1220,15 @@ pub fn looker_projects_locations_instances_import(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `looker_projects_locations_instances_list_execute()` to send, or `looker_projects_locations_instances_list` for simplest API.
 
-pub fn looker_projects_locations_instances_list_builder(
-    client: &SimpleHttpClient,
+pub fn looker_projects_locations_instances_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://looker.googleapis.com/v1/projects/{}/locations/{locationsId}/instances",
@@ -1384,11 +1409,14 @@ pub fn looker_projects_locations_instances_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `looker_projects_locations_instances_patch_execute()` to send, or `looker_projects_locations_instances_patch` for simplest API.
 
-pub fn looker_projects_locations_instances_patch_builder(
-    client: &SimpleHttpClient,
+pub fn looker_projects_locations_instances_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://looker.googleapis.com/v1/projects/{}/locations/{locationsId}/instances/{instancesId}",
@@ -1556,10 +1584,13 @@ pub fn looker_projects_locations_instances_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `looker_projects_locations_instances_restart_execute()` to send, or `looker_projects_locations_instances_restart` for simplest API.
 
-pub fn looker_projects_locations_instances_restart_builder(
-    client: &SimpleHttpClient,
+pub fn looker_projects_locations_instances_restart_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://looker.googleapis.com/v1/projects/{}/locations/{locationsId}/instances/{instancesId}:restart",
@@ -1713,10 +1744,13 @@ pub fn looker_projects_locations_instances_restart(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `looker_projects_locations_instances_restore_execute()` to send, or `looker_projects_locations_instances_restore` for simplest API.
 
-pub fn looker_projects_locations_instances_restore_builder(
-    client: &SimpleHttpClient,
+pub fn looker_projects_locations_instances_restore_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://looker.googleapis.com/v1/projects/{}/locations/{locationsId}/instances/{instancesId}:restore",
@@ -1870,10 +1904,13 @@ pub fn looker_projects_locations_instances_restore(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `looker_projects_locations_instances_backups_create_execute()` to send, or `looker_projects_locations_instances_backups_create` for simplest API.
 
-pub fn looker_projects_locations_instances_backups_create_builder(
-    client: &SimpleHttpClient,
+pub fn looker_projects_locations_instances_backups_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://looker.googleapis.com/v1/projects/{}/locations/{locationsId}/instances/{instancesId}/backups",
@@ -2027,10 +2064,13 @@ pub fn looker_projects_locations_instances_backups_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `looker_projects_locations_instances_backups_delete_execute()` to send, or `looker_projects_locations_instances_backups_delete` for simplest API.
 
-pub fn looker_projects_locations_instances_backups_delete_builder(
-    client: &SimpleHttpClient,
+pub fn looker_projects_locations_instances_backups_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://looker.googleapis.com/v1/projects/{}/locations/{locationsId}/instances/{instancesId}/backups/{backupsId}",
@@ -2184,10 +2224,13 @@ pub fn looker_projects_locations_instances_backups_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `looker_projects_locations_instances_backups_get_execute()` to send, or `looker_projects_locations_instances_backups_get` for simplest API.
 
-pub fn looker_projects_locations_instances_backups_get_builder(
-    client: &SimpleHttpClient,
+pub fn looker_projects_locations_instances_backups_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://looker.googleapis.com/v1/projects/{}/locations/{locationsId}/instances/{instancesId}/backups/{backupsId}",
@@ -2345,13 +2388,16 @@ pub fn looker_projects_locations_instances_backups_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `looker_projects_locations_instances_backups_list_execute()` to send, or `looker_projects_locations_instances_backups_list` for simplest API.
 
-pub fn looker_projects_locations_instances_backups_list_builder(
-    client: &SimpleHttpClient,
+pub fn looker_projects_locations_instances_backups_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://looker.googleapis.com/v1/projects/{}/locations/{locationsId}/instances/{instancesId}/backups",
@@ -2542,10 +2588,13 @@ pub fn looker_projects_locations_instances_backups_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `looker_projects_locations_operations_cancel_execute()` to send, or `looker_projects_locations_operations_cancel` for simplest API.
 
-pub fn looker_projects_locations_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn looker_projects_locations_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://looker.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}:cancel",
@@ -2699,10 +2748,13 @@ pub fn looker_projects_locations_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `looker_projects_locations_operations_delete_execute()` to send, or `looker_projects_locations_operations_delete` for simplest API.
 
-pub fn looker_projects_locations_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn looker_projects_locations_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://looker.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -2856,10 +2908,13 @@ pub fn looker_projects_locations_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `looker_projects_locations_operations_get_execute()` to send, or `looker_projects_locations_operations_get` for simplest API.
 
-pub fn looker_projects_locations_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn looker_projects_locations_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://looker.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -3013,14 +3068,17 @@ pub fn looker_projects_locations_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `looker_projects_locations_operations_list_execute()` to send, or `looker_projects_locations_operations_list` for simplest API.
 
-pub fn looker_projects_locations_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn looker_projects_locations_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://looker.googleapis.com/v1/projects/{}/locations/{locationsId}/operations",

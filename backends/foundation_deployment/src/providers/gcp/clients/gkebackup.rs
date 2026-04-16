@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkebackup_projects_locations_get_execute()` to send, or `gkebackup_projects_locations_get` for simplest API.
 
-pub fn gkebackup_projects_locations_get_builder(
-    client: &SimpleHttpClient,
+pub fn gkebackup_projects_locations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}",
@@ -183,14 +187,17 @@ pub fn gkebackup_projects_locations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkebackup_projects_locations_list_execute()` to send, or `gkebackup_projects_locations_list` for simplest API.
 
-pub fn gkebackup_projects_locations_list_builder(
-    client: &SimpleHttpClient,
+pub fn gkebackup_projects_locations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     extraLocationTypes: &Option<Option<String>>,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkebackup.googleapis.com/v1/projects/{}/locations",
@@ -383,11 +390,14 @@ pub fn gkebackup_projects_locations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkebackup_projects_locations_backup_channels_create_execute()` to send, or `gkebackup_projects_locations_backup_channels_create` for simplest API.
 
-pub fn gkebackup_projects_locations_backup_channels_create_builder(
-    client: &SimpleHttpClient,
+pub fn gkebackup_projects_locations_backup_channels_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     backupChannelId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/backupChannels",
@@ -566,12 +576,15 @@ pub fn gkebackup_projects_locations_backup_channels_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkebackup_projects_locations_backup_channels_delete_execute()` to send, or `gkebackup_projects_locations_backup_channels_delete` for simplest API.
 
-pub fn gkebackup_projects_locations_backup_channels_delete_builder(
-    client: &SimpleHttpClient,
+pub fn gkebackup_projects_locations_backup_channels_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     etag: &Option<Option<String>>,
     force: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/backupChannels/{backupChannelsId}",
@@ -756,10 +769,13 @@ pub fn gkebackup_projects_locations_backup_channels_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkebackup_projects_locations_backup_channels_get_execute()` to send, or `gkebackup_projects_locations_backup_channels_get` for simplest API.
 
-pub fn gkebackup_projects_locations_backup_channels_get_builder(
-    client: &SimpleHttpClient,
+pub fn gkebackup_projects_locations_backup_channels_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/backupChannels/{backupChannelsId}",
@@ -917,14 +933,17 @@ pub fn gkebackup_projects_locations_backup_channels_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkebackup_projects_locations_backup_channels_list_execute()` to send, or `gkebackup_projects_locations_backup_channels_list` for simplest API.
 
-pub fn gkebackup_projects_locations_backup_channels_list_builder(
-    client: &SimpleHttpClient,
+pub fn gkebackup_projects_locations_backup_channels_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/backupChannels",
@@ -1121,11 +1140,14 @@ pub fn gkebackup_projects_locations_backup_channels_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkebackup_projects_locations_backup_channels_patch_execute()` to send, or `gkebackup_projects_locations_backup_channels_patch` for simplest API.
 
-pub fn gkebackup_projects_locations_backup_channels_patch_builder(
-    client: &SimpleHttpClient,
+pub fn gkebackup_projects_locations_backup_channels_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/backupChannels/{backupChannelsId}",
@@ -1304,10 +1326,13 @@ pub fn gkebackup_projects_locations_backup_channels_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkebackup_projects_locations_backup_channels_backup_plan_bindings_get_execute()` to send, or `gkebackup_projects_locations_backup_channels_backup_plan_bindings_get` for simplest API.
 
-pub fn gkebackup_projects_locations_backup_channels_backup_plan_bindings_get_builder(
-    client: &SimpleHttpClient,
+pub fn gkebackup_projects_locations_backup_channels_backup_plan_bindings_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/backupChannels/{backupChannelsId}/backupPlanBindings/{backupPlanBindingsId}",
@@ -1467,14 +1492,17 @@ pub fn gkebackup_projects_locations_backup_channels_backup_plan_bindings_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkebackup_projects_locations_backup_channels_backup_plan_bindings_list_execute()` to send, or `gkebackup_projects_locations_backup_channels_backup_plan_bindings_list` for simplest API.
 
-pub fn gkebackup_projects_locations_backup_channels_backup_plan_bindings_list_builder(
-    client: &SimpleHttpClient,
+pub fn gkebackup_projects_locations_backup_channels_backup_plan_bindings_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/backupChannels/{backupChannelsId}/backupPlanBindings",
@@ -1672,11 +1700,14 @@ pub fn gkebackup_projects_locations_backup_channels_backup_plan_bindings_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkebackup_projects_locations_backup_plans_create_execute()` to send, or `gkebackup_projects_locations_backup_plans_create` for simplest API.
 
-pub fn gkebackup_projects_locations_backup_plans_create_builder(
-    client: &SimpleHttpClient,
+pub fn gkebackup_projects_locations_backup_plans_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     backupPlanId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/backupPlans",
@@ -1855,11 +1886,14 @@ pub fn gkebackup_projects_locations_backup_plans_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkebackup_projects_locations_backup_plans_delete_execute()` to send, or `gkebackup_projects_locations_backup_plans_delete` for simplest API.
 
-pub fn gkebackup_projects_locations_backup_plans_delete_builder(
-    client: &SimpleHttpClient,
+pub fn gkebackup_projects_locations_backup_plans_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     etag: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/backupPlans/{backupPlansId}",
@@ -2035,10 +2069,13 @@ pub fn gkebackup_projects_locations_backup_plans_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkebackup_projects_locations_backup_plans_get_execute()` to send, or `gkebackup_projects_locations_backup_plans_get` for simplest API.
 
-pub fn gkebackup_projects_locations_backup_plans_get_builder(
-    client: &SimpleHttpClient,
+pub fn gkebackup_projects_locations_backup_plans_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/backupPlans/{backupPlansId}",
@@ -2192,11 +2229,14 @@ pub fn gkebackup_projects_locations_backup_plans_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkebackup_projects_locations_backup_plans_get_iam_policy_execute()` to send, or `gkebackup_projects_locations_backup_plans_get_iam_policy` for simplest API.
 
-pub fn gkebackup_projects_locations_backup_plans_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn gkebackup_projects_locations_backup_plans_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/backupPlans/{backupPlansId}:getIamPolicy",
@@ -2367,10 +2407,13 @@ pub fn gkebackup_projects_locations_backup_plans_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkebackup_projects_locations_backup_plans_get_tags_execute()` to send, or `gkebackup_projects_locations_backup_plans_get_tags` for simplest API.
 
-pub fn gkebackup_projects_locations_backup_plans_get_tags_builder(
-    client: &SimpleHttpClient,
+pub fn gkebackup_projects_locations_backup_plans_get_tags_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/backupPlans/{backupPlansId}:getTags",
@@ -2528,14 +2571,17 @@ pub fn gkebackup_projects_locations_backup_plans_get_tags(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkebackup_projects_locations_backup_plans_list_execute()` to send, or `gkebackup_projects_locations_backup_plans_list` for simplest API.
 
-pub fn gkebackup_projects_locations_backup_plans_list_builder(
-    client: &SimpleHttpClient,
+pub fn gkebackup_projects_locations_backup_plans_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/backupPlans",
@@ -2728,11 +2774,14 @@ pub fn gkebackup_projects_locations_backup_plans_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkebackup_projects_locations_backup_plans_patch_execute()` to send, or `gkebackup_projects_locations_backup_plans_patch` for simplest API.
 
-pub fn gkebackup_projects_locations_backup_plans_patch_builder(
-    client: &SimpleHttpClient,
+pub fn gkebackup_projects_locations_backup_plans_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/backupPlans/{backupPlansId}",
@@ -2911,10 +2960,13 @@ pub fn gkebackup_projects_locations_backup_plans_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkebackup_projects_locations_backup_plans_set_iam_policy_execute()` to send, or `gkebackup_projects_locations_backup_plans_set_iam_policy` for simplest API.
 
-pub fn gkebackup_projects_locations_backup_plans_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn gkebackup_projects_locations_backup_plans_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/backupPlans/{backupPlansId}:setIamPolicy",
@@ -3069,10 +3121,13 @@ pub fn gkebackup_projects_locations_backup_plans_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkebackup_projects_locations_backup_plans_set_tags_execute()` to send, or `gkebackup_projects_locations_backup_plans_set_tags` for simplest API.
 
-pub fn gkebackup_projects_locations_backup_plans_set_tags_builder(
-    client: &SimpleHttpClient,
+pub fn gkebackup_projects_locations_backup_plans_set_tags_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/backupPlans/{backupPlansId}:setTags",
@@ -3230,10 +3285,13 @@ pub fn gkebackup_projects_locations_backup_plans_set_tags(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkebackup_projects_locations_backup_plans_test_iam_permissions_execute()` to send, or `gkebackup_projects_locations_backup_plans_test_iam_permissions` for simplest API.
 
-pub fn gkebackup_projects_locations_backup_plans_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn gkebackup_projects_locations_backup_plans_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/backupPlans/{backupPlansId}:testIamPermissions",
@@ -3398,11 +3456,14 @@ pub fn gkebackup_projects_locations_backup_plans_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkebackup_projects_locations_backup_plans_backups_create_execute()` to send, or `gkebackup_projects_locations_backup_plans_backups_create` for simplest API.
 
-pub fn gkebackup_projects_locations_backup_plans_backups_create_builder(
-    client: &SimpleHttpClient,
+pub fn gkebackup_projects_locations_backup_plans_backups_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     backupId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/backupPlans/{backupPlansId}/backups",
@@ -3581,12 +3642,15 @@ pub fn gkebackup_projects_locations_backup_plans_backups_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkebackup_projects_locations_backup_plans_backups_delete_execute()` to send, or `gkebackup_projects_locations_backup_plans_backups_delete` for simplest API.
 
-pub fn gkebackup_projects_locations_backup_plans_backups_delete_builder(
-    client: &SimpleHttpClient,
+pub fn gkebackup_projects_locations_backup_plans_backups_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     etag: &Option<Option<String>>,
     force: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/backupPlans/{backupPlansId}/backups/{backupsId}",
@@ -3771,10 +3835,13 @@ pub fn gkebackup_projects_locations_backup_plans_backups_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkebackup_projects_locations_backup_plans_backups_get_execute()` to send, or `gkebackup_projects_locations_backup_plans_backups_get` for simplest API.
 
-pub fn gkebackup_projects_locations_backup_plans_backups_get_builder(
-    client: &SimpleHttpClient,
+pub fn gkebackup_projects_locations_backup_plans_backups_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/backupPlans/{backupPlansId}/backups/{backupsId}",
@@ -3929,10 +3996,13 @@ pub fn gkebackup_projects_locations_backup_plans_backups_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkebackup_projects_locations_backup_plans_backups_get_backup_index_download_url_execute()` to send, or `gkebackup_projects_locations_backup_plans_backups_get_backup_index_download_url` for simplest API.
 
-pub fn gkebackup_projects_locations_backup_plans_backups_get_backup_index_download_url_builder(
-    client: &SimpleHttpClient,
+pub fn gkebackup_projects_locations_backup_plans_backups_get_backup_index_download_url_builder<R>(
+    client: &SimpleHttpClient<R>,
     backup: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/backupPlans/{backupPlansId}/backups/{backupsId}:getBackupIndexDownloadUrl",
@@ -4101,11 +4171,14 @@ pub fn gkebackup_projects_locations_backup_plans_backups_get_backup_index_downlo
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkebackup_projects_locations_backup_plans_backups_get_iam_policy_execute()` to send, or `gkebackup_projects_locations_backup_plans_backups_get_iam_policy` for simplest API.
 
-pub fn gkebackup_projects_locations_backup_plans_backups_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn gkebackup_projects_locations_backup_plans_backups_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/backupPlans/{backupPlansId}/backups/{backupsId}:getIamPolicy",
@@ -4276,15 +4349,18 @@ pub fn gkebackup_projects_locations_backup_plans_backups_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkebackup_projects_locations_backup_plans_backups_list_execute()` to send, or `gkebackup_projects_locations_backup_plans_backups_list` for simplest API.
 
-pub fn gkebackup_projects_locations_backup_plans_backups_list_builder(
-    client: &SimpleHttpClient,
+pub fn gkebackup_projects_locations_backup_plans_backups_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/backupPlans/{backupPlansId}/backups",
@@ -4483,11 +4559,14 @@ pub fn gkebackup_projects_locations_backup_plans_backups_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkebackup_projects_locations_backup_plans_backups_patch_execute()` to send, or `gkebackup_projects_locations_backup_plans_backups_patch` for simplest API.
 
-pub fn gkebackup_projects_locations_backup_plans_backups_patch_builder(
-    client: &SimpleHttpClient,
+pub fn gkebackup_projects_locations_backup_plans_backups_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/backupPlans/{backupPlansId}/backups/{backupsId}",
@@ -4666,10 +4745,13 @@ pub fn gkebackup_projects_locations_backup_plans_backups_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkebackup_projects_locations_backup_plans_backups_set_iam_policy_execute()` to send, or `gkebackup_projects_locations_backup_plans_backups_set_iam_policy` for simplest API.
 
-pub fn gkebackup_projects_locations_backup_plans_backups_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn gkebackup_projects_locations_backup_plans_backups_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/backupPlans/{backupPlansId}/backups/{backupsId}:setIamPolicy",
@@ -4826,10 +4908,13 @@ pub fn gkebackup_projects_locations_backup_plans_backups_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkebackup_projects_locations_backup_plans_backups_test_iam_permissions_execute()` to send, or `gkebackup_projects_locations_backup_plans_backups_test_iam_permissions` for simplest API.
 
-pub fn gkebackup_projects_locations_backup_plans_backups_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn gkebackup_projects_locations_backup_plans_backups_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/backupPlans/{backupPlansId}/backups/{backupsId}:testIamPermissions",
@@ -4995,10 +5080,13 @@ pub fn gkebackup_projects_locations_backup_plans_backups_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkebackup_projects_locations_backup_plans_backups_volume_backups_get_execute()` to send, or `gkebackup_projects_locations_backup_plans_backups_volume_backups_get` for simplest API.
 
-pub fn gkebackup_projects_locations_backup_plans_backups_volume_backups_get_builder(
-    client: &SimpleHttpClient,
+pub fn gkebackup_projects_locations_backup_plans_backups_volume_backups_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/backupPlans/{backupPlansId}/backups/{backupsId}/volumeBackups/{volumeBackupsId}",
@@ -5158,11 +5246,14 @@ pub fn gkebackup_projects_locations_backup_plans_backups_volume_backups_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkebackup_projects_locations_backup_plans_backups_volume_backups_get_iam_policy_execute()` to send, or `gkebackup_projects_locations_backup_plans_backups_volume_backups_get_iam_policy` for simplest API.
 
-pub fn gkebackup_projects_locations_backup_plans_backups_volume_backups_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn gkebackup_projects_locations_backup_plans_backups_volume_backups_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/backupPlans/{backupPlansId}/backups/{backupsId}/volumeBackups/{volumeBackupsId}:getIamPolicy",
@@ -5337,14 +5428,17 @@ pub fn gkebackup_projects_locations_backup_plans_backups_volume_backups_get_iam_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkebackup_projects_locations_backup_plans_backups_volume_backups_list_execute()` to send, or `gkebackup_projects_locations_backup_plans_backups_volume_backups_list` for simplest API.
 
-pub fn gkebackup_projects_locations_backup_plans_backups_volume_backups_list_builder(
-    client: &SimpleHttpClient,
+pub fn gkebackup_projects_locations_backup_plans_backups_volume_backups_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/backupPlans/{backupPlansId}/backups/{backupsId}/volumeBackups",
@@ -5537,10 +5631,13 @@ pub fn gkebackup_projects_locations_backup_plans_backups_volume_backups_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkebackup_projects_locations_backup_plans_backups_volume_backups_set_iam_policy_execute()` to send, or `gkebackup_projects_locations_backup_plans_backups_volume_backups_set_iam_policy` for simplest API.
 
-pub fn gkebackup_projects_locations_backup_plans_backups_volume_backups_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn gkebackup_projects_locations_backup_plans_backups_volume_backups_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/backupPlans/{backupPlansId}/backups/{backupsId}/volumeBackups/{volumeBackupsId}:setIamPolicy",
@@ -5701,10 +5798,15 @@ pub fn gkebackup_projects_locations_backup_plans_backups_volume_backups_set_iam_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkebackup_projects_locations_backup_plans_backups_volume_backups_test_iam_permissions_execute()` to send, or `gkebackup_projects_locations_backup_plans_backups_volume_backups_test_iam_permissions` for simplest API.
 
-pub fn gkebackup_projects_locations_backup_plans_backups_volume_backups_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn gkebackup_projects_locations_backup_plans_backups_volume_backups_test_iam_permissions_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/backupPlans/{backupPlansId}/backups/{backupsId}/volumeBackups/{volumeBackupsId}:testIamPermissions",
@@ -5871,10 +5973,13 @@ pub fn gkebackup_projects_locations_backup_plans_backups_volume_backups_test_iam
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkebackup_projects_locations_operations_cancel_execute()` to send, or `gkebackup_projects_locations_operations_cancel` for simplest API.
 
-pub fn gkebackup_projects_locations_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn gkebackup_projects_locations_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}:cancel",
@@ -6028,10 +6133,13 @@ pub fn gkebackup_projects_locations_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkebackup_projects_locations_operations_delete_execute()` to send, or `gkebackup_projects_locations_operations_delete` for simplest API.
 
-pub fn gkebackup_projects_locations_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn gkebackup_projects_locations_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -6185,10 +6293,13 @@ pub fn gkebackup_projects_locations_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkebackup_projects_locations_operations_get_execute()` to send, or `gkebackup_projects_locations_operations_get` for simplest API.
 
-pub fn gkebackup_projects_locations_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn gkebackup_projects_locations_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -6350,14 +6461,17 @@ pub fn gkebackup_projects_locations_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkebackup_projects_locations_operations_list_execute()` to send, or `gkebackup_projects_locations_operations_list` for simplest API.
 
-pub fn gkebackup_projects_locations_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn gkebackup_projects_locations_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/operations",
@@ -6555,11 +6669,14 @@ pub fn gkebackup_projects_locations_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkebackup_projects_locations_restore_channels_create_execute()` to send, or `gkebackup_projects_locations_restore_channels_create` for simplest API.
 
-pub fn gkebackup_projects_locations_restore_channels_create_builder(
-    client: &SimpleHttpClient,
+pub fn gkebackup_projects_locations_restore_channels_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     restoreChannelId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/restoreChannels",
@@ -6738,11 +6855,14 @@ pub fn gkebackup_projects_locations_restore_channels_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkebackup_projects_locations_restore_channels_delete_execute()` to send, or `gkebackup_projects_locations_restore_channels_delete` for simplest API.
 
-pub fn gkebackup_projects_locations_restore_channels_delete_builder(
-    client: &SimpleHttpClient,
+pub fn gkebackup_projects_locations_restore_channels_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     etag: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/restoreChannels/{restoreChannelsId}",
@@ -6919,10 +7039,13 @@ pub fn gkebackup_projects_locations_restore_channels_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkebackup_projects_locations_restore_channels_get_execute()` to send, or `gkebackup_projects_locations_restore_channels_get` for simplest API.
 
-pub fn gkebackup_projects_locations_restore_channels_get_builder(
-    client: &SimpleHttpClient,
+pub fn gkebackup_projects_locations_restore_channels_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/restoreChannels/{restoreChannelsId}",
@@ -7080,14 +7203,17 @@ pub fn gkebackup_projects_locations_restore_channels_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkebackup_projects_locations_restore_channels_list_execute()` to send, or `gkebackup_projects_locations_restore_channels_list` for simplest API.
 
-pub fn gkebackup_projects_locations_restore_channels_list_builder(
-    client: &SimpleHttpClient,
+pub fn gkebackup_projects_locations_restore_channels_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/restoreChannels",
@@ -7284,11 +7410,14 @@ pub fn gkebackup_projects_locations_restore_channels_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkebackup_projects_locations_restore_channels_patch_execute()` to send, or `gkebackup_projects_locations_restore_channels_patch` for simplest API.
 
-pub fn gkebackup_projects_locations_restore_channels_patch_builder(
-    client: &SimpleHttpClient,
+pub fn gkebackup_projects_locations_restore_channels_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/restoreChannels/{restoreChannelsId}",
@@ -7467,10 +7596,13 @@ pub fn gkebackup_projects_locations_restore_channels_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkebackup_projects_locations_restore_channels_restore_plan_bindings_get_execute()` to send, or `gkebackup_projects_locations_restore_channels_restore_plan_bindings_get` for simplest API.
 
-pub fn gkebackup_projects_locations_restore_channels_restore_plan_bindings_get_builder(
-    client: &SimpleHttpClient,
+pub fn gkebackup_projects_locations_restore_channels_restore_plan_bindings_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/restoreChannels/{restoreChannelsId}/restorePlanBindings/{restorePlanBindingsId}",
@@ -7631,14 +7763,17 @@ pub fn gkebackup_projects_locations_restore_channels_restore_plan_bindings_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkebackup_projects_locations_restore_channels_restore_plan_bindings_list_execute()` to send, or `gkebackup_projects_locations_restore_channels_restore_plan_bindings_list` for simplest API.
 
-pub fn gkebackup_projects_locations_restore_channels_restore_plan_bindings_list_builder(
-    client: &SimpleHttpClient,
+pub fn gkebackup_projects_locations_restore_channels_restore_plan_bindings_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/restoreChannels/{restoreChannelsId}/restorePlanBindings",
@@ -7836,11 +7971,14 @@ pub fn gkebackup_projects_locations_restore_channels_restore_plan_bindings_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkebackup_projects_locations_restore_plans_create_execute()` to send, or `gkebackup_projects_locations_restore_plans_create` for simplest API.
 
-pub fn gkebackup_projects_locations_restore_plans_create_builder(
-    client: &SimpleHttpClient,
+pub fn gkebackup_projects_locations_restore_plans_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     restorePlanId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/restorePlans",
@@ -8019,12 +8157,15 @@ pub fn gkebackup_projects_locations_restore_plans_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkebackup_projects_locations_restore_plans_delete_execute()` to send, or `gkebackup_projects_locations_restore_plans_delete` for simplest API.
 
-pub fn gkebackup_projects_locations_restore_plans_delete_builder(
-    client: &SimpleHttpClient,
+pub fn gkebackup_projects_locations_restore_plans_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     etag: &Option<Option<String>>,
     force: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/restorePlans/{restorePlansId}",
@@ -8209,10 +8350,13 @@ pub fn gkebackup_projects_locations_restore_plans_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkebackup_projects_locations_restore_plans_get_execute()` to send, or `gkebackup_projects_locations_restore_plans_get` for simplest API.
 
-pub fn gkebackup_projects_locations_restore_plans_get_builder(
-    client: &SimpleHttpClient,
+pub fn gkebackup_projects_locations_restore_plans_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/restorePlans/{restorePlansId}",
@@ -8366,11 +8510,14 @@ pub fn gkebackup_projects_locations_restore_plans_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkebackup_projects_locations_restore_plans_get_iam_policy_execute()` to send, or `gkebackup_projects_locations_restore_plans_get_iam_policy` for simplest API.
 
-pub fn gkebackup_projects_locations_restore_plans_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn gkebackup_projects_locations_restore_plans_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/restorePlans/{restorePlansId}:getIamPolicy",
@@ -8541,10 +8688,13 @@ pub fn gkebackup_projects_locations_restore_plans_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkebackup_projects_locations_restore_plans_get_tags_execute()` to send, or `gkebackup_projects_locations_restore_plans_get_tags` for simplest API.
 
-pub fn gkebackup_projects_locations_restore_plans_get_tags_builder(
-    client: &SimpleHttpClient,
+pub fn gkebackup_projects_locations_restore_plans_get_tags_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/restorePlans/{restorePlansId}:getTags",
@@ -8702,14 +8852,17 @@ pub fn gkebackup_projects_locations_restore_plans_get_tags(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkebackup_projects_locations_restore_plans_list_execute()` to send, or `gkebackup_projects_locations_restore_plans_list` for simplest API.
 
-pub fn gkebackup_projects_locations_restore_plans_list_builder(
-    client: &SimpleHttpClient,
+pub fn gkebackup_projects_locations_restore_plans_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/restorePlans",
@@ -8902,11 +9055,14 @@ pub fn gkebackup_projects_locations_restore_plans_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkebackup_projects_locations_restore_plans_patch_execute()` to send, or `gkebackup_projects_locations_restore_plans_patch` for simplest API.
 
-pub fn gkebackup_projects_locations_restore_plans_patch_builder(
-    client: &SimpleHttpClient,
+pub fn gkebackup_projects_locations_restore_plans_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/restorePlans/{restorePlansId}",
@@ -9085,10 +9241,13 @@ pub fn gkebackup_projects_locations_restore_plans_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkebackup_projects_locations_restore_plans_set_iam_policy_execute()` to send, or `gkebackup_projects_locations_restore_plans_set_iam_policy` for simplest API.
 
-pub fn gkebackup_projects_locations_restore_plans_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn gkebackup_projects_locations_restore_plans_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/restorePlans/{restorePlansId}:setIamPolicy",
@@ -9243,10 +9402,13 @@ pub fn gkebackup_projects_locations_restore_plans_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkebackup_projects_locations_restore_plans_set_tags_execute()` to send, or `gkebackup_projects_locations_restore_plans_set_tags` for simplest API.
 
-pub fn gkebackup_projects_locations_restore_plans_set_tags_builder(
-    client: &SimpleHttpClient,
+pub fn gkebackup_projects_locations_restore_plans_set_tags_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/restorePlans/{restorePlansId}:setTags",
@@ -9404,10 +9566,13 @@ pub fn gkebackup_projects_locations_restore_plans_set_tags(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkebackup_projects_locations_restore_plans_test_iam_permissions_execute()` to send, or `gkebackup_projects_locations_restore_plans_test_iam_permissions` for simplest API.
 
-pub fn gkebackup_projects_locations_restore_plans_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn gkebackup_projects_locations_restore_plans_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/restorePlans/{restorePlansId}:testIamPermissions",
@@ -9572,11 +9737,14 @@ pub fn gkebackup_projects_locations_restore_plans_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkebackup_projects_locations_restore_plans_restores_create_execute()` to send, or `gkebackup_projects_locations_restore_plans_restores_create` for simplest API.
 
-pub fn gkebackup_projects_locations_restore_plans_restores_create_builder(
-    client: &SimpleHttpClient,
+pub fn gkebackup_projects_locations_restore_plans_restores_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     restoreId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/restorePlans/{restorePlansId}/restores",
@@ -9755,12 +9923,15 @@ pub fn gkebackup_projects_locations_restore_plans_restores_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkebackup_projects_locations_restore_plans_restores_delete_execute()` to send, or `gkebackup_projects_locations_restore_plans_restores_delete` for simplest API.
 
-pub fn gkebackup_projects_locations_restore_plans_restores_delete_builder(
-    client: &SimpleHttpClient,
+pub fn gkebackup_projects_locations_restore_plans_restores_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     etag: &Option<Option<String>>,
     force: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/restorePlans/{restorePlansId}/restores/{restoresId}",
@@ -9945,10 +10116,13 @@ pub fn gkebackup_projects_locations_restore_plans_restores_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkebackup_projects_locations_restore_plans_restores_get_execute()` to send, or `gkebackup_projects_locations_restore_plans_restores_get` for simplest API.
 
-pub fn gkebackup_projects_locations_restore_plans_restores_get_builder(
-    client: &SimpleHttpClient,
+pub fn gkebackup_projects_locations_restore_plans_restores_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/restorePlans/{restorePlansId}/restores/{restoresId}",
@@ -10103,11 +10277,14 @@ pub fn gkebackup_projects_locations_restore_plans_restores_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkebackup_projects_locations_restore_plans_restores_get_iam_policy_execute()` to send, or `gkebackup_projects_locations_restore_plans_restores_get_iam_policy` for simplest API.
 
-pub fn gkebackup_projects_locations_restore_plans_restores_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn gkebackup_projects_locations_restore_plans_restores_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/restorePlans/{restorePlansId}/restores/{restoresId}:getIamPolicy",
@@ -10278,14 +10455,17 @@ pub fn gkebackup_projects_locations_restore_plans_restores_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkebackup_projects_locations_restore_plans_restores_list_execute()` to send, or `gkebackup_projects_locations_restore_plans_restores_list` for simplest API.
 
-pub fn gkebackup_projects_locations_restore_plans_restores_list_builder(
-    client: &SimpleHttpClient,
+pub fn gkebackup_projects_locations_restore_plans_restores_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/restorePlans/{restorePlansId}/restores",
@@ -10478,11 +10658,14 @@ pub fn gkebackup_projects_locations_restore_plans_restores_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkebackup_projects_locations_restore_plans_restores_patch_execute()` to send, or `gkebackup_projects_locations_restore_plans_restores_patch` for simplest API.
 
-pub fn gkebackup_projects_locations_restore_plans_restores_patch_builder(
-    client: &SimpleHttpClient,
+pub fn gkebackup_projects_locations_restore_plans_restores_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/restorePlans/{restorePlansId}/restores/{restoresId}",
@@ -10661,10 +10844,13 @@ pub fn gkebackup_projects_locations_restore_plans_restores_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkebackup_projects_locations_restore_plans_restores_set_iam_policy_execute()` to send, or `gkebackup_projects_locations_restore_plans_restores_set_iam_policy` for simplest API.
 
-pub fn gkebackup_projects_locations_restore_plans_restores_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn gkebackup_projects_locations_restore_plans_restores_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/restorePlans/{restorePlansId}/restores/{restoresId}:setIamPolicy",
@@ -10821,10 +11007,13 @@ pub fn gkebackup_projects_locations_restore_plans_restores_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkebackup_projects_locations_restore_plans_restores_test_iam_permissions_execute()` to send, or `gkebackup_projects_locations_restore_plans_restores_test_iam_permissions` for simplest API.
 
-pub fn gkebackup_projects_locations_restore_plans_restores_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn gkebackup_projects_locations_restore_plans_restores_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/restorePlans/{restorePlansId}/restores/{restoresId}:testIamPermissions",
@@ -10990,10 +11179,13 @@ pub fn gkebackup_projects_locations_restore_plans_restores_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkebackup_projects_locations_restore_plans_restores_volume_restores_get_execute()` to send, or `gkebackup_projects_locations_restore_plans_restores_volume_restores_get` for simplest API.
 
-pub fn gkebackup_projects_locations_restore_plans_restores_volume_restores_get_builder(
-    client: &SimpleHttpClient,
+pub fn gkebackup_projects_locations_restore_plans_restores_volume_restores_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/restorePlans/{restorePlansId}/restores/{restoresId}/volumeRestores/{volumeRestoresId}",
@@ -11154,11 +11346,16 @@ pub fn gkebackup_projects_locations_restore_plans_restores_volume_restores_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkebackup_projects_locations_restore_plans_restores_volume_restores_get_iam_policy_execute()` to send, or `gkebackup_projects_locations_restore_plans_restores_volume_restores_get_iam_policy` for simplest API.
 
-pub fn gkebackup_projects_locations_restore_plans_restores_volume_restores_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn gkebackup_projects_locations_restore_plans_restores_volume_restores_get_iam_policy_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/restorePlans/{restorePlansId}/restores/{restoresId}/volumeRestores/{volumeRestoresId}:getIamPolicy",
@@ -11335,14 +11532,17 @@ pub fn gkebackup_projects_locations_restore_plans_restores_volume_restores_get_i
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkebackup_projects_locations_restore_plans_restores_volume_restores_list_execute()` to send, or `gkebackup_projects_locations_restore_plans_restores_volume_restores_list` for simplest API.
 
-pub fn gkebackup_projects_locations_restore_plans_restores_volume_restores_list_builder(
-    client: &SimpleHttpClient,
+pub fn gkebackup_projects_locations_restore_plans_restores_volume_restores_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/restorePlans/{restorePlansId}/restores/{restoresId}/volumeRestores",
@@ -11540,10 +11740,15 @@ pub fn gkebackup_projects_locations_restore_plans_restores_volume_restores_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkebackup_projects_locations_restore_plans_restores_volume_restores_set_iam_policy_execute()` to send, or `gkebackup_projects_locations_restore_plans_restores_volume_restores_set_iam_policy` for simplest API.
 
-pub fn gkebackup_projects_locations_restore_plans_restores_volume_restores_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn gkebackup_projects_locations_restore_plans_restores_volume_restores_set_iam_policy_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/restorePlans/{restorePlansId}/restores/{restoresId}/volumeRestores/{volumeRestoresId}:setIamPolicy",
@@ -11706,10 +11911,15 @@ pub fn gkebackup_projects_locations_restore_plans_restores_volume_restores_set_i
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gkebackup_projects_locations_restore_plans_restores_volume_restores_test_iam_permissions_execute()` to send, or `gkebackup_projects_locations_restore_plans_restores_volume_restores_test_iam_permissions` for simplest API.
 
-pub fn gkebackup_projects_locations_restore_plans_restores_volume_restores_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn gkebackup_projects_locations_restore_plans_restores_volume_restores_test_iam_permissions_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/restorePlans/{restorePlansId}/restores/{restoresId}/volumeRestores/{volumeRestoresId}:testIamPermissions",

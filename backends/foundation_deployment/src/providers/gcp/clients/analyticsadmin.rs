@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,11 +27,14 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `analyticsadmin_account_summaries_list_execute()` to send, or `analyticsadmin_account_summaries_list` for simplest API.
 
-pub fn analyticsadmin_account_summaries_list_builder(
-    client: &SimpleHttpClient,
+pub fn analyticsadmin_account_summaries_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://analyticsadmin.googleapis.com/v1beta/accountSummaries",);
 
@@ -216,10 +220,13 @@ pub fn analyticsadmin_account_summaries_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `analyticsadmin_accounts_delete_execute()` to send, or `analyticsadmin_accounts_delete` for simplest API.
 
-pub fn analyticsadmin_accounts_delete_builder(
-    client: &SimpleHttpClient,
+pub fn analyticsadmin_accounts_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://analyticsadmin.googleapis.com/v1beta/accounts/{}",
@@ -377,10 +384,13 @@ pub fn analyticsadmin_accounts_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `analyticsadmin_accounts_get_execute()` to send, or `analyticsadmin_accounts_get` for simplest API.
 
-pub fn analyticsadmin_accounts_get_builder(
-    client: &SimpleHttpClient,
+pub fn analyticsadmin_accounts_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://analyticsadmin.googleapis.com/v1beta/accounts/{}",
@@ -542,10 +552,13 @@ pub fn analyticsadmin_accounts_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `analyticsadmin_accounts_get_data_sharing_settings_execute()` to send, or `analyticsadmin_accounts_get_data_sharing_settings` for simplest API.
 
-pub fn analyticsadmin_accounts_get_data_sharing_settings_builder(
-    client: &SimpleHttpClient,
+pub fn analyticsadmin_accounts_get_data_sharing_settings_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://analyticsadmin.googleapis.com/v1beta/accounts/{}/dataSharingSettings",
@@ -708,12 +721,15 @@ pub fn analyticsadmin_accounts_get_data_sharing_settings(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `analyticsadmin_accounts_list_execute()` to send, or `analyticsadmin_accounts_list` for simplest API.
 
-pub fn analyticsadmin_accounts_list_builder(
-    client: &SimpleHttpClient,
+pub fn analyticsadmin_accounts_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     showDeleted: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://analyticsadmin.googleapis.com/v1beta/accounts",);
 
@@ -899,11 +915,14 @@ pub fn analyticsadmin_accounts_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `analyticsadmin_accounts_patch_execute()` to send, or `analyticsadmin_accounts_patch` for simplest API.
 
-pub fn analyticsadmin_accounts_patch_builder(
-    client: &SimpleHttpClient,
+pub fn analyticsadmin_accounts_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://analyticsadmin.googleapis.com/v1beta/accounts/{}",
@@ -1078,9 +1097,12 @@ pub fn analyticsadmin_accounts_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `analyticsadmin_accounts_provision_account_ticket_execute()` to send, or `analyticsadmin_accounts_provision_account_ticket` for simplest API.
 
-pub fn analyticsadmin_accounts_provision_account_ticket_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn analyticsadmin_accounts_provision_account_ticket_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://analyticsadmin.googleapis.com/v1beta/accounts:provisionAccountTicket",);
@@ -1242,10 +1264,13 @@ pub fn analyticsadmin_accounts_provision_account_ticket(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `analyticsadmin_accounts_run_access_report_execute()` to send, or `analyticsadmin_accounts_run_access_report` for simplest API.
 
-pub fn analyticsadmin_accounts_run_access_report_builder(
-    client: &SimpleHttpClient,
+pub fn analyticsadmin_accounts_run_access_report_builder<R>(
+    client: &SimpleHttpClient<R>,
     entity: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://analyticsadmin.googleapis.com/v1beta/accounts/{}:runAccessReport",
@@ -1411,10 +1436,13 @@ pub fn analyticsadmin_accounts_run_access_report(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `analyticsadmin_accounts_search_change_history_events_execute()` to send, or `analyticsadmin_accounts_search_change_history_events` for simplest API.
 
-pub fn analyticsadmin_accounts_search_change_history_events_builder(
-    client: &SimpleHttpClient,
+pub fn analyticsadmin_accounts_search_change_history_events_builder<R>(
+    client: &SimpleHttpClient<R>,
     account: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://analyticsadmin.googleapis.com/v1beta/accounts/{}:searchChangeHistoryEvents",
@@ -1587,10 +1615,13 @@ pub fn analyticsadmin_accounts_search_change_history_events(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `analyticsadmin_properties_acknowledge_user_data_collection_execute()` to send, or `analyticsadmin_properties_acknowledge_user_data_collection` for simplest API.
 
-pub fn analyticsadmin_properties_acknowledge_user_data_collection_builder(
-    client: &SimpleHttpClient,
+pub fn analyticsadmin_properties_acknowledge_user_data_collection_builder<R>(
+    client: &SimpleHttpClient<R>,
     property: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://analyticsadmin.googleapis.com/v1beta/properties/{}:acknowledgeUserDataCollection",
@@ -1763,9 +1794,12 @@ pub fn analyticsadmin_properties_acknowledge_user_data_collection(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `analyticsadmin_properties_create_execute()` to send, or `analyticsadmin_properties_create` for simplest API.
 
-pub fn analyticsadmin_properties_create_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn analyticsadmin_properties_create_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://analyticsadmin.googleapis.com/v1beta/properties",);
 
@@ -1916,10 +1950,13 @@ pub fn analyticsadmin_properties_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `analyticsadmin_properties_delete_execute()` to send, or `analyticsadmin_properties_delete` for simplest API.
 
-pub fn analyticsadmin_properties_delete_builder(
-    client: &SimpleHttpClient,
+pub fn analyticsadmin_properties_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://analyticsadmin.googleapis.com/v1beta/properties/{}",
@@ -2081,10 +2118,13 @@ pub fn analyticsadmin_properties_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `analyticsadmin_properties_get_execute()` to send, or `analyticsadmin_properties_get` for simplest API.
 
-pub fn analyticsadmin_properties_get_builder(
-    client: &SimpleHttpClient,
+pub fn analyticsadmin_properties_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://analyticsadmin.googleapis.com/v1beta/properties/{}",
@@ -2246,10 +2286,13 @@ pub fn analyticsadmin_properties_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `analyticsadmin_properties_get_data_retention_settings_execute()` to send, or `analyticsadmin_properties_get_data_retention_settings` for simplest API.
 
-pub fn analyticsadmin_properties_get_data_retention_settings_builder(
-    client: &SimpleHttpClient,
+pub fn analyticsadmin_properties_get_data_retention_settings_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://analyticsadmin.googleapis.com/v1beta/properties/{}/dataRetentionSettings",
@@ -2413,13 +2456,16 @@ pub fn analyticsadmin_properties_get_data_retention_settings(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `analyticsadmin_properties_list_execute()` to send, or `analyticsadmin_properties_list` for simplest API.
 
-pub fn analyticsadmin_properties_list_builder(
-    client: &SimpleHttpClient,
+pub fn analyticsadmin_properties_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     showDeleted: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://analyticsadmin.googleapis.com/v1beta/properties",);
 
@@ -2611,11 +2657,14 @@ pub fn analyticsadmin_properties_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `analyticsadmin_properties_patch_execute()` to send, or `analyticsadmin_properties_patch` for simplest API.
 
-pub fn analyticsadmin_properties_patch_builder(
-    client: &SimpleHttpClient,
+pub fn analyticsadmin_properties_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://analyticsadmin.googleapis.com/v1beta/properties/{}",
@@ -2790,10 +2839,13 @@ pub fn analyticsadmin_properties_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `analyticsadmin_properties_run_access_report_execute()` to send, or `analyticsadmin_properties_run_access_report` for simplest API.
 
-pub fn analyticsadmin_properties_run_access_report_builder(
-    client: &SimpleHttpClient,
+pub fn analyticsadmin_properties_run_access_report_builder<R>(
+    client: &SimpleHttpClient<R>,
     entity: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://analyticsadmin.googleapis.com/v1beta/properties/{}:runAccessReport",
@@ -2959,11 +3011,14 @@ pub fn analyticsadmin_properties_run_access_report(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `analyticsadmin_properties_update_data_retention_settings_execute()` to send, or `analyticsadmin_properties_update_data_retention_settings` for simplest API.
 
-pub fn analyticsadmin_properties_update_data_retention_settings_builder(
-    client: &SimpleHttpClient,
+pub fn analyticsadmin_properties_update_data_retention_settings_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://analyticsadmin.googleapis.com/v1beta/properties/{}/dataRetentionSettings",
@@ -3143,10 +3198,13 @@ pub fn analyticsadmin_properties_update_data_retention_settings(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `analyticsadmin_properties_conversion_events_create_execute()` to send, or `analyticsadmin_properties_conversion_events_create` for simplest API.
 
-pub fn analyticsadmin_properties_conversion_events_create_builder(
-    client: &SimpleHttpClient,
+pub fn analyticsadmin_properties_conversion_events_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://analyticsadmin.googleapis.com/v1beta/properties/{}/conversionEvents",
@@ -3308,10 +3366,13 @@ pub fn analyticsadmin_properties_conversion_events_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `analyticsadmin_properties_conversion_events_delete_execute()` to send, or `analyticsadmin_properties_conversion_events_delete` for simplest API.
 
-pub fn analyticsadmin_properties_conversion_events_delete_builder(
-    client: &SimpleHttpClient,
+pub fn analyticsadmin_properties_conversion_events_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://analyticsadmin.googleapis.com/v1beta/properties/{}/conversionEvents/{conversionEventsId}",
@@ -3469,10 +3530,13 @@ pub fn analyticsadmin_properties_conversion_events_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `analyticsadmin_properties_conversion_events_get_execute()` to send, or `analyticsadmin_properties_conversion_events_get` for simplest API.
 
-pub fn analyticsadmin_properties_conversion_events_get_builder(
-    client: &SimpleHttpClient,
+pub fn analyticsadmin_properties_conversion_events_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://analyticsadmin.googleapis.com/v1beta/properties/{}/conversionEvents/{conversionEventsId}",
@@ -3634,12 +3698,15 @@ pub fn analyticsadmin_properties_conversion_events_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `analyticsadmin_properties_conversion_events_list_execute()` to send, or `analyticsadmin_properties_conversion_events_list` for simplest API.
 
-pub fn analyticsadmin_properties_conversion_events_list_builder(
-    client: &SimpleHttpClient,
+pub fn analyticsadmin_properties_conversion_events_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://analyticsadmin.googleapis.com/v1beta/properties/{}/conversionEvents",
@@ -3834,11 +3901,14 @@ pub fn analyticsadmin_properties_conversion_events_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `analyticsadmin_properties_conversion_events_patch_execute()` to send, or `analyticsadmin_properties_conversion_events_patch` for simplest API.
 
-pub fn analyticsadmin_properties_conversion_events_patch_builder(
-    client: &SimpleHttpClient,
+pub fn analyticsadmin_properties_conversion_events_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://analyticsadmin.googleapis.com/v1beta/properties/{}/conversionEvents/{conversionEventsId}",
@@ -4017,10 +4087,13 @@ pub fn analyticsadmin_properties_conversion_events_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `analyticsadmin_properties_custom_dimensions_archive_execute()` to send, or `analyticsadmin_properties_custom_dimensions_archive` for simplest API.
 
-pub fn analyticsadmin_properties_custom_dimensions_archive_builder(
-    client: &SimpleHttpClient,
+pub fn analyticsadmin_properties_custom_dimensions_archive_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://analyticsadmin.googleapis.com/v1beta/properties/{}/customDimensions/{customDimensionsId}:archive",
@@ -4178,10 +4251,13 @@ pub fn analyticsadmin_properties_custom_dimensions_archive(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `analyticsadmin_properties_custom_dimensions_create_execute()` to send, or `analyticsadmin_properties_custom_dimensions_create` for simplest API.
 
-pub fn analyticsadmin_properties_custom_dimensions_create_builder(
-    client: &SimpleHttpClient,
+pub fn analyticsadmin_properties_custom_dimensions_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://analyticsadmin.googleapis.com/v1beta/properties/{}/customDimensions",
@@ -4343,10 +4419,13 @@ pub fn analyticsadmin_properties_custom_dimensions_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `analyticsadmin_properties_custom_dimensions_get_execute()` to send, or `analyticsadmin_properties_custom_dimensions_get` for simplest API.
 
-pub fn analyticsadmin_properties_custom_dimensions_get_builder(
-    client: &SimpleHttpClient,
+pub fn analyticsadmin_properties_custom_dimensions_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://analyticsadmin.googleapis.com/v1beta/properties/{}/customDimensions/{customDimensionsId}",
@@ -4508,12 +4587,15 @@ pub fn analyticsadmin_properties_custom_dimensions_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `analyticsadmin_properties_custom_dimensions_list_execute()` to send, or `analyticsadmin_properties_custom_dimensions_list` for simplest API.
 
-pub fn analyticsadmin_properties_custom_dimensions_list_builder(
-    client: &SimpleHttpClient,
+pub fn analyticsadmin_properties_custom_dimensions_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://analyticsadmin.googleapis.com/v1beta/properties/{}/customDimensions",
@@ -4708,11 +4790,14 @@ pub fn analyticsadmin_properties_custom_dimensions_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `analyticsadmin_properties_custom_dimensions_patch_execute()` to send, or `analyticsadmin_properties_custom_dimensions_patch` for simplest API.
 
-pub fn analyticsadmin_properties_custom_dimensions_patch_builder(
-    client: &SimpleHttpClient,
+pub fn analyticsadmin_properties_custom_dimensions_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://analyticsadmin.googleapis.com/v1beta/properties/{}/customDimensions/{customDimensionsId}",
@@ -4891,10 +4976,13 @@ pub fn analyticsadmin_properties_custom_dimensions_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `analyticsadmin_properties_custom_metrics_archive_execute()` to send, or `analyticsadmin_properties_custom_metrics_archive` for simplest API.
 
-pub fn analyticsadmin_properties_custom_metrics_archive_builder(
-    client: &SimpleHttpClient,
+pub fn analyticsadmin_properties_custom_metrics_archive_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://analyticsadmin.googleapis.com/v1beta/properties/{}/customMetrics/{customMetricsId}:archive",
@@ -5052,10 +5140,13 @@ pub fn analyticsadmin_properties_custom_metrics_archive(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `analyticsadmin_properties_custom_metrics_create_execute()` to send, or `analyticsadmin_properties_custom_metrics_create` for simplest API.
 
-pub fn analyticsadmin_properties_custom_metrics_create_builder(
-    client: &SimpleHttpClient,
+pub fn analyticsadmin_properties_custom_metrics_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://analyticsadmin.googleapis.com/v1beta/properties/{}/customMetrics",
@@ -5217,10 +5308,13 @@ pub fn analyticsadmin_properties_custom_metrics_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `analyticsadmin_properties_custom_metrics_get_execute()` to send, or `analyticsadmin_properties_custom_metrics_get` for simplest API.
 
-pub fn analyticsadmin_properties_custom_metrics_get_builder(
-    client: &SimpleHttpClient,
+pub fn analyticsadmin_properties_custom_metrics_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://analyticsadmin.googleapis.com/v1beta/properties/{}/customMetrics/{customMetricsId}",
@@ -5382,12 +5476,15 @@ pub fn analyticsadmin_properties_custom_metrics_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `analyticsadmin_properties_custom_metrics_list_execute()` to send, or `analyticsadmin_properties_custom_metrics_list` for simplest API.
 
-pub fn analyticsadmin_properties_custom_metrics_list_builder(
-    client: &SimpleHttpClient,
+pub fn analyticsadmin_properties_custom_metrics_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://analyticsadmin.googleapis.com/v1beta/properties/{}/customMetrics",
@@ -5576,11 +5673,14 @@ pub fn analyticsadmin_properties_custom_metrics_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `analyticsadmin_properties_custom_metrics_patch_execute()` to send, or `analyticsadmin_properties_custom_metrics_patch` for simplest API.
 
-pub fn analyticsadmin_properties_custom_metrics_patch_builder(
-    client: &SimpleHttpClient,
+pub fn analyticsadmin_properties_custom_metrics_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://analyticsadmin.googleapis.com/v1beta/properties/{}/customMetrics/{customMetricsId}",
@@ -5759,10 +5859,13 @@ pub fn analyticsadmin_properties_custom_metrics_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `analyticsadmin_properties_data_streams_create_execute()` to send, or `analyticsadmin_properties_data_streams_create` for simplest API.
 
-pub fn analyticsadmin_properties_data_streams_create_builder(
-    client: &SimpleHttpClient,
+pub fn analyticsadmin_properties_data_streams_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://analyticsadmin.googleapis.com/v1beta/properties/{}/dataStreams",
@@ -5924,10 +6027,13 @@ pub fn analyticsadmin_properties_data_streams_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `analyticsadmin_properties_data_streams_delete_execute()` to send, or `analyticsadmin_properties_data_streams_delete` for simplest API.
 
-pub fn analyticsadmin_properties_data_streams_delete_builder(
-    client: &SimpleHttpClient,
+pub fn analyticsadmin_properties_data_streams_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://analyticsadmin.googleapis.com/v1beta/properties/{}/dataStreams/{dataStreamsId}",
@@ -6085,10 +6191,13 @@ pub fn analyticsadmin_properties_data_streams_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `analyticsadmin_properties_data_streams_get_execute()` to send, or `analyticsadmin_properties_data_streams_get` for simplest API.
 
-pub fn analyticsadmin_properties_data_streams_get_builder(
-    client: &SimpleHttpClient,
+pub fn analyticsadmin_properties_data_streams_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://analyticsadmin.googleapis.com/v1beta/properties/{}/dataStreams/{dataStreamsId}",
@@ -6250,12 +6359,15 @@ pub fn analyticsadmin_properties_data_streams_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `analyticsadmin_properties_data_streams_list_execute()` to send, or `analyticsadmin_properties_data_streams_list` for simplest API.
 
-pub fn analyticsadmin_properties_data_streams_list_builder(
-    client: &SimpleHttpClient,
+pub fn analyticsadmin_properties_data_streams_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://analyticsadmin.googleapis.com/v1beta/properties/{}/dataStreams",
@@ -6444,11 +6556,14 @@ pub fn analyticsadmin_properties_data_streams_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `analyticsadmin_properties_data_streams_patch_execute()` to send, or `analyticsadmin_properties_data_streams_patch` for simplest API.
 
-pub fn analyticsadmin_properties_data_streams_patch_builder(
-    client: &SimpleHttpClient,
+pub fn analyticsadmin_properties_data_streams_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://analyticsadmin.googleapis.com/v1beta/properties/{}/dataStreams/{dataStreamsId}",
@@ -6624,10 +6739,13 @@ pub fn analyticsadmin_properties_data_streams_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `analyticsadmin_properties_data_streams_measurement_protocol_secrets_create_execute()` to send, or `analyticsadmin_properties_data_streams_measurement_protocol_secrets_create` for simplest API.
 
-pub fn analyticsadmin_properties_data_streams_measurement_protocol_secrets_create_builder(
-    client: &SimpleHttpClient,
+pub fn analyticsadmin_properties_data_streams_measurement_protocol_secrets_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://analyticsadmin.googleapis.com/v1beta/properties/{}/dataStreams/{dataStreamsId}/measurementProtocolSecrets",
@@ -6798,10 +6916,13 @@ pub fn analyticsadmin_properties_data_streams_measurement_protocol_secrets_creat
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `analyticsadmin_properties_data_streams_measurement_protocol_secrets_delete_execute()` to send, or `analyticsadmin_properties_data_streams_measurement_protocol_secrets_delete` for simplest API.
 
-pub fn analyticsadmin_properties_data_streams_measurement_protocol_secrets_delete_builder(
-    client: &SimpleHttpClient,
+pub fn analyticsadmin_properties_data_streams_measurement_protocol_secrets_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://analyticsadmin.googleapis.com/v1beta/properties/{}/dataStreams/{dataStreamsId}/measurementProtocolSecrets/{measurementProtocolSecretsId}",
@@ -6963,10 +7084,13 @@ pub fn analyticsadmin_properties_data_streams_measurement_protocol_secrets_delet
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `analyticsadmin_properties_data_streams_measurement_protocol_secrets_get_execute()` to send, or `analyticsadmin_properties_data_streams_measurement_protocol_secrets_get` for simplest API.
 
-pub fn analyticsadmin_properties_data_streams_measurement_protocol_secrets_get_builder(
-    client: &SimpleHttpClient,
+pub fn analyticsadmin_properties_data_streams_measurement_protocol_secrets_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://analyticsadmin.googleapis.com/v1beta/properties/{}/dataStreams/{dataStreamsId}/measurementProtocolSecrets/{measurementProtocolSecretsId}",
@@ -7135,12 +7259,15 @@ pub fn analyticsadmin_properties_data_streams_measurement_protocol_secrets_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `analyticsadmin_properties_data_streams_measurement_protocol_secrets_list_execute()` to send, or `analyticsadmin_properties_data_streams_measurement_protocol_secrets_list` for simplest API.
 
-pub fn analyticsadmin_properties_data_streams_measurement_protocol_secrets_list_builder(
-    client: &SimpleHttpClient,
+pub fn analyticsadmin_properties_data_streams_measurement_protocol_secrets_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://analyticsadmin.googleapis.com/v1beta/properties/{}/dataStreams/{dataStreamsId}/measurementProtocolSecrets",
@@ -7336,11 +7463,14 @@ pub fn analyticsadmin_properties_data_streams_measurement_protocol_secrets_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `analyticsadmin_properties_data_streams_measurement_protocol_secrets_patch_execute()` to send, or `analyticsadmin_properties_data_streams_measurement_protocol_secrets_patch` for simplest API.
 
-pub fn analyticsadmin_properties_data_streams_measurement_protocol_secrets_patch_builder(
-    client: &SimpleHttpClient,
+pub fn analyticsadmin_properties_data_streams_measurement_protocol_secrets_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://analyticsadmin.googleapis.com/v1beta/properties/{}/dataStreams/{dataStreamsId}/measurementProtocolSecrets/{measurementProtocolSecretsId}",
@@ -7525,10 +7655,13 @@ pub fn analyticsadmin_properties_data_streams_measurement_protocol_secrets_patch
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `analyticsadmin_properties_firebase_links_create_execute()` to send, or `analyticsadmin_properties_firebase_links_create` for simplest API.
 
-pub fn analyticsadmin_properties_firebase_links_create_builder(
-    client: &SimpleHttpClient,
+pub fn analyticsadmin_properties_firebase_links_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://analyticsadmin.googleapis.com/v1beta/properties/{}/firebaseLinks",
@@ -7690,10 +7823,13 @@ pub fn analyticsadmin_properties_firebase_links_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `analyticsadmin_properties_firebase_links_delete_execute()` to send, or `analyticsadmin_properties_firebase_links_delete` for simplest API.
 
-pub fn analyticsadmin_properties_firebase_links_delete_builder(
-    client: &SimpleHttpClient,
+pub fn analyticsadmin_properties_firebase_links_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://analyticsadmin.googleapis.com/v1beta/properties/{}/firebaseLinks/{firebaseLinksId}",
@@ -7851,12 +7987,15 @@ pub fn analyticsadmin_properties_firebase_links_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `analyticsadmin_properties_firebase_links_list_execute()` to send, or `analyticsadmin_properties_firebase_links_list` for simplest API.
 
-pub fn analyticsadmin_properties_firebase_links_list_builder(
-    client: &SimpleHttpClient,
+pub fn analyticsadmin_properties_firebase_links_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://analyticsadmin.googleapis.com/v1beta/properties/{}/firebaseLinks",
@@ -8045,10 +8184,13 @@ pub fn analyticsadmin_properties_firebase_links_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `analyticsadmin_properties_google_ads_links_create_execute()` to send, or `analyticsadmin_properties_google_ads_links_create` for simplest API.
 
-pub fn analyticsadmin_properties_google_ads_links_create_builder(
-    client: &SimpleHttpClient,
+pub fn analyticsadmin_properties_google_ads_links_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://analyticsadmin.googleapis.com/v1beta/properties/{}/googleAdsLinks",
@@ -8211,10 +8353,13 @@ pub fn analyticsadmin_properties_google_ads_links_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `analyticsadmin_properties_google_ads_links_delete_execute()` to send, or `analyticsadmin_properties_google_ads_links_delete` for simplest API.
 
-pub fn analyticsadmin_properties_google_ads_links_delete_builder(
-    client: &SimpleHttpClient,
+pub fn analyticsadmin_properties_google_ads_links_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://analyticsadmin.googleapis.com/v1beta/properties/{}/googleAdsLinks/{googleAdsLinksId}",
@@ -8372,12 +8517,15 @@ pub fn analyticsadmin_properties_google_ads_links_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `analyticsadmin_properties_google_ads_links_list_execute()` to send, or `analyticsadmin_properties_google_ads_links_list` for simplest API.
 
-pub fn analyticsadmin_properties_google_ads_links_list_builder(
-    client: &SimpleHttpClient,
+pub fn analyticsadmin_properties_google_ads_links_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://analyticsadmin.googleapis.com/v1beta/properties/{}/googleAdsLinks",
@@ -8566,11 +8714,14 @@ pub fn analyticsadmin_properties_google_ads_links_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `analyticsadmin_properties_google_ads_links_patch_execute()` to send, or `analyticsadmin_properties_google_ads_links_patch` for simplest API.
 
-pub fn analyticsadmin_properties_google_ads_links_patch_builder(
-    client: &SimpleHttpClient,
+pub fn analyticsadmin_properties_google_ads_links_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://analyticsadmin.googleapis.com/v1beta/properties/{}/googleAdsLinks/{googleAdsLinksId}",
@@ -8750,10 +8901,13 @@ pub fn analyticsadmin_properties_google_ads_links_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `analyticsadmin_properties_key_events_create_execute()` to send, or `analyticsadmin_properties_key_events_create` for simplest API.
 
-pub fn analyticsadmin_properties_key_events_create_builder(
-    client: &SimpleHttpClient,
+pub fn analyticsadmin_properties_key_events_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://analyticsadmin.googleapis.com/v1beta/properties/{}/keyEvents",
@@ -8915,10 +9069,13 @@ pub fn analyticsadmin_properties_key_events_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `analyticsadmin_properties_key_events_delete_execute()` to send, or `analyticsadmin_properties_key_events_delete` for simplest API.
 
-pub fn analyticsadmin_properties_key_events_delete_builder(
-    client: &SimpleHttpClient,
+pub fn analyticsadmin_properties_key_events_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://analyticsadmin.googleapis.com/v1beta/properties/{}/keyEvents/{keyEventsId}",
@@ -9076,10 +9233,13 @@ pub fn analyticsadmin_properties_key_events_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `analyticsadmin_properties_key_events_get_execute()` to send, or `analyticsadmin_properties_key_events_get` for simplest API.
 
-pub fn analyticsadmin_properties_key_events_get_builder(
-    client: &SimpleHttpClient,
+pub fn analyticsadmin_properties_key_events_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://analyticsadmin.googleapis.com/v1beta/properties/{}/keyEvents/{keyEventsId}",
@@ -9241,12 +9401,15 @@ pub fn analyticsadmin_properties_key_events_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `analyticsadmin_properties_key_events_list_execute()` to send, or `analyticsadmin_properties_key_events_list` for simplest API.
 
-pub fn analyticsadmin_properties_key_events_list_builder(
-    client: &SimpleHttpClient,
+pub fn analyticsadmin_properties_key_events_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://analyticsadmin.googleapis.com/v1beta/properties/{}/keyEvents",
@@ -9432,11 +9595,14 @@ pub fn analyticsadmin_properties_key_events_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `analyticsadmin_properties_key_events_patch_execute()` to send, or `analyticsadmin_properties_key_events_patch` for simplest API.
 
-pub fn analyticsadmin_properties_key_events_patch_builder(
-    client: &SimpleHttpClient,
+pub fn analyticsadmin_properties_key_events_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://analyticsadmin.googleapis.com/v1beta/properties/{}/keyEvents/{keyEventsId}",

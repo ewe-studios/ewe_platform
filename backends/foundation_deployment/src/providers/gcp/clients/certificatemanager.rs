@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `certificatemanager_projects_locations_get_execute()` to send, or `certificatemanager_projects_locations_get` for simplest API.
 
-pub fn certificatemanager_projects_locations_get_builder(
-    client: &SimpleHttpClient,
+pub fn certificatemanager_projects_locations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://certificatemanager.googleapis.com/v1/projects/{}/locations/{locationsId}",
@@ -183,14 +187,17 @@ pub fn certificatemanager_projects_locations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `certificatemanager_projects_locations_list_execute()` to send, or `certificatemanager_projects_locations_list` for simplest API.
 
-pub fn certificatemanager_projects_locations_list_builder(
-    client: &SimpleHttpClient,
+pub fn certificatemanager_projects_locations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     extraLocationTypes: &Option<Option<String>>,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://certificatemanager.googleapis.com/v1/projects/{}/locations",
@@ -383,11 +390,14 @@ pub fn certificatemanager_projects_locations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `certificatemanager_projects_locations_certificate_issuance_configs_create_execute()` to send, or `certificatemanager_projects_locations_certificate_issuance_configs_create` for simplest API.
 
-pub fn certificatemanager_projects_locations_certificate_issuance_configs_create_builder(
-    client: &SimpleHttpClient,
+pub fn certificatemanager_projects_locations_certificate_issuance_configs_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     certificateIssuanceConfigId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://certificatemanager.googleapis.com/v1/projects/{}/locations/{locationsId}/certificateIssuanceConfigs",
@@ -560,10 +570,13 @@ pub fn certificatemanager_projects_locations_certificate_issuance_configs_create
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `certificatemanager_projects_locations_certificate_issuance_configs_delete_execute()` to send, or `certificatemanager_projects_locations_certificate_issuance_configs_delete` for simplest API.
 
-pub fn certificatemanager_projects_locations_certificate_issuance_configs_delete_builder(
-    client: &SimpleHttpClient,
+pub fn certificatemanager_projects_locations_certificate_issuance_configs_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://certificatemanager.googleapis.com/v1/projects/{}/locations/{locationsId}/certificateIssuanceConfigs/{certificateIssuanceConfigsId}",
@@ -721,10 +734,13 @@ pub fn certificatemanager_projects_locations_certificate_issuance_configs_delete
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `certificatemanager_projects_locations_certificate_issuance_configs_get_execute()` to send, or `certificatemanager_projects_locations_certificate_issuance_configs_get` for simplest API.
 
-pub fn certificatemanager_projects_locations_certificate_issuance_configs_get_builder(
-    client: &SimpleHttpClient,
+pub fn certificatemanager_projects_locations_certificate_issuance_configs_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://certificatemanager.googleapis.com/v1/projects/{}/locations/{locationsId}/certificateIssuanceConfigs/{certificateIssuanceConfigsId}",
@@ -885,14 +901,17 @@ pub fn certificatemanager_projects_locations_certificate_issuance_configs_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `certificatemanager_projects_locations_certificate_issuance_configs_list_execute()` to send, or `certificatemanager_projects_locations_certificate_issuance_configs_list` for simplest API.
 
-pub fn certificatemanager_projects_locations_certificate_issuance_configs_list_builder(
-    client: &SimpleHttpClient,
+pub fn certificatemanager_projects_locations_certificate_issuance_configs_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://certificatemanager.googleapis.com/v1/projects/{}/locations/{locationsId}/certificateIssuanceConfigs",
@@ -1090,11 +1109,14 @@ pub fn certificatemanager_projects_locations_certificate_issuance_configs_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `certificatemanager_projects_locations_certificate_issuance_configs_patch_execute()` to send, or `certificatemanager_projects_locations_certificate_issuance_configs_patch` for simplest API.
 
-pub fn certificatemanager_projects_locations_certificate_issuance_configs_patch_builder(
-    client: &SimpleHttpClient,
+pub fn certificatemanager_projects_locations_certificate_issuance_configs_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://certificatemanager.googleapis.com/v1/projects/{}/locations/{locationsId}/certificateIssuanceConfigs/{certificateIssuanceConfigsId}",
@@ -1266,11 +1288,14 @@ pub fn certificatemanager_projects_locations_certificate_issuance_configs_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `certificatemanager_projects_locations_certificate_maps_create_execute()` to send, or `certificatemanager_projects_locations_certificate_maps_create` for simplest API.
 
-pub fn certificatemanager_projects_locations_certificate_maps_create_builder(
-    client: &SimpleHttpClient,
+pub fn certificatemanager_projects_locations_certificate_maps_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     certificateMapId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://certificatemanager.googleapis.com/v1/projects/{}/locations/{locationsId}/certificateMaps",
@@ -1441,10 +1466,13 @@ pub fn certificatemanager_projects_locations_certificate_maps_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `certificatemanager_projects_locations_certificate_maps_delete_execute()` to send, or `certificatemanager_projects_locations_certificate_maps_delete` for simplest API.
 
-pub fn certificatemanager_projects_locations_certificate_maps_delete_builder(
-    client: &SimpleHttpClient,
+pub fn certificatemanager_projects_locations_certificate_maps_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://certificatemanager.googleapis.com/v1/projects/{}/locations/{locationsId}/certificateMaps/{certificateMapsId}",
@@ -1599,10 +1627,13 @@ pub fn certificatemanager_projects_locations_certificate_maps_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `certificatemanager_projects_locations_certificate_maps_get_execute()` to send, or `certificatemanager_projects_locations_certificate_maps_get` for simplest API.
 
-pub fn certificatemanager_projects_locations_certificate_maps_get_builder(
-    client: &SimpleHttpClient,
+pub fn certificatemanager_projects_locations_certificate_maps_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://certificatemanager.googleapis.com/v1/projects/{}/locations/{locationsId}/certificateMaps/{certificateMapsId}",
@@ -1761,14 +1792,17 @@ pub fn certificatemanager_projects_locations_certificate_maps_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `certificatemanager_projects_locations_certificate_maps_list_execute()` to send, or `certificatemanager_projects_locations_certificate_maps_list` for simplest API.
 
-pub fn certificatemanager_projects_locations_certificate_maps_list_builder(
-    client: &SimpleHttpClient,
+pub fn certificatemanager_projects_locations_certificate_maps_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://certificatemanager.googleapis.com/v1/projects/{}/locations/{locationsId}/certificateMaps",
@@ -1965,11 +1999,14 @@ pub fn certificatemanager_projects_locations_certificate_maps_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `certificatemanager_projects_locations_certificate_maps_patch_execute()` to send, or `certificatemanager_projects_locations_certificate_maps_patch` for simplest API.
 
-pub fn certificatemanager_projects_locations_certificate_maps_patch_builder(
-    client: &SimpleHttpClient,
+pub fn certificatemanager_projects_locations_certificate_maps_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://certificatemanager.googleapis.com/v1/projects/{}/locations/{locationsId}/certificateMaps/{certificateMapsId}",
@@ -2140,11 +2177,16 @@ pub fn certificatemanager_projects_locations_certificate_maps_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `certificatemanager_projects_locations_certificate_maps_certificate_map_entries_create_execute()` to send, or `certificatemanager_projects_locations_certificate_maps_certificate_map_entries_create` for simplest API.
 
-pub fn certificatemanager_projects_locations_certificate_maps_certificate_map_entries_create_builder(
-    client: &SimpleHttpClient,
+pub fn certificatemanager_projects_locations_certificate_maps_certificate_map_entries_create_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     certificateMapEntryId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://certificatemanager.googleapis.com/v1/projects/{}/locations/{locationsId}/certificateMaps/{certificateMapsId}/certificateMapEntries",
@@ -2316,10 +2358,15 @@ pub fn certificatemanager_projects_locations_certificate_maps_certificate_map_en
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `certificatemanager_projects_locations_certificate_maps_certificate_map_entries_delete_execute()` to send, or `certificatemanager_projects_locations_certificate_maps_certificate_map_entries_delete` for simplest API.
 
-pub fn certificatemanager_projects_locations_certificate_maps_certificate_map_entries_delete_builder(
-    client: &SimpleHttpClient,
+pub fn certificatemanager_projects_locations_certificate_maps_certificate_map_entries_delete_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://certificatemanager.googleapis.com/v1/projects/{}/locations/{locationsId}/certificateMaps/{certificateMapsId}/certificateMapEntries/{certificateMapEntriesId}",
@@ -2478,10 +2525,15 @@ pub fn certificatemanager_projects_locations_certificate_maps_certificate_map_en
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `certificatemanager_projects_locations_certificate_maps_certificate_map_entries_get_execute()` to send, or `certificatemanager_projects_locations_certificate_maps_certificate_map_entries_get` for simplest API.
 
-pub fn certificatemanager_projects_locations_certificate_maps_certificate_map_entries_get_builder(
-    client: &SimpleHttpClient,
+pub fn certificatemanager_projects_locations_certificate_maps_certificate_map_entries_get_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://certificatemanager.googleapis.com/v1/projects/{}/locations/{locationsId}/certificateMaps/{certificateMapsId}/certificateMapEntries/{certificateMapEntriesId}",
@@ -2647,14 +2699,19 @@ pub fn certificatemanager_projects_locations_certificate_maps_certificate_map_en
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `certificatemanager_projects_locations_certificate_maps_certificate_map_entries_list_execute()` to send, or `certificatemanager_projects_locations_certificate_maps_certificate_map_entries_list` for simplest API.
 
-pub fn certificatemanager_projects_locations_certificate_maps_certificate_map_entries_list_builder(
-    client: &SimpleHttpClient,
+pub fn certificatemanager_projects_locations_certificate_maps_certificate_map_entries_list_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://certificatemanager.googleapis.com/v1/projects/{}/locations/{locationsId}/certificateMaps/{certificateMapsId}/certificateMapEntries",
@@ -2849,11 +2906,16 @@ pub fn certificatemanager_projects_locations_certificate_maps_certificate_map_en
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `certificatemanager_projects_locations_certificate_maps_certificate_map_entries_patch_execute()` to send, or `certificatemanager_projects_locations_certificate_maps_certificate_map_entries_patch` for simplest API.
 
-pub fn certificatemanager_projects_locations_certificate_maps_certificate_map_entries_patch_builder(
-    client: &SimpleHttpClient,
+pub fn certificatemanager_projects_locations_certificate_maps_certificate_map_entries_patch_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://certificatemanager.googleapis.com/v1/projects/{}/locations/{locationsId}/certificateMaps/{certificateMapsId}/certificateMapEntries/{certificateMapEntriesId}",
@@ -3025,11 +3087,14 @@ pub fn certificatemanager_projects_locations_certificate_maps_certificate_map_en
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `certificatemanager_projects_locations_certificates_create_execute()` to send, or `certificatemanager_projects_locations_certificates_create` for simplest API.
 
-pub fn certificatemanager_projects_locations_certificates_create_builder(
-    client: &SimpleHttpClient,
+pub fn certificatemanager_projects_locations_certificates_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     certificateId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://certificatemanager.googleapis.com/v1/projects/{}/locations/{locationsId}/certificates",
@@ -3200,10 +3265,13 @@ pub fn certificatemanager_projects_locations_certificates_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `certificatemanager_projects_locations_certificates_delete_execute()` to send, or `certificatemanager_projects_locations_certificates_delete` for simplest API.
 
-pub fn certificatemanager_projects_locations_certificates_delete_builder(
-    client: &SimpleHttpClient,
+pub fn certificatemanager_projects_locations_certificates_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://certificatemanager.googleapis.com/v1/projects/{}/locations/{locationsId}/certificates/{certificatesId}",
@@ -3358,10 +3426,13 @@ pub fn certificatemanager_projects_locations_certificates_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `certificatemanager_projects_locations_certificates_get_execute()` to send, or `certificatemanager_projects_locations_certificates_get` for simplest API.
 
-pub fn certificatemanager_projects_locations_certificates_get_builder(
-    client: &SimpleHttpClient,
+pub fn certificatemanager_projects_locations_certificates_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://certificatemanager.googleapis.com/v1/projects/{}/locations/{locationsId}/certificates/{certificatesId}",
@@ -3516,14 +3587,17 @@ pub fn certificatemanager_projects_locations_certificates_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `certificatemanager_projects_locations_certificates_list_execute()` to send, or `certificatemanager_projects_locations_certificates_list` for simplest API.
 
-pub fn certificatemanager_projects_locations_certificates_list_builder(
-    client: &SimpleHttpClient,
+pub fn certificatemanager_projects_locations_certificates_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://certificatemanager.googleapis.com/v1/projects/{}/locations/{locationsId}/certificates",
@@ -3716,11 +3790,14 @@ pub fn certificatemanager_projects_locations_certificates_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `certificatemanager_projects_locations_certificates_patch_execute()` to send, or `certificatemanager_projects_locations_certificates_patch` for simplest API.
 
-pub fn certificatemanager_projects_locations_certificates_patch_builder(
-    client: &SimpleHttpClient,
+pub fn certificatemanager_projects_locations_certificates_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://certificatemanager.googleapis.com/v1/projects/{}/locations/{locationsId}/certificates/{certificatesId}",
@@ -3891,11 +3968,14 @@ pub fn certificatemanager_projects_locations_certificates_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `certificatemanager_projects_locations_dns_authorizations_create_execute()` to send, or `certificatemanager_projects_locations_dns_authorizations_create` for simplest API.
 
-pub fn certificatemanager_projects_locations_dns_authorizations_create_builder(
-    client: &SimpleHttpClient,
+pub fn certificatemanager_projects_locations_dns_authorizations_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     dnsAuthorizationId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://certificatemanager.googleapis.com/v1/projects/{}/locations/{locationsId}/dnsAuthorizations",
@@ -4066,10 +4146,13 @@ pub fn certificatemanager_projects_locations_dns_authorizations_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `certificatemanager_projects_locations_dns_authorizations_delete_execute()` to send, or `certificatemanager_projects_locations_dns_authorizations_delete` for simplest API.
 
-pub fn certificatemanager_projects_locations_dns_authorizations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn certificatemanager_projects_locations_dns_authorizations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://certificatemanager.googleapis.com/v1/projects/{}/locations/{locationsId}/dnsAuthorizations/{dnsAuthorizationsId}",
@@ -4225,10 +4308,13 @@ pub fn certificatemanager_projects_locations_dns_authorizations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `certificatemanager_projects_locations_dns_authorizations_get_execute()` to send, or `certificatemanager_projects_locations_dns_authorizations_get` for simplest API.
 
-pub fn certificatemanager_projects_locations_dns_authorizations_get_builder(
-    client: &SimpleHttpClient,
+pub fn certificatemanager_projects_locations_dns_authorizations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://certificatemanager.googleapis.com/v1/projects/{}/locations/{locationsId}/dnsAuthorizations/{dnsAuthorizationsId}",
@@ -4387,14 +4473,17 @@ pub fn certificatemanager_projects_locations_dns_authorizations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `certificatemanager_projects_locations_dns_authorizations_list_execute()` to send, or `certificatemanager_projects_locations_dns_authorizations_list` for simplest API.
 
-pub fn certificatemanager_projects_locations_dns_authorizations_list_builder(
-    client: &SimpleHttpClient,
+pub fn certificatemanager_projects_locations_dns_authorizations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://certificatemanager.googleapis.com/v1/projects/{}/locations/{locationsId}/dnsAuthorizations",
@@ -4591,11 +4680,14 @@ pub fn certificatemanager_projects_locations_dns_authorizations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `certificatemanager_projects_locations_dns_authorizations_patch_execute()` to send, or `certificatemanager_projects_locations_dns_authorizations_patch` for simplest API.
 
-pub fn certificatemanager_projects_locations_dns_authorizations_patch_builder(
-    client: &SimpleHttpClient,
+pub fn certificatemanager_projects_locations_dns_authorizations_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://certificatemanager.googleapis.com/v1/projects/{}/locations/{locationsId}/dnsAuthorizations/{dnsAuthorizationsId}",
@@ -4766,10 +4858,13 @@ pub fn certificatemanager_projects_locations_dns_authorizations_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `certificatemanager_projects_locations_operations_cancel_execute()` to send, or `certificatemanager_projects_locations_operations_cancel` for simplest API.
 
-pub fn certificatemanager_projects_locations_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn certificatemanager_projects_locations_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://certificatemanager.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}:cancel",
@@ -4924,10 +5019,13 @@ pub fn certificatemanager_projects_locations_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `certificatemanager_projects_locations_operations_delete_execute()` to send, or `certificatemanager_projects_locations_operations_delete` for simplest API.
 
-pub fn certificatemanager_projects_locations_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn certificatemanager_projects_locations_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://certificatemanager.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -5082,10 +5180,13 @@ pub fn certificatemanager_projects_locations_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `certificatemanager_projects_locations_operations_get_execute()` to send, or `certificatemanager_projects_locations_operations_get` for simplest API.
 
-pub fn certificatemanager_projects_locations_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn certificatemanager_projects_locations_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://certificatemanager.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -5239,14 +5340,17 @@ pub fn certificatemanager_projects_locations_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `certificatemanager_projects_locations_operations_list_execute()` to send, or `certificatemanager_projects_locations_operations_list` for simplest API.
 
-pub fn certificatemanager_projects_locations_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn certificatemanager_projects_locations_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://certificatemanager.googleapis.com/v1/projects/{}/locations/{locationsId}/operations",
@@ -5439,11 +5543,14 @@ pub fn certificatemanager_projects_locations_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `certificatemanager_projects_locations_trust_configs_create_execute()` to send, or `certificatemanager_projects_locations_trust_configs_create` for simplest API.
 
-pub fn certificatemanager_projects_locations_trust_configs_create_builder(
-    client: &SimpleHttpClient,
+pub fn certificatemanager_projects_locations_trust_configs_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     trustConfigId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://certificatemanager.googleapis.com/v1/projects/{}/locations/{locationsId}/trustConfigs",
@@ -5614,11 +5721,14 @@ pub fn certificatemanager_projects_locations_trust_configs_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `certificatemanager_projects_locations_trust_configs_delete_execute()` to send, or `certificatemanager_projects_locations_trust_configs_delete` for simplest API.
 
-pub fn certificatemanager_projects_locations_trust_configs_delete_builder(
-    client: &SimpleHttpClient,
+pub fn certificatemanager_projects_locations_trust_configs_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     etag: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://certificatemanager.googleapis.com/v1/projects/{}/locations/{locationsId}/trustConfigs/{trustConfigsId}",
@@ -5787,10 +5897,13 @@ pub fn certificatemanager_projects_locations_trust_configs_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `certificatemanager_projects_locations_trust_configs_get_execute()` to send, or `certificatemanager_projects_locations_trust_configs_get` for simplest API.
 
-pub fn certificatemanager_projects_locations_trust_configs_get_builder(
-    client: &SimpleHttpClient,
+pub fn certificatemanager_projects_locations_trust_configs_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://certificatemanager.googleapis.com/v1/projects/{}/locations/{locationsId}/trustConfigs/{trustConfigsId}",
@@ -5945,14 +6058,17 @@ pub fn certificatemanager_projects_locations_trust_configs_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `certificatemanager_projects_locations_trust_configs_list_execute()` to send, or `certificatemanager_projects_locations_trust_configs_list` for simplest API.
 
-pub fn certificatemanager_projects_locations_trust_configs_list_builder(
-    client: &SimpleHttpClient,
+pub fn certificatemanager_projects_locations_trust_configs_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://certificatemanager.googleapis.com/v1/projects/{}/locations/{locationsId}/trustConfigs",
@@ -6145,11 +6261,14 @@ pub fn certificatemanager_projects_locations_trust_configs_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `certificatemanager_projects_locations_trust_configs_patch_execute()` to send, or `certificatemanager_projects_locations_trust_configs_patch` for simplest API.
 
-pub fn certificatemanager_projects_locations_trust_configs_patch_builder(
-    client: &SimpleHttpClient,
+pub fn certificatemanager_projects_locations_trust_configs_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://certificatemanager.googleapis.com/v1/projects/{}/locations/{locationsId}/trustConfigs/{trustConfigsId}",

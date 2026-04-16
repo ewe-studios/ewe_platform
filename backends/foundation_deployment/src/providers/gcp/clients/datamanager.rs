@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datamanager_account_types_accounts_insights_retrieve_execute()` to send, or `datamanager_account_types_accounts_insights_retrieve` for simplest API.
 
-pub fn datamanager_account_types_accounts_insights_retrieve_builder(
-    client: &SimpleHttpClient,
+pub fn datamanager_account_types_accounts_insights_retrieve_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datamanager.googleapis.com/v1/accountTypes/{}/accounts/{accountsId}/insights:retrieve",
@@ -188,10 +192,13 @@ pub fn datamanager_account_types_accounts_insights_retrieve(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datamanager_account_types_accounts_partner_links_create_execute()` to send, or `datamanager_account_types_accounts_partner_links_create` for simplest API.
 
-pub fn datamanager_account_types_accounts_partner_links_create_builder(
-    client: &SimpleHttpClient,
+pub fn datamanager_account_types_accounts_partner_links_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datamanager.googleapis.com/v1/accountTypes/{}/accounts/{accountsId}/partnerLinks",
@@ -346,10 +353,13 @@ pub fn datamanager_account_types_accounts_partner_links_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datamanager_account_types_accounts_partner_links_delete_execute()` to send, or `datamanager_account_types_accounts_partner_links_delete` for simplest API.
 
-pub fn datamanager_account_types_accounts_partner_links_delete_builder(
-    client: &SimpleHttpClient,
+pub fn datamanager_account_types_accounts_partner_links_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datamanager.googleapis.com/v1/accountTypes/{}/accounts/{accountsId}/partnerLinks/{partnerLinksId}",
@@ -504,13 +514,16 @@ pub fn datamanager_account_types_accounts_partner_links_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datamanager_account_types_accounts_partner_links_search_execute()` to send, or `datamanager_account_types_accounts_partner_links_search` for simplest API.
 
-pub fn datamanager_account_types_accounts_partner_links_search_builder(
-    client: &SimpleHttpClient,
+pub fn datamanager_account_types_accounts_partner_links_search_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datamanager.googleapis.com/v1/accountTypes/{}/accounts/{accountsId}/partnerLinks:search",
@@ -701,10 +714,13 @@ pub fn datamanager_account_types_accounts_partner_links_search(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datamanager_account_types_accounts_user_list_direct_licenses_create_execute()` to send, or `datamanager_account_types_accounts_user_list_direct_licenses_create` for simplest API.
 
-pub fn datamanager_account_types_accounts_user_list_direct_licenses_create_builder(
-    client: &SimpleHttpClient,
+pub fn datamanager_account_types_accounts_user_list_direct_licenses_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datamanager.googleapis.com/v1/accountTypes/{}/accounts/{accountsId}/userListDirectLicenses",
@@ -865,10 +881,13 @@ pub fn datamanager_account_types_accounts_user_list_direct_licenses_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datamanager_account_types_accounts_user_list_direct_licenses_get_execute()` to send, or `datamanager_account_types_accounts_user_list_direct_licenses_get` for simplest API.
 
-pub fn datamanager_account_types_accounts_user_list_direct_licenses_get_builder(
-    client: &SimpleHttpClient,
+pub fn datamanager_account_types_accounts_user_list_direct_licenses_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datamanager.googleapis.com/v1/accountTypes/{}/accounts/{accountsId}/userListDirectLicenses/{userListDirectLicensesId}",
@@ -1028,13 +1047,16 @@ pub fn datamanager_account_types_accounts_user_list_direct_licenses_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datamanager_account_types_accounts_user_list_direct_licenses_list_execute()` to send, or `datamanager_account_types_accounts_user_list_direct_licenses_list` for simplest API.
 
-pub fn datamanager_account_types_accounts_user_list_direct_licenses_list_builder(
-    client: &SimpleHttpClient,
+pub fn datamanager_account_types_accounts_user_list_direct_licenses_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datamanager.googleapis.com/v1/accountTypes/{}/accounts/{accountsId}/userListDirectLicenses",
@@ -1225,11 +1247,14 @@ pub fn datamanager_account_types_accounts_user_list_direct_licenses_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datamanager_account_types_accounts_user_list_direct_licenses_patch_execute()` to send, or `datamanager_account_types_accounts_user_list_direct_licenses_patch` for simplest API.
 
-pub fn datamanager_account_types_accounts_user_list_direct_licenses_patch_builder(
-    client: &SimpleHttpClient,
+pub fn datamanager_account_types_accounts_user_list_direct_licenses_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datamanager.googleapis.com/v1/accountTypes/{}/accounts/{accountsId}/userListDirectLicenses/{userListDirectLicensesId}",
@@ -1404,10 +1429,13 @@ pub fn datamanager_account_types_accounts_user_list_direct_licenses_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datamanager_account_types_accounts_user_list_global_licenses_create_execute()` to send, or `datamanager_account_types_accounts_user_list_global_licenses_create` for simplest API.
 
-pub fn datamanager_account_types_accounts_user_list_global_licenses_create_builder(
-    client: &SimpleHttpClient,
+pub fn datamanager_account_types_accounts_user_list_global_licenses_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datamanager.googleapis.com/v1/accountTypes/{}/accounts/{accountsId}/userListGlobalLicenses",
@@ -1568,10 +1596,13 @@ pub fn datamanager_account_types_accounts_user_list_global_licenses_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datamanager_account_types_accounts_user_list_global_licenses_get_execute()` to send, or `datamanager_account_types_accounts_user_list_global_licenses_get` for simplest API.
 
-pub fn datamanager_account_types_accounts_user_list_global_licenses_get_builder(
-    client: &SimpleHttpClient,
+pub fn datamanager_account_types_accounts_user_list_global_licenses_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datamanager.googleapis.com/v1/accountTypes/{}/accounts/{accountsId}/userListGlobalLicenses/{userListGlobalLicensesId}",
@@ -1731,13 +1762,16 @@ pub fn datamanager_account_types_accounts_user_list_global_licenses_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datamanager_account_types_accounts_user_list_global_licenses_list_execute()` to send, or `datamanager_account_types_accounts_user_list_global_licenses_list` for simplest API.
 
-pub fn datamanager_account_types_accounts_user_list_global_licenses_list_builder(
-    client: &SimpleHttpClient,
+pub fn datamanager_account_types_accounts_user_list_global_licenses_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datamanager.googleapis.com/v1/accountTypes/{}/accounts/{accountsId}/userListGlobalLicenses",
@@ -1928,11 +1962,14 @@ pub fn datamanager_account_types_accounts_user_list_global_licenses_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datamanager_account_types_accounts_user_list_global_licenses_patch_execute()` to send, or `datamanager_account_types_accounts_user_list_global_licenses_patch` for simplest API.
 
-pub fn datamanager_account_types_accounts_user_list_global_licenses_patch_builder(
-    client: &SimpleHttpClient,
+pub fn datamanager_account_types_accounts_user_list_global_licenses_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datamanager.googleapis.com/v1/accountTypes/{}/accounts/{accountsId}/userListGlobalLicenses/{userListGlobalLicensesId}",
@@ -2107,13 +2144,18 @@ pub fn datamanager_account_types_accounts_user_list_global_licenses_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datamanager_account_types_accounts_user_list_global_licenses_user_list_global_license_customer_infos_list_execute()` to send, or `datamanager_account_types_accounts_user_list_global_licenses_user_list_global_license_customer_infos_list` for simplest API.
 
-pub fn datamanager_account_types_accounts_user_list_global_licenses_user_list_global_license_customer_infos_list_builder(
-    client: &SimpleHttpClient,
+pub fn datamanager_account_types_accounts_user_list_global_licenses_user_list_global_license_customer_infos_list_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datamanager.googleapis.com/v1/accountTypes/{}/accounts/{accountsId}/userListGlobalLicenses/{userListGlobalLicensesId}/userListGlobalLicenseCustomerInfos",
@@ -2300,11 +2342,14 @@ pub fn datamanager_account_types_accounts_user_list_global_licenses_user_list_gl
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datamanager_account_types_accounts_user_lists_create_execute()` to send, or `datamanager_account_types_accounts_user_lists_create` for simplest API.
 
-pub fn datamanager_account_types_accounts_user_lists_create_builder(
-    client: &SimpleHttpClient,
+pub fn datamanager_account_types_accounts_user_lists_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datamanager.googleapis.com/v1/accountTypes/{}/accounts/{accountsId}/userLists",
@@ -2475,11 +2520,14 @@ pub fn datamanager_account_types_accounts_user_lists_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datamanager_account_types_accounts_user_lists_delete_execute()` to send, or `datamanager_account_types_accounts_user_lists_delete` for simplest API.
 
-pub fn datamanager_account_types_accounts_user_lists_delete_builder(
-    client: &SimpleHttpClient,
+pub fn datamanager_account_types_accounts_user_lists_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datamanager.googleapis.com/v1/accountTypes/{}/accounts/{accountsId}/userLists/{userListsId}",
@@ -2650,10 +2698,13 @@ pub fn datamanager_account_types_accounts_user_lists_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datamanager_account_types_accounts_user_lists_get_execute()` to send, or `datamanager_account_types_accounts_user_lists_get` for simplest API.
 
-pub fn datamanager_account_types_accounts_user_lists_get_builder(
-    client: &SimpleHttpClient,
+pub fn datamanager_account_types_accounts_user_lists_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datamanager.googleapis.com/v1/accountTypes/{}/accounts/{accountsId}/userLists/{userListsId}",
@@ -2807,13 +2858,16 @@ pub fn datamanager_account_types_accounts_user_lists_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datamanager_account_types_accounts_user_lists_list_execute()` to send, or `datamanager_account_types_accounts_user_lists_list` for simplest API.
 
-pub fn datamanager_account_types_accounts_user_lists_list_builder(
-    client: &SimpleHttpClient,
+pub fn datamanager_account_types_accounts_user_lists_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datamanager.googleapis.com/v1/accountTypes/{}/accounts/{accountsId}/userLists",
@@ -3000,12 +3054,15 @@ pub fn datamanager_account_types_accounts_user_lists_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datamanager_account_types_accounts_user_lists_patch_execute()` to send, or `datamanager_account_types_accounts_user_lists_patch` for simplest API.
 
-pub fn datamanager_account_types_accounts_user_lists_patch_builder(
-    client: &SimpleHttpClient,
+pub fn datamanager_account_types_accounts_user_lists_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datamanager.googleapis.com/v1/accountTypes/{}/accounts/{accountsId}/userLists/{userListsId}",
@@ -3182,9 +3239,12 @@ pub fn datamanager_account_types_accounts_user_lists_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datamanager_audience_members_ingest_execute()` to send, or `datamanager_audience_members_ingest` for simplest API.
 
-pub fn datamanager_audience_members_ingest_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn datamanager_audience_members_ingest_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://datamanager.googleapis.com/v1/audienceMembers:ingest",);
 
@@ -3335,9 +3395,12 @@ pub fn datamanager_audience_members_ingest(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datamanager_audience_members_remove_execute()` to send, or `datamanager_audience_members_remove` for simplest API.
 
-pub fn datamanager_audience_members_remove_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn datamanager_audience_members_remove_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://datamanager.googleapis.com/v1/audienceMembers:remove",);
 
@@ -3488,9 +3551,12 @@ pub fn datamanager_audience_members_remove(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datamanager_events_ingest_execute()` to send, or `datamanager_events_ingest` for simplest API.
 
-pub fn datamanager_events_ingest_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn datamanager_events_ingest_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://datamanager.googleapis.com/v1/events:ingest",);
 
@@ -3637,10 +3703,13 @@ pub fn datamanager_events_ingest(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datamanager_request_status_retrieve_execute()` to send, or `datamanager_request_status_retrieve` for simplest API.
 
-pub fn datamanager_request_status_retrieve_builder(
-    client: &SimpleHttpClient,
+pub fn datamanager_request_status_retrieve_builder<R>(
+    client: &SimpleHttpClient<R>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://datamanager.googleapis.com/v1/requestStatus:retrieve",);
 

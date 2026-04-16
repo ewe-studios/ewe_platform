@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `documentai_operations_delete_execute()` to send, or `documentai_operations_delete` for simplest API.
 
-pub fn documentai_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn documentai_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://documentai.googleapis.com/v1/operations/{}", name,);
 
@@ -184,10 +188,13 @@ pub fn documentai_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `documentai_projects_locations_fetch_processor_types_execute()` to send, or `documentai_projects_locations_fetch_processor_types` for simplest API.
 
-pub fn documentai_projects_locations_fetch_processor_types_builder(
-    client: &SimpleHttpClient,
+pub fn documentai_projects_locations_fetch_processor_types_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://documentai.googleapis.com/v1/projects/{}/locations/{locationsId}:fetchProcessorTypes",
@@ -354,10 +361,13 @@ pub fn documentai_projects_locations_fetch_processor_types(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `documentai_projects_locations_get_execute()` to send, or `documentai_projects_locations_get` for simplest API.
 
-pub fn documentai_projects_locations_get_builder(
-    client: &SimpleHttpClient,
+pub fn documentai_projects_locations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://documentai.googleapis.com/v1/projects/{}/locations/{locationsId}",
@@ -519,14 +529,17 @@ pub fn documentai_projects_locations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `documentai_projects_locations_list_execute()` to send, or `documentai_projects_locations_list` for simplest API.
 
-pub fn documentai_projects_locations_list_builder(
-    client: &SimpleHttpClient,
+pub fn documentai_projects_locations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     extraLocationTypes: &Option<Option<String>>,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://documentai.googleapis.com/v1/projects/{}/locations",
@@ -723,10 +736,13 @@ pub fn documentai_projects_locations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `documentai_projects_locations_operations_cancel_execute()` to send, or `documentai_projects_locations_operations_cancel` for simplest API.
 
-pub fn documentai_projects_locations_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn documentai_projects_locations_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://documentai.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}:cancel",
@@ -884,10 +900,13 @@ pub fn documentai_projects_locations_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `documentai_projects_locations_operations_get_execute()` to send, or `documentai_projects_locations_operations_get` for simplest API.
 
-pub fn documentai_projects_locations_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn documentai_projects_locations_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://documentai.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -1049,14 +1068,17 @@ pub fn documentai_projects_locations_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `documentai_projects_locations_operations_list_execute()` to send, or `documentai_projects_locations_operations_list` for simplest API.
 
-pub fn documentai_projects_locations_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn documentai_projects_locations_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://documentai.googleapis.com/v1/projects/{}/locations/{locationsId}/operations",
@@ -1254,10 +1276,13 @@ pub fn documentai_projects_locations_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `documentai_projects_locations_processor_types_get_execute()` to send, or `documentai_projects_locations_processor_types_get` for simplest API.
 
-pub fn documentai_projects_locations_processor_types_get_builder(
-    client: &SimpleHttpClient,
+pub fn documentai_projects_locations_processor_types_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://documentai.googleapis.com/v1/projects/{}/locations/{locationsId}/processorTypes/{processorTypesId}",
@@ -1419,12 +1444,15 @@ pub fn documentai_projects_locations_processor_types_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `documentai_projects_locations_processor_types_list_execute()` to send, or `documentai_projects_locations_processor_types_list` for simplest API.
 
-pub fn documentai_projects_locations_processor_types_list_builder(
-    client: &SimpleHttpClient,
+pub fn documentai_projects_locations_processor_types_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://documentai.googleapis.com/v1/projects/{}/locations/{locationsId}/processorTypes",
@@ -1613,10 +1641,13 @@ pub fn documentai_projects_locations_processor_types_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `documentai_projects_locations_processors_batch_process_execute()` to send, or `documentai_projects_locations_processors_batch_process` for simplest API.
 
-pub fn documentai_projects_locations_processors_batch_process_builder(
-    client: &SimpleHttpClient,
+pub fn documentai_projects_locations_processors_batch_process_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://documentai.googleapis.com/v1/projects/{}/locations/{locationsId}/processors/{processorsId}:batchProcess",
@@ -1779,10 +1810,13 @@ pub fn documentai_projects_locations_processors_batch_process(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `documentai_projects_locations_processors_create_execute()` to send, or `documentai_projects_locations_processors_create` for simplest API.
 
-pub fn documentai_projects_locations_processors_create_builder(
-    client: &SimpleHttpClient,
+pub fn documentai_projects_locations_processors_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://documentai.googleapis.com/v1/projects/{}/locations/{locationsId}/processors",
@@ -1944,10 +1978,13 @@ pub fn documentai_projects_locations_processors_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `documentai_projects_locations_processors_delete_execute()` to send, or `documentai_projects_locations_processors_delete` for simplest API.
 
-pub fn documentai_projects_locations_processors_delete_builder(
-    client: &SimpleHttpClient,
+pub fn documentai_projects_locations_processors_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://documentai.googleapis.com/v1/projects/{}/locations/{locationsId}/processors/{processorsId}",
@@ -2109,10 +2146,13 @@ pub fn documentai_projects_locations_processors_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `documentai_projects_locations_processors_disable_execute()` to send, or `documentai_projects_locations_processors_disable` for simplest API.
 
-pub fn documentai_projects_locations_processors_disable_builder(
-    client: &SimpleHttpClient,
+pub fn documentai_projects_locations_processors_disable_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://documentai.googleapis.com/v1/projects/{}/locations/{locationsId}/processors/{processorsId}:disable",
@@ -2274,10 +2314,13 @@ pub fn documentai_projects_locations_processors_disable(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `documentai_projects_locations_processors_enable_execute()` to send, or `documentai_projects_locations_processors_enable` for simplest API.
 
-pub fn documentai_projects_locations_processors_enable_builder(
-    client: &SimpleHttpClient,
+pub fn documentai_projects_locations_processors_enable_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://documentai.googleapis.com/v1/projects/{}/locations/{locationsId}/processors/{processorsId}:enable",
@@ -2439,10 +2482,13 @@ pub fn documentai_projects_locations_processors_enable(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `documentai_projects_locations_processors_get_execute()` to send, or `documentai_projects_locations_processors_get` for simplest API.
 
-pub fn documentai_projects_locations_processors_get_builder(
-    client: &SimpleHttpClient,
+pub fn documentai_projects_locations_processors_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://documentai.googleapis.com/v1/projects/{}/locations/{locationsId}/processors/{processorsId}",
@@ -2604,12 +2650,15 @@ pub fn documentai_projects_locations_processors_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `documentai_projects_locations_processors_list_execute()` to send, or `documentai_projects_locations_processors_list` for simplest API.
 
-pub fn documentai_projects_locations_processors_list_builder(
-    client: &SimpleHttpClient,
+pub fn documentai_projects_locations_processors_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://documentai.googleapis.com/v1/projects/{}/locations/{locationsId}/processors",
@@ -2795,10 +2844,13 @@ pub fn documentai_projects_locations_processors_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `documentai_projects_locations_processors_process_execute()` to send, or `documentai_projects_locations_processors_process` for simplest API.
 
-pub fn documentai_projects_locations_processors_process_builder(
-    client: &SimpleHttpClient,
+pub fn documentai_projects_locations_processors_process_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://documentai.googleapis.com/v1/projects/{}/locations/{locationsId}/processors/{processorsId}:process",
@@ -2960,10 +3012,13 @@ pub fn documentai_projects_locations_processors_process(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `documentai_projects_locations_processors_set_default_processor_version_execute()` to send, or `documentai_projects_locations_processors_set_default_processor_version` for simplest API.
 
-pub fn documentai_projects_locations_processors_set_default_processor_version_builder(
-    client: &SimpleHttpClient,
+pub fn documentai_projects_locations_processors_set_default_processor_version_builder<R>(
+    client: &SimpleHttpClient<R>,
     processor: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://documentai.googleapis.com/v1/projects/{}/locations/{locationsId}/processors/{processorsId}:setDefaultProcessorVersion",
@@ -3129,10 +3184,13 @@ pub fn documentai_projects_locations_processors_set_default_processor_version(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `documentai_projects_locations_processors_human_review_config_review_document_execute()` to send, or `documentai_projects_locations_processors_human_review_config_review_document` for simplest API.
 
-pub fn documentai_projects_locations_processors_human_review_config_review_document_builder(
-    client: &SimpleHttpClient,
+pub fn documentai_projects_locations_processors_human_review_config_review_document_builder<R>(
+    client: &SimpleHttpClient<R>,
     humanReviewConfig: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://documentai.googleapis.com/v1/projects/{}/locations/{locationsId}/processors/{processorsId}/humanReviewConfig:reviewDocument",
@@ -3299,10 +3357,13 @@ pub fn documentai_projects_locations_processors_human_review_config_review_docum
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `documentai_projects_locations_processors_processor_versions_batch_process_execute()` to send, or `documentai_projects_locations_processors_processor_versions_batch_process` for simplest API.
 
-pub fn documentai_projects_locations_processors_processor_versions_batch_process_builder(
-    client: &SimpleHttpClient,
+pub fn documentai_projects_locations_processors_processor_versions_batch_process_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://documentai.googleapis.com/v1/projects/{}/locations/{locationsId}/processors/{processorsId}/processorVersions/{processorVersionsId}:batchProcess",
@@ -3468,10 +3529,13 @@ pub fn documentai_projects_locations_processors_processor_versions_batch_process
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `documentai_projects_locations_processors_processor_versions_delete_execute()` to send, or `documentai_projects_locations_processors_processor_versions_delete` for simplest API.
 
-pub fn documentai_projects_locations_processors_processor_versions_delete_builder(
-    client: &SimpleHttpClient,
+pub fn documentai_projects_locations_processors_processor_versions_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://documentai.googleapis.com/v1/projects/{}/locations/{locationsId}/processors/{processorsId}/processorVersions/{processorVersionsId}",
@@ -3635,10 +3699,13 @@ pub fn documentai_projects_locations_processors_processor_versions_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `documentai_projects_locations_processors_processor_versions_deploy_execute()` to send, or `documentai_projects_locations_processors_processor_versions_deploy` for simplest API.
 
-pub fn documentai_projects_locations_processors_processor_versions_deploy_builder(
-    client: &SimpleHttpClient,
+pub fn documentai_projects_locations_processors_processor_versions_deploy_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://documentai.googleapis.com/v1/projects/{}/locations/{locationsId}/processors/{processorsId}/processorVersions/{processorVersionsId}:deploy",
@@ -3802,10 +3869,15 @@ pub fn documentai_projects_locations_processors_processor_versions_deploy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `documentai_projects_locations_processors_processor_versions_evaluate_processor_version_execute()` to send, or `documentai_projects_locations_processors_processor_versions_evaluate_processor_version` for simplest API.
 
-pub fn documentai_projects_locations_processors_processor_versions_evaluate_processor_version_builder(
-    client: &SimpleHttpClient,
+pub fn documentai_projects_locations_processors_processor_versions_evaluate_processor_version_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     processorVersion: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://documentai.googleapis.com/v1/projects/{}/locations/{locationsId}/processors/{processorsId}/processorVersions/{processorVersionsId}:evaluateProcessorVersion",
@@ -3969,10 +4041,13 @@ pub fn documentai_projects_locations_processors_processor_versions_evaluate_proc
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `documentai_projects_locations_processors_processor_versions_get_execute()` to send, or `documentai_projects_locations_processors_processor_versions_get` for simplest API.
 
-pub fn documentai_projects_locations_processors_processor_versions_get_builder(
-    client: &SimpleHttpClient,
+pub fn documentai_projects_locations_processors_processor_versions_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://documentai.googleapis.com/v1/projects/{}/locations/{locationsId}/processors/{processorsId}/processorVersions/{processorVersionsId}",
@@ -4137,12 +4212,15 @@ pub fn documentai_projects_locations_processors_processor_versions_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `documentai_projects_locations_processors_processor_versions_list_execute()` to send, or `documentai_projects_locations_processors_processor_versions_list` for simplest API.
 
-pub fn documentai_projects_locations_processors_processor_versions_list_builder(
-    client: &SimpleHttpClient,
+pub fn documentai_projects_locations_processors_processor_versions_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://documentai.googleapis.com/v1/projects/{}/locations/{locationsId}/processors/{processorsId}/processorVersions",
@@ -4331,10 +4409,13 @@ pub fn documentai_projects_locations_processors_processor_versions_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `documentai_projects_locations_processors_processor_versions_process_execute()` to send, or `documentai_projects_locations_processors_processor_versions_process` for simplest API.
 
-pub fn documentai_projects_locations_processors_processor_versions_process_builder(
-    client: &SimpleHttpClient,
+pub fn documentai_projects_locations_processors_processor_versions_process_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://documentai.googleapis.com/v1/projects/{}/locations/{locationsId}/processors/{processorsId}/processorVersions/{processorVersionsId}:process",
@@ -4498,10 +4579,13 @@ pub fn documentai_projects_locations_processors_processor_versions_process(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `documentai_projects_locations_processors_processor_versions_train_execute()` to send, or `documentai_projects_locations_processors_processor_versions_train` for simplest API.
 
-pub fn documentai_projects_locations_processors_processor_versions_train_builder(
-    client: &SimpleHttpClient,
+pub fn documentai_projects_locations_processors_processor_versions_train_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://documentai.googleapis.com/v1/projects/{}/locations/{locationsId}/processors/{processorsId}/processorVersions:train",
@@ -4666,10 +4750,13 @@ pub fn documentai_projects_locations_processors_processor_versions_train(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `documentai_projects_locations_processors_processor_versions_undeploy_execute()` to send, or `documentai_projects_locations_processors_processor_versions_undeploy` for simplest API.
 
-pub fn documentai_projects_locations_processors_processor_versions_undeploy_builder(
-    client: &SimpleHttpClient,
+pub fn documentai_projects_locations_processors_processor_versions_undeploy_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://documentai.googleapis.com/v1/projects/{}/locations/{locationsId}/processors/{processorsId}/processorVersions/{processorVersionsId}:undeploy",
@@ -4833,10 +4920,13 @@ pub fn documentai_projects_locations_processors_processor_versions_undeploy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `documentai_projects_locations_processors_processor_versions_evaluations_get_execute()` to send, or `documentai_projects_locations_processors_processor_versions_evaluations_get` for simplest API.
 
-pub fn documentai_projects_locations_processors_processor_versions_evaluations_get_builder(
-    client: &SimpleHttpClient,
+pub fn documentai_projects_locations_processors_processor_versions_evaluations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://documentai.googleapis.com/v1/projects/{}/locations/{locationsId}/processors/{processorsId}/processorVersions/{processorVersionsId}/evaluations/{evaluationsId}",
@@ -5002,12 +5092,15 @@ pub fn documentai_projects_locations_processors_processor_versions_evaluations_g
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `documentai_projects_locations_processors_processor_versions_evaluations_list_execute()` to send, or `documentai_projects_locations_processors_processor_versions_evaluations_list` for simplest API.
 
-pub fn documentai_projects_locations_processors_processor_versions_evaluations_list_builder(
-    client: &SimpleHttpClient,
+pub fn documentai_projects_locations_processors_processor_versions_evaluations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://documentai.googleapis.com/v1/projects/{}/locations/{locationsId}/processors/{processorsId}/processorVersions/{processorVersionsId}/evaluations",
@@ -5195,10 +5288,13 @@ pub fn documentai_projects_locations_processors_processor_versions_evaluations_l
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `documentai_projects_locations_schemas_create_execute()` to send, or `documentai_projects_locations_schemas_create` for simplest API.
 
-pub fn documentai_projects_locations_schemas_create_builder(
-    client: &SimpleHttpClient,
+pub fn documentai_projects_locations_schemas_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://documentai.googleapis.com/v1/projects/{}/locations/{locationsId}/schemas",
@@ -5360,11 +5456,14 @@ pub fn documentai_projects_locations_schemas_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `documentai_projects_locations_schemas_delete_execute()` to send, or `documentai_projects_locations_schemas_delete` for simplest API.
 
-pub fn documentai_projects_locations_schemas_delete_builder(
-    client: &SimpleHttpClient,
+pub fn documentai_projects_locations_schemas_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     force: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://documentai.googleapis.com/v1/projects/{}/locations/{locationsId}/schemas/{schemasId}",
@@ -5540,10 +5639,13 @@ pub fn documentai_projects_locations_schemas_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `documentai_projects_locations_schemas_get_execute()` to send, or `documentai_projects_locations_schemas_get` for simplest API.
 
-pub fn documentai_projects_locations_schemas_get_builder(
-    client: &SimpleHttpClient,
+pub fn documentai_projects_locations_schemas_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://documentai.googleapis.com/v1/projects/{}/locations/{locationsId}/schemas/{schemasId}",
@@ -5705,12 +5807,15 @@ pub fn documentai_projects_locations_schemas_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `documentai_projects_locations_schemas_list_execute()` to send, or `documentai_projects_locations_schemas_list` for simplest API.
 
-pub fn documentai_projects_locations_schemas_list_builder(
-    client: &SimpleHttpClient,
+pub fn documentai_projects_locations_schemas_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://documentai.googleapis.com/v1/projects/{}/locations/{locationsId}/schemas",
@@ -5896,11 +6001,14 @@ pub fn documentai_projects_locations_schemas_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `documentai_projects_locations_schemas_patch_execute()` to send, or `documentai_projects_locations_schemas_patch` for simplest API.
 
-pub fn documentai_projects_locations_schemas_patch_builder(
-    client: &SimpleHttpClient,
+pub fn documentai_projects_locations_schemas_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://documentai.googleapis.com/v1/projects/{}/locations/{locationsId}/schemas/{schemasId}",
@@ -6076,10 +6184,13 @@ pub fn documentai_projects_locations_schemas_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `documentai_projects_locations_schemas_schema_versions_create_execute()` to send, or `documentai_projects_locations_schemas_schema_versions_create` for simplest API.
 
-pub fn documentai_projects_locations_schemas_schema_versions_create_builder(
-    client: &SimpleHttpClient,
+pub fn documentai_projects_locations_schemas_schema_versions_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://documentai.googleapis.com/v1/projects/{}/locations/{locationsId}/schemas/{schemasId}/schemaVersions",
@@ -6242,10 +6353,13 @@ pub fn documentai_projects_locations_schemas_schema_versions_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `documentai_projects_locations_schemas_schema_versions_delete_execute()` to send, or `documentai_projects_locations_schemas_schema_versions_delete` for simplest API.
 
-pub fn documentai_projects_locations_schemas_schema_versions_delete_builder(
-    client: &SimpleHttpClient,
+pub fn documentai_projects_locations_schemas_schema_versions_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://documentai.googleapis.com/v1/projects/{}/locations/{locationsId}/schemas/{schemasId}/schemaVersions/{schemaVersionsId}",
@@ -6408,10 +6522,13 @@ pub fn documentai_projects_locations_schemas_schema_versions_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `documentai_projects_locations_schemas_schema_versions_generate_execute()` to send, or `documentai_projects_locations_schemas_schema_versions_generate` for simplest API.
 
-pub fn documentai_projects_locations_schemas_schema_versions_generate_builder(
-    client: &SimpleHttpClient,
+pub fn documentai_projects_locations_schemas_schema_versions_generate_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://documentai.googleapis.com/v1/projects/{}/locations/{locationsId}/schemas/{schemasId}/schemaVersions:generate",
@@ -6580,10 +6697,13 @@ pub fn documentai_projects_locations_schemas_schema_versions_generate(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `documentai_projects_locations_schemas_schema_versions_get_execute()` to send, or `documentai_projects_locations_schemas_schema_versions_get` for simplest API.
 
-pub fn documentai_projects_locations_schemas_schema_versions_get_builder(
-    client: &SimpleHttpClient,
+pub fn documentai_projects_locations_schemas_schema_versions_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://documentai.googleapis.com/v1/projects/{}/locations/{locationsId}/schemas/{schemasId}/schemaVersions/{schemaVersionsId}",
@@ -6746,12 +6866,15 @@ pub fn documentai_projects_locations_schemas_schema_versions_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `documentai_projects_locations_schemas_schema_versions_list_execute()` to send, or `documentai_projects_locations_schemas_schema_versions_list` for simplest API.
 
-pub fn documentai_projects_locations_schemas_schema_versions_list_builder(
-    client: &SimpleHttpClient,
+pub fn documentai_projects_locations_schemas_schema_versions_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://documentai.googleapis.com/v1/projects/{}/locations/{locationsId}/schemas/{schemasId}/schemaVersions",
@@ -6940,11 +7063,14 @@ pub fn documentai_projects_locations_schemas_schema_versions_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `documentai_projects_locations_schemas_schema_versions_patch_execute()` to send, or `documentai_projects_locations_schemas_schema_versions_patch` for simplest API.
 
-pub fn documentai_projects_locations_schemas_schema_versions_patch_builder(
-    client: &SimpleHttpClient,
+pub fn documentai_projects_locations_schemas_schema_versions_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://documentai.googleapis.com/v1/projects/{}/locations/{locationsId}/schemas/{schemasId}/schemaVersions/{schemaVersionsId}",
@@ -7123,10 +7249,13 @@ pub fn documentai_projects_locations_schemas_schema_versions_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `documentai_projects_operations_get_execute()` to send, or `documentai_projects_operations_get` for simplest API.
 
-pub fn documentai_projects_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn documentai_projects_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://documentai.googleapis.com/v1/projects/{}/operations/{operationsId}",

@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `realtimebidding_bidders_get_execute()` to send, or `realtimebidding_bidders_get` for simplest API.
 
-pub fn realtimebidding_bidders_get_builder(
-    client: &SimpleHttpClient,
+pub fn realtimebidding_bidders_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://realtimebidding.googleapis.com/v1/bidders/{}", name,);
 
@@ -180,11 +184,14 @@ pub fn realtimebidding_bidders_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `realtimebidding_bidders_list_execute()` to send, or `realtimebidding_bidders_list` for simplest API.
 
-pub fn realtimebidding_bidders_list_builder(
-    client: &SimpleHttpClient,
+pub fn realtimebidding_bidders_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://realtimebidding.googleapis.com/v1/bidders",);
 
@@ -355,14 +362,17 @@ pub fn realtimebidding_bidders_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `realtimebidding_bidders_creatives_list_execute()` to send, or `realtimebidding_bidders_creatives_list` for simplest API.
 
-pub fn realtimebidding_bidders_creatives_list_builder(
-    client: &SimpleHttpClient,
+pub fn realtimebidding_bidders_creatives_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://realtimebidding.googleapis.com/v1/bidders/{}/creatives",
@@ -555,10 +565,13 @@ pub fn realtimebidding_bidders_creatives_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `realtimebidding_bidders_creatives_watch_execute()` to send, or `realtimebidding_bidders_creatives_watch` for simplest API.
 
-pub fn realtimebidding_bidders_creatives_watch_builder(
-    client: &SimpleHttpClient,
+pub fn realtimebidding_bidders_creatives_watch_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://realtimebidding.googleapis.com/v1/bidders/{}/creatives:watch",
@@ -716,10 +729,13 @@ pub fn realtimebidding_bidders_creatives_watch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `realtimebidding_bidders_endpoints_get_execute()` to send, or `realtimebidding_bidders_endpoints_get` for simplest API.
 
-pub fn realtimebidding_bidders_endpoints_get_builder(
-    client: &SimpleHttpClient,
+pub fn realtimebidding_bidders_endpoints_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://realtimebidding.googleapis.com/v1/bidders/{}/endpoints/{endpointsId}",
@@ -873,12 +889,15 @@ pub fn realtimebidding_bidders_endpoints_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `realtimebidding_bidders_endpoints_list_execute()` to send, or `realtimebidding_bidders_endpoints_list` for simplest API.
 
-pub fn realtimebidding_bidders_endpoints_list_builder(
-    client: &SimpleHttpClient,
+pub fn realtimebidding_bidders_endpoints_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://realtimebidding.googleapis.com/v1/bidders/{}/endpoints",
@@ -1059,11 +1078,14 @@ pub fn realtimebidding_bidders_endpoints_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `realtimebidding_bidders_endpoints_patch_execute()` to send, or `realtimebidding_bidders_endpoints_patch` for simplest API.
 
-pub fn realtimebidding_bidders_endpoints_patch_builder(
-    client: &SimpleHttpClient,
+pub fn realtimebidding_bidders_endpoints_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://realtimebidding.googleapis.com/v1/bidders/{}/endpoints/{endpointsId}",
@@ -1231,10 +1253,13 @@ pub fn realtimebidding_bidders_endpoints_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `realtimebidding_bidders_pretargeting_configs_activate_execute()` to send, or `realtimebidding_bidders_pretargeting_configs_activate` for simplest API.
 
-pub fn realtimebidding_bidders_pretargeting_configs_activate_builder(
-    client: &SimpleHttpClient,
+pub fn realtimebidding_bidders_pretargeting_configs_activate_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://realtimebidding.googleapis.com/v1/bidders/{}/pretargetingConfigs/{pretargetingConfigsId}:activate",
@@ -1393,10 +1418,13 @@ pub fn realtimebidding_bidders_pretargeting_configs_activate(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `realtimebidding_bidders_pretargeting_configs_add_targeted_apps_execute()` to send, or `realtimebidding_bidders_pretargeting_configs_add_targeted_apps` for simplest API.
 
-pub fn realtimebidding_bidders_pretargeting_configs_add_targeted_apps_builder(
-    client: &SimpleHttpClient,
+pub fn realtimebidding_bidders_pretargeting_configs_add_targeted_apps_builder<R>(
+    client: &SimpleHttpClient<R>,
     pretargetingConfig: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://realtimebidding.googleapis.com/v1/bidders/{}/pretargetingConfigs/{pretargetingConfigsId}:addTargetedApps",
@@ -1557,10 +1585,13 @@ pub fn realtimebidding_bidders_pretargeting_configs_add_targeted_apps(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `realtimebidding_bidders_pretargeting_configs_add_targeted_publishers_execute()` to send, or `realtimebidding_bidders_pretargeting_configs_add_targeted_publishers` for simplest API.
 
-pub fn realtimebidding_bidders_pretargeting_configs_add_targeted_publishers_builder(
-    client: &SimpleHttpClient,
+pub fn realtimebidding_bidders_pretargeting_configs_add_targeted_publishers_builder<R>(
+    client: &SimpleHttpClient<R>,
     pretargetingConfig: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://realtimebidding.googleapis.com/v1/bidders/{}/pretargetingConfigs/{pretargetingConfigsId}:addTargetedPublishers",
@@ -1721,10 +1752,13 @@ pub fn realtimebidding_bidders_pretargeting_configs_add_targeted_publishers(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `realtimebidding_bidders_pretargeting_configs_add_targeted_sites_execute()` to send, or `realtimebidding_bidders_pretargeting_configs_add_targeted_sites` for simplest API.
 
-pub fn realtimebidding_bidders_pretargeting_configs_add_targeted_sites_builder(
-    client: &SimpleHttpClient,
+pub fn realtimebidding_bidders_pretargeting_configs_add_targeted_sites_builder<R>(
+    client: &SimpleHttpClient<R>,
     pretargetingConfig: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://realtimebidding.googleapis.com/v1/bidders/{}/pretargetingConfigs/{pretargetingConfigsId}:addTargetedSites",
@@ -1885,10 +1919,13 @@ pub fn realtimebidding_bidders_pretargeting_configs_add_targeted_sites(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `realtimebidding_bidders_pretargeting_configs_create_execute()` to send, or `realtimebidding_bidders_pretargeting_configs_create` for simplest API.
 
-pub fn realtimebidding_bidders_pretargeting_configs_create_builder(
-    client: &SimpleHttpClient,
+pub fn realtimebidding_bidders_pretargeting_configs_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://realtimebidding.googleapis.com/v1/bidders/{}/pretargetingConfigs",
@@ -2047,10 +2084,13 @@ pub fn realtimebidding_bidders_pretargeting_configs_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `realtimebidding_bidders_pretargeting_configs_delete_execute()` to send, or `realtimebidding_bidders_pretargeting_configs_delete` for simplest API.
 
-pub fn realtimebidding_bidders_pretargeting_configs_delete_builder(
-    client: &SimpleHttpClient,
+pub fn realtimebidding_bidders_pretargeting_configs_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://realtimebidding.googleapis.com/v1/bidders/{}/pretargetingConfigs/{pretargetingConfigsId}",
@@ -2204,10 +2244,13 @@ pub fn realtimebidding_bidders_pretargeting_configs_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `realtimebidding_bidders_pretargeting_configs_get_execute()` to send, or `realtimebidding_bidders_pretargeting_configs_get` for simplest API.
 
-pub fn realtimebidding_bidders_pretargeting_configs_get_builder(
-    client: &SimpleHttpClient,
+pub fn realtimebidding_bidders_pretargeting_configs_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://realtimebidding.googleapis.com/v1/bidders/{}/pretargetingConfigs/{pretargetingConfigsId}",
@@ -2365,12 +2408,15 @@ pub fn realtimebidding_bidders_pretargeting_configs_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `realtimebidding_bidders_pretargeting_configs_list_execute()` to send, or `realtimebidding_bidders_pretargeting_configs_list` for simplest API.
 
-pub fn realtimebidding_bidders_pretargeting_configs_list_builder(
-    client: &SimpleHttpClient,
+pub fn realtimebidding_bidders_pretargeting_configs_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://realtimebidding.googleapis.com/v1/bidders/{}/pretargetingConfigs",
@@ -2555,11 +2601,14 @@ pub fn realtimebidding_bidders_pretargeting_configs_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `realtimebidding_bidders_pretargeting_configs_patch_execute()` to send, or `realtimebidding_bidders_pretargeting_configs_patch` for simplest API.
 
-pub fn realtimebidding_bidders_pretargeting_configs_patch_builder(
-    client: &SimpleHttpClient,
+pub fn realtimebidding_bidders_pretargeting_configs_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://realtimebidding.googleapis.com/v1/bidders/{}/pretargetingConfigs/{pretargetingConfigsId}",
@@ -2734,10 +2783,13 @@ pub fn realtimebidding_bidders_pretargeting_configs_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `realtimebidding_bidders_pretargeting_configs_remove_targeted_apps_execute()` to send, or `realtimebidding_bidders_pretargeting_configs_remove_targeted_apps` for simplest API.
 
-pub fn realtimebidding_bidders_pretargeting_configs_remove_targeted_apps_builder(
-    client: &SimpleHttpClient,
+pub fn realtimebidding_bidders_pretargeting_configs_remove_targeted_apps_builder<R>(
+    client: &SimpleHttpClient<R>,
     pretargetingConfig: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://realtimebidding.googleapis.com/v1/bidders/{}/pretargetingConfigs/{pretargetingConfigsId}:removeTargetedApps",
@@ -2898,10 +2950,13 @@ pub fn realtimebidding_bidders_pretargeting_configs_remove_targeted_apps(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `realtimebidding_bidders_pretargeting_configs_remove_targeted_publishers_execute()` to send, or `realtimebidding_bidders_pretargeting_configs_remove_targeted_publishers` for simplest API.
 
-pub fn realtimebidding_bidders_pretargeting_configs_remove_targeted_publishers_builder(
-    client: &SimpleHttpClient,
+pub fn realtimebidding_bidders_pretargeting_configs_remove_targeted_publishers_builder<R>(
+    client: &SimpleHttpClient<R>,
     pretargetingConfig: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://realtimebidding.googleapis.com/v1/bidders/{}/pretargetingConfigs/{pretargetingConfigsId}:removeTargetedPublishers",
@@ -3063,10 +3118,13 @@ pub fn realtimebidding_bidders_pretargeting_configs_remove_targeted_publishers(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `realtimebidding_bidders_pretargeting_configs_remove_targeted_sites_execute()` to send, or `realtimebidding_bidders_pretargeting_configs_remove_targeted_sites` for simplest API.
 
-pub fn realtimebidding_bidders_pretargeting_configs_remove_targeted_sites_builder(
-    client: &SimpleHttpClient,
+pub fn realtimebidding_bidders_pretargeting_configs_remove_targeted_sites_builder<R>(
+    client: &SimpleHttpClient<R>,
     pretargetingConfig: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://realtimebidding.googleapis.com/v1/bidders/{}/pretargetingConfigs/{pretargetingConfigsId}:removeTargetedSites",
@@ -3227,10 +3285,13 @@ pub fn realtimebidding_bidders_pretargeting_configs_remove_targeted_sites(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `realtimebidding_bidders_pretargeting_configs_suspend_execute()` to send, or `realtimebidding_bidders_pretargeting_configs_suspend` for simplest API.
 
-pub fn realtimebidding_bidders_pretargeting_configs_suspend_builder(
-    client: &SimpleHttpClient,
+pub fn realtimebidding_bidders_pretargeting_configs_suspend_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://realtimebidding.googleapis.com/v1/bidders/{}/pretargetingConfigs/{pretargetingConfigsId}:suspend",
@@ -3388,10 +3449,13 @@ pub fn realtimebidding_bidders_pretargeting_configs_suspend(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `realtimebidding_bidders_publisher_connections_batch_approve_execute()` to send, or `realtimebidding_bidders_publisher_connections_batch_approve` for simplest API.
 
-pub fn realtimebidding_bidders_publisher_connections_batch_approve_builder(
-    client: &SimpleHttpClient,
+pub fn realtimebidding_bidders_publisher_connections_batch_approve_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://realtimebidding.googleapis.com/v1/bidders/{}/publisherConnections:batchApprove",
@@ -3554,10 +3618,13 @@ pub fn realtimebidding_bidders_publisher_connections_batch_approve(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `realtimebidding_bidders_publisher_connections_batch_reject_execute()` to send, or `realtimebidding_bidders_publisher_connections_batch_reject` for simplest API.
 
-pub fn realtimebidding_bidders_publisher_connections_batch_reject_builder(
-    client: &SimpleHttpClient,
+pub fn realtimebidding_bidders_publisher_connections_batch_reject_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://realtimebidding.googleapis.com/v1/bidders/{}/publisherConnections:batchReject",
@@ -3721,10 +3788,13 @@ pub fn realtimebidding_bidders_publisher_connections_batch_reject(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `realtimebidding_bidders_publisher_connections_get_execute()` to send, or `realtimebidding_bidders_publisher_connections_get` for simplest API.
 
-pub fn realtimebidding_bidders_publisher_connections_get_builder(
-    client: &SimpleHttpClient,
+pub fn realtimebidding_bidders_publisher_connections_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://realtimebidding.googleapis.com/v1/bidders/{}/publisherConnections/{publisherConnectionsId}",
@@ -3882,14 +3952,17 @@ pub fn realtimebidding_bidders_publisher_connections_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `realtimebidding_bidders_publisher_connections_list_execute()` to send, or `realtimebidding_bidders_publisher_connections_list` for simplest API.
 
-pub fn realtimebidding_bidders_publisher_connections_list_builder(
-    client: &SimpleHttpClient,
+pub fn realtimebidding_bidders_publisher_connections_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://realtimebidding.googleapis.com/v1/bidders/{}/publisherConnections",
@@ -4086,10 +4159,13 @@ pub fn realtimebidding_bidders_publisher_connections_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `realtimebidding_buyers_get_execute()` to send, or `realtimebidding_buyers_get` for simplest API.
 
-pub fn realtimebidding_buyers_get_builder(
-    client: &SimpleHttpClient,
+pub fn realtimebidding_buyers_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://realtimebidding.googleapis.com/v1/buyers/{}", name,);
 
@@ -4240,10 +4316,13 @@ pub fn realtimebidding_buyers_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `realtimebidding_buyers_get_remarketing_tag_execute()` to send, or `realtimebidding_buyers_get_remarketing_tag` for simplest API.
 
-pub fn realtimebidding_buyers_get_remarketing_tag_builder(
-    client: &SimpleHttpClient,
+pub fn realtimebidding_buyers_get_remarketing_tag_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://realtimebidding.googleapis.com/v1/buyers/{}:getRemarketingTag",
@@ -4401,11 +4480,14 @@ pub fn realtimebidding_buyers_get_remarketing_tag(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `realtimebidding_buyers_list_execute()` to send, or `realtimebidding_buyers_list` for simplest API.
 
-pub fn realtimebidding_buyers_list_builder(
-    client: &SimpleHttpClient,
+pub fn realtimebidding_buyers_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://realtimebidding.googleapis.com/v1/buyers",);
 
@@ -4576,10 +4658,13 @@ pub fn realtimebidding_buyers_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `realtimebidding_buyers_creatives_create_execute()` to send, or `realtimebidding_buyers_creatives_create` for simplest API.
 
-pub fn realtimebidding_buyers_creatives_create_builder(
-    client: &SimpleHttpClient,
+pub fn realtimebidding_buyers_creatives_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://realtimebidding.googleapis.com/v1/buyers/{}/creatives",
@@ -4733,11 +4818,14 @@ pub fn realtimebidding_buyers_creatives_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `realtimebidding_buyers_creatives_get_execute()` to send, or `realtimebidding_buyers_creatives_get` for simplest API.
 
-pub fn realtimebidding_buyers_creatives_get_builder(
-    client: &SimpleHttpClient,
+pub fn realtimebidding_buyers_creatives_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://realtimebidding.googleapis.com/v1/buyers/{}/creatives/{creativesId}",
@@ -4904,14 +4992,17 @@ pub fn realtimebidding_buyers_creatives_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `realtimebidding_buyers_creatives_list_execute()` to send, or `realtimebidding_buyers_creatives_list` for simplest API.
 
-pub fn realtimebidding_buyers_creatives_list_builder(
-    client: &SimpleHttpClient,
+pub fn realtimebidding_buyers_creatives_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://realtimebidding.googleapis.com/v1/buyers/{}/creatives",
@@ -5104,11 +5195,14 @@ pub fn realtimebidding_buyers_creatives_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `realtimebidding_buyers_creatives_patch_execute()` to send, or `realtimebidding_buyers_creatives_patch` for simplest API.
 
-pub fn realtimebidding_buyers_creatives_patch_builder(
-    client: &SimpleHttpClient,
+pub fn realtimebidding_buyers_creatives_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://realtimebidding.googleapis.com/v1/buyers/{}/creatives/{creativesId}",
@@ -5276,10 +5370,13 @@ pub fn realtimebidding_buyers_creatives_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `realtimebidding_buyers_user_lists_close_execute()` to send, or `realtimebidding_buyers_user_lists_close` for simplest API.
 
-pub fn realtimebidding_buyers_user_lists_close_builder(
-    client: &SimpleHttpClient,
+pub fn realtimebidding_buyers_user_lists_close_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://realtimebidding.googleapis.com/v1/buyers/{}/userLists/{userListsId}:close",
@@ -5433,10 +5530,13 @@ pub fn realtimebidding_buyers_user_lists_close(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `realtimebidding_buyers_user_lists_create_execute()` to send, or `realtimebidding_buyers_user_lists_create` for simplest API.
 
-pub fn realtimebidding_buyers_user_lists_create_builder(
-    client: &SimpleHttpClient,
+pub fn realtimebidding_buyers_user_lists_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://realtimebidding.googleapis.com/v1/buyers/{}/userLists",
@@ -5590,10 +5690,13 @@ pub fn realtimebidding_buyers_user_lists_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `realtimebidding_buyers_user_lists_get_execute()` to send, or `realtimebidding_buyers_user_lists_get` for simplest API.
 
-pub fn realtimebidding_buyers_user_lists_get_builder(
-    client: &SimpleHttpClient,
+pub fn realtimebidding_buyers_user_lists_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://realtimebidding.googleapis.com/v1/buyers/{}/userLists/{userListsId}",
@@ -5747,10 +5850,13 @@ pub fn realtimebidding_buyers_user_lists_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `realtimebidding_buyers_user_lists_get_remarketing_tag_execute()` to send, or `realtimebidding_buyers_user_lists_get_remarketing_tag` for simplest API.
 
-pub fn realtimebidding_buyers_user_lists_get_remarketing_tag_builder(
-    client: &SimpleHttpClient,
+pub fn realtimebidding_buyers_user_lists_get_remarketing_tag_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://realtimebidding.googleapis.com/v1/buyers/{}/userLists/{userListsId}:getRemarketingTag",
@@ -5909,12 +6015,15 @@ pub fn realtimebidding_buyers_user_lists_get_remarketing_tag(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `realtimebidding_buyers_user_lists_list_execute()` to send, or `realtimebidding_buyers_user_lists_list` for simplest API.
 
-pub fn realtimebidding_buyers_user_lists_list_builder(
-    client: &SimpleHttpClient,
+pub fn realtimebidding_buyers_user_lists_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://realtimebidding.googleapis.com/v1/buyers/{}/userLists",
@@ -6095,10 +6204,13 @@ pub fn realtimebidding_buyers_user_lists_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `realtimebidding_buyers_user_lists_open_execute()` to send, or `realtimebidding_buyers_user_lists_open` for simplest API.
 
-pub fn realtimebidding_buyers_user_lists_open_builder(
-    client: &SimpleHttpClient,
+pub fn realtimebidding_buyers_user_lists_open_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://realtimebidding.googleapis.com/v1/buyers/{}/userLists/{userListsId}:open",
@@ -6252,10 +6364,13 @@ pub fn realtimebidding_buyers_user_lists_open(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `realtimebidding_buyers_user_lists_update_execute()` to send, or `realtimebidding_buyers_user_lists_update` for simplest API.
 
-pub fn realtimebidding_buyers_user_lists_update_builder(
-    client: &SimpleHttpClient,
+pub fn realtimebidding_buyers_user_lists_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://realtimebidding.googleapis.com/v1/buyers/{}/userLists/{userListsId}",

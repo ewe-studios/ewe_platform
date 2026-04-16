@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `chromepolicy_customers_policies_resolve_execute()` to send, or `chromepolicy_customers_policies_resolve` for simplest API.
 
-pub fn chromepolicy_customers_policies_resolve_builder(
-    client: &SimpleHttpClient,
+pub fn chromepolicy_customers_policies_resolve_builder<R>(
+    client: &SimpleHttpClient<R>,
     customer: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://chromepolicy.googleapis.com/v1/customers/{}/policies:resolve",
@@ -192,10 +196,13 @@ pub fn chromepolicy_customers_policies_resolve(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `chromepolicy_customers_policies_groups_batch_delete_execute()` to send, or `chromepolicy_customers_policies_groups_batch_delete` for simplest API.
 
-pub fn chromepolicy_customers_policies_groups_batch_delete_builder(
-    client: &SimpleHttpClient,
+pub fn chromepolicy_customers_policies_groups_batch_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     customer: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://chromepolicy.googleapis.com/v1/customers/{}/policies/groups:batchDelete",
@@ -354,10 +361,13 @@ pub fn chromepolicy_customers_policies_groups_batch_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `chromepolicy_customers_policies_groups_batch_modify_execute()` to send, or `chromepolicy_customers_policies_groups_batch_modify` for simplest API.
 
-pub fn chromepolicy_customers_policies_groups_batch_modify_builder(
-    client: &SimpleHttpClient,
+pub fn chromepolicy_customers_policies_groups_batch_modify_builder<R>(
+    client: &SimpleHttpClient<R>,
     customer: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://chromepolicy.googleapis.com/v1/customers/{}/policies/groups:batchModify",
@@ -516,10 +526,13 @@ pub fn chromepolicy_customers_policies_groups_batch_modify(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `chromepolicy_customers_policies_groups_list_group_priority_ordering_execute()` to send, or `chromepolicy_customers_policies_groups_list_group_priority_ordering` for simplest API.
 
-pub fn chromepolicy_customers_policies_groups_list_group_priority_ordering_builder(
-    client: &SimpleHttpClient,
+pub fn chromepolicy_customers_policies_groups_list_group_priority_ordering_builder<R>(
+    client: &SimpleHttpClient<R>,
     customer: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://chromepolicy.googleapis.com/v1/customers/{}/policies/groups:listGroupPriorityOrdering",
@@ -694,10 +707,13 @@ pub fn chromepolicy_customers_policies_groups_list_group_priority_ordering(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `chromepolicy_customers_policies_groups_update_group_priority_ordering_execute()` to send, or `chromepolicy_customers_policies_groups_update_group_priority_ordering` for simplest API.
 
-pub fn chromepolicy_customers_policies_groups_update_group_priority_ordering_builder(
-    client: &SimpleHttpClient,
+pub fn chromepolicy_customers_policies_groups_update_group_priority_ordering_builder<R>(
+    client: &SimpleHttpClient<R>,
     customer: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://chromepolicy.googleapis.com/v1/customers/{}/policies/groups:updateGroupPriorityOrdering",
@@ -858,10 +874,13 @@ pub fn chromepolicy_customers_policies_groups_update_group_priority_ordering(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `chromepolicy_customers_policies_networks_define_certificate_execute()` to send, or `chromepolicy_customers_policies_networks_define_certificate` for simplest API.
 
-pub fn chromepolicy_customers_policies_networks_define_certificate_builder(
-    client: &SimpleHttpClient,
+pub fn chromepolicy_customers_policies_networks_define_certificate_builder<R>(
+    client: &SimpleHttpClient<R>,
     customer: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://chromepolicy.googleapis.com/v1/customers/{}/policies/networks:defineCertificate",
@@ -1036,10 +1055,13 @@ pub fn chromepolicy_customers_policies_networks_define_certificate(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `chromepolicy_customers_policies_networks_define_network_execute()` to send, or `chromepolicy_customers_policies_networks_define_network` for simplest API.
 
-pub fn chromepolicy_customers_policies_networks_define_network_builder(
-    client: &SimpleHttpClient,
+pub fn chromepolicy_customers_policies_networks_define_network_builder<R>(
+    client: &SimpleHttpClient<R>,
     customer: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://chromepolicy.googleapis.com/v1/customers/{}/policies/networks:defineNetwork",
@@ -1206,10 +1228,13 @@ pub fn chromepolicy_customers_policies_networks_define_network(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `chromepolicy_customers_policies_networks_remove_certificate_execute()` to send, or `chromepolicy_customers_policies_networks_remove_certificate` for simplest API.
 
-pub fn chromepolicy_customers_policies_networks_remove_certificate_builder(
-    client: &SimpleHttpClient,
+pub fn chromepolicy_customers_policies_networks_remove_certificate_builder<R>(
+    client: &SimpleHttpClient<R>,
     customer: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://chromepolicy.googleapis.com/v1/customers/{}/policies/networks:removeCertificate",
@@ -1384,10 +1409,13 @@ pub fn chromepolicy_customers_policies_networks_remove_certificate(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `chromepolicy_customers_policies_networks_remove_network_execute()` to send, or `chromepolicy_customers_policies_networks_remove_network` for simplest API.
 
-pub fn chromepolicy_customers_policies_networks_remove_network_builder(
-    client: &SimpleHttpClient,
+pub fn chromepolicy_customers_policies_networks_remove_network_builder<R>(
+    client: &SimpleHttpClient<R>,
     customer: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://chromepolicy.googleapis.com/v1/customers/{}/policies/networks:removeNetwork",
@@ -1554,10 +1582,13 @@ pub fn chromepolicy_customers_policies_networks_remove_network(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `chromepolicy_customers_policies_orgunits_batch_inherit_execute()` to send, or `chromepolicy_customers_policies_orgunits_batch_inherit` for simplest API.
 
-pub fn chromepolicy_customers_policies_orgunits_batch_inherit_builder(
-    client: &SimpleHttpClient,
+pub fn chromepolicy_customers_policies_orgunits_batch_inherit_builder<R>(
+    client: &SimpleHttpClient<R>,
     customer: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://chromepolicy.googleapis.com/v1/customers/{}/policies/orgunits:batchInherit",
@@ -1716,10 +1747,13 @@ pub fn chromepolicy_customers_policies_orgunits_batch_inherit(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `chromepolicy_customers_policies_orgunits_batch_modify_execute()` to send, or `chromepolicy_customers_policies_orgunits_batch_modify` for simplest API.
 
-pub fn chromepolicy_customers_policies_orgunits_batch_modify_builder(
-    client: &SimpleHttpClient,
+pub fn chromepolicy_customers_policies_orgunits_batch_modify_builder<R>(
+    client: &SimpleHttpClient<R>,
     customer: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://chromepolicy.googleapis.com/v1/customers/{}/policies/orgunits:batchModify",
@@ -1878,10 +1912,13 @@ pub fn chromepolicy_customers_policies_orgunits_batch_modify(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `chromepolicy_customers_policy_schemas_get_execute()` to send, or `chromepolicy_customers_policy_schemas_get` for simplest API.
 
-pub fn chromepolicy_customers_policy_schemas_get_builder(
-    client: &SimpleHttpClient,
+pub fn chromepolicy_customers_policy_schemas_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://chromepolicy.googleapis.com/v1/customers/{}/policySchemas/{policySchemasId}",
@@ -2043,13 +2080,16 @@ pub fn chromepolicy_customers_policy_schemas_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `chromepolicy_customers_policy_schemas_list_execute()` to send, or `chromepolicy_customers_policy_schemas_list` for simplest API.
 
-pub fn chromepolicy_customers_policy_schemas_list_builder(
-    client: &SimpleHttpClient,
+pub fn chromepolicy_customers_policy_schemas_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://chromepolicy.googleapis.com/v1/customers/{}/policySchemas",
@@ -2250,10 +2290,13 @@ pub fn chromepolicy_customers_policy_schemas_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `chromepolicy_media_upload_execute()` to send, or `chromepolicy_media_upload` for simplest API.
 
-pub fn chromepolicy_media_upload_builder(
-    client: &SimpleHttpClient,
+pub fn chromepolicy_media_upload_builder<R>(
+    client: &SimpleHttpClient<R>,
     customer: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://chromepolicy.googleapis.com/v1/customers/{}/policies/files:uploadPolicyFile",

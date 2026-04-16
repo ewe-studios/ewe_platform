@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,9 +27,12 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `mybusinessaccountmanagement_accounts_create_execute()` to send, or `mybusinessaccountmanagement_accounts_create` for simplest API.
 
-pub fn mybusinessaccountmanagement_accounts_create_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn mybusinessaccountmanagement_accounts_create_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://mybusinessaccountmanagement.googleapis.com/v1/accounts",);
 
@@ -171,10 +175,13 @@ pub fn mybusinessaccountmanagement_accounts_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `mybusinessaccountmanagement_accounts_get_execute()` to send, or `mybusinessaccountmanagement_accounts_get` for simplest API.
 
-pub fn mybusinessaccountmanagement_accounts_get_builder(
-    client: &SimpleHttpClient,
+pub fn mybusinessaccountmanagement_accounts_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://mybusinessaccountmanagement.googleapis.com/v1/accounts/{}",
@@ -328,13 +335,16 @@ pub fn mybusinessaccountmanagement_accounts_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `mybusinessaccountmanagement_accounts_list_execute()` to send, or `mybusinessaccountmanagement_accounts_list` for simplest API.
 
-pub fn mybusinessaccountmanagement_accounts_list_builder(
-    client: &SimpleHttpClient,
+pub fn mybusinessaccountmanagement_accounts_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     parentAccount: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://mybusinessaccountmanagement.googleapis.com/v1/accounts",);
 
@@ -521,12 +531,15 @@ pub fn mybusinessaccountmanagement_accounts_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `mybusinessaccountmanagement_accounts_patch_execute()` to send, or `mybusinessaccountmanagement_accounts_patch` for simplest API.
 
-pub fn mybusinessaccountmanagement_accounts_patch_builder(
-    client: &SimpleHttpClient,
+pub fn mybusinessaccountmanagement_accounts_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://mybusinessaccountmanagement.googleapis.com/v1/accounts/{}",
@@ -703,10 +716,13 @@ pub fn mybusinessaccountmanagement_accounts_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `mybusinessaccountmanagement_accounts_admins_create_execute()` to send, or `mybusinessaccountmanagement_accounts_admins_create` for simplest API.
 
-pub fn mybusinessaccountmanagement_accounts_admins_create_builder(
-    client: &SimpleHttpClient,
+pub fn mybusinessaccountmanagement_accounts_admins_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://mybusinessaccountmanagement.googleapis.com/v1/accounts/{}/admins",
@@ -860,10 +876,13 @@ pub fn mybusinessaccountmanagement_accounts_admins_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `mybusinessaccountmanagement_accounts_admins_delete_execute()` to send, or `mybusinessaccountmanagement_accounts_admins_delete` for simplest API.
 
-pub fn mybusinessaccountmanagement_accounts_admins_delete_builder(
-    client: &SimpleHttpClient,
+pub fn mybusinessaccountmanagement_accounts_admins_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://mybusinessaccountmanagement.googleapis.com/v1/accounts/{}/admins/{adminsId}",
@@ -1017,10 +1036,13 @@ pub fn mybusinessaccountmanagement_accounts_admins_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `mybusinessaccountmanagement_accounts_admins_list_execute()` to send, or `mybusinessaccountmanagement_accounts_admins_list` for simplest API.
 
-pub fn mybusinessaccountmanagement_accounts_admins_list_builder(
-    client: &SimpleHttpClient,
+pub fn mybusinessaccountmanagement_accounts_admins_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://mybusinessaccountmanagement.googleapis.com/v1/accounts/{}/admins",
@@ -1178,11 +1200,14 @@ pub fn mybusinessaccountmanagement_accounts_admins_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `mybusinessaccountmanagement_accounts_admins_patch_execute()` to send, or `mybusinessaccountmanagement_accounts_admins_patch` for simplest API.
 
-pub fn mybusinessaccountmanagement_accounts_admins_patch_builder(
-    client: &SimpleHttpClient,
+pub fn mybusinessaccountmanagement_accounts_admins_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://mybusinessaccountmanagement.googleapis.com/v1/accounts/{}/admins/{adminsId}",
@@ -1353,10 +1378,13 @@ pub fn mybusinessaccountmanagement_accounts_admins_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `mybusinessaccountmanagement_accounts_invitations_accept_execute()` to send, or `mybusinessaccountmanagement_accounts_invitations_accept` for simplest API.
 
-pub fn mybusinessaccountmanagement_accounts_invitations_accept_builder(
-    client: &SimpleHttpClient,
+pub fn mybusinessaccountmanagement_accounts_invitations_accept_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://mybusinessaccountmanagement.googleapis.com/v1/accounts/{}/invitations/{invitationsId}:accept",
@@ -1511,10 +1539,13 @@ pub fn mybusinessaccountmanagement_accounts_invitations_accept(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `mybusinessaccountmanagement_accounts_invitations_decline_execute()` to send, or `mybusinessaccountmanagement_accounts_invitations_decline` for simplest API.
 
-pub fn mybusinessaccountmanagement_accounts_invitations_decline_builder(
-    client: &SimpleHttpClient,
+pub fn mybusinessaccountmanagement_accounts_invitations_decline_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://mybusinessaccountmanagement.googleapis.com/v1/accounts/{}/invitations/{invitationsId}:decline",
@@ -1669,11 +1700,14 @@ pub fn mybusinessaccountmanagement_accounts_invitations_decline(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `mybusinessaccountmanagement_accounts_invitations_list_execute()` to send, or `mybusinessaccountmanagement_accounts_invitations_list` for simplest API.
 
-pub fn mybusinessaccountmanagement_accounts_invitations_list_builder(
-    client: &SimpleHttpClient,
+pub fn mybusinessaccountmanagement_accounts_invitations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://mybusinessaccountmanagement.googleapis.com/v1/accounts/{}/invitations",
@@ -1848,10 +1882,13 @@ pub fn mybusinessaccountmanagement_accounts_invitations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `mybusinessaccountmanagement_locations_transfer_execute()` to send, or `mybusinessaccountmanagement_locations_transfer` for simplest API.
 
-pub fn mybusinessaccountmanagement_locations_transfer_builder(
-    client: &SimpleHttpClient,
+pub fn mybusinessaccountmanagement_locations_transfer_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://mybusinessaccountmanagement.googleapis.com/v1/locations/{}:transfer",
@@ -2005,10 +2042,13 @@ pub fn mybusinessaccountmanagement_locations_transfer(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `mybusinessaccountmanagement_locations_admins_create_execute()` to send, or `mybusinessaccountmanagement_locations_admins_create` for simplest API.
 
-pub fn mybusinessaccountmanagement_locations_admins_create_builder(
-    client: &SimpleHttpClient,
+pub fn mybusinessaccountmanagement_locations_admins_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://mybusinessaccountmanagement.googleapis.com/v1/locations/{}/admins",
@@ -2163,10 +2203,13 @@ pub fn mybusinessaccountmanagement_locations_admins_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `mybusinessaccountmanagement_locations_admins_delete_execute()` to send, or `mybusinessaccountmanagement_locations_admins_delete` for simplest API.
 
-pub fn mybusinessaccountmanagement_locations_admins_delete_builder(
-    client: &SimpleHttpClient,
+pub fn mybusinessaccountmanagement_locations_admins_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://mybusinessaccountmanagement.googleapis.com/v1/locations/{}/admins/{adminsId}",
@@ -2320,10 +2363,13 @@ pub fn mybusinessaccountmanagement_locations_admins_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `mybusinessaccountmanagement_locations_admins_list_execute()` to send, or `mybusinessaccountmanagement_locations_admins_list` for simplest API.
 
-pub fn mybusinessaccountmanagement_locations_admins_list_builder(
-    client: &SimpleHttpClient,
+pub fn mybusinessaccountmanagement_locations_admins_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://mybusinessaccountmanagement.googleapis.com/v1/locations/{}/admins",
@@ -2485,11 +2531,14 @@ pub fn mybusinessaccountmanagement_locations_admins_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `mybusinessaccountmanagement_locations_admins_patch_execute()` to send, or `mybusinessaccountmanagement_locations_admins_patch` for simplest API.
 
-pub fn mybusinessaccountmanagement_locations_admins_patch_builder(
-    client: &SimpleHttpClient,
+pub fn mybusinessaccountmanagement_locations_admins_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://mybusinessaccountmanagement.googleapis.com/v1/locations/{}/admins/{adminsId}",

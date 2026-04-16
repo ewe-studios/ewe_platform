@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,9 +27,12 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `addressvalidation_provide_validation_feedback_execute()` to send, or `addressvalidation_provide_validation_feedback` for simplest API.
 
-pub fn addressvalidation_provide_validation_feedback_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn addressvalidation_provide_validation_feedback_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://addressvalidation.googleapis.com/v1:provideValidationFeedback",);
@@ -190,9 +194,12 @@ pub fn addressvalidation_provide_validation_feedback(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `addressvalidation_validate_address_execute()` to send, or `addressvalidation_validate_address` for simplest API.
 
-pub fn addressvalidation_validate_address_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn addressvalidation_validate_address_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://addressvalidation.googleapis.com/v1:validateAddress",);
 

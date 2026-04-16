@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,13 +27,16 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `policyanalyzer_folders_locations_activity_types_activities_query_execute()` to send, or `policyanalyzer_folders_locations_activity_types_activities_query` for simplest API.
 
-pub fn policyanalyzer_folders_locations_activity_types_activities_query_builder(
-    client: &SimpleHttpClient,
+pub fn policyanalyzer_folders_locations_activity_types_activities_query_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://policyanalyzer.googleapis.com/v1/folders/{}/locations/{locationsId}/activityTypes/{activityTypesId}/activities:query",
@@ -224,13 +228,16 @@ pub fn policyanalyzer_folders_locations_activity_types_activities_query(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `policyanalyzer_organizations_locations_activity_types_activities_query_execute()` to send, or `policyanalyzer_organizations_locations_activity_types_activities_query` for simplest API.
 
-pub fn policyanalyzer_organizations_locations_activity_types_activities_query_builder(
-    client: &SimpleHttpClient,
+pub fn policyanalyzer_organizations_locations_activity_types_activities_query_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://policyanalyzer.googleapis.com/v1/organizations/{}/locations/{locationsId}/activityTypes/{activityTypesId}/activities:query",
@@ -423,13 +430,16 @@ pub fn policyanalyzer_organizations_locations_activity_types_activities_query(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `policyanalyzer_projects_locations_activity_types_activities_query_execute()` to send, or `policyanalyzer_projects_locations_activity_types_activities_query` for simplest API.
 
-pub fn policyanalyzer_projects_locations_activity_types_activities_query_builder(
-    client: &SimpleHttpClient,
+pub fn policyanalyzer_projects_locations_activity_types_activities_query_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://policyanalyzer.googleapis.com/v1/projects/{}/locations/{locationsId}/activityTypes/{activityTypesId}/activities:query",

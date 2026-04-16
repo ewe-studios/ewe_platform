@@ -43,7 +43,6 @@ use crate::providers::gcp::clients::script::Project;
 use crate::providers::gcp::clients::script::Version;
 use crate::providers::gcp::clients::script::ScriptProcessesListArgs;
 use crate::providers::gcp::clients::script::ScriptProcessesListScriptProcessesArgs;
-use crate::providers::gcp::clients::script::ScriptProjectsCreateArgs;
 use crate::providers::gcp::clients::script::ScriptProjectsDeploymentsCreateArgs;
 use crate::providers::gcp::clients::script::ScriptProjectsDeploymentsDeleteArgs;
 use crate::providers::gcp::clients::script::ScriptProjectsDeploymentsGetArgs;
@@ -59,7 +58,7 @@ use crate::providers::gcp::clients::script::ScriptProjectsVersionsListArgs;
 use crate::providers::gcp::clients::script::ScriptScriptsRunArgs;
 use crate::provider_client::{ProviderClient, ProviderError};
 use foundation_core::valtron::{execute, StreamIterator};
-use foundation_core::wire::simple_http::client::SimpleHttpClient;
+use foundation_core::wire::simple_http::client::{SimpleHttpClient, DnsResolver};
 use foundation_db::state::store_state_task::StoreStateIdentifierTask;
 use std::sync::Arc;
 
@@ -68,34 +67,44 @@ use std::sync::Arc;
 /// # Type Parameters
 ///
 /// * `S` - StateStore implementation (FileStateStore, SqliteStateStore, etc.)
+/// * `R` - DNS resolver type for HTTP client
 ///
 /// # Example
 ///
 /// ```rust
 /// let state_store = FileStateStore::new("/path", "my-project", "dev");
-/// let client = ProviderClient::new("my-project", "dev", state_store);
-/// let http_client = SimpleHttpClient::new(...);
-/// let provider = ScriptProvider::new(client, http_client);
+/// let http_client = SimpleHttpClient::with_resolver(StaticSocketAddr::new(addr));
+/// let client = ProviderClient::new("my-project", "dev", state_store, http_client);
+/// let provider = ScriptProvider::from_provider_client(client);
 /// ```
 #[derive(Clone)]
-pub struct ScriptProvider<S>
+pub struct ScriptProvider<S, R>
 where
     S: foundation_db::state::traits::StateStore + Send + Sync + 'static,
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + 'static,
 {
-    client: ProviderClient<S>,
-    http_client: Arc<SimpleHttpClient>,
+    client: ProviderClient<S, R>,
+    http_client: Arc<SimpleHttpClient<R>>,
 }
 
-impl<S> ScriptProvider<S>
+impl<S, R> ScriptProvider<S, R>
 where
     S: foundation_db::state::traits::StateStore + Send + Sync + 'static,
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + 'static,
 {
     /// Create new ScriptProvider.
-    pub fn new(client: ProviderClient<S>, http_client: SimpleHttpClient) -> Self {
+    pub fn new(client: ProviderClient<S, R>, http_client: Arc<SimpleHttpClient<R>>) -> Self {
         Self {
             client,
-            http_client: Arc::new(http_client),
+            http_client,
         }
+    }
+
+    /// Create new ScriptProvider from ProviderClient, extracting the HTTP client.
+    ///
+    /// This is a convenience method that calls `Self::new()` with `client.http_client()`.
+    pub fn from_provider_client(client: ProviderClient<S, R>) -> Self {
+        Self::new(client, client.http_client.clone())
     }
 
     /// Script processes list.
@@ -128,15 +137,15 @@ where
             &self.http_client,
             &args.pageSize,
             &args.pageToken,
-            &args.userProcessFilter.deploymentId,
-            &args.userProcessFilter.endTime,
-            &args.userProcessFilter.functionName,
-            &args.userProcessFilter.projectName,
-            &args.userProcessFilter.scriptId,
-            &args.userProcessFilter.startTime,
-            &args.userProcessFilter.statuses,
-            &args.userProcessFilter.types,
-            &args.userProcessFilter.userAccessLevels,
+            &args.userProcessFilter_deploymentId,
+            &args.userProcessFilter_endTime,
+            &args.userProcessFilter_functionName,
+            &args.userProcessFilter_projectName,
+            &args.userProcessFilter_scriptId,
+            &args.userProcessFilter_startTime,
+            &args.userProcessFilter_statuses,
+            &args.userProcessFilter_types,
+            &args.userProcessFilter_userAccessLevels,
         )
         .map_err(ProviderError::Api)?;
 
@@ -177,13 +186,13 @@ where
             &args.pageSize,
             &args.pageToken,
             &args.scriptId,
-            &args.scriptProcessFilter.deploymentId,
-            &args.scriptProcessFilter.endTime,
-            &args.scriptProcessFilter.functionName,
-            &args.scriptProcessFilter.startTime,
-            &args.scriptProcessFilter.statuses,
-            &args.scriptProcessFilter.types,
-            &args.scriptProcessFilter.userAccessLevels,
+            &args.scriptProcessFilter_deploymentId,
+            &args.scriptProcessFilter_endTime,
+            &args.scriptProcessFilter_functionName,
+            &args.scriptProcessFilter_startTime,
+            &args.scriptProcessFilter_statuses,
+            &args.scriptProcessFilter_types,
+            &args.scriptProcessFilter_userAccessLevels,
         )
         .map_err(ProviderError::Api)?;
 
@@ -341,7 +350,7 @@ where
         let builder = script_projects_get_metrics_builder(
             &self.http_client,
             &args.scriptId,
-            &args.metricsFilter.deploymentId,
+            &args.metricsFilter_deploymentId,
             &args.metricsGranularity,
         )
         .map_err(ProviderError::Api)?;

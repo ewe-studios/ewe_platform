@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,14 +27,17 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `solar_building_insights_find_closest_execute()` to send, or `solar_building_insights_find_closest` for simplest API.
 
-pub fn solar_building_insights_find_closest_builder(
-    client: &SimpleHttpClient,
+pub fn solar_building_insights_find_closest_builder<R>(
+    client: &SimpleHttpClient<R>,
     exactQualityRequired: &Option<Option<String>>,
     experiments: &Option<Option<String>>,
     location_latitude: &Option<Option<String>>,
     location_longitude: &Option<Option<String>>,
     requiredQuality: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://solar.googleapis.com/v1/buildingInsights:findClosest",);
 
@@ -226,8 +230,8 @@ pub fn solar_building_insights_find_closest(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `solar_data_layers_get_execute()` to send, or `solar_data_layers_get` for simplest API.
 
-pub fn solar_data_layers_get_builder(
-    client: &SimpleHttpClient,
+pub fn solar_data_layers_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     exactQualityRequired: &Option<Option<String>>,
     experiments: &Option<Option<String>>,
     location_latitude: &Option<Option<String>>,
@@ -236,7 +240,10 @@ pub fn solar_data_layers_get_builder(
     radiusMeters: &Option<Option<String>>,
     requiredQuality: &Option<Option<String>>,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://solar.googleapis.com/v1/dataLayers:get",);
 
@@ -443,10 +450,13 @@ pub fn solar_data_layers_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `solar_geo_tiff_get_execute()` to send, or `solar_geo_tiff_get` for simplest API.
 
-pub fn solar_geo_tiff_get_builder(
-    client: &SimpleHttpClient,
+pub fn solar_geo_tiff_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     id: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://solar.googleapis.com/v1/geoTiff:get",);
 

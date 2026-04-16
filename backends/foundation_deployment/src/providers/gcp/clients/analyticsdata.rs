@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `analyticsdata_properties_batch_run_pivot_reports_execute()` to send, or `analyticsdata_properties_batch_run_pivot_reports` for simplest API.
 
-pub fn analyticsdata_properties_batch_run_pivot_reports_builder(
-    client: &SimpleHttpClient,
+pub fn analyticsdata_properties_batch_run_pivot_reports_builder<R>(
+    client: &SimpleHttpClient<R>,
     property: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://analyticsdata.googleapis.com/v1beta/properties/{}:batchRunPivotReports",
@@ -191,10 +195,13 @@ pub fn analyticsdata_properties_batch_run_pivot_reports(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `analyticsdata_properties_batch_run_reports_execute()` to send, or `analyticsdata_properties_batch_run_reports` for simplest API.
 
-pub fn analyticsdata_properties_batch_run_reports_builder(
-    client: &SimpleHttpClient,
+pub fn analyticsdata_properties_batch_run_reports_builder<R>(
+    client: &SimpleHttpClient<R>,
     property: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://analyticsdata.googleapis.com/v1beta/properties/{}:batchRunReports",
@@ -352,10 +359,13 @@ pub fn analyticsdata_properties_batch_run_reports(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `analyticsdata_properties_check_compatibility_execute()` to send, or `analyticsdata_properties_check_compatibility` for simplest API.
 
-pub fn analyticsdata_properties_check_compatibility_builder(
-    client: &SimpleHttpClient,
+pub fn analyticsdata_properties_check_compatibility_builder<R>(
+    client: &SimpleHttpClient<R>,
     property: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://analyticsdata.googleapis.com/v1beta/properties/{}:checkCompatibility",
@@ -517,10 +527,13 @@ pub fn analyticsdata_properties_check_compatibility(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `analyticsdata_properties_get_metadata_execute()` to send, or `analyticsdata_properties_get_metadata` for simplest API.
 
-pub fn analyticsdata_properties_get_metadata_builder(
-    client: &SimpleHttpClient,
+pub fn analyticsdata_properties_get_metadata_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://analyticsdata.googleapis.com/v1beta/properties/{}/metadata",
@@ -674,10 +687,13 @@ pub fn analyticsdata_properties_get_metadata(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `analyticsdata_properties_run_pivot_report_execute()` to send, or `analyticsdata_properties_run_pivot_report` for simplest API.
 
-pub fn analyticsdata_properties_run_pivot_report_builder(
-    client: &SimpleHttpClient,
+pub fn analyticsdata_properties_run_pivot_report_builder<R>(
+    client: &SimpleHttpClient<R>,
     property: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://analyticsdata.googleapis.com/v1beta/properties/{}:runPivotReport",
@@ -835,10 +851,13 @@ pub fn analyticsdata_properties_run_pivot_report(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `analyticsdata_properties_run_realtime_report_execute()` to send, or `analyticsdata_properties_run_realtime_report` for simplest API.
 
-pub fn analyticsdata_properties_run_realtime_report_builder(
-    client: &SimpleHttpClient,
+pub fn analyticsdata_properties_run_realtime_report_builder<R>(
+    client: &SimpleHttpClient<R>,
     property: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://analyticsdata.googleapis.com/v1beta/properties/{}:runRealtimeReport",
@@ -996,10 +1015,13 @@ pub fn analyticsdata_properties_run_realtime_report(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `analyticsdata_properties_run_report_execute()` to send, or `analyticsdata_properties_run_report` for simplest API.
 
-pub fn analyticsdata_properties_run_report_builder(
-    client: &SimpleHttpClient,
+pub fn analyticsdata_properties_run_report_builder<R>(
+    client: &SimpleHttpClient<R>,
     property: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://analyticsdata.googleapis.com/v1beta/properties/{}:runReport",
@@ -1157,10 +1179,13 @@ pub fn analyticsdata_properties_run_report(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `analyticsdata_properties_audience_exports_create_execute()` to send, or `analyticsdata_properties_audience_exports_create` for simplest API.
 
-pub fn analyticsdata_properties_audience_exports_create_builder(
-    client: &SimpleHttpClient,
+pub fn analyticsdata_properties_audience_exports_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://analyticsdata.googleapis.com/v1beta/properties/{}/audienceExports",
@@ -1314,10 +1339,13 @@ pub fn analyticsdata_properties_audience_exports_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `analyticsdata_properties_audience_exports_get_execute()` to send, or `analyticsdata_properties_audience_exports_get` for simplest API.
 
-pub fn analyticsdata_properties_audience_exports_get_builder(
-    client: &SimpleHttpClient,
+pub fn analyticsdata_properties_audience_exports_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://analyticsdata.googleapis.com/v1beta/properties/{}/audienceExports/{audienceExportsId}",
@@ -1475,12 +1503,15 @@ pub fn analyticsdata_properties_audience_exports_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `analyticsdata_properties_audience_exports_list_execute()` to send, or `analyticsdata_properties_audience_exports_list` for simplest API.
 
-pub fn analyticsdata_properties_audience_exports_list_builder(
-    client: &SimpleHttpClient,
+pub fn analyticsdata_properties_audience_exports_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://analyticsdata.googleapis.com/v1beta/properties/{}/audienceExports",
@@ -1665,10 +1696,13 @@ pub fn analyticsdata_properties_audience_exports_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `analyticsdata_properties_audience_exports_query_execute()` to send, or `analyticsdata_properties_audience_exports_query` for simplest API.
 
-pub fn analyticsdata_properties_audience_exports_query_builder(
-    client: &SimpleHttpClient,
+pub fn analyticsdata_properties_audience_exports_query_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://analyticsdata.googleapis.com/v1beta/properties/{}/audienceExports/{audienceExportsId}:query",

@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebasehosting_operations_cancel_execute()` to send, or `firebasehosting_operations_cancel` for simplest API.
 
-pub fn firebasehosting_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn firebasehosting_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebasehosting.googleapis.com/v1/operations/{}:cancel",
@@ -183,10 +187,13 @@ pub fn firebasehosting_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebasehosting_operations_delete_execute()` to send, or `firebasehosting_operations_delete` for simplest API.
 
-pub fn firebasehosting_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn firebasehosting_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebasehosting.googleapis.com/v1/operations/{}",
@@ -340,13 +347,16 @@ pub fn firebasehosting_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebasehosting_operations_list_execute()` to send, or `firebasehosting_operations_list` for simplest API.
 
-pub fn firebasehosting_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn firebasehosting_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://firebasehosting.googleapis.com/v1/operations",);
 
@@ -533,10 +543,13 @@ pub fn firebasehosting_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebasehosting_projects_sites_custom_domains_operations_cancel_execute()` to send, or `firebasehosting_projects_sites_custom_domains_operations_cancel` for simplest API.
 
-pub fn firebasehosting_projects_sites_custom_domains_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn firebasehosting_projects_sites_custom_domains_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebasehosting.googleapis.com/v1/projects/{}/sites/{sitesId}/customDomains/{customDomainsId}/operations/{operationsId}:cancel",
@@ -692,10 +705,13 @@ pub fn firebasehosting_projects_sites_custom_domains_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebasehosting_projects_sites_custom_domains_operations_delete_execute()` to send, or `firebasehosting_projects_sites_custom_domains_operations_delete` for simplest API.
 
-pub fn firebasehosting_projects_sites_custom_domains_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn firebasehosting_projects_sites_custom_domains_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebasehosting.googleapis.com/v1/projects/{}/sites/{sitesId}/customDomains/{customDomainsId}/operations/{operationsId}",

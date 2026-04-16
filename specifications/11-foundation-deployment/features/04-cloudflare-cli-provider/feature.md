@@ -4,13 +4,21 @@ spec_directory: "specifications/11-foundation-deployment"
 feature_directory: "specifications/11-foundation-deployment/features/04-cloudflare-cli-provider"
 this_file: "specifications/11-foundation-deployment/features/04-cloudflare-cli-provider/feature.md"
 
-status: complete
+status: rejected
 priority: high
 created: 2026-03-26
-updated: 2026-04-06
+updated: 2026-04-15
 completed: 2026-04-06
 
 depends_on: ["01-foundation-deployment-core", "02-state-stores", "03-deployment-engine"]
+
+## Status: REJECTED
+
+**The CLI-wrapping provider approach is rejected as the primary user-facing API.**
+
+**Reason:** Wrapping CLI tools (`wrangler`, `gcloud`, `sam`) in a trait abstraction added complexity without sufficient benefit. The new design (Feature 35) uses direct API clients.
+
+**Important:** The existing implementation in `providers/cloudflare/provider.rs` **remains as-is** for now.
 
 tasks:
   completed: 9

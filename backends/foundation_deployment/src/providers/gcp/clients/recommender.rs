@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `recommender_billing_accounts_locations_insight_types_get_config_execute()` to send, or `recommender_billing_accounts_locations_insight_types_get_config` for simplest API.
 
-pub fn recommender_billing_accounts_locations_insight_types_get_config_builder(
-    client: &SimpleHttpClient,
+pub fn recommender_billing_accounts_locations_insight_types_get_config_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://recommender.googleapis.com/v1/billingAccounts/{}/locations/{locationsId}/insightTypes/{insightTypesId}/config",
@@ -193,12 +197,15 @@ pub fn recommender_billing_accounts_locations_insight_types_get_config(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `recommender_billing_accounts_locations_insight_types_update_config_execute()` to send, or `recommender_billing_accounts_locations_insight_types_update_config` for simplest API.
 
-pub fn recommender_billing_accounts_locations_insight_types_update_config_builder(
-    client: &SimpleHttpClient,
+pub fn recommender_billing_accounts_locations_insight_types_update_config_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://recommender.googleapis.com/v1/billingAccounts/{}/locations/{locationsId}/insightTypes/{insightTypesId}/config",
@@ -383,10 +390,13 @@ pub fn recommender_billing_accounts_locations_insight_types_update_config(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `recommender_billing_accounts_locations_insight_types_insights_get_execute()` to send, or `recommender_billing_accounts_locations_insight_types_insights_get` for simplest API.
 
-pub fn recommender_billing_accounts_locations_insight_types_insights_get_builder(
-    client: &SimpleHttpClient,
+pub fn recommender_billing_accounts_locations_insight_types_insights_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://recommender.googleapis.com/v1/billingAccounts/{}/locations/{locationsId}/insightTypes/{insightTypesId}/insights/{insightsId}",
@@ -550,13 +560,16 @@ pub fn recommender_billing_accounts_locations_insight_types_insights_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `recommender_billing_accounts_locations_insight_types_insights_list_execute()` to send, or `recommender_billing_accounts_locations_insight_types_insights_list` for simplest API.
 
-pub fn recommender_billing_accounts_locations_insight_types_insights_list_builder(
-    client: &SimpleHttpClient,
+pub fn recommender_billing_accounts_locations_insight_types_insights_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://recommender.googleapis.com/v1/billingAccounts/{}/locations/{locationsId}/insightTypes/{insightTypesId}/insights",
@@ -748,10 +761,13 @@ pub fn recommender_billing_accounts_locations_insight_types_insights_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `recommender_billing_accounts_locations_insight_types_insights_mark_accepted_execute()` to send, or `recommender_billing_accounts_locations_insight_types_insights_mark_accepted` for simplest API.
 
-pub fn recommender_billing_accounts_locations_insight_types_insights_mark_accepted_builder(
-    client: &SimpleHttpClient,
+pub fn recommender_billing_accounts_locations_insight_types_insights_mark_accepted_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://recommender.googleapis.com/v1/billingAccounts/{}/locations/{locationsId}/insightTypes/{insightTypesId}/insights/{insightsId}:markAccepted",
@@ -917,10 +933,13 @@ pub fn recommender_billing_accounts_locations_insight_types_insights_mark_accept
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `recommender_billing_accounts_locations_recommenders_get_config_execute()` to send, or `recommender_billing_accounts_locations_recommenders_get_config` for simplest API.
 
-pub fn recommender_billing_accounts_locations_recommenders_get_config_builder(
-    client: &SimpleHttpClient,
+pub fn recommender_billing_accounts_locations_recommenders_get_config_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://recommender.googleapis.com/v1/billingAccounts/{}/locations/{locationsId}/recommenders/{recommendersId}/config",
@@ -1083,12 +1102,15 @@ pub fn recommender_billing_accounts_locations_recommenders_get_config(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `recommender_billing_accounts_locations_recommenders_update_config_execute()` to send, or `recommender_billing_accounts_locations_recommenders_update_config` for simplest API.
 
-pub fn recommender_billing_accounts_locations_recommenders_update_config_builder(
-    client: &SimpleHttpClient,
+pub fn recommender_billing_accounts_locations_recommenders_update_config_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://recommender.googleapis.com/v1/billingAccounts/{}/locations/{locationsId}/recommenders/{recommendersId}/config",
@@ -1273,10 +1295,13 @@ pub fn recommender_billing_accounts_locations_recommenders_update_config(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `recommender_billing_accounts_locations_recommenders_recommendations_get_execute()` to send, or `recommender_billing_accounts_locations_recommenders_recommendations_get` for simplest API.
 
-pub fn recommender_billing_accounts_locations_recommenders_recommendations_get_builder(
-    client: &SimpleHttpClient,
+pub fn recommender_billing_accounts_locations_recommenders_recommendations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://recommender.googleapis.com/v1/billingAccounts/{}/locations/{locationsId}/recommenders/{recommendersId}/recommendations/{recommendationsId}",
@@ -1441,13 +1466,16 @@ pub fn recommender_billing_accounts_locations_recommenders_recommendations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `recommender_billing_accounts_locations_recommenders_recommendations_list_execute()` to send, or `recommender_billing_accounts_locations_recommenders_recommendations_list` for simplest API.
 
-pub fn recommender_billing_accounts_locations_recommenders_recommendations_list_builder(
-    client: &SimpleHttpClient,
+pub fn recommender_billing_accounts_locations_recommenders_recommendations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://recommender.googleapis.com/v1/billingAccounts/{}/locations/{locationsId}/recommenders/{recommendersId}/recommendations",
@@ -1643,10 +1671,13 @@ pub fn recommender_billing_accounts_locations_recommenders_recommendations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `recommender_billing_accounts_locations_recommenders_recommendations_mark_claimed_execute()` to send, or `recommender_billing_accounts_locations_recommenders_recommendations_mark_claimed` for simplest API.
 
-pub fn recommender_billing_accounts_locations_recommenders_recommendations_mark_claimed_builder(
-    client: &SimpleHttpClient,
+pub fn recommender_billing_accounts_locations_recommenders_recommendations_mark_claimed_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://recommender.googleapis.com/v1/billingAccounts/{}/locations/{locationsId}/recommenders/{recommendersId}/recommendations/{recommendationsId}:markClaimed",
@@ -1816,10 +1847,15 @@ pub fn recommender_billing_accounts_locations_recommenders_recommendations_mark_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `recommender_billing_accounts_locations_recommenders_recommendations_mark_dismissed_execute()` to send, or `recommender_billing_accounts_locations_recommenders_recommendations_mark_dismissed` for simplest API.
 
-pub fn recommender_billing_accounts_locations_recommenders_recommendations_mark_dismissed_builder(
-    client: &SimpleHttpClient,
+pub fn recommender_billing_accounts_locations_recommenders_recommendations_mark_dismissed_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://recommender.googleapis.com/v1/billingAccounts/{}/locations/{locationsId}/recommenders/{recommendersId}/recommendations/{recommendationsId}:markDismissed",
@@ -1989,10 +2025,13 @@ pub fn recommender_billing_accounts_locations_recommenders_recommendations_mark_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `recommender_billing_accounts_locations_recommenders_recommendations_mark_failed_execute()` to send, or `recommender_billing_accounts_locations_recommenders_recommendations_mark_failed` for simplest API.
 
-pub fn recommender_billing_accounts_locations_recommenders_recommendations_mark_failed_builder(
-    client: &SimpleHttpClient,
+pub fn recommender_billing_accounts_locations_recommenders_recommendations_mark_failed_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://recommender.googleapis.com/v1/billingAccounts/{}/locations/{locationsId}/recommenders/{recommendersId}/recommendations/{recommendationsId}:markFailed",
@@ -2160,10 +2199,15 @@ pub fn recommender_billing_accounts_locations_recommenders_recommendations_mark_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `recommender_billing_accounts_locations_recommenders_recommendations_mark_succeeded_execute()` to send, or `recommender_billing_accounts_locations_recommenders_recommendations_mark_succeeded` for simplest API.
 
-pub fn recommender_billing_accounts_locations_recommenders_recommendations_mark_succeeded_builder(
-    client: &SimpleHttpClient,
+pub fn recommender_billing_accounts_locations_recommenders_recommendations_mark_succeeded_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://recommender.googleapis.com/v1/billingAccounts/{}/locations/{locationsId}/recommenders/{recommendersId}/recommendations/{recommendationsId}:markSucceeded",
@@ -2333,10 +2377,13 @@ pub fn recommender_billing_accounts_locations_recommenders_recommendations_mark_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `recommender_folders_locations_insight_types_insights_get_execute()` to send, or `recommender_folders_locations_insight_types_insights_get` for simplest API.
 
-pub fn recommender_folders_locations_insight_types_insights_get_builder(
-    client: &SimpleHttpClient,
+pub fn recommender_folders_locations_insight_types_insights_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://recommender.googleapis.com/v1/folders/{}/locations/{locationsId}/insightTypes/{insightTypesId}/insights/{insightsId}",
@@ -2499,13 +2546,16 @@ pub fn recommender_folders_locations_insight_types_insights_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `recommender_folders_locations_insight_types_insights_list_execute()` to send, or `recommender_folders_locations_insight_types_insights_list` for simplest API.
 
-pub fn recommender_folders_locations_insight_types_insights_list_builder(
-    client: &SimpleHttpClient,
+pub fn recommender_folders_locations_insight_types_insights_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://recommender.googleapis.com/v1/folders/{}/locations/{locationsId}/insightTypes/{insightTypesId}/insights",
@@ -2697,10 +2747,13 @@ pub fn recommender_folders_locations_insight_types_insights_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `recommender_folders_locations_insight_types_insights_mark_accepted_execute()` to send, or `recommender_folders_locations_insight_types_insights_mark_accepted` for simplest API.
 
-pub fn recommender_folders_locations_insight_types_insights_mark_accepted_builder(
-    client: &SimpleHttpClient,
+pub fn recommender_folders_locations_insight_types_insights_mark_accepted_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://recommender.googleapis.com/v1/folders/{}/locations/{locationsId}/insightTypes/{insightTypesId}/insights/{insightsId}:markAccepted",
@@ -2864,10 +2917,13 @@ pub fn recommender_folders_locations_insight_types_insights_mark_accepted(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `recommender_folders_locations_recommenders_recommendations_get_execute()` to send, or `recommender_folders_locations_recommenders_recommendations_get` for simplest API.
 
-pub fn recommender_folders_locations_recommenders_recommendations_get_builder(
-    client: &SimpleHttpClient,
+pub fn recommender_folders_locations_recommenders_recommendations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://recommender.googleapis.com/v1/folders/{}/locations/{locationsId}/recommenders/{recommendersId}/recommendations/{recommendationsId}",
@@ -3030,13 +3086,16 @@ pub fn recommender_folders_locations_recommenders_recommendations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `recommender_folders_locations_recommenders_recommendations_list_execute()` to send, or `recommender_folders_locations_recommenders_recommendations_list` for simplest API.
 
-pub fn recommender_folders_locations_recommenders_recommendations_list_builder(
-    client: &SimpleHttpClient,
+pub fn recommender_folders_locations_recommenders_recommendations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://recommender.googleapis.com/v1/folders/{}/locations/{locationsId}/recommenders/{recommendersId}/recommendations",
@@ -3231,10 +3290,13 @@ pub fn recommender_folders_locations_recommenders_recommendations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `recommender_folders_locations_recommenders_recommendations_mark_claimed_execute()` to send, or `recommender_folders_locations_recommenders_recommendations_mark_claimed` for simplest API.
 
-pub fn recommender_folders_locations_recommenders_recommendations_mark_claimed_builder(
-    client: &SimpleHttpClient,
+pub fn recommender_folders_locations_recommenders_recommendations_mark_claimed_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://recommender.googleapis.com/v1/folders/{}/locations/{locationsId}/recommenders/{recommendersId}/recommendations/{recommendationsId}:markClaimed",
@@ -3399,10 +3461,13 @@ pub fn recommender_folders_locations_recommenders_recommendations_mark_claimed(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `recommender_folders_locations_recommenders_recommendations_mark_dismissed_execute()` to send, or `recommender_folders_locations_recommenders_recommendations_mark_dismissed` for simplest API.
 
-pub fn recommender_folders_locations_recommenders_recommendations_mark_dismissed_builder(
-    client: &SimpleHttpClient,
+pub fn recommender_folders_locations_recommenders_recommendations_mark_dismissed_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://recommender.googleapis.com/v1/folders/{}/locations/{locationsId}/recommenders/{recommendersId}/recommendations/{recommendationsId}:markDismissed",
@@ -3568,10 +3633,13 @@ pub fn recommender_folders_locations_recommenders_recommendations_mark_dismissed
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `recommender_folders_locations_recommenders_recommendations_mark_failed_execute()` to send, or `recommender_folders_locations_recommenders_recommendations_mark_failed` for simplest API.
 
-pub fn recommender_folders_locations_recommenders_recommendations_mark_failed_builder(
-    client: &SimpleHttpClient,
+pub fn recommender_folders_locations_recommenders_recommendations_mark_failed_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://recommender.googleapis.com/v1/folders/{}/locations/{locationsId}/recommenders/{recommendersId}/recommendations/{recommendationsId}:markFailed",
@@ -3736,10 +3804,13 @@ pub fn recommender_folders_locations_recommenders_recommendations_mark_failed(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `recommender_folders_locations_recommenders_recommendations_mark_succeeded_execute()` to send, or `recommender_folders_locations_recommenders_recommendations_mark_succeeded` for simplest API.
 
-pub fn recommender_folders_locations_recommenders_recommendations_mark_succeeded_builder(
-    client: &SimpleHttpClient,
+pub fn recommender_folders_locations_recommenders_recommendations_mark_succeeded_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://recommender.googleapis.com/v1/folders/{}/locations/{locationsId}/recommenders/{recommendersId}/recommendations/{recommendationsId}:markSucceeded",
@@ -3905,10 +3976,13 @@ pub fn recommender_folders_locations_recommenders_recommendations_mark_succeeded
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `recommender_organizations_locations_insight_types_get_config_execute()` to send, or `recommender_organizations_locations_insight_types_get_config` for simplest API.
 
-pub fn recommender_organizations_locations_insight_types_get_config_builder(
-    client: &SimpleHttpClient,
+pub fn recommender_organizations_locations_insight_types_get_config_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://recommender.googleapis.com/v1/organizations/{}/locations/{locationsId}/insightTypes/{insightTypesId}/config",
@@ -4071,12 +4145,15 @@ pub fn recommender_organizations_locations_insight_types_get_config(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `recommender_organizations_locations_insight_types_update_config_execute()` to send, or `recommender_organizations_locations_insight_types_update_config` for simplest API.
 
-pub fn recommender_organizations_locations_insight_types_update_config_builder(
-    client: &SimpleHttpClient,
+pub fn recommender_organizations_locations_insight_types_update_config_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://recommender.googleapis.com/v1/organizations/{}/locations/{locationsId}/insightTypes/{insightTypesId}/config",
@@ -4261,10 +4338,13 @@ pub fn recommender_organizations_locations_insight_types_update_config(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `recommender_organizations_locations_insight_types_insights_get_execute()` to send, or `recommender_organizations_locations_insight_types_insights_get` for simplest API.
 
-pub fn recommender_organizations_locations_insight_types_insights_get_builder(
-    client: &SimpleHttpClient,
+pub fn recommender_organizations_locations_insight_types_insights_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://recommender.googleapis.com/v1/organizations/{}/locations/{locationsId}/insightTypes/{insightTypesId}/insights/{insightsId}",
@@ -4427,13 +4507,16 @@ pub fn recommender_organizations_locations_insight_types_insights_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `recommender_organizations_locations_insight_types_insights_list_execute()` to send, or `recommender_organizations_locations_insight_types_insights_list` for simplest API.
 
-pub fn recommender_organizations_locations_insight_types_insights_list_builder(
-    client: &SimpleHttpClient,
+pub fn recommender_organizations_locations_insight_types_insights_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://recommender.googleapis.com/v1/organizations/{}/locations/{locationsId}/insightTypes/{insightTypesId}/insights",
@@ -4625,10 +4708,13 @@ pub fn recommender_organizations_locations_insight_types_insights_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `recommender_organizations_locations_insight_types_insights_mark_accepted_execute()` to send, or `recommender_organizations_locations_insight_types_insights_mark_accepted` for simplest API.
 
-pub fn recommender_organizations_locations_insight_types_insights_mark_accepted_builder(
-    client: &SimpleHttpClient,
+pub fn recommender_organizations_locations_insight_types_insights_mark_accepted_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://recommender.googleapis.com/v1/organizations/{}/locations/{locationsId}/insightTypes/{insightTypesId}/insights/{insightsId}:markAccepted",
@@ -4793,10 +4879,13 @@ pub fn recommender_organizations_locations_insight_types_insights_mark_accepted(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `recommender_organizations_locations_recommenders_get_config_execute()` to send, or `recommender_organizations_locations_recommenders_get_config` for simplest API.
 
-pub fn recommender_organizations_locations_recommenders_get_config_builder(
-    client: &SimpleHttpClient,
+pub fn recommender_organizations_locations_recommenders_get_config_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://recommender.googleapis.com/v1/organizations/{}/locations/{locationsId}/recommenders/{recommendersId}/config",
@@ -4959,12 +5048,15 @@ pub fn recommender_organizations_locations_recommenders_get_config(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `recommender_organizations_locations_recommenders_update_config_execute()` to send, or `recommender_organizations_locations_recommenders_update_config` for simplest API.
 
-pub fn recommender_organizations_locations_recommenders_update_config_builder(
-    client: &SimpleHttpClient,
+pub fn recommender_organizations_locations_recommenders_update_config_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://recommender.googleapis.com/v1/organizations/{}/locations/{locationsId}/recommenders/{recommendersId}/config",
@@ -5149,10 +5241,13 @@ pub fn recommender_organizations_locations_recommenders_update_config(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `recommender_organizations_locations_recommenders_recommendations_get_execute()` to send, or `recommender_organizations_locations_recommenders_recommendations_get` for simplest API.
 
-pub fn recommender_organizations_locations_recommenders_recommendations_get_builder(
-    client: &SimpleHttpClient,
+pub fn recommender_organizations_locations_recommenders_recommendations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://recommender.googleapis.com/v1/organizations/{}/locations/{locationsId}/recommenders/{recommendersId}/recommendations/{recommendationsId}",
@@ -5316,13 +5411,16 @@ pub fn recommender_organizations_locations_recommenders_recommendations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `recommender_organizations_locations_recommenders_recommendations_list_execute()` to send, or `recommender_organizations_locations_recommenders_recommendations_list` for simplest API.
 
-pub fn recommender_organizations_locations_recommenders_recommendations_list_builder(
-    client: &SimpleHttpClient,
+pub fn recommender_organizations_locations_recommenders_recommendations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://recommender.googleapis.com/v1/organizations/{}/locations/{locationsId}/recommenders/{recommendersId}/recommendations",
@@ -5517,10 +5615,13 @@ pub fn recommender_organizations_locations_recommenders_recommendations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `recommender_organizations_locations_recommenders_recommendations_mark_claimed_execute()` to send, or `recommender_organizations_locations_recommenders_recommendations_mark_claimed` for simplest API.
 
-pub fn recommender_organizations_locations_recommenders_recommendations_mark_claimed_builder(
-    client: &SimpleHttpClient,
+pub fn recommender_organizations_locations_recommenders_recommendations_mark_claimed_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://recommender.googleapis.com/v1/organizations/{}/locations/{locationsId}/recommenders/{recommendersId}/recommendations/{recommendationsId}:markClaimed",
@@ -5687,10 +5788,13 @@ pub fn recommender_organizations_locations_recommenders_recommendations_mark_cla
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `recommender_organizations_locations_recommenders_recommendations_mark_dismissed_execute()` to send, or `recommender_organizations_locations_recommenders_recommendations_mark_dismissed` for simplest API.
 
-pub fn recommender_organizations_locations_recommenders_recommendations_mark_dismissed_builder(
-    client: &SimpleHttpClient,
+pub fn recommender_organizations_locations_recommenders_recommendations_mark_dismissed_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://recommender.googleapis.com/v1/organizations/{}/locations/{locationsId}/recommenders/{recommendersId}/recommendations/{recommendationsId}:markDismissed",
@@ -5858,10 +5962,13 @@ pub fn recommender_organizations_locations_recommenders_recommendations_mark_dis
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `recommender_organizations_locations_recommenders_recommendations_mark_failed_execute()` to send, or `recommender_organizations_locations_recommenders_recommendations_mark_failed` for simplest API.
 
-pub fn recommender_organizations_locations_recommenders_recommendations_mark_failed_builder(
-    client: &SimpleHttpClient,
+pub fn recommender_organizations_locations_recommenders_recommendations_mark_failed_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://recommender.googleapis.com/v1/organizations/{}/locations/{locationsId}/recommenders/{recommendersId}/recommendations/{recommendationsId}:markFailed",
@@ -6027,10 +6134,13 @@ pub fn recommender_organizations_locations_recommenders_recommendations_mark_fai
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `recommender_organizations_locations_recommenders_recommendations_mark_succeeded_execute()` to send, or `recommender_organizations_locations_recommenders_recommendations_mark_succeeded` for simplest API.
 
-pub fn recommender_organizations_locations_recommenders_recommendations_mark_succeeded_builder(
-    client: &SimpleHttpClient,
+pub fn recommender_organizations_locations_recommenders_recommendations_mark_succeeded_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://recommender.googleapis.com/v1/organizations/{}/locations/{locationsId}/recommenders/{recommendersId}/recommendations/{recommendationsId}:markSucceeded",
@@ -6198,10 +6308,13 @@ pub fn recommender_organizations_locations_recommenders_recommendations_mark_suc
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `recommender_projects_locations_insight_types_get_config_execute()` to send, or `recommender_projects_locations_insight_types_get_config` for simplest API.
 
-pub fn recommender_projects_locations_insight_types_get_config_builder(
-    client: &SimpleHttpClient,
+pub fn recommender_projects_locations_insight_types_get_config_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://recommender.googleapis.com/v1/projects/{}/locations/{locationsId}/insightTypes/{insightTypesId}/config",
@@ -6364,12 +6477,15 @@ pub fn recommender_projects_locations_insight_types_get_config(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `recommender_projects_locations_insight_types_update_config_execute()` to send, or `recommender_projects_locations_insight_types_update_config` for simplest API.
 
-pub fn recommender_projects_locations_insight_types_update_config_builder(
-    client: &SimpleHttpClient,
+pub fn recommender_projects_locations_insight_types_update_config_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://recommender.googleapis.com/v1/projects/{}/locations/{locationsId}/insightTypes/{insightTypesId}/config",
@@ -6554,10 +6670,13 @@ pub fn recommender_projects_locations_insight_types_update_config(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `recommender_projects_locations_insight_types_insights_get_execute()` to send, or `recommender_projects_locations_insight_types_insights_get` for simplest API.
 
-pub fn recommender_projects_locations_insight_types_insights_get_builder(
-    client: &SimpleHttpClient,
+pub fn recommender_projects_locations_insight_types_insights_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://recommender.googleapis.com/v1/projects/{}/locations/{locationsId}/insightTypes/{insightTypesId}/insights/{insightsId}",
@@ -6720,13 +6839,16 @@ pub fn recommender_projects_locations_insight_types_insights_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `recommender_projects_locations_insight_types_insights_list_execute()` to send, or `recommender_projects_locations_insight_types_insights_list` for simplest API.
 
-pub fn recommender_projects_locations_insight_types_insights_list_builder(
-    client: &SimpleHttpClient,
+pub fn recommender_projects_locations_insight_types_insights_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://recommender.googleapis.com/v1/projects/{}/locations/{locationsId}/insightTypes/{insightTypesId}/insights",
@@ -6918,10 +7040,13 @@ pub fn recommender_projects_locations_insight_types_insights_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `recommender_projects_locations_insight_types_insights_mark_accepted_execute()` to send, or `recommender_projects_locations_insight_types_insights_mark_accepted` for simplest API.
 
-pub fn recommender_projects_locations_insight_types_insights_mark_accepted_builder(
-    client: &SimpleHttpClient,
+pub fn recommender_projects_locations_insight_types_insights_mark_accepted_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://recommender.googleapis.com/v1/projects/{}/locations/{locationsId}/insightTypes/{insightTypesId}/insights/{insightsId}:markAccepted",
@@ -7085,10 +7210,13 @@ pub fn recommender_projects_locations_insight_types_insights_mark_accepted(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `recommender_projects_locations_recommenders_get_config_execute()` to send, or `recommender_projects_locations_recommenders_get_config` for simplest API.
 
-pub fn recommender_projects_locations_recommenders_get_config_builder(
-    client: &SimpleHttpClient,
+pub fn recommender_projects_locations_recommenders_get_config_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://recommender.googleapis.com/v1/projects/{}/locations/{locationsId}/recommenders/{recommendersId}/config",
@@ -7251,12 +7379,15 @@ pub fn recommender_projects_locations_recommenders_get_config(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `recommender_projects_locations_recommenders_update_config_execute()` to send, or `recommender_projects_locations_recommenders_update_config` for simplest API.
 
-pub fn recommender_projects_locations_recommenders_update_config_builder(
-    client: &SimpleHttpClient,
+pub fn recommender_projects_locations_recommenders_update_config_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://recommender.googleapis.com/v1/projects/{}/locations/{locationsId}/recommenders/{recommendersId}/config",
@@ -7441,10 +7572,13 @@ pub fn recommender_projects_locations_recommenders_update_config(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `recommender_projects_locations_recommenders_recommendations_get_execute()` to send, or `recommender_projects_locations_recommenders_recommendations_get` for simplest API.
 
-pub fn recommender_projects_locations_recommenders_recommendations_get_builder(
-    client: &SimpleHttpClient,
+pub fn recommender_projects_locations_recommenders_recommendations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://recommender.googleapis.com/v1/projects/{}/locations/{locationsId}/recommenders/{recommendersId}/recommendations/{recommendationsId}",
@@ -7608,13 +7742,16 @@ pub fn recommender_projects_locations_recommenders_recommendations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `recommender_projects_locations_recommenders_recommendations_list_execute()` to send, or `recommender_projects_locations_recommenders_recommendations_list` for simplest API.
 
-pub fn recommender_projects_locations_recommenders_recommendations_list_builder(
-    client: &SimpleHttpClient,
+pub fn recommender_projects_locations_recommenders_recommendations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://recommender.googleapis.com/v1/projects/{}/locations/{locationsId}/recommenders/{recommendersId}/recommendations",
@@ -7809,10 +7946,13 @@ pub fn recommender_projects_locations_recommenders_recommendations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `recommender_projects_locations_recommenders_recommendations_mark_claimed_execute()` to send, or `recommender_projects_locations_recommenders_recommendations_mark_claimed` for simplest API.
 
-pub fn recommender_projects_locations_recommenders_recommendations_mark_claimed_builder(
-    client: &SimpleHttpClient,
+pub fn recommender_projects_locations_recommenders_recommendations_mark_claimed_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://recommender.googleapis.com/v1/projects/{}/locations/{locationsId}/recommenders/{recommendersId}/recommendations/{recommendationsId}:markClaimed",
@@ -7977,10 +8117,13 @@ pub fn recommender_projects_locations_recommenders_recommendations_mark_claimed(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `recommender_projects_locations_recommenders_recommendations_mark_dismissed_execute()` to send, or `recommender_projects_locations_recommenders_recommendations_mark_dismissed` for simplest API.
 
-pub fn recommender_projects_locations_recommenders_recommendations_mark_dismissed_builder(
-    client: &SimpleHttpClient,
+pub fn recommender_projects_locations_recommenders_recommendations_mark_dismissed_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://recommender.googleapis.com/v1/projects/{}/locations/{locationsId}/recommenders/{recommendersId}/recommendations/{recommendationsId}:markDismissed",
@@ -8146,10 +8289,13 @@ pub fn recommender_projects_locations_recommenders_recommendations_mark_dismisse
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `recommender_projects_locations_recommenders_recommendations_mark_failed_execute()` to send, or `recommender_projects_locations_recommenders_recommendations_mark_failed` for simplest API.
 
-pub fn recommender_projects_locations_recommenders_recommendations_mark_failed_builder(
-    client: &SimpleHttpClient,
+pub fn recommender_projects_locations_recommenders_recommendations_mark_failed_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://recommender.googleapis.com/v1/projects/{}/locations/{locationsId}/recommenders/{recommendersId}/recommendations/{recommendationsId}:markFailed",
@@ -8314,10 +8460,13 @@ pub fn recommender_projects_locations_recommenders_recommendations_mark_failed(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `recommender_projects_locations_recommenders_recommendations_mark_succeeded_execute()` to send, or `recommender_projects_locations_recommenders_recommendations_mark_succeeded` for simplest API.
 
-pub fn recommender_projects_locations_recommenders_recommendations_mark_succeeded_builder(
-    client: &SimpleHttpClient,
+pub fn recommender_projects_locations_recommenders_recommendations_mark_succeeded_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://recommender.googleapis.com/v1/projects/{}/locations/{locationsId}/recommenders/{recommendersId}/recommendations/{recommendationsId}:markSucceeded",

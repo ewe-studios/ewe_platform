@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datalabeling_projects_annotation_spec_sets_create_execute()` to send, or `datalabeling_projects_annotation_spec_sets_create` for simplest API.
 
-pub fn datalabeling_projects_annotation_spec_sets_create_builder(
-    client: &SimpleHttpClient,
+pub fn datalabeling_projects_annotation_spec_sets_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datalabeling.googleapis.com/v1beta1/projects/{}/annotationSpecSets",
@@ -192,10 +196,13 @@ pub fn datalabeling_projects_annotation_spec_sets_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datalabeling_projects_annotation_spec_sets_delete_execute()` to send, or `datalabeling_projects_annotation_spec_sets_delete` for simplest API.
 
-pub fn datalabeling_projects_annotation_spec_sets_delete_builder(
-    client: &SimpleHttpClient,
+pub fn datalabeling_projects_annotation_spec_sets_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datalabeling.googleapis.com/v1beta1/projects/{}/annotationSpecSets/{annotationSpecSetsId}",
@@ -353,10 +360,13 @@ pub fn datalabeling_projects_annotation_spec_sets_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datalabeling_projects_annotation_spec_sets_get_execute()` to send, or `datalabeling_projects_annotation_spec_sets_get` for simplest API.
 
-pub fn datalabeling_projects_annotation_spec_sets_get_builder(
-    client: &SimpleHttpClient,
+pub fn datalabeling_projects_annotation_spec_sets_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datalabeling.googleapis.com/v1beta1/projects/{}/annotationSpecSets/{annotationSpecSetsId}",
@@ -519,13 +529,16 @@ pub fn datalabeling_projects_annotation_spec_sets_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datalabeling_projects_annotation_spec_sets_list_execute()` to send, or `datalabeling_projects_annotation_spec_sets_list` for simplest API.
 
-pub fn datalabeling_projects_annotation_spec_sets_list_builder(
-    client: &SimpleHttpClient,
+pub fn datalabeling_projects_annotation_spec_sets_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datalabeling.googleapis.com/v1beta1/projects/{}/annotationSpecSets",
@@ -726,10 +739,13 @@ pub fn datalabeling_projects_annotation_spec_sets_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datalabeling_projects_datasets_create_execute()` to send, or `datalabeling_projects_datasets_create` for simplest API.
 
-pub fn datalabeling_projects_datasets_create_builder(
-    client: &SimpleHttpClient,
+pub fn datalabeling_projects_datasets_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datalabeling.googleapis.com/v1beta1/projects/{}/datasets",
@@ -891,10 +907,13 @@ pub fn datalabeling_projects_datasets_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datalabeling_projects_datasets_delete_execute()` to send, or `datalabeling_projects_datasets_delete` for simplest API.
 
-pub fn datalabeling_projects_datasets_delete_builder(
-    client: &SimpleHttpClient,
+pub fn datalabeling_projects_datasets_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datalabeling.googleapis.com/v1beta1/projects/{}/datasets/{datasetsId}",
@@ -1052,10 +1071,13 @@ pub fn datalabeling_projects_datasets_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datalabeling_projects_datasets_export_data_execute()` to send, or `datalabeling_projects_datasets_export_data` for simplest API.
 
-pub fn datalabeling_projects_datasets_export_data_builder(
-    client: &SimpleHttpClient,
+pub fn datalabeling_projects_datasets_export_data_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datalabeling.googleapis.com/v1beta1/projects/{}/datasets/{datasetsId}:exportData",
@@ -1217,10 +1239,13 @@ pub fn datalabeling_projects_datasets_export_data(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datalabeling_projects_datasets_get_execute()` to send, or `datalabeling_projects_datasets_get` for simplest API.
 
-pub fn datalabeling_projects_datasets_get_builder(
-    client: &SimpleHttpClient,
+pub fn datalabeling_projects_datasets_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datalabeling.googleapis.com/v1beta1/projects/{}/datasets/{datasetsId}",
@@ -1382,10 +1407,13 @@ pub fn datalabeling_projects_datasets_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datalabeling_projects_datasets_import_data_execute()` to send, or `datalabeling_projects_datasets_import_data` for simplest API.
 
-pub fn datalabeling_projects_datasets_import_data_builder(
-    client: &SimpleHttpClient,
+pub fn datalabeling_projects_datasets_import_data_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datalabeling.googleapis.com/v1beta1/projects/{}/datasets/{datasetsId}:importData",
@@ -1547,13 +1575,16 @@ pub fn datalabeling_projects_datasets_import_data(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datalabeling_projects_datasets_list_execute()` to send, or `datalabeling_projects_datasets_list` for simplest API.
 
-pub fn datalabeling_projects_datasets_list_builder(
-    client: &SimpleHttpClient,
+pub fn datalabeling_projects_datasets_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datalabeling.googleapis.com/v1beta1/projects/{}/datasets",
@@ -1748,10 +1779,13 @@ pub fn datalabeling_projects_datasets_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datalabeling_projects_datasets_annotated_datasets_delete_execute()` to send, or `datalabeling_projects_datasets_annotated_datasets_delete` for simplest API.
 
-pub fn datalabeling_projects_datasets_annotated_datasets_delete_builder(
-    client: &SimpleHttpClient,
+pub fn datalabeling_projects_datasets_annotated_datasets_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datalabeling.googleapis.com/v1beta1/projects/{}/datasets/{datasetsId}/annotatedDatasets/{annotatedDatasetsId}",
@@ -1910,10 +1944,13 @@ pub fn datalabeling_projects_datasets_annotated_datasets_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datalabeling_projects_datasets_annotated_datasets_get_execute()` to send, or `datalabeling_projects_datasets_annotated_datasets_get` for simplest API.
 
-pub fn datalabeling_projects_datasets_annotated_datasets_get_builder(
-    client: &SimpleHttpClient,
+pub fn datalabeling_projects_datasets_annotated_datasets_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datalabeling.googleapis.com/v1beta1/projects/{}/datasets/{datasetsId}/annotatedDatasets/{annotatedDatasetsId}",
@@ -2077,13 +2114,16 @@ pub fn datalabeling_projects_datasets_annotated_datasets_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datalabeling_projects_datasets_annotated_datasets_list_execute()` to send, or `datalabeling_projects_datasets_annotated_datasets_list` for simplest API.
 
-pub fn datalabeling_projects_datasets_annotated_datasets_list_builder(
-    client: &SimpleHttpClient,
+pub fn datalabeling_projects_datasets_annotated_datasets_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datalabeling.googleapis.com/v1beta1/projects/{}/datasets/{datasetsId}/annotatedDatasets",
@@ -2284,10 +2324,13 @@ pub fn datalabeling_projects_datasets_annotated_datasets_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datalabeling_projects_datasets_annotated_datasets_data_items_get_execute()` to send, or `datalabeling_projects_datasets_annotated_datasets_data_items_get` for simplest API.
 
-pub fn datalabeling_projects_datasets_annotated_datasets_data_items_get_builder(
-    client: &SimpleHttpClient,
+pub fn datalabeling_projects_datasets_annotated_datasets_data_items_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datalabeling.googleapis.com/v1beta1/projects/{}/datasets/{datasetsId}/annotatedDatasets/{annotatedDatasetsId}/dataItems/{dataItemsId}",
@@ -2451,13 +2494,16 @@ pub fn datalabeling_projects_datasets_annotated_datasets_data_items_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datalabeling_projects_datasets_annotated_datasets_data_items_list_execute()` to send, or `datalabeling_projects_datasets_annotated_datasets_data_items_list` for simplest API.
 
-pub fn datalabeling_projects_datasets_annotated_datasets_data_items_list_builder(
-    client: &SimpleHttpClient,
+pub fn datalabeling_projects_datasets_annotated_datasets_data_items_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datalabeling.googleapis.com/v1beta1/projects/{}/datasets/{datasetsId}/annotatedDatasets/{annotatedDatasetsId}/dataItems",
@@ -2652,11 +2698,14 @@ pub fn datalabeling_projects_datasets_annotated_datasets_data_items_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datalabeling_projects_datasets_annotated_datasets_examples_get_execute()` to send, or `datalabeling_projects_datasets_annotated_datasets_examples_get` for simplest API.
 
-pub fn datalabeling_projects_datasets_annotated_datasets_examples_get_builder(
-    client: &SimpleHttpClient,
+pub fn datalabeling_projects_datasets_annotated_datasets_examples_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datalabeling.googleapis.com/v1beta1/projects/{}/datasets/{datasetsId}/annotatedDatasets/{annotatedDatasetsId}/examples/{examplesId}",
@@ -2835,13 +2884,16 @@ pub fn datalabeling_projects_datasets_annotated_datasets_examples_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datalabeling_projects_datasets_annotated_datasets_examples_list_execute()` to send, or `datalabeling_projects_datasets_annotated_datasets_examples_list` for simplest API.
 
-pub fn datalabeling_projects_datasets_annotated_datasets_examples_list_builder(
-    client: &SimpleHttpClient,
+pub fn datalabeling_projects_datasets_annotated_datasets_examples_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datalabeling.googleapis.com/v1beta1/projects/{}/datasets/{datasetsId}/annotatedDatasets/{annotatedDatasetsId}/examples",
@@ -3036,10 +3088,13 @@ pub fn datalabeling_projects_datasets_annotated_datasets_examples_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datalabeling_projects_datasets_annotated_datasets_feedback_threads_delete_execute()` to send, or `datalabeling_projects_datasets_annotated_datasets_feedback_threads_delete` for simplest API.
 
-pub fn datalabeling_projects_datasets_annotated_datasets_feedback_threads_delete_builder(
-    client: &SimpleHttpClient,
+pub fn datalabeling_projects_datasets_annotated_datasets_feedback_threads_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datalabeling.googleapis.com/v1beta1/projects/{}/datasets/{datasetsId}/annotatedDatasets/{annotatedDatasetsId}/feedbackThreads/{feedbackThreadsId}",
@@ -3201,10 +3256,13 @@ pub fn datalabeling_projects_datasets_annotated_datasets_feedback_threads_delete
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datalabeling_projects_datasets_annotated_datasets_feedback_threads_get_execute()` to send, or `datalabeling_projects_datasets_annotated_datasets_feedback_threads_get` for simplest API.
 
-pub fn datalabeling_projects_datasets_annotated_datasets_feedback_threads_get_builder(
-    client: &SimpleHttpClient,
+pub fn datalabeling_projects_datasets_annotated_datasets_feedback_threads_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datalabeling.googleapis.com/v1beta1/projects/{}/datasets/{datasetsId}/annotatedDatasets/{annotatedDatasetsId}/feedbackThreads/{feedbackThreadsId}",
@@ -3370,12 +3428,15 @@ pub fn datalabeling_projects_datasets_annotated_datasets_feedback_threads_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datalabeling_projects_datasets_annotated_datasets_feedback_threads_list_execute()` to send, or `datalabeling_projects_datasets_annotated_datasets_feedback_threads_list` for simplest API.
 
-pub fn datalabeling_projects_datasets_annotated_datasets_feedback_threads_list_builder(
-    client: &SimpleHttpClient,
+pub fn datalabeling_projects_datasets_annotated_datasets_feedback_threads_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datalabeling.googleapis.com/v1beta1/projects/{}/datasets/{datasetsId}/annotatedDatasets/{annotatedDatasetsId}/feedbackThreads",
@@ -3571,10 +3632,15 @@ pub fn datalabeling_projects_datasets_annotated_datasets_feedback_threads_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedback_messages_create_execute()` to send, or `datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedback_messages_create` for simplest API.
 
-pub fn datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedback_messages_create_builder(
-    client: &SimpleHttpClient,
+pub fn datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedback_messages_create_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datalabeling.googleapis.com/v1beta1/projects/{}/datasets/{datasetsId}/annotatedDatasets/{annotatedDatasetsId}/feedbackThreads/{feedbackThreadsId}/feedbackMessages",
@@ -3736,10 +3802,15 @@ pub fn datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedba
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedback_messages_delete_execute()` to send, or `datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedback_messages_delete` for simplest API.
 
-pub fn datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedback_messages_delete_builder(
-    client: &SimpleHttpClient,
+pub fn datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedback_messages_delete_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datalabeling.googleapis.com/v1beta1/projects/{}/datasets/{datasetsId}/annotatedDatasets/{annotatedDatasetsId}/feedbackThreads/{feedbackThreadsId}/feedbackMessages/{feedbackMessagesId}",
@@ -3897,10 +3968,15 @@ pub fn datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedba
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedback_messages_get_execute()` to send, or `datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedback_messages_get` for simplest API.
 
-pub fn datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedback_messages_get_builder(
-    client: &SimpleHttpClient,
+pub fn datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedback_messages_get_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datalabeling.googleapis.com/v1beta1/projects/{}/datasets/{datasetsId}/annotatedDatasets/{annotatedDatasetsId}/feedbackThreads/{feedbackThreadsId}/feedbackMessages/{feedbackMessagesId}",
@@ -4065,12 +4141,17 @@ pub fn datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedba
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedback_messages_list_execute()` to send, or `datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedback_messages_list` for simplest API.
 
-pub fn datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedback_messages_list_builder(
-    client: &SimpleHttpClient,
+pub fn datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedback_messages_list_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datalabeling.googleapis.com/v1beta1/projects/{}/datasets/{datasetsId}/annotatedDatasets/{annotatedDatasetsId}/feedbackThreads/{feedbackThreadsId}/feedbackMessages",
@@ -4260,10 +4341,13 @@ pub fn datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedba
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datalabeling_projects_datasets_data_items_get_execute()` to send, or `datalabeling_projects_datasets_data_items_get` for simplest API.
 
-pub fn datalabeling_projects_datasets_data_items_get_builder(
-    client: &SimpleHttpClient,
+pub fn datalabeling_projects_datasets_data_items_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datalabeling.googleapis.com/v1beta1/projects/{}/datasets/{datasetsId}/dataItems/{dataItemsId}",
@@ -4425,13 +4509,16 @@ pub fn datalabeling_projects_datasets_data_items_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datalabeling_projects_datasets_data_items_list_execute()` to send, or `datalabeling_projects_datasets_data_items_list` for simplest API.
 
-pub fn datalabeling_projects_datasets_data_items_list_builder(
-    client: &SimpleHttpClient,
+pub fn datalabeling_projects_datasets_data_items_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datalabeling.googleapis.com/v1beta1/projects/{}/datasets/{datasetsId}/dataItems",
@@ -4626,10 +4713,13 @@ pub fn datalabeling_projects_datasets_data_items_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datalabeling_projects_datasets_evaluations_get_execute()` to send, or `datalabeling_projects_datasets_evaluations_get` for simplest API.
 
-pub fn datalabeling_projects_datasets_evaluations_get_builder(
-    client: &SimpleHttpClient,
+pub fn datalabeling_projects_datasets_evaluations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datalabeling.googleapis.com/v1beta1/projects/{}/datasets/{datasetsId}/evaluations/{evaluationsId}",
@@ -4791,10 +4881,13 @@ pub fn datalabeling_projects_datasets_evaluations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datalabeling_projects_datasets_evaluations_example_comparisons_search_execute()` to send, or `datalabeling_projects_datasets_evaluations_example_comparisons_search` for simplest API.
 
-pub fn datalabeling_projects_datasets_evaluations_example_comparisons_search_builder(
-    client: &SimpleHttpClient,
+pub fn datalabeling_projects_datasets_evaluations_example_comparisons_search_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datalabeling.googleapis.com/v1beta1/projects/{}/datasets/{datasetsId}/evaluations/{evaluationsId}/exampleComparisons:search",
@@ -4969,10 +5062,13 @@ pub fn datalabeling_projects_datasets_evaluations_example_comparisons_search(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datalabeling_projects_datasets_image_label_execute()` to send, or `datalabeling_projects_datasets_image_label` for simplest API.
 
-pub fn datalabeling_projects_datasets_image_label_builder(
-    client: &SimpleHttpClient,
+pub fn datalabeling_projects_datasets_image_label_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datalabeling.googleapis.com/v1beta1/projects/{}/datasets/{datasetsId}/image:label",
@@ -5134,10 +5230,13 @@ pub fn datalabeling_projects_datasets_image_label(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datalabeling_projects_datasets_text_label_execute()` to send, or `datalabeling_projects_datasets_text_label` for simplest API.
 
-pub fn datalabeling_projects_datasets_text_label_builder(
-    client: &SimpleHttpClient,
+pub fn datalabeling_projects_datasets_text_label_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datalabeling.googleapis.com/v1beta1/projects/{}/datasets/{datasetsId}/text:label",
@@ -5299,10 +5398,13 @@ pub fn datalabeling_projects_datasets_text_label(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datalabeling_projects_datasets_video_label_execute()` to send, or `datalabeling_projects_datasets_video_label` for simplest API.
 
-pub fn datalabeling_projects_datasets_video_label_builder(
-    client: &SimpleHttpClient,
+pub fn datalabeling_projects_datasets_video_label_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datalabeling.googleapis.com/v1beta1/projects/{}/datasets/{datasetsId}/video:label",
@@ -5464,10 +5566,13 @@ pub fn datalabeling_projects_datasets_video_label(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datalabeling_projects_evaluation_jobs_create_execute()` to send, or `datalabeling_projects_evaluation_jobs_create` for simplest API.
 
-pub fn datalabeling_projects_evaluation_jobs_create_builder(
-    client: &SimpleHttpClient,
+pub fn datalabeling_projects_evaluation_jobs_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datalabeling.googleapis.com/v1beta1/projects/{}/evaluationJobs",
@@ -5630,10 +5735,13 @@ pub fn datalabeling_projects_evaluation_jobs_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datalabeling_projects_evaluation_jobs_delete_execute()` to send, or `datalabeling_projects_evaluation_jobs_delete` for simplest API.
 
-pub fn datalabeling_projects_evaluation_jobs_delete_builder(
-    client: &SimpleHttpClient,
+pub fn datalabeling_projects_evaluation_jobs_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datalabeling.googleapis.com/v1beta1/projects/{}/evaluationJobs/{evaluationJobsId}",
@@ -5791,10 +5899,13 @@ pub fn datalabeling_projects_evaluation_jobs_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datalabeling_projects_evaluation_jobs_get_execute()` to send, or `datalabeling_projects_evaluation_jobs_get` for simplest API.
 
-pub fn datalabeling_projects_evaluation_jobs_get_builder(
-    client: &SimpleHttpClient,
+pub fn datalabeling_projects_evaluation_jobs_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datalabeling.googleapis.com/v1beta1/projects/{}/evaluationJobs/{evaluationJobsId}",
@@ -5957,13 +6068,16 @@ pub fn datalabeling_projects_evaluation_jobs_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datalabeling_projects_evaluation_jobs_list_execute()` to send, or `datalabeling_projects_evaluation_jobs_list` for simplest API.
 
-pub fn datalabeling_projects_evaluation_jobs_list_builder(
-    client: &SimpleHttpClient,
+pub fn datalabeling_projects_evaluation_jobs_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datalabeling.googleapis.com/v1beta1/projects/{}/evaluationJobs",
@@ -6164,11 +6278,14 @@ pub fn datalabeling_projects_evaluation_jobs_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datalabeling_projects_evaluation_jobs_patch_execute()` to send, or `datalabeling_projects_evaluation_jobs_patch` for simplest API.
 
-pub fn datalabeling_projects_evaluation_jobs_patch_builder(
-    client: &SimpleHttpClient,
+pub fn datalabeling_projects_evaluation_jobs_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datalabeling.googleapis.com/v1beta1/projects/{}/evaluationJobs/{evaluationJobsId}",
@@ -6345,10 +6462,13 @@ pub fn datalabeling_projects_evaluation_jobs_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datalabeling_projects_evaluation_jobs_pause_execute()` to send, or `datalabeling_projects_evaluation_jobs_pause` for simplest API.
 
-pub fn datalabeling_projects_evaluation_jobs_pause_builder(
-    client: &SimpleHttpClient,
+pub fn datalabeling_projects_evaluation_jobs_pause_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datalabeling.googleapis.com/v1beta1/projects/{}/evaluationJobs/{evaluationJobsId}:pause",
@@ -6506,10 +6626,13 @@ pub fn datalabeling_projects_evaluation_jobs_pause(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datalabeling_projects_evaluation_jobs_resume_execute()` to send, or `datalabeling_projects_evaluation_jobs_resume` for simplest API.
 
-pub fn datalabeling_projects_evaluation_jobs_resume_builder(
-    client: &SimpleHttpClient,
+pub fn datalabeling_projects_evaluation_jobs_resume_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datalabeling.googleapis.com/v1beta1/projects/{}/evaluationJobs/{evaluationJobsId}:resume",
@@ -6667,13 +6790,16 @@ pub fn datalabeling_projects_evaluation_jobs_resume(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datalabeling_projects_evaluations_search_execute()` to send, or `datalabeling_projects_evaluations_search` for simplest API.
 
-pub fn datalabeling_projects_evaluations_search_builder(
-    client: &SimpleHttpClient,
+pub fn datalabeling_projects_evaluations_search_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datalabeling.googleapis.com/v1beta1/projects/{}/evaluations:search",
@@ -6874,10 +7000,13 @@ pub fn datalabeling_projects_evaluations_search(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datalabeling_projects_instructions_create_execute()` to send, or `datalabeling_projects_instructions_create` for simplest API.
 
-pub fn datalabeling_projects_instructions_create_builder(
-    client: &SimpleHttpClient,
+pub fn datalabeling_projects_instructions_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datalabeling.googleapis.com/v1beta1/projects/{}/instructions",
@@ -7039,10 +7168,13 @@ pub fn datalabeling_projects_instructions_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datalabeling_projects_instructions_delete_execute()` to send, or `datalabeling_projects_instructions_delete` for simplest API.
 
-pub fn datalabeling_projects_instructions_delete_builder(
-    client: &SimpleHttpClient,
+pub fn datalabeling_projects_instructions_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datalabeling.googleapis.com/v1beta1/projects/{}/instructions/{instructionsId}",
@@ -7200,10 +7332,13 @@ pub fn datalabeling_projects_instructions_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datalabeling_projects_instructions_get_execute()` to send, or `datalabeling_projects_instructions_get` for simplest API.
 
-pub fn datalabeling_projects_instructions_get_builder(
-    client: &SimpleHttpClient,
+pub fn datalabeling_projects_instructions_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datalabeling.googleapis.com/v1beta1/projects/{}/instructions/{instructionsId}",
@@ -7365,13 +7500,16 @@ pub fn datalabeling_projects_instructions_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datalabeling_projects_instructions_list_execute()` to send, or `datalabeling_projects_instructions_list` for simplest API.
 
-pub fn datalabeling_projects_instructions_list_builder(
-    client: &SimpleHttpClient,
+pub fn datalabeling_projects_instructions_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datalabeling.googleapis.com/v1beta1/projects/{}/instructions",
@@ -7572,10 +7710,13 @@ pub fn datalabeling_projects_instructions_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datalabeling_projects_operations_cancel_execute()` to send, or `datalabeling_projects_operations_cancel` for simplest API.
 
-pub fn datalabeling_projects_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn datalabeling_projects_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datalabeling.googleapis.com/v1beta1/projects/{}/operations/{operationsId}:cancel",
@@ -7733,10 +7874,13 @@ pub fn datalabeling_projects_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datalabeling_projects_operations_delete_execute()` to send, or `datalabeling_projects_operations_delete` for simplest API.
 
-pub fn datalabeling_projects_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn datalabeling_projects_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datalabeling.googleapis.com/v1beta1/projects/{}/operations/{operationsId}",
@@ -7894,10 +8038,13 @@ pub fn datalabeling_projects_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datalabeling_projects_operations_get_execute()` to send, or `datalabeling_projects_operations_get` for simplest API.
 
-pub fn datalabeling_projects_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn datalabeling_projects_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datalabeling.googleapis.com/v1beta1/projects/{}/operations/{operationsId}",
@@ -8059,13 +8206,16 @@ pub fn datalabeling_projects_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datalabeling_projects_operations_list_execute()` to send, or `datalabeling_projects_operations_list` for simplest API.
 
-pub fn datalabeling_projects_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn datalabeling_projects_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datalabeling.googleapis.com/v1beta1/projects/{}/operations",

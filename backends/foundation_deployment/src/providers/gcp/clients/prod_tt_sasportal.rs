@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `prod_tt_sasportal_customers_get_execute()` to send, or `prod_tt_sasportal_customers_get` for simplest API.
 
-pub fn prod_tt_sasportal_customers_get_builder(
-    client: &SimpleHttpClient,
+pub fn prod_tt_sasportal_customers_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://prod-tt-sasportal.googleapis.com/v1alpha1/customers/{}",
@@ -187,11 +191,14 @@ pub fn prod_tt_sasportal_customers_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `prod_tt_sasportal_customers_list_execute()` to send, or `prod_tt_sasportal_customers_list` for simplest API.
 
-pub fn prod_tt_sasportal_customers_list_builder(
-    client: &SimpleHttpClient,
+pub fn prod_tt_sasportal_customers_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://prod-tt-sasportal.googleapis.com/v1alpha1/customers",);
 
@@ -367,9 +374,12 @@ pub fn prod_tt_sasportal_customers_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `prod_tt_sasportal_customers_list_gcp_project_deployments_execute()` to send, or `prod_tt_sasportal_customers_list_gcp_project_deployments` for simplest API.
 
-pub fn prod_tt_sasportal_customers_list_gcp_project_deployments_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn prod_tt_sasportal_customers_list_gcp_project_deployments_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://prod-tt-sasportal.googleapis.com/v1alpha1/customers:listGcpProjectDeployments",
@@ -523,9 +533,12 @@ pub fn prod_tt_sasportal_customers_list_gcp_project_deployments(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `prod_tt_sasportal_customers_list_legacy_organizations_execute()` to send, or `prod_tt_sasportal_customers_list_legacy_organizations` for simplest API.
 
-pub fn prod_tt_sasportal_customers_list_legacy_organizations_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn prod_tt_sasportal_customers_list_legacy_organizations_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://prod-tt-sasportal.googleapis.com/v1alpha1/customers:listLegacyOrganizations",
@@ -678,9 +691,12 @@ pub fn prod_tt_sasportal_customers_list_legacy_organizations(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `prod_tt_sasportal_customers_migrate_organization_execute()` to send, or `prod_tt_sasportal_customers_migrate_organization` for simplest API.
 
-pub fn prod_tt_sasportal_customers_migrate_organization_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn prod_tt_sasportal_customers_migrate_organization_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://prod-tt-sasportal.googleapis.com/v1alpha1/customers:migrateOrganization",);
@@ -828,11 +844,14 @@ pub fn prod_tt_sasportal_customers_migrate_organization(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `prod_tt_sasportal_customers_patch_execute()` to send, or `prod_tt_sasportal_customers_patch` for simplest API.
 
-pub fn prod_tt_sasportal_customers_patch_builder(
-    client: &SimpleHttpClient,
+pub fn prod_tt_sasportal_customers_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://prod-tt-sasportal.googleapis.com/v1alpha1/customers/{}",
@@ -1003,9 +1022,12 @@ pub fn prod_tt_sasportal_customers_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `prod_tt_sasportal_customers_provision_deployment_execute()` to send, or `prod_tt_sasportal_customers_provision_deployment` for simplest API.
 
-pub fn prod_tt_sasportal_customers_provision_deployment_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn prod_tt_sasportal_customers_provision_deployment_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://prod-tt-sasportal.googleapis.com/v1alpha1/customers:provisionDeployment",);
@@ -1157,9 +1179,12 @@ pub fn prod_tt_sasportal_customers_provision_deployment(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `prod_tt_sasportal_customers_setup_sas_analytics_execute()` to send, or `prod_tt_sasportal_customers_setup_sas_analytics` for simplest API.
 
-pub fn prod_tt_sasportal_customers_setup_sas_analytics_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn prod_tt_sasportal_customers_setup_sas_analytics_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://prod-tt-sasportal.googleapis.com/v1alpha1/customers:setupSasAnalytics",);
@@ -1307,10 +1332,13 @@ pub fn prod_tt_sasportal_customers_setup_sas_analytics(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `prod_tt_sasportal_customers_deployments_create_execute()` to send, or `prod_tt_sasportal_customers_deployments_create` for simplest API.
 
-pub fn prod_tt_sasportal_customers_deployments_create_builder(
-    client: &SimpleHttpClient,
+pub fn prod_tt_sasportal_customers_deployments_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://prod-tt-sasportal.googleapis.com/v1alpha1/customers/{}/deployments",
@@ -1468,10 +1496,13 @@ pub fn prod_tt_sasportal_customers_deployments_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `prod_tt_sasportal_customers_deployments_delete_execute()` to send, or `prod_tt_sasportal_customers_deployments_delete` for simplest API.
 
-pub fn prod_tt_sasportal_customers_deployments_delete_builder(
-    client: &SimpleHttpClient,
+pub fn prod_tt_sasportal_customers_deployments_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://prod-tt-sasportal.googleapis.com/v1alpha1/customers/{}/deployments/{deploymentsId}",
@@ -1629,10 +1660,13 @@ pub fn prod_tt_sasportal_customers_deployments_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `prod_tt_sasportal_customers_deployments_get_execute()` to send, or `prod_tt_sasportal_customers_deployments_get` for simplest API.
 
-pub fn prod_tt_sasportal_customers_deployments_get_builder(
-    client: &SimpleHttpClient,
+pub fn prod_tt_sasportal_customers_deployments_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://prod-tt-sasportal.googleapis.com/v1alpha1/customers/{}/deployments/{deploymentsId}",
@@ -1790,13 +1824,16 @@ pub fn prod_tt_sasportal_customers_deployments_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `prod_tt_sasportal_customers_deployments_list_execute()` to send, or `prod_tt_sasportal_customers_deployments_list` for simplest API.
 
-pub fn prod_tt_sasportal_customers_deployments_list_builder(
-    client: &SimpleHttpClient,
+pub fn prod_tt_sasportal_customers_deployments_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://prod-tt-sasportal.googleapis.com/v1alpha1/customers/{}/deployments",
@@ -1987,10 +2024,13 @@ pub fn prod_tt_sasportal_customers_deployments_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `prod_tt_sasportal_customers_deployments_move_execute()` to send, or `prod_tt_sasportal_customers_deployments_move` for simplest API.
 
-pub fn prod_tt_sasportal_customers_deployments_move_builder(
-    client: &SimpleHttpClient,
+pub fn prod_tt_sasportal_customers_deployments_move_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://prod-tt-sasportal.googleapis.com/v1alpha1/customers/{}/deployments/{deploymentsId}:move",
@@ -2148,11 +2188,14 @@ pub fn prod_tt_sasportal_customers_deployments_move(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `prod_tt_sasportal_customers_deployments_patch_execute()` to send, or `prod_tt_sasportal_customers_deployments_patch` for simplest API.
 
-pub fn prod_tt_sasportal_customers_deployments_patch_builder(
-    client: &SimpleHttpClient,
+pub fn prod_tt_sasportal_customers_deployments_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://prod-tt-sasportal.googleapis.com/v1alpha1/customers/{}/deployments/{deploymentsId}",
@@ -2327,10 +2370,13 @@ pub fn prod_tt_sasportal_customers_deployments_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `prod_tt_sasportal_customers_deployments_devices_create_execute()` to send, or `prod_tt_sasportal_customers_deployments_devices_create` for simplest API.
 
-pub fn prod_tt_sasportal_customers_deployments_devices_create_builder(
-    client: &SimpleHttpClient,
+pub fn prod_tt_sasportal_customers_deployments_devices_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://prod-tt-sasportal.googleapis.com/v1alpha1/customers/{}/deployments/{deploymentsId}/devices",
@@ -2489,10 +2535,13 @@ pub fn prod_tt_sasportal_customers_deployments_devices_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `prod_tt_sasportal_customers_deployments_devices_create_signed_execute()` to send, or `prod_tt_sasportal_customers_deployments_devices_create_signed` for simplest API.
 
-pub fn prod_tt_sasportal_customers_deployments_devices_create_signed_builder(
-    client: &SimpleHttpClient,
+pub fn prod_tt_sasportal_customers_deployments_devices_create_signed_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://prod-tt-sasportal.googleapis.com/v1alpha1/customers/{}/deployments/{deploymentsId}/devices:createSigned",
@@ -2653,13 +2702,16 @@ pub fn prod_tt_sasportal_customers_deployments_devices_create_signed(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `prod_tt_sasportal_customers_deployments_devices_list_execute()` to send, or `prod_tt_sasportal_customers_deployments_devices_list` for simplest API.
 
-pub fn prod_tt_sasportal_customers_deployments_devices_list_builder(
-    client: &SimpleHttpClient,
+pub fn prod_tt_sasportal_customers_deployments_devices_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://prod-tt-sasportal.googleapis.com/v1alpha1/customers/{}/deployments/{deploymentsId}/devices",
@@ -2850,10 +2902,13 @@ pub fn prod_tt_sasportal_customers_deployments_devices_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `prod_tt_sasportal_customers_devices_create_execute()` to send, or `prod_tt_sasportal_customers_devices_create` for simplest API.
 
-pub fn prod_tt_sasportal_customers_devices_create_builder(
-    client: &SimpleHttpClient,
+pub fn prod_tt_sasportal_customers_devices_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://prod-tt-sasportal.googleapis.com/v1alpha1/customers/{}/devices",
@@ -3011,10 +3066,13 @@ pub fn prod_tt_sasportal_customers_devices_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `prod_tt_sasportal_customers_devices_create_signed_execute()` to send, or `prod_tt_sasportal_customers_devices_create_signed` for simplest API.
 
-pub fn prod_tt_sasportal_customers_devices_create_signed_builder(
-    client: &SimpleHttpClient,
+pub fn prod_tt_sasportal_customers_devices_create_signed_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://prod-tt-sasportal.googleapis.com/v1alpha1/customers/{}/devices:createSigned",
@@ -3172,10 +3230,13 @@ pub fn prod_tt_sasportal_customers_devices_create_signed(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `prod_tt_sasportal_customers_devices_delete_execute()` to send, or `prod_tt_sasportal_customers_devices_delete` for simplest API.
 
-pub fn prod_tt_sasportal_customers_devices_delete_builder(
-    client: &SimpleHttpClient,
+pub fn prod_tt_sasportal_customers_devices_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://prod-tt-sasportal.googleapis.com/v1alpha1/customers/{}/devices/{devicesId}",
@@ -3333,10 +3394,13 @@ pub fn prod_tt_sasportal_customers_devices_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `prod_tt_sasportal_customers_devices_get_execute()` to send, or `prod_tt_sasportal_customers_devices_get` for simplest API.
 
-pub fn prod_tt_sasportal_customers_devices_get_builder(
-    client: &SimpleHttpClient,
+pub fn prod_tt_sasportal_customers_devices_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://prod-tt-sasportal.googleapis.com/v1alpha1/customers/{}/devices/{devicesId}",
@@ -3494,13 +3558,16 @@ pub fn prod_tt_sasportal_customers_devices_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `prod_tt_sasportal_customers_devices_list_execute()` to send, or `prod_tt_sasportal_customers_devices_list` for simplest API.
 
-pub fn prod_tt_sasportal_customers_devices_list_builder(
-    client: &SimpleHttpClient,
+pub fn prod_tt_sasportal_customers_devices_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://prod-tt-sasportal.googleapis.com/v1alpha1/customers/{}/devices",
@@ -3691,10 +3758,13 @@ pub fn prod_tt_sasportal_customers_devices_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `prod_tt_sasportal_customers_devices_move_execute()` to send, or `prod_tt_sasportal_customers_devices_move` for simplest API.
 
-pub fn prod_tt_sasportal_customers_devices_move_builder(
-    client: &SimpleHttpClient,
+pub fn prod_tt_sasportal_customers_devices_move_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://prod-tt-sasportal.googleapis.com/v1alpha1/customers/{}/devices/{devicesId}:move",
@@ -3852,11 +3922,14 @@ pub fn prod_tt_sasportal_customers_devices_move(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `prod_tt_sasportal_customers_devices_patch_execute()` to send, or `prod_tt_sasportal_customers_devices_patch` for simplest API.
 
-pub fn prod_tt_sasportal_customers_devices_patch_builder(
-    client: &SimpleHttpClient,
+pub fn prod_tt_sasportal_customers_devices_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://prod-tt-sasportal.googleapis.com/v1alpha1/customers/{}/devices/{devicesId}",
@@ -4028,10 +4101,13 @@ pub fn prod_tt_sasportal_customers_devices_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `prod_tt_sasportal_customers_devices_sign_device_execute()` to send, or `prod_tt_sasportal_customers_devices_sign_device` for simplest API.
 
-pub fn prod_tt_sasportal_customers_devices_sign_device_builder(
-    client: &SimpleHttpClient,
+pub fn prod_tt_sasportal_customers_devices_sign_device_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://prod-tt-sasportal.googleapis.com/v1alpha1/customers/{}/devices/{devicesId}:signDevice",
@@ -4189,10 +4265,13 @@ pub fn prod_tt_sasportal_customers_devices_sign_device(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `prod_tt_sasportal_customers_devices_update_signed_execute()` to send, or `prod_tt_sasportal_customers_devices_update_signed` for simplest API.
 
-pub fn prod_tt_sasportal_customers_devices_update_signed_builder(
-    client: &SimpleHttpClient,
+pub fn prod_tt_sasportal_customers_devices_update_signed_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://prod-tt-sasportal.googleapis.com/v1alpha1/customers/{}/devices/{devicesId}:updateSigned",
@@ -4350,10 +4429,13 @@ pub fn prod_tt_sasportal_customers_devices_update_signed(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `prod_tt_sasportal_customers_nodes_create_execute()` to send, or `prod_tt_sasportal_customers_nodes_create` for simplest API.
 
-pub fn prod_tt_sasportal_customers_nodes_create_builder(
-    client: &SimpleHttpClient,
+pub fn prod_tt_sasportal_customers_nodes_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://prod-tt-sasportal.googleapis.com/v1alpha1/customers/{}/nodes",
@@ -4511,10 +4593,13 @@ pub fn prod_tt_sasportal_customers_nodes_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `prod_tt_sasportal_customers_nodes_delete_execute()` to send, or `prod_tt_sasportal_customers_nodes_delete` for simplest API.
 
-pub fn prod_tt_sasportal_customers_nodes_delete_builder(
-    client: &SimpleHttpClient,
+pub fn prod_tt_sasportal_customers_nodes_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://prod-tt-sasportal.googleapis.com/v1alpha1/customers/{}/nodes/{nodesId}",
@@ -4672,10 +4757,13 @@ pub fn prod_tt_sasportal_customers_nodes_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `prod_tt_sasportal_customers_nodes_get_execute()` to send, or `prod_tt_sasportal_customers_nodes_get` for simplest API.
 
-pub fn prod_tt_sasportal_customers_nodes_get_builder(
-    client: &SimpleHttpClient,
+pub fn prod_tt_sasportal_customers_nodes_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://prod-tt-sasportal.googleapis.com/v1alpha1/customers/{}/nodes/{nodesId}",
@@ -4833,13 +4921,16 @@ pub fn prod_tt_sasportal_customers_nodes_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `prod_tt_sasportal_customers_nodes_list_execute()` to send, or `prod_tt_sasportal_customers_nodes_list` for simplest API.
 
-pub fn prod_tt_sasportal_customers_nodes_list_builder(
-    client: &SimpleHttpClient,
+pub fn prod_tt_sasportal_customers_nodes_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://prod-tt-sasportal.googleapis.com/v1alpha1/customers/{}/nodes",
@@ -5030,10 +5121,13 @@ pub fn prod_tt_sasportal_customers_nodes_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `prod_tt_sasportal_customers_nodes_move_execute()` to send, or `prod_tt_sasportal_customers_nodes_move` for simplest API.
 
-pub fn prod_tt_sasportal_customers_nodes_move_builder(
-    client: &SimpleHttpClient,
+pub fn prod_tt_sasportal_customers_nodes_move_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://prod-tt-sasportal.googleapis.com/v1alpha1/customers/{}/nodes/{nodesId}:move",
@@ -5191,11 +5285,14 @@ pub fn prod_tt_sasportal_customers_nodes_move(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `prod_tt_sasportal_customers_nodes_patch_execute()` to send, or `prod_tt_sasportal_customers_nodes_patch` for simplest API.
 
-pub fn prod_tt_sasportal_customers_nodes_patch_builder(
-    client: &SimpleHttpClient,
+pub fn prod_tt_sasportal_customers_nodes_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://prod-tt-sasportal.googleapis.com/v1alpha1/customers/{}/nodes/{nodesId}",
@@ -5367,10 +5464,13 @@ pub fn prod_tt_sasportal_customers_nodes_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `prod_tt_sasportal_customers_nodes_deployments_create_execute()` to send, or `prod_tt_sasportal_customers_nodes_deployments_create` for simplest API.
 
-pub fn prod_tt_sasportal_customers_nodes_deployments_create_builder(
-    client: &SimpleHttpClient,
+pub fn prod_tt_sasportal_customers_nodes_deployments_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://prod-tt-sasportal.googleapis.com/v1alpha1/customers/{}/nodes/{nodesId}/deployments",
@@ -5529,13 +5629,16 @@ pub fn prod_tt_sasportal_customers_nodes_deployments_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `prod_tt_sasportal_customers_nodes_deployments_list_execute()` to send, or `prod_tt_sasportal_customers_nodes_deployments_list` for simplest API.
 
-pub fn prod_tt_sasportal_customers_nodes_deployments_list_builder(
-    client: &SimpleHttpClient,
+pub fn prod_tt_sasportal_customers_nodes_deployments_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://prod-tt-sasportal.googleapis.com/v1alpha1/customers/{}/nodes/{nodesId}/deployments",
@@ -5726,10 +5829,13 @@ pub fn prod_tt_sasportal_customers_nodes_deployments_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `prod_tt_sasportal_customers_nodes_devices_create_execute()` to send, or `prod_tt_sasportal_customers_nodes_devices_create` for simplest API.
 
-pub fn prod_tt_sasportal_customers_nodes_devices_create_builder(
-    client: &SimpleHttpClient,
+pub fn prod_tt_sasportal_customers_nodes_devices_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://prod-tt-sasportal.googleapis.com/v1alpha1/customers/{}/nodes/{nodesId}/devices",
@@ -5887,10 +5993,13 @@ pub fn prod_tt_sasportal_customers_nodes_devices_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `prod_tt_sasportal_customers_nodes_devices_create_signed_execute()` to send, or `prod_tt_sasportal_customers_nodes_devices_create_signed` for simplest API.
 
-pub fn prod_tt_sasportal_customers_nodes_devices_create_signed_builder(
-    client: &SimpleHttpClient,
+pub fn prod_tt_sasportal_customers_nodes_devices_create_signed_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://prod-tt-sasportal.googleapis.com/v1alpha1/customers/{}/nodes/{nodesId}/devices:createSigned",
@@ -6049,13 +6158,16 @@ pub fn prod_tt_sasportal_customers_nodes_devices_create_signed(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `prod_tt_sasportal_customers_nodes_devices_list_execute()` to send, or `prod_tt_sasportal_customers_nodes_devices_list` for simplest API.
 
-pub fn prod_tt_sasportal_customers_nodes_devices_list_builder(
-    client: &SimpleHttpClient,
+pub fn prod_tt_sasportal_customers_nodes_devices_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://prod-tt-sasportal.googleapis.com/v1alpha1/customers/{}/nodes/{nodesId}/devices",
@@ -6246,10 +6358,13 @@ pub fn prod_tt_sasportal_customers_nodes_devices_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `prod_tt_sasportal_customers_nodes_nodes_create_execute()` to send, or `prod_tt_sasportal_customers_nodes_nodes_create` for simplest API.
 
-pub fn prod_tt_sasportal_customers_nodes_nodes_create_builder(
-    client: &SimpleHttpClient,
+pub fn prod_tt_sasportal_customers_nodes_nodes_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://prod-tt-sasportal.googleapis.com/v1alpha1/customers/{}/nodes/{nodesId}/nodes",
@@ -6407,13 +6522,16 @@ pub fn prod_tt_sasportal_customers_nodes_nodes_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `prod_tt_sasportal_customers_nodes_nodes_list_execute()` to send, or `prod_tt_sasportal_customers_nodes_nodes_list` for simplest API.
 
-pub fn prod_tt_sasportal_customers_nodes_nodes_list_builder(
-    client: &SimpleHttpClient,
+pub fn prod_tt_sasportal_customers_nodes_nodes_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://prod-tt-sasportal.googleapis.com/v1alpha1/customers/{}/nodes/{nodesId}/nodes",
@@ -6604,10 +6722,13 @@ pub fn prod_tt_sasportal_customers_nodes_nodes_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `prod_tt_sasportal_deployments_get_execute()` to send, or `prod_tt_sasportal_deployments_get` for simplest API.
 
-pub fn prod_tt_sasportal_deployments_get_builder(
-    client: &SimpleHttpClient,
+pub fn prod_tt_sasportal_deployments_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://prod-tt-sasportal.googleapis.com/v1alpha1/deployments/{}",
@@ -6765,10 +6886,13 @@ pub fn prod_tt_sasportal_deployments_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `prod_tt_sasportal_deployments_devices_delete_execute()` to send, or `prod_tt_sasportal_deployments_devices_delete` for simplest API.
 
-pub fn prod_tt_sasportal_deployments_devices_delete_builder(
-    client: &SimpleHttpClient,
+pub fn prod_tt_sasportal_deployments_devices_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://prod-tt-sasportal.googleapis.com/v1alpha1/deployments/{}/devices/{devicesId}",
@@ -6926,10 +7050,13 @@ pub fn prod_tt_sasportal_deployments_devices_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `prod_tt_sasportal_deployments_devices_get_execute()` to send, or `prod_tt_sasportal_deployments_devices_get` for simplest API.
 
-pub fn prod_tt_sasportal_deployments_devices_get_builder(
-    client: &SimpleHttpClient,
+pub fn prod_tt_sasportal_deployments_devices_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://prod-tt-sasportal.googleapis.com/v1alpha1/deployments/{}/devices/{devicesId}",
@@ -7087,10 +7214,13 @@ pub fn prod_tt_sasportal_deployments_devices_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `prod_tt_sasportal_deployments_devices_move_execute()` to send, or `prod_tt_sasportal_deployments_devices_move` for simplest API.
 
-pub fn prod_tt_sasportal_deployments_devices_move_builder(
-    client: &SimpleHttpClient,
+pub fn prod_tt_sasportal_deployments_devices_move_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://prod-tt-sasportal.googleapis.com/v1alpha1/deployments/{}/devices/{devicesId}:move",
@@ -7248,11 +7378,14 @@ pub fn prod_tt_sasportal_deployments_devices_move(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `prod_tt_sasportal_deployments_devices_patch_execute()` to send, or `prod_tt_sasportal_deployments_devices_patch` for simplest API.
 
-pub fn prod_tt_sasportal_deployments_devices_patch_builder(
-    client: &SimpleHttpClient,
+pub fn prod_tt_sasportal_deployments_devices_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://prod-tt-sasportal.googleapis.com/v1alpha1/deployments/{}/devices/{devicesId}",
@@ -7424,10 +7557,13 @@ pub fn prod_tt_sasportal_deployments_devices_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `prod_tt_sasportal_deployments_devices_sign_device_execute()` to send, or `prod_tt_sasportal_deployments_devices_sign_device` for simplest API.
 
-pub fn prod_tt_sasportal_deployments_devices_sign_device_builder(
-    client: &SimpleHttpClient,
+pub fn prod_tt_sasportal_deployments_devices_sign_device_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://prod-tt-sasportal.googleapis.com/v1alpha1/deployments/{}/devices/{devicesId}:signDevice",
@@ -7585,10 +7721,13 @@ pub fn prod_tt_sasportal_deployments_devices_sign_device(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `prod_tt_sasportal_deployments_devices_update_signed_execute()` to send, or `prod_tt_sasportal_deployments_devices_update_signed` for simplest API.
 
-pub fn prod_tt_sasportal_deployments_devices_update_signed_builder(
-    client: &SimpleHttpClient,
+pub fn prod_tt_sasportal_deployments_devices_update_signed_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://prod-tt-sasportal.googleapis.com/v1alpha1/deployments/{}/devices/{devicesId}:updateSigned",
@@ -7746,9 +7885,12 @@ pub fn prod_tt_sasportal_deployments_devices_update_signed(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `prod_tt_sasportal_installer_generate_secret_execute()` to send, or `prod_tt_sasportal_installer_generate_secret` for simplest API.
 
-pub fn prod_tt_sasportal_installer_generate_secret_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn prod_tt_sasportal_installer_generate_secret_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://prod-tt-sasportal.googleapis.com/v1alpha1/installer:generateSecret",);
@@ -7900,9 +8042,12 @@ pub fn prod_tt_sasportal_installer_generate_secret(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `prod_tt_sasportal_installer_validate_execute()` to send, or `prod_tt_sasportal_installer_validate` for simplest API.
 
-pub fn prod_tt_sasportal_installer_validate_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn prod_tt_sasportal_installer_validate_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://prod-tt-sasportal.googleapis.com/v1alpha1/installer:validate",);
@@ -8054,10 +8199,13 @@ pub fn prod_tt_sasportal_installer_validate(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `prod_tt_sasportal_nodes_get_execute()` to send, or `prod_tt_sasportal_nodes_get` for simplest API.
 
-pub fn prod_tt_sasportal_nodes_get_builder(
-    client: &SimpleHttpClient,
+pub fn prod_tt_sasportal_nodes_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://prod-tt-sasportal.googleapis.com/v1alpha1/nodes/{}",
@@ -8215,10 +8363,13 @@ pub fn prod_tt_sasportal_nodes_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `prod_tt_sasportal_nodes_deployments_delete_execute()` to send, or `prod_tt_sasportal_nodes_deployments_delete` for simplest API.
 
-pub fn prod_tt_sasportal_nodes_deployments_delete_builder(
-    client: &SimpleHttpClient,
+pub fn prod_tt_sasportal_nodes_deployments_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://prod-tt-sasportal.googleapis.com/v1alpha1/nodes/{}/deployments/{deploymentsId}",
@@ -8376,10 +8527,13 @@ pub fn prod_tt_sasportal_nodes_deployments_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `prod_tt_sasportal_nodes_deployments_get_execute()` to send, or `prod_tt_sasportal_nodes_deployments_get` for simplest API.
 
-pub fn prod_tt_sasportal_nodes_deployments_get_builder(
-    client: &SimpleHttpClient,
+pub fn prod_tt_sasportal_nodes_deployments_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://prod-tt-sasportal.googleapis.com/v1alpha1/nodes/{}/deployments/{deploymentsId}",
@@ -8537,13 +8691,16 @@ pub fn prod_tt_sasportal_nodes_deployments_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `prod_tt_sasportal_nodes_deployments_list_execute()` to send, or `prod_tt_sasportal_nodes_deployments_list` for simplest API.
 
-pub fn prod_tt_sasportal_nodes_deployments_list_builder(
-    client: &SimpleHttpClient,
+pub fn prod_tt_sasportal_nodes_deployments_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://prod-tt-sasportal.googleapis.com/v1alpha1/nodes/{}/deployments",
@@ -8734,10 +8891,13 @@ pub fn prod_tt_sasportal_nodes_deployments_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `prod_tt_sasportal_nodes_deployments_move_execute()` to send, or `prod_tt_sasportal_nodes_deployments_move` for simplest API.
 
-pub fn prod_tt_sasportal_nodes_deployments_move_builder(
-    client: &SimpleHttpClient,
+pub fn prod_tt_sasportal_nodes_deployments_move_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://prod-tt-sasportal.googleapis.com/v1alpha1/nodes/{}/deployments/{deploymentsId}:move",
@@ -8895,11 +9055,14 @@ pub fn prod_tt_sasportal_nodes_deployments_move(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `prod_tt_sasportal_nodes_deployments_patch_execute()` to send, or `prod_tt_sasportal_nodes_deployments_patch` for simplest API.
 
-pub fn prod_tt_sasportal_nodes_deployments_patch_builder(
-    client: &SimpleHttpClient,
+pub fn prod_tt_sasportal_nodes_deployments_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://prod-tt-sasportal.googleapis.com/v1alpha1/nodes/{}/deployments/{deploymentsId}",
@@ -9071,10 +9234,13 @@ pub fn prod_tt_sasportal_nodes_deployments_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `prod_tt_sasportal_nodes_deployments_devices_create_execute()` to send, or `prod_tt_sasportal_nodes_deployments_devices_create` for simplest API.
 
-pub fn prod_tt_sasportal_nodes_deployments_devices_create_builder(
-    client: &SimpleHttpClient,
+pub fn prod_tt_sasportal_nodes_deployments_devices_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://prod-tt-sasportal.googleapis.com/v1alpha1/nodes/{}/deployments/{deploymentsId}/devices",
@@ -9232,10 +9398,13 @@ pub fn prod_tt_sasportal_nodes_deployments_devices_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `prod_tt_sasportal_nodes_deployments_devices_create_signed_execute()` to send, or `prod_tt_sasportal_nodes_deployments_devices_create_signed` for simplest API.
 
-pub fn prod_tt_sasportal_nodes_deployments_devices_create_signed_builder(
-    client: &SimpleHttpClient,
+pub fn prod_tt_sasportal_nodes_deployments_devices_create_signed_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://prod-tt-sasportal.googleapis.com/v1alpha1/nodes/{}/deployments/{deploymentsId}/devices:createSigned",
@@ -9394,13 +9563,16 @@ pub fn prod_tt_sasportal_nodes_deployments_devices_create_signed(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `prod_tt_sasportal_nodes_deployments_devices_list_execute()` to send, or `prod_tt_sasportal_nodes_deployments_devices_list` for simplest API.
 
-pub fn prod_tt_sasportal_nodes_deployments_devices_list_builder(
-    client: &SimpleHttpClient,
+pub fn prod_tt_sasportal_nodes_deployments_devices_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://prod-tt-sasportal.googleapis.com/v1alpha1/nodes/{}/deployments/{deploymentsId}/devices",
@@ -9591,10 +9763,13 @@ pub fn prod_tt_sasportal_nodes_deployments_devices_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `prod_tt_sasportal_nodes_devices_create_execute()` to send, or `prod_tt_sasportal_nodes_devices_create` for simplest API.
 
-pub fn prod_tt_sasportal_nodes_devices_create_builder(
-    client: &SimpleHttpClient,
+pub fn prod_tt_sasportal_nodes_devices_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://prod-tt-sasportal.googleapis.com/v1alpha1/nodes/{}/devices",
@@ -9752,10 +9927,13 @@ pub fn prod_tt_sasportal_nodes_devices_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `prod_tt_sasportal_nodes_devices_create_signed_execute()` to send, or `prod_tt_sasportal_nodes_devices_create_signed` for simplest API.
 
-pub fn prod_tt_sasportal_nodes_devices_create_signed_builder(
-    client: &SimpleHttpClient,
+pub fn prod_tt_sasportal_nodes_devices_create_signed_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://prod-tt-sasportal.googleapis.com/v1alpha1/nodes/{}/devices:createSigned",
@@ -9913,10 +10091,13 @@ pub fn prod_tt_sasportal_nodes_devices_create_signed(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `prod_tt_sasportal_nodes_devices_delete_execute()` to send, or `prod_tt_sasportal_nodes_devices_delete` for simplest API.
 
-pub fn prod_tt_sasportal_nodes_devices_delete_builder(
-    client: &SimpleHttpClient,
+pub fn prod_tt_sasportal_nodes_devices_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://prod-tt-sasportal.googleapis.com/v1alpha1/nodes/{}/devices/{devicesId}",
@@ -10074,10 +10255,13 @@ pub fn prod_tt_sasportal_nodes_devices_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `prod_tt_sasportal_nodes_devices_get_execute()` to send, or `prod_tt_sasportal_nodes_devices_get` for simplest API.
 
-pub fn prod_tt_sasportal_nodes_devices_get_builder(
-    client: &SimpleHttpClient,
+pub fn prod_tt_sasportal_nodes_devices_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://prod-tt-sasportal.googleapis.com/v1alpha1/nodes/{}/devices/{devicesId}",
@@ -10235,13 +10419,16 @@ pub fn prod_tt_sasportal_nodes_devices_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `prod_tt_sasportal_nodes_devices_list_execute()` to send, or `prod_tt_sasportal_nodes_devices_list` for simplest API.
 
-pub fn prod_tt_sasportal_nodes_devices_list_builder(
-    client: &SimpleHttpClient,
+pub fn prod_tt_sasportal_nodes_devices_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://prod-tt-sasportal.googleapis.com/v1alpha1/nodes/{}/devices",
@@ -10432,10 +10619,13 @@ pub fn prod_tt_sasportal_nodes_devices_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `prod_tt_sasportal_nodes_devices_move_execute()` to send, or `prod_tt_sasportal_nodes_devices_move` for simplest API.
 
-pub fn prod_tt_sasportal_nodes_devices_move_builder(
-    client: &SimpleHttpClient,
+pub fn prod_tt_sasportal_nodes_devices_move_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://prod-tt-sasportal.googleapis.com/v1alpha1/nodes/{}/devices/{devicesId}:move",
@@ -10593,11 +10783,14 @@ pub fn prod_tt_sasportal_nodes_devices_move(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `prod_tt_sasportal_nodes_devices_patch_execute()` to send, or `prod_tt_sasportal_nodes_devices_patch` for simplest API.
 
-pub fn prod_tt_sasportal_nodes_devices_patch_builder(
-    client: &SimpleHttpClient,
+pub fn prod_tt_sasportal_nodes_devices_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://prod-tt-sasportal.googleapis.com/v1alpha1/nodes/{}/devices/{devicesId}",
@@ -10769,10 +10962,13 @@ pub fn prod_tt_sasportal_nodes_devices_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `prod_tt_sasportal_nodes_devices_sign_device_execute()` to send, or `prod_tt_sasportal_nodes_devices_sign_device` for simplest API.
 
-pub fn prod_tt_sasportal_nodes_devices_sign_device_builder(
-    client: &SimpleHttpClient,
+pub fn prod_tt_sasportal_nodes_devices_sign_device_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://prod-tt-sasportal.googleapis.com/v1alpha1/nodes/{}/devices/{devicesId}:signDevice",
@@ -10930,10 +11126,13 @@ pub fn prod_tt_sasportal_nodes_devices_sign_device(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `prod_tt_sasportal_nodes_devices_update_signed_execute()` to send, or `prod_tt_sasportal_nodes_devices_update_signed` for simplest API.
 
-pub fn prod_tt_sasportal_nodes_devices_update_signed_builder(
-    client: &SimpleHttpClient,
+pub fn prod_tt_sasportal_nodes_devices_update_signed_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://prod-tt-sasportal.googleapis.com/v1alpha1/nodes/{}/devices/{devicesId}:updateSigned",
@@ -11091,10 +11290,13 @@ pub fn prod_tt_sasportal_nodes_devices_update_signed(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `prod_tt_sasportal_nodes_nodes_create_execute()` to send, or `prod_tt_sasportal_nodes_nodes_create` for simplest API.
 
-pub fn prod_tt_sasportal_nodes_nodes_create_builder(
-    client: &SimpleHttpClient,
+pub fn prod_tt_sasportal_nodes_nodes_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://prod-tt-sasportal.googleapis.com/v1alpha1/nodes/{}/nodes",
@@ -11252,10 +11454,13 @@ pub fn prod_tt_sasportal_nodes_nodes_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `prod_tt_sasportal_nodes_nodes_delete_execute()` to send, or `prod_tt_sasportal_nodes_nodes_delete` for simplest API.
 
-pub fn prod_tt_sasportal_nodes_nodes_delete_builder(
-    client: &SimpleHttpClient,
+pub fn prod_tt_sasportal_nodes_nodes_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://prod-tt-sasportal.googleapis.com/v1alpha1/nodes/{}/nodes/{nodesId1}",
@@ -11413,10 +11618,13 @@ pub fn prod_tt_sasportal_nodes_nodes_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `prod_tt_sasportal_nodes_nodes_get_execute()` to send, or `prod_tt_sasportal_nodes_nodes_get` for simplest API.
 
-pub fn prod_tt_sasportal_nodes_nodes_get_builder(
-    client: &SimpleHttpClient,
+pub fn prod_tt_sasportal_nodes_nodes_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://prod-tt-sasportal.googleapis.com/v1alpha1/nodes/{}/nodes/{nodesId1}",
@@ -11574,13 +11782,16 @@ pub fn prod_tt_sasportal_nodes_nodes_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `prod_tt_sasportal_nodes_nodes_list_execute()` to send, or `prod_tt_sasportal_nodes_nodes_list` for simplest API.
 
-pub fn prod_tt_sasportal_nodes_nodes_list_builder(
-    client: &SimpleHttpClient,
+pub fn prod_tt_sasportal_nodes_nodes_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://prod-tt-sasportal.googleapis.com/v1alpha1/nodes/{}/nodes",
@@ -11771,10 +11982,13 @@ pub fn prod_tt_sasportal_nodes_nodes_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `prod_tt_sasportal_nodes_nodes_move_execute()` to send, or `prod_tt_sasportal_nodes_nodes_move` for simplest API.
 
-pub fn prod_tt_sasportal_nodes_nodes_move_builder(
-    client: &SimpleHttpClient,
+pub fn prod_tt_sasportal_nodes_nodes_move_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://prod-tt-sasportal.googleapis.com/v1alpha1/nodes/{}/nodes/{nodesId1}:move",
@@ -11932,11 +12146,14 @@ pub fn prod_tt_sasportal_nodes_nodes_move(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `prod_tt_sasportal_nodes_nodes_patch_execute()` to send, or `prod_tt_sasportal_nodes_nodes_patch` for simplest API.
 
-pub fn prod_tt_sasportal_nodes_nodes_patch_builder(
-    client: &SimpleHttpClient,
+pub fn prod_tt_sasportal_nodes_nodes_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://prod-tt-sasportal.googleapis.com/v1alpha1/nodes/{}/nodes/{nodesId1}",
@@ -12108,10 +12325,13 @@ pub fn prod_tt_sasportal_nodes_nodes_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `prod_tt_sasportal_nodes_nodes_deployments_create_execute()` to send, or `prod_tt_sasportal_nodes_nodes_deployments_create` for simplest API.
 
-pub fn prod_tt_sasportal_nodes_nodes_deployments_create_builder(
-    client: &SimpleHttpClient,
+pub fn prod_tt_sasportal_nodes_nodes_deployments_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://prod-tt-sasportal.googleapis.com/v1alpha1/nodes/{}/nodes/{nodesId1}/deployments",
@@ -12269,13 +12489,16 @@ pub fn prod_tt_sasportal_nodes_nodes_deployments_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `prod_tt_sasportal_nodes_nodes_deployments_list_execute()` to send, or `prod_tt_sasportal_nodes_nodes_deployments_list` for simplest API.
 
-pub fn prod_tt_sasportal_nodes_nodes_deployments_list_builder(
-    client: &SimpleHttpClient,
+pub fn prod_tt_sasportal_nodes_nodes_deployments_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://prod-tt-sasportal.googleapis.com/v1alpha1/nodes/{}/nodes/{nodesId1}/deployments",
@@ -12466,10 +12689,13 @@ pub fn prod_tt_sasportal_nodes_nodes_deployments_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `prod_tt_sasportal_nodes_nodes_devices_create_execute()` to send, or `prod_tt_sasportal_nodes_nodes_devices_create` for simplest API.
 
-pub fn prod_tt_sasportal_nodes_nodes_devices_create_builder(
-    client: &SimpleHttpClient,
+pub fn prod_tt_sasportal_nodes_nodes_devices_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://prod-tt-sasportal.googleapis.com/v1alpha1/nodes/{}/nodes/{nodesId1}/devices",
@@ -12627,10 +12853,13 @@ pub fn prod_tt_sasportal_nodes_nodes_devices_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `prod_tt_sasportal_nodes_nodes_devices_create_signed_execute()` to send, or `prod_tt_sasportal_nodes_nodes_devices_create_signed` for simplest API.
 
-pub fn prod_tt_sasportal_nodes_nodes_devices_create_signed_builder(
-    client: &SimpleHttpClient,
+pub fn prod_tt_sasportal_nodes_nodes_devices_create_signed_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://prod-tt-sasportal.googleapis.com/v1alpha1/nodes/{}/nodes/{nodesId1}/devices:createSigned",
@@ -12789,13 +13018,16 @@ pub fn prod_tt_sasportal_nodes_nodes_devices_create_signed(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `prod_tt_sasportal_nodes_nodes_devices_list_execute()` to send, or `prod_tt_sasportal_nodes_nodes_devices_list` for simplest API.
 
-pub fn prod_tt_sasportal_nodes_nodes_devices_list_builder(
-    client: &SimpleHttpClient,
+pub fn prod_tt_sasportal_nodes_nodes_devices_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://prod-tt-sasportal.googleapis.com/v1alpha1/nodes/{}/nodes/{nodesId1}/devices",
@@ -12986,10 +13218,13 @@ pub fn prod_tt_sasportal_nodes_nodes_devices_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `prod_tt_sasportal_nodes_nodes_nodes_create_execute()` to send, or `prod_tt_sasportal_nodes_nodes_nodes_create` for simplest API.
 
-pub fn prod_tt_sasportal_nodes_nodes_nodes_create_builder(
-    client: &SimpleHttpClient,
+pub fn prod_tt_sasportal_nodes_nodes_nodes_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://prod-tt-sasportal.googleapis.com/v1alpha1/nodes/{}/nodes/{nodesId1}/nodes",
@@ -13147,13 +13382,16 @@ pub fn prod_tt_sasportal_nodes_nodes_nodes_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `prod_tt_sasportal_nodes_nodes_nodes_list_execute()` to send, or `prod_tt_sasportal_nodes_nodes_nodes_list` for simplest API.
 
-pub fn prod_tt_sasportal_nodes_nodes_nodes_list_builder(
-    client: &SimpleHttpClient,
+pub fn prod_tt_sasportal_nodes_nodes_nodes_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://prod-tt-sasportal.googleapis.com/v1alpha1/nodes/{}/nodes/{nodesId1}/nodes",
@@ -13344,9 +13582,12 @@ pub fn prod_tt_sasportal_nodes_nodes_nodes_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `prod_tt_sasportal_policies_get_execute()` to send, or `prod_tt_sasportal_policies_get` for simplest API.
 
-pub fn prod_tt_sasportal_policies_get_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn prod_tt_sasportal_policies_get_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://prod-tt-sasportal.googleapis.com/v1alpha1/policies:get",);
 
@@ -13493,9 +13734,12 @@ pub fn prod_tt_sasportal_policies_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `prod_tt_sasportal_policies_set_execute()` to send, or `prod_tt_sasportal_policies_set` for simplest API.
 
-pub fn prod_tt_sasportal_policies_set_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn prod_tt_sasportal_policies_set_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://prod-tt-sasportal.googleapis.com/v1alpha1/policies:set",);
 
@@ -13642,9 +13886,12 @@ pub fn prod_tt_sasportal_policies_set(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `prod_tt_sasportal_policies_test_execute()` to send, or `prod_tt_sasportal_policies_test` for simplest API.
 
-pub fn prod_tt_sasportal_policies_test_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn prod_tt_sasportal_policies_test_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://prod-tt-sasportal.googleapis.com/v1alpha1/policies:test",);
 

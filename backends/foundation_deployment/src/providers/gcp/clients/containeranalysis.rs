@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `containeranalysis_projects_locations_notes_batch_create_execute()` to send, or `containeranalysis_projects_locations_notes_batch_create` for simplest API.
 
-pub fn containeranalysis_projects_locations_notes_batch_create_builder(
-    client: &SimpleHttpClient,
+pub fn containeranalysis_projects_locations_notes_batch_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://containeranalysis.googleapis.com/v1/projects/{}/locations/{locationsId}/notes:batchCreate",
@@ -188,11 +192,14 @@ pub fn containeranalysis_projects_locations_notes_batch_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `containeranalysis_projects_locations_notes_create_execute()` to send, or `containeranalysis_projects_locations_notes_create` for simplest API.
 
-pub fn containeranalysis_projects_locations_notes_create_builder(
-    client: &SimpleHttpClient,
+pub fn containeranalysis_projects_locations_notes_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     noteId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://containeranalysis.googleapis.com/v1/projects/{}/locations/{locationsId}/notes",
@@ -363,10 +370,13 @@ pub fn containeranalysis_projects_locations_notes_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `containeranalysis_projects_locations_notes_delete_execute()` to send, or `containeranalysis_projects_locations_notes_delete` for simplest API.
 
-pub fn containeranalysis_projects_locations_notes_delete_builder(
-    client: &SimpleHttpClient,
+pub fn containeranalysis_projects_locations_notes_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://containeranalysis.googleapis.com/v1/projects/{}/locations/{locationsId}/notes/{notesId}",
@@ -520,10 +530,13 @@ pub fn containeranalysis_projects_locations_notes_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `containeranalysis_projects_locations_notes_get_execute()` to send, or `containeranalysis_projects_locations_notes_get` for simplest API.
 
-pub fn containeranalysis_projects_locations_notes_get_builder(
-    client: &SimpleHttpClient,
+pub fn containeranalysis_projects_locations_notes_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://containeranalysis.googleapis.com/v1/projects/{}/locations/{locationsId}/notes/{notesId}",
@@ -677,10 +690,13 @@ pub fn containeranalysis_projects_locations_notes_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `containeranalysis_projects_locations_notes_get_iam_policy_execute()` to send, or `containeranalysis_projects_locations_notes_get_iam_policy` for simplest API.
 
-pub fn containeranalysis_projects_locations_notes_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn containeranalysis_projects_locations_notes_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://containeranalysis.googleapis.com/v1/projects/{}/locations/{locationsId}/notes/{notesId}:getIamPolicy",
@@ -835,14 +851,17 @@ pub fn containeranalysis_projects_locations_notes_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `containeranalysis_projects_locations_notes_list_execute()` to send, or `containeranalysis_projects_locations_notes_list` for simplest API.
 
-pub fn containeranalysis_projects_locations_notes_list_builder(
-    client: &SimpleHttpClient,
+pub fn containeranalysis_projects_locations_notes_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://containeranalysis.googleapis.com/v1/projects/{}/locations/{locationsId}/notes",
@@ -1035,11 +1054,14 @@ pub fn containeranalysis_projects_locations_notes_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `containeranalysis_projects_locations_notes_patch_execute()` to send, or `containeranalysis_projects_locations_notes_patch` for simplest API.
 
-pub fn containeranalysis_projects_locations_notes_patch_builder(
-    client: &SimpleHttpClient,
+pub fn containeranalysis_projects_locations_notes_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://containeranalysis.googleapis.com/v1/projects/{}/locations/{locationsId}/notes/{notesId}",
@@ -1210,10 +1232,13 @@ pub fn containeranalysis_projects_locations_notes_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `containeranalysis_projects_locations_notes_set_iam_policy_execute()` to send, or `containeranalysis_projects_locations_notes_set_iam_policy` for simplest API.
 
-pub fn containeranalysis_projects_locations_notes_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn containeranalysis_projects_locations_notes_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://containeranalysis.googleapis.com/v1/projects/{}/locations/{locationsId}/notes/{notesId}:setIamPolicy",
@@ -1368,10 +1393,13 @@ pub fn containeranalysis_projects_locations_notes_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `containeranalysis_projects_locations_notes_test_iam_permissions_execute()` to send, or `containeranalysis_projects_locations_notes_test_iam_permissions` for simplest API.
 
-pub fn containeranalysis_projects_locations_notes_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn containeranalysis_projects_locations_notes_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://containeranalysis.googleapis.com/v1/projects/{}/locations/{locationsId}/notes/{notesId}:testIamPermissions",
@@ -1536,13 +1564,16 @@ pub fn containeranalysis_projects_locations_notes_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `containeranalysis_projects_locations_notes_occurrences_list_execute()` to send, or `containeranalysis_projects_locations_notes_occurrences_list` for simplest API.
 
-pub fn containeranalysis_projects_locations_notes_occurrences_list_builder(
-    client: &SimpleHttpClient,
+pub fn containeranalysis_projects_locations_notes_occurrences_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://containeranalysis.googleapis.com/v1/projects/{}/locations/{locationsId}/notes/{notesId}/occurrences",
@@ -1733,10 +1764,13 @@ pub fn containeranalysis_projects_locations_notes_occurrences_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `containeranalysis_projects_locations_occurrences_batch_create_execute()` to send, or `containeranalysis_projects_locations_occurrences_batch_create` for simplest API.
 
-pub fn containeranalysis_projects_locations_occurrences_batch_create_builder(
-    client: &SimpleHttpClient,
+pub fn containeranalysis_projects_locations_occurrences_batch_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://containeranalysis.googleapis.com/v1/projects/{}/locations/{locationsId}/occurrences:batchCreate",
@@ -1901,10 +1935,13 @@ pub fn containeranalysis_projects_locations_occurrences_batch_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `containeranalysis_projects_locations_occurrences_create_execute()` to send, or `containeranalysis_projects_locations_occurrences_create` for simplest API.
 
-pub fn containeranalysis_projects_locations_occurrences_create_builder(
-    client: &SimpleHttpClient,
+pub fn containeranalysis_projects_locations_occurrences_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://containeranalysis.googleapis.com/v1/projects/{}/locations/{locationsId}/occurrences",
@@ -2059,10 +2096,13 @@ pub fn containeranalysis_projects_locations_occurrences_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `containeranalysis_projects_locations_occurrences_delete_execute()` to send, or `containeranalysis_projects_locations_occurrences_delete` for simplest API.
 
-pub fn containeranalysis_projects_locations_occurrences_delete_builder(
-    client: &SimpleHttpClient,
+pub fn containeranalysis_projects_locations_occurrences_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://containeranalysis.googleapis.com/v1/projects/{}/locations/{locationsId}/occurrences/{occurrencesId}",
@@ -2217,10 +2257,13 @@ pub fn containeranalysis_projects_locations_occurrences_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `containeranalysis_projects_locations_occurrences_get_execute()` to send, or `containeranalysis_projects_locations_occurrences_get` for simplest API.
 
-pub fn containeranalysis_projects_locations_occurrences_get_builder(
-    client: &SimpleHttpClient,
+pub fn containeranalysis_projects_locations_occurrences_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://containeranalysis.googleapis.com/v1/projects/{}/locations/{locationsId}/occurrences/{occurrencesId}",
@@ -2374,10 +2417,13 @@ pub fn containeranalysis_projects_locations_occurrences_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `containeranalysis_projects_locations_occurrences_get_iam_policy_execute()` to send, or `containeranalysis_projects_locations_occurrences_get_iam_policy` for simplest API.
 
-pub fn containeranalysis_projects_locations_occurrences_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn containeranalysis_projects_locations_occurrences_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://containeranalysis.googleapis.com/v1/projects/{}/locations/{locationsId}/occurrences/{occurrencesId}:getIamPolicy",
@@ -2534,10 +2580,13 @@ pub fn containeranalysis_projects_locations_occurrences_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `containeranalysis_projects_locations_occurrences_get_notes_execute()` to send, or `containeranalysis_projects_locations_occurrences_get_notes` for simplest API.
 
-pub fn containeranalysis_projects_locations_occurrences_get_notes_builder(
-    client: &SimpleHttpClient,
+pub fn containeranalysis_projects_locations_occurrences_get_notes_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://containeranalysis.googleapis.com/v1/projects/{}/locations/{locationsId}/occurrences/{occurrencesId}/notes",
@@ -2692,12 +2741,15 @@ pub fn containeranalysis_projects_locations_occurrences_get_notes(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `containeranalysis_projects_locations_occurrences_get_vulnerability_summary_execute()` to send, or `containeranalysis_projects_locations_occurrences_get_vulnerability_summary` for simplest API.
 
-pub fn containeranalysis_projects_locations_occurrences_get_vulnerability_summary_builder(
-    client: &SimpleHttpClient,
+pub fn containeranalysis_projects_locations_occurrences_get_vulnerability_summary_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://containeranalysis.googleapis.com/v1/projects/{}/locations/{locationsId}/occurrences:vulnerabilitySummary",
@@ -2884,14 +2936,17 @@ pub fn containeranalysis_projects_locations_occurrences_get_vulnerability_summar
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `containeranalysis_projects_locations_occurrences_list_execute()` to send, or `containeranalysis_projects_locations_occurrences_list` for simplest API.
 
-pub fn containeranalysis_projects_locations_occurrences_list_builder(
-    client: &SimpleHttpClient,
+pub fn containeranalysis_projects_locations_occurrences_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://containeranalysis.googleapis.com/v1/projects/{}/locations/{locationsId}/occurrences",
@@ -3084,11 +3139,14 @@ pub fn containeranalysis_projects_locations_occurrences_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `containeranalysis_projects_locations_occurrences_patch_execute()` to send, or `containeranalysis_projects_locations_occurrences_patch` for simplest API.
 
-pub fn containeranalysis_projects_locations_occurrences_patch_builder(
-    client: &SimpleHttpClient,
+pub fn containeranalysis_projects_locations_occurrences_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://containeranalysis.googleapis.com/v1/projects/{}/locations/{locationsId}/occurrences/{occurrencesId}",
@@ -3259,10 +3317,13 @@ pub fn containeranalysis_projects_locations_occurrences_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `containeranalysis_projects_locations_occurrences_set_iam_policy_execute()` to send, or `containeranalysis_projects_locations_occurrences_set_iam_policy` for simplest API.
 
-pub fn containeranalysis_projects_locations_occurrences_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn containeranalysis_projects_locations_occurrences_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://containeranalysis.googleapis.com/v1/projects/{}/locations/{locationsId}/occurrences/{occurrencesId}:setIamPolicy",
@@ -3419,10 +3480,13 @@ pub fn containeranalysis_projects_locations_occurrences_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `containeranalysis_projects_locations_occurrences_test_iam_permissions_execute()` to send, or `containeranalysis_projects_locations_occurrences_test_iam_permissions` for simplest API.
 
-pub fn containeranalysis_projects_locations_occurrences_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn containeranalysis_projects_locations_occurrences_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://containeranalysis.googleapis.com/v1/projects/{}/locations/{locationsId}/occurrences/{occurrencesId}:testIamPermissions",
@@ -3587,10 +3651,13 @@ pub fn containeranalysis_projects_locations_occurrences_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `containeranalysis_projects_locations_resources_export_sbom_execute()` to send, or `containeranalysis_projects_locations_resources_export_sbom` for simplest API.
 
-pub fn containeranalysis_projects_locations_resources_export_sbom_builder(
-    client: &SimpleHttpClient,
+pub fn containeranalysis_projects_locations_resources_export_sbom_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://containeranalysis.googleapis.com/v1/projects/{}/locations/{locationsId}/resources/{resourcesId}:exportSBOM",
@@ -3749,10 +3816,13 @@ pub fn containeranalysis_projects_locations_resources_export_sbom(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `containeranalysis_projects_notes_batch_create_execute()` to send, or `containeranalysis_projects_notes_batch_create` for simplest API.
 
-pub fn containeranalysis_projects_notes_batch_create_builder(
-    client: &SimpleHttpClient,
+pub fn containeranalysis_projects_notes_batch_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://containeranalysis.googleapis.com/v1/projects/{}/notes:batchCreate",
@@ -3910,11 +3980,14 @@ pub fn containeranalysis_projects_notes_batch_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `containeranalysis_projects_notes_create_execute()` to send, or `containeranalysis_projects_notes_create` for simplest API.
 
-pub fn containeranalysis_projects_notes_create_builder(
-    client: &SimpleHttpClient,
+pub fn containeranalysis_projects_notes_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     noteId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://containeranalysis.googleapis.com/v1/projects/{}/notes",
@@ -4082,10 +4155,13 @@ pub fn containeranalysis_projects_notes_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `containeranalysis_projects_notes_delete_execute()` to send, or `containeranalysis_projects_notes_delete` for simplest API.
 
-pub fn containeranalysis_projects_notes_delete_builder(
-    client: &SimpleHttpClient,
+pub fn containeranalysis_projects_notes_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://containeranalysis.googleapis.com/v1/projects/{}/notes/{notesId}",
@@ -4239,10 +4315,13 @@ pub fn containeranalysis_projects_notes_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `containeranalysis_projects_notes_get_execute()` to send, or `containeranalysis_projects_notes_get` for simplest API.
 
-pub fn containeranalysis_projects_notes_get_builder(
-    client: &SimpleHttpClient,
+pub fn containeranalysis_projects_notes_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://containeranalysis.googleapis.com/v1/projects/{}/notes/{notesId}",
@@ -4396,10 +4475,13 @@ pub fn containeranalysis_projects_notes_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `containeranalysis_projects_notes_get_iam_policy_execute()` to send, or `containeranalysis_projects_notes_get_iam_policy` for simplest API.
 
-pub fn containeranalysis_projects_notes_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn containeranalysis_projects_notes_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://containeranalysis.googleapis.com/v1/projects/{}/notes/{notesId}:getIamPolicy",
@@ -4553,14 +4635,17 @@ pub fn containeranalysis_projects_notes_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `containeranalysis_projects_notes_list_execute()` to send, or `containeranalysis_projects_notes_list` for simplest API.
 
-pub fn containeranalysis_projects_notes_list_builder(
-    client: &SimpleHttpClient,
+pub fn containeranalysis_projects_notes_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://containeranalysis.googleapis.com/v1/projects/{}/notes",
@@ -4753,11 +4838,14 @@ pub fn containeranalysis_projects_notes_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `containeranalysis_projects_notes_patch_execute()` to send, or `containeranalysis_projects_notes_patch` for simplest API.
 
-pub fn containeranalysis_projects_notes_patch_builder(
-    client: &SimpleHttpClient,
+pub fn containeranalysis_projects_notes_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://containeranalysis.googleapis.com/v1/projects/{}/notes/{notesId}",
@@ -4925,10 +5013,13 @@ pub fn containeranalysis_projects_notes_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `containeranalysis_projects_notes_set_iam_policy_execute()` to send, or `containeranalysis_projects_notes_set_iam_policy` for simplest API.
 
-pub fn containeranalysis_projects_notes_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn containeranalysis_projects_notes_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://containeranalysis.googleapis.com/v1/projects/{}/notes/{notesId}:setIamPolicy",
@@ -5082,10 +5173,13 @@ pub fn containeranalysis_projects_notes_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `containeranalysis_projects_notes_test_iam_permissions_execute()` to send, or `containeranalysis_projects_notes_test_iam_permissions` for simplest API.
 
-pub fn containeranalysis_projects_notes_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn containeranalysis_projects_notes_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://containeranalysis.googleapis.com/v1/projects/{}/notes/{notesId}:testIamPermissions",
@@ -5248,13 +5342,16 @@ pub fn containeranalysis_projects_notes_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `containeranalysis_projects_notes_occurrences_list_execute()` to send, or `containeranalysis_projects_notes_occurrences_list` for simplest API.
 
-pub fn containeranalysis_projects_notes_occurrences_list_builder(
-    client: &SimpleHttpClient,
+pub fn containeranalysis_projects_notes_occurrences_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://containeranalysis.googleapis.com/v1/projects/{}/notes/{notesId}/occurrences",
@@ -5445,10 +5542,13 @@ pub fn containeranalysis_projects_notes_occurrences_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `containeranalysis_projects_occurrences_batch_create_execute()` to send, or `containeranalysis_projects_occurrences_batch_create` for simplest API.
 
-pub fn containeranalysis_projects_occurrences_batch_create_builder(
-    client: &SimpleHttpClient,
+pub fn containeranalysis_projects_occurrences_batch_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://containeranalysis.googleapis.com/v1/projects/{}/occurrences:batchCreate",
@@ -5611,10 +5711,13 @@ pub fn containeranalysis_projects_occurrences_batch_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `containeranalysis_projects_occurrences_create_execute()` to send, or `containeranalysis_projects_occurrences_create` for simplest API.
 
-pub fn containeranalysis_projects_occurrences_create_builder(
-    client: &SimpleHttpClient,
+pub fn containeranalysis_projects_occurrences_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://containeranalysis.googleapis.com/v1/projects/{}/occurrences",
@@ -5768,10 +5871,13 @@ pub fn containeranalysis_projects_occurrences_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `containeranalysis_projects_occurrences_delete_execute()` to send, or `containeranalysis_projects_occurrences_delete` for simplest API.
 
-pub fn containeranalysis_projects_occurrences_delete_builder(
-    client: &SimpleHttpClient,
+pub fn containeranalysis_projects_occurrences_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://containeranalysis.googleapis.com/v1/projects/{}/occurrences/{occurrencesId}",
@@ -5925,10 +6031,13 @@ pub fn containeranalysis_projects_occurrences_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `containeranalysis_projects_occurrences_get_execute()` to send, or `containeranalysis_projects_occurrences_get` for simplest API.
 
-pub fn containeranalysis_projects_occurrences_get_builder(
-    client: &SimpleHttpClient,
+pub fn containeranalysis_projects_occurrences_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://containeranalysis.googleapis.com/v1/projects/{}/occurrences/{occurrencesId}",
@@ -6082,10 +6191,13 @@ pub fn containeranalysis_projects_occurrences_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `containeranalysis_projects_occurrences_get_iam_policy_execute()` to send, or `containeranalysis_projects_occurrences_get_iam_policy` for simplest API.
 
-pub fn containeranalysis_projects_occurrences_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn containeranalysis_projects_occurrences_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://containeranalysis.googleapis.com/v1/projects/{}/occurrences/{occurrencesId}:getIamPolicy",
@@ -6240,10 +6352,13 @@ pub fn containeranalysis_projects_occurrences_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `containeranalysis_projects_occurrences_get_notes_execute()` to send, or `containeranalysis_projects_occurrences_get_notes` for simplest API.
 
-pub fn containeranalysis_projects_occurrences_get_notes_builder(
-    client: &SimpleHttpClient,
+pub fn containeranalysis_projects_occurrences_get_notes_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://containeranalysis.googleapis.com/v1/projects/{}/occurrences/{occurrencesId}/notes",
@@ -6397,12 +6512,15 @@ pub fn containeranalysis_projects_occurrences_get_notes(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `containeranalysis_projects_occurrences_get_vulnerability_summary_execute()` to send, or `containeranalysis_projects_occurrences_get_vulnerability_summary` for simplest API.
 
-pub fn containeranalysis_projects_occurrences_get_vulnerability_summary_builder(
-    client: &SimpleHttpClient,
+pub fn containeranalysis_projects_occurrences_get_vulnerability_summary_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://containeranalysis.googleapis.com/v1/projects/{}/occurrences:vulnerabilitySummary",
@@ -6587,14 +6705,17 @@ pub fn containeranalysis_projects_occurrences_get_vulnerability_summary(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `containeranalysis_projects_occurrences_list_execute()` to send, or `containeranalysis_projects_occurrences_list` for simplest API.
 
-pub fn containeranalysis_projects_occurrences_list_builder(
-    client: &SimpleHttpClient,
+pub fn containeranalysis_projects_occurrences_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://containeranalysis.googleapis.com/v1/projects/{}/occurrences",
@@ -6787,11 +6908,14 @@ pub fn containeranalysis_projects_occurrences_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `containeranalysis_projects_occurrences_patch_execute()` to send, or `containeranalysis_projects_occurrences_patch` for simplest API.
 
-pub fn containeranalysis_projects_occurrences_patch_builder(
-    client: &SimpleHttpClient,
+pub fn containeranalysis_projects_occurrences_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://containeranalysis.googleapis.com/v1/projects/{}/occurrences/{occurrencesId}",
@@ -6959,10 +7083,13 @@ pub fn containeranalysis_projects_occurrences_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `containeranalysis_projects_occurrences_set_iam_policy_execute()` to send, or `containeranalysis_projects_occurrences_set_iam_policy` for simplest API.
 
-pub fn containeranalysis_projects_occurrences_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn containeranalysis_projects_occurrences_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://containeranalysis.googleapis.com/v1/projects/{}/occurrences/{occurrencesId}:setIamPolicy",
@@ -7117,10 +7244,13 @@ pub fn containeranalysis_projects_occurrences_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `containeranalysis_projects_occurrences_test_iam_permissions_execute()` to send, or `containeranalysis_projects_occurrences_test_iam_permissions` for simplest API.
 
-pub fn containeranalysis_projects_occurrences_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn containeranalysis_projects_occurrences_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://containeranalysis.googleapis.com/v1/projects/{}/occurrences/{occurrencesId}:testIamPermissions",
@@ -7285,10 +7415,13 @@ pub fn containeranalysis_projects_occurrences_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `containeranalysis_projects_resources_export_sbom_execute()` to send, or `containeranalysis_projects_resources_export_sbom` for simplest API.
 
-pub fn containeranalysis_projects_resources_export_sbom_builder(
-    client: &SimpleHttpClient,
+pub fn containeranalysis_projects_resources_export_sbom_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://containeranalysis.googleapis.com/v1/projects/{}/resources/{resourcesId}:exportSBOM",

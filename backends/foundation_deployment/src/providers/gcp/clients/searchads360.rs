@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,9 +27,12 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `searchads360_customers_list_accessible_customers_execute()` to send, or `searchads360_customers_list_accessible_customers` for simplest API.
 
-pub fn searchads360_customers_list_accessible_customers_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn searchads360_customers_list_accessible_customers_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://searchads360.googleapis.com/v0/customers:listAccessibleCustomers",);
@@ -190,10 +194,13 @@ pub fn searchads360_customers_list_accessible_customers(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `searchads360_customers_custom_columns_get_execute()` to send, or `searchads360_customers_custom_columns_get` for simplest API.
 
-pub fn searchads360_customers_custom_columns_get_builder(
-    client: &SimpleHttpClient,
+pub fn searchads360_customers_custom_columns_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     resourceName: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://searchads360.googleapis.com/v0/customers/{}/customColumns/{customColumnsId}",
@@ -356,10 +363,13 @@ pub fn searchads360_customers_custom_columns_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `searchads360_customers_custom_columns_list_execute()` to send, or `searchads360_customers_custom_columns_list` for simplest API.
 
-pub fn searchads360_customers_custom_columns_list_builder(
-    client: &SimpleHttpClient,
+pub fn searchads360_customers_custom_columns_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     customerId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://searchads360.googleapis.com/v0/customers/{}/customColumns",
@@ -531,10 +541,13 @@ pub fn searchads360_customers_custom_columns_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `searchads360_customers_search_ads360_search_execute()` to send, or `searchads360_customers_search_ads360_search` for simplest API.
 
-pub fn searchads360_customers_search_ads360_search_builder(
-    client: &SimpleHttpClient,
+pub fn searchads360_customers_search_ads360_search_builder<R>(
+    client: &SimpleHttpClient<R>,
     customerId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://searchads360.googleapis.com/v0/customers/{}/searchAds360:search",
@@ -706,10 +719,13 @@ pub fn searchads360_customers_search_ads360_search(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `searchads360_search_ads360_fields_get_execute()` to send, or `searchads360_search_ads360_fields_get` for simplest API.
 
-pub fn searchads360_search_ads360_fields_get_builder(
-    client: &SimpleHttpClient,
+pub fn searchads360_search_ads360_fields_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     resourceName: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://searchads360.googleapis.com/v0/searchAds360Fields/{}",
@@ -875,9 +891,12 @@ pub fn searchads360_search_ads360_fields_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `searchads360_search_ads360_fields_search_execute()` to send, or `searchads360_search_ads360_fields_search` for simplest API.
 
-pub fn searchads360_search_ads360_fields_search_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn searchads360_search_ads360_fields_search_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://searchads360.googleapis.com/v0/searchAds360Fields:search",);
 

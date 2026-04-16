@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,11 +27,14 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `css_accounts_get_execute()` to send, or `css_accounts_get` for simplest API.
 
-pub fn css_accounts_get_builder(
-    client: &SimpleHttpClient,
+pub fn css_accounts_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     parent: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://css.googleapis.com/v1/accounts/{}", name,);
 
@@ -194,14 +198,17 @@ pub fn css_accounts_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `css_accounts_list_child_accounts_execute()` to send, or `css_accounts_list_child_accounts` for simplest API.
 
-pub fn css_accounts_list_child_accounts_builder(
-    client: &SimpleHttpClient,
+pub fn css_accounts_list_child_accounts_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     fullName: &Option<Option<String>>,
     labelId: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://css.googleapis.com/v1/accounts/{}:listChildAccounts",
@@ -394,10 +401,13 @@ pub fn css_accounts_list_child_accounts(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `css_accounts_update_labels_execute()` to send, or `css_accounts_update_labels` for simplest API.
 
-pub fn css_accounts_update_labels_builder(
-    client: &SimpleHttpClient,
+pub fn css_accounts_update_labels_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://css.googleapis.com/v1/accounts/{}:updateLabels",
@@ -551,11 +561,14 @@ pub fn css_accounts_update_labels(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `css_accounts_css_product_inputs_delete_execute()` to send, or `css_accounts_css_product_inputs_delete` for simplest API.
 
-pub fn css_accounts_css_product_inputs_delete_builder(
-    client: &SimpleHttpClient,
+pub fn css_accounts_css_product_inputs_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     supplementalFeedId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://css.googleapis.com/v1/accounts/{}/cssProductInputs/{cssProductInputsId}",
@@ -726,11 +739,14 @@ pub fn css_accounts_css_product_inputs_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `css_accounts_css_product_inputs_insert_execute()` to send, or `css_accounts_css_product_inputs_insert` for simplest API.
 
-pub fn css_accounts_css_product_inputs_insert_builder(
-    client: &SimpleHttpClient,
+pub fn css_accounts_css_product_inputs_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     feedId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://css.googleapis.com/v1/accounts/{}/cssProductInputs:insert",
@@ -902,11 +918,14 @@ pub fn css_accounts_css_product_inputs_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `css_accounts_css_product_inputs_patch_execute()` to send, or `css_accounts_css_product_inputs_patch` for simplest API.
 
-pub fn css_accounts_css_product_inputs_patch_builder(
-    client: &SimpleHttpClient,
+pub fn css_accounts_css_product_inputs_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://css.googleapis.com/v1/accounts/{}/cssProductInputs/{cssProductInputsId}",
@@ -1078,10 +1097,13 @@ pub fn css_accounts_css_product_inputs_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `css_accounts_css_products_get_execute()` to send, or `css_accounts_css_products_get` for simplest API.
 
-pub fn css_accounts_css_products_get_builder(
-    client: &SimpleHttpClient,
+pub fn css_accounts_css_products_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://css.googleapis.com/v1/accounts/{}/cssProducts/{cssProductsId}",
@@ -1235,12 +1257,15 @@ pub fn css_accounts_css_products_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `css_accounts_css_products_list_execute()` to send, or `css_accounts_css_products_list` for simplest API.
 
-pub fn css_accounts_css_products_list_builder(
-    client: &SimpleHttpClient,
+pub fn css_accounts_css_products_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://css.googleapis.com/v1/accounts/{}/cssProducts",
@@ -1421,10 +1446,13 @@ pub fn css_accounts_css_products_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `css_accounts_labels_create_execute()` to send, or `css_accounts_labels_create` for simplest API.
 
-pub fn css_accounts_labels_create_builder(
-    client: &SimpleHttpClient,
+pub fn css_accounts_labels_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://css.googleapis.com/v1/accounts/{}/labels", parent,);
 
@@ -1579,10 +1607,13 @@ pub fn css_accounts_labels_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `css_accounts_labels_delete_execute()` to send, or `css_accounts_labels_delete` for simplest API.
 
-pub fn css_accounts_labels_delete_builder(
-    client: &SimpleHttpClient,
+pub fn css_accounts_labels_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://css.googleapis.com/v1/accounts/{}/labels/{labelsId}",
@@ -1736,12 +1767,15 @@ pub fn css_accounts_labels_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `css_accounts_labels_list_execute()` to send, or `css_accounts_labels_list` for simplest API.
 
-pub fn css_accounts_labels_list_builder(
-    client: &SimpleHttpClient,
+pub fn css_accounts_labels_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://css.googleapis.com/v1/accounts/{}/labels", parent,);
 
@@ -1915,10 +1949,13 @@ pub fn css_accounts_labels_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `css_accounts_labels_patch_execute()` to send, or `css_accounts_labels_patch` for simplest API.
 
-pub fn css_accounts_labels_patch_builder(
-    client: &SimpleHttpClient,
+pub fn css_accounts_labels_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://css.googleapis.com/v1/accounts/{}/labels/{labelsId}",
@@ -2076,12 +2113,15 @@ pub fn css_accounts_labels_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `css_accounts_quotas_list_execute()` to send, or `css_accounts_quotas_list` for simplest API.
 
-pub fn css_accounts_quotas_list_builder(
-    client: &SimpleHttpClient,
+pub fn css_accounts_quotas_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://css.googleapis.com/v1/accounts/{}/quotas", parent,);
 

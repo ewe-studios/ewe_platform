@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `composer_projects_locations_environments_check_upgrade_execute()` to send, or `composer_projects_locations_environments_check_upgrade` for simplest API.
 
-pub fn composer_projects_locations_environments_check_upgrade_builder(
-    client: &SimpleHttpClient,
+pub fn composer_projects_locations_environments_check_upgrade_builder<R>(
+    client: &SimpleHttpClient<R>,
     environment: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://composer.googleapis.com/v1/projects/{}/locations/{locationsId}/environments/{environmentsId}:checkUpgrade",
@@ -184,10 +188,13 @@ pub fn composer_projects_locations_environments_check_upgrade(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `composer_projects_locations_environments_create_execute()` to send, or `composer_projects_locations_environments_create` for simplest API.
 
-pub fn composer_projects_locations_environments_create_builder(
-    client: &SimpleHttpClient,
+pub fn composer_projects_locations_environments_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://composer.googleapis.com/v1/projects/{}/locations/{locationsId}/environments",
@@ -341,10 +348,13 @@ pub fn composer_projects_locations_environments_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `composer_projects_locations_environments_database_failover_execute()` to send, or `composer_projects_locations_environments_database_failover` for simplest API.
 
-pub fn composer_projects_locations_environments_database_failover_builder(
-    client: &SimpleHttpClient,
+pub fn composer_projects_locations_environments_database_failover_builder<R>(
+    client: &SimpleHttpClient<R>,
     environment: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://composer.googleapis.com/v1/projects/{}/locations/{locationsId}/environments/{environmentsId}:databaseFailover",
@@ -501,10 +511,13 @@ pub fn composer_projects_locations_environments_database_failover(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `composer_projects_locations_environments_delete_execute()` to send, or `composer_projects_locations_environments_delete` for simplest API.
 
-pub fn composer_projects_locations_environments_delete_builder(
-    client: &SimpleHttpClient,
+pub fn composer_projects_locations_environments_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://composer.googleapis.com/v1/projects/{}/locations/{locationsId}/environments/{environmentsId}",
@@ -658,10 +671,13 @@ pub fn composer_projects_locations_environments_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `composer_projects_locations_environments_execute_airflow_command_execute()` to send, or `composer_projects_locations_environments_execute_airflow_command` for simplest API.
 
-pub fn composer_projects_locations_environments_execute_airflow_command_builder(
-    client: &SimpleHttpClient,
+pub fn composer_projects_locations_environments_execute_airflow_command_builder<R>(
+    client: &SimpleHttpClient<R>,
     environment: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://composer.googleapis.com/v1/projects/{}/locations/{locationsId}/environments/{environmentsId}:executeAirflowCommand",
@@ -826,10 +842,13 @@ pub fn composer_projects_locations_environments_execute_airflow_command(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `composer_projects_locations_environments_fetch_database_properties_execute()` to send, or `composer_projects_locations_environments_fetch_database_properties` for simplest API.
 
-pub fn composer_projects_locations_environments_fetch_database_properties_builder(
-    client: &SimpleHttpClient,
+pub fn composer_projects_locations_environments_fetch_database_properties_builder<R>(
+    client: &SimpleHttpClient<R>,
     environment: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://composer.googleapis.com/v1/projects/{}/locations/{locationsId}/environments/{environmentsId}:fetchDatabaseProperties",
@@ -994,10 +1013,13 @@ pub fn composer_projects_locations_environments_fetch_database_properties(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `composer_projects_locations_environments_get_execute()` to send, or `composer_projects_locations_environments_get` for simplest API.
 
-pub fn composer_projects_locations_environments_get_builder(
-    client: &SimpleHttpClient,
+pub fn composer_projects_locations_environments_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://composer.googleapis.com/v1/projects/{}/locations/{locationsId}/environments/{environmentsId}",
@@ -1151,12 +1173,15 @@ pub fn composer_projects_locations_environments_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `composer_projects_locations_environments_list_execute()` to send, or `composer_projects_locations_environments_list` for simplest API.
 
-pub fn composer_projects_locations_environments_list_builder(
-    client: &SimpleHttpClient,
+pub fn composer_projects_locations_environments_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://composer.googleapis.com/v1/projects/{}/locations/{locationsId}/environments",
@@ -1337,10 +1362,13 @@ pub fn composer_projects_locations_environments_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `composer_projects_locations_environments_load_snapshot_execute()` to send, or `composer_projects_locations_environments_load_snapshot` for simplest API.
 
-pub fn composer_projects_locations_environments_load_snapshot_builder(
-    client: &SimpleHttpClient,
+pub fn composer_projects_locations_environments_load_snapshot_builder<R>(
+    client: &SimpleHttpClient<R>,
     environment: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://composer.googleapis.com/v1/projects/{}/locations/{locationsId}/environments/{environmentsId}:loadSnapshot",
@@ -1495,11 +1523,14 @@ pub fn composer_projects_locations_environments_load_snapshot(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `composer_projects_locations_environments_patch_execute()` to send, or `composer_projects_locations_environments_patch` for simplest API.
 
-pub fn composer_projects_locations_environments_patch_builder(
-    client: &SimpleHttpClient,
+pub fn composer_projects_locations_environments_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://composer.googleapis.com/v1/projects/{}/locations/{locationsId}/environments/{environmentsId}",
@@ -1670,10 +1701,13 @@ pub fn composer_projects_locations_environments_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `composer_projects_locations_environments_poll_airflow_command_execute()` to send, or `composer_projects_locations_environments_poll_airflow_command` for simplest API.
 
-pub fn composer_projects_locations_environments_poll_airflow_command_builder(
-    client: &SimpleHttpClient,
+pub fn composer_projects_locations_environments_poll_airflow_command_builder<R>(
+    client: &SimpleHttpClient<R>,
     environment: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://composer.googleapis.com/v1/projects/{}/locations/{locationsId}/environments/{environmentsId}:pollAirflowCommand",
@@ -1838,10 +1872,13 @@ pub fn composer_projects_locations_environments_poll_airflow_command(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `composer_projects_locations_environments_restart_web_server_execute()` to send, or `composer_projects_locations_environments_restart_web_server` for simplest API.
 
-pub fn composer_projects_locations_environments_restart_web_server_builder(
-    client: &SimpleHttpClient,
+pub fn composer_projects_locations_environments_restart_web_server_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://composer.googleapis.com/v1/projects/{}/locations/{locationsId}/environments/{environmentsId}:restartWebServer",
@@ -1996,10 +2033,13 @@ pub fn composer_projects_locations_environments_restart_web_server(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `composer_projects_locations_environments_save_snapshot_execute()` to send, or `composer_projects_locations_environments_save_snapshot` for simplest API.
 
-pub fn composer_projects_locations_environments_save_snapshot_builder(
-    client: &SimpleHttpClient,
+pub fn composer_projects_locations_environments_save_snapshot_builder<R>(
+    client: &SimpleHttpClient<R>,
     environment: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://composer.googleapis.com/v1/projects/{}/locations/{locationsId}/environments/{environmentsId}:saveSnapshot",
@@ -2154,10 +2194,13 @@ pub fn composer_projects_locations_environments_save_snapshot(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `composer_projects_locations_environments_stop_airflow_command_execute()` to send, or `composer_projects_locations_environments_stop_airflow_command` for simplest API.
 
-pub fn composer_projects_locations_environments_stop_airflow_command_builder(
-    client: &SimpleHttpClient,
+pub fn composer_projects_locations_environments_stop_airflow_command_builder<R>(
+    client: &SimpleHttpClient<R>,
     environment: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://composer.googleapis.com/v1/projects/{}/locations/{locationsId}/environments/{environmentsId}:stopAirflowCommand",
@@ -2322,10 +2365,13 @@ pub fn composer_projects_locations_environments_stop_airflow_command(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `composer_projects_locations_environments_user_workloads_config_maps_create_execute()` to send, or `composer_projects_locations_environments_user_workloads_config_maps_create` for simplest API.
 
-pub fn composer_projects_locations_environments_user_workloads_config_maps_create_builder(
-    client: &SimpleHttpClient,
+pub fn composer_projects_locations_environments_user_workloads_config_maps_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://composer.googleapis.com/v1/projects/{}/locations/{locationsId}/environments/{environmentsId}/userWorkloadsConfigMaps",
@@ -2488,10 +2534,13 @@ pub fn composer_projects_locations_environments_user_workloads_config_maps_creat
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `composer_projects_locations_environments_user_workloads_config_maps_delete_execute()` to send, or `composer_projects_locations_environments_user_workloads_config_maps_delete` for simplest API.
 
-pub fn composer_projects_locations_environments_user_workloads_config_maps_delete_builder(
-    client: &SimpleHttpClient,
+pub fn composer_projects_locations_environments_user_workloads_config_maps_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://composer.googleapis.com/v1/projects/{}/locations/{locationsId}/environments/{environmentsId}/userWorkloadsConfigMaps/{userWorkloadsConfigMapsId}",
@@ -2649,10 +2698,13 @@ pub fn composer_projects_locations_environments_user_workloads_config_maps_delet
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `composer_projects_locations_environments_user_workloads_config_maps_get_execute()` to send, or `composer_projects_locations_environments_user_workloads_config_maps_get` for simplest API.
 
-pub fn composer_projects_locations_environments_user_workloads_config_maps_get_builder(
-    client: &SimpleHttpClient,
+pub fn composer_projects_locations_environments_user_workloads_config_maps_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://composer.googleapis.com/v1/projects/{}/locations/{locationsId}/environments/{environmentsId}/userWorkloadsConfigMaps/{userWorkloadsConfigMapsId}",
@@ -2813,12 +2865,15 @@ pub fn composer_projects_locations_environments_user_workloads_config_maps_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `composer_projects_locations_environments_user_workloads_config_maps_list_execute()` to send, or `composer_projects_locations_environments_user_workloads_config_maps_list` for simplest API.
 
-pub fn composer_projects_locations_environments_user_workloads_config_maps_list_builder(
-    client: &SimpleHttpClient,
+pub fn composer_projects_locations_environments_user_workloads_config_maps_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://composer.googleapis.com/v1/projects/{}/locations/{locationsId}/environments/{environmentsId}/userWorkloadsConfigMaps",
@@ -3004,10 +3059,13 @@ pub fn composer_projects_locations_environments_user_workloads_config_maps_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `composer_projects_locations_environments_user_workloads_config_maps_update_execute()` to send, or `composer_projects_locations_environments_user_workloads_config_maps_update` for simplest API.
 
-pub fn composer_projects_locations_environments_user_workloads_config_maps_update_builder(
-    client: &SimpleHttpClient,
+pub fn composer_projects_locations_environments_user_workloads_config_maps_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://composer.googleapis.com/v1/projects/{}/locations/{locationsId}/environments/{environmentsId}/userWorkloadsConfigMaps/{userWorkloadsConfigMapsId}",
@@ -3169,10 +3227,13 @@ pub fn composer_projects_locations_environments_user_workloads_config_maps_updat
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `composer_projects_locations_environments_user_workloads_secrets_create_execute()` to send, or `composer_projects_locations_environments_user_workloads_secrets_create` for simplest API.
 
-pub fn composer_projects_locations_environments_user_workloads_secrets_create_builder(
-    client: &SimpleHttpClient,
+pub fn composer_projects_locations_environments_user_workloads_secrets_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://composer.googleapis.com/v1/projects/{}/locations/{locationsId}/environments/{environmentsId}/userWorkloadsSecrets",
@@ -3334,10 +3395,13 @@ pub fn composer_projects_locations_environments_user_workloads_secrets_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `composer_projects_locations_environments_user_workloads_secrets_delete_execute()` to send, or `composer_projects_locations_environments_user_workloads_secrets_delete` for simplest API.
 
-pub fn composer_projects_locations_environments_user_workloads_secrets_delete_builder(
-    client: &SimpleHttpClient,
+pub fn composer_projects_locations_environments_user_workloads_secrets_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://composer.googleapis.com/v1/projects/{}/locations/{locationsId}/environments/{environmentsId}/userWorkloadsSecrets/{userWorkloadsSecretsId}",
@@ -3494,10 +3558,13 @@ pub fn composer_projects_locations_environments_user_workloads_secrets_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `composer_projects_locations_environments_user_workloads_secrets_get_execute()` to send, or `composer_projects_locations_environments_user_workloads_secrets_get` for simplest API.
 
-pub fn composer_projects_locations_environments_user_workloads_secrets_get_builder(
-    client: &SimpleHttpClient,
+pub fn composer_projects_locations_environments_user_workloads_secrets_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://composer.googleapis.com/v1/projects/{}/locations/{locationsId}/environments/{environmentsId}/userWorkloadsSecrets/{userWorkloadsSecretsId}",
@@ -3657,12 +3724,15 @@ pub fn composer_projects_locations_environments_user_workloads_secrets_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `composer_projects_locations_environments_user_workloads_secrets_list_execute()` to send, or `composer_projects_locations_environments_user_workloads_secrets_list` for simplest API.
 
-pub fn composer_projects_locations_environments_user_workloads_secrets_list_builder(
-    client: &SimpleHttpClient,
+pub fn composer_projects_locations_environments_user_workloads_secrets_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://composer.googleapis.com/v1/projects/{}/locations/{locationsId}/environments/{environmentsId}/userWorkloadsSecrets",
@@ -3847,10 +3917,13 @@ pub fn composer_projects_locations_environments_user_workloads_secrets_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `composer_projects_locations_environments_user_workloads_secrets_update_execute()` to send, or `composer_projects_locations_environments_user_workloads_secrets_update` for simplest API.
 
-pub fn composer_projects_locations_environments_user_workloads_secrets_update_builder(
-    client: &SimpleHttpClient,
+pub fn composer_projects_locations_environments_user_workloads_secrets_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://composer.googleapis.com/v1/projects/{}/locations/{locationsId}/environments/{environmentsId}/userWorkloadsSecrets/{userWorkloadsSecretsId}",
@@ -4011,13 +4084,16 @@ pub fn composer_projects_locations_environments_user_workloads_secrets_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `composer_projects_locations_environments_workloads_list_execute()` to send, or `composer_projects_locations_environments_workloads_list` for simplest API.
 
-pub fn composer_projects_locations_environments_workloads_list_builder(
-    client: &SimpleHttpClient,
+pub fn composer_projects_locations_environments_workloads_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://composer.googleapis.com/v1/projects/{}/locations/{locationsId}/environments/{environmentsId}/workloads",
@@ -4204,13 +4280,16 @@ pub fn composer_projects_locations_environments_workloads_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `composer_projects_locations_image_versions_list_execute()` to send, or `composer_projects_locations_image_versions_list` for simplest API.
 
-pub fn composer_projects_locations_image_versions_list_builder(
-    client: &SimpleHttpClient,
+pub fn composer_projects_locations_image_versions_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     includePastReleases: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://composer.googleapis.com/v1/projects/{}/locations/{locationsId}/imageVersions",
@@ -4397,10 +4476,13 @@ pub fn composer_projects_locations_image_versions_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `composer_projects_locations_operations_delete_execute()` to send, or `composer_projects_locations_operations_delete` for simplest API.
 
-pub fn composer_projects_locations_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn composer_projects_locations_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://composer.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -4554,10 +4636,13 @@ pub fn composer_projects_locations_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `composer_projects_locations_operations_get_execute()` to send, or `composer_projects_locations_operations_get` for simplest API.
 
-pub fn composer_projects_locations_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn composer_projects_locations_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://composer.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -4711,14 +4796,17 @@ pub fn composer_projects_locations_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `composer_projects_locations_operations_list_execute()` to send, or `composer_projects_locations_operations_list` for simplest API.
 
-pub fn composer_projects_locations_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn composer_projects_locations_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://composer.googleapis.com/v1/projects/{}/locations/{locationsId}/operations",

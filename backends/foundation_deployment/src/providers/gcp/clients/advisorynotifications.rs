@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `advisorynotifications_organizations_locations_get_settings_execute()` to send, or `advisorynotifications_organizations_locations_get_settings` for simplest API.
 
-pub fn advisorynotifications_organizations_locations_get_settings_builder(
-    client: &SimpleHttpClient,
+pub fn advisorynotifications_organizations_locations_get_settings_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://advisorynotifications.googleapis.com/v1/organizations/{}/locations/{locationsId}/settings",
@@ -193,10 +197,13 @@ pub fn advisorynotifications_organizations_locations_get_settings(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `advisorynotifications_organizations_locations_update_settings_execute()` to send, or `advisorynotifications_organizations_locations_update_settings` for simplest API.
 
-pub fn advisorynotifications_organizations_locations_update_settings_builder(
-    client: &SimpleHttpClient,
+pub fn advisorynotifications_organizations_locations_update_settings_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://advisorynotifications.googleapis.com/v1/organizations/{}/locations/{locationsId}/settings",
@@ -360,11 +367,14 @@ pub fn advisorynotifications_organizations_locations_update_settings(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `advisorynotifications_organizations_locations_notifications_get_execute()` to send, or `advisorynotifications_organizations_locations_notifications_get` for simplest API.
 
-pub fn advisorynotifications_organizations_locations_notifications_get_builder(
-    client: &SimpleHttpClient,
+pub fn advisorynotifications_organizations_locations_notifications_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     languageCode: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://advisorynotifications.googleapis.com/v1/organizations/{}/locations/{locationsId}/notifications/{notificationsId}",
@@ -544,14 +554,17 @@ pub fn advisorynotifications_organizations_locations_notifications_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `advisorynotifications_organizations_locations_notifications_list_execute()` to send, or `advisorynotifications_organizations_locations_notifications_list` for simplest API.
 
-pub fn advisorynotifications_organizations_locations_notifications_list_builder(
-    client: &SimpleHttpClient,
+pub fn advisorynotifications_organizations_locations_notifications_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     languageCode: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://advisorynotifications.googleapis.com/v1/organizations/{}/locations/{locationsId}/notifications",
@@ -758,10 +771,13 @@ pub fn advisorynotifications_organizations_locations_notifications_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `advisorynotifications_projects_locations_get_settings_execute()` to send, or `advisorynotifications_projects_locations_get_settings` for simplest API.
 
-pub fn advisorynotifications_projects_locations_get_settings_builder(
-    client: &SimpleHttpClient,
+pub fn advisorynotifications_projects_locations_get_settings_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://advisorynotifications.googleapis.com/v1/projects/{}/locations/{locationsId}/settings",
@@ -925,10 +941,13 @@ pub fn advisorynotifications_projects_locations_get_settings(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `advisorynotifications_projects_locations_update_settings_execute()` to send, or `advisorynotifications_projects_locations_update_settings` for simplest API.
 
-pub fn advisorynotifications_projects_locations_update_settings_builder(
-    client: &SimpleHttpClient,
+pub fn advisorynotifications_projects_locations_update_settings_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://advisorynotifications.googleapis.com/v1/projects/{}/locations/{locationsId}/settings",
@@ -1092,11 +1111,14 @@ pub fn advisorynotifications_projects_locations_update_settings(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `advisorynotifications_projects_locations_notifications_get_execute()` to send, or `advisorynotifications_projects_locations_notifications_get` for simplest API.
 
-pub fn advisorynotifications_projects_locations_notifications_get_builder(
-    client: &SimpleHttpClient,
+pub fn advisorynotifications_projects_locations_notifications_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     languageCode: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://advisorynotifications.googleapis.com/v1/projects/{}/locations/{locationsId}/notifications/{notificationsId}",
@@ -1276,14 +1298,17 @@ pub fn advisorynotifications_projects_locations_notifications_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `advisorynotifications_projects_locations_notifications_list_execute()` to send, or `advisorynotifications_projects_locations_notifications_list` for simplest API.
 
-pub fn advisorynotifications_projects_locations_notifications_list_builder(
-    client: &SimpleHttpClient,
+pub fn advisorynotifications_projects_locations_notifications_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     languageCode: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://advisorynotifications.googleapis.com/v1/projects/{}/locations/{locationsId}/notifications",

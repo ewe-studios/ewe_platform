@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `beyondcorp_organizations_locations_operations_cancel_execute()` to send, or `beyondcorp_organizations_locations_operations_cancel` for simplest API.
 
-pub fn beyondcorp_organizations_locations_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn beyondcorp_organizations_locations_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://beyondcorp.googleapis.com/v1/organizations/{}/locations/{locationsId}/operations/{operationsId}:cancel",
@@ -183,10 +187,13 @@ pub fn beyondcorp_organizations_locations_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `beyondcorp_organizations_locations_operations_delete_execute()` to send, or `beyondcorp_organizations_locations_operations_delete` for simplest API.
 
-pub fn beyondcorp_organizations_locations_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn beyondcorp_organizations_locations_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://beyondcorp.googleapis.com/v1/organizations/{}/locations/{locationsId}/operations/{operationsId}",
@@ -340,10 +347,13 @@ pub fn beyondcorp_organizations_locations_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `beyondcorp_organizations_locations_operations_get_execute()` to send, or `beyondcorp_organizations_locations_operations_get` for simplest API.
 
-pub fn beyondcorp_organizations_locations_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn beyondcorp_organizations_locations_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://beyondcorp.googleapis.com/v1/organizations/{}/locations/{locationsId}/operations/{operationsId}",
@@ -505,14 +515,17 @@ pub fn beyondcorp_organizations_locations_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `beyondcorp_organizations_locations_operations_list_execute()` to send, or `beyondcorp_organizations_locations_operations_list` for simplest API.
 
-pub fn beyondcorp_organizations_locations_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn beyondcorp_organizations_locations_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://beyondcorp.googleapis.com/v1/organizations/{}/locations/{locationsId}/operations",
@@ -710,10 +723,13 @@ pub fn beyondcorp_organizations_locations_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `beyondcorp_projects_locations_get_execute()` to send, or `beyondcorp_projects_locations_get` for simplest API.
 
-pub fn beyondcorp_projects_locations_get_builder(
-    client: &SimpleHttpClient,
+pub fn beyondcorp_projects_locations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://beyondcorp.googleapis.com/v1/projects/{}/locations/{locationsId}",
@@ -875,14 +891,17 @@ pub fn beyondcorp_projects_locations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `beyondcorp_projects_locations_list_execute()` to send, or `beyondcorp_projects_locations_list` for simplest API.
 
-pub fn beyondcorp_projects_locations_list_builder(
-    client: &SimpleHttpClient,
+pub fn beyondcorp_projects_locations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     extraLocationTypes: &Option<Option<String>>,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://beyondcorp.googleapis.com/v1/projects/{}/locations",
@@ -1079,13 +1098,16 @@ pub fn beyondcorp_projects_locations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `beyondcorp_projects_locations_app_connections_create_execute()` to send, or `beyondcorp_projects_locations_app_connections_create` for simplest API.
 
-pub fn beyondcorp_projects_locations_app_connections_create_builder(
-    client: &SimpleHttpClient,
+pub fn beyondcorp_projects_locations_app_connections_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     appConnectionId: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://beyondcorp.googleapis.com/v1/projects/{}/locations/{locationsId}/appConnections",
@@ -1276,12 +1298,15 @@ pub fn beyondcorp_projects_locations_app_connections_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `beyondcorp_projects_locations_app_connections_delete_execute()` to send, or `beyondcorp_projects_locations_app_connections_delete` for simplest API.
 
-pub fn beyondcorp_projects_locations_app_connections_delete_builder(
-    client: &SimpleHttpClient,
+pub fn beyondcorp_projects_locations_app_connections_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://beyondcorp.googleapis.com/v1/projects/{}/locations/{locationsId}/appConnections/{appConnectionsId}",
@@ -1466,10 +1491,13 @@ pub fn beyondcorp_projects_locations_app_connections_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `beyondcorp_projects_locations_app_connections_get_execute()` to send, or `beyondcorp_projects_locations_app_connections_get` for simplest API.
 
-pub fn beyondcorp_projects_locations_app_connections_get_builder(
-    client: &SimpleHttpClient,
+pub fn beyondcorp_projects_locations_app_connections_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://beyondcorp.googleapis.com/v1/projects/{}/locations/{locationsId}/appConnections/{appConnectionsId}",
@@ -1635,11 +1663,14 @@ pub fn beyondcorp_projects_locations_app_connections_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `beyondcorp_projects_locations_app_connections_get_iam_policy_execute()` to send, or `beyondcorp_projects_locations_app_connections_get_iam_policy` for simplest API.
 
-pub fn beyondcorp_projects_locations_app_connections_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn beyondcorp_projects_locations_app_connections_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://beyondcorp.googleapis.com/v1/projects/{}/locations/{locationsId}/appConnections/{appConnectionsId}:getIamPolicy",
@@ -1814,14 +1845,17 @@ pub fn beyondcorp_projects_locations_app_connections_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `beyondcorp_projects_locations_app_connections_list_execute()` to send, or `beyondcorp_projects_locations_app_connections_list` for simplest API.
 
-pub fn beyondcorp_projects_locations_app_connections_list_builder(
-    client: &SimpleHttpClient,
+pub fn beyondcorp_projects_locations_app_connections_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://beyondcorp.googleapis.com/v1/projects/{}/locations/{locationsId}/appConnections",
@@ -2028,14 +2062,17 @@ pub fn beyondcorp_projects_locations_app_connections_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `beyondcorp_projects_locations_app_connections_patch_execute()` to send, or `beyondcorp_projects_locations_app_connections_patch` for simplest API.
 
-pub fn beyondcorp_projects_locations_app_connections_patch_builder(
-    client: &SimpleHttpClient,
+pub fn beyondcorp_projects_locations_app_connections_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     allowMissing: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://beyondcorp.googleapis.com/v1/projects/{}/locations/{locationsId}/appConnections/{appConnectionsId}",
@@ -2232,13 +2269,16 @@ pub fn beyondcorp_projects_locations_app_connections_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `beyondcorp_projects_locations_app_connections_resolve_execute()` to send, or `beyondcorp_projects_locations_app_connections_resolve` for simplest API.
 
-pub fn beyondcorp_projects_locations_app_connections_resolve_builder(
-    client: &SimpleHttpClient,
+pub fn beyondcorp_projects_locations_app_connections_resolve_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     appConnectorId: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://beyondcorp.googleapis.com/v1/projects/{}/locations/{locationsId}/appConnections:resolve",
@@ -2439,10 +2479,13 @@ pub fn beyondcorp_projects_locations_app_connections_resolve(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `beyondcorp_projects_locations_app_connections_set_iam_policy_execute()` to send, or `beyondcorp_projects_locations_app_connections_set_iam_policy` for simplest API.
 
-pub fn beyondcorp_projects_locations_app_connections_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn beyondcorp_projects_locations_app_connections_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://beyondcorp.googleapis.com/v1/projects/{}/locations/{locationsId}/appConnections/{appConnectionsId}:setIamPolicy",
@@ -2603,10 +2646,13 @@ pub fn beyondcorp_projects_locations_app_connections_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `beyondcorp_projects_locations_app_connections_test_iam_permissions_execute()` to send, or `beyondcorp_projects_locations_app_connections_test_iam_permissions` for simplest API.
 
-pub fn beyondcorp_projects_locations_app_connections_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn beyondcorp_projects_locations_app_connections_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://beyondcorp.googleapis.com/v1/projects/{}/locations/{locationsId}/appConnections/{appConnectionsId}:testIamPermissions",
@@ -2771,13 +2817,16 @@ pub fn beyondcorp_projects_locations_app_connections_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `beyondcorp_projects_locations_app_connectors_create_execute()` to send, or `beyondcorp_projects_locations_app_connectors_create` for simplest API.
 
-pub fn beyondcorp_projects_locations_app_connectors_create_builder(
-    client: &SimpleHttpClient,
+pub fn beyondcorp_projects_locations_app_connectors_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     appConnectorId: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://beyondcorp.googleapis.com/v1/projects/{}/locations/{locationsId}/appConnectors",
@@ -2968,12 +3017,15 @@ pub fn beyondcorp_projects_locations_app_connectors_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `beyondcorp_projects_locations_app_connectors_delete_execute()` to send, or `beyondcorp_projects_locations_app_connectors_delete` for simplest API.
 
-pub fn beyondcorp_projects_locations_app_connectors_delete_builder(
-    client: &SimpleHttpClient,
+pub fn beyondcorp_projects_locations_app_connectors_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://beyondcorp.googleapis.com/v1/projects/{}/locations/{locationsId}/appConnectors/{appConnectorsId}",
@@ -3158,10 +3210,13 @@ pub fn beyondcorp_projects_locations_app_connectors_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `beyondcorp_projects_locations_app_connectors_get_execute()` to send, or `beyondcorp_projects_locations_app_connectors_get` for simplest API.
 
-pub fn beyondcorp_projects_locations_app_connectors_get_builder(
-    client: &SimpleHttpClient,
+pub fn beyondcorp_projects_locations_app_connectors_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://beyondcorp.googleapis.com/v1/projects/{}/locations/{locationsId}/appConnectors/{appConnectorsId}",
@@ -3324,11 +3379,14 @@ pub fn beyondcorp_projects_locations_app_connectors_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `beyondcorp_projects_locations_app_connectors_get_iam_policy_execute()` to send, or `beyondcorp_projects_locations_app_connectors_get_iam_policy` for simplest API.
 
-pub fn beyondcorp_projects_locations_app_connectors_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn beyondcorp_projects_locations_app_connectors_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://beyondcorp.googleapis.com/v1/projects/{}/locations/{locationsId}/appConnectors/{appConnectorsId}:getIamPolicy",
@@ -3503,14 +3561,17 @@ pub fn beyondcorp_projects_locations_app_connectors_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `beyondcorp_projects_locations_app_connectors_list_execute()` to send, or `beyondcorp_projects_locations_app_connectors_list` for simplest API.
 
-pub fn beyondcorp_projects_locations_app_connectors_list_builder(
-    client: &SimpleHttpClient,
+pub fn beyondcorp_projects_locations_app_connectors_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://beyondcorp.googleapis.com/v1/projects/{}/locations/{locationsId}/appConnectors",
@@ -3717,13 +3778,16 @@ pub fn beyondcorp_projects_locations_app_connectors_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `beyondcorp_projects_locations_app_connectors_patch_execute()` to send, or `beyondcorp_projects_locations_app_connectors_patch` for simplest API.
 
-pub fn beyondcorp_projects_locations_app_connectors_patch_builder(
-    client: &SimpleHttpClient,
+pub fn beyondcorp_projects_locations_app_connectors_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://beyondcorp.googleapis.com/v1/projects/{}/locations/{locationsId}/appConnectors/{appConnectorsId}",
@@ -3914,10 +3978,13 @@ pub fn beyondcorp_projects_locations_app_connectors_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `beyondcorp_projects_locations_app_connectors_report_status_execute()` to send, or `beyondcorp_projects_locations_app_connectors_report_status` for simplest API.
 
-pub fn beyondcorp_projects_locations_app_connectors_report_status_builder(
-    client: &SimpleHttpClient,
+pub fn beyondcorp_projects_locations_app_connectors_report_status_builder<R>(
+    client: &SimpleHttpClient<R>,
     appConnector: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://beyondcorp.googleapis.com/v1/projects/{}/locations/{locationsId}/appConnectors/{appConnectorsId}:reportStatus",
@@ -4082,10 +4149,13 @@ pub fn beyondcorp_projects_locations_app_connectors_report_status(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `beyondcorp_projects_locations_app_connectors_resolve_instance_config_execute()` to send, or `beyondcorp_projects_locations_app_connectors_resolve_instance_config` for simplest API.
 
-pub fn beyondcorp_projects_locations_app_connectors_resolve_instance_config_builder(
-    client: &SimpleHttpClient,
+pub fn beyondcorp_projects_locations_app_connectors_resolve_instance_config_builder<R>(
+    client: &SimpleHttpClient<R>,
     appConnector: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://beyondcorp.googleapis.com/v1/projects/{}/locations/{locationsId}/appConnectors/{appConnectorsId}:resolveInstanceConfig",
@@ -4260,10 +4330,13 @@ pub fn beyondcorp_projects_locations_app_connectors_resolve_instance_config(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `beyondcorp_projects_locations_app_connectors_set_iam_policy_execute()` to send, or `beyondcorp_projects_locations_app_connectors_set_iam_policy` for simplest API.
 
-pub fn beyondcorp_projects_locations_app_connectors_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn beyondcorp_projects_locations_app_connectors_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://beyondcorp.googleapis.com/v1/projects/{}/locations/{locationsId}/appConnectors/{appConnectorsId}:setIamPolicy",
@@ -4424,10 +4497,13 @@ pub fn beyondcorp_projects_locations_app_connectors_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `beyondcorp_projects_locations_app_connectors_test_iam_permissions_execute()` to send, or `beyondcorp_projects_locations_app_connectors_test_iam_permissions` for simplest API.
 
-pub fn beyondcorp_projects_locations_app_connectors_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn beyondcorp_projects_locations_app_connectors_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://beyondcorp.googleapis.com/v1/projects/{}/locations/{locationsId}/appConnectors/{appConnectorsId}:testIamPermissions",
@@ -4592,13 +4668,16 @@ pub fn beyondcorp_projects_locations_app_connectors_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `beyondcorp_projects_locations_app_gateways_create_execute()` to send, or `beyondcorp_projects_locations_app_gateways_create` for simplest API.
 
-pub fn beyondcorp_projects_locations_app_gateways_create_builder(
-    client: &SimpleHttpClient,
+pub fn beyondcorp_projects_locations_app_gateways_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     appGatewayId: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://beyondcorp.googleapis.com/v1/projects/{}/locations/{locationsId}/appGateways",
@@ -4789,12 +4868,15 @@ pub fn beyondcorp_projects_locations_app_gateways_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `beyondcorp_projects_locations_app_gateways_delete_execute()` to send, or `beyondcorp_projects_locations_app_gateways_delete` for simplest API.
 
-pub fn beyondcorp_projects_locations_app_gateways_delete_builder(
-    client: &SimpleHttpClient,
+pub fn beyondcorp_projects_locations_app_gateways_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://beyondcorp.googleapis.com/v1/projects/{}/locations/{locationsId}/appGateways/{appGatewaysId}",
@@ -4979,10 +5061,13 @@ pub fn beyondcorp_projects_locations_app_gateways_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `beyondcorp_projects_locations_app_gateways_get_execute()` to send, or `beyondcorp_projects_locations_app_gateways_get` for simplest API.
 
-pub fn beyondcorp_projects_locations_app_gateways_get_builder(
-    client: &SimpleHttpClient,
+pub fn beyondcorp_projects_locations_app_gateways_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://beyondcorp.googleapis.com/v1/projects/{}/locations/{locationsId}/appGateways/{appGatewaysId}",
@@ -5136,11 +5221,14 @@ pub fn beyondcorp_projects_locations_app_gateways_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `beyondcorp_projects_locations_app_gateways_get_iam_policy_execute()` to send, or `beyondcorp_projects_locations_app_gateways_get_iam_policy` for simplest API.
 
-pub fn beyondcorp_projects_locations_app_gateways_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn beyondcorp_projects_locations_app_gateways_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://beyondcorp.googleapis.com/v1/projects/{}/locations/{locationsId}/appGateways/{appGatewaysId}:getIamPolicy",
@@ -5315,14 +5403,17 @@ pub fn beyondcorp_projects_locations_app_gateways_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `beyondcorp_projects_locations_app_gateways_list_execute()` to send, or `beyondcorp_projects_locations_app_gateways_list` for simplest API.
 
-pub fn beyondcorp_projects_locations_app_gateways_list_builder(
-    client: &SimpleHttpClient,
+pub fn beyondcorp_projects_locations_app_gateways_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://beyondcorp.googleapis.com/v1/projects/{}/locations/{locationsId}/appGateways",
@@ -5515,10 +5606,13 @@ pub fn beyondcorp_projects_locations_app_gateways_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `beyondcorp_projects_locations_app_gateways_set_iam_policy_execute()` to send, or `beyondcorp_projects_locations_app_gateways_set_iam_policy` for simplest API.
 
-pub fn beyondcorp_projects_locations_app_gateways_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn beyondcorp_projects_locations_app_gateways_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://beyondcorp.googleapis.com/v1/projects/{}/locations/{locationsId}/appGateways/{appGatewaysId}:setIamPolicy",
@@ -5677,10 +5771,13 @@ pub fn beyondcorp_projects_locations_app_gateways_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `beyondcorp_projects_locations_app_gateways_test_iam_permissions_execute()` to send, or `beyondcorp_projects_locations_app_gateways_test_iam_permissions` for simplest API.
 
-pub fn beyondcorp_projects_locations_app_gateways_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn beyondcorp_projects_locations_app_gateways_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://beyondcorp.googleapis.com/v1/projects/{}/locations/{locationsId}/appGateways/{appGatewaysId}:testIamPermissions",
@@ -5845,10 +5942,13 @@ pub fn beyondcorp_projects_locations_app_gateways_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `beyondcorp_projects_locations_operations_cancel_execute()` to send, or `beyondcorp_projects_locations_operations_cancel` for simplest API.
 
-pub fn beyondcorp_projects_locations_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn beyondcorp_projects_locations_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://beyondcorp.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}:cancel",
@@ -6002,10 +6102,13 @@ pub fn beyondcorp_projects_locations_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `beyondcorp_projects_locations_operations_delete_execute()` to send, or `beyondcorp_projects_locations_operations_delete` for simplest API.
 
-pub fn beyondcorp_projects_locations_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn beyondcorp_projects_locations_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://beyondcorp.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -6159,10 +6262,13 @@ pub fn beyondcorp_projects_locations_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `beyondcorp_projects_locations_operations_get_execute()` to send, or `beyondcorp_projects_locations_operations_get` for simplest API.
 
-pub fn beyondcorp_projects_locations_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn beyondcorp_projects_locations_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://beyondcorp.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -6324,14 +6430,17 @@ pub fn beyondcorp_projects_locations_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `beyondcorp_projects_locations_operations_list_execute()` to send, or `beyondcorp_projects_locations_operations_list` for simplest API.
 
-pub fn beyondcorp_projects_locations_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn beyondcorp_projects_locations_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://beyondcorp.googleapis.com/v1/projects/{}/locations/{locationsId}/operations",
@@ -6529,12 +6638,15 @@ pub fn beyondcorp_projects_locations_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `beyondcorp_projects_locations_security_gateways_create_execute()` to send, or `beyondcorp_projects_locations_security_gateways_create` for simplest API.
 
-pub fn beyondcorp_projects_locations_security_gateways_create_builder(
-    client: &SimpleHttpClient,
+pub fn beyondcorp_projects_locations_security_gateways_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     requestId: &Option<Option<String>>,
     securityGatewayId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://beyondcorp.googleapis.com/v1/projects/{}/locations/{locationsId}/securityGateways",
@@ -6719,12 +6831,15 @@ pub fn beyondcorp_projects_locations_security_gateways_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `beyondcorp_projects_locations_security_gateways_delete_execute()` to send, or `beyondcorp_projects_locations_security_gateways_delete` for simplest API.
 
-pub fn beyondcorp_projects_locations_security_gateways_delete_builder(
-    client: &SimpleHttpClient,
+pub fn beyondcorp_projects_locations_security_gateways_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://beyondcorp.googleapis.com/v1/projects/{}/locations/{locationsId}/securityGateways/{securityGatewaysId}",
@@ -6909,10 +7024,13 @@ pub fn beyondcorp_projects_locations_security_gateways_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `beyondcorp_projects_locations_security_gateways_get_execute()` to send, or `beyondcorp_projects_locations_security_gateways_get` for simplest API.
 
-pub fn beyondcorp_projects_locations_security_gateways_get_builder(
-    client: &SimpleHttpClient,
+pub fn beyondcorp_projects_locations_security_gateways_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://beyondcorp.googleapis.com/v1/projects/{}/locations/{locationsId}/securityGateways/{securityGatewaysId}",
@@ -7084,11 +7202,14 @@ pub fn beyondcorp_projects_locations_security_gateways_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `beyondcorp_projects_locations_security_gateways_get_iam_policy_execute()` to send, or `beyondcorp_projects_locations_security_gateways_get_iam_policy` for simplest API.
 
-pub fn beyondcorp_projects_locations_security_gateways_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn beyondcorp_projects_locations_security_gateways_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://beyondcorp.googleapis.com/v1/projects/{}/locations/{locationsId}/securityGateways/{securityGatewaysId}:getIamPolicy",
@@ -7263,14 +7384,17 @@ pub fn beyondcorp_projects_locations_security_gateways_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `beyondcorp_projects_locations_security_gateways_list_execute()` to send, or `beyondcorp_projects_locations_security_gateways_list` for simplest API.
 
-pub fn beyondcorp_projects_locations_security_gateways_list_builder(
-    client: &SimpleHttpClient,
+pub fn beyondcorp_projects_locations_security_gateways_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://beyondcorp.googleapis.com/v1/projects/{}/locations/{locationsId}/securityGateways",
@@ -7477,12 +7601,15 @@ pub fn beyondcorp_projects_locations_security_gateways_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `beyondcorp_projects_locations_security_gateways_patch_execute()` to send, or `beyondcorp_projects_locations_security_gateways_patch` for simplest API.
 
-pub fn beyondcorp_projects_locations_security_gateways_patch_builder(
-    client: &SimpleHttpClient,
+pub fn beyondcorp_projects_locations_security_gateways_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://beyondcorp.googleapis.com/v1/projects/{}/locations/{locationsId}/securityGateways/{securityGatewaysId}",
@@ -7667,10 +7794,13 @@ pub fn beyondcorp_projects_locations_security_gateways_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `beyondcorp_projects_locations_security_gateways_set_iam_policy_execute()` to send, or `beyondcorp_projects_locations_security_gateways_set_iam_policy` for simplest API.
 
-pub fn beyondcorp_projects_locations_security_gateways_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn beyondcorp_projects_locations_security_gateways_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://beyondcorp.googleapis.com/v1/projects/{}/locations/{locationsId}/securityGateways/{securityGatewaysId}:setIamPolicy",
@@ -7831,10 +7961,13 @@ pub fn beyondcorp_projects_locations_security_gateways_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `beyondcorp_projects_locations_security_gateways_test_iam_permissions_execute()` to send, or `beyondcorp_projects_locations_security_gateways_test_iam_permissions` for simplest API.
 
-pub fn beyondcorp_projects_locations_security_gateways_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn beyondcorp_projects_locations_security_gateways_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://beyondcorp.googleapis.com/v1/projects/{}/locations/{locationsId}/securityGateways/{securityGatewaysId}:testIamPermissions",
@@ -7999,12 +8132,15 @@ pub fn beyondcorp_projects_locations_security_gateways_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `beyondcorp_projects_locations_security_gateways_applications_create_execute()` to send, or `beyondcorp_projects_locations_security_gateways_applications_create` for simplest API.
 
-pub fn beyondcorp_projects_locations_security_gateways_applications_create_builder(
-    client: &SimpleHttpClient,
+pub fn beyondcorp_projects_locations_security_gateways_applications_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     applicationId: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://beyondcorp.googleapis.com/v1/projects/{}/locations/{locationsId}/securityGateways/{securityGatewaysId}/applications",
@@ -8189,12 +8325,15 @@ pub fn beyondcorp_projects_locations_security_gateways_applications_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `beyondcorp_projects_locations_security_gateways_applications_delete_execute()` to send, or `beyondcorp_projects_locations_security_gateways_applications_delete` for simplest API.
 
-pub fn beyondcorp_projects_locations_security_gateways_applications_delete_builder(
-    client: &SimpleHttpClient,
+pub fn beyondcorp_projects_locations_security_gateways_applications_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://beyondcorp.googleapis.com/v1/projects/{}/locations/{locationsId}/securityGateways/{securityGatewaysId}/applications/{applicationsId}",
@@ -8379,10 +8518,13 @@ pub fn beyondcorp_projects_locations_security_gateways_applications_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `beyondcorp_projects_locations_security_gateways_applications_get_execute()` to send, or `beyondcorp_projects_locations_security_gateways_applications_get` for simplest API.
 
-pub fn beyondcorp_projects_locations_security_gateways_applications_get_builder(
-    client: &SimpleHttpClient,
+pub fn beyondcorp_projects_locations_security_gateways_applications_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://beyondcorp.googleapis.com/v1/projects/{}/locations/{locationsId}/securityGateways/{securityGatewaysId}/applications/{applicationsId}",
@@ -8550,11 +8692,14 @@ pub fn beyondcorp_projects_locations_security_gateways_applications_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `beyondcorp_projects_locations_security_gateways_applications_get_iam_policy_execute()` to send, or `beyondcorp_projects_locations_security_gateways_applications_get_iam_policy` for simplest API.
 
-pub fn beyondcorp_projects_locations_security_gateways_applications_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn beyondcorp_projects_locations_security_gateways_applications_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://beyondcorp.googleapis.com/v1/projects/{}/locations/{locationsId}/securityGateways/{securityGatewaysId}/applications/{applicationsId}:getIamPolicy",
@@ -8731,14 +8876,17 @@ pub fn beyondcorp_projects_locations_security_gateways_applications_get_iam_poli
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `beyondcorp_projects_locations_security_gateways_applications_list_execute()` to send, or `beyondcorp_projects_locations_security_gateways_applications_list` for simplest API.
 
-pub fn beyondcorp_projects_locations_security_gateways_applications_list_builder(
-    client: &SimpleHttpClient,
+pub fn beyondcorp_projects_locations_security_gateways_applications_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://beyondcorp.googleapis.com/v1/projects/{}/locations/{locationsId}/securityGateways/{securityGatewaysId}/applications",
@@ -8945,12 +9093,15 @@ pub fn beyondcorp_projects_locations_security_gateways_applications_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `beyondcorp_projects_locations_security_gateways_applications_patch_execute()` to send, or `beyondcorp_projects_locations_security_gateways_applications_patch` for simplest API.
 
-pub fn beyondcorp_projects_locations_security_gateways_applications_patch_builder(
-    client: &SimpleHttpClient,
+pub fn beyondcorp_projects_locations_security_gateways_applications_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://beyondcorp.googleapis.com/v1/projects/{}/locations/{locationsId}/securityGateways/{securityGatewaysId}/applications/{applicationsId}",
@@ -9135,10 +9286,13 @@ pub fn beyondcorp_projects_locations_security_gateways_applications_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `beyondcorp_projects_locations_security_gateways_applications_set_iam_policy_execute()` to send, or `beyondcorp_projects_locations_security_gateways_applications_set_iam_policy` for simplest API.
 
-pub fn beyondcorp_projects_locations_security_gateways_applications_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn beyondcorp_projects_locations_security_gateways_applications_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://beyondcorp.googleapis.com/v1/projects/{}/locations/{locationsId}/securityGateways/{securityGatewaysId}/applications/{applicationsId}:setIamPolicy",
@@ -9301,10 +9455,15 @@ pub fn beyondcorp_projects_locations_security_gateways_applications_set_iam_poli
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `beyondcorp_projects_locations_security_gateways_applications_test_iam_permissions_execute()` to send, or `beyondcorp_projects_locations_security_gateways_applications_test_iam_permissions` for simplest API.
 
-pub fn beyondcorp_projects_locations_security_gateways_applications_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn beyondcorp_projects_locations_security_gateways_applications_test_iam_permissions_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://beyondcorp.googleapis.com/v1/projects/{}/locations/{locationsId}/securityGateways/{securityGatewaysId}/applications/{applicationsId}:testIamPermissions",

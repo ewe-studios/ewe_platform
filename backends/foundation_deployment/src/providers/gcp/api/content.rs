@@ -224,10 +224,8 @@ use crate::providers::gcp::clients::content::ShippingsettingsListResponse;
 use crate::providers::gcp::clients::content::ShoppingAdsProgramStatus;
 use crate::providers::gcp::clients::content::TriggerActionResponse;
 use crate::providers::gcp::clients::content::VerifyPhoneNumberResponse;
-use crate::providers::gcp::clients::content::ContentAccountsAuthinfoArgs;
 use crate::providers::gcp::clients::content::ContentAccountsClaimwebsiteArgs;
 use crate::providers::gcp::clients::content::ContentAccountsCredentialsCreateArgs;
-use crate::providers::gcp::clients::content::ContentAccountsCustombatchArgs;
 use crate::providers::gcp::clients::content::ContentAccountsDeleteArgs;
 use crate::providers::gcp::clients::content::ContentAccountsGetArgs;
 use crate::providers::gcp::clients::content::ContentAccountsInsertArgs;
@@ -246,10 +244,8 @@ use crate::providers::gcp::clients::content::ContentAccountsReturncarrierPatchAr
 use crate::providers::gcp::clients::content::ContentAccountsUpdateArgs;
 use crate::providers::gcp::clients::content::ContentAccountsUpdatelabelsArgs;
 use crate::providers::gcp::clients::content::ContentAccountsVerifyphonenumberArgs;
-use crate::providers::gcp::clients::content::ContentAccountstatusesCustombatchArgs;
 use crate::providers::gcp::clients::content::ContentAccountstatusesGetArgs;
 use crate::providers::gcp::clients::content::ContentAccountstatusesListArgs;
-use crate::providers::gcp::clients::content::ContentAccounttaxCustombatchArgs;
 use crate::providers::gcp::clients::content::ContentAccounttaxGetArgs;
 use crate::providers::gcp::clients::content::ContentAccounttaxListArgs;
 use crate::providers::gcp::clients::content::ContentAccounttaxUpdateArgs;
@@ -268,14 +264,12 @@ use crate::providers::gcp::clients::content::ContentConversionsourcesUndeleteArg
 use crate::providers::gcp::clients::content::ContentCssesGetArgs;
 use crate::providers::gcp::clients::content::ContentCssesListArgs;
 use crate::providers::gcp::clients::content::ContentCssesUpdatelabelsArgs;
-use crate::providers::gcp::clients::content::ContentDatafeedsCustombatchArgs;
 use crate::providers::gcp::clients::content::ContentDatafeedsDeleteArgs;
 use crate::providers::gcp::clients::content::ContentDatafeedsFetchnowArgs;
 use crate::providers::gcp::clients::content::ContentDatafeedsGetArgs;
 use crate::providers::gcp::clients::content::ContentDatafeedsInsertArgs;
 use crate::providers::gcp::clients::content::ContentDatafeedsListArgs;
 use crate::providers::gcp::clients::content::ContentDatafeedsUpdateArgs;
-use crate::providers::gcp::clients::content::ContentDatafeedstatusesCustombatchArgs;
 use crate::providers::gcp::clients::content::ContentDatafeedstatusesGetArgs;
 use crate::providers::gcp::clients::content::ContentDatafeedstatusesListArgs;
 use crate::providers::gcp::clients::content::ContentFreelistingsprogramCheckoutsettingsDeleteArgs;
@@ -283,24 +277,20 @@ use crate::providers::gcp::clients::content::ContentFreelistingsprogramCheckouts
 use crate::providers::gcp::clients::content::ContentFreelistingsprogramCheckoutsettingsInsertArgs;
 use crate::providers::gcp::clients::content::ContentFreelistingsprogramGetArgs;
 use crate::providers::gcp::clients::content::ContentFreelistingsprogramRequestreviewArgs;
-use crate::providers::gcp::clients::content::ContentLiasettingsCustombatchArgs;
 use crate::providers::gcp::clients::content::ContentLiasettingsGetArgs;
 use crate::providers::gcp::clients::content::ContentLiasettingsGetaccessiblegmbaccountsArgs;
 use crate::providers::gcp::clients::content::ContentLiasettingsListArgs;
-use crate::providers::gcp::clients::content::ContentLiasettingsListposdataprovidersArgs;
 use crate::providers::gcp::clients::content::ContentLiasettingsRequestgmbaccessArgs;
 use crate::providers::gcp::clients::content::ContentLiasettingsRequestinventoryverificationArgs;
 use crate::providers::gcp::clients::content::ContentLiasettingsSetinventoryverificationcontactArgs;
 use crate::providers::gcp::clients::content::ContentLiasettingsSetomnichannelexperienceArgs;
 use crate::providers::gcp::clients::content::ContentLiasettingsSetposdataproviderArgs;
 use crate::providers::gcp::clients::content::ContentLiasettingsUpdateArgs;
-use crate::providers::gcp::clients::content::ContentLocalinventoryCustombatchArgs;
 use crate::providers::gcp::clients::content::ContentLocalinventoryInsertArgs;
 use crate::providers::gcp::clients::content::ContentMerchantsupportRenderaccountissuesArgs;
 use crate::providers::gcp::clients::content::ContentMerchantsupportRenderproductissuesArgs;
 use crate::providers::gcp::clients::content::ContentMerchantsupportTriggeractionArgs;
 use crate::providers::gcp::clients::content::ContentOrdertrackingsignalsCreateArgs;
-use crate::providers::gcp::clients::content::ContentPosCustombatchArgs;
 use crate::providers::gcp::clients::content::ContentPosDeleteArgs;
 use crate::providers::gcp::clients::content::ContentPosGetArgs;
 use crate::providers::gcp::clients::content::ContentPosInsertArgs;
@@ -310,13 +300,11 @@ use crate::providers::gcp::clients::content::ContentPosSaleArgs;
 use crate::providers::gcp::clients::content::ContentProductdeliverytimeCreateArgs;
 use crate::providers::gcp::clients::content::ContentProductdeliverytimeDeleteArgs;
 use crate::providers::gcp::clients::content::ContentProductdeliverytimeGetArgs;
-use crate::providers::gcp::clients::content::ContentProductsCustombatchArgs;
 use crate::providers::gcp::clients::content::ContentProductsDeleteArgs;
 use crate::providers::gcp::clients::content::ContentProductsGetArgs;
 use crate::providers::gcp::clients::content::ContentProductsInsertArgs;
 use crate::providers::gcp::clients::content::ContentProductsListArgs;
 use crate::providers::gcp::clients::content::ContentProductsUpdateArgs;
-use crate::providers::gcp::clients::content::ContentProductstatusesCustombatchArgs;
 use crate::providers::gcp::clients::content::ContentProductstatusesGetArgs;
 use crate::providers::gcp::clients::content::ContentProductstatusesListArgs;
 use crate::providers::gcp::clients::content::ContentPromotionsCreateArgs;
@@ -327,7 +315,6 @@ use crate::providers::gcp::clients::content::ContentPubsubnotificationsettingsUp
 use crate::providers::gcp::clients::content::ContentQuotasListArgs;
 use crate::providers::gcp::clients::content::ContentRecommendationsGenerateArgs;
 use crate::providers::gcp::clients::content::ContentRecommendationsReportInteractionArgs;
-use crate::providers::gcp::clients::content::ContentRegionalinventoryCustombatchArgs;
 use crate::providers::gcp::clients::content::ContentRegionalinventoryInsertArgs;
 use crate::providers::gcp::clients::content::ContentRegionsCreateArgs;
 use crate::providers::gcp::clients::content::ContentRegionsDeleteArgs;
@@ -340,7 +327,6 @@ use crate::providers::gcp::clients::content::ContentReturnpolicyonlineDeleteArgs
 use crate::providers::gcp::clients::content::ContentReturnpolicyonlineGetArgs;
 use crate::providers::gcp::clients::content::ContentReturnpolicyonlineListArgs;
 use crate::providers::gcp::clients::content::ContentReturnpolicyonlinePatchArgs;
-use crate::providers::gcp::clients::content::ContentShippingsettingsCustombatchArgs;
 use crate::providers::gcp::clients::content::ContentShippingsettingsGetArgs;
 use crate::providers::gcp::clients::content::ContentShippingsettingsGetsupportedcarriersArgs;
 use crate::providers::gcp::clients::content::ContentShippingsettingsGetsupportedholidaysArgs;
@@ -351,7 +337,7 @@ use crate::providers::gcp::clients::content::ContentShoppingadsprogramGetArgs;
 use crate::providers::gcp::clients::content::ContentShoppingadsprogramRequestreviewArgs;
 use crate::provider_client::{ProviderClient, ProviderError};
 use foundation_core::valtron::{execute, StreamIterator};
-use foundation_core::wire::simple_http::client::SimpleHttpClient;
+use foundation_core::wire::simple_http::client::{SimpleHttpClient, DnsResolver};
 use foundation_db::state::store_state_task::StoreStateIdentifierTask;
 use std::sync::Arc;
 
@@ -360,34 +346,44 @@ use std::sync::Arc;
 /// # Type Parameters
 ///
 /// * `S` - StateStore implementation (FileStateStore, SqliteStateStore, etc.)
+/// * `R` - DNS resolver type for HTTP client
 ///
 /// # Example
 ///
 /// ```rust
 /// let state_store = FileStateStore::new("/path", "my-project", "dev");
-/// let client = ProviderClient::new("my-project", "dev", state_store);
-/// let http_client = SimpleHttpClient::new(...);
-/// let provider = ContentProvider::new(client, http_client);
+/// let http_client = SimpleHttpClient::with_resolver(StaticSocketAddr::new(addr));
+/// let client = ProviderClient::new("my-project", "dev", state_store, http_client);
+/// let provider = ContentProvider::from_provider_client(client);
 /// ```
 #[derive(Clone)]
-pub struct ContentProvider<S>
+pub struct ContentProvider<S, R>
 where
     S: foundation_db::state::traits::StateStore + Send + Sync + 'static,
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + 'static,
 {
-    client: ProviderClient<S>,
-    http_client: Arc<SimpleHttpClient>,
+    client: ProviderClient<S, R>,
+    http_client: Arc<SimpleHttpClient<R>>,
 }
 
-impl<S> ContentProvider<S>
+impl<S, R> ContentProvider<S, R>
 where
     S: foundation_db::state::traits::StateStore + Send + Sync + 'static,
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + 'static,
 {
     /// Create new ContentProvider.
-    pub fn new(client: ProviderClient<S>, http_client: SimpleHttpClient) -> Self {
+    pub fn new(client: ProviderClient<S, R>, http_client: Arc<SimpleHttpClient<R>>) -> Self {
         Self {
             client,
-            http_client: Arc::new(http_client),
+            http_client,
         }
+    }
+
+    /// Create new ContentProvider from ProviderClient, extracting the HTTP client.
+    ///
+    /// This is a convenience method that calls `Self::new()` with `client.http_client()`.
+    pub fn from_provider_client(client: ProviderClient<S, R>) -> Self {
+        Self::new(client, client.http_client.clone())
     }
 
     /// Content accounts authinfo.

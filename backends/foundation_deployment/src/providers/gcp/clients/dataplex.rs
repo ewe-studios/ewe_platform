@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,11 +27,14 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_organizations_locations_encryption_configs_create_execute()` to send, or `dataplex_organizations_locations_encryption_configs_create` for simplest API.
 
-pub fn dataplex_organizations_locations_encryption_configs_create_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_organizations_locations_encryption_configs_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     encryptionConfigId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/organizations/{}/locations/{locationsId}/encryptionConfigs",
@@ -209,11 +213,14 @@ pub fn dataplex_organizations_locations_encryption_configs_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_organizations_locations_encryption_configs_delete_execute()` to send, or `dataplex_organizations_locations_encryption_configs_delete` for simplest API.
 
-pub fn dataplex_organizations_locations_encryption_configs_delete_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_organizations_locations_encryption_configs_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     etag: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/organizations/{}/locations/{locationsId}/encryptionConfigs/{encryptionConfigsId}",
@@ -390,10 +397,13 @@ pub fn dataplex_organizations_locations_encryption_configs_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_organizations_locations_encryption_configs_get_execute()` to send, or `dataplex_organizations_locations_encryption_configs_get` for simplest API.
 
-pub fn dataplex_organizations_locations_encryption_configs_get_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_organizations_locations_encryption_configs_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/organizations/{}/locations/{locationsId}/encryptionConfigs/{encryptionConfigsId}",
@@ -556,11 +566,14 @@ pub fn dataplex_organizations_locations_encryption_configs_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_organizations_locations_encryption_configs_get_iam_policy_execute()` to send, or `dataplex_organizations_locations_encryption_configs_get_iam_policy` for simplest API.
 
-pub fn dataplex_organizations_locations_encryption_configs_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_organizations_locations_encryption_configs_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/organizations/{}/locations/{locationsId}/encryptionConfigs/{encryptionConfigsId}:getIamPolicy",
@@ -735,14 +748,17 @@ pub fn dataplex_organizations_locations_encryption_configs_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_organizations_locations_encryption_configs_list_execute()` to send, or `dataplex_organizations_locations_encryption_configs_list` for simplest API.
 
-pub fn dataplex_organizations_locations_encryption_configs_list_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_organizations_locations_encryption_configs_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/organizations/{}/locations/{locationsId}/encryptionConfigs",
@@ -943,11 +959,14 @@ pub fn dataplex_organizations_locations_encryption_configs_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_organizations_locations_encryption_configs_patch_execute()` to send, or `dataplex_organizations_locations_encryption_configs_patch` for simplest API.
 
-pub fn dataplex_organizations_locations_encryption_configs_patch_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_organizations_locations_encryption_configs_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/organizations/{}/locations/{locationsId}/encryptionConfigs/{encryptionConfigsId}",
@@ -1126,10 +1145,13 @@ pub fn dataplex_organizations_locations_encryption_configs_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_organizations_locations_encryption_configs_set_iam_policy_execute()` to send, or `dataplex_organizations_locations_encryption_configs_set_iam_policy` for simplest API.
 
-pub fn dataplex_organizations_locations_encryption_configs_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_organizations_locations_encryption_configs_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/organizations/{}/locations/{locationsId}/encryptionConfigs/{encryptionConfigsId}:setIamPolicy",
@@ -1290,10 +1312,13 @@ pub fn dataplex_organizations_locations_encryption_configs_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_organizations_locations_encryption_configs_test_iam_permissions_execute()` to send, or `dataplex_organizations_locations_encryption_configs_test_iam_permissions` for simplest API.
 
-pub fn dataplex_organizations_locations_encryption_configs_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_organizations_locations_encryption_configs_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/organizations/{}/locations/{locationsId}/encryptionConfigs/{encryptionConfigsId}:testIamPermissions",
@@ -1459,10 +1484,13 @@ pub fn dataplex_organizations_locations_encryption_configs_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_organizations_locations_operations_cancel_execute()` to send, or `dataplex_organizations_locations_operations_cancel` for simplest API.
 
-pub fn dataplex_organizations_locations_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_organizations_locations_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/organizations/{}/locations/{locationsId}/operations/{operationsId}:cancel",
@@ -1616,10 +1644,13 @@ pub fn dataplex_organizations_locations_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_organizations_locations_operations_delete_execute()` to send, or `dataplex_organizations_locations_operations_delete` for simplest API.
 
-pub fn dataplex_organizations_locations_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_organizations_locations_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/organizations/{}/locations/{locationsId}/operations/{operationsId}",
@@ -1773,10 +1804,13 @@ pub fn dataplex_organizations_locations_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_organizations_locations_operations_get_execute()` to send, or `dataplex_organizations_locations_operations_get` for simplest API.
 
-pub fn dataplex_organizations_locations_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_organizations_locations_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/organizations/{}/locations/{locationsId}/operations/{operationsId}",
@@ -1938,14 +1972,17 @@ pub fn dataplex_organizations_locations_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_organizations_locations_operations_list_execute()` to send, or `dataplex_organizations_locations_operations_list` for simplest API.
 
-pub fn dataplex_organizations_locations_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_organizations_locations_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/organizations/{}/locations/{locationsId}/operations",
@@ -2143,10 +2180,13 @@ pub fn dataplex_organizations_locations_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_get_execute()` to send, or `dataplex_projects_locations_get` for simplest API.
 
-pub fn dataplex_projects_locations_get_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}",
@@ -2308,14 +2348,17 @@ pub fn dataplex_projects_locations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_list_execute()` to send, or `dataplex_projects_locations_list` for simplest API.
 
-pub fn dataplex_projects_locations_list_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     extraLocationTypes: &Option<Option<String>>,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations",
@@ -2512,10 +2555,13 @@ pub fn dataplex_projects_locations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_lookup_context_execute()` to send, or `dataplex_projects_locations_lookup_context` for simplest API.
 
-pub fn dataplex_projects_locations_lookup_context_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_lookup_context_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}:lookupContext",
@@ -2678,14 +2724,17 @@ pub fn dataplex_projects_locations_lookup_context(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_lookup_entry_execute()` to send, or `dataplex_projects_locations_lookup_entry` for simplest API.
 
-pub fn dataplex_projects_locations_lookup_entry_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_lookup_entry_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     aspectTypes: &Option<Option<String>>,
     entry: &Option<Option<String>>,
     paths: &Option<Option<String>>,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}:lookupEntry",
@@ -2882,15 +2931,18 @@ pub fn dataplex_projects_locations_lookup_entry(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_lookup_entry_links_execute()` to send, or `dataplex_projects_locations_lookup_entry_links` for simplest API.
 
-pub fn dataplex_projects_locations_lookup_entry_links_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_lookup_entry_links_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     entry: &Option<Option<String>>,
     entryLinkTypes: &Option<Option<String>>,
     entryMode: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}:lookupEntryLinks",
@@ -3094,10 +3146,13 @@ pub fn dataplex_projects_locations_lookup_entry_links(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_modify_entry_execute()` to send, or `dataplex_projects_locations_modify_entry` for simplest API.
 
-pub fn dataplex_projects_locations_modify_entry_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_modify_entry_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}:modifyEntry",
@@ -3259,8 +3314,8 @@ pub fn dataplex_projects_locations_modify_entry(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_search_entries_execute()` to send, or `dataplex_projects_locations_search_entries` for simplest API.
 
-pub fn dataplex_projects_locations_search_entries_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_search_entries_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
@@ -3268,7 +3323,10 @@ pub fn dataplex_projects_locations_search_entries_builder(
     query: &Option<Option<String>>,
     scope: &Option<Option<String>>,
     semanticSearch: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}:searchEntries",
@@ -3478,12 +3536,15 @@ pub fn dataplex_projects_locations_search_entries(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_aspect_types_create_execute()` to send, or `dataplex_projects_locations_aspect_types_create` for simplest API.
 
-pub fn dataplex_projects_locations_aspect_types_create_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_aspect_types_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     aspectTypeId: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/aspectTypes",
@@ -3668,11 +3729,14 @@ pub fn dataplex_projects_locations_aspect_types_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_aspect_types_delete_execute()` to send, or `dataplex_projects_locations_aspect_types_delete` for simplest API.
 
-pub fn dataplex_projects_locations_aspect_types_delete_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_aspect_types_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     etag: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/aspectTypes/{aspectTypesId}",
@@ -3848,10 +3912,13 @@ pub fn dataplex_projects_locations_aspect_types_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_aspect_types_get_execute()` to send, or `dataplex_projects_locations_aspect_types_get` for simplest API.
 
-pub fn dataplex_projects_locations_aspect_types_get_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_aspect_types_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/aspectTypes/{aspectTypesId}",
@@ -4013,11 +4080,14 @@ pub fn dataplex_projects_locations_aspect_types_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_aspect_types_get_iam_policy_execute()` to send, or `dataplex_projects_locations_aspect_types_get_iam_policy` for simplest API.
 
-pub fn dataplex_projects_locations_aspect_types_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_aspect_types_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/aspectTypes/{aspectTypesId}:getIamPolicy",
@@ -4192,14 +4262,17 @@ pub fn dataplex_projects_locations_aspect_types_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_aspect_types_list_execute()` to send, or `dataplex_projects_locations_aspect_types_list` for simplest API.
 
-pub fn dataplex_projects_locations_aspect_types_list_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_aspect_types_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/aspectTypes",
@@ -4397,12 +4470,15 @@ pub fn dataplex_projects_locations_aspect_types_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_aspect_types_patch_execute()` to send, or `dataplex_projects_locations_aspect_types_patch` for simplest API.
 
-pub fn dataplex_projects_locations_aspect_types_patch_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_aspect_types_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/aspectTypes/{aspectTypesId}",
@@ -4587,10 +4663,13 @@ pub fn dataplex_projects_locations_aspect_types_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_aspect_types_set_iam_policy_execute()` to send, or `dataplex_projects_locations_aspect_types_set_iam_policy` for simplest API.
 
-pub fn dataplex_projects_locations_aspect_types_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_aspect_types_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/aspectTypes/{aspectTypesId}:setIamPolicy",
@@ -4749,10 +4828,13 @@ pub fn dataplex_projects_locations_aspect_types_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_aspect_types_test_iam_permissions_execute()` to send, or `dataplex_projects_locations_aspect_types_test_iam_permissions` for simplest API.
 
-pub fn dataplex_projects_locations_aspect_types_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_aspect_types_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/aspectTypes/{aspectTypesId}:testIamPermissions",
@@ -4917,11 +4999,14 @@ pub fn dataplex_projects_locations_aspect_types_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_change_requests_get_iam_policy_execute()` to send, or `dataplex_projects_locations_change_requests_get_iam_policy` for simplest API.
 
-pub fn dataplex_projects_locations_change_requests_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_change_requests_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/changeRequests/{changeRequestsId}:getIamPolicy",
@@ -5096,10 +5181,13 @@ pub fn dataplex_projects_locations_change_requests_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_change_requests_set_iam_policy_execute()` to send, or `dataplex_projects_locations_change_requests_set_iam_policy` for simplest API.
 
-pub fn dataplex_projects_locations_change_requests_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_change_requests_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/changeRequests/{changeRequestsId}:setIamPolicy",
@@ -5258,10 +5346,13 @@ pub fn dataplex_projects_locations_change_requests_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_change_requests_test_iam_permissions_execute()` to send, or `dataplex_projects_locations_change_requests_test_iam_permissions` for simplest API.
 
-pub fn dataplex_projects_locations_change_requests_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_change_requests_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/changeRequests/{changeRequestsId}:testIamPermissions",
@@ -5426,12 +5517,15 @@ pub fn dataplex_projects_locations_change_requests_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_data_attribute_bindings_create_execute()` to send, or `dataplex_projects_locations_data_attribute_bindings_create` for simplest API.
 
-pub fn dataplex_projects_locations_data_attribute_bindings_create_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_data_attribute_bindings_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     dataAttributeBindingId: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/dataAttributeBindings",
@@ -5616,11 +5710,14 @@ pub fn dataplex_projects_locations_data_attribute_bindings_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_data_attribute_bindings_delete_execute()` to send, or `dataplex_projects_locations_data_attribute_bindings_delete` for simplest API.
 
-pub fn dataplex_projects_locations_data_attribute_bindings_delete_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_data_attribute_bindings_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     etag: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/dataAttributeBindings/{dataAttributeBindingsId}",
@@ -5797,10 +5894,13 @@ pub fn dataplex_projects_locations_data_attribute_bindings_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_data_attribute_bindings_get_execute()` to send, or `dataplex_projects_locations_data_attribute_bindings_get` for simplest API.
 
-pub fn dataplex_projects_locations_data_attribute_bindings_get_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_data_attribute_bindings_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/dataAttributeBindings/{dataAttributeBindingsId}",
@@ -5963,11 +6063,14 @@ pub fn dataplex_projects_locations_data_attribute_bindings_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_data_attribute_bindings_get_iam_policy_execute()` to send, or `dataplex_projects_locations_data_attribute_bindings_get_iam_policy` for simplest API.
 
-pub fn dataplex_projects_locations_data_attribute_bindings_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_data_attribute_bindings_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/dataAttributeBindings/{dataAttributeBindingsId}:getIamPolicy",
@@ -6142,14 +6245,17 @@ pub fn dataplex_projects_locations_data_attribute_bindings_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_data_attribute_bindings_list_execute()` to send, or `dataplex_projects_locations_data_attribute_bindings_list` for simplest API.
 
-pub fn dataplex_projects_locations_data_attribute_bindings_list_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_data_attribute_bindings_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/dataAttributeBindings",
@@ -6356,12 +6462,15 @@ pub fn dataplex_projects_locations_data_attribute_bindings_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_data_attribute_bindings_patch_execute()` to send, or `dataplex_projects_locations_data_attribute_bindings_patch` for simplest API.
 
-pub fn dataplex_projects_locations_data_attribute_bindings_patch_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_data_attribute_bindings_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/dataAttributeBindings/{dataAttributeBindingsId}",
@@ -6546,10 +6655,13 @@ pub fn dataplex_projects_locations_data_attribute_bindings_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_data_attribute_bindings_set_iam_policy_execute()` to send, or `dataplex_projects_locations_data_attribute_bindings_set_iam_policy` for simplest API.
 
-pub fn dataplex_projects_locations_data_attribute_bindings_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_data_attribute_bindings_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/dataAttributeBindings/{dataAttributeBindingsId}:setIamPolicy",
@@ -6710,10 +6822,13 @@ pub fn dataplex_projects_locations_data_attribute_bindings_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_data_attribute_bindings_test_iam_permissions_execute()` to send, or `dataplex_projects_locations_data_attribute_bindings_test_iam_permissions` for simplest API.
 
-pub fn dataplex_projects_locations_data_attribute_bindings_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_data_attribute_bindings_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/dataAttributeBindings/{dataAttributeBindingsId}:testIamPermissions",
@@ -6879,11 +6994,14 @@ pub fn dataplex_projects_locations_data_attribute_bindings_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_data_domains_get_iam_policy_execute()` to send, or `dataplex_projects_locations_data_domains_get_iam_policy` for simplest API.
 
-pub fn dataplex_projects_locations_data_domains_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_data_domains_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/dataDomains/{dataDomainsId}:getIamPolicy",
@@ -7058,10 +7176,13 @@ pub fn dataplex_projects_locations_data_domains_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_data_domains_set_iam_policy_execute()` to send, or `dataplex_projects_locations_data_domains_set_iam_policy` for simplest API.
 
-pub fn dataplex_projects_locations_data_domains_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_data_domains_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/dataDomains/{dataDomainsId}:setIamPolicy",
@@ -7220,10 +7341,13 @@ pub fn dataplex_projects_locations_data_domains_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_data_domains_test_iam_permissions_execute()` to send, or `dataplex_projects_locations_data_domains_test_iam_permissions` for simplest API.
 
-pub fn dataplex_projects_locations_data_domains_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_data_domains_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/dataDomains/{dataDomainsId}:testIamPermissions",
@@ -7388,12 +7512,15 @@ pub fn dataplex_projects_locations_data_domains_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_data_products_create_execute()` to send, or `dataplex_projects_locations_data_products_create` for simplest API.
 
-pub fn dataplex_projects_locations_data_products_create_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_data_products_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     dataProductId: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/dataProducts",
@@ -7578,12 +7705,15 @@ pub fn dataplex_projects_locations_data_products_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_data_products_delete_execute()` to send, or `dataplex_projects_locations_data_products_delete` for simplest API.
 
-pub fn dataplex_projects_locations_data_products_delete_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_data_products_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     etag: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/dataProducts/{dataProductsId}",
@@ -7768,10 +7898,13 @@ pub fn dataplex_projects_locations_data_products_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_data_products_get_execute()` to send, or `dataplex_projects_locations_data_products_get` for simplest API.
 
-pub fn dataplex_projects_locations_data_products_get_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_data_products_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/dataProducts/{dataProductsId}",
@@ -7933,11 +8066,14 @@ pub fn dataplex_projects_locations_data_products_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_data_products_get_iam_policy_execute()` to send, or `dataplex_projects_locations_data_products_get_iam_policy` for simplest API.
 
-pub fn dataplex_projects_locations_data_products_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_data_products_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/dataProducts/{dataProductsId}:getIamPolicy",
@@ -8112,14 +8248,17 @@ pub fn dataplex_projects_locations_data_products_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_data_products_list_execute()` to send, or `dataplex_projects_locations_data_products_list` for simplest API.
 
-pub fn dataplex_projects_locations_data_products_list_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_data_products_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/dataProducts",
@@ -8317,12 +8456,15 @@ pub fn dataplex_projects_locations_data_products_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_data_products_patch_execute()` to send, or `dataplex_projects_locations_data_products_patch` for simplest API.
 
-pub fn dataplex_projects_locations_data_products_patch_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_data_products_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/dataProducts/{dataProductsId}",
@@ -8507,10 +8649,13 @@ pub fn dataplex_projects_locations_data_products_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_data_products_set_iam_policy_execute()` to send, or `dataplex_projects_locations_data_products_set_iam_policy` for simplest API.
 
-pub fn dataplex_projects_locations_data_products_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_data_products_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/dataProducts/{dataProductsId}:setIamPolicy",
@@ -8669,10 +8814,13 @@ pub fn dataplex_projects_locations_data_products_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_data_products_test_iam_permissions_execute()` to send, or `dataplex_projects_locations_data_products_test_iam_permissions` for simplest API.
 
-pub fn dataplex_projects_locations_data_products_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_data_products_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/dataProducts/{dataProductsId}:testIamPermissions",
@@ -8837,12 +8985,15 @@ pub fn dataplex_projects_locations_data_products_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_data_products_data_assets_create_execute()` to send, or `dataplex_projects_locations_data_products_data_assets_create` for simplest API.
 
-pub fn dataplex_projects_locations_data_products_data_assets_create_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_data_products_data_assets_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     dataAssetId: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/dataProducts/{dataProductsId}/dataAssets",
@@ -9027,12 +9178,15 @@ pub fn dataplex_projects_locations_data_products_data_assets_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_data_products_data_assets_delete_execute()` to send, or `dataplex_projects_locations_data_products_data_assets_delete` for simplest API.
 
-pub fn dataplex_projects_locations_data_products_data_assets_delete_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_data_products_data_assets_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     etag: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/dataProducts/{dataProductsId}/dataAssets/{dataAssetsId}",
@@ -9217,10 +9371,13 @@ pub fn dataplex_projects_locations_data_products_data_assets_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_data_products_data_assets_get_execute()` to send, or `dataplex_projects_locations_data_products_data_assets_get` for simplest API.
 
-pub fn dataplex_projects_locations_data_products_data_assets_get_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_data_products_data_assets_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/dataProducts/{dataProductsId}/dataAssets/{dataAssetsId}",
@@ -9383,14 +9540,17 @@ pub fn dataplex_projects_locations_data_products_data_assets_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_data_products_data_assets_list_execute()` to send, or `dataplex_projects_locations_data_products_data_assets_list` for simplest API.
 
-pub fn dataplex_projects_locations_data_products_data_assets_list_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_data_products_data_assets_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/dataProducts/{dataProductsId}/dataAssets",
@@ -9588,12 +9748,15 @@ pub fn dataplex_projects_locations_data_products_data_assets_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_data_products_data_assets_patch_execute()` to send, or `dataplex_projects_locations_data_products_data_assets_patch` for simplest API.
 
-pub fn dataplex_projects_locations_data_products_data_assets_patch_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_data_products_data_assets_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/dataProducts/{dataProductsId}/dataAssets/{dataAssetsId}",
@@ -9778,12 +9941,15 @@ pub fn dataplex_projects_locations_data_products_data_assets_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_data_scans_create_execute()` to send, or `dataplex_projects_locations_data_scans_create` for simplest API.
 
-pub fn dataplex_projects_locations_data_scans_create_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_data_scans_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     dataScanId: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/dataScans",
@@ -9968,11 +10134,14 @@ pub fn dataplex_projects_locations_data_scans_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_data_scans_delete_execute()` to send, or `dataplex_projects_locations_data_scans_delete` for simplest API.
 
-pub fn dataplex_projects_locations_data_scans_delete_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_data_scans_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     force: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/dataScans/{dataScansId}",
@@ -10148,10 +10317,13 @@ pub fn dataplex_projects_locations_data_scans_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_data_scans_generate_data_quality_rules_execute()` to send, or `dataplex_projects_locations_data_scans_generate_data_quality_rules` for simplest API.
 
-pub fn dataplex_projects_locations_data_scans_generate_data_quality_rules_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_data_scans_generate_data_quality_rules_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/dataScans/{dataScansId}:generateDataQualityRules",
@@ -10325,11 +10497,14 @@ pub fn dataplex_projects_locations_data_scans_generate_data_quality_rules(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_data_scans_get_execute()` to send, or `dataplex_projects_locations_data_scans_get` for simplest API.
 
-pub fn dataplex_projects_locations_data_scans_get_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_data_scans_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/dataScans/{dataScansId}",
@@ -10505,11 +10680,14 @@ pub fn dataplex_projects_locations_data_scans_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_data_scans_get_iam_policy_execute()` to send, or `dataplex_projects_locations_data_scans_get_iam_policy` for simplest API.
 
-pub fn dataplex_projects_locations_data_scans_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_data_scans_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/dataScans/{dataScansId}:getIamPolicy",
@@ -10684,14 +10862,17 @@ pub fn dataplex_projects_locations_data_scans_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_data_scans_list_execute()` to send, or `dataplex_projects_locations_data_scans_list` for simplest API.
 
-pub fn dataplex_projects_locations_data_scans_list_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_data_scans_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/dataScans",
@@ -10889,12 +11070,15 @@ pub fn dataplex_projects_locations_data_scans_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_data_scans_patch_execute()` to send, or `dataplex_projects_locations_data_scans_patch` for simplest API.
 
-pub fn dataplex_projects_locations_data_scans_patch_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_data_scans_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/dataScans/{dataScansId}",
@@ -11079,10 +11263,13 @@ pub fn dataplex_projects_locations_data_scans_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_data_scans_run_execute()` to send, or `dataplex_projects_locations_data_scans_run` for simplest API.
 
-pub fn dataplex_projects_locations_data_scans_run_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_data_scans_run_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/dataScans/{dataScansId}:run",
@@ -11244,10 +11431,13 @@ pub fn dataplex_projects_locations_data_scans_run(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_data_scans_set_iam_policy_execute()` to send, or `dataplex_projects_locations_data_scans_set_iam_policy` for simplest API.
 
-pub fn dataplex_projects_locations_data_scans_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_data_scans_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/dataScans/{dataScansId}:setIamPolicy",
@@ -11406,10 +11596,13 @@ pub fn dataplex_projects_locations_data_scans_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_data_scans_test_iam_permissions_execute()` to send, or `dataplex_projects_locations_data_scans_test_iam_permissions` for simplest API.
 
-pub fn dataplex_projects_locations_data_scans_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_data_scans_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/dataScans/{dataScansId}:testIamPermissions",
@@ -11574,10 +11767,13 @@ pub fn dataplex_projects_locations_data_scans_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_data_scans_jobs_generate_data_quality_rules_execute()` to send, or `dataplex_projects_locations_data_scans_jobs_generate_data_quality_rules` for simplest API.
 
-pub fn dataplex_projects_locations_data_scans_jobs_generate_data_quality_rules_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_data_scans_jobs_generate_data_quality_rules_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/dataScans/{dataScansId}/jobs/{jobsId}:generateDataQualityRules",
@@ -11752,11 +11948,14 @@ pub fn dataplex_projects_locations_data_scans_jobs_generate_data_quality_rules(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_data_scans_jobs_get_execute()` to send, or `dataplex_projects_locations_data_scans_jobs_get` for simplest API.
 
-pub fn dataplex_projects_locations_data_scans_jobs_get_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_data_scans_jobs_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/dataScans/{dataScansId}/jobs/{jobsId}",
@@ -11932,13 +12131,16 @@ pub fn dataplex_projects_locations_data_scans_jobs_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_data_scans_jobs_list_execute()` to send, or `dataplex_projects_locations_data_scans_jobs_list` for simplest API.
 
-pub fn dataplex_projects_locations_data_scans_jobs_list_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_data_scans_jobs_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/dataScans/{dataScansId}/jobs",
@@ -12130,12 +12332,15 @@ pub fn dataplex_projects_locations_data_scans_jobs_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_data_taxonomies_create_execute()` to send, or `dataplex_projects_locations_data_taxonomies_create` for simplest API.
 
-pub fn dataplex_projects_locations_data_taxonomies_create_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_data_taxonomies_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     dataTaxonomyId: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/dataTaxonomies",
@@ -12320,11 +12525,14 @@ pub fn dataplex_projects_locations_data_taxonomies_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_data_taxonomies_delete_execute()` to send, or `dataplex_projects_locations_data_taxonomies_delete` for simplest API.
 
-pub fn dataplex_projects_locations_data_taxonomies_delete_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_data_taxonomies_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     etag: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/dataTaxonomies/{dataTaxonomiesId}",
@@ -12500,10 +12708,13 @@ pub fn dataplex_projects_locations_data_taxonomies_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_data_taxonomies_get_execute()` to send, or `dataplex_projects_locations_data_taxonomies_get` for simplest API.
 
-pub fn dataplex_projects_locations_data_taxonomies_get_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_data_taxonomies_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/dataTaxonomies/{dataTaxonomiesId}",
@@ -12665,11 +12876,14 @@ pub fn dataplex_projects_locations_data_taxonomies_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_data_taxonomies_get_iam_policy_execute()` to send, or `dataplex_projects_locations_data_taxonomies_get_iam_policy` for simplest API.
 
-pub fn dataplex_projects_locations_data_taxonomies_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_data_taxonomies_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/dataTaxonomies/{dataTaxonomiesId}:getIamPolicy",
@@ -12844,14 +13058,17 @@ pub fn dataplex_projects_locations_data_taxonomies_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_data_taxonomies_list_execute()` to send, or `dataplex_projects_locations_data_taxonomies_list` for simplest API.
 
-pub fn dataplex_projects_locations_data_taxonomies_list_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_data_taxonomies_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/dataTaxonomies",
@@ -13049,12 +13266,15 @@ pub fn dataplex_projects_locations_data_taxonomies_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_data_taxonomies_patch_execute()` to send, or `dataplex_projects_locations_data_taxonomies_patch` for simplest API.
 
-pub fn dataplex_projects_locations_data_taxonomies_patch_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_data_taxonomies_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/dataTaxonomies/{dataTaxonomiesId}",
@@ -13239,10 +13459,13 @@ pub fn dataplex_projects_locations_data_taxonomies_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_data_taxonomies_set_iam_policy_execute()` to send, or `dataplex_projects_locations_data_taxonomies_set_iam_policy` for simplest API.
 
-pub fn dataplex_projects_locations_data_taxonomies_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_data_taxonomies_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/dataTaxonomies/{dataTaxonomiesId}:setIamPolicy",
@@ -13401,10 +13624,13 @@ pub fn dataplex_projects_locations_data_taxonomies_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_data_taxonomies_test_iam_permissions_execute()` to send, or `dataplex_projects_locations_data_taxonomies_test_iam_permissions` for simplest API.
 
-pub fn dataplex_projects_locations_data_taxonomies_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_data_taxonomies_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/dataTaxonomies/{dataTaxonomiesId}:testIamPermissions",
@@ -13569,12 +13795,15 @@ pub fn dataplex_projects_locations_data_taxonomies_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_data_taxonomies_attributes_create_execute()` to send, or `dataplex_projects_locations_data_taxonomies_attributes_create` for simplest API.
 
-pub fn dataplex_projects_locations_data_taxonomies_attributes_create_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_data_taxonomies_attributes_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     dataAttributeId: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/dataTaxonomies/{dataTaxonomiesId}/attributes",
@@ -13759,11 +13988,14 @@ pub fn dataplex_projects_locations_data_taxonomies_attributes_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_data_taxonomies_attributes_delete_execute()` to send, or `dataplex_projects_locations_data_taxonomies_attributes_delete` for simplest API.
 
-pub fn dataplex_projects_locations_data_taxonomies_attributes_delete_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_data_taxonomies_attributes_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     etag: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/dataTaxonomies/{dataTaxonomiesId}/attributes/{attributesId}",
@@ -13940,10 +14172,13 @@ pub fn dataplex_projects_locations_data_taxonomies_attributes_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_data_taxonomies_attributes_get_execute()` to send, or `dataplex_projects_locations_data_taxonomies_attributes_get` for simplest API.
 
-pub fn dataplex_projects_locations_data_taxonomies_attributes_get_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_data_taxonomies_attributes_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/dataTaxonomies/{dataTaxonomiesId}/attributes/{attributesId}",
@@ -14106,11 +14341,14 @@ pub fn dataplex_projects_locations_data_taxonomies_attributes_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_data_taxonomies_attributes_get_iam_policy_execute()` to send, or `dataplex_projects_locations_data_taxonomies_attributes_get_iam_policy` for simplest API.
 
-pub fn dataplex_projects_locations_data_taxonomies_attributes_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_data_taxonomies_attributes_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/dataTaxonomies/{dataTaxonomiesId}/attributes/{attributesId}:getIamPolicy",
@@ -14285,14 +14523,17 @@ pub fn dataplex_projects_locations_data_taxonomies_attributes_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_data_taxonomies_attributes_list_execute()` to send, or `dataplex_projects_locations_data_taxonomies_attributes_list` for simplest API.
 
-pub fn dataplex_projects_locations_data_taxonomies_attributes_list_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_data_taxonomies_attributes_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/dataTaxonomies/{dataTaxonomiesId}/attributes",
@@ -14490,12 +14731,15 @@ pub fn dataplex_projects_locations_data_taxonomies_attributes_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_data_taxonomies_attributes_patch_execute()` to send, or `dataplex_projects_locations_data_taxonomies_attributes_patch` for simplest API.
 
-pub fn dataplex_projects_locations_data_taxonomies_attributes_patch_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_data_taxonomies_attributes_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/dataTaxonomies/{dataTaxonomiesId}/attributes/{attributesId}",
@@ -14680,10 +14924,13 @@ pub fn dataplex_projects_locations_data_taxonomies_attributes_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_data_taxonomies_attributes_set_iam_policy_execute()` to send, or `dataplex_projects_locations_data_taxonomies_attributes_set_iam_policy` for simplest API.
 
-pub fn dataplex_projects_locations_data_taxonomies_attributes_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_data_taxonomies_attributes_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/dataTaxonomies/{dataTaxonomiesId}/attributes/{attributesId}:setIamPolicy",
@@ -14844,10 +15091,13 @@ pub fn dataplex_projects_locations_data_taxonomies_attributes_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_data_taxonomies_attributes_test_iam_permissions_execute()` to send, or `dataplex_projects_locations_data_taxonomies_attributes_test_iam_permissions` for simplest API.
 
-pub fn dataplex_projects_locations_data_taxonomies_attributes_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_data_taxonomies_attributes_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/dataTaxonomies/{dataTaxonomiesId}/attributes/{attributesId}:testIamPermissions",
@@ -15014,12 +15264,15 @@ pub fn dataplex_projects_locations_data_taxonomies_attributes_test_iam_permissio
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_entry_groups_create_execute()` to send, or `dataplex_projects_locations_entry_groups_create` for simplest API.
 
-pub fn dataplex_projects_locations_entry_groups_create_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_entry_groups_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     entryGroupId: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/entryGroups",
@@ -15204,11 +15457,14 @@ pub fn dataplex_projects_locations_entry_groups_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_entry_groups_delete_execute()` to send, or `dataplex_projects_locations_entry_groups_delete` for simplest API.
 
-pub fn dataplex_projects_locations_entry_groups_delete_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_entry_groups_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     etag: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/entryGroups/{entryGroupsId}",
@@ -15384,10 +15640,13 @@ pub fn dataplex_projects_locations_entry_groups_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_entry_groups_get_execute()` to send, or `dataplex_projects_locations_entry_groups_get` for simplest API.
 
-pub fn dataplex_projects_locations_entry_groups_get_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_entry_groups_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/entryGroups/{entryGroupsId}",
@@ -15549,11 +15808,14 @@ pub fn dataplex_projects_locations_entry_groups_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_entry_groups_get_iam_policy_execute()` to send, or `dataplex_projects_locations_entry_groups_get_iam_policy` for simplest API.
 
-pub fn dataplex_projects_locations_entry_groups_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_entry_groups_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/entryGroups/{entryGroupsId}:getIamPolicy",
@@ -15728,14 +15990,17 @@ pub fn dataplex_projects_locations_entry_groups_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_entry_groups_list_execute()` to send, or `dataplex_projects_locations_entry_groups_list` for simplest API.
 
-pub fn dataplex_projects_locations_entry_groups_list_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_entry_groups_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/entryGroups",
@@ -15933,12 +16198,15 @@ pub fn dataplex_projects_locations_entry_groups_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_entry_groups_patch_execute()` to send, or `dataplex_projects_locations_entry_groups_patch` for simplest API.
 
-pub fn dataplex_projects_locations_entry_groups_patch_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_entry_groups_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/entryGroups/{entryGroupsId}",
@@ -16123,10 +16391,13 @@ pub fn dataplex_projects_locations_entry_groups_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_entry_groups_set_iam_policy_execute()` to send, or `dataplex_projects_locations_entry_groups_set_iam_policy` for simplest API.
 
-pub fn dataplex_projects_locations_entry_groups_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_entry_groups_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/entryGroups/{entryGroupsId}:setIamPolicy",
@@ -16285,10 +16556,13 @@ pub fn dataplex_projects_locations_entry_groups_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_entry_groups_test_iam_permissions_execute()` to send, or `dataplex_projects_locations_entry_groups_test_iam_permissions` for simplest API.
 
-pub fn dataplex_projects_locations_entry_groups_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_entry_groups_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/entryGroups/{entryGroupsId}:testIamPermissions",
@@ -16453,11 +16727,14 @@ pub fn dataplex_projects_locations_entry_groups_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_entry_groups_entries_create_execute()` to send, or `dataplex_projects_locations_entry_groups_entries_create` for simplest API.
 
-pub fn dataplex_projects_locations_entry_groups_entries_create_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_entry_groups_entries_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     entryId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries",
@@ -16636,10 +16913,13 @@ pub fn dataplex_projects_locations_entry_groups_entries_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_entry_groups_entries_delete_execute()` to send, or `dataplex_projects_locations_entry_groups_entries_delete` for simplest API.
 
-pub fn dataplex_projects_locations_entry_groups_entries_delete_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_entry_groups_entries_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries/{entriesId}",
@@ -16802,13 +17082,16 @@ pub fn dataplex_projects_locations_entry_groups_entries_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_entry_groups_entries_get_execute()` to send, or `dataplex_projects_locations_entry_groups_entries_get` for simplest API.
 
-pub fn dataplex_projects_locations_entry_groups_entries_get_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_entry_groups_entries_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     aspectTypes: &Option<Option<String>>,
     paths: &Option<Option<String>>,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries/{entriesId}",
@@ -16999,13 +17282,16 @@ pub fn dataplex_projects_locations_entry_groups_entries_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_entry_groups_entries_list_execute()` to send, or `dataplex_projects_locations_entry_groups_entries_list` for simplest API.
 
-pub fn dataplex_projects_locations_entry_groups_entries_list_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_entry_groups_entries_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries",
@@ -17196,14 +17482,17 @@ pub fn dataplex_projects_locations_entry_groups_entries_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_entry_groups_entries_patch_execute()` to send, or `dataplex_projects_locations_entry_groups_entries_patch` for simplest API.
 
-pub fn dataplex_projects_locations_entry_groups_entries_patch_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_entry_groups_entries_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     allowMissing: &Option<Option<String>>,
     aspectKeys: &Option<Option<String>>,
     deleteMissingAspects: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries/{entriesId}",
@@ -17400,11 +17689,14 @@ pub fn dataplex_projects_locations_entry_groups_entries_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_entry_groups_entry_links_create_execute()` to send, or `dataplex_projects_locations_entry_groups_entry_links_create` for simplest API.
 
-pub fn dataplex_projects_locations_entry_groups_entry_links_create_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_entry_groups_entry_links_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     entryLinkId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/entryGroups/{entryGroupsId}/entryLinks",
@@ -17583,10 +17875,13 @@ pub fn dataplex_projects_locations_entry_groups_entry_links_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_entry_groups_entry_links_delete_execute()` to send, or `dataplex_projects_locations_entry_groups_entry_links_delete` for simplest API.
 
-pub fn dataplex_projects_locations_entry_groups_entry_links_delete_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_entry_groups_entry_links_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/entryGroups/{entryGroupsId}/entryLinks/{entryLinksId}",
@@ -17749,10 +18044,13 @@ pub fn dataplex_projects_locations_entry_groups_entry_links_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_entry_groups_entry_links_get_execute()` to send, or `dataplex_projects_locations_entry_groups_entry_links_get` for simplest API.
 
-pub fn dataplex_projects_locations_entry_groups_entry_links_get_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_entry_groups_entry_links_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/entryGroups/{entryGroupsId}/entryLinks/{entryLinksId}",
@@ -17915,12 +18213,15 @@ pub fn dataplex_projects_locations_entry_groups_entry_links_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_entry_groups_entry_links_patch_execute()` to send, or `dataplex_projects_locations_entry_groups_entry_links_patch` for simplest API.
 
-pub fn dataplex_projects_locations_entry_groups_entry_links_patch_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_entry_groups_entry_links_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     allowMissing: &Option<Option<String>>,
     aspectKeys: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/entryGroups/{entryGroupsId}/entryLinks/{entryLinksId}",
@@ -18105,11 +18406,14 @@ pub fn dataplex_projects_locations_entry_groups_entry_links_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_entry_link_types_get_iam_policy_execute()` to send, or `dataplex_projects_locations_entry_link_types_get_iam_policy` for simplest API.
 
-pub fn dataplex_projects_locations_entry_link_types_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_entry_link_types_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/entryLinkTypes/{entryLinkTypesId}:getIamPolicy",
@@ -18284,10 +18588,13 @@ pub fn dataplex_projects_locations_entry_link_types_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_entry_link_types_set_iam_policy_execute()` to send, or `dataplex_projects_locations_entry_link_types_set_iam_policy` for simplest API.
 
-pub fn dataplex_projects_locations_entry_link_types_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_entry_link_types_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/entryLinkTypes/{entryLinkTypesId}:setIamPolicy",
@@ -18448,10 +18755,13 @@ pub fn dataplex_projects_locations_entry_link_types_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_entry_link_types_test_iam_permissions_execute()` to send, or `dataplex_projects_locations_entry_link_types_test_iam_permissions` for simplest API.
 
-pub fn dataplex_projects_locations_entry_link_types_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_entry_link_types_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/entryLinkTypes/{entryLinkTypesId}:testIamPermissions",
@@ -18616,12 +18926,15 @@ pub fn dataplex_projects_locations_entry_link_types_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_entry_types_create_execute()` to send, or `dataplex_projects_locations_entry_types_create` for simplest API.
 
-pub fn dataplex_projects_locations_entry_types_create_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_entry_types_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     entryTypeId: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/entryTypes",
@@ -18806,11 +19119,14 @@ pub fn dataplex_projects_locations_entry_types_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_entry_types_delete_execute()` to send, or `dataplex_projects_locations_entry_types_delete` for simplest API.
 
-pub fn dataplex_projects_locations_entry_types_delete_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_entry_types_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     etag: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/entryTypes/{entryTypesId}",
@@ -18986,10 +19302,13 @@ pub fn dataplex_projects_locations_entry_types_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_entry_types_get_execute()` to send, or `dataplex_projects_locations_entry_types_get` for simplest API.
 
-pub fn dataplex_projects_locations_entry_types_get_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_entry_types_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/entryTypes/{entryTypesId}",
@@ -19151,11 +19470,14 @@ pub fn dataplex_projects_locations_entry_types_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_entry_types_get_iam_policy_execute()` to send, or `dataplex_projects_locations_entry_types_get_iam_policy` for simplest API.
 
-pub fn dataplex_projects_locations_entry_types_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_entry_types_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/entryTypes/{entryTypesId}:getIamPolicy",
@@ -19330,14 +19652,17 @@ pub fn dataplex_projects_locations_entry_types_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_entry_types_list_execute()` to send, or `dataplex_projects_locations_entry_types_list` for simplest API.
 
-pub fn dataplex_projects_locations_entry_types_list_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_entry_types_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/entryTypes",
@@ -19535,12 +19860,15 @@ pub fn dataplex_projects_locations_entry_types_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_entry_types_patch_execute()` to send, or `dataplex_projects_locations_entry_types_patch` for simplest API.
 
-pub fn dataplex_projects_locations_entry_types_patch_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_entry_types_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/entryTypes/{entryTypesId}",
@@ -19725,10 +20053,13 @@ pub fn dataplex_projects_locations_entry_types_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_entry_types_set_iam_policy_execute()` to send, or `dataplex_projects_locations_entry_types_set_iam_policy` for simplest API.
 
-pub fn dataplex_projects_locations_entry_types_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_entry_types_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/entryTypes/{entryTypesId}:setIamPolicy",
@@ -19887,10 +20218,13 @@ pub fn dataplex_projects_locations_entry_types_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_entry_types_test_iam_permissions_execute()` to send, or `dataplex_projects_locations_entry_types_test_iam_permissions` for simplest API.
 
-pub fn dataplex_projects_locations_entry_types_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_entry_types_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/entryTypes/{entryTypesId}:testIamPermissions",
@@ -20055,12 +20389,15 @@ pub fn dataplex_projects_locations_entry_types_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_glossaries_create_execute()` to send, or `dataplex_projects_locations_glossaries_create` for simplest API.
 
-pub fn dataplex_projects_locations_glossaries_create_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_glossaries_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     glossaryId: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/glossaries",
@@ -20245,11 +20582,14 @@ pub fn dataplex_projects_locations_glossaries_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_glossaries_delete_execute()` to send, or `dataplex_projects_locations_glossaries_delete` for simplest API.
 
-pub fn dataplex_projects_locations_glossaries_delete_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_glossaries_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     etag: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/glossaries/{glossariesId}",
@@ -20425,10 +20765,13 @@ pub fn dataplex_projects_locations_glossaries_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_glossaries_get_execute()` to send, or `dataplex_projects_locations_glossaries_get` for simplest API.
 
-pub fn dataplex_projects_locations_glossaries_get_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_glossaries_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/glossaries/{glossariesId}",
@@ -20590,11 +20933,14 @@ pub fn dataplex_projects_locations_glossaries_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_glossaries_get_iam_policy_execute()` to send, or `dataplex_projects_locations_glossaries_get_iam_policy` for simplest API.
 
-pub fn dataplex_projects_locations_glossaries_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_glossaries_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/glossaries/{glossariesId}:getIamPolicy",
@@ -20769,14 +21115,17 @@ pub fn dataplex_projects_locations_glossaries_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_glossaries_list_execute()` to send, or `dataplex_projects_locations_glossaries_list` for simplest API.
 
-pub fn dataplex_projects_locations_glossaries_list_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_glossaries_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/glossaries",
@@ -20974,12 +21323,15 @@ pub fn dataplex_projects_locations_glossaries_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_glossaries_patch_execute()` to send, or `dataplex_projects_locations_glossaries_patch` for simplest API.
 
-pub fn dataplex_projects_locations_glossaries_patch_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_glossaries_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/glossaries/{glossariesId}",
@@ -21164,10 +21516,13 @@ pub fn dataplex_projects_locations_glossaries_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_glossaries_set_iam_policy_execute()` to send, or `dataplex_projects_locations_glossaries_set_iam_policy` for simplest API.
 
-pub fn dataplex_projects_locations_glossaries_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_glossaries_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/glossaries/{glossariesId}:setIamPolicy",
@@ -21326,10 +21681,13 @@ pub fn dataplex_projects_locations_glossaries_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_glossaries_test_iam_permissions_execute()` to send, or `dataplex_projects_locations_glossaries_test_iam_permissions` for simplest API.
 
-pub fn dataplex_projects_locations_glossaries_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_glossaries_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/glossaries/{glossariesId}:testIamPermissions",
@@ -21494,11 +21852,14 @@ pub fn dataplex_projects_locations_glossaries_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_glossaries_categories_create_execute()` to send, or `dataplex_projects_locations_glossaries_categories_create` for simplest API.
 
-pub fn dataplex_projects_locations_glossaries_categories_create_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_glossaries_categories_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     categoryId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/glossaries/{glossariesId}/categories",
@@ -21677,10 +22038,13 @@ pub fn dataplex_projects_locations_glossaries_categories_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_glossaries_categories_delete_execute()` to send, or `dataplex_projects_locations_glossaries_categories_delete` for simplest API.
 
-pub fn dataplex_projects_locations_glossaries_categories_delete_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_glossaries_categories_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/glossaries/{glossariesId}/categories/{categoriesId}",
@@ -21835,10 +22199,13 @@ pub fn dataplex_projects_locations_glossaries_categories_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_glossaries_categories_get_execute()` to send, or `dataplex_projects_locations_glossaries_categories_get` for simplest API.
 
-pub fn dataplex_projects_locations_glossaries_categories_get_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_glossaries_categories_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/glossaries/{glossariesId}/categories/{categoriesId}",
@@ -22001,11 +22368,14 @@ pub fn dataplex_projects_locations_glossaries_categories_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_glossaries_categories_get_iam_policy_execute()` to send, or `dataplex_projects_locations_glossaries_categories_get_iam_policy` for simplest API.
 
-pub fn dataplex_projects_locations_glossaries_categories_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_glossaries_categories_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/glossaries/{glossariesId}/categories/{categoriesId}:getIamPolicy",
@@ -22180,14 +22550,17 @@ pub fn dataplex_projects_locations_glossaries_categories_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_glossaries_categories_list_execute()` to send, or `dataplex_projects_locations_glossaries_categories_list` for simplest API.
 
-pub fn dataplex_projects_locations_glossaries_categories_list_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_glossaries_categories_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/glossaries/{glossariesId}/categories",
@@ -22388,11 +22761,14 @@ pub fn dataplex_projects_locations_glossaries_categories_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_glossaries_categories_patch_execute()` to send, or `dataplex_projects_locations_glossaries_categories_patch` for simplest API.
 
-pub fn dataplex_projects_locations_glossaries_categories_patch_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_glossaries_categories_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/glossaries/{glossariesId}/categories/{categoriesId}",
@@ -22571,10 +22947,13 @@ pub fn dataplex_projects_locations_glossaries_categories_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_glossaries_categories_set_iam_policy_execute()` to send, or `dataplex_projects_locations_glossaries_categories_set_iam_policy` for simplest API.
 
-pub fn dataplex_projects_locations_glossaries_categories_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_glossaries_categories_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/glossaries/{glossariesId}/categories/{categoriesId}:setIamPolicy",
@@ -22735,10 +23114,13 @@ pub fn dataplex_projects_locations_glossaries_categories_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_glossaries_categories_test_iam_permissions_execute()` to send, or `dataplex_projects_locations_glossaries_categories_test_iam_permissions` for simplest API.
 
-pub fn dataplex_projects_locations_glossaries_categories_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_glossaries_categories_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/glossaries/{glossariesId}/categories/{categoriesId}:testIamPermissions",
@@ -22904,11 +23286,14 @@ pub fn dataplex_projects_locations_glossaries_categories_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_glossaries_terms_create_execute()` to send, or `dataplex_projects_locations_glossaries_terms_create` for simplest API.
 
-pub fn dataplex_projects_locations_glossaries_terms_create_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_glossaries_terms_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     termId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/glossaries/{glossariesId}/terms",
@@ -23087,10 +23472,13 @@ pub fn dataplex_projects_locations_glossaries_terms_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_glossaries_terms_delete_execute()` to send, or `dataplex_projects_locations_glossaries_terms_delete` for simplest API.
 
-pub fn dataplex_projects_locations_glossaries_terms_delete_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_glossaries_terms_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/glossaries/{glossariesId}/terms/{termsId}",
@@ -23244,10 +23632,13 @@ pub fn dataplex_projects_locations_glossaries_terms_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_glossaries_terms_get_execute()` to send, or `dataplex_projects_locations_glossaries_terms_get` for simplest API.
 
-pub fn dataplex_projects_locations_glossaries_terms_get_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_glossaries_terms_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/glossaries/{glossariesId}/terms/{termsId}",
@@ -23409,11 +23800,14 @@ pub fn dataplex_projects_locations_glossaries_terms_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_glossaries_terms_get_iam_policy_execute()` to send, or `dataplex_projects_locations_glossaries_terms_get_iam_policy` for simplest API.
 
-pub fn dataplex_projects_locations_glossaries_terms_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_glossaries_terms_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/glossaries/{glossariesId}/terms/{termsId}:getIamPolicy",
@@ -23588,14 +23982,17 @@ pub fn dataplex_projects_locations_glossaries_terms_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_glossaries_terms_list_execute()` to send, or `dataplex_projects_locations_glossaries_terms_list` for simplest API.
 
-pub fn dataplex_projects_locations_glossaries_terms_list_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_glossaries_terms_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/glossaries/{glossariesId}/terms",
@@ -23793,11 +24190,14 @@ pub fn dataplex_projects_locations_glossaries_terms_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_glossaries_terms_patch_execute()` to send, or `dataplex_projects_locations_glossaries_terms_patch` for simplest API.
 
-pub fn dataplex_projects_locations_glossaries_terms_patch_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_glossaries_terms_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/glossaries/{glossariesId}/terms/{termsId}",
@@ -23976,10 +24376,13 @@ pub fn dataplex_projects_locations_glossaries_terms_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_glossaries_terms_set_iam_policy_execute()` to send, or `dataplex_projects_locations_glossaries_terms_set_iam_policy` for simplest API.
 
-pub fn dataplex_projects_locations_glossaries_terms_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_glossaries_terms_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/glossaries/{glossariesId}/terms/{termsId}:setIamPolicy",
@@ -24140,10 +24543,13 @@ pub fn dataplex_projects_locations_glossaries_terms_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_glossaries_terms_test_iam_permissions_execute()` to send, or `dataplex_projects_locations_glossaries_terms_test_iam_permissions` for simplest API.
 
-pub fn dataplex_projects_locations_glossaries_terms_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_glossaries_terms_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/glossaries/{glossariesId}/terms/{termsId}:testIamPermissions",
@@ -24308,11 +24714,14 @@ pub fn dataplex_projects_locations_glossaries_terms_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_governance_rules_get_iam_policy_execute()` to send, or `dataplex_projects_locations_governance_rules_get_iam_policy` for simplest API.
 
-pub fn dataplex_projects_locations_governance_rules_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_governance_rules_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/governanceRules/{governanceRulesId}:getIamPolicy",
@@ -24487,10 +24896,13 @@ pub fn dataplex_projects_locations_governance_rules_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_governance_rules_set_iam_policy_execute()` to send, or `dataplex_projects_locations_governance_rules_set_iam_policy` for simplest API.
 
-pub fn dataplex_projects_locations_governance_rules_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_governance_rules_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/governanceRules/{governanceRulesId}:setIamPolicy",
@@ -24651,10 +25063,13 @@ pub fn dataplex_projects_locations_governance_rules_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_governance_rules_test_iam_permissions_execute()` to send, or `dataplex_projects_locations_governance_rules_test_iam_permissions` for simplest API.
 
-pub fn dataplex_projects_locations_governance_rules_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_governance_rules_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/governanceRules/{governanceRulesId}:testIamPermissions",
@@ -24819,12 +25234,15 @@ pub fn dataplex_projects_locations_governance_rules_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_lakes_create_execute()` to send, or `dataplex_projects_locations_lakes_create` for simplest API.
 
-pub fn dataplex_projects_locations_lakes_create_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_lakes_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     lakeId: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/lakes",
@@ -25009,10 +25427,13 @@ pub fn dataplex_projects_locations_lakes_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_lakes_delete_execute()` to send, or `dataplex_projects_locations_lakes_delete` for simplest API.
 
-pub fn dataplex_projects_locations_lakes_delete_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_lakes_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/lakes/{lakesId}",
@@ -25174,10 +25595,13 @@ pub fn dataplex_projects_locations_lakes_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_lakes_get_execute()` to send, or `dataplex_projects_locations_lakes_get` for simplest API.
 
-pub fn dataplex_projects_locations_lakes_get_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_lakes_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/lakes/{lakesId}",
@@ -25335,11 +25759,14 @@ pub fn dataplex_projects_locations_lakes_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_lakes_get_iam_policy_execute()` to send, or `dataplex_projects_locations_lakes_get_iam_policy` for simplest API.
 
-pub fn dataplex_projects_locations_lakes_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_lakes_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/lakes/{lakesId}:getIamPolicy",
@@ -25514,14 +25941,17 @@ pub fn dataplex_projects_locations_lakes_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_lakes_list_execute()` to send, or `dataplex_projects_locations_lakes_list` for simplest API.
 
-pub fn dataplex_projects_locations_lakes_list_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_lakes_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/lakes",
@@ -25718,12 +26148,15 @@ pub fn dataplex_projects_locations_lakes_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_lakes_patch_execute()` to send, or `dataplex_projects_locations_lakes_patch` for simplest API.
 
-pub fn dataplex_projects_locations_lakes_patch_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_lakes_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/lakes/{lakesId}",
@@ -25908,10 +26341,13 @@ pub fn dataplex_projects_locations_lakes_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_lakes_set_iam_policy_execute()` to send, or `dataplex_projects_locations_lakes_set_iam_policy` for simplest API.
 
-pub fn dataplex_projects_locations_lakes_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_lakes_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/lakes/{lakesId}:setIamPolicy",
@@ -26069,10 +26505,13 @@ pub fn dataplex_projects_locations_lakes_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_lakes_test_iam_permissions_execute()` to send, or `dataplex_projects_locations_lakes_test_iam_permissions` for simplest API.
 
-pub fn dataplex_projects_locations_lakes_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_lakes_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/lakes/{lakesId}:testIamPermissions",
@@ -26235,12 +26674,15 @@ pub fn dataplex_projects_locations_lakes_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_lakes_actions_list_execute()` to send, or `dataplex_projects_locations_lakes_actions_list` for simplest API.
 
-pub fn dataplex_projects_locations_lakes_actions_list_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_lakes_actions_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/lakes/{lakesId}/actions",
@@ -26425,12 +26867,15 @@ pub fn dataplex_projects_locations_lakes_actions_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_lakes_tasks_create_execute()` to send, or `dataplex_projects_locations_lakes_tasks_create` for simplest API.
 
-pub fn dataplex_projects_locations_lakes_tasks_create_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_lakes_tasks_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     taskId: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/lakes/{lakesId}/tasks",
@@ -26615,10 +27060,13 @@ pub fn dataplex_projects_locations_lakes_tasks_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_lakes_tasks_delete_execute()` to send, or `dataplex_projects_locations_lakes_tasks_delete` for simplest API.
 
-pub fn dataplex_projects_locations_lakes_tasks_delete_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_lakes_tasks_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/lakes/{lakesId}/tasks/{tasksId}",
@@ -26780,10 +27228,13 @@ pub fn dataplex_projects_locations_lakes_tasks_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_lakes_tasks_get_execute()` to send, or `dataplex_projects_locations_lakes_tasks_get` for simplest API.
 
-pub fn dataplex_projects_locations_lakes_tasks_get_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_lakes_tasks_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/lakes/{lakesId}/tasks/{tasksId}",
@@ -26941,11 +27392,14 @@ pub fn dataplex_projects_locations_lakes_tasks_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_lakes_tasks_get_iam_policy_execute()` to send, or `dataplex_projects_locations_lakes_tasks_get_iam_policy` for simplest API.
 
-pub fn dataplex_projects_locations_lakes_tasks_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_lakes_tasks_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/lakes/{lakesId}/tasks/{tasksId}:getIamPolicy",
@@ -27120,14 +27574,17 @@ pub fn dataplex_projects_locations_lakes_tasks_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_lakes_tasks_list_execute()` to send, or `dataplex_projects_locations_lakes_tasks_list` for simplest API.
 
-pub fn dataplex_projects_locations_lakes_tasks_list_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_lakes_tasks_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/lakes/{lakesId}/tasks",
@@ -27324,12 +27781,15 @@ pub fn dataplex_projects_locations_lakes_tasks_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_lakes_tasks_patch_execute()` to send, or `dataplex_projects_locations_lakes_tasks_patch` for simplest API.
 
-pub fn dataplex_projects_locations_lakes_tasks_patch_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_lakes_tasks_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/lakes/{lakesId}/tasks/{tasksId}",
@@ -27514,10 +27974,13 @@ pub fn dataplex_projects_locations_lakes_tasks_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_lakes_tasks_run_execute()` to send, or `dataplex_projects_locations_lakes_tasks_run` for simplest API.
 
-pub fn dataplex_projects_locations_lakes_tasks_run_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_lakes_tasks_run_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/lakes/{lakesId}/tasks/{tasksId}:run",
@@ -27679,10 +28142,13 @@ pub fn dataplex_projects_locations_lakes_tasks_run(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_lakes_tasks_set_iam_policy_execute()` to send, or `dataplex_projects_locations_lakes_tasks_set_iam_policy` for simplest API.
 
-pub fn dataplex_projects_locations_lakes_tasks_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_lakes_tasks_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/lakes/{lakesId}/tasks/{tasksId}:setIamPolicy",
@@ -27841,10 +28307,13 @@ pub fn dataplex_projects_locations_lakes_tasks_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_lakes_tasks_test_iam_permissions_execute()` to send, or `dataplex_projects_locations_lakes_tasks_test_iam_permissions` for simplest API.
 
-pub fn dataplex_projects_locations_lakes_tasks_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_lakes_tasks_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/lakes/{lakesId}/tasks/{tasksId}:testIamPermissions",
@@ -28009,10 +28478,13 @@ pub fn dataplex_projects_locations_lakes_tasks_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_lakes_tasks_jobs_cancel_execute()` to send, or `dataplex_projects_locations_lakes_tasks_jobs_cancel` for simplest API.
 
-pub fn dataplex_projects_locations_lakes_tasks_jobs_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_lakes_tasks_jobs_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/lakes/{lakesId}/tasks/{tasksId}/jobs/{jobsId}:cancel",
@@ -28166,10 +28638,13 @@ pub fn dataplex_projects_locations_lakes_tasks_jobs_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_lakes_tasks_jobs_get_execute()` to send, or `dataplex_projects_locations_lakes_tasks_jobs_get` for simplest API.
 
-pub fn dataplex_projects_locations_lakes_tasks_jobs_get_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_lakes_tasks_jobs_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/lakes/{lakesId}/tasks/{tasksId}/jobs/{jobsId}",
@@ -28327,12 +28802,15 @@ pub fn dataplex_projects_locations_lakes_tasks_jobs_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_lakes_tasks_jobs_list_execute()` to send, or `dataplex_projects_locations_lakes_tasks_jobs_list` for simplest API.
 
-pub fn dataplex_projects_locations_lakes_tasks_jobs_list_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_lakes_tasks_jobs_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/lakes/{lakesId}/tasks/{tasksId}/jobs",
@@ -28517,12 +28995,15 @@ pub fn dataplex_projects_locations_lakes_tasks_jobs_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_lakes_zones_create_execute()` to send, or `dataplex_projects_locations_lakes_zones_create` for simplest API.
 
-pub fn dataplex_projects_locations_lakes_zones_create_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_lakes_zones_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     validateOnly: &Option<Option<String>>,
     zoneId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/lakes/{lakesId}/zones",
@@ -28707,10 +29188,13 @@ pub fn dataplex_projects_locations_lakes_zones_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_lakes_zones_delete_execute()` to send, or `dataplex_projects_locations_lakes_zones_delete` for simplest API.
 
-pub fn dataplex_projects_locations_lakes_zones_delete_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_lakes_zones_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/lakes/{lakesId}/zones/{zonesId}",
@@ -28872,10 +29356,13 @@ pub fn dataplex_projects_locations_lakes_zones_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_lakes_zones_get_execute()` to send, or `dataplex_projects_locations_lakes_zones_get` for simplest API.
 
-pub fn dataplex_projects_locations_lakes_zones_get_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_lakes_zones_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/lakes/{lakesId}/zones/{zonesId}",
@@ -29033,11 +29520,14 @@ pub fn dataplex_projects_locations_lakes_zones_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_lakes_zones_get_iam_policy_execute()` to send, or `dataplex_projects_locations_lakes_zones_get_iam_policy` for simplest API.
 
-pub fn dataplex_projects_locations_lakes_zones_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_lakes_zones_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/lakes/{lakesId}/zones/{zonesId}:getIamPolicy",
@@ -29212,14 +29702,17 @@ pub fn dataplex_projects_locations_lakes_zones_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_lakes_zones_list_execute()` to send, or `dataplex_projects_locations_lakes_zones_list` for simplest API.
 
-pub fn dataplex_projects_locations_lakes_zones_list_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_lakes_zones_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/lakes/{lakesId}/zones",
@@ -29416,12 +29909,15 @@ pub fn dataplex_projects_locations_lakes_zones_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_lakes_zones_patch_execute()` to send, or `dataplex_projects_locations_lakes_zones_patch` for simplest API.
 
-pub fn dataplex_projects_locations_lakes_zones_patch_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_lakes_zones_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/lakes/{lakesId}/zones/{zonesId}",
@@ -29606,10 +30102,13 @@ pub fn dataplex_projects_locations_lakes_zones_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_lakes_zones_set_iam_policy_execute()` to send, or `dataplex_projects_locations_lakes_zones_set_iam_policy` for simplest API.
 
-pub fn dataplex_projects_locations_lakes_zones_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_lakes_zones_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/lakes/{lakesId}/zones/{zonesId}:setIamPolicy",
@@ -29768,10 +30267,13 @@ pub fn dataplex_projects_locations_lakes_zones_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_lakes_zones_test_iam_permissions_execute()` to send, or `dataplex_projects_locations_lakes_zones_test_iam_permissions` for simplest API.
 
-pub fn dataplex_projects_locations_lakes_zones_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_lakes_zones_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/lakes/{lakesId}/zones/{zonesId}:testIamPermissions",
@@ -29936,12 +30438,15 @@ pub fn dataplex_projects_locations_lakes_zones_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_lakes_zones_actions_list_execute()` to send, or `dataplex_projects_locations_lakes_zones_actions_list` for simplest API.
 
-pub fn dataplex_projects_locations_lakes_zones_actions_list_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_lakes_zones_actions_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/lakes/{lakesId}/zones/{zonesId}/actions",
@@ -30126,12 +30631,15 @@ pub fn dataplex_projects_locations_lakes_zones_actions_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_lakes_zones_assets_create_execute()` to send, or `dataplex_projects_locations_lakes_zones_assets_create` for simplest API.
 
-pub fn dataplex_projects_locations_lakes_zones_assets_create_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_lakes_zones_assets_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     assetId: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/lakes/{lakesId}/zones/{zonesId}/assets",
@@ -30316,10 +30824,13 @@ pub fn dataplex_projects_locations_lakes_zones_assets_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_lakes_zones_assets_delete_execute()` to send, or `dataplex_projects_locations_lakes_zones_assets_delete` for simplest API.
 
-pub fn dataplex_projects_locations_lakes_zones_assets_delete_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_lakes_zones_assets_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/lakes/{lakesId}/zones/{zonesId}/assets/{assetsId}",
@@ -30482,10 +30993,13 @@ pub fn dataplex_projects_locations_lakes_zones_assets_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_lakes_zones_assets_get_execute()` to send, or `dataplex_projects_locations_lakes_zones_assets_get` for simplest API.
 
-pub fn dataplex_projects_locations_lakes_zones_assets_get_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_lakes_zones_assets_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/lakes/{lakesId}/zones/{zonesId}/assets/{assetsId}",
@@ -30647,11 +31161,14 @@ pub fn dataplex_projects_locations_lakes_zones_assets_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_lakes_zones_assets_get_iam_policy_execute()` to send, or `dataplex_projects_locations_lakes_zones_assets_get_iam_policy` for simplest API.
 
-pub fn dataplex_projects_locations_lakes_zones_assets_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_lakes_zones_assets_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/lakes/{lakesId}/zones/{zonesId}/assets/{assetsId}:getIamPolicy",
@@ -30826,14 +31343,17 @@ pub fn dataplex_projects_locations_lakes_zones_assets_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_lakes_zones_assets_list_execute()` to send, or `dataplex_projects_locations_lakes_zones_assets_list` for simplest API.
 
-pub fn dataplex_projects_locations_lakes_zones_assets_list_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_lakes_zones_assets_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/lakes/{lakesId}/zones/{zonesId}/assets",
@@ -31031,12 +31551,15 @@ pub fn dataplex_projects_locations_lakes_zones_assets_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_lakes_zones_assets_patch_execute()` to send, or `dataplex_projects_locations_lakes_zones_assets_patch` for simplest API.
 
-pub fn dataplex_projects_locations_lakes_zones_assets_patch_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_lakes_zones_assets_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/lakes/{lakesId}/zones/{zonesId}/assets/{assetsId}",
@@ -31221,10 +31744,13 @@ pub fn dataplex_projects_locations_lakes_zones_assets_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_lakes_zones_assets_set_iam_policy_execute()` to send, or `dataplex_projects_locations_lakes_zones_assets_set_iam_policy` for simplest API.
 
-pub fn dataplex_projects_locations_lakes_zones_assets_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_lakes_zones_assets_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/lakes/{lakesId}/zones/{zonesId}/assets/{assetsId}:setIamPolicy",
@@ -31385,10 +31911,13 @@ pub fn dataplex_projects_locations_lakes_zones_assets_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_lakes_zones_assets_test_iam_permissions_execute()` to send, or `dataplex_projects_locations_lakes_zones_assets_test_iam_permissions` for simplest API.
 
-pub fn dataplex_projects_locations_lakes_zones_assets_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_lakes_zones_assets_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/lakes/{lakesId}/zones/{zonesId}/assets/{assetsId}:testIamPermissions",
@@ -31553,12 +32082,15 @@ pub fn dataplex_projects_locations_lakes_zones_assets_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_lakes_zones_assets_actions_list_execute()` to send, or `dataplex_projects_locations_lakes_zones_assets_actions_list` for simplest API.
 
-pub fn dataplex_projects_locations_lakes_zones_assets_actions_list_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_lakes_zones_assets_actions_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/lakes/{lakesId}/zones/{zonesId}/assets/{assetsId}/actions",
@@ -31743,11 +32275,14 @@ pub fn dataplex_projects_locations_lakes_zones_assets_actions_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_lakes_zones_entities_create_execute()` to send, or `dataplex_projects_locations_lakes_zones_entities_create` for simplest API.
 
-pub fn dataplex_projects_locations_lakes_zones_entities_create_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_lakes_zones_entities_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/lakes/{lakesId}/zones/{zonesId}/entities",
@@ -31926,11 +32461,14 @@ pub fn dataplex_projects_locations_lakes_zones_entities_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_lakes_zones_entities_delete_execute()` to send, or `dataplex_projects_locations_lakes_zones_entities_delete` for simplest API.
 
-pub fn dataplex_projects_locations_lakes_zones_entities_delete_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_lakes_zones_entities_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     etag: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/lakes/{lakesId}/zones/{zonesId}/entities/{entitiesId}",
@@ -32099,11 +32637,14 @@ pub fn dataplex_projects_locations_lakes_zones_entities_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_lakes_zones_entities_get_execute()` to send, or `dataplex_projects_locations_lakes_zones_entities_get` for simplest API.
 
-pub fn dataplex_projects_locations_lakes_zones_entities_get_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_lakes_zones_entities_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/lakes/{lakesId}/zones/{zonesId}/entities/{entitiesId}",
@@ -32280,14 +32821,17 @@ pub fn dataplex_projects_locations_lakes_zones_entities_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_lakes_zones_entities_list_execute()` to send, or `dataplex_projects_locations_lakes_zones_entities_list` for simplest API.
 
-pub fn dataplex_projects_locations_lakes_zones_entities_list_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_lakes_zones_entities_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/lakes/{lakesId}/zones/{zonesId}/entities",
@@ -32484,11 +33028,14 @@ pub fn dataplex_projects_locations_lakes_zones_entities_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_lakes_zones_entities_update_execute()` to send, or `dataplex_projects_locations_lakes_zones_entities_update` for simplest API.
 
-pub fn dataplex_projects_locations_lakes_zones_entities_update_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_lakes_zones_entities_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/lakes/{lakesId}/zones/{zonesId}/entities/{entitiesId}",
@@ -32667,11 +33214,14 @@ pub fn dataplex_projects_locations_lakes_zones_entities_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_lakes_zones_entities_partitions_create_execute()` to send, or `dataplex_projects_locations_lakes_zones_entities_partitions_create` for simplest API.
 
-pub fn dataplex_projects_locations_lakes_zones_entities_partitions_create_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_lakes_zones_entities_partitions_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/lakes/{lakesId}/zones/{zonesId}/entities/{entitiesId}/partitions",
@@ -32850,11 +33400,14 @@ pub fn dataplex_projects_locations_lakes_zones_entities_partitions_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_lakes_zones_entities_partitions_delete_execute()` to send, or `dataplex_projects_locations_lakes_zones_entities_partitions_delete` for simplest API.
 
-pub fn dataplex_projects_locations_lakes_zones_entities_partitions_delete_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_lakes_zones_entities_partitions_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     etag: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/lakes/{lakesId}/zones/{zonesId}/entities/{entitiesId}/partitions/{partitionsId}",
@@ -33023,10 +33576,13 @@ pub fn dataplex_projects_locations_lakes_zones_entities_partitions_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_lakes_zones_entities_partitions_get_execute()` to send, or `dataplex_projects_locations_lakes_zones_entities_partitions_get` for simplest API.
 
-pub fn dataplex_projects_locations_lakes_zones_entities_partitions_get_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_lakes_zones_entities_partitions_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/lakes/{lakesId}/zones/{zonesId}/entities/{entitiesId}/partitions/{partitionsId}",
@@ -33190,13 +33746,16 @@ pub fn dataplex_projects_locations_lakes_zones_entities_partitions_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_lakes_zones_entities_partitions_list_execute()` to send, or `dataplex_projects_locations_lakes_zones_entities_partitions_list` for simplest API.
 
-pub fn dataplex_projects_locations_lakes_zones_entities_partitions_list_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_lakes_zones_entities_partitions_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/lakes/{lakesId}/zones/{zonesId}/entities/{entitiesId}/partitions",
@@ -33388,12 +33947,15 @@ pub fn dataplex_projects_locations_lakes_zones_entities_partitions_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_metadata_feeds_create_execute()` to send, or `dataplex_projects_locations_metadata_feeds_create` for simplest API.
 
-pub fn dataplex_projects_locations_metadata_feeds_create_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_metadata_feeds_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     metadataFeedId: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/metadataFeeds",
@@ -33578,10 +34140,13 @@ pub fn dataplex_projects_locations_metadata_feeds_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_metadata_feeds_delete_execute()` to send, or `dataplex_projects_locations_metadata_feeds_delete` for simplest API.
 
-pub fn dataplex_projects_locations_metadata_feeds_delete_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_metadata_feeds_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/metadataFeeds/{metadataFeedsId}",
@@ -33743,10 +34308,13 @@ pub fn dataplex_projects_locations_metadata_feeds_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_metadata_feeds_get_execute()` to send, or `dataplex_projects_locations_metadata_feeds_get` for simplest API.
 
-pub fn dataplex_projects_locations_metadata_feeds_get_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_metadata_feeds_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/metadataFeeds/{metadataFeedsId}",
@@ -33908,14 +34476,17 @@ pub fn dataplex_projects_locations_metadata_feeds_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_metadata_feeds_list_execute()` to send, or `dataplex_projects_locations_metadata_feeds_list` for simplest API.
 
-pub fn dataplex_projects_locations_metadata_feeds_list_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_metadata_feeds_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/metadataFeeds",
@@ -34113,12 +34684,15 @@ pub fn dataplex_projects_locations_metadata_feeds_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_metadata_feeds_patch_execute()` to send, or `dataplex_projects_locations_metadata_feeds_patch` for simplest API.
 
-pub fn dataplex_projects_locations_metadata_feeds_patch_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_metadata_feeds_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/metadataFeeds/{metadataFeedsId}",
@@ -34303,10 +34877,13 @@ pub fn dataplex_projects_locations_metadata_feeds_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_metadata_jobs_cancel_execute()` to send, or `dataplex_projects_locations_metadata_jobs_cancel` for simplest API.
 
-pub fn dataplex_projects_locations_metadata_jobs_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_metadata_jobs_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/metadataJobs/{metadataJobsId}:cancel",
@@ -34460,12 +35037,15 @@ pub fn dataplex_projects_locations_metadata_jobs_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_metadata_jobs_create_execute()` to send, or `dataplex_projects_locations_metadata_jobs_create` for simplest API.
 
-pub fn dataplex_projects_locations_metadata_jobs_create_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_metadata_jobs_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     metadataJobId: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/metadataJobs",
@@ -34650,10 +35230,13 @@ pub fn dataplex_projects_locations_metadata_jobs_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_metadata_jobs_get_execute()` to send, or `dataplex_projects_locations_metadata_jobs_get` for simplest API.
 
-pub fn dataplex_projects_locations_metadata_jobs_get_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_metadata_jobs_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/metadataJobs/{metadataJobsId}",
@@ -34815,14 +35398,17 @@ pub fn dataplex_projects_locations_metadata_jobs_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_metadata_jobs_list_execute()` to send, or `dataplex_projects_locations_metadata_jobs_list` for simplest API.
 
-pub fn dataplex_projects_locations_metadata_jobs_list_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_metadata_jobs_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/metadataJobs",
@@ -35020,10 +35606,13 @@ pub fn dataplex_projects_locations_metadata_jobs_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_operations_cancel_execute()` to send, or `dataplex_projects_locations_operations_cancel` for simplest API.
 
-pub fn dataplex_projects_locations_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}:cancel",
@@ -35177,10 +35766,13 @@ pub fn dataplex_projects_locations_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_operations_delete_execute()` to send, or `dataplex_projects_locations_operations_delete` for simplest API.
 
-pub fn dataplex_projects_locations_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -35334,10 +35926,13 @@ pub fn dataplex_projects_locations_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_operations_get_execute()` to send, or `dataplex_projects_locations_operations_get` for simplest API.
 
-pub fn dataplex_projects_locations_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -35499,14 +36094,17 @@ pub fn dataplex_projects_locations_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_operations_list_execute()` to send, or `dataplex_projects_locations_operations_list` for simplest API.
 
-pub fn dataplex_projects_locations_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/operations",
@@ -35704,11 +36302,14 @@ pub fn dataplex_projects_locations_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_policy_intents_get_iam_policy_execute()` to send, or `dataplex_projects_locations_policy_intents_get_iam_policy` for simplest API.
 
-pub fn dataplex_projects_locations_policy_intents_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_policy_intents_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/policyIntents/{policyIntentsId}:getIamPolicy",
@@ -35883,10 +36484,13 @@ pub fn dataplex_projects_locations_policy_intents_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_policy_intents_set_iam_policy_execute()` to send, or `dataplex_projects_locations_policy_intents_set_iam_policy` for simplest API.
 
-pub fn dataplex_projects_locations_policy_intents_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_policy_intents_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/policyIntents/{policyIntentsId}:setIamPolicy",
@@ -36045,10 +36649,13 @@ pub fn dataplex_projects_locations_policy_intents_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataplex_projects_locations_policy_intents_test_iam_permissions_execute()` to send, or `dataplex_projects_locations_policy_intents_test_iam_permissions` for simplest API.
 
-pub fn dataplex_projects_locations_policy_intents_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn dataplex_projects_locations_policy_intents_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataplex.googleapis.com/v1/projects/{}/locations/{locationsId}/policyIntents/{policyIntentsId}:testIamPermissions",

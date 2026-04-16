@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tpu_projects_locations_generate_service_identity_execute()` to send, or `tpu_projects_locations_generate_service_identity` for simplest API.
 
-pub fn tpu_projects_locations_generate_service_identity_builder(
-    client: &SimpleHttpClient,
+pub fn tpu_projects_locations_generate_service_identity_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tpu.googleapis.com/v2/projects/{}/locations/{locationsId}:generateServiceIdentity",
@@ -191,10 +195,13 @@ pub fn tpu_projects_locations_generate_service_identity(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tpu_projects_locations_get_execute()` to send, or `tpu_projects_locations_get` for simplest API.
 
-pub fn tpu_projects_locations_get_builder(
-    client: &SimpleHttpClient,
+pub fn tpu_projects_locations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tpu.googleapis.com/v2/projects/{}/locations/{locationsId}",
@@ -348,14 +355,17 @@ pub fn tpu_projects_locations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tpu_projects_locations_list_execute()` to send, or `tpu_projects_locations_list` for simplest API.
 
-pub fn tpu_projects_locations_list_builder(
-    client: &SimpleHttpClient,
+pub fn tpu_projects_locations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     extraLocationTypes: &Option<Option<String>>,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://tpu.googleapis.com/v2/projects/{}/locations", name,);
 
@@ -545,10 +555,13 @@ pub fn tpu_projects_locations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tpu_projects_locations_accelerator_types_get_execute()` to send, or `tpu_projects_locations_accelerator_types_get` for simplest API.
 
-pub fn tpu_projects_locations_accelerator_types_get_builder(
-    client: &SimpleHttpClient,
+pub fn tpu_projects_locations_accelerator_types_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tpu.googleapis.com/v2/projects/{}/locations/{locationsId}/acceleratorTypes/{acceleratorTypesId}",
@@ -706,14 +719,17 @@ pub fn tpu_projects_locations_accelerator_types_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tpu_projects_locations_accelerator_types_list_execute()` to send, or `tpu_projects_locations_accelerator_types_list` for simplest API.
 
-pub fn tpu_projects_locations_accelerator_types_list_builder(
-    client: &SimpleHttpClient,
+pub fn tpu_projects_locations_accelerator_types_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tpu.googleapis.com/v2/projects/{}/locations/{locationsId}/acceleratorTypes",
@@ -910,11 +926,14 @@ pub fn tpu_projects_locations_accelerator_types_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tpu_projects_locations_nodes_create_execute()` to send, or `tpu_projects_locations_nodes_create` for simplest API.
 
-pub fn tpu_projects_locations_nodes_create_builder(
-    client: &SimpleHttpClient,
+pub fn tpu_projects_locations_nodes_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     nodeId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tpu.googleapis.com/v2/projects/{}/locations/{locationsId}/nodes",
@@ -1081,10 +1100,13 @@ pub fn tpu_projects_locations_nodes_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tpu_projects_locations_nodes_delete_execute()` to send, or `tpu_projects_locations_nodes_delete` for simplest API.
 
-pub fn tpu_projects_locations_nodes_delete_builder(
-    client: &SimpleHttpClient,
+pub fn tpu_projects_locations_nodes_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tpu.googleapis.com/v2/projects/{}/locations/{locationsId}/nodes/{nodesId}",
@@ -1238,10 +1260,13 @@ pub fn tpu_projects_locations_nodes_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tpu_projects_locations_nodes_get_execute()` to send, or `tpu_projects_locations_nodes_get` for simplest API.
 
-pub fn tpu_projects_locations_nodes_get_builder(
-    client: &SimpleHttpClient,
+pub fn tpu_projects_locations_nodes_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tpu.googleapis.com/v2/projects/{}/locations/{locationsId}/nodes/{nodesId}",
@@ -1395,10 +1420,13 @@ pub fn tpu_projects_locations_nodes_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tpu_projects_locations_nodes_get_guest_attributes_execute()` to send, or `tpu_projects_locations_nodes_get_guest_attributes` for simplest API.
 
-pub fn tpu_projects_locations_nodes_get_guest_attributes_builder(
-    client: &SimpleHttpClient,
+pub fn tpu_projects_locations_nodes_get_guest_attributes_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tpu.googleapis.com/v2/projects/{}/locations/{locationsId}/nodes/{nodesId}:getGuestAttributes",
@@ -1560,12 +1588,15 @@ pub fn tpu_projects_locations_nodes_get_guest_attributes(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tpu_projects_locations_nodes_list_execute()` to send, or `tpu_projects_locations_nodes_list` for simplest API.
 
-pub fn tpu_projects_locations_nodes_list_builder(
-    client: &SimpleHttpClient,
+pub fn tpu_projects_locations_nodes_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tpu.googleapis.com/v2/projects/{}/locations/{locationsId}/nodes",
@@ -1746,11 +1777,14 @@ pub fn tpu_projects_locations_nodes_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tpu_projects_locations_nodes_patch_execute()` to send, or `tpu_projects_locations_nodes_patch` for simplest API.
 
-pub fn tpu_projects_locations_nodes_patch_builder(
-    client: &SimpleHttpClient,
+pub fn tpu_projects_locations_nodes_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tpu.googleapis.com/v2/projects/{}/locations/{locationsId}/nodes/{nodesId}",
@@ -1917,10 +1951,13 @@ pub fn tpu_projects_locations_nodes_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tpu_projects_locations_nodes_start_execute()` to send, or `tpu_projects_locations_nodes_start` for simplest API.
 
-pub fn tpu_projects_locations_nodes_start_builder(
-    client: &SimpleHttpClient,
+pub fn tpu_projects_locations_nodes_start_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tpu.googleapis.com/v2/projects/{}/locations/{locationsId}/nodes/{nodesId}:start",
@@ -2074,10 +2111,13 @@ pub fn tpu_projects_locations_nodes_start(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tpu_projects_locations_nodes_stop_execute()` to send, or `tpu_projects_locations_nodes_stop` for simplest API.
 
-pub fn tpu_projects_locations_nodes_stop_builder(
-    client: &SimpleHttpClient,
+pub fn tpu_projects_locations_nodes_stop_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tpu.googleapis.com/v2/projects/{}/locations/{locationsId}/nodes/{nodesId}:stop",
@@ -2231,10 +2271,13 @@ pub fn tpu_projects_locations_nodes_stop(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tpu_projects_locations_operations_cancel_execute()` to send, or `tpu_projects_locations_operations_cancel` for simplest API.
 
-pub fn tpu_projects_locations_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn tpu_projects_locations_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tpu.googleapis.com/v2/projects/{}/locations/{locationsId}/operations/{operationsId}:cancel",
@@ -2388,10 +2431,13 @@ pub fn tpu_projects_locations_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tpu_projects_locations_operations_delete_execute()` to send, or `tpu_projects_locations_operations_delete` for simplest API.
 
-pub fn tpu_projects_locations_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn tpu_projects_locations_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tpu.googleapis.com/v2/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -2545,10 +2591,13 @@ pub fn tpu_projects_locations_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tpu_projects_locations_operations_get_execute()` to send, or `tpu_projects_locations_operations_get` for simplest API.
 
-pub fn tpu_projects_locations_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn tpu_projects_locations_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tpu.googleapis.com/v2/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -2702,14 +2751,17 @@ pub fn tpu_projects_locations_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tpu_projects_locations_operations_list_execute()` to send, or `tpu_projects_locations_operations_list` for simplest API.
 
-pub fn tpu_projects_locations_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn tpu_projects_locations_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tpu.googleapis.com/v2/projects/{}/locations/{locationsId}/operations",
@@ -2902,12 +2954,15 @@ pub fn tpu_projects_locations_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tpu_projects_locations_queued_resources_create_execute()` to send, or `tpu_projects_locations_queued_resources_create` for simplest API.
 
-pub fn tpu_projects_locations_queued_resources_create_builder(
-    client: &SimpleHttpClient,
+pub fn tpu_projects_locations_queued_resources_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     queuedResourceId: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tpu.googleapis.com/v2/projects/{}/locations/{locationsId}/queuedResources",
@@ -3084,12 +3139,15 @@ pub fn tpu_projects_locations_queued_resources_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tpu_projects_locations_queued_resources_delete_execute()` to send, or `tpu_projects_locations_queued_resources_delete` for simplest API.
 
-pub fn tpu_projects_locations_queued_resources_delete_builder(
-    client: &SimpleHttpClient,
+pub fn tpu_projects_locations_queued_resources_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     force: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tpu.googleapis.com/v2/projects/{}/locations/{locationsId}/queuedResources/{queuedResourcesId}",
@@ -3266,10 +3324,13 @@ pub fn tpu_projects_locations_queued_resources_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tpu_projects_locations_queued_resources_get_execute()` to send, or `tpu_projects_locations_queued_resources_get` for simplest API.
 
-pub fn tpu_projects_locations_queued_resources_get_builder(
-    client: &SimpleHttpClient,
+pub fn tpu_projects_locations_queued_resources_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tpu.googleapis.com/v2/projects/{}/locations/{locationsId}/queuedResources/{queuedResourcesId}",
@@ -3427,12 +3488,15 @@ pub fn tpu_projects_locations_queued_resources_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tpu_projects_locations_queued_resources_list_execute()` to send, or `tpu_projects_locations_queued_resources_list` for simplest API.
 
-pub fn tpu_projects_locations_queued_resources_list_builder(
-    client: &SimpleHttpClient,
+pub fn tpu_projects_locations_queued_resources_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tpu.googleapis.com/v2/projects/{}/locations/{locationsId}/queuedResources",
@@ -3617,10 +3681,13 @@ pub fn tpu_projects_locations_queued_resources_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tpu_projects_locations_queued_resources_reset_execute()` to send, or `tpu_projects_locations_queued_resources_reset` for simplest API.
 
-pub fn tpu_projects_locations_queued_resources_reset_builder(
-    client: &SimpleHttpClient,
+pub fn tpu_projects_locations_queued_resources_reset_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tpu.googleapis.com/v2/projects/{}/locations/{locationsId}/queuedResources/{queuedResourcesId}:reset",
@@ -3774,10 +3841,13 @@ pub fn tpu_projects_locations_queued_resources_reset(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tpu_projects_locations_runtime_versions_get_execute()` to send, or `tpu_projects_locations_runtime_versions_get` for simplest API.
 
-pub fn tpu_projects_locations_runtime_versions_get_builder(
-    client: &SimpleHttpClient,
+pub fn tpu_projects_locations_runtime_versions_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tpu.googleapis.com/v2/projects/{}/locations/{locationsId}/runtimeVersions/{runtimeVersionsId}",
@@ -3935,14 +4005,17 @@ pub fn tpu_projects_locations_runtime_versions_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tpu_projects_locations_runtime_versions_list_execute()` to send, or `tpu_projects_locations_runtime_versions_list` for simplest API.
 
-pub fn tpu_projects_locations_runtime_versions_list_builder(
-    client: &SimpleHttpClient,
+pub fn tpu_projects_locations_runtime_versions_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://tpu.googleapis.com/v2/projects/{}/locations/{locationsId}/runtimeVersions",

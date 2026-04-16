@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,12 +27,15 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `orgpolicy_folders_constraints_list_execute()` to send, or `orgpolicy_folders_constraints_list` for simplest API.
 
-pub fn orgpolicy_folders_constraints_list_builder(
-    client: &SimpleHttpClient,
+pub fn orgpolicy_folders_constraints_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://orgpolicy.googleapis.com/v2/folders/{}/constraints",
@@ -217,10 +221,13 @@ pub fn orgpolicy_folders_constraints_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `orgpolicy_folders_policies_create_execute()` to send, or `orgpolicy_folders_policies_create` for simplest API.
 
-pub fn orgpolicy_folders_policies_create_builder(
-    client: &SimpleHttpClient,
+pub fn orgpolicy_folders_policies_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://orgpolicy.googleapis.com/v2/folders/{}/policies",
@@ -382,11 +389,14 @@ pub fn orgpolicy_folders_policies_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `orgpolicy_folders_policies_delete_execute()` to send, or `orgpolicy_folders_policies_delete` for simplest API.
 
-pub fn orgpolicy_folders_policies_delete_builder(
-    client: &SimpleHttpClient,
+pub fn orgpolicy_folders_policies_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     etag: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://orgpolicy.googleapis.com/v2/folders/{}/policies/{policiesId}",
@@ -557,10 +567,13 @@ pub fn orgpolicy_folders_policies_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `orgpolicy_folders_policies_get_execute()` to send, or `orgpolicy_folders_policies_get` for simplest API.
 
-pub fn orgpolicy_folders_policies_get_builder(
-    client: &SimpleHttpClient,
+pub fn orgpolicy_folders_policies_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://orgpolicy.googleapis.com/v2/folders/{}/policies/{policiesId}",
@@ -722,10 +735,13 @@ pub fn orgpolicy_folders_policies_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `orgpolicy_folders_policies_get_effective_policy_execute()` to send, or `orgpolicy_folders_policies_get_effective_policy` for simplest API.
 
-pub fn orgpolicy_folders_policies_get_effective_policy_builder(
-    client: &SimpleHttpClient,
+pub fn orgpolicy_folders_policies_get_effective_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://orgpolicy.googleapis.com/v2/folders/{}/policies/{policiesId}:getEffectivePolicy",
@@ -887,12 +903,15 @@ pub fn orgpolicy_folders_policies_get_effective_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `orgpolicy_folders_policies_list_execute()` to send, or `orgpolicy_folders_policies_list` for simplest API.
 
-pub fn orgpolicy_folders_policies_list_builder(
-    client: &SimpleHttpClient,
+pub fn orgpolicy_folders_policies_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://orgpolicy.googleapis.com/v2/folders/{}/policies",
@@ -1078,11 +1097,14 @@ pub fn orgpolicy_folders_policies_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `orgpolicy_folders_policies_patch_execute()` to send, or `orgpolicy_folders_policies_patch` for simplest API.
 
-pub fn orgpolicy_folders_policies_patch_builder(
-    client: &SimpleHttpClient,
+pub fn orgpolicy_folders_policies_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://orgpolicy.googleapis.com/v2/folders/{}/policies/{policiesId}",
@@ -1257,12 +1279,15 @@ pub fn orgpolicy_folders_policies_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `orgpolicy_organizations_constraints_list_execute()` to send, or `orgpolicy_organizations_constraints_list` for simplest API.
 
-pub fn orgpolicy_organizations_constraints_list_builder(
-    client: &SimpleHttpClient,
+pub fn orgpolicy_organizations_constraints_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://orgpolicy.googleapis.com/v2/organizations/{}/constraints",
@@ -1448,10 +1473,13 @@ pub fn orgpolicy_organizations_constraints_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `orgpolicy_organizations_custom_constraints_create_execute()` to send, or `orgpolicy_organizations_custom_constraints_create` for simplest API.
 
-pub fn orgpolicy_organizations_custom_constraints_create_builder(
-    client: &SimpleHttpClient,
+pub fn orgpolicy_organizations_custom_constraints_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://orgpolicy.googleapis.com/v2/organizations/{}/customConstraints",
@@ -1613,10 +1641,13 @@ pub fn orgpolicy_organizations_custom_constraints_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `orgpolicy_organizations_custom_constraints_delete_execute()` to send, or `orgpolicy_organizations_custom_constraints_delete` for simplest API.
 
-pub fn orgpolicy_organizations_custom_constraints_delete_builder(
-    client: &SimpleHttpClient,
+pub fn orgpolicy_organizations_custom_constraints_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://orgpolicy.googleapis.com/v2/organizations/{}/customConstraints/{customConstraintsId}",
@@ -1774,10 +1805,13 @@ pub fn orgpolicy_organizations_custom_constraints_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `orgpolicy_organizations_custom_constraints_get_execute()` to send, or `orgpolicy_organizations_custom_constraints_get` for simplest API.
 
-pub fn orgpolicy_organizations_custom_constraints_get_builder(
-    client: &SimpleHttpClient,
+pub fn orgpolicy_organizations_custom_constraints_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://orgpolicy.googleapis.com/v2/organizations/{}/customConstraints/{customConstraintsId}",
@@ -1939,12 +1973,15 @@ pub fn orgpolicy_organizations_custom_constraints_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `orgpolicy_organizations_custom_constraints_list_execute()` to send, or `orgpolicy_organizations_custom_constraints_list` for simplest API.
 
-pub fn orgpolicy_organizations_custom_constraints_list_builder(
-    client: &SimpleHttpClient,
+pub fn orgpolicy_organizations_custom_constraints_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://orgpolicy.googleapis.com/v2/organizations/{}/customConstraints",
@@ -2133,10 +2170,13 @@ pub fn orgpolicy_organizations_custom_constraints_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `orgpolicy_organizations_custom_constraints_patch_execute()` to send, or `orgpolicy_organizations_custom_constraints_patch` for simplest API.
 
-pub fn orgpolicy_organizations_custom_constraints_patch_builder(
-    client: &SimpleHttpClient,
+pub fn orgpolicy_organizations_custom_constraints_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://orgpolicy.googleapis.com/v2/organizations/{}/customConstraints/{customConstraintsId}",
@@ -2298,10 +2338,13 @@ pub fn orgpolicy_organizations_custom_constraints_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `orgpolicy_organizations_policies_create_execute()` to send, or `orgpolicy_organizations_policies_create` for simplest API.
 
-pub fn orgpolicy_organizations_policies_create_builder(
-    client: &SimpleHttpClient,
+pub fn orgpolicy_organizations_policies_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://orgpolicy.googleapis.com/v2/organizations/{}/policies",
@@ -2463,11 +2506,14 @@ pub fn orgpolicy_organizations_policies_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `orgpolicy_organizations_policies_delete_execute()` to send, or `orgpolicy_organizations_policies_delete` for simplest API.
 
-pub fn orgpolicy_organizations_policies_delete_builder(
-    client: &SimpleHttpClient,
+pub fn orgpolicy_organizations_policies_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     etag: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://orgpolicy.googleapis.com/v2/organizations/{}/policies/{policiesId}",
@@ -2638,10 +2684,13 @@ pub fn orgpolicy_organizations_policies_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `orgpolicy_organizations_policies_get_execute()` to send, or `orgpolicy_organizations_policies_get` for simplest API.
 
-pub fn orgpolicy_organizations_policies_get_builder(
-    client: &SimpleHttpClient,
+pub fn orgpolicy_organizations_policies_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://orgpolicy.googleapis.com/v2/organizations/{}/policies/{policiesId}",
@@ -2803,10 +2852,13 @@ pub fn orgpolicy_organizations_policies_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `orgpolicy_organizations_policies_get_effective_policy_execute()` to send, or `orgpolicy_organizations_policies_get_effective_policy` for simplest API.
 
-pub fn orgpolicy_organizations_policies_get_effective_policy_builder(
-    client: &SimpleHttpClient,
+pub fn orgpolicy_organizations_policies_get_effective_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://orgpolicy.googleapis.com/v2/organizations/{}/policies/{policiesId}:getEffectivePolicy",
@@ -2969,12 +3021,15 @@ pub fn orgpolicy_organizations_policies_get_effective_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `orgpolicy_organizations_policies_list_execute()` to send, or `orgpolicy_organizations_policies_list` for simplest API.
 
-pub fn orgpolicy_organizations_policies_list_builder(
-    client: &SimpleHttpClient,
+pub fn orgpolicy_organizations_policies_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://orgpolicy.googleapis.com/v2/organizations/{}/policies",
@@ -3160,11 +3215,14 @@ pub fn orgpolicy_organizations_policies_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `orgpolicy_organizations_policies_patch_execute()` to send, or `orgpolicy_organizations_policies_patch` for simplest API.
 
-pub fn orgpolicy_organizations_policies_patch_builder(
-    client: &SimpleHttpClient,
+pub fn orgpolicy_organizations_policies_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://orgpolicy.googleapis.com/v2/organizations/{}/policies/{policiesId}",
@@ -3340,12 +3398,15 @@ pub fn orgpolicy_organizations_policies_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `orgpolicy_projects_constraints_list_execute()` to send, or `orgpolicy_projects_constraints_list` for simplest API.
 
-pub fn orgpolicy_projects_constraints_list_builder(
-    client: &SimpleHttpClient,
+pub fn orgpolicy_projects_constraints_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://orgpolicy.googleapis.com/v2/projects/{}/constraints",
@@ -3531,10 +3592,13 @@ pub fn orgpolicy_projects_constraints_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `orgpolicy_projects_policies_create_execute()` to send, or `orgpolicy_projects_policies_create` for simplest API.
 
-pub fn orgpolicy_projects_policies_create_builder(
-    client: &SimpleHttpClient,
+pub fn orgpolicy_projects_policies_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://orgpolicy.googleapis.com/v2/projects/{}/policies",
@@ -3696,11 +3760,14 @@ pub fn orgpolicy_projects_policies_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `orgpolicy_projects_policies_delete_execute()` to send, or `orgpolicy_projects_policies_delete` for simplest API.
 
-pub fn orgpolicy_projects_policies_delete_builder(
-    client: &SimpleHttpClient,
+pub fn orgpolicy_projects_policies_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     etag: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://orgpolicy.googleapis.com/v2/projects/{}/policies/{policiesId}",
@@ -3871,10 +3938,13 @@ pub fn orgpolicy_projects_policies_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `orgpolicy_projects_policies_get_execute()` to send, or `orgpolicy_projects_policies_get` for simplest API.
 
-pub fn orgpolicy_projects_policies_get_builder(
-    client: &SimpleHttpClient,
+pub fn orgpolicy_projects_policies_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://orgpolicy.googleapis.com/v2/projects/{}/policies/{policiesId}",
@@ -4036,10 +4106,13 @@ pub fn orgpolicy_projects_policies_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `orgpolicy_projects_policies_get_effective_policy_execute()` to send, or `orgpolicy_projects_policies_get_effective_policy` for simplest API.
 
-pub fn orgpolicy_projects_policies_get_effective_policy_builder(
-    client: &SimpleHttpClient,
+pub fn orgpolicy_projects_policies_get_effective_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://orgpolicy.googleapis.com/v2/projects/{}/policies/{policiesId}:getEffectivePolicy",
@@ -4201,12 +4274,15 @@ pub fn orgpolicy_projects_policies_get_effective_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `orgpolicy_projects_policies_list_execute()` to send, or `orgpolicy_projects_policies_list` for simplest API.
 
-pub fn orgpolicy_projects_policies_list_builder(
-    client: &SimpleHttpClient,
+pub fn orgpolicy_projects_policies_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://orgpolicy.googleapis.com/v2/projects/{}/policies",
@@ -4392,11 +4468,14 @@ pub fn orgpolicy_projects_policies_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `orgpolicy_projects_policies_patch_execute()` to send, or `orgpolicy_projects_policies_patch` for simplest API.
 
-pub fn orgpolicy_projects_policies_patch_builder(
-    client: &SimpleHttpClient,
+pub fn orgpolicy_projects_policies_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://orgpolicy.googleapis.com/v2/projects/{}/policies/{policiesId}",

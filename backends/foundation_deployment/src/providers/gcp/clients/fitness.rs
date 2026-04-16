@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `fitness_users_data_sources_create_execute()` to send, or `fitness_users_data_sources_create` for simplest API.
 
-pub fn fitness_users_data_sources_create_builder(
-    client: &SimpleHttpClient,
+pub fn fitness_users_data_sources_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     userId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://fitness.googleapis.com/fitness/v1/users/{}/dataSources",
@@ -183,11 +187,14 @@ pub fn fitness_users_data_sources_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `fitness_users_data_sources_delete_execute()` to send, or `fitness_users_data_sources_delete` for simplest API.
 
-pub fn fitness_users_data_sources_delete_builder(
-    client: &SimpleHttpClient,
+pub fn fitness_users_data_sources_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     userId: &String,
     dataSourceId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://fitness.googleapis.com/fitness/v1/users/{}/dataSources/{}",
@@ -344,11 +351,14 @@ pub fn fitness_users_data_sources_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `fitness_users_data_sources_get_execute()` to send, or `fitness_users_data_sources_get` for simplest API.
 
-pub fn fitness_users_data_sources_get_builder(
-    client: &SimpleHttpClient,
+pub fn fitness_users_data_sources_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     userId: &String,
     dataSourceId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://fitness.googleapis.com/fitness/v1/users/{}/dataSources/{}",
@@ -504,11 +514,14 @@ pub fn fitness_users_data_sources_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `fitness_users_data_sources_list_execute()` to send, or `fitness_users_data_sources_list` for simplest API.
 
-pub fn fitness_users_data_sources_list_builder(
-    client: &SimpleHttpClient,
+pub fn fitness_users_data_sources_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     userId: &String,
     dataTypeName: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://fitness.googleapis.com/fitness/v1/users/{}/dataSources",
@@ -680,11 +693,14 @@ pub fn fitness_users_data_sources_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `fitness_users_data_sources_update_execute()` to send, or `fitness_users_data_sources_update` for simplest API.
 
-pub fn fitness_users_data_sources_update_builder(
-    client: &SimpleHttpClient,
+pub fn fitness_users_data_sources_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     userId: &String,
     dataSourceId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://fitness.googleapis.com/fitness/v1/users/{}/dataSources/{}",
@@ -841,13 +857,16 @@ pub fn fitness_users_data_sources_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `fitness_users_data_sources_data_point_changes_list_execute()` to send, or `fitness_users_data_sources_data_point_changes_list` for simplest API.
 
-pub fn fitness_users_data_sources_data_point_changes_list_builder(
-    client: &SimpleHttpClient,
+pub fn fitness_users_data_sources_data_point_changes_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     userId: &String,
     dataSourceId: &String,
     limit: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://fitness.googleapis.com/fitness/v1/users/{}/dataSources/{}/dataPointChanges",
@@ -1035,12 +1054,15 @@ pub fn fitness_users_data_sources_data_point_changes_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `fitness_users_data_sources_datasets_delete_execute()` to send, or `fitness_users_data_sources_datasets_delete` for simplest API.
 
-pub fn fitness_users_data_sources_datasets_delete_builder(
-    client: &SimpleHttpClient,
+pub fn fitness_users_data_sources_datasets_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     userId: &String,
     dataSourceId: &String,
     datasetId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://fitness.googleapis.com/fitness/v1/users/{}/dataSources/{}/datasets/{}",
@@ -1200,14 +1222,17 @@ pub fn fitness_users_data_sources_datasets_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `fitness_users_data_sources_datasets_get_execute()` to send, or `fitness_users_data_sources_datasets_get` for simplest API.
 
-pub fn fitness_users_data_sources_datasets_get_builder(
-    client: &SimpleHttpClient,
+pub fn fitness_users_data_sources_datasets_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     userId: &String,
     dataSourceId: &String,
     datasetId: &String,
     limit: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://fitness.googleapis.com/fitness/v1/users/{}/dataSources/{}/datasets/{}",
@@ -1390,12 +1415,15 @@ pub fn fitness_users_data_sources_datasets_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `fitness_users_data_sources_datasets_patch_execute()` to send, or `fitness_users_data_sources_datasets_patch` for simplest API.
 
-pub fn fitness_users_data_sources_datasets_patch_builder(
-    client: &SimpleHttpClient,
+pub fn fitness_users_data_sources_datasets_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     userId: &String,
     dataSourceId: &String,
     datasetId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://fitness.googleapis.com/fitness/v1/users/{}/dataSources/{}/datasets/{}",
@@ -1558,10 +1586,13 @@ pub fn fitness_users_data_sources_datasets_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `fitness_users_dataset_aggregate_execute()` to send, or `fitness_users_dataset_aggregate` for simplest API.
 
-pub fn fitness_users_dataset_aggregate_builder(
-    client: &SimpleHttpClient,
+pub fn fitness_users_dataset_aggregate_builder<R>(
+    client: &SimpleHttpClient<R>,
     userId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://fitness.googleapis.com/fitness/v1/users/{}/dataset:aggregate",
@@ -1719,11 +1750,14 @@ pub fn fitness_users_dataset_aggregate(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `fitness_users_sessions_delete_execute()` to send, or `fitness_users_sessions_delete` for simplest API.
 
-pub fn fitness_users_sessions_delete_builder(
-    client: &SimpleHttpClient,
+pub fn fitness_users_sessions_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     userId: &String,
     sessionId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://fitness.googleapis.com/fitness/v1/users/{}/sessions/{}",
@@ -1876,15 +1910,18 @@ pub fn fitness_users_sessions_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `fitness_users_sessions_list_execute()` to send, or `fitness_users_sessions_list` for simplest API.
 
-pub fn fitness_users_sessions_list_builder(
-    client: &SimpleHttpClient,
+pub fn fitness_users_sessions_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     userId: &String,
     activityType: &Option<Option<String>>,
     endTime: &Option<Option<String>>,
     includeDeleted: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     startTime: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://fitness.googleapis.com/fitness/v1/users/{}/sessions",
@@ -2083,11 +2120,14 @@ pub fn fitness_users_sessions_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `fitness_users_sessions_update_execute()` to send, or `fitness_users_sessions_update` for simplest API.
 
-pub fn fitness_users_sessions_update_builder(
-    client: &SimpleHttpClient,
+pub fn fitness_users_sessions_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     userId: &String,
     sessionId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://fitness.googleapis.com/fitness/v1/users/{}/sessions/{}",

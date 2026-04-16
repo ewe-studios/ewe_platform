@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,9 +27,12 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `classroom_courses_create_execute()` to send, or `classroom_courses_create` for simplest API.
 
-pub fn classroom_courses_create_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn classroom_courses_create_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://classroom.googleapis.com/v1/courses",);
 
@@ -171,10 +175,13 @@ pub fn classroom_courses_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `classroom_courses_delete_execute()` to send, or `classroom_courses_delete` for simplest API.
 
-pub fn classroom_courses_delete_builder(
-    client: &SimpleHttpClient,
+pub fn classroom_courses_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     id: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://classroom.googleapis.com/v1/courses/{}", id,);
 
@@ -325,10 +332,13 @@ pub fn classroom_courses_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `classroom_courses_get_execute()` to send, or `classroom_courses_get` for simplest API.
 
-pub fn classroom_courses_get_builder(
-    client: &SimpleHttpClient,
+pub fn classroom_courses_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     id: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://classroom.googleapis.com/v1/courses/{}", id,);
 
@@ -479,10 +489,13 @@ pub fn classroom_courses_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `classroom_courses_get_grading_period_settings_execute()` to send, or `classroom_courses_get_grading_period_settings` for simplest API.
 
-pub fn classroom_courses_get_grading_period_settings_builder(
-    client: &SimpleHttpClient,
+pub fn classroom_courses_get_grading_period_settings_builder<R>(
+    client: &SimpleHttpClient<R>,
     courseId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/gradingPeriodSettings",
@@ -640,14 +653,17 @@ pub fn classroom_courses_get_grading_period_settings(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `classroom_courses_list_execute()` to send, or `classroom_courses_list` for simplest API.
 
-pub fn classroom_courses_list_builder(
-    client: &SimpleHttpClient,
+pub fn classroom_courses_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     courseStates: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     studentId: &Option<Option<String>>,
     teacherId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://classroom.googleapis.com/v1/courses",);
 
@@ -840,11 +856,14 @@ pub fn classroom_courses_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `classroom_courses_patch_execute()` to send, or `classroom_courses_patch` for simplest API.
 
-pub fn classroom_courses_patch_builder(
-    client: &SimpleHttpClient,
+pub fn classroom_courses_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     id: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://classroom.googleapis.com/v1/courses/{}", id,);
 
@@ -1008,10 +1027,13 @@ pub fn classroom_courses_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `classroom_courses_update_execute()` to send, or `classroom_courses_update` for simplest API.
 
-pub fn classroom_courses_update_builder(
-    client: &SimpleHttpClient,
+pub fn classroom_courses_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     id: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://classroom.googleapis.com/v1/courses/{}", id,);
 
@@ -1162,11 +1184,14 @@ pub fn classroom_courses_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `classroom_courses_update_grading_period_settings_execute()` to send, or `classroom_courses_update_grading_period_settings` for simplest API.
 
-pub fn classroom_courses_update_grading_period_settings_builder(
-    client: &SimpleHttpClient,
+pub fn classroom_courses_update_grading_period_settings_builder<R>(
+    client: &SimpleHttpClient<R>,
     courseId: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/gradingPeriodSettings",
@@ -1341,10 +1366,13 @@ pub fn classroom_courses_update_grading_period_settings(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `classroom_courses_aliases_create_execute()` to send, or `classroom_courses_aliases_create` for simplest API.
 
-pub fn classroom_courses_aliases_create_builder(
-    client: &SimpleHttpClient,
+pub fn classroom_courses_aliases_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     courseId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/aliases",
@@ -1498,11 +1526,14 @@ pub fn classroom_courses_aliases_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `classroom_courses_aliases_delete_execute()` to send, or `classroom_courses_aliases_delete` for simplest API.
 
-pub fn classroom_courses_aliases_delete_builder(
-    client: &SimpleHttpClient,
+pub fn classroom_courses_aliases_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     courseId: &String,
     alias: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/aliases/{}",
@@ -1658,12 +1689,15 @@ pub fn classroom_courses_aliases_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `classroom_courses_aliases_list_execute()` to send, or `classroom_courses_aliases_list` for simplest API.
 
-pub fn classroom_courses_aliases_list_builder(
-    client: &SimpleHttpClient,
+pub fn classroom_courses_aliases_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     courseId: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/aliases",
@@ -1844,10 +1878,13 @@ pub fn classroom_courses_aliases_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `classroom_courses_announcements_create_execute()` to send, or `classroom_courses_announcements_create` for simplest API.
 
-pub fn classroom_courses_announcements_create_builder(
-    client: &SimpleHttpClient,
+pub fn classroom_courses_announcements_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     courseId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/announcements",
@@ -2005,11 +2042,14 @@ pub fn classroom_courses_announcements_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `classroom_courses_announcements_delete_execute()` to send, or `classroom_courses_announcements_delete` for simplest API.
 
-pub fn classroom_courses_announcements_delete_builder(
-    client: &SimpleHttpClient,
+pub fn classroom_courses_announcements_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     courseId: &String,
     id: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/announcements/{}",
@@ -2165,11 +2205,14 @@ pub fn classroom_courses_announcements_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `classroom_courses_announcements_get_execute()` to send, or `classroom_courses_announcements_get` for simplest API.
 
-pub fn classroom_courses_announcements_get_builder(
-    client: &SimpleHttpClient,
+pub fn classroom_courses_announcements_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     courseId: &String,
     id: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/announcements/{}",
@@ -2329,14 +2372,17 @@ pub fn classroom_courses_announcements_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `classroom_courses_announcements_get_add_on_context_execute()` to send, or `classroom_courses_announcements_get_add_on_context` for simplest API.
 
-pub fn classroom_courses_announcements_get_add_on_context_builder(
-    client: &SimpleHttpClient,
+pub fn classroom_courses_announcements_get_add_on_context_builder<R>(
+    client: &SimpleHttpClient<R>,
     courseId: &String,
     itemId: &String,
     addOnToken: &Option<Option<String>>,
     attachmentId: &Option<Option<String>>,
     postId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/announcements/{}/addOnContext",
@@ -2526,14 +2572,17 @@ pub fn classroom_courses_announcements_get_add_on_context(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `classroom_courses_announcements_list_execute()` to send, or `classroom_courses_announcements_list` for simplest API.
 
-pub fn classroom_courses_announcements_list_builder(
-    client: &SimpleHttpClient,
+pub fn classroom_courses_announcements_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     courseId: &String,
     announcementStates: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/announcements",
@@ -2726,11 +2775,14 @@ pub fn classroom_courses_announcements_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `classroom_courses_announcements_modify_assignees_execute()` to send, or `classroom_courses_announcements_modify_assignees` for simplest API.
 
-pub fn classroom_courses_announcements_modify_assignees_builder(
-    client: &SimpleHttpClient,
+pub fn classroom_courses_announcements_modify_assignees_builder<R>(
+    client: &SimpleHttpClient<R>,
     courseId: &String,
     id: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/announcements/{}:modifyAssignees",
@@ -2891,12 +2943,15 @@ pub fn classroom_courses_announcements_modify_assignees(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `classroom_courses_announcements_patch_execute()` to send, or `classroom_courses_announcements_patch` for simplest API.
 
-pub fn classroom_courses_announcements_patch_builder(
-    client: &SimpleHttpClient,
+pub fn classroom_courses_announcements_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     courseId: &String,
     id: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/announcements/{}",
@@ -3074,13 +3129,16 @@ pub fn classroom_courses_announcements_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `classroom_courses_announcements_add_on_attachments_create_execute()` to send, or `classroom_courses_announcements_add_on_attachments_create` for simplest API.
 
-pub fn classroom_courses_announcements_add_on_attachments_create_builder(
-    client: &SimpleHttpClient,
+pub fn classroom_courses_announcements_add_on_attachments_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     courseId: &String,
     itemId: &String,
     addOnToken: &Option<Option<String>>,
     postId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/announcements/{}/addOnAttachments",
@@ -3264,13 +3322,16 @@ pub fn classroom_courses_announcements_add_on_attachments_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `classroom_courses_announcements_add_on_attachments_delete_execute()` to send, or `classroom_courses_announcements_add_on_attachments_delete` for simplest API.
 
-pub fn classroom_courses_announcements_add_on_attachments_delete_builder(
-    client: &SimpleHttpClient,
+pub fn classroom_courses_announcements_add_on_attachments_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     courseId: &String,
     itemId: &String,
     attachmentId: &String,
     postId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/announcements/{}/addOnAttachments/{}",
@@ -3447,13 +3508,16 @@ pub fn classroom_courses_announcements_add_on_attachments_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `classroom_courses_announcements_add_on_attachments_get_execute()` to send, or `classroom_courses_announcements_add_on_attachments_get` for simplest API.
 
-pub fn classroom_courses_announcements_add_on_attachments_get_builder(
-    client: &SimpleHttpClient,
+pub fn classroom_courses_announcements_add_on_attachments_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     courseId: &String,
     itemId: &String,
     attachmentId: &String,
     postId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/announcements/{}/addOnAttachments/{}",
@@ -3634,14 +3698,17 @@ pub fn classroom_courses_announcements_add_on_attachments_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `classroom_courses_announcements_add_on_attachments_list_execute()` to send, or `classroom_courses_announcements_add_on_attachments_list` for simplest API.
 
-pub fn classroom_courses_announcements_add_on_attachments_list_builder(
-    client: &SimpleHttpClient,
+pub fn classroom_courses_announcements_add_on_attachments_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     courseId: &String,
     itemId: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     postId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/announcements/{}/addOnAttachments",
@@ -3835,14 +3902,17 @@ pub fn classroom_courses_announcements_add_on_attachments_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `classroom_courses_announcements_add_on_attachments_patch_execute()` to send, or `classroom_courses_announcements_add_on_attachments_patch` for simplest API.
 
-pub fn classroom_courses_announcements_add_on_attachments_patch_builder(
-    client: &SimpleHttpClient,
+pub fn classroom_courses_announcements_add_on_attachments_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     courseId: &String,
     itemId: &String,
     attachmentId: &String,
     postId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/announcements/{}/addOnAttachments/{}",
@@ -4029,10 +4099,13 @@ pub fn classroom_courses_announcements_add_on_attachments_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `classroom_courses_course_work_create_execute()` to send, or `classroom_courses_course_work_create` for simplest API.
 
-pub fn classroom_courses_course_work_create_builder(
-    client: &SimpleHttpClient,
+pub fn classroom_courses_course_work_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     courseId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/courseWork",
@@ -4186,11 +4259,14 @@ pub fn classroom_courses_course_work_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `classroom_courses_course_work_delete_execute()` to send, or `classroom_courses_course_work_delete` for simplest API.
 
-pub fn classroom_courses_course_work_delete_builder(
-    client: &SimpleHttpClient,
+pub fn classroom_courses_course_work_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     courseId: &String,
     id: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/courseWork/{}",
@@ -4346,11 +4422,14 @@ pub fn classroom_courses_course_work_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `classroom_courses_course_work_get_execute()` to send, or `classroom_courses_course_work_get` for simplest API.
 
-pub fn classroom_courses_course_work_get_builder(
-    client: &SimpleHttpClient,
+pub fn classroom_courses_course_work_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     courseId: &String,
     id: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/courseWork/{}",
@@ -4506,14 +4585,17 @@ pub fn classroom_courses_course_work_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `classroom_courses_course_work_get_add_on_context_execute()` to send, or `classroom_courses_course_work_get_add_on_context` for simplest API.
 
-pub fn classroom_courses_course_work_get_add_on_context_builder(
-    client: &SimpleHttpClient,
+pub fn classroom_courses_course_work_get_add_on_context_builder<R>(
+    client: &SimpleHttpClient<R>,
     courseId: &String,
     itemId: &String,
     addOnToken: &Option<Option<String>>,
     attachmentId: &Option<Option<String>>,
     postId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/courseWork/{}/addOnContext",
@@ -4703,14 +4785,17 @@ pub fn classroom_courses_course_work_get_add_on_context(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `classroom_courses_course_work_list_execute()` to send, or `classroom_courses_course_work_list` for simplest API.
 
-pub fn classroom_courses_course_work_list_builder(
-    client: &SimpleHttpClient,
+pub fn classroom_courses_course_work_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     courseId: &String,
     courseWorkStates: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/courseWork",
@@ -4903,11 +4988,14 @@ pub fn classroom_courses_course_work_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `classroom_courses_course_work_modify_assignees_execute()` to send, or `classroom_courses_course_work_modify_assignees` for simplest API.
 
-pub fn classroom_courses_course_work_modify_assignees_builder(
-    client: &SimpleHttpClient,
+pub fn classroom_courses_course_work_modify_assignees_builder<R>(
+    client: &SimpleHttpClient<R>,
     courseId: &String,
     id: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/courseWork/{}:modifyAssignees",
@@ -5064,12 +5152,15 @@ pub fn classroom_courses_course_work_modify_assignees(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `classroom_courses_course_work_patch_execute()` to send, or `classroom_courses_course_work_patch` for simplest API.
 
-pub fn classroom_courses_course_work_patch_builder(
-    client: &SimpleHttpClient,
+pub fn classroom_courses_course_work_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     courseId: &String,
     id: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/courseWork/{}",
@@ -5243,13 +5334,16 @@ pub fn classroom_courses_course_work_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `classroom_courses_course_work_update_rubric_execute()` to send, or `classroom_courses_course_work_update_rubric` for simplest API.
 
-pub fn classroom_courses_course_work_update_rubric_builder(
-    client: &SimpleHttpClient,
+pub fn classroom_courses_course_work_update_rubric_builder<R>(
+    client: &SimpleHttpClient<R>,
     courseId: &String,
     courseWorkId: &String,
     id: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/courseWork/{}/rubric",
@@ -5429,13 +5523,16 @@ pub fn classroom_courses_course_work_update_rubric(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `classroom_courses_course_work_add_on_attachments_create_execute()` to send, or `classroom_courses_course_work_add_on_attachments_create` for simplest API.
 
-pub fn classroom_courses_course_work_add_on_attachments_create_builder(
-    client: &SimpleHttpClient,
+pub fn classroom_courses_course_work_add_on_attachments_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     courseId: &String,
     itemId: &String,
     addOnToken: &Option<Option<String>>,
     postId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/courseWork/{}/addOnAttachments",
@@ -5619,13 +5716,16 @@ pub fn classroom_courses_course_work_add_on_attachments_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `classroom_courses_course_work_add_on_attachments_delete_execute()` to send, or `classroom_courses_course_work_add_on_attachments_delete` for simplest API.
 
-pub fn classroom_courses_course_work_add_on_attachments_delete_builder(
-    client: &SimpleHttpClient,
+pub fn classroom_courses_course_work_add_on_attachments_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     courseId: &String,
     itemId: &String,
     attachmentId: &String,
     postId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/courseWork/{}/addOnAttachments/{}",
@@ -5802,13 +5902,16 @@ pub fn classroom_courses_course_work_add_on_attachments_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `classroom_courses_course_work_add_on_attachments_get_execute()` to send, or `classroom_courses_course_work_add_on_attachments_get` for simplest API.
 
-pub fn classroom_courses_course_work_add_on_attachments_get_builder(
-    client: &SimpleHttpClient,
+pub fn classroom_courses_course_work_add_on_attachments_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     courseId: &String,
     itemId: &String,
     attachmentId: &String,
     postId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/courseWork/{}/addOnAttachments/{}",
@@ -5989,14 +6092,17 @@ pub fn classroom_courses_course_work_add_on_attachments_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `classroom_courses_course_work_add_on_attachments_list_execute()` to send, or `classroom_courses_course_work_add_on_attachments_list` for simplest API.
 
-pub fn classroom_courses_course_work_add_on_attachments_list_builder(
-    client: &SimpleHttpClient,
+pub fn classroom_courses_course_work_add_on_attachments_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     courseId: &String,
     itemId: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     postId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/courseWork/{}/addOnAttachments",
@@ -6190,14 +6296,17 @@ pub fn classroom_courses_course_work_add_on_attachments_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `classroom_courses_course_work_add_on_attachments_patch_execute()` to send, or `classroom_courses_course_work_add_on_attachments_patch` for simplest API.
 
-pub fn classroom_courses_course_work_add_on_attachments_patch_builder(
-    client: &SimpleHttpClient,
+pub fn classroom_courses_course_work_add_on_attachments_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     courseId: &String,
     itemId: &String,
     attachmentId: &String,
     postId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/courseWork/{}/addOnAttachments/{}",
@@ -6384,14 +6493,17 @@ pub fn classroom_courses_course_work_add_on_attachments_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `classroom_courses_course_work_add_on_attachments_student_submissions_get_execute()` to send, or `classroom_courses_course_work_add_on_attachments_student_submissions_get` for simplest API.
 
-pub fn classroom_courses_course_work_add_on_attachments_student_submissions_get_builder(
-    client: &SimpleHttpClient,
+pub fn classroom_courses_course_work_add_on_attachments_student_submissions_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     courseId: &String,
     itemId: &String,
     attachmentId: &String,
     submissionId: &String,
     postId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/courseWork/{}/addOnAttachments/{}/studentSubmissions/{}",
@@ -6583,15 +6695,18 @@ pub fn classroom_courses_course_work_add_on_attachments_student_submissions_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `classroom_courses_course_work_add_on_attachments_student_submissions_patch_execute()` to send, or `classroom_courses_course_work_add_on_attachments_student_submissions_patch` for simplest API.
 
-pub fn classroom_courses_course_work_add_on_attachments_student_submissions_patch_builder(
-    client: &SimpleHttpClient,
+pub fn classroom_courses_course_work_add_on_attachments_student_submissions_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     courseId: &String,
     itemId: &String,
     attachmentId: &String,
     submissionId: &String,
     postId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/courseWork/{}/addOnAttachments/{}/studentSubmissions/{}",
@@ -6790,11 +6905,14 @@ pub fn classroom_courses_course_work_add_on_attachments_student_submissions_patc
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `classroom_courses_course_work_rubrics_create_execute()` to send, or `classroom_courses_course_work_rubrics_create` for simplest API.
 
-pub fn classroom_courses_course_work_rubrics_create_builder(
-    client: &SimpleHttpClient,
+pub fn classroom_courses_course_work_rubrics_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     courseId: &String,
     courseWorkId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/courseWork/{}/rubrics",
@@ -6954,12 +7072,15 @@ pub fn classroom_courses_course_work_rubrics_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `classroom_courses_course_work_rubrics_delete_execute()` to send, or `classroom_courses_course_work_rubrics_delete` for simplest API.
 
-pub fn classroom_courses_course_work_rubrics_delete_builder(
-    client: &SimpleHttpClient,
+pub fn classroom_courses_course_work_rubrics_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     courseId: &String,
     courseWorkId: &String,
     id: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/courseWork/{}/rubrics/{}",
@@ -7122,12 +7243,15 @@ pub fn classroom_courses_course_work_rubrics_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `classroom_courses_course_work_rubrics_get_execute()` to send, or `classroom_courses_course_work_rubrics_get` for simplest API.
 
-pub fn classroom_courses_course_work_rubrics_get_builder(
-    client: &SimpleHttpClient,
+pub fn classroom_courses_course_work_rubrics_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     courseId: &String,
     courseWorkId: &String,
     id: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/courseWork/{}/rubrics/{}",
@@ -7290,13 +7414,16 @@ pub fn classroom_courses_course_work_rubrics_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `classroom_courses_course_work_rubrics_list_execute()` to send, or `classroom_courses_course_work_rubrics_list` for simplest API.
 
-pub fn classroom_courses_course_work_rubrics_list_builder(
-    client: &SimpleHttpClient,
+pub fn classroom_courses_course_work_rubrics_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     courseId: &String,
     courseWorkId: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/courseWork/{}/rubrics",
@@ -7480,13 +7607,16 @@ pub fn classroom_courses_course_work_rubrics_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `classroom_courses_course_work_rubrics_patch_execute()` to send, or `classroom_courses_course_work_rubrics_patch` for simplest API.
 
-pub fn classroom_courses_course_work_rubrics_patch_builder(
-    client: &SimpleHttpClient,
+pub fn classroom_courses_course_work_rubrics_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     courseId: &String,
     courseWorkId: &String,
     id: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/courseWork/{}/rubrics/{}",
@@ -7663,12 +7793,15 @@ pub fn classroom_courses_course_work_rubrics_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `classroom_courses_course_work_student_submissions_get_execute()` to send, or `classroom_courses_course_work_student_submissions_get` for simplest API.
 
-pub fn classroom_courses_course_work_student_submissions_get_builder(
-    client: &SimpleHttpClient,
+pub fn classroom_courses_course_work_student_submissions_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     courseId: &String,
     courseWorkId: &String,
     id: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/courseWork/{}/studentSubmissions/{}",
@@ -7835,8 +7968,8 @@ pub fn classroom_courses_course_work_student_submissions_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `classroom_courses_course_work_student_submissions_list_execute()` to send, or `classroom_courses_course_work_student_submissions_list` for simplest API.
 
-pub fn classroom_courses_course_work_student_submissions_list_builder(
-    client: &SimpleHttpClient,
+pub fn classroom_courses_course_work_student_submissions_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     courseId: &String,
     courseWorkId: &String,
     late: &Option<Option<String>>,
@@ -7844,7 +7977,10 @@ pub fn classroom_courses_course_work_student_submissions_list_builder(
     pageToken: &Option<Option<String>>,
     states: &Option<Option<String>>,
     userId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/courseWork/{}/studentSubmissions",
@@ -8050,12 +8186,15 @@ pub fn classroom_courses_course_work_student_submissions_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `classroom_courses_course_work_student_submissions_modify_attachments_execute()` to send, or `classroom_courses_course_work_student_submissions_modify_attachments` for simplest API.
 
-pub fn classroom_courses_course_work_student_submissions_modify_attachments_builder(
-    client: &SimpleHttpClient,
+pub fn classroom_courses_course_work_student_submissions_modify_attachments_builder<R>(
+    client: &SimpleHttpClient<R>,
     courseId: &String,
     courseWorkId: &String,
     id: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/courseWork/{}/studentSubmissions/{}:modifyAttachments",
@@ -8224,13 +8363,16 @@ pub fn classroom_courses_course_work_student_submissions_modify_attachments(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `classroom_courses_course_work_student_submissions_patch_execute()` to send, or `classroom_courses_course_work_student_submissions_patch` for simplest API.
 
-pub fn classroom_courses_course_work_student_submissions_patch_builder(
-    client: &SimpleHttpClient,
+pub fn classroom_courses_course_work_student_submissions_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     courseId: &String,
     courseWorkId: &String,
     id: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/courseWork/{}/studentSubmissions/{}",
@@ -8411,12 +8553,15 @@ pub fn classroom_courses_course_work_student_submissions_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `classroom_courses_course_work_student_submissions_reclaim_execute()` to send, or `classroom_courses_course_work_student_submissions_reclaim` for simplest API.
 
-pub fn classroom_courses_course_work_student_submissions_reclaim_builder(
-    client: &SimpleHttpClient,
+pub fn classroom_courses_course_work_student_submissions_reclaim_builder<R>(
+    client: &SimpleHttpClient<R>,
     courseId: &String,
     courseWorkId: &String,
     id: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/courseWork/{}/studentSubmissions/{}:reclaim",
@@ -8581,12 +8726,15 @@ pub fn classroom_courses_course_work_student_submissions_reclaim(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `classroom_courses_course_work_student_submissions_return_execute()` to send, or `classroom_courses_course_work_student_submissions_return` for simplest API.
 
-pub fn classroom_courses_course_work_student_submissions_return_builder(
-    client: &SimpleHttpClient,
+pub fn classroom_courses_course_work_student_submissions_return_builder<R>(
+    client: &SimpleHttpClient<R>,
     courseId: &String,
     courseWorkId: &String,
     id: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/courseWork/{}/studentSubmissions/{}:return",
@@ -8749,12 +8897,15 @@ pub fn classroom_courses_course_work_student_submissions_return(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `classroom_courses_course_work_student_submissions_turn_in_execute()` to send, or `classroom_courses_course_work_student_submissions_turn_in` for simplest API.
 
-pub fn classroom_courses_course_work_student_submissions_turn_in_builder(
-    client: &SimpleHttpClient,
+pub fn classroom_courses_course_work_student_submissions_turn_in_builder<R>(
+    client: &SimpleHttpClient<R>,
     courseId: &String,
     courseWorkId: &String,
     id: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/courseWork/{}/studentSubmissions/{}:turnIn",
@@ -8917,10 +9068,13 @@ pub fn classroom_courses_course_work_student_submissions_turn_in(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `classroom_courses_course_work_materials_create_execute()` to send, or `classroom_courses_course_work_materials_create` for simplest API.
 
-pub fn classroom_courses_course_work_materials_create_builder(
-    client: &SimpleHttpClient,
+pub fn classroom_courses_course_work_materials_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     courseId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/courseWorkMaterials",
@@ -9078,11 +9232,14 @@ pub fn classroom_courses_course_work_materials_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `classroom_courses_course_work_materials_delete_execute()` to send, or `classroom_courses_course_work_materials_delete` for simplest API.
 
-pub fn classroom_courses_course_work_materials_delete_builder(
-    client: &SimpleHttpClient,
+pub fn classroom_courses_course_work_materials_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     courseId: &String,
     id: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/courseWorkMaterials/{}",
@@ -9239,11 +9396,14 @@ pub fn classroom_courses_course_work_materials_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `classroom_courses_course_work_materials_get_execute()` to send, or `classroom_courses_course_work_materials_get` for simplest API.
 
-pub fn classroom_courses_course_work_materials_get_builder(
-    client: &SimpleHttpClient,
+pub fn classroom_courses_course_work_materials_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     courseId: &String,
     id: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/courseWorkMaterials/{}",
@@ -9404,14 +9564,17 @@ pub fn classroom_courses_course_work_materials_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `classroom_courses_course_work_materials_get_add_on_context_execute()` to send, or `classroom_courses_course_work_materials_get_add_on_context` for simplest API.
 
-pub fn classroom_courses_course_work_materials_get_add_on_context_builder(
-    client: &SimpleHttpClient,
+pub fn classroom_courses_course_work_materials_get_add_on_context_builder<R>(
+    client: &SimpleHttpClient<R>,
     courseId: &String,
     itemId: &String,
     addOnToken: &Option<Option<String>>,
     attachmentId: &Option<Option<String>>,
     postId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/courseWorkMaterials/{}/addOnContext",
@@ -9601,8 +9764,8 @@ pub fn classroom_courses_course_work_materials_get_add_on_context(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `classroom_courses_course_work_materials_list_execute()` to send, or `classroom_courses_course_work_materials_list` for simplest API.
 
-pub fn classroom_courses_course_work_materials_list_builder(
-    client: &SimpleHttpClient,
+pub fn classroom_courses_course_work_materials_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     courseId: &String,
     courseWorkMaterialStates: &Option<Option<String>>,
     materialDriveId: &Option<Option<String>>,
@@ -9610,7 +9773,10 @@ pub fn classroom_courses_course_work_materials_list_builder(
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/courseWorkMaterials",
@@ -9819,12 +9985,15 @@ pub fn classroom_courses_course_work_materials_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `classroom_courses_course_work_materials_patch_execute()` to send, or `classroom_courses_course_work_materials_patch` for simplest API.
 
-pub fn classroom_courses_course_work_materials_patch_builder(
-    client: &SimpleHttpClient,
+pub fn classroom_courses_course_work_materials_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     courseId: &String,
     id: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/courseWorkMaterials/{}",
@@ -10002,13 +10171,16 @@ pub fn classroom_courses_course_work_materials_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `classroom_courses_course_work_materials_add_on_attachments_create_execute()` to send, or `classroom_courses_course_work_materials_add_on_attachments_create` for simplest API.
 
-pub fn classroom_courses_course_work_materials_add_on_attachments_create_builder(
-    client: &SimpleHttpClient,
+pub fn classroom_courses_course_work_materials_add_on_attachments_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     courseId: &String,
     itemId: &String,
     addOnToken: &Option<Option<String>>,
     postId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/courseWorkMaterials/{}/addOnAttachments",
@@ -10192,13 +10364,16 @@ pub fn classroom_courses_course_work_materials_add_on_attachments_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `classroom_courses_course_work_materials_add_on_attachments_delete_execute()` to send, or `classroom_courses_course_work_materials_add_on_attachments_delete` for simplest API.
 
-pub fn classroom_courses_course_work_materials_add_on_attachments_delete_builder(
-    client: &SimpleHttpClient,
+pub fn classroom_courses_course_work_materials_add_on_attachments_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     courseId: &String,
     itemId: &String,
     attachmentId: &String,
     postId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/courseWorkMaterials/{}/addOnAttachments/{}",
@@ -10375,13 +10550,16 @@ pub fn classroom_courses_course_work_materials_add_on_attachments_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `classroom_courses_course_work_materials_add_on_attachments_get_execute()` to send, or `classroom_courses_course_work_materials_add_on_attachments_get` for simplest API.
 
-pub fn classroom_courses_course_work_materials_add_on_attachments_get_builder(
-    client: &SimpleHttpClient,
+pub fn classroom_courses_course_work_materials_add_on_attachments_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     courseId: &String,
     itemId: &String,
     attachmentId: &String,
     postId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/courseWorkMaterials/{}/addOnAttachments/{}",
@@ -10562,14 +10740,17 @@ pub fn classroom_courses_course_work_materials_add_on_attachments_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `classroom_courses_course_work_materials_add_on_attachments_list_execute()` to send, or `classroom_courses_course_work_materials_add_on_attachments_list` for simplest API.
 
-pub fn classroom_courses_course_work_materials_add_on_attachments_list_builder(
-    client: &SimpleHttpClient,
+pub fn classroom_courses_course_work_materials_add_on_attachments_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     courseId: &String,
     itemId: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     postId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/courseWorkMaterials/{}/addOnAttachments",
@@ -10763,14 +10944,17 @@ pub fn classroom_courses_course_work_materials_add_on_attachments_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `classroom_courses_course_work_materials_add_on_attachments_patch_execute()` to send, or `classroom_courses_course_work_materials_add_on_attachments_patch` for simplest API.
 
-pub fn classroom_courses_course_work_materials_add_on_attachments_patch_builder(
-    client: &SimpleHttpClient,
+pub fn classroom_courses_course_work_materials_add_on_attachments_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     courseId: &String,
     itemId: &String,
     attachmentId: &String,
     postId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/courseWorkMaterials/{}/addOnAttachments/{}",
@@ -10957,14 +11141,17 @@ pub fn classroom_courses_course_work_materials_add_on_attachments_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `classroom_courses_posts_get_add_on_context_execute()` to send, or `classroom_courses_posts_get_add_on_context` for simplest API.
 
-pub fn classroom_courses_posts_get_add_on_context_builder(
-    client: &SimpleHttpClient,
+pub fn classroom_courses_posts_get_add_on_context_builder<R>(
+    client: &SimpleHttpClient<R>,
     courseId: &String,
     postId: &String,
     addOnToken: &Option<Option<String>>,
     attachmentId: &Option<Option<String>>,
     itemId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/posts/{}/addOnContext",
@@ -11154,13 +11341,16 @@ pub fn classroom_courses_posts_get_add_on_context(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `classroom_courses_posts_add_on_attachments_create_execute()` to send, or `classroom_courses_posts_add_on_attachments_create` for simplest API.
 
-pub fn classroom_courses_posts_add_on_attachments_create_builder(
-    client: &SimpleHttpClient,
+pub fn classroom_courses_posts_add_on_attachments_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     courseId: &String,
     postId: &String,
     addOnToken: &Option<Option<String>>,
     itemId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/posts/{}/addOnAttachments",
@@ -11344,13 +11534,16 @@ pub fn classroom_courses_posts_add_on_attachments_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `classroom_courses_posts_add_on_attachments_delete_execute()` to send, or `classroom_courses_posts_add_on_attachments_delete` for simplest API.
 
-pub fn classroom_courses_posts_add_on_attachments_delete_builder(
-    client: &SimpleHttpClient,
+pub fn classroom_courses_posts_add_on_attachments_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     courseId: &String,
     postId: &String,
     attachmentId: &String,
     itemId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/posts/{}/addOnAttachments/{}",
@@ -11527,13 +11720,16 @@ pub fn classroom_courses_posts_add_on_attachments_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `classroom_courses_posts_add_on_attachments_get_execute()` to send, or `classroom_courses_posts_add_on_attachments_get` for simplest API.
 
-pub fn classroom_courses_posts_add_on_attachments_get_builder(
-    client: &SimpleHttpClient,
+pub fn classroom_courses_posts_add_on_attachments_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     courseId: &String,
     postId: &String,
     attachmentId: &String,
     itemId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/posts/{}/addOnAttachments/{}",
@@ -11714,14 +11910,17 @@ pub fn classroom_courses_posts_add_on_attachments_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `classroom_courses_posts_add_on_attachments_list_execute()` to send, or `classroom_courses_posts_add_on_attachments_list` for simplest API.
 
-pub fn classroom_courses_posts_add_on_attachments_list_builder(
-    client: &SimpleHttpClient,
+pub fn classroom_courses_posts_add_on_attachments_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     courseId: &String,
     postId: &String,
     itemId: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/posts/{}/addOnAttachments",
@@ -11915,14 +12114,17 @@ pub fn classroom_courses_posts_add_on_attachments_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `classroom_courses_posts_add_on_attachments_patch_execute()` to send, or `classroom_courses_posts_add_on_attachments_patch` for simplest API.
 
-pub fn classroom_courses_posts_add_on_attachments_patch_builder(
-    client: &SimpleHttpClient,
+pub fn classroom_courses_posts_add_on_attachments_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     courseId: &String,
     postId: &String,
     attachmentId: &String,
     itemId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/posts/{}/addOnAttachments/{}",
@@ -12109,14 +12311,17 @@ pub fn classroom_courses_posts_add_on_attachments_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `classroom_courses_posts_add_on_attachments_student_submissions_get_execute()` to send, or `classroom_courses_posts_add_on_attachments_student_submissions_get` for simplest API.
 
-pub fn classroom_courses_posts_add_on_attachments_student_submissions_get_builder(
-    client: &SimpleHttpClient,
+pub fn classroom_courses_posts_add_on_attachments_student_submissions_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     courseId: &String,
     postId: &String,
     attachmentId: &String,
     submissionId: &String,
     itemId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/posts/{}/addOnAttachments/{}/studentSubmissions/{}",
@@ -12307,15 +12512,18 @@ pub fn classroom_courses_posts_add_on_attachments_student_submissions_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `classroom_courses_posts_add_on_attachments_student_submissions_patch_execute()` to send, or `classroom_courses_posts_add_on_attachments_student_submissions_patch` for simplest API.
 
-pub fn classroom_courses_posts_add_on_attachments_student_submissions_patch_builder(
-    client: &SimpleHttpClient,
+pub fn classroom_courses_posts_add_on_attachments_student_submissions_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     courseId: &String,
     postId: &String,
     attachmentId: &String,
     submissionId: &String,
     itemId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/posts/{}/addOnAttachments/{}/studentSubmissions/{}",
@@ -12512,10 +12720,13 @@ pub fn classroom_courses_posts_add_on_attachments_student_submissions_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `classroom_courses_student_groups_create_execute()` to send, or `classroom_courses_student_groups_create` for simplest API.
 
-pub fn classroom_courses_student_groups_create_builder(
-    client: &SimpleHttpClient,
+pub fn classroom_courses_student_groups_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     courseId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/studentGroups",
@@ -12673,11 +12884,14 @@ pub fn classroom_courses_student_groups_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `classroom_courses_student_groups_delete_execute()` to send, or `classroom_courses_student_groups_delete` for simplest API.
 
-pub fn classroom_courses_student_groups_delete_builder(
-    client: &SimpleHttpClient,
+pub fn classroom_courses_student_groups_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     courseId: &String,
     id: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/studentGroups/{}",
@@ -12834,12 +13048,15 @@ pub fn classroom_courses_student_groups_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `classroom_courses_student_groups_list_execute()` to send, or `classroom_courses_student_groups_list` for simplest API.
 
-pub fn classroom_courses_student_groups_list_builder(
-    client: &SimpleHttpClient,
+pub fn classroom_courses_student_groups_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     courseId: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/studentGroups",
@@ -13020,12 +13237,15 @@ pub fn classroom_courses_student_groups_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `classroom_courses_student_groups_patch_execute()` to send, or `classroom_courses_student_groups_patch` for simplest API.
 
-pub fn classroom_courses_student_groups_patch_builder(
-    client: &SimpleHttpClient,
+pub fn classroom_courses_student_groups_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     courseId: &String,
     id: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/studentGroups/{}",
@@ -13203,11 +13423,14 @@ pub fn classroom_courses_student_groups_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `classroom_courses_student_groups_student_group_members_create_execute()` to send, or `classroom_courses_student_groups_student_group_members_create` for simplest API.
 
-pub fn classroom_courses_student_groups_student_group_members_create_builder(
-    client: &SimpleHttpClient,
+pub fn classroom_courses_student_groups_student_group_members_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     courseId: &String,
     studentGroupId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/studentGroups/{}/studentGroupMembers",
@@ -13371,12 +13594,15 @@ pub fn classroom_courses_student_groups_student_group_members_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `classroom_courses_student_groups_student_group_members_delete_execute()` to send, or `classroom_courses_student_groups_student_group_members_delete` for simplest API.
 
-pub fn classroom_courses_student_groups_student_group_members_delete_builder(
-    client: &SimpleHttpClient,
+pub fn classroom_courses_student_groups_student_group_members_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     courseId: &String,
     studentGroupId: &String,
     userId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/studentGroups/{}/studentGroupMembers/{}",
@@ -13539,13 +13765,16 @@ pub fn classroom_courses_student_groups_student_group_members_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `classroom_courses_student_groups_student_group_members_list_execute()` to send, or `classroom_courses_student_groups_student_group_members_list` for simplest API.
 
-pub fn classroom_courses_student_groups_student_group_members_list_builder(
-    client: &SimpleHttpClient,
+pub fn classroom_courses_student_groups_student_group_members_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     courseId: &String,
     studentGroupId: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/studentGroups/{}/studentGroupMembers",
@@ -13733,11 +13962,14 @@ pub fn classroom_courses_student_groups_student_group_members_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `classroom_courses_students_create_execute()` to send, or `classroom_courses_students_create` for simplest API.
 
-pub fn classroom_courses_students_create_builder(
-    client: &SimpleHttpClient,
+pub fn classroom_courses_students_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     courseId: &String,
     enrollmentCode: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/students",
@@ -13905,11 +14137,14 @@ pub fn classroom_courses_students_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `classroom_courses_students_delete_execute()` to send, or `classroom_courses_students_delete` for simplest API.
 
-pub fn classroom_courses_students_delete_builder(
-    client: &SimpleHttpClient,
+pub fn classroom_courses_students_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     courseId: &String,
     userId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/students/{}",
@@ -14065,11 +14300,14 @@ pub fn classroom_courses_students_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `classroom_courses_students_get_execute()` to send, or `classroom_courses_students_get` for simplest API.
 
-pub fn classroom_courses_students_get_builder(
-    client: &SimpleHttpClient,
+pub fn classroom_courses_students_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     courseId: &String,
     userId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/students/{}",
@@ -14225,12 +14463,15 @@ pub fn classroom_courses_students_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `classroom_courses_students_list_execute()` to send, or `classroom_courses_students_list` for simplest API.
 
-pub fn classroom_courses_students_list_builder(
-    client: &SimpleHttpClient,
+pub fn classroom_courses_students_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     courseId: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/students",
@@ -14411,10 +14652,13 @@ pub fn classroom_courses_students_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `classroom_courses_teachers_create_execute()` to send, or `classroom_courses_teachers_create` for simplest API.
 
-pub fn classroom_courses_teachers_create_builder(
-    client: &SimpleHttpClient,
+pub fn classroom_courses_teachers_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     courseId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/teachers",
@@ -14568,11 +14812,14 @@ pub fn classroom_courses_teachers_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `classroom_courses_teachers_delete_execute()` to send, or `classroom_courses_teachers_delete` for simplest API.
 
-pub fn classroom_courses_teachers_delete_builder(
-    client: &SimpleHttpClient,
+pub fn classroom_courses_teachers_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     courseId: &String,
     userId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/teachers/{}",
@@ -14728,11 +14975,14 @@ pub fn classroom_courses_teachers_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `classroom_courses_teachers_get_execute()` to send, or `classroom_courses_teachers_get` for simplest API.
 
-pub fn classroom_courses_teachers_get_builder(
-    client: &SimpleHttpClient,
+pub fn classroom_courses_teachers_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     courseId: &String,
     userId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/teachers/{}",
@@ -14888,12 +15138,15 @@ pub fn classroom_courses_teachers_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `classroom_courses_teachers_list_execute()` to send, or `classroom_courses_teachers_list` for simplest API.
 
-pub fn classroom_courses_teachers_list_builder(
-    client: &SimpleHttpClient,
+pub fn classroom_courses_teachers_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     courseId: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/teachers",
@@ -15074,10 +15327,13 @@ pub fn classroom_courses_teachers_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `classroom_courses_topics_create_execute()` to send, or `classroom_courses_topics_create` for simplest API.
 
-pub fn classroom_courses_topics_create_builder(
-    client: &SimpleHttpClient,
+pub fn classroom_courses_topics_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     courseId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/topics",
@@ -15231,11 +15487,14 @@ pub fn classroom_courses_topics_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `classroom_courses_topics_delete_execute()` to send, or `classroom_courses_topics_delete` for simplest API.
 
-pub fn classroom_courses_topics_delete_builder(
-    client: &SimpleHttpClient,
+pub fn classroom_courses_topics_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     courseId: &String,
     id: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/topics/{}",
@@ -15391,11 +15650,14 @@ pub fn classroom_courses_topics_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `classroom_courses_topics_get_execute()` to send, or `classroom_courses_topics_get` for simplest API.
 
-pub fn classroom_courses_topics_get_builder(
-    client: &SimpleHttpClient,
+pub fn classroom_courses_topics_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     courseId: &String,
     id: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/topics/{}",
@@ -15551,12 +15813,15 @@ pub fn classroom_courses_topics_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `classroom_courses_topics_list_execute()` to send, or `classroom_courses_topics_list` for simplest API.
 
-pub fn classroom_courses_topics_list_builder(
-    client: &SimpleHttpClient,
+pub fn classroom_courses_topics_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     courseId: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/topics",
@@ -15737,12 +16002,15 @@ pub fn classroom_courses_topics_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `classroom_courses_topics_patch_execute()` to send, or `classroom_courses_topics_patch` for simplest API.
 
-pub fn classroom_courses_topics_patch_builder(
-    client: &SimpleHttpClient,
+pub fn classroom_courses_topics_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     courseId: &String,
     id: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/topics/{}",
@@ -15912,10 +16180,13 @@ pub fn classroom_courses_topics_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `classroom_invitations_accept_execute()` to send, or `classroom_invitations_accept` for simplest API.
 
-pub fn classroom_invitations_accept_builder(
-    client: &SimpleHttpClient,
+pub fn classroom_invitations_accept_builder<R>(
+    client: &SimpleHttpClient<R>,
     id: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/invitations/{}:accept",
@@ -16069,9 +16340,12 @@ pub fn classroom_invitations_accept(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `classroom_invitations_create_execute()` to send, or `classroom_invitations_create` for simplest API.
 
-pub fn classroom_invitations_create_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn classroom_invitations_create_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://classroom.googleapis.com/v1/invitations",);
 
@@ -16214,10 +16488,13 @@ pub fn classroom_invitations_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `classroom_invitations_delete_execute()` to send, or `classroom_invitations_delete` for simplest API.
 
-pub fn classroom_invitations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn classroom_invitations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     id: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://classroom.googleapis.com/v1/invitations/{}", id,);
 
@@ -16368,10 +16645,13 @@ pub fn classroom_invitations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `classroom_invitations_get_execute()` to send, or `classroom_invitations_get` for simplest API.
 
-pub fn classroom_invitations_get_builder(
-    client: &SimpleHttpClient,
+pub fn classroom_invitations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     id: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://classroom.googleapis.com/v1/invitations/{}", id,);
 
@@ -16522,13 +16802,16 @@ pub fn classroom_invitations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `classroom_invitations_list_execute()` to send, or `classroom_invitations_list` for simplest API.
 
-pub fn classroom_invitations_list_builder(
-    client: &SimpleHttpClient,
+pub fn classroom_invitations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     courseId: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     userId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://classroom.googleapis.com/v1/invitations",);
 
@@ -16715,9 +16998,12 @@ pub fn classroom_invitations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `classroom_registrations_create_execute()` to send, or `classroom_registrations_create` for simplest API.
 
-pub fn classroom_registrations_create_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn classroom_registrations_create_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://classroom.googleapis.com/v1/registrations",);
 
@@ -16864,10 +17150,13 @@ pub fn classroom_registrations_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `classroom_registrations_delete_execute()` to send, or `classroom_registrations_delete` for simplest API.
 
-pub fn classroom_registrations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn classroom_registrations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     registrationId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/registrations/{}",
@@ -17021,10 +17310,13 @@ pub fn classroom_registrations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `classroom_user_profiles_get_execute()` to send, or `classroom_user_profiles_get` for simplest API.
 
-pub fn classroom_user_profiles_get_builder(
-    client: &SimpleHttpClient,
+pub fn classroom_user_profiles_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     userId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/userProfiles/{}",
@@ -17178,10 +17470,13 @@ pub fn classroom_user_profiles_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `classroom_user_profiles_guardian_invitations_create_execute()` to send, or `classroom_user_profiles_guardian_invitations_create` for simplest API.
 
-pub fn classroom_user_profiles_guardian_invitations_create_builder(
-    client: &SimpleHttpClient,
+pub fn classroom_user_profiles_guardian_invitations_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     studentId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/userProfiles/{}/guardianInvitations",
@@ -17340,11 +17635,14 @@ pub fn classroom_user_profiles_guardian_invitations_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `classroom_user_profiles_guardian_invitations_get_execute()` to send, or `classroom_user_profiles_guardian_invitations_get` for simplest API.
 
-pub fn classroom_user_profiles_guardian_invitations_get_builder(
-    client: &SimpleHttpClient,
+pub fn classroom_user_profiles_guardian_invitations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     studentId: &String,
     invitationId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/userProfiles/{}/guardianInvitations/{}",
@@ -17508,14 +17806,17 @@ pub fn classroom_user_profiles_guardian_invitations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `classroom_user_profiles_guardian_invitations_list_execute()` to send, or `classroom_user_profiles_guardian_invitations_list` for simplest API.
 
-pub fn classroom_user_profiles_guardian_invitations_list_builder(
-    client: &SimpleHttpClient,
+pub fn classroom_user_profiles_guardian_invitations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     studentId: &String,
     invitedEmailAddress: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     states: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/userProfiles/{}/guardianInvitations",
@@ -17712,12 +18013,15 @@ pub fn classroom_user_profiles_guardian_invitations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `classroom_user_profiles_guardian_invitations_patch_execute()` to send, or `classroom_user_profiles_guardian_invitations_patch` for simplest API.
 
-pub fn classroom_user_profiles_guardian_invitations_patch_builder(
-    client: &SimpleHttpClient,
+pub fn classroom_user_profiles_guardian_invitations_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     studentId: &String,
     invitationId: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/userProfiles/{}/guardianInvitations/{}",
@@ -17895,11 +18199,14 @@ pub fn classroom_user_profiles_guardian_invitations_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `classroom_user_profiles_guardians_delete_execute()` to send, or `classroom_user_profiles_guardians_delete` for simplest API.
 
-pub fn classroom_user_profiles_guardians_delete_builder(
-    client: &SimpleHttpClient,
+pub fn classroom_user_profiles_guardians_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     studentId: &String,
     guardianId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/userProfiles/{}/guardians/{}",
@@ -18059,11 +18366,14 @@ pub fn classroom_user_profiles_guardians_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `classroom_user_profiles_guardians_get_execute()` to send, or `classroom_user_profiles_guardians_get` for simplest API.
 
-pub fn classroom_user_profiles_guardians_get_builder(
-    client: &SimpleHttpClient,
+pub fn classroom_user_profiles_guardians_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     studentId: &String,
     guardianId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/userProfiles/{}/guardians/{}",
@@ -18220,13 +18530,16 @@ pub fn classroom_user_profiles_guardians_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `classroom_user_profiles_guardians_list_execute()` to send, or `classroom_user_profiles_guardians_list` for simplest API.
 
-pub fn classroom_user_profiles_guardians_list_builder(
-    client: &SimpleHttpClient,
+pub fn classroom_user_profiles_guardians_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     studentId: &String,
     invitedEmailAddress: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/userProfiles/{}/guardians",

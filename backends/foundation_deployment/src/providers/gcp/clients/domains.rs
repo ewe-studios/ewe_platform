@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `domains_projects_locations_get_execute()` to send, or `domains_projects_locations_get` for simplest API.
 
-pub fn domains_projects_locations_get_builder(
-    client: &SimpleHttpClient,
+pub fn domains_projects_locations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://domains.googleapis.com/v1/projects/{}/locations/{locationsId}",
@@ -183,14 +187,17 @@ pub fn domains_projects_locations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `domains_projects_locations_list_execute()` to send, or `domains_projects_locations_list` for simplest API.
 
-pub fn domains_projects_locations_list_builder(
-    client: &SimpleHttpClient,
+pub fn domains_projects_locations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     extraLocationTypes: &Option<Option<String>>,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://domains.googleapis.com/v1/projects/{}/locations",
@@ -383,10 +390,13 @@ pub fn domains_projects_locations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `domains_projects_locations_operations_get_execute()` to send, or `domains_projects_locations_operations_get` for simplest API.
 
-pub fn domains_projects_locations_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn domains_projects_locations_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://domains.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -540,14 +550,17 @@ pub fn domains_projects_locations_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `domains_projects_locations_operations_list_execute()` to send, or `domains_projects_locations_operations_list` for simplest API.
 
-pub fn domains_projects_locations_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn domains_projects_locations_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://domains.googleapis.com/v1/projects/{}/locations/{locationsId}/operations",
@@ -740,10 +753,13 @@ pub fn domains_projects_locations_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `domains_projects_locations_registrations_configure_contact_settings_execute()` to send, or `domains_projects_locations_registrations_configure_contact_settings` for simplest API.
 
-pub fn domains_projects_locations_registrations_configure_contact_settings_builder(
-    client: &SimpleHttpClient,
+pub fn domains_projects_locations_registrations_configure_contact_settings_builder<R>(
+    client: &SimpleHttpClient<R>,
     registration: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://domains.googleapis.com/v1/projects/{}/locations/{locationsId}/registrations/{registrationsId}:configureContactSettings",
@@ -900,10 +916,13 @@ pub fn domains_projects_locations_registrations_configure_contact_settings(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `domains_projects_locations_registrations_configure_dns_settings_execute()` to send, or `domains_projects_locations_registrations_configure_dns_settings` for simplest API.
 
-pub fn domains_projects_locations_registrations_configure_dns_settings_builder(
-    client: &SimpleHttpClient,
+pub fn domains_projects_locations_registrations_configure_dns_settings_builder<R>(
+    client: &SimpleHttpClient<R>,
     registration: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://domains.googleapis.com/v1/projects/{}/locations/{locationsId}/registrations/{registrationsId}:configureDnsSettings",
@@ -1060,10 +1079,13 @@ pub fn domains_projects_locations_registrations_configure_dns_settings(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `domains_projects_locations_registrations_configure_management_settings_execute()` to send, or `domains_projects_locations_registrations_configure_management_settings` for simplest API.
 
-pub fn domains_projects_locations_registrations_configure_management_settings_builder(
-    client: &SimpleHttpClient,
+pub fn domains_projects_locations_registrations_configure_management_settings_builder<R>(
+    client: &SimpleHttpClient<R>,
     registration: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://domains.googleapis.com/v1/projects/{}/locations/{locationsId}/registrations/{registrationsId}:configureManagementSettings",
@@ -1221,10 +1243,13 @@ pub fn domains_projects_locations_registrations_configure_management_settings(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `domains_projects_locations_registrations_delete_execute()` to send, or `domains_projects_locations_registrations_delete` for simplest API.
 
-pub fn domains_projects_locations_registrations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn domains_projects_locations_registrations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://domains.googleapis.com/v1/projects/{}/locations/{locationsId}/registrations/{registrationsId}",
@@ -1378,10 +1403,13 @@ pub fn domains_projects_locations_registrations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `domains_projects_locations_registrations_export_execute()` to send, or `domains_projects_locations_registrations_export` for simplest API.
 
-pub fn domains_projects_locations_registrations_export_builder(
-    client: &SimpleHttpClient,
+pub fn domains_projects_locations_registrations_export_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://domains.googleapis.com/v1/projects/{}/locations/{locationsId}/registrations/{registrationsId}:export",
@@ -1535,10 +1563,13 @@ pub fn domains_projects_locations_registrations_export(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `domains_projects_locations_registrations_get_execute()` to send, or `domains_projects_locations_registrations_get` for simplest API.
 
-pub fn domains_projects_locations_registrations_get_builder(
-    client: &SimpleHttpClient,
+pub fn domains_projects_locations_registrations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://domains.googleapis.com/v1/projects/{}/locations/{locationsId}/registrations/{registrationsId}",
@@ -1696,11 +1727,14 @@ pub fn domains_projects_locations_registrations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `domains_projects_locations_registrations_get_iam_policy_execute()` to send, or `domains_projects_locations_registrations_get_iam_policy` for simplest API.
 
-pub fn domains_projects_locations_registrations_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn domains_projects_locations_registrations_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://domains.googleapis.com/v1/projects/{}/locations/{locationsId}/registrations/{registrationsId}:getIamPolicy",
@@ -1871,10 +1905,13 @@ pub fn domains_projects_locations_registrations_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `domains_projects_locations_registrations_import_execute()` to send, or `domains_projects_locations_registrations_import` for simplest API.
 
-pub fn domains_projects_locations_registrations_import_builder(
-    client: &SimpleHttpClient,
+pub fn domains_projects_locations_registrations_import_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://domains.googleapis.com/v1/projects/{}/locations/{locationsId}/registrations:import",
@@ -2028,10 +2065,13 @@ pub fn domains_projects_locations_registrations_import(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `domains_projects_locations_registrations_initiate_push_transfer_execute()` to send, or `domains_projects_locations_registrations_initiate_push_transfer` for simplest API.
 
-pub fn domains_projects_locations_registrations_initiate_push_transfer_builder(
-    client: &SimpleHttpClient,
+pub fn domains_projects_locations_registrations_initiate_push_transfer_builder<R>(
+    client: &SimpleHttpClient<R>,
     registration: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://domains.googleapis.com/v1/projects/{}/locations/{locationsId}/registrations/{registrationsId}:initiatePushTransfer",
@@ -2188,13 +2228,16 @@ pub fn domains_projects_locations_registrations_initiate_push_transfer(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `domains_projects_locations_registrations_list_execute()` to send, or `domains_projects_locations_registrations_list` for simplest API.
 
-pub fn domains_projects_locations_registrations_list_builder(
-    client: &SimpleHttpClient,
+pub fn domains_projects_locations_registrations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://domains.googleapis.com/v1/projects/{}/locations/{locationsId}/registrations",
@@ -2381,11 +2424,14 @@ pub fn domains_projects_locations_registrations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `domains_projects_locations_registrations_patch_execute()` to send, or `domains_projects_locations_registrations_patch` for simplest API.
 
-pub fn domains_projects_locations_registrations_patch_builder(
-    client: &SimpleHttpClient,
+pub fn domains_projects_locations_registrations_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://domains.googleapis.com/v1/projects/{}/locations/{locationsId}/registrations/{registrationsId}",
@@ -2556,10 +2602,13 @@ pub fn domains_projects_locations_registrations_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `domains_projects_locations_registrations_register_execute()` to send, or `domains_projects_locations_registrations_register` for simplest API.
 
-pub fn domains_projects_locations_registrations_register_builder(
-    client: &SimpleHttpClient,
+pub fn domains_projects_locations_registrations_register_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://domains.googleapis.com/v1/projects/{}/locations/{locationsId}/registrations:register",
@@ -2713,10 +2762,13 @@ pub fn domains_projects_locations_registrations_register(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `domains_projects_locations_registrations_renew_domain_execute()` to send, or `domains_projects_locations_registrations_renew_domain` for simplest API.
 
-pub fn domains_projects_locations_registrations_renew_domain_builder(
-    client: &SimpleHttpClient,
+pub fn domains_projects_locations_registrations_renew_domain_builder<R>(
+    client: &SimpleHttpClient<R>,
     registration: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://domains.googleapis.com/v1/projects/{}/locations/{locationsId}/registrations/{registrationsId}:renewDomain",
@@ -2871,10 +2923,13 @@ pub fn domains_projects_locations_registrations_renew_domain(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `domains_projects_locations_registrations_reset_authorization_code_execute()` to send, or `domains_projects_locations_registrations_reset_authorization_code` for simplest API.
 
-pub fn domains_projects_locations_registrations_reset_authorization_code_builder(
-    client: &SimpleHttpClient,
+pub fn domains_projects_locations_registrations_reset_authorization_code_builder<R>(
+    client: &SimpleHttpClient<R>,
     registration: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://domains.googleapis.com/v1/projects/{}/locations/{locationsId}/registrations/{registrationsId}:resetAuthorizationCode",
@@ -3035,10 +3090,13 @@ pub fn domains_projects_locations_registrations_reset_authorization_code(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `domains_projects_locations_registrations_retrieve_authorization_code_execute()` to send, or `domains_projects_locations_registrations_retrieve_authorization_code` for simplest API.
 
-pub fn domains_projects_locations_registrations_retrieve_authorization_code_builder(
-    client: &SimpleHttpClient,
+pub fn domains_projects_locations_registrations_retrieve_authorization_code_builder<R>(
+    client: &SimpleHttpClient<R>,
     registration: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://domains.googleapis.com/v1/projects/{}/locations/{locationsId}/registrations/{registrationsId}:retrieveAuthorizationCode",
@@ -3199,12 +3257,15 @@ pub fn domains_projects_locations_registrations_retrieve_authorization_code(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `domains_projects_locations_registrations_retrieve_google_domains_dns_records_execute()` to send, or `domains_projects_locations_registrations_retrieve_google_domains_dns_records` for simplest API.
 
-pub fn domains_projects_locations_registrations_retrieve_google_domains_dns_records_builder(
-    client: &SimpleHttpClient,
+pub fn domains_projects_locations_registrations_retrieve_google_domains_dns_records_builder<R>(
+    client: &SimpleHttpClient<R>,
     registration: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://domains.googleapis.com/v1/projects/{}/locations/{locationsId}/registrations/{registrationsId}:retrieveGoogleDomainsDnsRecords",
@@ -3392,10 +3453,15 @@ pub fn domains_projects_locations_registrations_retrieve_google_domains_dns_reco
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `domains_projects_locations_registrations_retrieve_google_domains_forwarding_config_execute()` to send, or `domains_projects_locations_registrations_retrieve_google_domains_forwarding_config` for simplest API.
 
-pub fn domains_projects_locations_registrations_retrieve_google_domains_forwarding_config_builder(
-    client: &SimpleHttpClient,
+pub fn domains_projects_locations_registrations_retrieve_google_domains_forwarding_config_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     registration: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://domains.googleapis.com/v1/projects/{}/locations/{locationsId}/registrations/{registrationsId}:retrieveGoogleDomainsForwardingConfig",
@@ -3567,12 +3633,15 @@ pub fn domains_projects_locations_registrations_retrieve_google_domains_forwardi
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `domains_projects_locations_registrations_retrieve_importable_domains_execute()` to send, or `domains_projects_locations_registrations_retrieve_importable_domains` for simplest API.
 
-pub fn domains_projects_locations_registrations_retrieve_importable_domains_builder(
-    client: &SimpleHttpClient,
+pub fn domains_projects_locations_registrations_retrieve_importable_domains_builder<R>(
+    client: &SimpleHttpClient<R>,
     location: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://domains.googleapis.com/v1/projects/{}/locations/{locationsId}/registrations:retrieveImportableDomains",
@@ -3757,11 +3826,14 @@ pub fn domains_projects_locations_registrations_retrieve_importable_domains(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `domains_projects_locations_registrations_retrieve_register_parameters_execute()` to send, or `domains_projects_locations_registrations_retrieve_register_parameters` for simplest API.
 
-pub fn domains_projects_locations_registrations_retrieve_register_parameters_builder(
-    client: &SimpleHttpClient,
+pub fn domains_projects_locations_registrations_retrieve_register_parameters_builder<R>(
+    client: &SimpleHttpClient<R>,
     location: &String,
     domainName: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://domains.googleapis.com/v1/projects/{}/locations/{locationsId}/registrations:retrieveRegisterParameters",
@@ -3940,11 +4012,14 @@ pub fn domains_projects_locations_registrations_retrieve_register_parameters(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `domains_projects_locations_registrations_retrieve_transfer_parameters_execute()` to send, or `domains_projects_locations_registrations_retrieve_transfer_parameters` for simplest API.
 
-pub fn domains_projects_locations_registrations_retrieve_transfer_parameters_builder(
-    client: &SimpleHttpClient,
+pub fn domains_projects_locations_registrations_retrieve_transfer_parameters_builder<R>(
+    client: &SimpleHttpClient<R>,
     location: &String,
     domainName: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://domains.googleapis.com/v1/projects/{}/locations/{locationsId}/registrations:retrieveTransferParameters",
@@ -4123,11 +4198,14 @@ pub fn domains_projects_locations_registrations_retrieve_transfer_parameters(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `domains_projects_locations_registrations_search_domains_execute()` to send, or `domains_projects_locations_registrations_search_domains` for simplest API.
 
-pub fn domains_projects_locations_registrations_search_domains_builder(
-    client: &SimpleHttpClient,
+pub fn domains_projects_locations_registrations_search_domains_builder<R>(
+    client: &SimpleHttpClient<R>,
     location: &String,
     query: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://domains.googleapis.com/v1/projects/{}/locations/{locationsId}/registrations:searchDomains",
@@ -4302,10 +4380,13 @@ pub fn domains_projects_locations_registrations_search_domains(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `domains_projects_locations_registrations_set_iam_policy_execute()` to send, or `domains_projects_locations_registrations_set_iam_policy` for simplest API.
 
-pub fn domains_projects_locations_registrations_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn domains_projects_locations_registrations_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://domains.googleapis.com/v1/projects/{}/locations/{locationsId}/registrations/{registrationsId}:setIamPolicy",
@@ -4460,10 +4541,13 @@ pub fn domains_projects_locations_registrations_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `domains_projects_locations_registrations_test_iam_permissions_execute()` to send, or `domains_projects_locations_registrations_test_iam_permissions` for simplest API.
 
-pub fn domains_projects_locations_registrations_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn domains_projects_locations_registrations_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://domains.googleapis.com/v1/projects/{}/locations/{locationsId}/registrations/{registrationsId}:testIamPermissions",
@@ -4628,10 +4712,13 @@ pub fn domains_projects_locations_registrations_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `domains_projects_locations_registrations_transfer_execute()` to send, or `domains_projects_locations_registrations_transfer` for simplest API.
 
-pub fn domains_projects_locations_registrations_transfer_builder(
-    client: &SimpleHttpClient,
+pub fn domains_projects_locations_registrations_transfer_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://domains.googleapis.com/v1/projects/{}/locations/{locationsId}/registrations:transfer",

@@ -177,7 +177,7 @@ use crate::providers::gcp::clients::cloudchannel::CloudchannelProductsListArgs;
 use crate::providers::gcp::clients::cloudchannel::CloudchannelProductsSkusListArgs;
 use crate::provider_client::{ProviderClient, ProviderError};
 use foundation_core::valtron::{execute, StreamIterator};
-use foundation_core::wire::simple_http::client::SimpleHttpClient;
+use foundation_core::wire::simple_http::client::{SimpleHttpClient, DnsResolver};
 use foundation_db::state::store_state_task::StoreStateIdentifierTask;
 use std::sync::Arc;
 
@@ -186,34 +186,44 @@ use std::sync::Arc;
 /// # Type Parameters
 ///
 /// * `S` - StateStore implementation (FileStateStore, SqliteStateStore, etc.)
+/// * `R` - DNS resolver type for HTTP client
 ///
 /// # Example
 ///
 /// ```rust
 /// let state_store = FileStateStore::new("/path", "my-project", "dev");
-/// let client = ProviderClient::new("my-project", "dev", state_store);
-/// let http_client = SimpleHttpClient::new(...);
-/// let provider = CloudchannelProvider::new(client, http_client);
+/// let http_client = SimpleHttpClient::with_resolver(StaticSocketAddr::new(addr));
+/// let client = ProviderClient::new("my-project", "dev", state_store, http_client);
+/// let provider = CloudchannelProvider::from_provider_client(client);
 /// ```
 #[derive(Clone)]
-pub struct CloudchannelProvider<S>
+pub struct CloudchannelProvider<S, R>
 where
     S: foundation_db::state::traits::StateStore + Send + Sync + 'static,
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + 'static,
 {
-    client: ProviderClient<S>,
-    http_client: Arc<SimpleHttpClient>,
+    client: ProviderClient<S, R>,
+    http_client: Arc<SimpleHttpClient<R>>,
 }
 
-impl<S> CloudchannelProvider<S>
+impl<S, R> CloudchannelProvider<S, R>
 where
     S: foundation_db::state::traits::StateStore + Send + Sync + 'static,
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + 'static,
 {
     /// Create new CloudchannelProvider.
-    pub fn new(client: ProviderClient<S>, http_client: SimpleHttpClient) -> Self {
+    pub fn new(client: ProviderClient<S, R>, http_client: Arc<SimpleHttpClient<R>>) -> Self {
         Self {
             client,
-            http_client: Arc::new(http_client),
+            http_client,
         }
+    }
+
+    /// Create new CloudchannelProvider from ProviderClient, extracting the HTTP client.
+    ///
+    /// This is a convenience method that calls `Self::new()` with `client.http_client()`.
+    pub fn from_provider_client(client: ProviderClient<S, R>) -> Self {
+        Self::new(client, client.http_client.clone())
     }
 
     /// Cloudchannel accounts check cloud identity accounts exist.
@@ -1325,11 +1335,11 @@ where
         let builder = cloudchannel_accounts_customers_list_purchasable_offers_builder(
             &self.http_client,
             &args.customer,
-            &args.changeOfferPurchase.billingAccount,
-            &args.changeOfferPurchase.entitlement,
-            &args.changeOfferPurchase.newSku,
-            &args.createEntitlementPurchase.billingAccount,
-            &args.createEntitlementPurchase.sku,
+            &args.changeOfferPurchase_billingAccount,
+            &args.changeOfferPurchase_entitlement,
+            &args.changeOfferPurchase_newSku,
+            &args.createEntitlementPurchase_billingAccount,
+            &args.createEntitlementPurchase_sku,
             &args.languageCode,
             &args.pageSize,
             &args.pageToken,
@@ -1371,9 +1381,9 @@ where
         let builder = cloudchannel_accounts_customers_list_purchasable_skus_builder(
             &self.http_client,
             &args.customer,
-            &args.changeOfferPurchase.changeType,
-            &args.changeOfferPurchase.entitlement,
-            &args.createEntitlementPurchase.product,
+            &args.changeOfferPurchase_changeType,
+            &args.changeOfferPurchase_entitlement,
+            &args.createEntitlementPurchase_product,
             &args.languageCode,
             &args.pageSize,
             &args.pageToken,

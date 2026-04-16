@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `youtube_abuse_reports_insert_execute()` to send, or `youtube_abuse_reports_insert` for simplest API.
 
-pub fn youtube_abuse_reports_insert_builder(
-    client: &SimpleHttpClient,
+pub fn youtube_abuse_reports_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     part: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/abuseReports",);
 
@@ -191,8 +195,8 @@ pub fn youtube_abuse_reports_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `youtube_activities_list_execute()` to send, or `youtube_activities_list` for simplest API.
 
-pub fn youtube_activities_list_builder(
-    client: &SimpleHttpClient,
+pub fn youtube_activities_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     channelId: &Option<Option<String>>,
     home: &Option<Option<String>>,
     maxResults: &Option<Option<String>>,
@@ -202,7 +206,10 @@ pub fn youtube_activities_list_builder(
     publishedAfter: &Option<Option<String>>,
     publishedBefore: &Option<Option<String>>,
     regionCode: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/activities",);
 
@@ -419,12 +426,15 @@ pub fn youtube_activities_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `youtube_captions_delete_execute()` to send, or `youtube_captions_delete` for simplest API.
 
-pub fn youtube_captions_delete_builder(
-    client: &SimpleHttpClient,
+pub fn youtube_captions_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     id: &Option<Option<String>>,
     onBehalfOf: &Option<Option<String>>,
     onBehalfOfContentOwner: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/captions",);
 
@@ -598,14 +608,17 @@ pub fn youtube_captions_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `youtube_captions_download_execute()` to send, or `youtube_captions_download` for simplest API.
 
-pub fn youtube_captions_download_builder(
-    client: &SimpleHttpClient,
+pub fn youtube_captions_download_builder<R>(
+    client: &SimpleHttpClient<R>,
     id: &String,
     onBehalfOf: &Option<Option<String>>,
     onBehalfOfContentOwner: &Option<Option<String>>,
     tfmt: &Option<Option<String>>,
     tlang: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/captions/{}", id,);
 
@@ -788,13 +801,16 @@ pub fn youtube_captions_download(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `youtube_captions_insert_execute()` to send, or `youtube_captions_insert` for simplest API.
 
-pub fn youtube_captions_insert_builder(
-    client: &SimpleHttpClient,
+pub fn youtube_captions_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     onBehalfOf: &Option<Option<String>>,
     onBehalfOfContentOwner: &Option<Option<String>>,
     part: &Option<Option<String>>,
     sync: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/captions",);
 
@@ -977,14 +993,17 @@ pub fn youtube_captions_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `youtube_captions_list_execute()` to send, or `youtube_captions_list` for simplest API.
 
-pub fn youtube_captions_list_builder(
-    client: &SimpleHttpClient,
+pub fn youtube_captions_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     id: &Option<Option<String>>,
     onBehalfOf: &Option<Option<String>>,
     onBehalfOfContentOwner: &Option<Option<String>>,
     part: &Option<Option<String>>,
     videoId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/captions",);
 
@@ -1177,13 +1196,16 @@ pub fn youtube_captions_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `youtube_captions_update_execute()` to send, or `youtube_captions_update` for simplest API.
 
-pub fn youtube_captions_update_builder(
-    client: &SimpleHttpClient,
+pub fn youtube_captions_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     onBehalfOf: &Option<Option<String>>,
     onBehalfOfContentOwner: &Option<Option<String>>,
     part: &Option<Option<String>>,
     sync: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/captions",);
 
@@ -1366,12 +1388,15 @@ pub fn youtube_captions_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `youtube_channel_banners_insert_execute()` to send, or `youtube_channel_banners_insert` for simplest API.
 
-pub fn youtube_channel_banners_insert_builder(
-    client: &SimpleHttpClient,
+pub fn youtube_channel_banners_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     channelId: &Option<Option<String>>,
     onBehalfOfContentOwner: &Option<Option<String>>,
     onBehalfOfContentOwnerChannel: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/channelBanners/insert",);
 
@@ -1552,11 +1577,14 @@ pub fn youtube_channel_banners_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `youtube_channel_sections_delete_execute()` to send, or `youtube_channel_sections_delete` for simplest API.
 
-pub fn youtube_channel_sections_delete_builder(
-    client: &SimpleHttpClient,
+pub fn youtube_channel_sections_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     id: &Option<Option<String>>,
     onBehalfOfContentOwner: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/channelSections",);
 
@@ -1721,12 +1749,15 @@ pub fn youtube_channel_sections_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `youtube_channel_sections_insert_execute()` to send, or `youtube_channel_sections_insert` for simplest API.
 
-pub fn youtube_channel_sections_insert_builder(
-    client: &SimpleHttpClient,
+pub fn youtube_channel_sections_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     onBehalfOfContentOwner: &Option<Option<String>>,
     onBehalfOfContentOwnerChannel: &Option<Option<String>>,
     part: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/channelSections",);
 
@@ -1907,15 +1938,18 @@ pub fn youtube_channel_sections_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `youtube_channel_sections_list_execute()` to send, or `youtube_channel_sections_list` for simplest API.
 
-pub fn youtube_channel_sections_list_builder(
-    client: &SimpleHttpClient,
+pub fn youtube_channel_sections_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     channelId: &Option<Option<String>>,
     hl: &Option<Option<String>>,
     id: &Option<Option<String>>,
     mine: &Option<Option<String>>,
     onBehalfOfContentOwner: &Option<Option<String>>,
     part: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/channelSections",);
 
@@ -2118,11 +2152,14 @@ pub fn youtube_channel_sections_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `youtube_channel_sections_update_execute()` to send, or `youtube_channel_sections_update` for simplest API.
 
-pub fn youtube_channel_sections_update_builder(
-    client: &SimpleHttpClient,
+pub fn youtube_channel_sections_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     onBehalfOfContentOwner: &Option<Option<String>>,
     part: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/channelSections",);
 
@@ -2294,8 +2331,8 @@ pub fn youtube_channel_sections_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `youtube_channels_list_execute()` to send, or `youtube_channels_list` for simplest API.
 
-pub fn youtube_channels_list_builder(
-    client: &SimpleHttpClient,
+pub fn youtube_channels_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     categoryId: &Option<Option<String>>,
     forHandle: &Option<Option<String>>,
     forUsername: &Option<Option<String>>,
@@ -2308,7 +2345,10 @@ pub fn youtube_channels_list_builder(
     onBehalfOfContentOwner: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     part: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/channels",);
 
@@ -2543,11 +2583,14 @@ pub fn youtube_channels_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `youtube_channels_update_execute()` to send, or `youtube_channels_update` for simplest API.
 
-pub fn youtube_channels_update_builder(
-    client: &SimpleHttpClient,
+pub fn youtube_channels_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     onBehalfOfContentOwner: &Option<Option<String>>,
     part: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/channels",);
 
@@ -2715,10 +2758,13 @@ pub fn youtube_channels_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `youtube_comment_threads_insert_execute()` to send, or `youtube_comment_threads_insert` for simplest API.
 
-pub fn youtube_comment_threads_insert_builder(
-    client: &SimpleHttpClient,
+pub fn youtube_comment_threads_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     part: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/commentThreads",);
 
@@ -2884,8 +2930,8 @@ pub fn youtube_comment_threads_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `youtube_comment_threads_list_execute()` to send, or `youtube_comment_threads_list` for simplest API.
 
-pub fn youtube_comment_threads_list_builder(
-    client: &SimpleHttpClient,
+pub fn youtube_comment_threads_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     allThreadsRelatedToChannelId: &Option<Option<String>>,
     channelId: &Option<Option<String>>,
     id: &Option<Option<String>>,
@@ -2898,7 +2944,10 @@ pub fn youtube_comment_threads_list_builder(
     searchTerms: &Option<Option<String>>,
     textFormat: &Option<Option<String>>,
     videoId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/commentThreads",);
 
@@ -3133,10 +3182,13 @@ pub fn youtube_comment_threads_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `youtube_comments_delete_execute()` to send, or `youtube_comments_delete` for simplest API.
 
-pub fn youtube_comments_delete_builder(
-    client: &SimpleHttpClient,
+pub fn youtube_comments_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     id: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/comments",);
 
@@ -3295,10 +3347,13 @@ pub fn youtube_comments_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `youtube_comments_insert_execute()` to send, or `youtube_comments_insert` for simplest API.
 
-pub fn youtube_comments_insert_builder(
-    client: &SimpleHttpClient,
+pub fn youtube_comments_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     part: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/comments",);
 
@@ -3460,15 +3515,18 @@ pub fn youtube_comments_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `youtube_comments_list_execute()` to send, or `youtube_comments_list` for simplest API.
 
-pub fn youtube_comments_list_builder(
-    client: &SimpleHttpClient,
+pub fn youtube_comments_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     id: &Option<Option<String>>,
     maxResults: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     parentId: &Option<Option<String>>,
     part: &Option<Option<String>>,
     textFormat: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/comments",);
 
@@ -3667,10 +3725,13 @@ pub fn youtube_comments_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `youtube_comments_mark_as_spam_execute()` to send, or `youtube_comments_mark_as_spam` for simplest API.
 
-pub fn youtube_comments_mark_as_spam_builder(
-    client: &SimpleHttpClient,
+pub fn youtube_comments_mark_as_spam_builder<R>(
+    client: &SimpleHttpClient<R>,
     id: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/comments/markAsSpam",);
 
@@ -3829,12 +3890,15 @@ pub fn youtube_comments_mark_as_spam(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `youtube_comments_set_moderation_status_execute()` to send, or `youtube_comments_set_moderation_status` for simplest API.
 
-pub fn youtube_comments_set_moderation_status_builder(
-    client: &SimpleHttpClient,
+pub fn youtube_comments_set_moderation_status_builder<R>(
+    client: &SimpleHttpClient<R>,
     banAuthor: &Option<Option<String>>,
     id: &Option<Option<String>>,
     moderationStatus: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://youtube.googleapis.com/youtube/v3/comments/setModerationStatus",);
@@ -4009,10 +4073,13 @@ pub fn youtube_comments_set_moderation_status(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `youtube_comments_update_execute()` to send, or `youtube_comments_update` for simplest API.
 
-pub fn youtube_comments_update_builder(
-    client: &SimpleHttpClient,
+pub fn youtube_comments_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     part: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/comments",);
 
@@ -4174,11 +4241,14 @@ pub fn youtube_comments_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `youtube_i18n_languages_list_execute()` to send, or `youtube_i18n_languages_list` for simplest API.
 
-pub fn youtube_i18n_languages_list_builder(
-    client: &SimpleHttpClient,
+pub fn youtube_i18n_languages_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     hl: &Option<Option<String>>,
     part: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/i18nLanguages",);
 
@@ -4312,7 +4382,7 @@ pub fn youtube_i18n_languages_list_execute(
 
 /// Arguments for [`youtube_i18n_languages_list`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct YoutubeI18nLanguagesListArgs {
+pub struct YoutubeI18NLanguagesListArgs {
     /// Query parameter: hl
     pub hl: Option<Option<String>>,
     /// Query parameter: part
@@ -4332,7 +4402,7 @@ pub struct YoutubeI18nLanguagesListArgs {
 
 pub fn youtube_i18n_languages_list(
     client: &SimpleHttpClient,
-    args: &YoutubeI18nLanguagesListArgs,
+    args: &YoutubeI18NLanguagesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<I18nLanguageListResponse>, ApiError>, P = ApiPending>
         + Send
@@ -4349,11 +4419,14 @@ pub fn youtube_i18n_languages_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `youtube_i18n_regions_list_execute()` to send, or `youtube_i18n_regions_list` for simplest API.
 
-pub fn youtube_i18n_regions_list_builder(
-    client: &SimpleHttpClient,
+pub fn youtube_i18n_regions_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     hl: &Option<Option<String>>,
     part: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/i18nRegions",);
 
@@ -4487,7 +4560,7 @@ pub fn youtube_i18n_regions_list_execute(
 
 /// Arguments for [`youtube_i18n_regions_list`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct YoutubeI18nRegionsListArgs {
+pub struct YoutubeI18NRegionsListArgs {
     /// Query parameter: hl
     pub hl: Option<Option<String>>,
     /// Query parameter: part
@@ -4507,7 +4580,7 @@ pub struct YoutubeI18nRegionsListArgs {
 
 pub fn youtube_i18n_regions_list(
     client: &SimpleHttpClient,
-    args: &YoutubeI18nRegionsListArgs,
+    args: &YoutubeI18NRegionsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<I18nRegionListResponse>, ApiError>, P = ApiPending>
         + Send
@@ -4524,14 +4597,17 @@ pub fn youtube_i18n_regions_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `youtube_live_broadcasts_bind_execute()` to send, or `youtube_live_broadcasts_bind` for simplest API.
 
-pub fn youtube_live_broadcasts_bind_builder(
-    client: &SimpleHttpClient,
+pub fn youtube_live_broadcasts_bind_builder<R>(
+    client: &SimpleHttpClient<R>,
     id: &Option<Option<String>>,
     onBehalfOfContentOwner: &Option<Option<String>>,
     onBehalfOfContentOwnerChannel: &Option<Option<String>>,
     part: &Option<Option<String>>,
     streamId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/liveBroadcasts/bind",);
 
@@ -4724,12 +4800,15 @@ pub fn youtube_live_broadcasts_bind(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `youtube_live_broadcasts_delete_execute()` to send, or `youtube_live_broadcasts_delete` for simplest API.
 
-pub fn youtube_live_broadcasts_delete_builder(
-    client: &SimpleHttpClient,
+pub fn youtube_live_broadcasts_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     id: &Option<Option<String>>,
     onBehalfOfContentOwner: &Option<Option<String>>,
     onBehalfOfContentOwnerChannel: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/liveBroadcasts",);
 
@@ -4903,12 +4982,15 @@ pub fn youtube_live_broadcasts_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `youtube_live_broadcasts_insert_execute()` to send, or `youtube_live_broadcasts_insert` for simplest API.
 
-pub fn youtube_live_broadcasts_insert_builder(
-    client: &SimpleHttpClient,
+pub fn youtube_live_broadcasts_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     onBehalfOfContentOwner: &Option<Option<String>>,
     onBehalfOfContentOwnerChannel: &Option<Option<String>>,
     part: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/liveBroadcasts",);
 
@@ -5089,13 +5171,16 @@ pub fn youtube_live_broadcasts_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `youtube_live_broadcasts_insert_cuepoint_execute()` to send, or `youtube_live_broadcasts_insert_cuepoint` for simplest API.
 
-pub fn youtube_live_broadcasts_insert_cuepoint_builder(
-    client: &SimpleHttpClient,
+pub fn youtube_live_broadcasts_insert_cuepoint_builder<R>(
+    client: &SimpleHttpClient<R>,
     id: &Option<Option<String>>,
     onBehalfOfContentOwner: &Option<Option<String>>,
     onBehalfOfContentOwnerChannel: &Option<Option<String>>,
     part: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://youtube.googleapis.com/youtube/v3/liveBroadcasts/cuepoint",);
@@ -5279,8 +5364,8 @@ pub fn youtube_live_broadcasts_insert_cuepoint(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `youtube_live_broadcasts_list_execute()` to send, or `youtube_live_broadcasts_list` for simplest API.
 
-pub fn youtube_live_broadcasts_list_builder(
-    client: &SimpleHttpClient,
+pub fn youtube_live_broadcasts_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     broadcastStatus: &Option<Option<String>>,
     broadcastType: &Option<Option<String>>,
     id: &Option<Option<String>>,
@@ -5290,7 +5375,10 @@ pub fn youtube_live_broadcasts_list_builder(
     onBehalfOfContentOwnerChannel: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     part: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/liveBroadcasts",);
 
@@ -5507,14 +5595,17 @@ pub fn youtube_live_broadcasts_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `youtube_live_broadcasts_transition_execute()` to send, or `youtube_live_broadcasts_transition` for simplest API.
 
-pub fn youtube_live_broadcasts_transition_builder(
-    client: &SimpleHttpClient,
+pub fn youtube_live_broadcasts_transition_builder<R>(
+    client: &SimpleHttpClient<R>,
     broadcastStatus: &Option<Option<String>>,
     id: &Option<Option<String>>,
     onBehalfOfContentOwner: &Option<Option<String>>,
     onBehalfOfContentOwnerChannel: &Option<Option<String>>,
     part: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://youtube.googleapis.com/youtube/v3/liveBroadcasts/transition",);
@@ -5708,12 +5799,15 @@ pub fn youtube_live_broadcasts_transition(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `youtube_live_broadcasts_update_execute()` to send, or `youtube_live_broadcasts_update` for simplest API.
 
-pub fn youtube_live_broadcasts_update_builder(
-    client: &SimpleHttpClient,
+pub fn youtube_live_broadcasts_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     onBehalfOfContentOwner: &Option<Option<String>>,
     onBehalfOfContentOwnerChannel: &Option<Option<String>>,
     part: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/liveBroadcasts",);
 
@@ -5894,10 +5988,13 @@ pub fn youtube_live_broadcasts_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `youtube_live_chat_bans_delete_execute()` to send, or `youtube_live_chat_bans_delete` for simplest API.
 
-pub fn youtube_live_chat_bans_delete_builder(
-    client: &SimpleHttpClient,
+pub fn youtube_live_chat_bans_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     id: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/liveChat/bans",);
 
@@ -6056,10 +6153,13 @@ pub fn youtube_live_chat_bans_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `youtube_live_chat_bans_insert_execute()` to send, or `youtube_live_chat_bans_insert` for simplest API.
 
-pub fn youtube_live_chat_bans_insert_builder(
-    client: &SimpleHttpClient,
+pub fn youtube_live_chat_bans_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     part: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/liveChat/bans",);
 
@@ -6221,10 +6321,13 @@ pub fn youtube_live_chat_bans_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `youtube_live_chat_messages_delete_execute()` to send, or `youtube_live_chat_messages_delete` for simplest API.
 
-pub fn youtube_live_chat_messages_delete_builder(
-    client: &SimpleHttpClient,
+pub fn youtube_live_chat_messages_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     id: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/liveChat/messages",);
 
@@ -6383,10 +6486,13 @@ pub fn youtube_live_chat_messages_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `youtube_live_chat_messages_insert_execute()` to send, or `youtube_live_chat_messages_insert` for simplest API.
 
-pub fn youtube_live_chat_messages_insert_builder(
-    client: &SimpleHttpClient,
+pub fn youtube_live_chat_messages_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     part: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/liveChat/messages",);
 
@@ -6552,15 +6658,18 @@ pub fn youtube_live_chat_messages_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `youtube_live_chat_messages_list_execute()` to send, or `youtube_live_chat_messages_list` for simplest API.
 
-pub fn youtube_live_chat_messages_list_builder(
-    client: &SimpleHttpClient,
+pub fn youtube_live_chat_messages_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     hl: &Option<Option<String>>,
     liveChatId: &Option<Option<String>>,
     maxResults: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     part: &Option<Option<String>>,
     profileImageSize: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/liveChat/messages",);
 
@@ -6763,11 +6872,14 @@ pub fn youtube_live_chat_messages_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `youtube_live_chat_messages_transition_execute()` to send, or `youtube_live_chat_messages_transition` for simplest API.
 
-pub fn youtube_live_chat_messages_transition_builder(
-    client: &SimpleHttpClient,
+pub fn youtube_live_chat_messages_transition_builder<R>(
+    client: &SimpleHttpClient<R>,
     id: &Option<Option<String>>,
     status: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://youtube.googleapis.com/youtube/v3/liveChat/messages/transition",);
@@ -6939,10 +7051,13 @@ pub fn youtube_live_chat_messages_transition(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `youtube_live_chat_moderators_delete_execute()` to send, or `youtube_live_chat_moderators_delete` for simplest API.
 
-pub fn youtube_live_chat_moderators_delete_builder(
-    client: &SimpleHttpClient,
+pub fn youtube_live_chat_moderators_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     id: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/liveChat/moderators",);
 
@@ -7101,10 +7216,13 @@ pub fn youtube_live_chat_moderators_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `youtube_live_chat_moderators_insert_execute()` to send, or `youtube_live_chat_moderators_insert` for simplest API.
 
-pub fn youtube_live_chat_moderators_insert_builder(
-    client: &SimpleHttpClient,
+pub fn youtube_live_chat_moderators_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     part: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/liveChat/moderators",);
 
@@ -7270,13 +7388,16 @@ pub fn youtube_live_chat_moderators_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `youtube_live_chat_moderators_list_execute()` to send, or `youtube_live_chat_moderators_list` for simplest API.
 
-pub fn youtube_live_chat_moderators_list_builder(
-    client: &SimpleHttpClient,
+pub fn youtube_live_chat_moderators_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     liveChatId: &Option<Option<String>>,
     maxResults: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     part: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/liveChat/moderators",);
 
@@ -7467,12 +7588,15 @@ pub fn youtube_live_chat_moderators_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `youtube_live_streams_delete_execute()` to send, or `youtube_live_streams_delete` for simplest API.
 
-pub fn youtube_live_streams_delete_builder(
-    client: &SimpleHttpClient,
+pub fn youtube_live_streams_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     id: &Option<Option<String>>,
     onBehalfOfContentOwner: &Option<Option<String>>,
     onBehalfOfContentOwnerChannel: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/liveStreams",);
 
@@ -7646,12 +7770,15 @@ pub fn youtube_live_streams_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `youtube_live_streams_insert_execute()` to send, or `youtube_live_streams_insert` for simplest API.
 
-pub fn youtube_live_streams_insert_builder(
-    client: &SimpleHttpClient,
+pub fn youtube_live_streams_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     onBehalfOfContentOwner: &Option<Option<String>>,
     onBehalfOfContentOwnerChannel: &Option<Option<String>>,
     part: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/liveStreams",);
 
@@ -7828,8 +7955,8 @@ pub fn youtube_live_streams_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `youtube_live_streams_list_execute()` to send, or `youtube_live_streams_list` for simplest API.
 
-pub fn youtube_live_streams_list_builder(
-    client: &SimpleHttpClient,
+pub fn youtube_live_streams_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     id: &Option<Option<String>>,
     maxResults: &Option<Option<String>>,
     mine: &Option<Option<String>>,
@@ -7837,7 +7964,10 @@ pub fn youtube_live_streams_list_builder(
     onBehalfOfContentOwnerChannel: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     part: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/liveStreams",);
 
@@ -8042,12 +8172,15 @@ pub fn youtube_live_streams_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `youtube_live_streams_update_execute()` to send, or `youtube_live_streams_update` for simplest API.
 
-pub fn youtube_live_streams_update_builder(
-    client: &SimpleHttpClient,
+pub fn youtube_live_streams_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     onBehalfOfContentOwner: &Option<Option<String>>,
     onBehalfOfContentOwnerChannel: &Option<Option<String>>,
     part: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/liveStreams",);
 
@@ -8224,15 +8357,18 @@ pub fn youtube_live_streams_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `youtube_members_list_execute()` to send, or `youtube_members_list` for simplest API.
 
-pub fn youtube_members_list_builder(
-    client: &SimpleHttpClient,
+pub fn youtube_members_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     filterByMemberChannelId: &Option<Option<String>>,
     hasAccessToLevel: &Option<Option<String>>,
     maxResults: &Option<Option<String>>,
     mode: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     part: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/members",);
 
@@ -8431,10 +8567,13 @@ pub fn youtube_members_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `youtube_memberships_levels_list_execute()` to send, or `youtube_memberships_levels_list` for simplest API.
 
-pub fn youtube_memberships_levels_list_builder(
-    client: &SimpleHttpClient,
+pub fn youtube_memberships_levels_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     part: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/membershipsLevels",);
 
@@ -8604,11 +8743,14 @@ pub fn youtube_memberships_levels_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `youtube_playlist_images_delete_execute()` to send, or `youtube_playlist_images_delete` for simplest API.
 
-pub fn youtube_playlist_images_delete_builder(
-    client: &SimpleHttpClient,
+pub fn youtube_playlist_images_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     id: &Option<Option<String>>,
     onBehalfOfContentOwner: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/playlistImages",);
 
@@ -8773,12 +8915,15 @@ pub fn youtube_playlist_images_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `youtube_playlist_images_insert_execute()` to send, or `youtube_playlist_images_insert` for simplest API.
 
-pub fn youtube_playlist_images_insert_builder(
-    client: &SimpleHttpClient,
+pub fn youtube_playlist_images_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     onBehalfOfContentOwner: &Option<Option<String>>,
     onBehalfOfContentOwnerChannel: &Option<Option<String>>,
     part: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/playlistImages",);
 
@@ -8959,15 +9104,18 @@ pub fn youtube_playlist_images_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `youtube_playlist_images_list_execute()` to send, or `youtube_playlist_images_list` for simplest API.
 
-pub fn youtube_playlist_images_list_builder(
-    client: &SimpleHttpClient,
+pub fn youtube_playlist_images_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     maxResults: &Option<Option<String>>,
     onBehalfOfContentOwner: &Option<Option<String>>,
     onBehalfOfContentOwnerChannel: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     parent: &Option<Option<String>>,
     part: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/playlistImages",);
 
@@ -9166,11 +9314,14 @@ pub fn youtube_playlist_images_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `youtube_playlist_images_update_execute()` to send, or `youtube_playlist_images_update` for simplest API.
 
-pub fn youtube_playlist_images_update_builder(
-    client: &SimpleHttpClient,
+pub fn youtube_playlist_images_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     onBehalfOfContentOwner: &Option<Option<String>>,
     part: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/playlistImages",);
 
@@ -9342,11 +9493,14 @@ pub fn youtube_playlist_images_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `youtube_playlist_items_delete_execute()` to send, or `youtube_playlist_items_delete` for simplest API.
 
-pub fn youtube_playlist_items_delete_builder(
-    client: &SimpleHttpClient,
+pub fn youtube_playlist_items_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     id: &Option<Option<String>>,
     onBehalfOfContentOwner: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/playlistItems",);
 
@@ -9511,11 +9665,14 @@ pub fn youtube_playlist_items_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `youtube_playlist_items_insert_execute()` to send, or `youtube_playlist_items_insert` for simplest API.
 
-pub fn youtube_playlist_items_insert_builder(
-    client: &SimpleHttpClient,
+pub fn youtube_playlist_items_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     onBehalfOfContentOwner: &Option<Option<String>>,
     part: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/playlistItems",);
 
@@ -9687,8 +9844,8 @@ pub fn youtube_playlist_items_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `youtube_playlist_items_list_execute()` to send, or `youtube_playlist_items_list` for simplest API.
 
-pub fn youtube_playlist_items_list_builder(
-    client: &SimpleHttpClient,
+pub fn youtube_playlist_items_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     id: &Option<Option<String>>,
     maxResults: &Option<Option<String>>,
     onBehalfOfContentOwner: &Option<Option<String>>,
@@ -9696,7 +9853,10 @@ pub fn youtube_playlist_items_list_builder(
     part: &Option<Option<String>>,
     playlistId: &Option<Option<String>>,
     videoId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/playlistItems",);
 
@@ -9901,11 +10061,14 @@ pub fn youtube_playlist_items_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `youtube_playlist_items_update_execute()` to send, or `youtube_playlist_items_update` for simplest API.
 
-pub fn youtube_playlist_items_update_builder(
-    client: &SimpleHttpClient,
+pub fn youtube_playlist_items_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     onBehalfOfContentOwner: &Option<Option<String>>,
     part: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/playlistItems",);
 
@@ -10077,11 +10240,14 @@ pub fn youtube_playlist_items_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `youtube_playlists_delete_execute()` to send, or `youtube_playlists_delete` for simplest API.
 
-pub fn youtube_playlists_delete_builder(
-    client: &SimpleHttpClient,
+pub fn youtube_playlists_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     id: &Option<Option<String>>,
     onBehalfOfContentOwner: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/playlists",);
 
@@ -10245,12 +10411,15 @@ pub fn youtube_playlists_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `youtube_playlists_insert_execute()` to send, or `youtube_playlists_insert` for simplest API.
 
-pub fn youtube_playlists_insert_builder(
-    client: &SimpleHttpClient,
+pub fn youtube_playlists_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     onBehalfOfContentOwner: &Option<Option<String>>,
     onBehalfOfContentOwnerChannel: &Option<Option<String>>,
     part: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/playlists",);
 
@@ -10427,8 +10596,8 @@ pub fn youtube_playlists_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `youtube_playlists_list_execute()` to send, or `youtube_playlists_list` for simplest API.
 
-pub fn youtube_playlists_list_builder(
-    client: &SimpleHttpClient,
+pub fn youtube_playlists_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     channelId: &Option<Option<String>>,
     hl: &Option<Option<String>>,
     id: &Option<Option<String>>,
@@ -10438,7 +10607,10 @@ pub fn youtube_playlists_list_builder(
     onBehalfOfContentOwnerChannel: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     part: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/playlists",);
 
@@ -10655,11 +10827,14 @@ pub fn youtube_playlists_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `youtube_playlists_update_execute()` to send, or `youtube_playlists_update` for simplest API.
 
-pub fn youtube_playlists_update_builder(
-    client: &SimpleHttpClient,
+pub fn youtube_playlists_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     onBehalfOfContentOwner: &Option<Option<String>>,
     part: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/playlists",);
 
@@ -10827,8 +11002,8 @@ pub fn youtube_playlists_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `youtube_search_list_execute()` to send, or `youtube_search_list` for simplest API.
 
-pub fn youtube_search_list_builder(
-    client: &SimpleHttpClient,
+pub fn youtube_search_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     channelId: &Option<Option<String>>,
     channelType: &Option<Option<String>>,
     eventType: &Option<Option<String>>,
@@ -10860,7 +11035,10 @@ pub fn youtube_search_list_builder(
     videoPaidProductPlacement: &Option<Option<String>>,
     videoSyndicated: &Option<Option<String>>,
     videoType: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/search",);
 
@@ -11209,10 +11387,13 @@ pub fn youtube_search_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `youtube_subscriptions_delete_execute()` to send, or `youtube_subscriptions_delete` for simplest API.
 
-pub fn youtube_subscriptions_delete_builder(
-    client: &SimpleHttpClient,
+pub fn youtube_subscriptions_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     id: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/subscriptions",);
 
@@ -11371,10 +11552,13 @@ pub fn youtube_subscriptions_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `youtube_subscriptions_insert_execute()` to send, or `youtube_subscriptions_insert` for simplest API.
 
-pub fn youtube_subscriptions_insert_builder(
-    client: &SimpleHttpClient,
+pub fn youtube_subscriptions_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     part: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/subscriptions",);
 
@@ -11540,8 +11724,8 @@ pub fn youtube_subscriptions_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `youtube_subscriptions_list_execute()` to send, or `youtube_subscriptions_list` for simplest API.
 
-pub fn youtube_subscriptions_list_builder(
-    client: &SimpleHttpClient,
+pub fn youtube_subscriptions_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     channelId: &Option<Option<String>>,
     forChannelId: &Option<Option<String>>,
     id: &Option<Option<String>>,
@@ -11554,7 +11738,10 @@ pub fn youtube_subscriptions_list_builder(
     order: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     part: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/subscriptions",);
 
@@ -11789,13 +11976,16 @@ pub fn youtube_subscriptions_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `youtube_super_chat_events_list_execute()` to send, or `youtube_super_chat_events_list` for simplest API.
 
-pub fn youtube_super_chat_events_list_builder(
-    client: &SimpleHttpClient,
+pub fn youtube_super_chat_events_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     hl: &Option<Option<String>>,
     maxResults: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     part: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/superChatEvents",);
 
@@ -11986,12 +12176,15 @@ pub fn youtube_super_chat_events_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `youtube_tests_insert_execute()` to send, or `youtube_tests_insert` for simplest API.
 
-pub fn youtube_tests_insert_builder(
-    client: &SimpleHttpClient,
+pub fn youtube_tests_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     externalChannelId: &Option<Option<String>>,
     onBehalfOfContentOwnerChannel: &Option<Option<String>>,
     part: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/tests",);
 
@@ -12168,13 +12361,16 @@ pub fn youtube_tests_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `youtube_third_party_links_delete_execute()` to send, or `youtube_third_party_links_delete` for simplest API.
 
-pub fn youtube_third_party_links_delete_builder(
-    client: &SimpleHttpClient,
+pub fn youtube_third_party_links_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     externalChannelId: &Option<Option<String>>,
     linkingToken: &Option<Option<String>>,
     part: &Option<Option<String>>,
     type_rs: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/thirdPartyLinks",);
 
@@ -12354,11 +12550,14 @@ pub fn youtube_third_party_links_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `youtube_third_party_links_insert_execute()` to send, or `youtube_third_party_links_insert` for simplest API.
 
-pub fn youtube_third_party_links_insert_builder(
-    client: &SimpleHttpClient,
+pub fn youtube_third_party_links_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     externalChannelId: &Option<Option<String>>,
     part: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/thirdPartyLinks",);
 
@@ -12530,13 +12729,16 @@ pub fn youtube_third_party_links_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `youtube_third_party_links_list_execute()` to send, or `youtube_third_party_links_list` for simplest API.
 
-pub fn youtube_third_party_links_list_builder(
-    client: &SimpleHttpClient,
+pub fn youtube_third_party_links_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     externalChannelId: &Option<Option<String>>,
     linkingToken: &Option<Option<String>>,
     part: &Option<Option<String>>,
     type_rs: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/thirdPartyLinks",);
 
@@ -12727,11 +12929,14 @@ pub fn youtube_third_party_links_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `youtube_third_party_links_update_execute()` to send, or `youtube_third_party_links_update` for simplest API.
 
-pub fn youtube_third_party_links_update_builder(
-    client: &SimpleHttpClient,
+pub fn youtube_third_party_links_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     externalChannelId: &Option<Option<String>>,
     part: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/thirdPartyLinks",);
 
@@ -12903,11 +13108,14 @@ pub fn youtube_third_party_links_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `youtube_thumbnails_set_execute()` to send, or `youtube_thumbnails_set` for simplest API.
 
-pub fn youtube_thumbnails_set_builder(
-    client: &SimpleHttpClient,
+pub fn youtube_thumbnails_set_builder<R>(
+    client: &SimpleHttpClient<R>,
     onBehalfOfContentOwner: &Option<Option<String>>,
     videoId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/thumbnails/set",);
 
@@ -13079,11 +13287,14 @@ pub fn youtube_thumbnails_set(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `youtube_video_abuse_report_reasons_list_execute()` to send, or `youtube_video_abuse_report_reasons_list` for simplest API.
 
-pub fn youtube_video_abuse_report_reasons_list_builder(
-    client: &SimpleHttpClient,
+pub fn youtube_video_abuse_report_reasons_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     hl: &Option<Option<String>>,
     part: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://youtube.googleapis.com/youtube/v3/videoAbuseReportReasons",);
@@ -13259,13 +13470,16 @@ pub fn youtube_video_abuse_report_reasons_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `youtube_video_categories_list_execute()` to send, or `youtube_video_categories_list` for simplest API.
 
-pub fn youtube_video_categories_list_builder(
-    client: &SimpleHttpClient,
+pub fn youtube_video_categories_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     hl: &Option<Option<String>>,
     id: &Option<Option<String>>,
     part: &Option<Option<String>>,
     regionCode: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/videoCategories",);
 
@@ -13452,10 +13666,13 @@ pub fn youtube_video_categories_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `youtube_video_trainability_get_execute()` to send, or `youtube_video_trainability_get` for simplest API.
 
-pub fn youtube_video_trainability_get_builder(
-    client: &SimpleHttpClient,
+pub fn youtube_video_trainability_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     id: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/videoTrainability",);
 
@@ -13621,11 +13838,14 @@ pub fn youtube_video_trainability_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `youtube_videos_delete_execute()` to send, or `youtube_videos_delete` for simplest API.
 
-pub fn youtube_videos_delete_builder(
-    client: &SimpleHttpClient,
+pub fn youtube_videos_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     id: &Option<Option<String>>,
     onBehalfOfContentOwner: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/videos",);
 
@@ -13789,11 +14009,14 @@ pub fn youtube_videos_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `youtube_videos_get_rating_execute()` to send, or `youtube_videos_get_rating` for simplest API.
 
-pub fn youtube_videos_get_rating_builder(
-    client: &SimpleHttpClient,
+pub fn youtube_videos_get_rating_builder<R>(
+    client: &SimpleHttpClient<R>,
     id: &Option<Option<String>>,
     onBehalfOfContentOwner: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/videos/getRating",);
 
@@ -13965,15 +14188,18 @@ pub fn youtube_videos_get_rating(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `youtube_videos_insert_execute()` to send, or `youtube_videos_insert` for simplest API.
 
-pub fn youtube_videos_insert_builder(
-    client: &SimpleHttpClient,
+pub fn youtube_videos_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     autoLevels: &Option<Option<String>>,
     notifySubscribers: &Option<Option<String>>,
     onBehalfOfContentOwner: &Option<Option<String>>,
     onBehalfOfContentOwnerChannel: &Option<Option<String>>,
     part: &Option<Option<String>>,
     stabilize: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/videos",);
 
@@ -14168,8 +14394,8 @@ pub fn youtube_videos_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `youtube_videos_list_execute()` to send, or `youtube_videos_list` for simplest API.
 
-pub fn youtube_videos_list_builder(
-    client: &SimpleHttpClient,
+pub fn youtube_videos_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     chart: &Option<Option<String>>,
     hl: &Option<Option<String>>,
     id: &Option<Option<String>>,
@@ -14183,7 +14409,10 @@ pub fn youtube_videos_list_builder(
     part: &Option<Option<String>>,
     regionCode: &Option<Option<String>>,
     videoCategoryId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/videos",);
 
@@ -14424,11 +14653,14 @@ pub fn youtube_videos_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `youtube_videos_rate_execute()` to send, or `youtube_videos_rate` for simplest API.
 
-pub fn youtube_videos_rate_builder(
-    client: &SimpleHttpClient,
+pub fn youtube_videos_rate_builder<R>(
+    client: &SimpleHttpClient<R>,
     id: &Option<Option<String>>,
     rating: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/videos/rate",);
 
@@ -14592,10 +14824,13 @@ pub fn youtube_videos_rate(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `youtube_videos_report_abuse_execute()` to send, or `youtube_videos_report_abuse` for simplest API.
 
-pub fn youtube_videos_report_abuse_builder(
-    client: &SimpleHttpClient,
+pub fn youtube_videos_report_abuse_builder<R>(
+    client: &SimpleHttpClient<R>,
     onBehalfOfContentOwner: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/videos/reportAbuse",);
 
@@ -14754,11 +14989,14 @@ pub fn youtube_videos_report_abuse(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `youtube_videos_update_execute()` to send, or `youtube_videos_update` for simplest API.
 
-pub fn youtube_videos_update_builder(
-    client: &SimpleHttpClient,
+pub fn youtube_videos_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     onBehalfOfContentOwner: &Option<Option<String>>,
     part: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/videos",);
 
@@ -14925,11 +15163,14 @@ pub fn youtube_videos_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `youtube_watermarks_set_execute()` to send, or `youtube_watermarks_set` for simplest API.
 
-pub fn youtube_watermarks_set_builder(
-    client: &SimpleHttpClient,
+pub fn youtube_watermarks_set_builder<R>(
+    client: &SimpleHttpClient<R>,
     channelId: &Option<Option<String>>,
     onBehalfOfContentOwner: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/watermarks/set",);
 
@@ -15094,11 +15335,14 @@ pub fn youtube_watermarks_set(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `youtube_watermarks_unset_execute()` to send, or `youtube_watermarks_unset` for simplest API.
 
-pub fn youtube_watermarks_unset_builder(
-    client: &SimpleHttpClient,
+pub fn youtube_watermarks_unset_builder<R>(
+    client: &SimpleHttpClient<R>,
     channelId: &Option<Option<String>>,
     onBehalfOfContentOwner: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/watermarks/unset",);
 
@@ -15263,10 +15507,13 @@ pub fn youtube_watermarks_unset(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `youtube_youtube_v3_update_comment_threads_execute()` to send, or `youtube_youtube_v3_update_comment_threads` for simplest API.
 
-pub fn youtube_youtube_v3_update_comment_threads_builder(
-    client: &SimpleHttpClient,
+pub fn youtube_youtube_v3_update_comment_threads_builder<R>(
+    client: &SimpleHttpClient<R>,
     part: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/commentThreads",);
 
@@ -15432,15 +15679,18 @@ pub fn youtube_youtube_v3_update_comment_threads(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `youtube_youtube_v3_live_chat_messages_stream_execute()` to send, or `youtube_youtube_v3_live_chat_messages_stream` for simplest API.
 
-pub fn youtube_youtube_v3_live_chat_messages_stream_builder(
-    client: &SimpleHttpClient,
+pub fn youtube_youtube_v3_live_chat_messages_stream_builder<R>(
+    client: &SimpleHttpClient<R>,
     hl: &Option<Option<String>>,
     liveChatId: &Option<Option<String>>,
     maxResults: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     part: &Option<Option<String>>,
     profileImageSize: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://youtube.googleapis.com/youtube/v3/liveChat/messages/stream",);
@@ -16010,13 +16260,13 @@ impl ResourceIdentifier<YoutubeCommentsUpdateArgs> for Comment {
 // ResourceIdentifier implementation for I18nLanguageListResponse
 // =============================================================================
 
-/// ResourceIdentifier implementation for I18nLanguageListResponse with YoutubeI18nLanguagesListArgs input.
+/// ResourceIdentifier implementation for I18nLanguageListResponse with YoutubeI18NLanguagesListArgs input.
 ///
 /// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
 ///
 /// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<YoutubeI18nLanguagesListArgs> for I18nLanguageListResponse {
-    fn generate_resource_id(&self, input: &YoutubeI18nLanguagesListArgs) -> String {
+impl ResourceIdentifier<YoutubeI18NLanguagesListArgs> for I18nLanguageListResponse {
+    fn generate_resource_id(&self, input: &YoutubeI18NLanguagesListArgs) -> String {
         "gcp::youtube::I18nLanguageListResponse".to_string()
     }
 
@@ -16033,13 +16283,13 @@ impl ResourceIdentifier<YoutubeI18nLanguagesListArgs> for I18nLanguageListRespon
 // ResourceIdentifier implementation for I18nRegionListResponse
 // =============================================================================
 
-/// ResourceIdentifier implementation for I18nRegionListResponse with YoutubeI18nRegionsListArgs input.
+/// ResourceIdentifier implementation for I18nRegionListResponse with YoutubeI18NRegionsListArgs input.
 ///
 /// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
 ///
 /// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<YoutubeI18nRegionsListArgs> for I18nRegionListResponse {
-    fn generate_resource_id(&self, input: &YoutubeI18nRegionsListArgs) -> String {
+impl ResourceIdentifier<YoutubeI18NRegionsListArgs> for I18nRegionListResponse {
+    fn generate_resource_id(&self, input: &YoutubeI18NRegionsListArgs) -> String {
         "gcp::youtube::I18nRegionListResponse".to_string()
     }
 

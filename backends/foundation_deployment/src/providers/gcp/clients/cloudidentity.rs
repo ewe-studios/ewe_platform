@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudidentity_customers_userinvitations_cancel_execute()` to send, or `cloudidentity_customers_userinvitations_cancel` for simplest API.
 
-pub fn cloudidentity_customers_userinvitations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn cloudidentity_customers_userinvitations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudidentity.googleapis.com/v1/customers/{}/userinvitations/{userinvitationsId}:cancel",
@@ -183,10 +187,13 @@ pub fn cloudidentity_customers_userinvitations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudidentity_customers_userinvitations_get_execute()` to send, or `cloudidentity_customers_userinvitations_get` for simplest API.
 
-pub fn cloudidentity_customers_userinvitations_get_builder(
-    client: &SimpleHttpClient,
+pub fn cloudidentity_customers_userinvitations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudidentity.googleapis.com/v1/customers/{}/userinvitations/{userinvitationsId}",
@@ -344,10 +351,13 @@ pub fn cloudidentity_customers_userinvitations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudidentity_customers_userinvitations_is_invitable_user_execute()` to send, or `cloudidentity_customers_userinvitations_is_invitable_user` for simplest API.
 
-pub fn cloudidentity_customers_userinvitations_is_invitable_user_builder(
-    client: &SimpleHttpClient,
+pub fn cloudidentity_customers_userinvitations_is_invitable_user_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudidentity.googleapis.com/v1/customers/{}/userinvitations/{userinvitationsId}:isInvitableUser",
@@ -506,14 +516,17 @@ pub fn cloudidentity_customers_userinvitations_is_invitable_user(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudidentity_customers_userinvitations_list_execute()` to send, or `cloudidentity_customers_userinvitations_list` for simplest API.
 
-pub fn cloudidentity_customers_userinvitations_list_builder(
-    client: &SimpleHttpClient,
+pub fn cloudidentity_customers_userinvitations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudidentity.googleapis.com/v1/customers/{}/userinvitations",
@@ -710,10 +723,13 @@ pub fn cloudidentity_customers_userinvitations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudidentity_customers_userinvitations_send_execute()` to send, or `cloudidentity_customers_userinvitations_send` for simplest API.
 
-pub fn cloudidentity_customers_userinvitations_send_builder(
-    client: &SimpleHttpClient,
+pub fn cloudidentity_customers_userinvitations_send_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudidentity.googleapis.com/v1/customers/{}/userinvitations/{userinvitationsId}:send",
@@ -867,10 +883,13 @@ pub fn cloudidentity_customers_userinvitations_send(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudidentity_devices_cancel_wipe_execute()` to send, or `cloudidentity_devices_cancel_wipe` for simplest API.
 
-pub fn cloudidentity_devices_cancel_wipe_builder(
-    client: &SimpleHttpClient,
+pub fn cloudidentity_devices_cancel_wipe_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudidentity.googleapis.com/v1/devices/{}:cancelWipe",
@@ -1024,10 +1043,13 @@ pub fn cloudidentity_devices_cancel_wipe(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudidentity_devices_create_execute()` to send, or `cloudidentity_devices_create` for simplest API.
 
-pub fn cloudidentity_devices_create_builder(
-    client: &SimpleHttpClient,
+pub fn cloudidentity_devices_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     customer: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://cloudidentity.googleapis.com/v1/devices",);
 
@@ -1189,11 +1211,14 @@ pub fn cloudidentity_devices_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudidentity_devices_delete_execute()` to send, or `cloudidentity_devices_delete` for simplest API.
 
-pub fn cloudidentity_devices_delete_builder(
-    client: &SimpleHttpClient,
+pub fn cloudidentity_devices_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     customer: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://cloudidentity.googleapis.com/v1/devices/{}", name,);
 
@@ -1357,11 +1382,14 @@ pub fn cloudidentity_devices_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudidentity_devices_get_execute()` to send, or `cloudidentity_devices_get` for simplest API.
 
-pub fn cloudidentity_devices_get_builder(
-    client: &SimpleHttpClient,
+pub fn cloudidentity_devices_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     customer: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://cloudidentity.googleapis.com/v1/devices/{}", name,);
 
@@ -1533,15 +1561,18 @@ pub fn cloudidentity_devices_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudidentity_devices_list_execute()` to send, or `cloudidentity_devices_list` for simplest API.
 
-pub fn cloudidentity_devices_list_builder(
-    client: &SimpleHttpClient,
+pub fn cloudidentity_devices_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     customer: &Option<Option<String>>,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://cloudidentity.googleapis.com/v1/devices",);
 
@@ -1748,10 +1779,13 @@ pub fn cloudidentity_devices_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudidentity_devices_wipe_execute()` to send, or `cloudidentity_devices_wipe` for simplest API.
 
-pub fn cloudidentity_devices_wipe_builder(
-    client: &SimpleHttpClient,
+pub fn cloudidentity_devices_wipe_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudidentity.googleapis.com/v1/devices/{}:wipe",
@@ -1905,10 +1939,13 @@ pub fn cloudidentity_devices_wipe(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudidentity_devices_device_users_approve_execute()` to send, or `cloudidentity_devices_device_users_approve` for simplest API.
 
-pub fn cloudidentity_devices_device_users_approve_builder(
-    client: &SimpleHttpClient,
+pub fn cloudidentity_devices_device_users_approve_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudidentity.googleapis.com/v1/devices/{}/deviceUsers/{deviceUsersId}:approve",
@@ -2062,10 +2099,13 @@ pub fn cloudidentity_devices_device_users_approve(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudidentity_devices_device_users_block_execute()` to send, or `cloudidentity_devices_device_users_block` for simplest API.
 
-pub fn cloudidentity_devices_device_users_block_builder(
-    client: &SimpleHttpClient,
+pub fn cloudidentity_devices_device_users_block_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudidentity.googleapis.com/v1/devices/{}/deviceUsers/{deviceUsersId}:block",
@@ -2219,10 +2259,13 @@ pub fn cloudidentity_devices_device_users_block(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudidentity_devices_device_users_cancel_wipe_execute()` to send, or `cloudidentity_devices_device_users_cancel_wipe` for simplest API.
 
-pub fn cloudidentity_devices_device_users_cancel_wipe_builder(
-    client: &SimpleHttpClient,
+pub fn cloudidentity_devices_device_users_cancel_wipe_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudidentity.googleapis.com/v1/devices/{}/deviceUsers/{deviceUsersId}:cancelWipe",
@@ -2376,11 +2419,14 @@ pub fn cloudidentity_devices_device_users_cancel_wipe(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudidentity_devices_device_users_delete_execute()` to send, or `cloudidentity_devices_device_users_delete` for simplest API.
 
-pub fn cloudidentity_devices_device_users_delete_builder(
-    client: &SimpleHttpClient,
+pub fn cloudidentity_devices_device_users_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     customer: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudidentity.googleapis.com/v1/devices/{}/deviceUsers/{deviceUsersId}",
@@ -2548,11 +2594,14 @@ pub fn cloudidentity_devices_device_users_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudidentity_devices_device_users_get_execute()` to send, or `cloudidentity_devices_device_users_get` for simplest API.
 
-pub fn cloudidentity_devices_device_users_get_builder(
-    client: &SimpleHttpClient,
+pub fn cloudidentity_devices_device_users_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     customer: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudidentity.googleapis.com/v1/devices/{}/deviceUsers/{deviceUsersId}",
@@ -2729,15 +2778,18 @@ pub fn cloudidentity_devices_device_users_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudidentity_devices_device_users_list_execute()` to send, or `cloudidentity_devices_device_users_list` for simplest API.
 
-pub fn cloudidentity_devices_device_users_list_builder(
-    client: &SimpleHttpClient,
+pub fn cloudidentity_devices_device_users_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     customer: &Option<Option<String>>,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudidentity.googleapis.com/v1/devices/{}/deviceUsers",
@@ -2950,8 +3002,8 @@ pub fn cloudidentity_devices_device_users_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudidentity_devices_device_users_lookup_execute()` to send, or `cloudidentity_devices_device_users_lookup` for simplest API.
 
-pub fn cloudidentity_devices_device_users_lookup_builder(
-    client: &SimpleHttpClient,
+pub fn cloudidentity_devices_device_users_lookup_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     androidId: &Option<Option<String>>,
     iosDeviceId: &Option<Option<String>>,
@@ -2960,7 +3012,10 @@ pub fn cloudidentity_devices_device_users_lookup_builder(
     partner: &Option<Option<String>>,
     rawResourceId: &Option<Option<String>>,
     userId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudidentity.googleapis.com/v1/devices/{}/deviceUsers:lookup",
@@ -3185,10 +3240,13 @@ pub fn cloudidentity_devices_device_users_lookup(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudidentity_devices_device_users_wipe_execute()` to send, or `cloudidentity_devices_device_users_wipe` for simplest API.
 
-pub fn cloudidentity_devices_device_users_wipe_builder(
-    client: &SimpleHttpClient,
+pub fn cloudidentity_devices_device_users_wipe_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudidentity.googleapis.com/v1/devices/{}/deviceUsers/{deviceUsersId}:wipe",
@@ -3342,11 +3400,14 @@ pub fn cloudidentity_devices_device_users_wipe(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudidentity_devices_device_users_client_states_get_execute()` to send, or `cloudidentity_devices_device_users_client_states_get` for simplest API.
 
-pub fn cloudidentity_devices_device_users_client_states_get_builder(
-    client: &SimpleHttpClient,
+pub fn cloudidentity_devices_device_users_client_states_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     customer: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudidentity.googleapis.com/v1/devices/{}/deviceUsers/{deviceUsersId}/clientStates/{clientStatesId}",
@@ -3526,14 +3587,17 @@ pub fn cloudidentity_devices_device_users_client_states_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudidentity_devices_device_users_client_states_list_execute()` to send, or `cloudidentity_devices_device_users_client_states_list` for simplest API.
 
-pub fn cloudidentity_devices_device_users_client_states_list_builder(
-    client: &SimpleHttpClient,
+pub fn cloudidentity_devices_device_users_client_states_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     customer: &Option<Option<String>>,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudidentity.googleapis.com/v1/devices/{}/deviceUsers/{deviceUsersId}/clientStates",
@@ -3740,12 +3804,15 @@ pub fn cloudidentity_devices_device_users_client_states_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudidentity_devices_device_users_client_states_patch_execute()` to send, or `cloudidentity_devices_device_users_client_states_patch` for simplest API.
 
-pub fn cloudidentity_devices_device_users_client_states_patch_builder(
-    client: &SimpleHttpClient,
+pub fn cloudidentity_devices_device_users_client_states_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     customer: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudidentity.googleapis.com/v1/devices/{}/deviceUsers/{deviceUsersId}/clientStates/{clientStatesId}",
@@ -3922,10 +3989,13 @@ pub fn cloudidentity_devices_device_users_client_states_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudidentity_groups_create_execute()` to send, or `cloudidentity_groups_create` for simplest API.
 
-pub fn cloudidentity_groups_create_builder(
-    client: &SimpleHttpClient,
+pub fn cloudidentity_groups_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     initialGroupConfig: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://cloudidentity.googleapis.com/v1/groups",);
 
@@ -4087,10 +4157,13 @@ pub fn cloudidentity_groups_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudidentity_groups_delete_execute()` to send, or `cloudidentity_groups_delete` for simplest API.
 
-pub fn cloudidentity_groups_delete_builder(
-    client: &SimpleHttpClient,
+pub fn cloudidentity_groups_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://cloudidentity.googleapis.com/v1/groups/{}", name,);
 
@@ -4241,10 +4314,13 @@ pub fn cloudidentity_groups_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudidentity_groups_get_execute()` to send, or `cloudidentity_groups_get` for simplest API.
 
-pub fn cloudidentity_groups_get_builder(
-    client: &SimpleHttpClient,
+pub fn cloudidentity_groups_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://cloudidentity.googleapis.com/v1/groups/{}", name,);
 
@@ -4395,11 +4471,14 @@ pub fn cloudidentity_groups_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudidentity_groups_get_security_settings_execute()` to send, or `cloudidentity_groups_get_security_settings` for simplest API.
 
-pub fn cloudidentity_groups_get_security_settings_builder(
-    client: &SimpleHttpClient,
+pub fn cloudidentity_groups_get_security_settings_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     readMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudidentity.googleapis.com/v1/groups/{}/securitySettings",
@@ -4571,13 +4650,16 @@ pub fn cloudidentity_groups_get_security_settings(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudidentity_groups_list_execute()` to send, or `cloudidentity_groups_list` for simplest API.
 
-pub fn cloudidentity_groups_list_builder(
-    client: &SimpleHttpClient,
+pub fn cloudidentity_groups_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     parent: &Option<Option<String>>,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://cloudidentity.googleapis.com/v1/groups",);
 
@@ -4764,11 +4846,14 @@ pub fn cloudidentity_groups_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudidentity_groups_lookup_execute()` to send, or `cloudidentity_groups_lookup` for simplest API.
 
-pub fn cloudidentity_groups_lookup_builder(
-    client: &SimpleHttpClient,
+pub fn cloudidentity_groups_lookup_builder<R>(
+    client: &SimpleHttpClient<R>,
     groupKey_id: &Option<Option<String>>,
     groupKey_namespace: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://cloudidentity.googleapis.com/v1/groups:lookup",);
 
@@ -4940,11 +5025,14 @@ pub fn cloudidentity_groups_lookup(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudidentity_groups_patch_execute()` to send, or `cloudidentity_groups_patch` for simplest API.
 
-pub fn cloudidentity_groups_patch_builder(
-    client: &SimpleHttpClient,
+pub fn cloudidentity_groups_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://cloudidentity.googleapis.com/v1/groups/{}", name,);
 
@@ -5108,13 +5196,16 @@ pub fn cloudidentity_groups_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudidentity_groups_search_execute()` to send, or `cloudidentity_groups_search` for simplest API.
 
-pub fn cloudidentity_groups_search_builder(
-    client: &SimpleHttpClient,
+pub fn cloudidentity_groups_search_builder<R>(
+    client: &SimpleHttpClient<R>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     query: &Option<Option<String>>,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://cloudidentity.googleapis.com/v1/groups:search",);
 
@@ -5301,11 +5392,14 @@ pub fn cloudidentity_groups_search(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudidentity_groups_update_security_settings_execute()` to send, or `cloudidentity_groups_update_security_settings` for simplest API.
 
-pub fn cloudidentity_groups_update_security_settings_builder(
-    client: &SimpleHttpClient,
+pub fn cloudidentity_groups_update_security_settings_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudidentity.googleapis.com/v1/groups/{}/securitySettings",
@@ -5476,11 +5570,14 @@ pub fn cloudidentity_groups_update_security_settings(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudidentity_groups_memberships_check_transitive_membership_execute()` to send, or `cloudidentity_groups_memberships_check_transitive_membership` for simplest API.
 
-pub fn cloudidentity_groups_memberships_check_transitive_membership_builder(
-    client: &SimpleHttpClient,
+pub fn cloudidentity_groups_memberships_check_transitive_membership_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     query: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudidentity.googleapis.com/v1/groups/{}/memberships:checkTransitiveMembership",
@@ -5659,10 +5756,13 @@ pub fn cloudidentity_groups_memberships_check_transitive_membership(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudidentity_groups_memberships_create_execute()` to send, or `cloudidentity_groups_memberships_create` for simplest API.
 
-pub fn cloudidentity_groups_memberships_create_builder(
-    client: &SimpleHttpClient,
+pub fn cloudidentity_groups_memberships_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudidentity.googleapis.com/v1/groups/{}/memberships",
@@ -5816,10 +5916,13 @@ pub fn cloudidentity_groups_memberships_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudidentity_groups_memberships_delete_execute()` to send, or `cloudidentity_groups_memberships_delete` for simplest API.
 
-pub fn cloudidentity_groups_memberships_delete_builder(
-    client: &SimpleHttpClient,
+pub fn cloudidentity_groups_memberships_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudidentity.googleapis.com/v1/groups/{}/memberships/{membershipsId}",
@@ -5973,10 +6076,13 @@ pub fn cloudidentity_groups_memberships_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudidentity_groups_memberships_get_execute()` to send, or `cloudidentity_groups_memberships_get` for simplest API.
 
-pub fn cloudidentity_groups_memberships_get_builder(
-    client: &SimpleHttpClient,
+pub fn cloudidentity_groups_memberships_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudidentity.googleapis.com/v1/groups/{}/memberships/{membershipsId}",
@@ -6130,11 +6236,14 @@ pub fn cloudidentity_groups_memberships_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudidentity_groups_memberships_get_membership_graph_execute()` to send, or `cloudidentity_groups_memberships_get_membership_graph` for simplest API.
 
-pub fn cloudidentity_groups_memberships_get_membership_graph_builder(
-    client: &SimpleHttpClient,
+pub fn cloudidentity_groups_memberships_get_membership_graph_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     query: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudidentity.googleapis.com/v1/groups/{}/memberships:getMembershipGraph",
@@ -6305,13 +6414,16 @@ pub fn cloudidentity_groups_memberships_get_membership_graph(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudidentity_groups_memberships_list_execute()` to send, or `cloudidentity_groups_memberships_list` for simplest API.
 
-pub fn cloudidentity_groups_memberships_list_builder(
-    client: &SimpleHttpClient,
+pub fn cloudidentity_groups_memberships_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudidentity.googleapis.com/v1/groups/{}/memberships",
@@ -6498,12 +6610,15 @@ pub fn cloudidentity_groups_memberships_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudidentity_groups_memberships_lookup_execute()` to send, or `cloudidentity_groups_memberships_lookup` for simplest API.
 
-pub fn cloudidentity_groups_memberships_lookup_builder(
-    client: &SimpleHttpClient,
+pub fn cloudidentity_groups_memberships_lookup_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     memberKey_id: &Option<Option<String>>,
     memberKey_namespace: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudidentity.googleapis.com/v1/groups/{}/memberships:lookup",
@@ -6688,10 +6803,13 @@ pub fn cloudidentity_groups_memberships_lookup(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudidentity_groups_memberships_modify_membership_roles_execute()` to send, or `cloudidentity_groups_memberships_modify_membership_roles` for simplest API.
 
-pub fn cloudidentity_groups_memberships_modify_membership_roles_builder(
-    client: &SimpleHttpClient,
+pub fn cloudidentity_groups_memberships_modify_membership_roles_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudidentity.googleapis.com/v1/groups/{}/memberships/{membershipsId}:modifyMembershipRoles",
@@ -6854,14 +6972,17 @@ pub fn cloudidentity_groups_memberships_modify_membership_roles(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudidentity_groups_memberships_search_direct_groups_execute()` to send, or `cloudidentity_groups_memberships_search_direct_groups` for simplest API.
 
-pub fn cloudidentity_groups_memberships_search_direct_groups_builder(
-    client: &SimpleHttpClient,
+pub fn cloudidentity_groups_memberships_search_direct_groups_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     query: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudidentity.googleapis.com/v1/groups/{}/memberships:searchDirectGroups",
@@ -7058,13 +7179,16 @@ pub fn cloudidentity_groups_memberships_search_direct_groups(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudidentity_groups_memberships_search_transitive_groups_execute()` to send, or `cloudidentity_groups_memberships_search_transitive_groups` for simplest API.
 
-pub fn cloudidentity_groups_memberships_search_transitive_groups_builder(
-    client: &SimpleHttpClient,
+pub fn cloudidentity_groups_memberships_search_transitive_groups_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     query: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudidentity.googleapis.com/v1/groups/{}/memberships:searchTransitiveGroups",
@@ -7255,12 +7379,15 @@ pub fn cloudidentity_groups_memberships_search_transitive_groups(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudidentity_groups_memberships_search_transitive_memberships_execute()` to send, or `cloudidentity_groups_memberships_search_transitive_memberships` for simplest API.
 
-pub fn cloudidentity_groups_memberships_search_transitive_memberships_builder(
-    client: &SimpleHttpClient,
+pub fn cloudidentity_groups_memberships_search_transitive_memberships_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudidentity.googleapis.com/v1/groups/{}/memberships:searchTransitiveMemberships",
@@ -7445,9 +7572,12 @@ pub fn cloudidentity_groups_memberships_search_transitive_memberships(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudidentity_inbound_oidc_sso_profiles_create_execute()` to send, or `cloudidentity_inbound_oidc_sso_profiles_create` for simplest API.
 
-pub fn cloudidentity_inbound_oidc_sso_profiles_create_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn cloudidentity_inbound_oidc_sso_profiles_create_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://cloudidentity.googleapis.com/v1/inboundOidcSsoProfiles",);
 
@@ -7590,10 +7720,13 @@ pub fn cloudidentity_inbound_oidc_sso_profiles_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudidentity_inbound_oidc_sso_profiles_delete_execute()` to send, or `cloudidentity_inbound_oidc_sso_profiles_delete` for simplest API.
 
-pub fn cloudidentity_inbound_oidc_sso_profiles_delete_builder(
-    client: &SimpleHttpClient,
+pub fn cloudidentity_inbound_oidc_sso_profiles_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudidentity.googleapis.com/v1/inboundOidcSsoProfiles/{}",
@@ -7747,10 +7880,13 @@ pub fn cloudidentity_inbound_oidc_sso_profiles_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudidentity_inbound_oidc_sso_profiles_get_execute()` to send, or `cloudidentity_inbound_oidc_sso_profiles_get` for simplest API.
 
-pub fn cloudidentity_inbound_oidc_sso_profiles_get_builder(
-    client: &SimpleHttpClient,
+pub fn cloudidentity_inbound_oidc_sso_profiles_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudidentity.googleapis.com/v1/inboundOidcSsoProfiles/{}",
@@ -7908,12 +8044,15 @@ pub fn cloudidentity_inbound_oidc_sso_profiles_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudidentity_inbound_oidc_sso_profiles_list_execute()` to send, or `cloudidentity_inbound_oidc_sso_profiles_list` for simplest API.
 
-pub fn cloudidentity_inbound_oidc_sso_profiles_list_builder(
-    client: &SimpleHttpClient,
+pub fn cloudidentity_inbound_oidc_sso_profiles_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://cloudidentity.googleapis.com/v1/inboundOidcSsoProfiles",);
 
@@ -8098,11 +8237,14 @@ pub fn cloudidentity_inbound_oidc_sso_profiles_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudidentity_inbound_oidc_sso_profiles_patch_execute()` to send, or `cloudidentity_inbound_oidc_sso_profiles_patch` for simplest API.
 
-pub fn cloudidentity_inbound_oidc_sso_profiles_patch_builder(
-    client: &SimpleHttpClient,
+pub fn cloudidentity_inbound_oidc_sso_profiles_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudidentity.googleapis.com/v1/inboundOidcSsoProfiles/{}",
@@ -8273,9 +8415,12 @@ pub fn cloudidentity_inbound_oidc_sso_profiles_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudidentity_inbound_saml_sso_profiles_create_execute()` to send, or `cloudidentity_inbound_saml_sso_profiles_create` for simplest API.
 
-pub fn cloudidentity_inbound_saml_sso_profiles_create_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn cloudidentity_inbound_saml_sso_profiles_create_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://cloudidentity.googleapis.com/v1/inboundSamlSsoProfiles",);
 
@@ -8418,10 +8563,13 @@ pub fn cloudidentity_inbound_saml_sso_profiles_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudidentity_inbound_saml_sso_profiles_delete_execute()` to send, or `cloudidentity_inbound_saml_sso_profiles_delete` for simplest API.
 
-pub fn cloudidentity_inbound_saml_sso_profiles_delete_builder(
-    client: &SimpleHttpClient,
+pub fn cloudidentity_inbound_saml_sso_profiles_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudidentity.googleapis.com/v1/inboundSamlSsoProfiles/{}",
@@ -8575,10 +8723,13 @@ pub fn cloudidentity_inbound_saml_sso_profiles_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudidentity_inbound_saml_sso_profiles_get_execute()` to send, or `cloudidentity_inbound_saml_sso_profiles_get` for simplest API.
 
-pub fn cloudidentity_inbound_saml_sso_profiles_get_builder(
-    client: &SimpleHttpClient,
+pub fn cloudidentity_inbound_saml_sso_profiles_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudidentity.googleapis.com/v1/inboundSamlSsoProfiles/{}",
@@ -8736,12 +8887,15 @@ pub fn cloudidentity_inbound_saml_sso_profiles_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudidentity_inbound_saml_sso_profiles_list_execute()` to send, or `cloudidentity_inbound_saml_sso_profiles_list` for simplest API.
 
-pub fn cloudidentity_inbound_saml_sso_profiles_list_builder(
-    client: &SimpleHttpClient,
+pub fn cloudidentity_inbound_saml_sso_profiles_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://cloudidentity.googleapis.com/v1/inboundSamlSsoProfiles",);
 
@@ -8926,11 +9080,14 @@ pub fn cloudidentity_inbound_saml_sso_profiles_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudidentity_inbound_saml_sso_profiles_patch_execute()` to send, or `cloudidentity_inbound_saml_sso_profiles_patch` for simplest API.
 
-pub fn cloudidentity_inbound_saml_sso_profiles_patch_builder(
-    client: &SimpleHttpClient,
+pub fn cloudidentity_inbound_saml_sso_profiles_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudidentity.googleapis.com/v1/inboundSamlSsoProfiles/{}",
@@ -9101,10 +9258,13 @@ pub fn cloudidentity_inbound_saml_sso_profiles_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudidentity_inbound_saml_sso_profiles_idp_credentials_add_execute()` to send, or `cloudidentity_inbound_saml_sso_profiles_idp_credentials_add` for simplest API.
 
-pub fn cloudidentity_inbound_saml_sso_profiles_idp_credentials_add_builder(
-    client: &SimpleHttpClient,
+pub fn cloudidentity_inbound_saml_sso_profiles_idp_credentials_add_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudidentity.googleapis.com/v1/inboundSamlSsoProfiles/{}/idpCredentials:add",
@@ -9259,10 +9419,13 @@ pub fn cloudidentity_inbound_saml_sso_profiles_idp_credentials_add(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudidentity_inbound_saml_sso_profiles_idp_credentials_delete_execute()` to send, or `cloudidentity_inbound_saml_sso_profiles_idp_credentials_delete` for simplest API.
 
-pub fn cloudidentity_inbound_saml_sso_profiles_idp_credentials_delete_builder(
-    client: &SimpleHttpClient,
+pub fn cloudidentity_inbound_saml_sso_profiles_idp_credentials_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudidentity.googleapis.com/v1/inboundSamlSsoProfiles/{}/idpCredentials/{idpCredentialsId}",
@@ -9417,10 +9580,13 @@ pub fn cloudidentity_inbound_saml_sso_profiles_idp_credentials_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudidentity_inbound_saml_sso_profiles_idp_credentials_get_execute()` to send, or `cloudidentity_inbound_saml_sso_profiles_idp_credentials_get` for simplest API.
 
-pub fn cloudidentity_inbound_saml_sso_profiles_idp_credentials_get_builder(
-    client: &SimpleHttpClient,
+pub fn cloudidentity_inbound_saml_sso_profiles_idp_credentials_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudidentity.googleapis.com/v1/inboundSamlSsoProfiles/{}/idpCredentials/{idpCredentialsId}",
@@ -9579,12 +9745,15 @@ pub fn cloudidentity_inbound_saml_sso_profiles_idp_credentials_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudidentity_inbound_saml_sso_profiles_idp_credentials_list_execute()` to send, or `cloudidentity_inbound_saml_sso_profiles_idp_credentials_list` for simplest API.
 
-pub fn cloudidentity_inbound_saml_sso_profiles_idp_credentials_list_builder(
-    client: &SimpleHttpClient,
+pub fn cloudidentity_inbound_saml_sso_profiles_idp_credentials_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudidentity.googleapis.com/v1/inboundSamlSsoProfiles/{}/idpCredentials",
@@ -9769,9 +9938,12 @@ pub fn cloudidentity_inbound_saml_sso_profiles_idp_credentials_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudidentity_inbound_sso_assignments_create_execute()` to send, or `cloudidentity_inbound_sso_assignments_create` for simplest API.
 
-pub fn cloudidentity_inbound_sso_assignments_create_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn cloudidentity_inbound_sso_assignments_create_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://cloudidentity.googleapis.com/v1/inboundSsoAssignments",);
 
@@ -9914,10 +10086,13 @@ pub fn cloudidentity_inbound_sso_assignments_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudidentity_inbound_sso_assignments_delete_execute()` to send, or `cloudidentity_inbound_sso_assignments_delete` for simplest API.
 
-pub fn cloudidentity_inbound_sso_assignments_delete_builder(
-    client: &SimpleHttpClient,
+pub fn cloudidentity_inbound_sso_assignments_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudidentity.googleapis.com/v1/inboundSsoAssignments/{}",
@@ -10071,10 +10246,13 @@ pub fn cloudidentity_inbound_sso_assignments_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudidentity_inbound_sso_assignments_get_execute()` to send, or `cloudidentity_inbound_sso_assignments_get` for simplest API.
 
-pub fn cloudidentity_inbound_sso_assignments_get_builder(
-    client: &SimpleHttpClient,
+pub fn cloudidentity_inbound_sso_assignments_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudidentity.googleapis.com/v1/inboundSsoAssignments/{}",
@@ -10232,12 +10410,15 @@ pub fn cloudidentity_inbound_sso_assignments_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudidentity_inbound_sso_assignments_list_execute()` to send, or `cloudidentity_inbound_sso_assignments_list` for simplest API.
 
-pub fn cloudidentity_inbound_sso_assignments_list_builder(
-    client: &SimpleHttpClient,
+pub fn cloudidentity_inbound_sso_assignments_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://cloudidentity.googleapis.com/v1/inboundSsoAssignments",);
 
@@ -10422,11 +10603,14 @@ pub fn cloudidentity_inbound_sso_assignments_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudidentity_inbound_sso_assignments_patch_execute()` to send, or `cloudidentity_inbound_sso_assignments_patch` for simplest API.
 
-pub fn cloudidentity_inbound_sso_assignments_patch_builder(
-    client: &SimpleHttpClient,
+pub fn cloudidentity_inbound_sso_assignments_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudidentity.googleapis.com/v1/inboundSsoAssignments/{}",
@@ -10594,10 +10778,13 @@ pub fn cloudidentity_inbound_sso_assignments_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudidentity_policies_get_execute()` to send, or `cloudidentity_policies_get` for simplest API.
 
-pub fn cloudidentity_policies_get_builder(
-    client: &SimpleHttpClient,
+pub fn cloudidentity_policies_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://cloudidentity.googleapis.com/v1/policies/{}", name,);
 
@@ -10748,12 +10935,15 @@ pub fn cloudidentity_policies_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudidentity_policies_list_execute()` to send, or `cloudidentity_policies_list` for simplest API.
 
-pub fn cloudidentity_policies_list_builder(
-    client: &SimpleHttpClient,
+pub fn cloudidentity_policies_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://cloudidentity.googleapis.com/v1/policies",);
 

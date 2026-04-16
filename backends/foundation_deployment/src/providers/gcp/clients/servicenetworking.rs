@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `servicenetworking_operations_cancel_execute()` to send, or `servicenetworking_operations_cancel` for simplest API.
 
-pub fn servicenetworking_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn servicenetworking_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://servicenetworking.googleapis.com/v1/operations/{}:cancel",
@@ -183,10 +187,13 @@ pub fn servicenetworking_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `servicenetworking_operations_delete_execute()` to send, or `servicenetworking_operations_delete` for simplest API.
 
-pub fn servicenetworking_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn servicenetworking_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://servicenetworking.googleapis.com/v1/operations/{}",
@@ -340,10 +347,13 @@ pub fn servicenetworking_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `servicenetworking_operations_get_execute()` to send, or `servicenetworking_operations_get` for simplest API.
 
-pub fn servicenetworking_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn servicenetworking_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://servicenetworking.googleapis.com/v1/operations/{}",
@@ -497,13 +507,16 @@ pub fn servicenetworking_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `servicenetworking_operations_list_execute()` to send, or `servicenetworking_operations_list` for simplest API.
 
-pub fn servicenetworking_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn servicenetworking_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://servicenetworking.googleapis.com/v1/operations",);
 
@@ -690,10 +703,13 @@ pub fn servicenetworking_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `servicenetworking_services_add_subnetwork_execute()` to send, or `servicenetworking_services_add_subnetwork` for simplest API.
 
-pub fn servicenetworking_services_add_subnetwork_builder(
-    client: &SimpleHttpClient,
+pub fn servicenetworking_services_add_subnetwork_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://servicenetworking.googleapis.com/v1/services/{}/{servicesId1}/{servicesId2}:addSubnetwork",
@@ -847,10 +863,13 @@ pub fn servicenetworking_services_add_subnetwork(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `servicenetworking_services_disable_vpc_service_controls_execute()` to send, or `servicenetworking_services_disable_vpc_service_controls` for simplest API.
 
-pub fn servicenetworking_services_disable_vpc_service_controls_builder(
-    client: &SimpleHttpClient,
+pub fn servicenetworking_services_disable_vpc_service_controls_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://servicenetworking.googleapis.com/v1/services/{}:disableVpcServiceControls",
@@ -1005,10 +1024,13 @@ pub fn servicenetworking_services_disable_vpc_service_controls(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `servicenetworking_services_enable_vpc_service_controls_execute()` to send, or `servicenetworking_services_enable_vpc_service_controls` for simplest API.
 
-pub fn servicenetworking_services_enable_vpc_service_controls_builder(
-    client: &SimpleHttpClient,
+pub fn servicenetworking_services_enable_vpc_service_controls_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://servicenetworking.googleapis.com/v1/services/{}:enableVpcServiceControls",
@@ -1163,10 +1185,13 @@ pub fn servicenetworking_services_enable_vpc_service_controls(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `servicenetworking_services_search_range_execute()` to send, or `servicenetworking_services_search_range` for simplest API.
 
-pub fn servicenetworking_services_search_range_builder(
-    client: &SimpleHttpClient,
+pub fn servicenetworking_services_search_range_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://servicenetworking.googleapis.com/v1/services/{}:searchRange",
@@ -1320,10 +1345,13 @@ pub fn servicenetworking_services_search_range(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `servicenetworking_services_validate_execute()` to send, or `servicenetworking_services_validate` for simplest API.
 
-pub fn servicenetworking_services_validate_builder(
-    client: &SimpleHttpClient,
+pub fn servicenetworking_services_validate_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://servicenetworking.googleapis.com/v1/services/{}:validate",
@@ -1485,10 +1513,13 @@ pub fn servicenetworking_services_validate(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `servicenetworking_services_connections_create_execute()` to send, or `servicenetworking_services_connections_create` for simplest API.
 
-pub fn servicenetworking_services_connections_create_builder(
-    client: &SimpleHttpClient,
+pub fn servicenetworking_services_connections_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://servicenetworking.googleapis.com/v1/services/{}/connections",
@@ -1642,10 +1673,13 @@ pub fn servicenetworking_services_connections_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `servicenetworking_services_connections_delete_connection_execute()` to send, or `servicenetworking_services_connections_delete_connection` for simplest API.
 
-pub fn servicenetworking_services_connections_delete_connection_builder(
-    client: &SimpleHttpClient,
+pub fn servicenetworking_services_connections_delete_connection_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://servicenetworking.googleapis.com/v1/services/{}/connections/{connectionsId}",
@@ -1800,11 +1834,14 @@ pub fn servicenetworking_services_connections_delete_connection(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `servicenetworking_services_connections_list_execute()` to send, or `servicenetworking_services_connections_list` for simplest API.
 
-pub fn servicenetworking_services_connections_list_builder(
-    client: &SimpleHttpClient,
+pub fn servicenetworking_services_connections_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     network: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://servicenetworking.googleapis.com/v1/services/{}/connections",
@@ -1976,12 +2013,15 @@ pub fn servicenetworking_services_connections_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `servicenetworking_services_connections_patch_execute()` to send, or `servicenetworking_services_connections_patch` for simplest API.
 
-pub fn servicenetworking_services_connections_patch_builder(
-    client: &SimpleHttpClient,
+pub fn servicenetworking_services_connections_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     force: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://servicenetworking.googleapis.com/v1/services/{}/connections/{connectionsId}",
@@ -2158,10 +2198,13 @@ pub fn servicenetworking_services_connections_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `servicenetworking_services_dns_record_sets_add_execute()` to send, or `servicenetworking_services_dns_record_sets_add` for simplest API.
 
-pub fn servicenetworking_services_dns_record_sets_add_builder(
-    client: &SimpleHttpClient,
+pub fn servicenetworking_services_dns_record_sets_add_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://servicenetworking.googleapis.com/v1/services/{}/dnsRecordSets:add",
@@ -2315,14 +2358,17 @@ pub fn servicenetworking_services_dns_record_sets_add(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `servicenetworking_services_dns_record_sets_get_execute()` to send, or `servicenetworking_services_dns_record_sets_get` for simplest API.
 
-pub fn servicenetworking_services_dns_record_sets_get_builder(
-    client: &SimpleHttpClient,
+pub fn servicenetworking_services_dns_record_sets_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     consumerNetwork: &Option<Option<String>>,
     domain: &Option<Option<String>>,
     type_rs: &Option<Option<String>>,
     zone: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://servicenetworking.googleapis.com/v1/services/{}/dnsRecordSets:get",
@@ -2515,12 +2561,15 @@ pub fn servicenetworking_services_dns_record_sets_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `servicenetworking_services_dns_record_sets_list_execute()` to send, or `servicenetworking_services_dns_record_sets_list` for simplest API.
 
-pub fn servicenetworking_services_dns_record_sets_list_builder(
-    client: &SimpleHttpClient,
+pub fn servicenetworking_services_dns_record_sets_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     consumerNetwork: &Option<Option<String>>,
     zone: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://servicenetworking.googleapis.com/v1/services/{}/dnsRecordSets:list",
@@ -2701,10 +2750,13 @@ pub fn servicenetworking_services_dns_record_sets_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `servicenetworking_services_dns_record_sets_remove_execute()` to send, or `servicenetworking_services_dns_record_sets_remove` for simplest API.
 
-pub fn servicenetworking_services_dns_record_sets_remove_builder(
-    client: &SimpleHttpClient,
+pub fn servicenetworking_services_dns_record_sets_remove_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://servicenetworking.googleapis.com/v1/services/{}/dnsRecordSets:remove",
@@ -2858,10 +2910,13 @@ pub fn servicenetworking_services_dns_record_sets_remove(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `servicenetworking_services_dns_record_sets_update_execute()` to send, or `servicenetworking_services_dns_record_sets_update` for simplest API.
 
-pub fn servicenetworking_services_dns_record_sets_update_builder(
-    client: &SimpleHttpClient,
+pub fn servicenetworking_services_dns_record_sets_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://servicenetworking.googleapis.com/v1/services/{}/dnsRecordSets:update",
@@ -3015,10 +3070,13 @@ pub fn servicenetworking_services_dns_record_sets_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `servicenetworking_services_dns_zones_add_execute()` to send, or `servicenetworking_services_dns_zones_add` for simplest API.
 
-pub fn servicenetworking_services_dns_zones_add_builder(
-    client: &SimpleHttpClient,
+pub fn servicenetworking_services_dns_zones_add_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://servicenetworking.googleapis.com/v1/services/{}/dnsZones:add",
@@ -3172,10 +3230,13 @@ pub fn servicenetworking_services_dns_zones_add(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `servicenetworking_services_dns_zones_remove_execute()` to send, or `servicenetworking_services_dns_zones_remove` for simplest API.
 
-pub fn servicenetworking_services_dns_zones_remove_builder(
-    client: &SimpleHttpClient,
+pub fn servicenetworking_services_dns_zones_remove_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://servicenetworking.googleapis.com/v1/services/{}/dnsZones:remove",
@@ -3329,11 +3390,14 @@ pub fn servicenetworking_services_dns_zones_remove(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `servicenetworking_services_projects_global_networks_get_execute()` to send, or `servicenetworking_services_projects_global_networks_get` for simplest API.
 
-pub fn servicenetworking_services_projects_global_networks_get_builder(
-    client: &SimpleHttpClient,
+pub fn servicenetworking_services_projects_global_networks_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     includeUsedIpRanges: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://servicenetworking.googleapis.com/v1/services/{}/projects/{projectsId}/global/networks/{networksId}",
@@ -3508,10 +3572,13 @@ pub fn servicenetworking_services_projects_global_networks_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `servicenetworking_services_projects_global_networks_get_vpc_service_controls_execute()` to send, or `servicenetworking_services_projects_global_networks_get_vpc_service_controls` for simplest API.
 
-pub fn servicenetworking_services_projects_global_networks_get_vpc_service_controls_builder(
-    client: &SimpleHttpClient,
+pub fn servicenetworking_services_projects_global_networks_get_vpc_service_controls_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://servicenetworking.googleapis.com/v1/services/{}/projects/{projectsId}/global/networks/{networksId}/vpcServiceControls",
@@ -3673,10 +3740,13 @@ pub fn servicenetworking_services_projects_global_networks_get_vpc_service_contr
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `servicenetworking_services_projects_global_networks_update_consumer_config_execute()` to send, or `servicenetworking_services_projects_global_networks_update_consumer_config` for simplest API.
 
-pub fn servicenetworking_services_projects_global_networks_update_consumer_config_builder(
-    client: &SimpleHttpClient,
+pub fn servicenetworking_services_projects_global_networks_update_consumer_config_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://servicenetworking.googleapis.com/v1/services/{}/projects/{projectsId}/global/networks/{networksId}:updateConsumerConfig",
@@ -3835,10 +3905,13 @@ pub fn servicenetworking_services_projects_global_networks_update_consumer_confi
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `servicenetworking_services_projects_global_networks_dns_zones_get_execute()` to send, or `servicenetworking_services_projects_global_networks_dns_zones_get` for simplest API.
 
-pub fn servicenetworking_services_projects_global_networks_dns_zones_get_builder(
-    client: &SimpleHttpClient,
+pub fn servicenetworking_services_projects_global_networks_dns_zones_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://servicenetworking.googleapis.com/v1/services/{}/projects/{projectsId}/global/networks/{networksId}/dnsZones/{dnsZonesId}",
@@ -3998,10 +4071,13 @@ pub fn servicenetworking_services_projects_global_networks_dns_zones_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `servicenetworking_services_projects_global_networks_dns_zones_list_execute()` to send, or `servicenetworking_services_projects_global_networks_dns_zones_list` for simplest API.
 
-pub fn servicenetworking_services_projects_global_networks_dns_zones_list_builder(
-    client: &SimpleHttpClient,
+pub fn servicenetworking_services_projects_global_networks_dns_zones_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://servicenetworking.googleapis.com/v1/services/{}/projects/{projectsId}/global/networks/{networksId}/dnsZones:list",
@@ -4162,10 +4238,13 @@ pub fn servicenetworking_services_projects_global_networks_dns_zones_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `servicenetworking_services_projects_global_networks_peered_dns_domains_create_execute()` to send, or `servicenetworking_services_projects_global_networks_peered_dns_domains_create` for simplest API.
 
-pub fn servicenetworking_services_projects_global_networks_peered_dns_domains_create_builder(
-    client: &SimpleHttpClient,
+pub fn servicenetworking_services_projects_global_networks_peered_dns_domains_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://servicenetworking.googleapis.com/v1/services/{}/projects/{projectsId}/global/networks/{networksId}/peeredDnsDomains",
@@ -4325,10 +4404,13 @@ pub fn servicenetworking_services_projects_global_networks_peered_dns_domains_cr
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `servicenetworking_services_projects_global_networks_peered_dns_domains_delete_execute()` to send, or `servicenetworking_services_projects_global_networks_peered_dns_domains_delete` for simplest API.
 
-pub fn servicenetworking_services_projects_global_networks_peered_dns_domains_delete_builder(
-    client: &SimpleHttpClient,
+pub fn servicenetworking_services_projects_global_networks_peered_dns_domains_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://servicenetworking.googleapis.com/v1/services/{}/projects/{projectsId}/global/networks/{networksId}/peeredDnsDomains/{peeredDnsDomainsId}",
@@ -4487,10 +4569,13 @@ pub fn servicenetworking_services_projects_global_networks_peered_dns_domains_de
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `servicenetworking_services_projects_global_networks_peered_dns_domains_list_execute()` to send, or `servicenetworking_services_projects_global_networks_peered_dns_domains_list` for simplest API.
 
-pub fn servicenetworking_services_projects_global_networks_peered_dns_domains_list_builder(
-    client: &SimpleHttpClient,
+pub fn servicenetworking_services_projects_global_networks_peered_dns_domains_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://servicenetworking.googleapis.com/v1/services/{}/projects/{projectsId}/global/networks/{networksId}/peeredDnsDomains",
@@ -4657,10 +4742,13 @@ pub fn servicenetworking_services_projects_global_networks_peered_dns_domains_li
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `servicenetworking_services_roles_add_execute()` to send, or `servicenetworking_services_roles_add` for simplest API.
 
-pub fn servicenetworking_services_roles_add_builder(
-    client: &SimpleHttpClient,
+pub fn servicenetworking_services_roles_add_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://servicenetworking.googleapis.com/v1/services/{}/roles:add",

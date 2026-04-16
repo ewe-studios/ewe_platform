@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `threatintelligence_projects_generate_org_profile_execute()` to send, or `threatintelligence_projects_generate_org_profile` for simplest API.
 
-pub fn threatintelligence_projects_generate_org_profile_builder(
-    client: &SimpleHttpClient,
+pub fn threatintelligence_projects_generate_org_profile_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://threatintelligence.googleapis.com/v1beta/projects/{}:generateOrgProfile",
@@ -183,10 +187,13 @@ pub fn threatintelligence_projects_generate_org_profile(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `threatintelligence_projects_alerts_benign_execute()` to send, or `threatintelligence_projects_alerts_benign` for simplest API.
 
-pub fn threatintelligence_projects_alerts_benign_builder(
-    client: &SimpleHttpClient,
+pub fn threatintelligence_projects_alerts_benign_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://threatintelligence.googleapis.com/v1beta/projects/{}/alerts/{alertsId}:benign",
@@ -340,10 +347,13 @@ pub fn threatintelligence_projects_alerts_benign(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `threatintelligence_projects_alerts_duplicate_execute()` to send, or `threatintelligence_projects_alerts_duplicate` for simplest API.
 
-pub fn threatintelligence_projects_alerts_duplicate_builder(
-    client: &SimpleHttpClient,
+pub fn threatintelligence_projects_alerts_duplicate_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://threatintelligence.googleapis.com/v1beta/projects/{}/alerts/{alertsId}:duplicate",
@@ -497,11 +507,14 @@ pub fn threatintelligence_projects_alerts_duplicate(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `threatintelligence_projects_alerts_enumerate_facets_execute()` to send, or `threatintelligence_projects_alerts_enumerate_facets` for simplest API.
 
-pub fn threatintelligence_projects_alerts_enumerate_facets_builder(
-    client: &SimpleHttpClient,
+pub fn threatintelligence_projects_alerts_enumerate_facets_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://threatintelligence.googleapis.com/v1beta/projects/{}/alerts:enumerateFacets",
@@ -680,10 +693,13 @@ pub fn threatintelligence_projects_alerts_enumerate_facets(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `threatintelligence_projects_alerts_escalate_execute()` to send, or `threatintelligence_projects_alerts_escalate` for simplest API.
 
-pub fn threatintelligence_projects_alerts_escalate_builder(
-    client: &SimpleHttpClient,
+pub fn threatintelligence_projects_alerts_escalate_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://threatintelligence.googleapis.com/v1beta/projects/{}/alerts/{alertsId}:escalate",
@@ -837,10 +853,13 @@ pub fn threatintelligence_projects_alerts_escalate(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `threatintelligence_projects_alerts_false_positive_execute()` to send, or `threatintelligence_projects_alerts_false_positive` for simplest API.
 
-pub fn threatintelligence_projects_alerts_false_positive_builder(
-    client: &SimpleHttpClient,
+pub fn threatintelligence_projects_alerts_false_positive_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://threatintelligence.googleapis.com/v1beta/projects/{}/alerts/{alertsId}:falsePositive",
@@ -994,10 +1013,13 @@ pub fn threatintelligence_projects_alerts_false_positive(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `threatintelligence_projects_alerts_get_execute()` to send, or `threatintelligence_projects_alerts_get` for simplest API.
 
-pub fn threatintelligence_projects_alerts_get_builder(
-    client: &SimpleHttpClient,
+pub fn threatintelligence_projects_alerts_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://threatintelligence.googleapis.com/v1beta/projects/{}/alerts/{alertsId}",
@@ -1151,14 +1173,17 @@ pub fn threatintelligence_projects_alerts_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `threatintelligence_projects_alerts_list_execute()` to send, or `threatintelligence_projects_alerts_list` for simplest API.
 
-pub fn threatintelligence_projects_alerts_list_builder(
-    client: &SimpleHttpClient,
+pub fn threatintelligence_projects_alerts_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://threatintelligence.googleapis.com/v1beta/projects/{}/alerts",
@@ -1351,10 +1376,13 @@ pub fn threatintelligence_projects_alerts_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `threatintelligence_projects_alerts_not_actionable_execute()` to send, or `threatintelligence_projects_alerts_not_actionable` for simplest API.
 
-pub fn threatintelligence_projects_alerts_not_actionable_builder(
-    client: &SimpleHttpClient,
+pub fn threatintelligence_projects_alerts_not_actionable_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://threatintelligence.googleapis.com/v1beta/projects/{}/alerts/{alertsId}:notActionable",
@@ -1508,10 +1536,13 @@ pub fn threatintelligence_projects_alerts_not_actionable(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `threatintelligence_projects_alerts_read_execute()` to send, or `threatintelligence_projects_alerts_read` for simplest API.
 
-pub fn threatintelligence_projects_alerts_read_builder(
-    client: &SimpleHttpClient,
+pub fn threatintelligence_projects_alerts_read_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://threatintelligence.googleapis.com/v1beta/projects/{}/alerts/{alertsId}:read",
@@ -1665,10 +1696,13 @@ pub fn threatintelligence_projects_alerts_read(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `threatintelligence_projects_alerts_resolve_execute()` to send, or `threatintelligence_projects_alerts_resolve` for simplest API.
 
-pub fn threatintelligence_projects_alerts_resolve_builder(
-    client: &SimpleHttpClient,
+pub fn threatintelligence_projects_alerts_resolve_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://threatintelligence.googleapis.com/v1beta/projects/{}/alerts/{alertsId}:resolve",
@@ -1822,10 +1856,13 @@ pub fn threatintelligence_projects_alerts_resolve(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `threatintelligence_projects_alerts_track_externally_execute()` to send, or `threatintelligence_projects_alerts_track_externally` for simplest API.
 
-pub fn threatintelligence_projects_alerts_track_externally_builder(
-    client: &SimpleHttpClient,
+pub fn threatintelligence_projects_alerts_track_externally_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://threatintelligence.googleapis.com/v1beta/projects/{}/alerts/{alertsId}:trackExternally",
@@ -1979,10 +2016,13 @@ pub fn threatintelligence_projects_alerts_track_externally(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `threatintelligence_projects_alerts_triage_execute()` to send, or `threatintelligence_projects_alerts_triage` for simplest API.
 
-pub fn threatintelligence_projects_alerts_triage_builder(
-    client: &SimpleHttpClient,
+pub fn threatintelligence_projects_alerts_triage_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://threatintelligence.googleapis.com/v1beta/projects/{}/alerts/{alertsId}:triage",
@@ -2136,10 +2176,13 @@ pub fn threatintelligence_projects_alerts_triage(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `threatintelligence_projects_alerts_documents_get_execute()` to send, or `threatintelligence_projects_alerts_documents_get` for simplest API.
 
-pub fn threatintelligence_projects_alerts_documents_get_builder(
-    client: &SimpleHttpClient,
+pub fn threatintelligence_projects_alerts_documents_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://threatintelligence.googleapis.com/v1beta/projects/{}/alerts/{alertsId}/documents/{documentsId}",
@@ -2297,10 +2340,13 @@ pub fn threatintelligence_projects_alerts_documents_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `threatintelligence_projects_configurations_get_execute()` to send, or `threatintelligence_projects_configurations_get` for simplest API.
 
-pub fn threatintelligence_projects_configurations_get_builder(
-    client: &SimpleHttpClient,
+pub fn threatintelligence_projects_configurations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://threatintelligence.googleapis.com/v1beta/projects/{}/configurations/{configurationsId}",
@@ -2458,14 +2504,17 @@ pub fn threatintelligence_projects_configurations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `threatintelligence_projects_configurations_list_execute()` to send, or `threatintelligence_projects_configurations_list` for simplest API.
 
-pub fn threatintelligence_projects_configurations_list_builder(
-    client: &SimpleHttpClient,
+pub fn threatintelligence_projects_configurations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://threatintelligence.googleapis.com/v1beta/projects/{}/configurations",
@@ -2662,11 +2711,14 @@ pub fn threatintelligence_projects_configurations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `threatintelligence_projects_configurations_upsert_execute()` to send, or `threatintelligence_projects_configurations_upsert` for simplest API.
 
-pub fn threatintelligence_projects_configurations_upsert_builder(
-    client: &SimpleHttpClient,
+pub fn threatintelligence_projects_configurations_upsert_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     publishTime: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://threatintelligence.googleapis.com/v1beta/projects/{}/configurations:upsert",
@@ -2845,14 +2897,17 @@ pub fn threatintelligence_projects_configurations_upsert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `threatintelligence_projects_configurations_revisions_list_execute()` to send, or `threatintelligence_projects_configurations_revisions_list` for simplest API.
 
-pub fn threatintelligence_projects_configurations_revisions_list_builder(
-    client: &SimpleHttpClient,
+pub fn threatintelligence_projects_configurations_revisions_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://threatintelligence.googleapis.com/v1beta/projects/{}/configurations/{configurationsId}/revisions",
@@ -3049,10 +3104,13 @@ pub fn threatintelligence_projects_configurations_revisions_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `threatintelligence_projects_findings_get_execute()` to send, or `threatintelligence_projects_findings_get` for simplest API.
 
-pub fn threatintelligence_projects_findings_get_builder(
-    client: &SimpleHttpClient,
+pub fn threatintelligence_projects_findings_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://threatintelligence.googleapis.com/v1beta/projects/{}/findings/{findingsId}",
@@ -3206,14 +3264,17 @@ pub fn threatintelligence_projects_findings_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `threatintelligence_projects_findings_list_execute()` to send, or `threatintelligence_projects_findings_list` for simplest API.
 
-pub fn threatintelligence_projects_findings_list_builder(
-    client: &SimpleHttpClient,
+pub fn threatintelligence_projects_findings_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://threatintelligence.googleapis.com/v1beta/projects/{}/findings",
@@ -3406,14 +3467,17 @@ pub fn threatintelligence_projects_findings_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `threatintelligence_projects_findings_search_execute()` to send, or `threatintelligence_projects_findings_search` for simplest API.
 
-pub fn threatintelligence_projects_findings_search_builder(
-    client: &SimpleHttpClient,
+pub fn threatintelligence_projects_findings_search_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     query: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://threatintelligence.googleapis.com/v1beta/projects/{}/findings:search",

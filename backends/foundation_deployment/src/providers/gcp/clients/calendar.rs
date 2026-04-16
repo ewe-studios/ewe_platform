@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,11 +27,14 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `calendar_acl_delete_execute()` to send, or `calendar_acl_delete` for simplest API.
 
-pub fn calendar_acl_delete_builder(
-    client: &SimpleHttpClient,
+pub fn calendar_acl_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     calendarId: &String,
     ruleId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/calendar/v3/calendars/{}/acl/{}",
@@ -183,11 +187,14 @@ pub fn calendar_acl_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `calendar_acl_get_execute()` to send, or `calendar_acl_get` for simplest API.
 
-pub fn calendar_acl_get_builder(
-    client: &SimpleHttpClient,
+pub fn calendar_acl_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     calendarId: &String,
     ruleId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/calendar/v3/calendars/{}/acl/{}",
@@ -343,11 +350,14 @@ pub fn calendar_acl_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `calendar_acl_insert_execute()` to send, or `calendar_acl_insert` for simplest API.
 
-pub fn calendar_acl_insert_builder(
-    client: &SimpleHttpClient,
+pub fn calendar_acl_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     calendarId: &String,
     sendNotifications: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/calendar/v3/calendars/{}/acl",
@@ -514,14 +524,17 @@ pub fn calendar_acl_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `calendar_acl_list_execute()` to send, or `calendar_acl_list` for simplest API.
 
-pub fn calendar_acl_list_builder(
-    client: &SimpleHttpClient,
+pub fn calendar_acl_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     calendarId: &String,
     maxResults: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     showDeleted: &Option<Option<String>>,
     syncToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/calendar/v3/calendars/{}/acl",
@@ -710,12 +723,15 @@ pub fn calendar_acl_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `calendar_acl_patch_execute()` to send, or `calendar_acl_patch` for simplest API.
 
-pub fn calendar_acl_patch_builder(
-    client: &SimpleHttpClient,
+pub fn calendar_acl_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     calendarId: &String,
     ruleId: &String,
     sendNotifications: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/calendar/v3/calendars/{}/acl/{}",
@@ -889,12 +905,15 @@ pub fn calendar_acl_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `calendar_acl_update_execute()` to send, or `calendar_acl_update` for simplest API.
 
-pub fn calendar_acl_update_builder(
-    client: &SimpleHttpClient,
+pub fn calendar_acl_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     calendarId: &String,
     ruleId: &String,
     sendNotifications: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/calendar/v3/calendars/{}/acl/{}",
@@ -1068,14 +1087,17 @@ pub fn calendar_acl_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `calendar_acl_watch_execute()` to send, or `calendar_acl_watch` for simplest API.
 
-pub fn calendar_acl_watch_builder(
-    client: &SimpleHttpClient,
+pub fn calendar_acl_watch_builder<R>(
+    client: &SimpleHttpClient<R>,
     calendarId: &String,
     maxResults: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     showDeleted: &Option<Option<String>>,
     syncToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/calendar/v3/calendars/{}/acl/watch",
@@ -1264,10 +1286,13 @@ pub fn calendar_acl_watch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `calendar_calendar_list_delete_execute()` to send, or `calendar_calendar_list_delete` for simplest API.
 
-pub fn calendar_calendar_list_delete_builder(
-    client: &SimpleHttpClient,
+pub fn calendar_calendar_list_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     calendarId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/calendar/v3/users/me/calendarList/{}",
@@ -1418,10 +1443,13 @@ pub fn calendar_calendar_list_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `calendar_calendar_list_get_execute()` to send, or `calendar_calendar_list_get` for simplest API.
 
-pub fn calendar_calendar_list_get_builder(
-    client: &SimpleHttpClient,
+pub fn calendar_calendar_list_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     calendarId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/calendar/v3/users/me/calendarList/{}",
@@ -1579,10 +1607,13 @@ pub fn calendar_calendar_list_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `calendar_calendar_list_insert_execute()` to send, or `calendar_calendar_list_insert` for simplest API.
 
-pub fn calendar_calendar_list_insert_builder(
-    client: &SimpleHttpClient,
+pub fn calendar_calendar_list_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     colorRgbFormat: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://www.googleapis.com/calendar/v3/users/me/calendarList",);
 
@@ -1748,15 +1779,18 @@ pub fn calendar_calendar_list_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `calendar_calendar_list_list_execute()` to send, or `calendar_calendar_list_list` for simplest API.
 
-pub fn calendar_calendar_list_list_builder(
-    client: &SimpleHttpClient,
+pub fn calendar_calendar_list_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     maxResults: &Option<Option<String>>,
     minAccessRole: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     showDeleted: &Option<Option<String>>,
     showHidden: &Option<Option<String>>,
     syncToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://www.googleapis.com/calendar/v3/users/me/calendarList",);
 
@@ -1955,11 +1989,14 @@ pub fn calendar_calendar_list_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `calendar_calendar_list_patch_execute()` to send, or `calendar_calendar_list_patch` for simplest API.
 
-pub fn calendar_calendar_list_patch_builder(
-    client: &SimpleHttpClient,
+pub fn calendar_calendar_list_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     calendarId: &String,
     colorRgbFormat: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/calendar/v3/users/me/calendarList/{}",
@@ -2131,11 +2168,14 @@ pub fn calendar_calendar_list_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `calendar_calendar_list_update_execute()` to send, or `calendar_calendar_list_update` for simplest API.
 
-pub fn calendar_calendar_list_update_builder(
-    client: &SimpleHttpClient,
+pub fn calendar_calendar_list_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     calendarId: &String,
     colorRgbFormat: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/calendar/v3/users/me/calendarList/{}",
@@ -2307,15 +2347,18 @@ pub fn calendar_calendar_list_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `calendar_calendar_list_watch_execute()` to send, or `calendar_calendar_list_watch` for simplest API.
 
-pub fn calendar_calendar_list_watch_builder(
-    client: &SimpleHttpClient,
+pub fn calendar_calendar_list_watch_builder<R>(
+    client: &SimpleHttpClient<R>,
     maxResults: &Option<Option<String>>,
     minAccessRole: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     showDeleted: &Option<Option<String>>,
     showHidden: &Option<Option<String>>,
     syncToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://www.googleapis.com/calendar/v3/users/me/calendarList/watch",);
@@ -2511,10 +2554,13 @@ pub fn calendar_calendar_list_watch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `calendar_calendars_clear_execute()` to send, or `calendar_calendars_clear` for simplest API.
 
-pub fn calendar_calendars_clear_builder(
-    client: &SimpleHttpClient,
+pub fn calendar_calendars_clear_builder<R>(
+    client: &SimpleHttpClient<R>,
     calendarId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/calendar/v3/calendars/{}/clear",
@@ -2665,10 +2711,13 @@ pub fn calendar_calendars_clear(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `calendar_calendars_delete_execute()` to send, or `calendar_calendars_delete` for simplest API.
 
-pub fn calendar_calendars_delete_builder(
-    client: &SimpleHttpClient,
+pub fn calendar_calendars_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     calendarId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/calendar/v3/calendars/{}",
@@ -2819,10 +2868,13 @@ pub fn calendar_calendars_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `calendar_calendars_get_execute()` to send, or `calendar_calendars_get` for simplest API.
 
-pub fn calendar_calendars_get_builder(
-    client: &SimpleHttpClient,
+pub fn calendar_calendars_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     calendarId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/calendar/v3/calendars/{}",
@@ -2976,9 +3028,12 @@ pub fn calendar_calendars_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `calendar_calendars_insert_execute()` to send, or `calendar_calendars_insert` for simplest API.
 
-pub fn calendar_calendars_insert_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn calendar_calendars_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://www.googleapis.com/calendar/v3/calendars",);
 
@@ -3121,10 +3176,13 @@ pub fn calendar_calendars_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `calendar_calendars_patch_execute()` to send, or `calendar_calendars_patch` for simplest API.
 
-pub fn calendar_calendars_patch_builder(
-    client: &SimpleHttpClient,
+pub fn calendar_calendars_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     calendarId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/calendar/v3/calendars/{}",
@@ -3278,10 +3336,13 @@ pub fn calendar_calendars_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `calendar_calendars_update_execute()` to send, or `calendar_calendars_update` for simplest API.
 
-pub fn calendar_calendars_update_builder(
-    client: &SimpleHttpClient,
+pub fn calendar_calendars_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     calendarId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/calendar/v3/calendars/{}",
@@ -3435,9 +3496,12 @@ pub fn calendar_calendars_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `calendar_channels_stop_execute()` to send, or `calendar_channels_stop` for simplest API.
 
-pub fn calendar_channels_stop_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn calendar_channels_stop_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://www.googleapis.com/calendar/v3/channels/stop",);
 
@@ -3577,9 +3641,12 @@ pub fn calendar_channels_stop(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `calendar_colors_get_execute()` to send, or `calendar_colors_get` for simplest API.
 
-pub fn calendar_colors_get_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn calendar_colors_get_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://www.googleapis.com/calendar/v3/colors",);
 
@@ -3722,13 +3789,16 @@ pub fn calendar_colors_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `calendar_events_delete_execute()` to send, or `calendar_events_delete` for simplest API.
 
-pub fn calendar_events_delete_builder(
-    client: &SimpleHttpClient,
+pub fn calendar_events_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     calendarId: &String,
     eventId: &String,
     sendNotifications: &Option<Option<String>>,
     sendUpdates: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/calendar/v3/calendars/{}/events/{}",
@@ -3905,14 +3975,17 @@ pub fn calendar_events_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `calendar_events_get_execute()` to send, or `calendar_events_get` for simplest API.
 
-pub fn calendar_events_get_builder(
-    client: &SimpleHttpClient,
+pub fn calendar_events_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     calendarId: &String,
     eventId: &String,
     alwaysIncludeEmail: &Option<Option<String>>,
     maxAttendees: &Option<Option<String>>,
     timeZone: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/calendar/v3/calendars/{}/events/{}",
@@ -4098,12 +4171,15 @@ pub fn calendar_events_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `calendar_events_import_execute()` to send, or `calendar_events_import` for simplest API.
 
-pub fn calendar_events_import_builder(
-    client: &SimpleHttpClient,
+pub fn calendar_events_import_builder<R>(
+    client: &SimpleHttpClient<R>,
     calendarId: &String,
     conferenceDataVersion: &Option<Option<String>>,
     supportsAttachments: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/calendar/v3/calendars/{}/events/import",
@@ -4280,15 +4356,18 @@ pub fn calendar_events_import(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `calendar_events_insert_execute()` to send, or `calendar_events_insert` for simplest API.
 
-pub fn calendar_events_insert_builder(
-    client: &SimpleHttpClient,
+pub fn calendar_events_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     calendarId: &String,
     conferenceDataVersion: &Option<Option<String>>,
     maxAttendees: &Option<Option<String>>,
     sendNotifications: &Option<Option<String>>,
     sendUpdates: &Option<Option<String>>,
     supportsAttachments: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/calendar/v3/calendars/{}/events",
@@ -4483,8 +4562,8 @@ pub fn calendar_events_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `calendar_events_instances_execute()` to send, or `calendar_events_instances` for simplest API.
 
-pub fn calendar_events_instances_builder(
-    client: &SimpleHttpClient,
+pub fn calendar_events_instances_builder<R>(
+    client: &SimpleHttpClient<R>,
     calendarId: &String,
     eventId: &String,
     alwaysIncludeEmail: &Option<Option<String>>,
@@ -4496,7 +4575,10 @@ pub fn calendar_events_instances_builder(
     timeMax: &Option<Option<String>>,
     timeMin: &Option<Option<String>>,
     timeZone: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/calendar/v3/calendars/{}/events/{}/instances",
@@ -4718,8 +4800,8 @@ pub fn calendar_events_instances(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `calendar_events_list_execute()` to send, or `calendar_events_list` for simplest API.
 
-pub fn calendar_events_list_builder(
-    client: &SimpleHttpClient,
+pub fn calendar_events_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     calendarId: &String,
     alwaysIncludeEmail: &Option<Option<String>>,
     eventTypes: &Option<Option<String>>,
@@ -4739,7 +4821,10 @@ pub fn calendar_events_list_builder(
     timeMin: &Option<Option<String>>,
     timeZone: &Option<Option<String>>,
     updatedMin: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/calendar/v3/calendars/{}/events",
@@ -5012,14 +5097,17 @@ pub fn calendar_events_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `calendar_events_move_execute()` to send, or `calendar_events_move` for simplest API.
 
-pub fn calendar_events_move_builder(
-    client: &SimpleHttpClient,
+pub fn calendar_events_move_builder<R>(
+    client: &SimpleHttpClient<R>,
     calendarId: &String,
     eventId: &String,
     destination: &Option<Option<String>>,
     sendNotifications: &Option<Option<String>>,
     sendUpdates: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/calendar/v3/calendars/{}/events/{}/move",
@@ -5205,8 +5293,8 @@ pub fn calendar_events_move(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `calendar_events_patch_execute()` to send, or `calendar_events_patch` for simplest API.
 
-pub fn calendar_events_patch_builder(
-    client: &SimpleHttpClient,
+pub fn calendar_events_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     calendarId: &String,
     eventId: &String,
     alwaysIncludeEmail: &Option<Option<String>>,
@@ -5215,7 +5303,10 @@ pub fn calendar_events_patch_builder(
     sendNotifications: &Option<Option<String>>,
     sendUpdates: &Option<Option<String>>,
     supportsAttachments: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/calendar/v3/calendars/{}/events/{}",
@@ -5419,13 +5510,16 @@ pub fn calendar_events_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `calendar_events_quick_add_execute()` to send, or `calendar_events_quick_add` for simplest API.
 
-pub fn calendar_events_quick_add_builder(
-    client: &SimpleHttpClient,
+pub fn calendar_events_quick_add_builder<R>(
+    client: &SimpleHttpClient<R>,
     calendarId: &String,
     sendNotifications: &Option<Option<String>>,
     sendUpdates: &Option<Option<String>>,
     text: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/calendar/v3/calendars/{}/events/quickAdd",
@@ -5608,8 +5702,8 @@ pub fn calendar_events_quick_add(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `calendar_events_update_execute()` to send, or `calendar_events_update` for simplest API.
 
-pub fn calendar_events_update_builder(
-    client: &SimpleHttpClient,
+pub fn calendar_events_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     calendarId: &String,
     eventId: &String,
     alwaysIncludeEmail: &Option<Option<String>>,
@@ -5618,7 +5712,10 @@ pub fn calendar_events_update_builder(
     sendNotifications: &Option<Option<String>>,
     sendUpdates: &Option<Option<String>>,
     supportsAttachments: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/calendar/v3/calendars/{}/events/{}",
@@ -5822,8 +5919,8 @@ pub fn calendar_events_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `calendar_events_watch_execute()` to send, or `calendar_events_watch` for simplest API.
 
-pub fn calendar_events_watch_builder(
-    client: &SimpleHttpClient,
+pub fn calendar_events_watch_builder<R>(
+    client: &SimpleHttpClient<R>,
     calendarId: &String,
     alwaysIncludeEmail: &Option<Option<String>>,
     eventTypes: &Option<Option<String>>,
@@ -5843,7 +5940,10 @@ pub fn calendar_events_watch_builder(
     timeMin: &Option<Option<String>>,
     timeZone: &Option<Option<String>>,
     updatedMin: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/calendar/v3/calendars/{}/events/watch",
@@ -6116,9 +6216,12 @@ pub fn calendar_events_watch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `calendar_freebusy_query_execute()` to send, or `calendar_freebusy_query` for simplest API.
 
-pub fn calendar_freebusy_query_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn calendar_freebusy_query_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://www.googleapis.com/calendar/v3/freeBusy",);
 
@@ -6265,10 +6368,13 @@ pub fn calendar_freebusy_query(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `calendar_settings_get_execute()` to send, or `calendar_settings_get` for simplest API.
 
-pub fn calendar_settings_get_builder(
-    client: &SimpleHttpClient,
+pub fn calendar_settings_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     setting: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/calendar/v3/users/me/settings/{}",
@@ -6422,12 +6528,15 @@ pub fn calendar_settings_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `calendar_settings_list_execute()` to send, or `calendar_settings_list` for simplest API.
 
-pub fn calendar_settings_list_builder(
-    client: &SimpleHttpClient,
+pub fn calendar_settings_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     maxResults: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     syncToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://www.googleapis.com/calendar/v3/users/me/settings",);
 
@@ -6600,12 +6709,15 @@ pub fn calendar_settings_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `calendar_settings_watch_execute()` to send, or `calendar_settings_watch` for simplest API.
 
-pub fn calendar_settings_watch_builder(
-    client: &SimpleHttpClient,
+pub fn calendar_settings_watch_builder<R>(
+    client: &SimpleHttpClient<R>,
     maxResults: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     syncToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://www.googleapis.com/calendar/v3/users/me/settings/watch",);
 

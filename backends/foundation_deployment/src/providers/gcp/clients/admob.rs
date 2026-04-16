@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `admob_accounts_get_execute()` to send, or `admob_accounts_get` for simplest API.
 
-pub fn admob_accounts_get_builder(
-    client: &SimpleHttpClient,
+pub fn admob_accounts_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://admob.googleapis.com/v1/accounts/{}", name,);
 
@@ -184,11 +188,14 @@ pub fn admob_accounts_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `admob_accounts_list_execute()` to send, or `admob_accounts_list` for simplest API.
 
-pub fn admob_accounts_list_builder(
-    client: &SimpleHttpClient,
+pub fn admob_accounts_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://admob.googleapis.com/v1/accounts",);
 
@@ -363,12 +370,15 @@ pub fn admob_accounts_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `admob_accounts_ad_units_list_execute()` to send, or `admob_accounts_ad_units_list` for simplest API.
 
-pub fn admob_accounts_ad_units_list_builder(
-    client: &SimpleHttpClient,
+pub fn admob_accounts_ad_units_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://admob.googleapis.com/v1/accounts/{}/adUnits",
@@ -549,12 +559,15 @@ pub fn admob_accounts_ad_units_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `admob_accounts_apps_list_execute()` to send, or `admob_accounts_apps_list` for simplest API.
 
-pub fn admob_accounts_apps_list_builder(
-    client: &SimpleHttpClient,
+pub fn admob_accounts_apps_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://admob.googleapis.com/v1/accounts/{}/apps", parent,);
 
@@ -728,10 +741,13 @@ pub fn admob_accounts_apps_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `admob_accounts_mediation_report_generate_execute()` to send, or `admob_accounts_mediation_report_generate` for simplest API.
 
-pub fn admob_accounts_mediation_report_generate_builder(
-    client: &SimpleHttpClient,
+pub fn admob_accounts_mediation_report_generate_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://admob.googleapis.com/v1/accounts/{}/mediationReport:generate",
@@ -893,10 +909,13 @@ pub fn admob_accounts_mediation_report_generate(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `admob_accounts_network_report_generate_execute()` to send, or `admob_accounts_network_report_generate` for simplest API.
 
-pub fn admob_accounts_network_report_generate_builder(
-    client: &SimpleHttpClient,
+pub fn admob_accounts_network_report_generate_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://admob.googleapis.com/v1/accounts/{}/networkReport:generate",

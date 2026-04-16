@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `site_verification_web_resource_delete_execute()` to send, or `site_verification_web_resource_delete` for simplest API.
 
-pub fn site_verification_web_resource_delete_builder(
-    client: &SimpleHttpClient,
+pub fn site_verification_web_resource_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     id: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/siteVerification/v1/webResource/{}",
@@ -180,10 +184,13 @@ pub fn site_verification_web_resource_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `site_verification_web_resource_get_execute()` to send, or `site_verification_web_resource_get` for simplest API.
 
-pub fn site_verification_web_resource_get_builder(
-    client: &SimpleHttpClient,
+pub fn site_verification_web_resource_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     id: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/siteVerification/v1/webResource/{}",
@@ -345,9 +352,12 @@ pub fn site_verification_web_resource_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `site_verification_web_resource_get_token_execute()` to send, or `site_verification_web_resource_get_token` for simplest API.
 
-pub fn site_verification_web_resource_get_token_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn site_verification_web_resource_get_token_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://www.googleapis.com/siteVerification/v1/token",);
 
@@ -499,10 +509,13 @@ pub fn site_verification_web_resource_get_token(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `site_verification_web_resource_insert_execute()` to send, or `site_verification_web_resource_insert` for simplest API.
 
-pub fn site_verification_web_resource_insert_builder(
-    client: &SimpleHttpClient,
+pub fn site_verification_web_resource_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     verificationMethod: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://www.googleapis.com/siteVerification/v1/webResource",);
 
@@ -672,9 +685,12 @@ pub fn site_verification_web_resource_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `site_verification_web_resource_list_execute()` to send, or `site_verification_web_resource_list` for simplest API.
 
-pub fn site_verification_web_resource_list_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn site_verification_web_resource_list_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://www.googleapis.com/siteVerification/v1/webResource",);
 
@@ -826,10 +842,13 @@ pub fn site_verification_web_resource_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `site_verification_web_resource_patch_execute()` to send, or `site_verification_web_resource_patch` for simplest API.
 
-pub fn site_verification_web_resource_patch_builder(
-    client: &SimpleHttpClient,
+pub fn site_verification_web_resource_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     id: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/siteVerification/v1/webResource/{}",
@@ -991,10 +1010,13 @@ pub fn site_verification_web_resource_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `site_verification_web_resource_update_execute()` to send, or `site_verification_web_resource_update` for simplest API.
 
-pub fn site_verification_web_resource_update_builder(
-    client: &SimpleHttpClient,
+pub fn site_verification_web_resource_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     id: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/siteVerification/v1/webResource/{}",

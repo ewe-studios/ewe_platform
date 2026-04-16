@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securesourcemanager_projects_locations_get_execute()` to send, or `securesourcemanager_projects_locations_get` for simplest API.
 
-pub fn securesourcemanager_projects_locations_get_builder(
-    client: &SimpleHttpClient,
+pub fn securesourcemanager_projects_locations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securesourcemanager.googleapis.com/v1/projects/{}/locations/{locationsId}",
@@ -183,14 +187,17 @@ pub fn securesourcemanager_projects_locations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securesourcemanager_projects_locations_list_execute()` to send, or `securesourcemanager_projects_locations_list` for simplest API.
 
-pub fn securesourcemanager_projects_locations_list_builder(
-    client: &SimpleHttpClient,
+pub fn securesourcemanager_projects_locations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     extraLocationTypes: &Option<Option<String>>,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securesourcemanager.googleapis.com/v1/projects/{}/locations",
@@ -383,12 +390,15 @@ pub fn securesourcemanager_projects_locations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securesourcemanager_projects_locations_instances_create_execute()` to send, or `securesourcemanager_projects_locations_instances_create` for simplest API.
 
-pub fn securesourcemanager_projects_locations_instances_create_builder(
-    client: &SimpleHttpClient,
+pub fn securesourcemanager_projects_locations_instances_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     instanceId: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securesourcemanager.googleapis.com/v1/projects/{}/locations/{locationsId}/instances",
@@ -565,12 +575,15 @@ pub fn securesourcemanager_projects_locations_instances_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securesourcemanager_projects_locations_instances_delete_execute()` to send, or `securesourcemanager_projects_locations_instances_delete` for simplest API.
 
-pub fn securesourcemanager_projects_locations_instances_delete_builder(
-    client: &SimpleHttpClient,
+pub fn securesourcemanager_projects_locations_instances_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     force: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securesourcemanager.googleapis.com/v1/projects/{}/locations/{locationsId}/instances/{instancesId}",
@@ -747,10 +760,13 @@ pub fn securesourcemanager_projects_locations_instances_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securesourcemanager_projects_locations_instances_get_execute()` to send, or `securesourcemanager_projects_locations_instances_get` for simplest API.
 
-pub fn securesourcemanager_projects_locations_instances_get_builder(
-    client: &SimpleHttpClient,
+pub fn securesourcemanager_projects_locations_instances_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securesourcemanager.googleapis.com/v1/projects/{}/locations/{locationsId}/instances/{instancesId}",
@@ -904,11 +920,14 @@ pub fn securesourcemanager_projects_locations_instances_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securesourcemanager_projects_locations_instances_get_iam_policy_execute()` to send, or `securesourcemanager_projects_locations_instances_get_iam_policy` for simplest API.
 
-pub fn securesourcemanager_projects_locations_instances_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn securesourcemanager_projects_locations_instances_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securesourcemanager.googleapis.com/v1/projects/{}/locations/{locationsId}/instances/{instancesId}:getIamPolicy",
@@ -1079,14 +1098,17 @@ pub fn securesourcemanager_projects_locations_instances_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securesourcemanager_projects_locations_instances_list_execute()` to send, or `securesourcemanager_projects_locations_instances_list` for simplest API.
 
-pub fn securesourcemanager_projects_locations_instances_list_builder(
-    client: &SimpleHttpClient,
+pub fn securesourcemanager_projects_locations_instances_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securesourcemanager.googleapis.com/v1/projects/{}/locations/{locationsId}/instances",
@@ -1279,10 +1301,13 @@ pub fn securesourcemanager_projects_locations_instances_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securesourcemanager_projects_locations_instances_set_iam_policy_execute()` to send, or `securesourcemanager_projects_locations_instances_set_iam_policy` for simplest API.
 
-pub fn securesourcemanager_projects_locations_instances_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn securesourcemanager_projects_locations_instances_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securesourcemanager.googleapis.com/v1/projects/{}/locations/{locationsId}/instances/{instancesId}:setIamPolicy",
@@ -1439,10 +1464,13 @@ pub fn securesourcemanager_projects_locations_instances_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securesourcemanager_projects_locations_instances_test_iam_permissions_execute()` to send, or `securesourcemanager_projects_locations_instances_test_iam_permissions` for simplest API.
 
-pub fn securesourcemanager_projects_locations_instances_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn securesourcemanager_projects_locations_instances_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securesourcemanager.googleapis.com/v1/projects/{}/locations/{locationsId}/instances/{instancesId}:testIamPermissions",
@@ -1607,10 +1635,13 @@ pub fn securesourcemanager_projects_locations_instances_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securesourcemanager_projects_locations_operations_cancel_execute()` to send, or `securesourcemanager_projects_locations_operations_cancel` for simplest API.
 
-pub fn securesourcemanager_projects_locations_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn securesourcemanager_projects_locations_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securesourcemanager.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}:cancel",
@@ -1765,10 +1796,13 @@ pub fn securesourcemanager_projects_locations_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securesourcemanager_projects_locations_operations_delete_execute()` to send, or `securesourcemanager_projects_locations_operations_delete` for simplest API.
 
-pub fn securesourcemanager_projects_locations_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn securesourcemanager_projects_locations_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securesourcemanager.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -1923,10 +1957,13 @@ pub fn securesourcemanager_projects_locations_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securesourcemanager_projects_locations_operations_get_execute()` to send, or `securesourcemanager_projects_locations_operations_get` for simplest API.
 
-pub fn securesourcemanager_projects_locations_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn securesourcemanager_projects_locations_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securesourcemanager.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -2081,14 +2118,17 @@ pub fn securesourcemanager_projects_locations_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securesourcemanager_projects_locations_operations_list_execute()` to send, or `securesourcemanager_projects_locations_operations_list` for simplest API.
 
-pub fn securesourcemanager_projects_locations_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn securesourcemanager_projects_locations_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securesourcemanager.googleapis.com/v1/projects/{}/locations/{locationsId}/operations",
@@ -2281,11 +2321,14 @@ pub fn securesourcemanager_projects_locations_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securesourcemanager_projects_locations_repositories_create_execute()` to send, or `securesourcemanager_projects_locations_repositories_create` for simplest API.
 
-pub fn securesourcemanager_projects_locations_repositories_create_builder(
-    client: &SimpleHttpClient,
+pub fn securesourcemanager_projects_locations_repositories_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     repositoryId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securesourcemanager.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories",
@@ -2456,11 +2499,14 @@ pub fn securesourcemanager_projects_locations_repositories_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securesourcemanager_projects_locations_repositories_delete_execute()` to send, or `securesourcemanager_projects_locations_repositories_delete` for simplest API.
 
-pub fn securesourcemanager_projects_locations_repositories_delete_builder(
-    client: &SimpleHttpClient,
+pub fn securesourcemanager_projects_locations_repositories_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     allowMissing: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securesourcemanager.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}",
@@ -2631,11 +2677,14 @@ pub fn securesourcemanager_projects_locations_repositories_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securesourcemanager_projects_locations_repositories_fetch_blob_execute()` to send, or `securesourcemanager_projects_locations_repositories_fetch_blob` for simplest API.
 
-pub fn securesourcemanager_projects_locations_repositories_fetch_blob_builder(
-    client: &SimpleHttpClient,
+pub fn securesourcemanager_projects_locations_repositories_fetch_blob_builder<R>(
+    client: &SimpleHttpClient<R>,
     repository: &String,
     sha: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securesourcemanager.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}:fetchBlob",
@@ -2810,14 +2859,17 @@ pub fn securesourcemanager_projects_locations_repositories_fetch_blob(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securesourcemanager_projects_locations_repositories_fetch_tree_execute()` to send, or `securesourcemanager_projects_locations_repositories_fetch_tree` for simplest API.
 
-pub fn securesourcemanager_projects_locations_repositories_fetch_tree_builder(
-    client: &SimpleHttpClient,
+pub fn securesourcemanager_projects_locations_repositories_fetch_tree_builder<R>(
+    client: &SimpleHttpClient<R>,
     repository: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     recursive: &Option<Option<String>>,
     ref_rs: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securesourcemanager.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}:fetchTree",
@@ -3010,10 +3062,13 @@ pub fn securesourcemanager_projects_locations_repositories_fetch_tree(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securesourcemanager_projects_locations_repositories_get_execute()` to send, or `securesourcemanager_projects_locations_repositories_get` for simplest API.
 
-pub fn securesourcemanager_projects_locations_repositories_get_builder(
-    client: &SimpleHttpClient,
+pub fn securesourcemanager_projects_locations_repositories_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securesourcemanager.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}",
@@ -3168,11 +3223,14 @@ pub fn securesourcemanager_projects_locations_repositories_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securesourcemanager_projects_locations_repositories_get_iam_policy_execute()` to send, or `securesourcemanager_projects_locations_repositories_get_iam_policy` for simplest API.
 
-pub fn securesourcemanager_projects_locations_repositories_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn securesourcemanager_projects_locations_repositories_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securesourcemanager.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}:getIamPolicy",
@@ -3343,14 +3401,17 @@ pub fn securesourcemanager_projects_locations_repositories_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securesourcemanager_projects_locations_repositories_list_execute()` to send, or `securesourcemanager_projects_locations_repositories_list` for simplest API.
 
-pub fn securesourcemanager_projects_locations_repositories_list_builder(
-    client: &SimpleHttpClient,
+pub fn securesourcemanager_projects_locations_repositories_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     instance: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securesourcemanager.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories",
@@ -3543,12 +3604,15 @@ pub fn securesourcemanager_projects_locations_repositories_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securesourcemanager_projects_locations_repositories_patch_execute()` to send, or `securesourcemanager_projects_locations_repositories_patch` for simplest API.
 
-pub fn securesourcemanager_projects_locations_repositories_patch_builder(
-    client: &SimpleHttpClient,
+pub fn securesourcemanager_projects_locations_repositories_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securesourcemanager.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}",
@@ -3725,10 +3789,13 @@ pub fn securesourcemanager_projects_locations_repositories_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securesourcemanager_projects_locations_repositories_set_iam_policy_execute()` to send, or `securesourcemanager_projects_locations_repositories_set_iam_policy` for simplest API.
 
-pub fn securesourcemanager_projects_locations_repositories_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn securesourcemanager_projects_locations_repositories_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securesourcemanager.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}:setIamPolicy",
@@ -3885,10 +3952,13 @@ pub fn securesourcemanager_projects_locations_repositories_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securesourcemanager_projects_locations_repositories_test_iam_permissions_execute()` to send, or `securesourcemanager_projects_locations_repositories_test_iam_permissions` for simplest API.
 
-pub fn securesourcemanager_projects_locations_repositories_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn securesourcemanager_projects_locations_repositories_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securesourcemanager.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}:testIamPermissions",
@@ -4054,11 +4124,14 @@ pub fn securesourcemanager_projects_locations_repositories_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securesourcemanager_projects_locations_repositories_branch_rules_create_execute()` to send, or `securesourcemanager_projects_locations_repositories_branch_rules_create` for simplest API.
 
-pub fn securesourcemanager_projects_locations_repositories_branch_rules_create_builder(
-    client: &SimpleHttpClient,
+pub fn securesourcemanager_projects_locations_repositories_branch_rules_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     branchRuleId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securesourcemanager.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/branchRules",
@@ -4230,11 +4303,14 @@ pub fn securesourcemanager_projects_locations_repositories_branch_rules_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securesourcemanager_projects_locations_repositories_branch_rules_delete_execute()` to send, or `securesourcemanager_projects_locations_repositories_branch_rules_delete` for simplest API.
 
-pub fn securesourcemanager_projects_locations_repositories_branch_rules_delete_builder(
-    client: &SimpleHttpClient,
+pub fn securesourcemanager_projects_locations_repositories_branch_rules_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     allowMissing: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securesourcemanager.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/branchRules/{branchRulesId}",
@@ -4406,10 +4482,13 @@ pub fn securesourcemanager_projects_locations_repositories_branch_rules_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securesourcemanager_projects_locations_repositories_branch_rules_get_execute()` to send, or `securesourcemanager_projects_locations_repositories_branch_rules_get` for simplest API.
 
-pub fn securesourcemanager_projects_locations_repositories_branch_rules_get_builder(
-    client: &SimpleHttpClient,
+pub fn securesourcemanager_projects_locations_repositories_branch_rules_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securesourcemanager.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/branchRules/{branchRulesId}",
@@ -4565,12 +4644,15 @@ pub fn securesourcemanager_projects_locations_repositories_branch_rules_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securesourcemanager_projects_locations_repositories_branch_rules_list_execute()` to send, or `securesourcemanager_projects_locations_repositories_branch_rules_list` for simplest API.
 
-pub fn securesourcemanager_projects_locations_repositories_branch_rules_list_builder(
-    client: &SimpleHttpClient,
+pub fn securesourcemanager_projects_locations_repositories_branch_rules_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securesourcemanager.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/branchRules",
@@ -4751,12 +4833,15 @@ pub fn securesourcemanager_projects_locations_repositories_branch_rules_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securesourcemanager_projects_locations_repositories_branch_rules_patch_execute()` to send, or `securesourcemanager_projects_locations_repositories_branch_rules_patch` for simplest API.
 
-pub fn securesourcemanager_projects_locations_repositories_branch_rules_patch_builder(
-    client: &SimpleHttpClient,
+pub fn securesourcemanager_projects_locations_repositories_branch_rules_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securesourcemanager.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/branchRules/{branchRulesId}",
@@ -4934,11 +5019,14 @@ pub fn securesourcemanager_projects_locations_repositories_branch_rules_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securesourcemanager_projects_locations_repositories_hooks_create_execute()` to send, or `securesourcemanager_projects_locations_repositories_hooks_create` for simplest API.
 
-pub fn securesourcemanager_projects_locations_repositories_hooks_create_builder(
-    client: &SimpleHttpClient,
+pub fn securesourcemanager_projects_locations_repositories_hooks_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     hookId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securesourcemanager.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/hooks",
@@ -5109,10 +5197,13 @@ pub fn securesourcemanager_projects_locations_repositories_hooks_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securesourcemanager_projects_locations_repositories_hooks_delete_execute()` to send, or `securesourcemanager_projects_locations_repositories_hooks_delete` for simplest API.
 
-pub fn securesourcemanager_projects_locations_repositories_hooks_delete_builder(
-    client: &SimpleHttpClient,
+pub fn securesourcemanager_projects_locations_repositories_hooks_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securesourcemanager.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/hooks/{hooksId}",
@@ -5268,10 +5359,13 @@ pub fn securesourcemanager_projects_locations_repositories_hooks_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securesourcemanager_projects_locations_repositories_hooks_get_execute()` to send, or `securesourcemanager_projects_locations_repositories_hooks_get` for simplest API.
 
-pub fn securesourcemanager_projects_locations_repositories_hooks_get_builder(
-    client: &SimpleHttpClient,
+pub fn securesourcemanager_projects_locations_repositories_hooks_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securesourcemanager.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/hooks/{hooksId}",
@@ -5426,12 +5520,15 @@ pub fn securesourcemanager_projects_locations_repositories_hooks_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securesourcemanager_projects_locations_repositories_hooks_list_execute()` to send, or `securesourcemanager_projects_locations_repositories_hooks_list` for simplest API.
 
-pub fn securesourcemanager_projects_locations_repositories_hooks_list_builder(
-    client: &SimpleHttpClient,
+pub fn securesourcemanager_projects_locations_repositories_hooks_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securesourcemanager.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/hooks",
@@ -5612,11 +5709,14 @@ pub fn securesourcemanager_projects_locations_repositories_hooks_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securesourcemanager_projects_locations_repositories_hooks_patch_execute()` to send, or `securesourcemanager_projects_locations_repositories_hooks_patch` for simplest API.
 
-pub fn securesourcemanager_projects_locations_repositories_hooks_patch_builder(
-    client: &SimpleHttpClient,
+pub fn securesourcemanager_projects_locations_repositories_hooks_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securesourcemanager.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/hooks/{hooksId}",
@@ -5787,10 +5887,13 @@ pub fn securesourcemanager_projects_locations_repositories_hooks_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securesourcemanager_projects_locations_repositories_issues_close_execute()` to send, or `securesourcemanager_projects_locations_repositories_issues_close` for simplest API.
 
-pub fn securesourcemanager_projects_locations_repositories_issues_close_builder(
-    client: &SimpleHttpClient,
+pub fn securesourcemanager_projects_locations_repositories_issues_close_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securesourcemanager.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/issues/{issuesId}:close",
@@ -5946,10 +6049,13 @@ pub fn securesourcemanager_projects_locations_repositories_issues_close(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securesourcemanager_projects_locations_repositories_issues_create_execute()` to send, or `securesourcemanager_projects_locations_repositories_issues_create` for simplest API.
 
-pub fn securesourcemanager_projects_locations_repositories_issues_create_builder(
-    client: &SimpleHttpClient,
+pub fn securesourcemanager_projects_locations_repositories_issues_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securesourcemanager.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/issues",
@@ -6106,11 +6212,14 @@ pub fn securesourcemanager_projects_locations_repositories_issues_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securesourcemanager_projects_locations_repositories_issues_delete_execute()` to send, or `securesourcemanager_projects_locations_repositories_issues_delete` for simplest API.
 
-pub fn securesourcemanager_projects_locations_repositories_issues_delete_builder(
-    client: &SimpleHttpClient,
+pub fn securesourcemanager_projects_locations_repositories_issues_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     etag: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securesourcemanager.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/issues/{issuesId}",
@@ -6279,10 +6388,13 @@ pub fn securesourcemanager_projects_locations_repositories_issues_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securesourcemanager_projects_locations_repositories_issues_get_execute()` to send, or `securesourcemanager_projects_locations_repositories_issues_get` for simplest API.
 
-pub fn securesourcemanager_projects_locations_repositories_issues_get_builder(
-    client: &SimpleHttpClient,
+pub fn securesourcemanager_projects_locations_repositories_issues_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securesourcemanager.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/issues/{issuesId}",
@@ -6437,13 +6549,16 @@ pub fn securesourcemanager_projects_locations_repositories_issues_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securesourcemanager_projects_locations_repositories_issues_list_execute()` to send, or `securesourcemanager_projects_locations_repositories_issues_list` for simplest API.
 
-pub fn securesourcemanager_projects_locations_repositories_issues_list_builder(
-    client: &SimpleHttpClient,
+pub fn securesourcemanager_projects_locations_repositories_issues_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securesourcemanager.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/issues",
@@ -6630,10 +6745,13 @@ pub fn securesourcemanager_projects_locations_repositories_issues_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securesourcemanager_projects_locations_repositories_issues_open_execute()` to send, or `securesourcemanager_projects_locations_repositories_issues_open` for simplest API.
 
-pub fn securesourcemanager_projects_locations_repositories_issues_open_builder(
-    client: &SimpleHttpClient,
+pub fn securesourcemanager_projects_locations_repositories_issues_open_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securesourcemanager.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/issues/{issuesId}:open",
@@ -6789,11 +6907,14 @@ pub fn securesourcemanager_projects_locations_repositories_issues_open(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securesourcemanager_projects_locations_repositories_issues_patch_execute()` to send, or `securesourcemanager_projects_locations_repositories_issues_patch` for simplest API.
 
-pub fn securesourcemanager_projects_locations_repositories_issues_patch_builder(
-    client: &SimpleHttpClient,
+pub fn securesourcemanager_projects_locations_repositories_issues_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securesourcemanager.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/issues/{issuesId}",
@@ -6964,10 +7085,13 @@ pub fn securesourcemanager_projects_locations_repositories_issues_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securesourcemanager_projects_locations_repositories_issues_issue_comments_create_execute()` to send, or `securesourcemanager_projects_locations_repositories_issues_issue_comments_create` for simplest API.
 
-pub fn securesourcemanager_projects_locations_repositories_issues_issue_comments_create_builder(
-    client: &SimpleHttpClient,
+pub fn securesourcemanager_projects_locations_repositories_issues_issue_comments_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securesourcemanager.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/issues/{issuesId}/issueComments",
@@ -7130,10 +7254,13 @@ pub fn securesourcemanager_projects_locations_repositories_issues_issue_comments
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securesourcemanager_projects_locations_repositories_issues_issue_comments_delete_execute()` to send, or `securesourcemanager_projects_locations_repositories_issues_issue_comments_delete` for simplest API.
 
-pub fn securesourcemanager_projects_locations_repositories_issues_issue_comments_delete_builder(
-    client: &SimpleHttpClient,
+pub fn securesourcemanager_projects_locations_repositories_issues_issue_comments_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securesourcemanager.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/issues/{issuesId}/issueComments/{issueCommentsId}",
@@ -7295,10 +7422,13 @@ pub fn securesourcemanager_projects_locations_repositories_issues_issue_comments
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securesourcemanager_projects_locations_repositories_issues_issue_comments_get_execute()` to send, or `securesourcemanager_projects_locations_repositories_issues_issue_comments_get` for simplest API.
 
-pub fn securesourcemanager_projects_locations_repositories_issues_issue_comments_get_builder(
-    client: &SimpleHttpClient,
+pub fn securesourcemanager_projects_locations_repositories_issues_issue_comments_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securesourcemanager.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/issues/{issuesId}/issueComments/{issueCommentsId}",
@@ -7461,12 +7591,15 @@ pub fn securesourcemanager_projects_locations_repositories_issues_issue_comments
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securesourcemanager_projects_locations_repositories_issues_issue_comments_list_execute()` to send, or `securesourcemanager_projects_locations_repositories_issues_issue_comments_list` for simplest API.
 
-pub fn securesourcemanager_projects_locations_repositories_issues_issue_comments_list_builder(
-    client: &SimpleHttpClient,
+pub fn securesourcemanager_projects_locations_repositories_issues_issue_comments_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securesourcemanager.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/issues/{issuesId}/issueComments",
@@ -7650,11 +7783,14 @@ pub fn securesourcemanager_projects_locations_repositories_issues_issue_comments
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securesourcemanager_projects_locations_repositories_issues_issue_comments_patch_execute()` to send, or `securesourcemanager_projects_locations_repositories_issues_issue_comments_patch` for simplest API.
 
-pub fn securesourcemanager_projects_locations_repositories_issues_issue_comments_patch_builder(
-    client: &SimpleHttpClient,
+pub fn securesourcemanager_projects_locations_repositories_issues_issue_comments_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securesourcemanager.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/issues/{issuesId}/issueComments/{issueCommentsId}",
@@ -7829,10 +7965,13 @@ pub fn securesourcemanager_projects_locations_repositories_issues_issue_comments
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securesourcemanager_projects_locations_repositories_pull_requests_close_execute()` to send, or `securesourcemanager_projects_locations_repositories_pull_requests_close` for simplest API.
 
-pub fn securesourcemanager_projects_locations_repositories_pull_requests_close_builder(
-    client: &SimpleHttpClient,
+pub fn securesourcemanager_projects_locations_repositories_pull_requests_close_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securesourcemanager.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/pullRequests/{pullRequestsId}:close",
@@ -7989,10 +8128,13 @@ pub fn securesourcemanager_projects_locations_repositories_pull_requests_close(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securesourcemanager_projects_locations_repositories_pull_requests_create_execute()` to send, or `securesourcemanager_projects_locations_repositories_pull_requests_create` for simplest API.
 
-pub fn securesourcemanager_projects_locations_repositories_pull_requests_create_builder(
-    client: &SimpleHttpClient,
+pub fn securesourcemanager_projects_locations_repositories_pull_requests_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securesourcemanager.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/pullRequests",
@@ -8150,10 +8292,13 @@ pub fn securesourcemanager_projects_locations_repositories_pull_requests_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securesourcemanager_projects_locations_repositories_pull_requests_get_execute()` to send, or `securesourcemanager_projects_locations_repositories_pull_requests_get` for simplest API.
 
-pub fn securesourcemanager_projects_locations_repositories_pull_requests_get_builder(
-    client: &SimpleHttpClient,
+pub fn securesourcemanager_projects_locations_repositories_pull_requests_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securesourcemanager.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/pullRequests/{pullRequestsId}",
@@ -8309,12 +8454,15 @@ pub fn securesourcemanager_projects_locations_repositories_pull_requests_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securesourcemanager_projects_locations_repositories_pull_requests_list_execute()` to send, or `securesourcemanager_projects_locations_repositories_pull_requests_list` for simplest API.
 
-pub fn securesourcemanager_projects_locations_repositories_pull_requests_list_builder(
-    client: &SimpleHttpClient,
+pub fn securesourcemanager_projects_locations_repositories_pull_requests_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securesourcemanager.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/pullRequests",
@@ -8496,12 +8644,17 @@ pub fn securesourcemanager_projects_locations_repositories_pull_requests_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securesourcemanager_projects_locations_repositories_pull_requests_list_file_diffs_execute()` to send, or `securesourcemanager_projects_locations_repositories_pull_requests_list_file_diffs` for simplest API.
 
-pub fn securesourcemanager_projects_locations_repositories_pull_requests_list_file_diffs_builder(
-    client: &SimpleHttpClient,
+pub fn securesourcemanager_projects_locations_repositories_pull_requests_list_file_diffs_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securesourcemanager.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/pullRequests/{pullRequestsId}:listFileDiffs",
@@ -8692,10 +8845,13 @@ pub fn securesourcemanager_projects_locations_repositories_pull_requests_list_fi
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securesourcemanager_projects_locations_repositories_pull_requests_merge_execute()` to send, or `securesourcemanager_projects_locations_repositories_pull_requests_merge` for simplest API.
 
-pub fn securesourcemanager_projects_locations_repositories_pull_requests_merge_builder(
-    client: &SimpleHttpClient,
+pub fn securesourcemanager_projects_locations_repositories_pull_requests_merge_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securesourcemanager.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/pullRequests/{pullRequestsId}:merge",
@@ -8852,10 +9008,13 @@ pub fn securesourcemanager_projects_locations_repositories_pull_requests_merge(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securesourcemanager_projects_locations_repositories_pull_requests_open_execute()` to send, or `securesourcemanager_projects_locations_repositories_pull_requests_open` for simplest API.
 
-pub fn securesourcemanager_projects_locations_repositories_pull_requests_open_builder(
-    client: &SimpleHttpClient,
+pub fn securesourcemanager_projects_locations_repositories_pull_requests_open_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securesourcemanager.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/pullRequests/{pullRequestsId}:open",
@@ -9012,11 +9171,14 @@ pub fn securesourcemanager_projects_locations_repositories_pull_requests_open(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securesourcemanager_projects_locations_repositories_pull_requests_patch_execute()` to send, or `securesourcemanager_projects_locations_repositories_pull_requests_patch` for simplest API.
 
-pub fn securesourcemanager_projects_locations_repositories_pull_requests_patch_builder(
-    client: &SimpleHttpClient,
+pub fn securesourcemanager_projects_locations_repositories_pull_requests_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securesourcemanager.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/pullRequests/{pullRequestsId}",
@@ -9188,10 +9350,15 @@ pub fn securesourcemanager_projects_locations_repositories_pull_requests_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securesourcemanager_projects_locations_repositories_pull_requests_pull_request_comments_batch_create_execute()` to send, or `securesourcemanager_projects_locations_repositories_pull_requests_pull_request_comments_batch_create` for simplest API.
 
-pub fn securesourcemanager_projects_locations_repositories_pull_requests_pull_request_comments_batch_create_builder(
-    client: &SimpleHttpClient,
+pub fn securesourcemanager_projects_locations_repositories_pull_requests_pull_request_comments_batch_create_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securesourcemanager.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/pullRequests/{pullRequestsId}/pullRequestComments:batchCreate",
@@ -9346,10 +9513,15 @@ pub fn securesourcemanager_projects_locations_repositories_pull_requests_pull_re
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securesourcemanager_projects_locations_repositories_pull_requests_pull_request_comments_create_execute()` to send, or `securesourcemanager_projects_locations_repositories_pull_requests_pull_request_comments_create` for simplest API.
 
-pub fn securesourcemanager_projects_locations_repositories_pull_requests_pull_request_comments_create_builder(
-    client: &SimpleHttpClient,
+pub fn securesourcemanager_projects_locations_repositories_pull_requests_pull_request_comments_create_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securesourcemanager.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/pullRequests/{pullRequestsId}/pullRequestComments",
@@ -9504,10 +9676,15 @@ pub fn securesourcemanager_projects_locations_repositories_pull_requests_pull_re
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securesourcemanager_projects_locations_repositories_pull_requests_pull_request_comments_delete_execute()` to send, or `securesourcemanager_projects_locations_repositories_pull_requests_pull_request_comments_delete` for simplest API.
 
-pub fn securesourcemanager_projects_locations_repositories_pull_requests_pull_request_comments_delete_builder(
-    client: &SimpleHttpClient,
+pub fn securesourcemanager_projects_locations_repositories_pull_requests_pull_request_comments_delete_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securesourcemanager.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/pullRequests/{pullRequestsId}/pullRequestComments/{pullRequestCommentsId}",
@@ -9662,10 +9839,15 @@ pub fn securesourcemanager_projects_locations_repositories_pull_requests_pull_re
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securesourcemanager_projects_locations_repositories_pull_requests_pull_request_comments_get_execute()` to send, or `securesourcemanager_projects_locations_repositories_pull_requests_pull_request_comments_get` for simplest API.
 
-pub fn securesourcemanager_projects_locations_repositories_pull_requests_pull_request_comments_get_builder(
-    client: &SimpleHttpClient,
+pub fn securesourcemanager_projects_locations_repositories_pull_requests_pull_request_comments_get_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securesourcemanager.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/pullRequests/{pullRequestsId}/pullRequestComments/{pullRequestCommentsId}",
@@ -9823,12 +10005,17 @@ pub fn securesourcemanager_projects_locations_repositories_pull_requests_pull_re
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securesourcemanager_projects_locations_repositories_pull_requests_pull_request_comments_list_execute()` to send, or `securesourcemanager_projects_locations_repositories_pull_requests_pull_request_comments_list` for simplest API.
 
-pub fn securesourcemanager_projects_locations_repositories_pull_requests_pull_request_comments_list_builder(
-    client: &SimpleHttpClient,
+pub fn securesourcemanager_projects_locations_repositories_pull_requests_pull_request_comments_list_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securesourcemanager.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/pullRequests/{pullRequestsId}/pullRequestComments",
@@ -10008,11 +10195,16 @@ pub fn securesourcemanager_projects_locations_repositories_pull_requests_pull_re
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securesourcemanager_projects_locations_repositories_pull_requests_pull_request_comments_patch_execute()` to send, or `securesourcemanager_projects_locations_repositories_pull_requests_pull_request_comments_patch` for simplest API.
 
-pub fn securesourcemanager_projects_locations_repositories_pull_requests_pull_request_comments_patch_builder(
-    client: &SimpleHttpClient,
+pub fn securesourcemanager_projects_locations_repositories_pull_requests_pull_request_comments_patch_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securesourcemanager.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/pullRequests/{pullRequestsId}/pullRequestComments/{pullRequestCommentsId}",
@@ -10180,10 +10372,15 @@ pub fn securesourcemanager_projects_locations_repositories_pull_requests_pull_re
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securesourcemanager_projects_locations_repositories_pull_requests_pull_request_comments_resolve_execute()` to send, or `securesourcemanager_projects_locations_repositories_pull_requests_pull_request_comments_resolve` for simplest API.
 
-pub fn securesourcemanager_projects_locations_repositories_pull_requests_pull_request_comments_resolve_builder(
-    client: &SimpleHttpClient,
+pub fn securesourcemanager_projects_locations_repositories_pull_requests_pull_request_comments_resolve_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securesourcemanager.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/pullRequests/{pullRequestsId}/pullRequestComments:resolve",
@@ -10338,10 +10535,15 @@ pub fn securesourcemanager_projects_locations_repositories_pull_requests_pull_re
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securesourcemanager_projects_locations_repositories_pull_requests_pull_request_comments_unresolve_execute()` to send, or `securesourcemanager_projects_locations_repositories_pull_requests_pull_request_comments_unresolve` for simplest API.
 
-pub fn securesourcemanager_projects_locations_repositories_pull_requests_pull_request_comments_unresolve_builder(
-    client: &SimpleHttpClient,
+pub fn securesourcemanager_projects_locations_repositories_pull_requests_pull_request_comments_unresolve_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securesourcemanager.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/pullRequests/{pullRequestsId}/pullRequestComments:unresolve",

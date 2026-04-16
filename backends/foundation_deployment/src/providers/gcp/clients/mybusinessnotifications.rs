@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `mybusinessnotifications_accounts_get_notification_setting_execute()` to send, or `mybusinessnotifications_accounts_get_notification_setting` for simplest API.
 
-pub fn mybusinessnotifications_accounts_get_notification_setting_builder(
-    client: &SimpleHttpClient,
+pub fn mybusinessnotifications_accounts_get_notification_setting_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://mybusinessnotifications.googleapis.com/v1/accounts/{}/notificationSetting",
@@ -188,11 +192,14 @@ pub fn mybusinessnotifications_accounts_get_notification_setting(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `mybusinessnotifications_accounts_update_notification_setting_execute()` to send, or `mybusinessnotifications_accounts_update_notification_setting` for simplest API.
 
-pub fn mybusinessnotifications_accounts_update_notification_setting_builder(
-    client: &SimpleHttpClient,
+pub fn mybusinessnotifications_accounts_update_notification_setting_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://mybusinessnotifications.googleapis.com/v1/accounts/{}/notificationSetting",

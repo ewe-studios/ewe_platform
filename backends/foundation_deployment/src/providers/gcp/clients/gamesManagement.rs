@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `games_management_achievements_reset_execute()` to send, or `games_management_achievements_reset` for simplest API.
 
-pub fn games_management_achievements_reset_builder(
-    client: &SimpleHttpClient,
+pub fn games_management_achievements_reset_builder<R>(
+    client: &SimpleHttpClient<R>,
     achievementId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gamesmanagement.googleapis.com/games/v1management/achievements/{}/reset",
@@ -187,9 +191,12 @@ pub fn games_management_achievements_reset(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `games_management_achievements_reset_all_execute()` to send, or `games_management_achievements_reset_all` for simplest API.
 
-pub fn games_management_achievements_reset_all_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn games_management_achievements_reset_all_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://gamesmanagement.googleapis.com/games/v1management/achievements/reset",);
@@ -341,9 +348,12 @@ pub fn games_management_achievements_reset_all(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `games_management_achievements_reset_all_for_all_players_execute()` to send, or `games_management_achievements_reset_all_for_all_players` for simplest API.
 
-pub fn games_management_achievements_reset_all_for_all_players_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn games_management_achievements_reset_all_for_all_players_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gamesmanagement.googleapis.com/games/v1management/achievements/resetAllForAllPlayers",
@@ -485,10 +495,13 @@ pub fn games_management_achievements_reset_all_for_all_players(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `games_management_achievements_reset_for_all_players_execute()` to send, or `games_management_achievements_reset_for_all_players` for simplest API.
 
-pub fn games_management_achievements_reset_for_all_players_builder(
-    client: &SimpleHttpClient,
+pub fn games_management_achievements_reset_for_all_players_builder<R>(
+    client: &SimpleHttpClient<R>,
     achievementId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gamesmanagement.googleapis.com/games/v1management/achievements/{}/resetForAllPlayers",
@@ -640,9 +653,12 @@ pub fn games_management_achievements_reset_for_all_players(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `games_management_achievements_reset_multiple_for_all_players_execute()` to send, or `games_management_achievements_reset_multiple_for_all_players` for simplest API.
 
-pub fn games_management_achievements_reset_multiple_for_all_players_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn games_management_achievements_reset_multiple_for_all_players_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gamesmanagement.googleapis.com/games/v1management/achievements/resetMultipleForAllPlayers",
@@ -784,12 +800,15 @@ pub fn games_management_achievements_reset_multiple_for_all_players(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `games_management_applications_list_hidden_execute()` to send, or `games_management_applications_list_hidden` for simplest API.
 
-pub fn games_management_applications_list_hidden_builder(
-    client: &SimpleHttpClient,
+pub fn games_management_applications_list_hidden_builder<R>(
+    client: &SimpleHttpClient<R>,
     applicationId: &String,
     maxResults: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gamesmanagement.googleapis.com/games/v1management/applications/{}/players/hidden",
@@ -970,10 +989,13 @@ pub fn games_management_applications_list_hidden(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `games_management_events_reset_execute()` to send, or `games_management_events_reset` for simplest API.
 
-pub fn games_management_events_reset_builder(
-    client: &SimpleHttpClient,
+pub fn games_management_events_reset_builder<R>(
+    client: &SimpleHttpClient<R>,
     eventId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gamesmanagement.googleapis.com/games/v1management/events/{}/reset",
@@ -1124,9 +1146,12 @@ pub fn games_management_events_reset(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `games_management_events_reset_all_execute()` to send, or `games_management_events_reset_all` for simplest API.
 
-pub fn games_management_events_reset_all_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn games_management_events_reset_all_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://gamesmanagement.googleapis.com/games/v1management/events/reset",);
@@ -1267,9 +1292,12 @@ pub fn games_management_events_reset_all(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `games_management_events_reset_all_for_all_players_execute()` to send, or `games_management_events_reset_all_for_all_players` for simplest API.
 
-pub fn games_management_events_reset_all_for_all_players_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn games_management_events_reset_all_for_all_players_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gamesmanagement.googleapis.com/games/v1management/events/resetAllForAllPlayers",
@@ -1411,10 +1439,13 @@ pub fn games_management_events_reset_all_for_all_players(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `games_management_events_reset_for_all_players_execute()` to send, or `games_management_events_reset_for_all_players` for simplest API.
 
-pub fn games_management_events_reset_for_all_players_builder(
-    client: &SimpleHttpClient,
+pub fn games_management_events_reset_for_all_players_builder<R>(
+    client: &SimpleHttpClient<R>,
     eventId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gamesmanagement.googleapis.com/games/v1management/events/{}/resetForAllPlayers",
@@ -1565,9 +1596,12 @@ pub fn games_management_events_reset_for_all_players(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `games_management_events_reset_multiple_for_all_players_execute()` to send, or `games_management_events_reset_multiple_for_all_players` for simplest API.
 
-pub fn games_management_events_reset_multiple_for_all_players_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn games_management_events_reset_multiple_for_all_players_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gamesmanagement.googleapis.com/games/v1management/events/resetMultipleForAllPlayers",
@@ -1709,11 +1743,14 @@ pub fn games_management_events_reset_multiple_for_all_players(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `games_management_players_hide_execute()` to send, or `games_management_players_hide` for simplest API.
 
-pub fn games_management_players_hide_builder(
-    client: &SimpleHttpClient,
+pub fn games_management_players_hide_builder<R>(
+    client: &SimpleHttpClient<R>,
     applicationId: &String,
     playerId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gamesmanagement.googleapis.com/games/v1management/applications/{}/players/hidden/{}",
@@ -1868,11 +1905,14 @@ pub fn games_management_players_hide(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `games_management_players_unhide_execute()` to send, or `games_management_players_unhide` for simplest API.
 
-pub fn games_management_players_unhide_builder(
-    client: &SimpleHttpClient,
+pub fn games_management_players_unhide_builder<R>(
+    client: &SimpleHttpClient<R>,
     applicationId: &String,
     playerId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gamesmanagement.googleapis.com/games/v1management/applications/{}/players/hidden/{}",
@@ -2027,10 +2067,13 @@ pub fn games_management_players_unhide(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `games_management_scores_reset_execute()` to send, or `games_management_scores_reset` for simplest API.
 
-pub fn games_management_scores_reset_builder(
-    client: &SimpleHttpClient,
+pub fn games_management_scores_reset_builder<R>(
+    client: &SimpleHttpClient<R>,
     leaderboardId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gamesmanagement.googleapis.com/games/v1management/leaderboards/{}/scores/reset",
@@ -2188,9 +2231,12 @@ pub fn games_management_scores_reset(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `games_management_scores_reset_all_execute()` to send, or `games_management_scores_reset_all` for simplest API.
 
-pub fn games_management_scores_reset_all_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn games_management_scores_reset_all_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://gamesmanagement.googleapis.com/games/v1management/scores/reset",);
@@ -2342,9 +2388,12 @@ pub fn games_management_scores_reset_all(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `games_management_scores_reset_all_for_all_players_execute()` to send, or `games_management_scores_reset_all_for_all_players` for simplest API.
 
-pub fn games_management_scores_reset_all_for_all_players_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn games_management_scores_reset_all_for_all_players_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gamesmanagement.googleapis.com/games/v1management/scores/resetAllForAllPlayers",
@@ -2486,10 +2535,13 @@ pub fn games_management_scores_reset_all_for_all_players(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `games_management_scores_reset_for_all_players_execute()` to send, or `games_management_scores_reset_for_all_players` for simplest API.
 
-pub fn games_management_scores_reset_for_all_players_builder(
-    client: &SimpleHttpClient,
+pub fn games_management_scores_reset_for_all_players_builder<R>(
+    client: &SimpleHttpClient<R>,
     leaderboardId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gamesmanagement.googleapis.com/games/v1management/leaderboards/{}/scores/resetForAllPlayers",
@@ -2641,9 +2693,12 @@ pub fn games_management_scores_reset_for_all_players(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `games_management_scores_reset_multiple_for_all_players_execute()` to send, or `games_management_scores_reset_multiple_for_all_players` for simplest API.
 
-pub fn games_management_scores_reset_multiple_for_all_players_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn games_management_scores_reset_multiple_for_all_players_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gamesmanagement.googleapis.com/games/v1management/scores/resetMultipleForAllPlayers",

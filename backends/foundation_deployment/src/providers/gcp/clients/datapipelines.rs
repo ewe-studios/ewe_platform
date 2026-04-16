@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datapipelines_projects_locations_pipelines_create_execute()` to send, or `datapipelines_projects_locations_pipelines_create` for simplest API.
 
-pub fn datapipelines_projects_locations_pipelines_create_builder(
-    client: &SimpleHttpClient,
+pub fn datapipelines_projects_locations_pipelines_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datapipelines.googleapis.com/v1/projects/{}/locations/{locationsId}/pipelines",
@@ -191,10 +195,13 @@ pub fn datapipelines_projects_locations_pipelines_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datapipelines_projects_locations_pipelines_delete_execute()` to send, or `datapipelines_projects_locations_pipelines_delete` for simplest API.
 
-pub fn datapipelines_projects_locations_pipelines_delete_builder(
-    client: &SimpleHttpClient,
+pub fn datapipelines_projects_locations_pipelines_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datapipelines.googleapis.com/v1/projects/{}/locations/{locationsId}/pipelines/{pipelinesId}",
@@ -352,10 +359,13 @@ pub fn datapipelines_projects_locations_pipelines_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datapipelines_projects_locations_pipelines_get_execute()` to send, or `datapipelines_projects_locations_pipelines_get` for simplest API.
 
-pub fn datapipelines_projects_locations_pipelines_get_builder(
-    client: &SimpleHttpClient,
+pub fn datapipelines_projects_locations_pipelines_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datapipelines.googleapis.com/v1/projects/{}/locations/{locationsId}/pipelines/{pipelinesId}",
@@ -517,13 +527,16 @@ pub fn datapipelines_projects_locations_pipelines_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datapipelines_projects_locations_pipelines_list_execute()` to send, or `datapipelines_projects_locations_pipelines_list` for simplest API.
 
-pub fn datapipelines_projects_locations_pipelines_list_builder(
-    client: &SimpleHttpClient,
+pub fn datapipelines_projects_locations_pipelines_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datapipelines.googleapis.com/v1/projects/{}/locations/{locationsId}/pipelines",
@@ -715,11 +728,14 @@ pub fn datapipelines_projects_locations_pipelines_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datapipelines_projects_locations_pipelines_patch_execute()` to send, or `datapipelines_projects_locations_pipelines_patch` for simplest API.
 
-pub fn datapipelines_projects_locations_pipelines_patch_builder(
-    client: &SimpleHttpClient,
+pub fn datapipelines_projects_locations_pipelines_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datapipelines.googleapis.com/v1/projects/{}/locations/{locationsId}/pipelines/{pipelinesId}",
@@ -898,10 +914,13 @@ pub fn datapipelines_projects_locations_pipelines_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datapipelines_projects_locations_pipelines_run_execute()` to send, or `datapipelines_projects_locations_pipelines_run` for simplest API.
 
-pub fn datapipelines_projects_locations_pipelines_run_builder(
-    client: &SimpleHttpClient,
+pub fn datapipelines_projects_locations_pipelines_run_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datapipelines.googleapis.com/v1/projects/{}/locations/{locationsId}/pipelines/{pipelinesId}:run",
@@ -1064,10 +1083,13 @@ pub fn datapipelines_projects_locations_pipelines_run(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datapipelines_projects_locations_pipelines_stop_execute()` to send, or `datapipelines_projects_locations_pipelines_stop` for simplest API.
 
-pub fn datapipelines_projects_locations_pipelines_stop_builder(
-    client: &SimpleHttpClient,
+pub fn datapipelines_projects_locations_pipelines_stop_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datapipelines.googleapis.com/v1/projects/{}/locations/{locationsId}/pipelines/{pipelinesId}:stop",
@@ -1229,12 +1251,15 @@ pub fn datapipelines_projects_locations_pipelines_stop(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datapipelines_projects_locations_pipelines_jobs_list_execute()` to send, or `datapipelines_projects_locations_pipelines_jobs_list` for simplest API.
 
-pub fn datapipelines_projects_locations_pipelines_jobs_list_builder(
-    client: &SimpleHttpClient,
+pub fn datapipelines_projects_locations_pipelines_jobs_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datapipelines.googleapis.com/v1/projects/{}/locations/{locationsId}/pipelines/{pipelinesId}/jobs",

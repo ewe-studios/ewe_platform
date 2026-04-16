@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,14 +27,17 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `kmsinventory_organizations_protected_resources_search_execute()` to send, or `kmsinventory_organizations_protected_resources_search` for simplest API.
 
-pub fn kmsinventory_organizations_protected_resources_search_builder(
-    client: &SimpleHttpClient,
+pub fn kmsinventory_organizations_protected_resources_search_builder<R>(
+    client: &SimpleHttpClient<R>,
     scope: &String,
     cryptoKey: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     resourceTypes: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://kmsinventory.googleapis.com/v1/organizations/{}/protectedResources:search",
@@ -240,12 +244,15 @@ pub fn kmsinventory_organizations_protected_resources_search(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `kmsinventory_projects_crypto_keys_list_execute()` to send, or `kmsinventory_projects_crypto_keys_list` for simplest API.
 
-pub fn kmsinventory_projects_crypto_keys_list_builder(
-    client: &SimpleHttpClient,
+pub fn kmsinventory_projects_crypto_keys_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://kmsinventory.googleapis.com/v1/projects/{}/cryptoKeys",
@@ -431,11 +438,16 @@ pub fn kmsinventory_projects_crypto_keys_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `kmsinventory_projects_locations_key_rings_crypto_keys_get_protected_resources_summary_execute()` to send, or `kmsinventory_projects_locations_key_rings_crypto_keys_get_protected_resources_summary` for simplest API.
 
-pub fn kmsinventory_projects_locations_key_rings_crypto_keys_get_protected_resources_summary_builder(
-    client: &SimpleHttpClient,
+pub fn kmsinventory_projects_locations_key_rings_crypto_keys_get_protected_resources_summary_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     fallbackScope: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://kmsinventory.googleapis.com/v1/projects/{}/locations/{locationsId}/keyRings/{keyRingsId}/cryptoKeys/{cryptoKeysId}/protectedResourcesSummary",
@@ -619,14 +631,17 @@ pub fn kmsinventory_projects_locations_key_rings_crypto_keys_get_protected_resou
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `kmsinventory_projects_protected_resources_search_execute()` to send, or `kmsinventory_projects_protected_resources_search` for simplest API.
 
-pub fn kmsinventory_projects_protected_resources_search_builder(
-    client: &SimpleHttpClient,
+pub fn kmsinventory_projects_protected_resources_search_builder<R>(
+    client: &SimpleHttpClient<R>,
     scope: &String,
     cryptoKey: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     resourceTypes: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://kmsinventory.googleapis.com/v1/projects/{}/protectedResources:search",

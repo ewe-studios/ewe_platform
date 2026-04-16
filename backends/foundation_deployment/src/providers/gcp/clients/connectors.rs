@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `connectors_projects_locations_connections_check_readiness_execute()` to send, or `connectors_projects_locations_connections_check_readiness` for simplest API.
 
-pub fn connectors_projects_locations_connections_check_readiness_builder(
-    client: &SimpleHttpClient,
+pub fn connectors_projects_locations_connections_check_readiness_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://connectors.googleapis.com/v2/projects/{}/locations/{locationsId}/connections/{connectionsId}:checkReadiness",
@@ -188,11 +192,14 @@ pub fn connectors_projects_locations_connections_check_readiness(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `connectors_projects_locations_connections_check_status_execute()` to send, or `connectors_projects_locations_connections_check_status` for simplest API.
 
-pub fn connectors_projects_locations_connections_check_status_builder(
-    client: &SimpleHttpClient,
+pub fn connectors_projects_locations_connections_check_status_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     executionConfig_headers: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://connectors.googleapis.com/v2/projects/{}/locations/{locationsId}/connections/{connectionsId}:checkStatus",
@@ -367,10 +374,13 @@ pub fn connectors_projects_locations_connections_check_status(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `connectors_projects_locations_connections_exchange_auth_code_execute()` to send, or `connectors_projects_locations_connections_exchange_auth_code` for simplest API.
 
-pub fn connectors_projects_locations_connections_exchange_auth_code_builder(
-    client: &SimpleHttpClient,
+pub fn connectors_projects_locations_connections_exchange_auth_code_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://connectors.googleapis.com/v2/projects/{}/locations/{locationsId}/connections/{connectionsId}:exchangeAuthCode",
@@ -529,10 +539,13 @@ pub fn connectors_projects_locations_connections_exchange_auth_code(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `connectors_projects_locations_connections_execute_sql_query_execute()` to send, or `connectors_projects_locations_connections_execute_sql_query` for simplest API.
 
-pub fn connectors_projects_locations_connections_execute_sql_query_builder(
-    client: &SimpleHttpClient,
+pub fn connectors_projects_locations_connections_execute_sql_query_builder<R>(
+    client: &SimpleHttpClient<R>,
     connection: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://connectors.googleapis.com/v2/projects/{}/locations/{locationsId}/connections/{connectionsId}:executeSqlQuery",
@@ -693,10 +706,13 @@ pub fn connectors_projects_locations_connections_execute_sql_query(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `connectors_projects_locations_connections_generate_connection_toolspec_override_execute()` to send, or `connectors_projects_locations_connections_generate_connection_toolspec_override` for simplest API.
 
-pub fn connectors_projects_locations_connections_generate_connection_toolspec_override_builder(
-    client: &SimpleHttpClient,
+pub fn connectors_projects_locations_connections_generate_connection_toolspec_override_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://connectors.googleapis.com/v2/projects/{}/locations/{locationsId}/connections/{connectionsId}:generateConnectionToolspecOverride",
@@ -864,10 +880,13 @@ pub fn connectors_projects_locations_connections_generate_connection_toolspec_ov
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `connectors_projects_locations_connections_list_custom_tool_names_execute()` to send, or `connectors_projects_locations_connections_list_custom_tool_names` for simplest API.
 
-pub fn connectors_projects_locations_connections_list_custom_tool_names_builder(
-    client: &SimpleHttpClient,
+pub fn connectors_projects_locations_connections_list_custom_tool_names_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://connectors.googleapis.com/v2/projects/{}/locations/{locationsId}/connections/{connectionsId}:listCustomToolNames",
@@ -1031,10 +1050,13 @@ pub fn connectors_projects_locations_connections_list_custom_tool_names(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `connectors_projects_locations_connections_refresh_access_token_execute()` to send, or `connectors_projects_locations_connections_refresh_access_token` for simplest API.
 
-pub fn connectors_projects_locations_connections_refresh_access_token_builder(
-    client: &SimpleHttpClient,
+pub fn connectors_projects_locations_connections_refresh_access_token_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://connectors.googleapis.com/v2/projects/{}/locations/{locationsId}/connections/{connectionsId}:refreshAccessToken",
@@ -1197,10 +1219,13 @@ pub fn connectors_projects_locations_connections_refresh_access_token(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `connectors_projects_locations_connections_tools_execute()` to send, or `connectors_projects_locations_connections_tools` for simplest API.
 
-pub fn connectors_projects_locations_connections_tools_builder(
-    client: &SimpleHttpClient,
+pub fn connectors_projects_locations_connections_tools_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://connectors.googleapis.com/v2/projects/{}/locations/{locationsId}/connections/{connectionsId}/tools",
@@ -1358,10 +1383,13 @@ pub fn connectors_projects_locations_connections_tools(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `connectors_projects_locations_connections_actions_execute_execute()` to send, or `connectors_projects_locations_connections_actions_execute` for simplest API.
 
-pub fn connectors_projects_locations_connections_actions_execute_builder(
-    client: &SimpleHttpClient,
+pub fn connectors_projects_locations_connections_actions_execute_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://connectors.googleapis.com/v2/projects/{}/locations/{locationsId}/connections/{connectionsId}/actions/{actionsId}:execute",
@@ -1520,12 +1548,15 @@ pub fn connectors_projects_locations_connections_actions_execute(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `connectors_projects_locations_connections_actions_get_execute()` to send, or `connectors_projects_locations_connections_actions_get` for simplest API.
 
-pub fn connectors_projects_locations_connections_actions_get_builder(
-    client: &SimpleHttpClient,
+pub fn connectors_projects_locations_connections_actions_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     executionConfig_headers: &Option<Option<String>>,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://connectors.googleapis.com/v2/projects/{}/locations/{locationsId}/connections/{connectionsId}/actions/{actionsId}",
@@ -1702,14 +1733,17 @@ pub fn connectors_projects_locations_connections_actions_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `connectors_projects_locations_connections_actions_list_execute()` to send, or `connectors_projects_locations_connections_actions_list` for simplest API.
 
-pub fn connectors_projects_locations_connections_actions_list_builder(
-    client: &SimpleHttpClient,
+pub fn connectors_projects_locations_connections_actions_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     executionConfig_headers: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://connectors.googleapis.com/v2/projects/{}/locations/{locationsId}/connections/{connectionsId}/actions",
@@ -1902,13 +1936,16 @@ pub fn connectors_projects_locations_connections_actions_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `connectors_projects_locations_connections_entity_types_get_execute()` to send, or `connectors_projects_locations_connections_entity_types_get` for simplest API.
 
-pub fn connectors_projects_locations_connections_entity_types_get_builder(
-    client: &SimpleHttpClient,
+pub fn connectors_projects_locations_connections_entity_types_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     contextMetadata: &Option<Option<String>>,
     executionConfig_headers: &Option<Option<String>>,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://connectors.googleapis.com/v2/projects/{}/locations/{locationsId}/connections/{connectionsId}/entityTypes/{entityTypesId}",
@@ -2091,14 +2128,17 @@ pub fn connectors_projects_locations_connections_entity_types_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `connectors_projects_locations_connections_entity_types_list_execute()` to send, or `connectors_projects_locations_connections_entity_types_list` for simplest API.
 
-pub fn connectors_projects_locations_connections_entity_types_list_builder(
-    client: &SimpleHttpClient,
+pub fn connectors_projects_locations_connections_entity_types_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     executionConfig_headers: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://connectors.googleapis.com/v2/projects/{}/locations/{locationsId}/connections/{connectionsId}/entityTypes",
@@ -2291,11 +2331,14 @@ pub fn connectors_projects_locations_connections_entity_types_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `connectors_projects_locations_connections_entity_types_entities_create_execute()` to send, or `connectors_projects_locations_connections_entity_types_entities_create` for simplest API.
 
-pub fn connectors_projects_locations_connections_entity_types_entities_create_builder(
-    client: &SimpleHttpClient,
+pub fn connectors_projects_locations_connections_entity_types_entities_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     executionConfig_headers: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://connectors.googleapis.com/v2/projects/{}/locations/{locationsId}/connections/{connectionsId}/entityTypes/{entityTypesId}/entities",
@@ -2467,11 +2510,14 @@ pub fn connectors_projects_locations_connections_entity_types_entities_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `connectors_projects_locations_connections_entity_types_entities_delete_execute()` to send, or `connectors_projects_locations_connections_entity_types_entities_delete` for simplest API.
 
-pub fn connectors_projects_locations_connections_entity_types_entities_delete_builder(
-    client: &SimpleHttpClient,
+pub fn connectors_projects_locations_connections_entity_types_entities_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     executionConfig_headers: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://connectors.googleapis.com/v2/projects/{}/locations/{locationsId}/connections/{connectionsId}/entityTypes/{entityTypesId}/entities/{entitiesId}",
@@ -2643,12 +2689,17 @@ pub fn connectors_projects_locations_connections_entity_types_entities_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `connectors_projects_locations_connections_entity_types_entities_delete_entities_with_conditions_execute()` to send, or `connectors_projects_locations_connections_entity_types_entities_delete_entities_with_conditions` for simplest API.
 
-pub fn connectors_projects_locations_connections_entity_types_entities_delete_entities_with_conditions_builder(
-    client: &SimpleHttpClient,
+pub fn connectors_projects_locations_connections_entity_types_entities_delete_entities_with_conditions_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     entityType: &String,
     conditions: &Option<Option<String>>,
     executionConfig_headers: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://connectors.googleapis.com/v2/projects/{}/locations/{locationsId}/connections/{connectionsId}/entityTypes/{entityTypesId}/entities:deleteEntitiesWithConditions",
@@ -2821,11 +2872,14 @@ pub fn connectors_projects_locations_connections_entity_types_entities_delete_en
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `connectors_projects_locations_connections_entity_types_entities_get_execute()` to send, or `connectors_projects_locations_connections_entity_types_entities_get` for simplest API.
 
-pub fn connectors_projects_locations_connections_entity_types_entities_get_builder(
-    client: &SimpleHttpClient,
+pub fn connectors_projects_locations_connections_entity_types_entities_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     executionConfig_headers: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://connectors.googleapis.com/v2/projects/{}/locations/{locationsId}/connections/{connectionsId}/entityTypes/{entityTypesId}/entities/{entitiesId}",
@@ -2996,8 +3050,8 @@ pub fn connectors_projects_locations_connections_entity_types_entities_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `connectors_projects_locations_connections_entity_types_entities_list_execute()` to send, or `connectors_projects_locations_connections_entity_types_entities_list` for simplest API.
 
-pub fn connectors_projects_locations_connections_entity_types_entities_list_builder(
-    client: &SimpleHttpClient,
+pub fn connectors_projects_locations_connections_entity_types_entities_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     conditions: &Option<Option<String>>,
     executionConfig_headers: &Option<Option<String>>,
@@ -3005,7 +3059,10 @@ pub fn connectors_projects_locations_connections_entity_types_entities_list_buil
     pageToken: &Option<Option<String>>,
     sortBy: &Option<Option<String>>,
     sortOrder: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://connectors.googleapis.com/v2/projects/{}/locations/{locationsId}/connections/{connectionsId}/entityTypes/{entityTypesId}/entities",
@@ -3210,11 +3267,14 @@ pub fn connectors_projects_locations_connections_entity_types_entities_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `connectors_projects_locations_connections_entity_types_entities_patch_execute()` to send, or `connectors_projects_locations_connections_entity_types_entities_patch` for simplest API.
 
-pub fn connectors_projects_locations_connections_entity_types_entities_patch_builder(
-    client: &SimpleHttpClient,
+pub fn connectors_projects_locations_connections_entity_types_entities_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     executionConfig_headers: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://connectors.googleapis.com/v2/projects/{}/locations/{locationsId}/connections/{connectionsId}/entityTypes/{entityTypesId}/entities/{entitiesId}",
@@ -3385,12 +3445,17 @@ pub fn connectors_projects_locations_connections_entity_types_entities_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `connectors_projects_locations_connections_entity_types_entities_update_entities_with_conditions_execute()` to send, or `connectors_projects_locations_connections_entity_types_entities_update_entities_with_conditions` for simplest API.
 
-pub fn connectors_projects_locations_connections_entity_types_entities_update_entities_with_conditions_builder(
-    client: &SimpleHttpClient,
+pub fn connectors_projects_locations_connections_entity_types_entities_update_entities_with_conditions_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     entityType: &String,
     conditions: &Option<Option<String>>,
     executionConfig_headers: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://connectors.googleapis.com/v2/projects/{}/locations/{locationsId}/connections/{connectionsId}/entityTypes/{entityTypesId}/entities:updateEntitiesWithConditions",
@@ -3571,11 +3636,14 @@ pub fn connectors_projects_locations_connections_entity_types_entities_update_en
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `connectors_projects_locations_connections_resources_get_execute()` to send, or `connectors_projects_locations_connections_resources_get` for simplest API.
 
-pub fn connectors_projects_locations_connections_resources_get_builder(
-    client: &SimpleHttpClient,
+pub fn connectors_projects_locations_connections_resources_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     executionConfig_headers: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://connectors.googleapis.com/v2/projects/{}/locations/{locationsId}/connections/{connectionsId}/resources/{resourcesId}",
@@ -3750,10 +3818,13 @@ pub fn connectors_projects_locations_connections_resources_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `connectors_projects_locations_connections_resources_get_resource_post_execute()` to send, or `connectors_projects_locations_connections_resources_get_resource_post` for simplest API.
 
-pub fn connectors_projects_locations_connections_resources_get_resource_post_builder(
-    client: &SimpleHttpClient,
+pub fn connectors_projects_locations_connections_resources_get_resource_post_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://connectors.googleapis.com/v2/projects/{}/locations/{locationsId}/connections/{connectionsId}/resources/{resourcesId}",
@@ -3913,13 +3984,16 @@ pub fn connectors_projects_locations_connections_resources_get_resource_post(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `connectors_projects_locations_connections_resources_list_execute()` to send, or `connectors_projects_locations_connections_resources_list` for simplest API.
 
-pub fn connectors_projects_locations_connections_resources_list_builder(
-    client: &SimpleHttpClient,
+pub fn connectors_projects_locations_connections_resources_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     executionConfig_headers: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://connectors.googleapis.com/v2/projects/{}/locations/{locationsId}/connections/{connectionsId}/resources",
@@ -4100,181 +4174,22 @@ pub fn connectors_projects_locations_connections_resources_list(
     connectors_projects_locations_connections_resources_list_execute(builder)
 }
 
-/// POST v2/projects/{projectsId}/locations/{locationsId}/connections/{connectionsId}/tools/{toolsId}:execute
-/// Executes a specific tool.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `connectors_projects_locations_connections_tools_execute_execute()` to send, or `connectors_projects_locations_connections_tools_execute` for simplest API.
-
-pub fn connectors_projects_locations_connections_tools_execute_builder(
-    client: &SimpleHttpClient,
-    name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let endpoint_url = format!(
-        "https://connectors.googleapis.com/v2/projects/{}/locations/{locationsId}/connections/{connectionsId}/tools/{toolsId}:execute",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .post(&endpoint_url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// POST v2/projects/{projectsId}/locations/{locationsId}/connections/{connectionsId}/tools/{toolsId}:execute
-/// Executes a specific tool.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `connectors_projects_locations_connections_tools_execute_execute()` or `connectors_projects_locations_connections_tools_execute`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `connectors_projects_locations_connections_tools_execute_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn connectors_projects_locations_connections_tools_execute_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<ExecuteToolResponse>, ApiError>,
-            Pending = ApiPending,
-            Spawner = BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ExecuteToolResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// POST v2/projects/{projectsId}/locations/{locationsId}/connections/{connectionsId}/tools/{toolsId}:execute
-/// Executes a specific tool.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `connectors_projects_locations_connections_tools_execute_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `connectors_projects_locations_connections_tools_execute_task()`.
-/// For the simplest API, use `connectors_projects_locations_connections_tools_execute()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `connectors_projects_locations_connections_tools_execute_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn connectors_projects_locations_connections_tools_execute_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ExecuteToolResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = connectors_projects_locations_connections_tools_execute_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`connectors_projects_locations_connections_tools_execute`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ConnectorsProjectsLocationsConnectionsToolsExecuteArgs {
-    /// Path parameter: name
-    pub name: String,
-}
-
-/// POST v2/projects/{projectsId}/locations/{locationsId}/connections/{connectionsId}/tools/{toolsId}:execute
-/// Executes a specific tool.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `connectors_projects_locations_connections_tools_execute_builder()` + `connectors_projects_locations_connections_tools_execute_execute()`.
-/// For task-level control, use `connectors_projects_locations_connections_tools_execute_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn connectors_projects_locations_connections_tools_execute(
-    client: &SimpleHttpClient,
-    args: &ConnectorsProjectsLocationsConnectionsToolsExecuteArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ExecuteToolResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder =
-        connectors_projects_locations_connections_tools_execute_builder(client, &args.name)?;
-    connectors_projects_locations_connections_tools_execute_execute(builder)
-}
-
 /// GET v2/projects/{projectsId}/locations/{locationsId}/connections/{connectionsId}/tools
 /// Lists all available tools.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `connectors_projects_locations_connections_tools_list_execute()` to send, or `connectors_projects_locations_connections_tools_list` for simplest API.
 
-pub fn connectors_projects_locations_connections_tools_list_builder(
-    client: &SimpleHttpClient,
+pub fn connectors_projects_locations_connections_tools_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     executionConfig_headers: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://connectors.googleapis.com/v2/projects/{}/locations/{locationsId}/connections/{connectionsId}/tools",
@@ -5103,34 +5018,6 @@ impl ResourceIdentifier<ConnectorsProjectsLocationsConnectionsResourcesListArgs>
 
     fn resource_kind(&self) -> &'static str {
         "gcp::connectors::ListResourcesResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for ExecuteToolResponse
-// =============================================================================
-
-/// ResourceIdentifier implementation for ExecuteToolResponse with ConnectorsProjectsLocationsConnectionsToolsExecuteArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<ConnectorsProjectsLocationsConnectionsToolsExecuteArgs>
-    for ExecuteToolResponse
-{
-    fn generate_resource_id(
-        &self,
-        input: &ConnectorsProjectsLocationsConnectionsToolsExecuteArgs,
-    ) -> String {
-        format!("gcp::connectors::ExecuteToolResponse/{}", input.name)
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::connectors::ExecuteToolResponse"
     }
 
     fn provider(&self) -> &'static str {

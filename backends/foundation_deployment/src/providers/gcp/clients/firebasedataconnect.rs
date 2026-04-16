@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebasedataconnect_projects_locations_get_execute()` to send, or `firebasedataconnect_projects_locations_get` for simplest API.
 
-pub fn firebasedataconnect_projects_locations_get_builder(
-    client: &SimpleHttpClient,
+pub fn firebasedataconnect_projects_locations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebasedataconnect.googleapis.com/v1/projects/{}/locations/{locationsId}",
@@ -183,14 +187,17 @@ pub fn firebasedataconnect_projects_locations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebasedataconnect_projects_locations_list_execute()` to send, or `firebasedataconnect_projects_locations_list` for simplest API.
 
-pub fn firebasedataconnect_projects_locations_list_builder(
-    client: &SimpleHttpClient,
+pub fn firebasedataconnect_projects_locations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     extraLocationTypes: &Option<Option<String>>,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebasedataconnect.googleapis.com/v1/projects/{}/locations",
@@ -383,10 +390,13 @@ pub fn firebasedataconnect_projects_locations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebasedataconnect_projects_locations_operations_cancel_execute()` to send, or `firebasedataconnect_projects_locations_operations_cancel` for simplest API.
 
-pub fn firebasedataconnect_projects_locations_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn firebasedataconnect_projects_locations_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebasedataconnect.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}:cancel",
@@ -541,10 +551,13 @@ pub fn firebasedataconnect_projects_locations_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebasedataconnect_projects_locations_operations_delete_execute()` to send, or `firebasedataconnect_projects_locations_operations_delete` for simplest API.
 
-pub fn firebasedataconnect_projects_locations_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn firebasedataconnect_projects_locations_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebasedataconnect.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -699,10 +712,13 @@ pub fn firebasedataconnect_projects_locations_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebasedataconnect_projects_locations_operations_get_execute()` to send, or `firebasedataconnect_projects_locations_operations_get` for simplest API.
 
-pub fn firebasedataconnect_projects_locations_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn firebasedataconnect_projects_locations_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebasedataconnect.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -857,14 +873,17 @@ pub fn firebasedataconnect_projects_locations_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebasedataconnect_projects_locations_operations_list_execute()` to send, or `firebasedataconnect_projects_locations_operations_list` for simplest API.
 
-pub fn firebasedataconnect_projects_locations_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn firebasedataconnect_projects_locations_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebasedataconnect.googleapis.com/v1/projects/{}/locations/{locationsId}/operations",
@@ -1057,13 +1076,16 @@ pub fn firebasedataconnect_projects_locations_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebasedataconnect_projects_locations_services_create_execute()` to send, or `firebasedataconnect_projects_locations_services_create` for simplest API.
 
-pub fn firebasedataconnect_projects_locations_services_create_builder(
-    client: &SimpleHttpClient,
+pub fn firebasedataconnect_projects_locations_services_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     requestId: &Option<Option<String>>,
     serviceId: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebasedataconnect.googleapis.com/v1/projects/{}/locations/{locationsId}/services",
@@ -1246,15 +1268,18 @@ pub fn firebasedataconnect_projects_locations_services_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebasedataconnect_projects_locations_services_delete_execute()` to send, or `firebasedataconnect_projects_locations_services_delete` for simplest API.
 
-pub fn firebasedataconnect_projects_locations_services_delete_builder(
-    client: &SimpleHttpClient,
+pub fn firebasedataconnect_projects_locations_services_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     allowMissing: &Option<Option<String>>,
     etag: &Option<Option<String>>,
     force: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebasedataconnect.googleapis.com/v1/projects/{}/locations/{locationsId}/services/{servicesId}",
@@ -1449,10 +1474,13 @@ pub fn firebasedataconnect_projects_locations_services_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebasedataconnect_projects_locations_services_execute_graphql_execute()` to send, or `firebasedataconnect_projects_locations_services_execute_graphql` for simplest API.
 
-pub fn firebasedataconnect_projects_locations_services_execute_graphql_builder(
-    client: &SimpleHttpClient,
+pub fn firebasedataconnect_projects_locations_services_execute_graphql_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebasedataconnect.googleapis.com/v1/projects/{}/locations/{locationsId}/services/{servicesId}:executeGraphql",
@@ -1612,10 +1640,13 @@ pub fn firebasedataconnect_projects_locations_services_execute_graphql(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebasedataconnect_projects_locations_services_execute_graphql_read_execute()` to send, or `firebasedataconnect_projects_locations_services_execute_graphql_read` for simplest API.
 
-pub fn firebasedataconnect_projects_locations_services_execute_graphql_read_builder(
-    client: &SimpleHttpClient,
+pub fn firebasedataconnect_projects_locations_services_execute_graphql_read_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebasedataconnect.googleapis.com/v1/projects/{}/locations/{locationsId}/services/{servicesId}:executeGraphqlRead",
@@ -1775,10 +1806,13 @@ pub fn firebasedataconnect_projects_locations_services_execute_graphql_read(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebasedataconnect_projects_locations_services_get_execute()` to send, or `firebasedataconnect_projects_locations_services_get` for simplest API.
 
-pub fn firebasedataconnect_projects_locations_services_get_builder(
-    client: &SimpleHttpClient,
+pub fn firebasedataconnect_projects_locations_services_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebasedataconnect.googleapis.com/v1/projects/{}/locations/{locationsId}/services/{servicesId}",
@@ -1932,10 +1966,13 @@ pub fn firebasedataconnect_projects_locations_services_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebasedataconnect_projects_locations_services_introspect_graphql_execute()` to send, or `firebasedataconnect_projects_locations_services_introspect_graphql` for simplest API.
 
-pub fn firebasedataconnect_projects_locations_services_introspect_graphql_builder(
-    client: &SimpleHttpClient,
+pub fn firebasedataconnect_projects_locations_services_introspect_graphql_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebasedataconnect.googleapis.com/v1/projects/{}/locations/{locationsId}/services/{servicesId}:introspectGraphql",
@@ -2095,14 +2132,17 @@ pub fn firebasedataconnect_projects_locations_services_introspect_graphql(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebasedataconnect_projects_locations_services_list_execute()` to send, or `firebasedataconnect_projects_locations_services_list` for simplest API.
 
-pub fn firebasedataconnect_projects_locations_services_list_builder(
-    client: &SimpleHttpClient,
+pub fn firebasedataconnect_projects_locations_services_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebasedataconnect.googleapis.com/v1/projects/{}/locations/{locationsId}/services",
@@ -2295,14 +2335,17 @@ pub fn firebasedataconnect_projects_locations_services_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebasedataconnect_projects_locations_services_patch_execute()` to send, or `firebasedataconnect_projects_locations_services_patch` for simplest API.
 
-pub fn firebasedataconnect_projects_locations_services_patch_builder(
-    client: &SimpleHttpClient,
+pub fn firebasedataconnect_projects_locations_services_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     allowMissing: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebasedataconnect.googleapis.com/v1/projects/{}/locations/{locationsId}/services/{servicesId}",
@@ -2491,13 +2534,16 @@ pub fn firebasedataconnect_projects_locations_services_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebasedataconnect_projects_locations_services_connectors_create_execute()` to send, or `firebasedataconnect_projects_locations_services_connectors_create` for simplest API.
 
-pub fn firebasedataconnect_projects_locations_services_connectors_create_builder(
-    client: &SimpleHttpClient,
+pub fn firebasedataconnect_projects_locations_services_connectors_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     connectorId: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebasedataconnect.googleapis.com/v1/projects/{}/locations/{locationsId}/services/{servicesId}/connectors",
@@ -2680,15 +2726,18 @@ pub fn firebasedataconnect_projects_locations_services_connectors_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebasedataconnect_projects_locations_services_connectors_delete_execute()` to send, or `firebasedataconnect_projects_locations_services_connectors_delete` for simplest API.
 
-pub fn firebasedataconnect_projects_locations_services_connectors_delete_builder(
-    client: &SimpleHttpClient,
+pub fn firebasedataconnect_projects_locations_services_connectors_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     allowMissing: &Option<Option<String>>,
     etag: &Option<Option<String>>,
     force: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebasedataconnect.googleapis.com/v1/projects/{}/locations/{locationsId}/services/{servicesId}/connectors/{connectorsId}",
@@ -2883,10 +2932,13 @@ pub fn firebasedataconnect_projects_locations_services_connectors_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebasedataconnect_projects_locations_services_connectors_execute_mutation_execute()` to send, or `firebasedataconnect_projects_locations_services_connectors_execute_mutation` for simplest API.
 
-pub fn firebasedataconnect_projects_locations_services_connectors_execute_mutation_builder(
-    client: &SimpleHttpClient,
+pub fn firebasedataconnect_projects_locations_services_connectors_execute_mutation_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebasedataconnect.googleapis.com/v1/projects/{}/locations/{locationsId}/services/{servicesId}/connectors/{connectorsId}:executeMutation",
@@ -3048,10 +3100,13 @@ pub fn firebasedataconnect_projects_locations_services_connectors_execute_mutati
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebasedataconnect_projects_locations_services_connectors_execute_query_execute()` to send, or `firebasedataconnect_projects_locations_services_connectors_execute_query` for simplest API.
 
-pub fn firebasedataconnect_projects_locations_services_connectors_execute_query_builder(
-    client: &SimpleHttpClient,
+pub fn firebasedataconnect_projects_locations_services_connectors_execute_query_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebasedataconnect.googleapis.com/v1/projects/{}/locations/{locationsId}/services/{servicesId}/connectors/{connectorsId}:executeQuery",
@@ -3212,10 +3267,13 @@ pub fn firebasedataconnect_projects_locations_services_connectors_execute_query(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebasedataconnect_projects_locations_services_connectors_get_execute()` to send, or `firebasedataconnect_projects_locations_services_connectors_get` for simplest API.
 
-pub fn firebasedataconnect_projects_locations_services_connectors_get_builder(
-    client: &SimpleHttpClient,
+pub fn firebasedataconnect_projects_locations_services_connectors_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebasedataconnect.googleapis.com/v1/projects/{}/locations/{locationsId}/services/{servicesId}/connectors/{connectorsId}",
@@ -3370,10 +3428,13 @@ pub fn firebasedataconnect_projects_locations_services_connectors_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebasedataconnect_projects_locations_services_connectors_impersonate_mutation_execute()` to send, or `firebasedataconnect_projects_locations_services_connectors_impersonate_mutation` for simplest API.
 
-pub fn firebasedataconnect_projects_locations_services_connectors_impersonate_mutation_builder(
-    client: &SimpleHttpClient,
+pub fn firebasedataconnect_projects_locations_services_connectors_impersonate_mutation_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebasedataconnect.googleapis.com/v1/projects/{}/locations/{locationsId}/services/{servicesId}/connectors/{connectorsId}:impersonateMutation",
@@ -3537,10 +3598,13 @@ pub fn firebasedataconnect_projects_locations_services_connectors_impersonate_mu
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebasedataconnect_projects_locations_services_connectors_impersonate_query_execute()` to send, or `firebasedataconnect_projects_locations_services_connectors_impersonate_query` for simplest API.
 
-pub fn firebasedataconnect_projects_locations_services_connectors_impersonate_query_builder(
-    client: &SimpleHttpClient,
+pub fn firebasedataconnect_projects_locations_services_connectors_impersonate_query_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebasedataconnect.googleapis.com/v1/projects/{}/locations/{locationsId}/services/{servicesId}/connectors/{connectorsId}:impersonateQuery",
@@ -3702,14 +3766,17 @@ pub fn firebasedataconnect_projects_locations_services_connectors_impersonate_qu
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebasedataconnect_projects_locations_services_connectors_list_execute()` to send, or `firebasedataconnect_projects_locations_services_connectors_list` for simplest API.
 
-pub fn firebasedataconnect_projects_locations_services_connectors_list_builder(
-    client: &SimpleHttpClient,
+pub fn firebasedataconnect_projects_locations_services_connectors_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebasedataconnect.googleapis.com/v1/projects/{}/locations/{locationsId}/services/{servicesId}/connectors",
@@ -3902,14 +3969,17 @@ pub fn firebasedataconnect_projects_locations_services_connectors_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebasedataconnect_projects_locations_services_connectors_patch_execute()` to send, or `firebasedataconnect_projects_locations_services_connectors_patch` for simplest API.
 
-pub fn firebasedataconnect_projects_locations_services_connectors_patch_builder(
-    client: &SimpleHttpClient,
+pub fn firebasedataconnect_projects_locations_services_connectors_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     allowMissing: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebasedataconnect.googleapis.com/v1/projects/{}/locations/{locationsId}/services/{servicesId}/connectors/{connectorsId}",
@@ -4098,13 +4168,16 @@ pub fn firebasedataconnect_projects_locations_services_connectors_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebasedataconnect_projects_locations_services_schemas_create_execute()` to send, or `firebasedataconnect_projects_locations_services_schemas_create` for simplest API.
 
-pub fn firebasedataconnect_projects_locations_services_schemas_create_builder(
-    client: &SimpleHttpClient,
+pub fn firebasedataconnect_projects_locations_services_schemas_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     requestId: &Option<Option<String>>,
     schemaId: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebasedataconnect.googleapis.com/v1/projects/{}/locations/{locationsId}/services/{servicesId}/schemas",
@@ -4287,15 +4360,18 @@ pub fn firebasedataconnect_projects_locations_services_schemas_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebasedataconnect_projects_locations_services_schemas_delete_execute()` to send, or `firebasedataconnect_projects_locations_services_schemas_delete` for simplest API.
 
-pub fn firebasedataconnect_projects_locations_services_schemas_delete_builder(
-    client: &SimpleHttpClient,
+pub fn firebasedataconnect_projects_locations_services_schemas_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     allowMissing: &Option<Option<String>>,
     etag: &Option<Option<String>>,
     force: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebasedataconnect.googleapis.com/v1/projects/{}/locations/{locationsId}/services/{servicesId}/schemas/{schemasId}",
@@ -4490,10 +4566,13 @@ pub fn firebasedataconnect_projects_locations_services_schemas_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebasedataconnect_projects_locations_services_schemas_get_execute()` to send, or `firebasedataconnect_projects_locations_services_schemas_get` for simplest API.
 
-pub fn firebasedataconnect_projects_locations_services_schemas_get_builder(
-    client: &SimpleHttpClient,
+pub fn firebasedataconnect_projects_locations_services_schemas_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebasedataconnect.googleapis.com/v1/projects/{}/locations/{locationsId}/services/{servicesId}/schemas/{schemasId}",
@@ -4648,14 +4727,17 @@ pub fn firebasedataconnect_projects_locations_services_schemas_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebasedataconnect_projects_locations_services_schemas_list_execute()` to send, or `firebasedataconnect_projects_locations_services_schemas_list` for simplest API.
 
-pub fn firebasedataconnect_projects_locations_services_schemas_list_builder(
-    client: &SimpleHttpClient,
+pub fn firebasedataconnect_projects_locations_services_schemas_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebasedataconnect.googleapis.com/v1/projects/{}/locations/{locationsId}/services/{servicesId}/schemas",
@@ -4848,14 +4930,17 @@ pub fn firebasedataconnect_projects_locations_services_schemas_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebasedataconnect_projects_locations_services_schemas_patch_execute()` to send, or `firebasedataconnect_projects_locations_services_schemas_patch` for simplest API.
 
-pub fn firebasedataconnect_projects_locations_services_schemas_patch_builder(
-    client: &SimpleHttpClient,
+pub fn firebasedataconnect_projects_locations_services_schemas_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     allowMissing: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebasedataconnect.googleapis.com/v1/projects/{}/locations/{locationsId}/services/{servicesId}/schemas/{schemasId}",

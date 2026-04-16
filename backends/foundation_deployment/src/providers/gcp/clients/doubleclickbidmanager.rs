@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,9 +27,12 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `doubleclickbidmanager_queries_create_execute()` to send, or `doubleclickbidmanager_queries_create` for simplest API.
 
-pub fn doubleclickbidmanager_queries_create_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn doubleclickbidmanager_queries_create_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://doubleclickbidmanager.googleapis.com/v2/queries",);
 
@@ -171,10 +175,13 @@ pub fn doubleclickbidmanager_queries_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `doubleclickbidmanager_queries_delete_execute()` to send, or `doubleclickbidmanager_queries_delete` for simplest API.
 
-pub fn doubleclickbidmanager_queries_delete_builder(
-    client: &SimpleHttpClient,
+pub fn doubleclickbidmanager_queries_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     queryId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://doubleclickbidmanager.googleapis.com/v2/queries/{}",
@@ -325,10 +332,13 @@ pub fn doubleclickbidmanager_queries_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `doubleclickbidmanager_queries_get_execute()` to send, or `doubleclickbidmanager_queries_get` for simplest API.
 
-pub fn doubleclickbidmanager_queries_get_builder(
-    client: &SimpleHttpClient,
+pub fn doubleclickbidmanager_queries_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     queryId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://doubleclickbidmanager.googleapis.com/v2/queries/{}",
@@ -482,12 +492,15 @@ pub fn doubleclickbidmanager_queries_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `doubleclickbidmanager_queries_list_execute()` to send, or `doubleclickbidmanager_queries_list` for simplest API.
 
-pub fn doubleclickbidmanager_queries_list_builder(
-    client: &SimpleHttpClient,
+pub fn doubleclickbidmanager_queries_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://doubleclickbidmanager.googleapis.com/v2/queries",);
 
@@ -668,11 +681,14 @@ pub fn doubleclickbidmanager_queries_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `doubleclickbidmanager_queries_run_execute()` to send, or `doubleclickbidmanager_queries_run` for simplest API.
 
-pub fn doubleclickbidmanager_queries_run_builder(
-    client: &SimpleHttpClient,
+pub fn doubleclickbidmanager_queries_run_builder<R>(
+    client: &SimpleHttpClient<R>,
     queryId: &String,
     synchronous: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://doubleclickbidmanager.googleapis.com/v2/queries/{}:run",
@@ -840,11 +856,14 @@ pub fn doubleclickbidmanager_queries_run(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `doubleclickbidmanager_queries_reports_get_execute()` to send, or `doubleclickbidmanager_queries_reports_get` for simplest API.
 
-pub fn doubleclickbidmanager_queries_reports_get_builder(
-    client: &SimpleHttpClient,
+pub fn doubleclickbidmanager_queries_reports_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     queryId: &String,
     reportId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://doubleclickbidmanager.googleapis.com/v2/queries/{}/reports/{}",
@@ -1001,13 +1020,16 @@ pub fn doubleclickbidmanager_queries_reports_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `doubleclickbidmanager_queries_reports_list_execute()` to send, or `doubleclickbidmanager_queries_reports_list` for simplest API.
 
-pub fn doubleclickbidmanager_queries_reports_list_builder(
-    client: &SimpleHttpClient,
+pub fn doubleclickbidmanager_queries_reports_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     queryId: &String,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://doubleclickbidmanager.googleapis.com/v2/queries/{}/reports",

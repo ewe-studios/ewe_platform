@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigquerydatatransfer_projects_enroll_data_sources_execute()` to send, or `bigquerydatatransfer_projects_enroll_data_sources` for simplest API.
 
-pub fn bigquerydatatransfer_projects_enroll_data_sources_builder(
-    client: &SimpleHttpClient,
+pub fn bigquerydatatransfer_projects_enroll_data_sources_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigquerydatatransfer.googleapis.com/v1/projects/{}:enrollDataSources",
@@ -183,10 +187,13 @@ pub fn bigquerydatatransfer_projects_enroll_data_sources(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigquerydatatransfer_projects_data_sources_check_valid_creds_execute()` to send, or `bigquerydatatransfer_projects_data_sources_check_valid_creds` for simplest API.
 
-pub fn bigquerydatatransfer_projects_data_sources_check_valid_creds_builder(
-    client: &SimpleHttpClient,
+pub fn bigquerydatatransfer_projects_data_sources_check_valid_creds_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigquerydatatransfer.googleapis.com/v1/projects/{}/dataSources/{dataSourcesId}:checkValidCreds",
@@ -345,10 +352,13 @@ pub fn bigquerydatatransfer_projects_data_sources_check_valid_creds(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigquerydatatransfer_projects_data_sources_get_execute()` to send, or `bigquerydatatransfer_projects_data_sources_get` for simplest API.
 
-pub fn bigquerydatatransfer_projects_data_sources_get_builder(
-    client: &SimpleHttpClient,
+pub fn bigquerydatatransfer_projects_data_sources_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigquerydatatransfer.googleapis.com/v1/projects/{}/dataSources/{dataSourcesId}",
@@ -502,12 +512,15 @@ pub fn bigquerydatatransfer_projects_data_sources_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigquerydatatransfer_projects_data_sources_list_execute()` to send, or `bigquerydatatransfer_projects_data_sources_list` for simplest API.
 
-pub fn bigquerydatatransfer_projects_data_sources_list_builder(
-    client: &SimpleHttpClient,
+pub fn bigquerydatatransfer_projects_data_sources_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigquerydatatransfer.googleapis.com/v1/projects/{}/dataSources",
@@ -688,10 +701,13 @@ pub fn bigquerydatatransfer_projects_data_sources_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigquerydatatransfer_projects_locations_enroll_data_sources_execute()` to send, or `bigquerydatatransfer_projects_locations_enroll_data_sources` for simplest API.
 
-pub fn bigquerydatatransfer_projects_locations_enroll_data_sources_builder(
-    client: &SimpleHttpClient,
+pub fn bigquerydatatransfer_projects_locations_enroll_data_sources_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigquerydatatransfer.googleapis.com/v1/projects/{}/locations/{locationsId}:enrollDataSources",
@@ -846,10 +862,13 @@ pub fn bigquerydatatransfer_projects_locations_enroll_data_sources(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigquerydatatransfer_projects_locations_get_execute()` to send, or `bigquerydatatransfer_projects_locations_get` for simplest API.
 
-pub fn bigquerydatatransfer_projects_locations_get_builder(
-    client: &SimpleHttpClient,
+pub fn bigquerydatatransfer_projects_locations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigquerydatatransfer.googleapis.com/v1/projects/{}/locations/{locationsId}",
@@ -1003,14 +1022,17 @@ pub fn bigquerydatatransfer_projects_locations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigquerydatatransfer_projects_locations_list_execute()` to send, or `bigquerydatatransfer_projects_locations_list` for simplest API.
 
-pub fn bigquerydatatransfer_projects_locations_list_builder(
-    client: &SimpleHttpClient,
+pub fn bigquerydatatransfer_projects_locations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     extraLocationTypes: &Option<Option<String>>,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigquerydatatransfer.googleapis.com/v1/projects/{}/locations",
@@ -1203,10 +1225,13 @@ pub fn bigquerydatatransfer_projects_locations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigquerydatatransfer_projects_locations_unenroll_data_sources_execute()` to send, or `bigquerydatatransfer_projects_locations_unenroll_data_sources` for simplest API.
 
-pub fn bigquerydatatransfer_projects_locations_unenroll_data_sources_builder(
-    client: &SimpleHttpClient,
+pub fn bigquerydatatransfer_projects_locations_unenroll_data_sources_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigquerydatatransfer.googleapis.com/v1/projects/{}/locations/{locationsId}:unenrollDataSources",
@@ -1361,10 +1386,13 @@ pub fn bigquerydatatransfer_projects_locations_unenroll_data_sources(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigquerydatatransfer_projects_locations_data_sources_check_valid_creds_execute()` to send, or `bigquerydatatransfer_projects_locations_data_sources_check_valid_creds` for simplest API.
 
-pub fn bigquerydatatransfer_projects_locations_data_sources_check_valid_creds_builder(
-    client: &SimpleHttpClient,
+pub fn bigquerydatatransfer_projects_locations_data_sources_check_valid_creds_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigquerydatatransfer.googleapis.com/v1/projects/{}/locations/{locationsId}/dataSources/{dataSourcesId}:checkValidCreds",
@@ -1525,10 +1553,13 @@ pub fn bigquerydatatransfer_projects_locations_data_sources_check_valid_creds(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigquerydatatransfer_projects_locations_data_sources_get_execute()` to send, or `bigquerydatatransfer_projects_locations_data_sources_get` for simplest API.
 
-pub fn bigquerydatatransfer_projects_locations_data_sources_get_builder(
-    client: &SimpleHttpClient,
+pub fn bigquerydatatransfer_projects_locations_data_sources_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigquerydatatransfer.googleapis.com/v1/projects/{}/locations/{locationsId}/dataSources/{dataSourcesId}",
@@ -1683,12 +1714,15 @@ pub fn bigquerydatatransfer_projects_locations_data_sources_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigquerydatatransfer_projects_locations_data_sources_list_execute()` to send, or `bigquerydatatransfer_projects_locations_data_sources_list` for simplest API.
 
-pub fn bigquerydatatransfer_projects_locations_data_sources_list_builder(
-    client: &SimpleHttpClient,
+pub fn bigquerydatatransfer_projects_locations_data_sources_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigquerydatatransfer.googleapis.com/v1/projects/{}/locations/{locationsId}/dataSources",
@@ -1869,13 +1903,16 @@ pub fn bigquerydatatransfer_projects_locations_data_sources_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigquerydatatransfer_projects_locations_transfer_configs_create_execute()` to send, or `bigquerydatatransfer_projects_locations_transfer_configs_create` for simplest API.
 
-pub fn bigquerydatatransfer_projects_locations_transfer_configs_create_builder(
-    client: &SimpleHttpClient,
+pub fn bigquerydatatransfer_projects_locations_transfer_configs_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     authorizationCode: &Option<Option<String>>,
     serviceAccountName: &Option<Option<String>>,
     versionInfo: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigquerydatatransfer.googleapis.com/v1/projects/{}/locations/{locationsId}/transferConfigs",
@@ -2062,10 +2099,13 @@ pub fn bigquerydatatransfer_projects_locations_transfer_configs_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigquerydatatransfer_projects_locations_transfer_configs_delete_execute()` to send, or `bigquerydatatransfer_projects_locations_transfer_configs_delete` for simplest API.
 
-pub fn bigquerydatatransfer_projects_locations_transfer_configs_delete_builder(
-    client: &SimpleHttpClient,
+pub fn bigquerydatatransfer_projects_locations_transfer_configs_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigquerydatatransfer.googleapis.com/v1/projects/{}/locations/{locationsId}/transferConfigs/{transferConfigsId}",
@@ -2221,10 +2261,13 @@ pub fn bigquerydatatransfer_projects_locations_transfer_configs_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigquerydatatransfer_projects_locations_transfer_configs_get_execute()` to send, or `bigquerydatatransfer_projects_locations_transfer_configs_get` for simplest API.
 
-pub fn bigquerydatatransfer_projects_locations_transfer_configs_get_builder(
-    client: &SimpleHttpClient,
+pub fn bigquerydatatransfer_projects_locations_transfer_configs_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigquerydatatransfer.googleapis.com/v1/projects/{}/locations/{locationsId}/transferConfigs/{transferConfigsId}",
@@ -2383,13 +2426,16 @@ pub fn bigquerydatatransfer_projects_locations_transfer_configs_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigquerydatatransfer_projects_locations_transfer_configs_list_execute()` to send, or `bigquerydatatransfer_projects_locations_transfer_configs_list` for simplest API.
 
-pub fn bigquerydatatransfer_projects_locations_transfer_configs_list_builder(
-    client: &SimpleHttpClient,
+pub fn bigquerydatatransfer_projects_locations_transfer_configs_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     dataSourceIds: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigquerydatatransfer.googleapis.com/v1/projects/{}/locations/{locationsId}/transferConfigs",
@@ -2580,14 +2626,17 @@ pub fn bigquerydatatransfer_projects_locations_transfer_configs_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigquerydatatransfer_projects_locations_transfer_configs_patch_execute()` to send, or `bigquerydatatransfer_projects_locations_transfer_configs_patch` for simplest API.
 
-pub fn bigquerydatatransfer_projects_locations_transfer_configs_patch_builder(
-    client: &SimpleHttpClient,
+pub fn bigquerydatatransfer_projects_locations_transfer_configs_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     authorizationCode: &Option<Option<String>>,
     serviceAccountName: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
     versionInfo: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigquerydatatransfer.googleapis.com/v1/projects/{}/locations/{locationsId}/transferConfigs/{transferConfigsId}",
@@ -2780,10 +2829,13 @@ pub fn bigquerydatatransfer_projects_locations_transfer_configs_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigquerydatatransfer_projects_locations_transfer_configs_schedule_runs_execute()` to send, or `bigquerydatatransfer_projects_locations_transfer_configs_schedule_runs` for simplest API.
 
-pub fn bigquerydatatransfer_projects_locations_transfer_configs_schedule_runs_builder(
-    client: &SimpleHttpClient,
+pub fn bigquerydatatransfer_projects_locations_transfer_configs_schedule_runs_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigquerydatatransfer.googleapis.com/v1/projects/{}/locations/{locationsId}/transferConfigs/{transferConfigsId}:scheduleRuns",
@@ -2949,10 +3001,13 @@ pub fn bigquerydatatransfer_projects_locations_transfer_configs_schedule_runs(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigquerydatatransfer_projects_locations_transfer_configs_start_manual_runs_execute()` to send, or `bigquerydatatransfer_projects_locations_transfer_configs_start_manual_runs` for simplest API.
 
-pub fn bigquerydatatransfer_projects_locations_transfer_configs_start_manual_runs_builder(
-    client: &SimpleHttpClient,
+pub fn bigquerydatatransfer_projects_locations_transfer_configs_start_manual_runs_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigquerydatatransfer.googleapis.com/v1/projects/{}/locations/{locationsId}/transferConfigs/{transferConfigsId}:startManualRuns",
@@ -3119,10 +3174,13 @@ pub fn bigquerydatatransfer_projects_locations_transfer_configs_start_manual_run
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigquerydatatransfer_projects_locations_transfer_configs_runs_delete_execute()` to send, or `bigquerydatatransfer_projects_locations_transfer_configs_runs_delete` for simplest API.
 
-pub fn bigquerydatatransfer_projects_locations_transfer_configs_runs_delete_builder(
-    client: &SimpleHttpClient,
+pub fn bigquerydatatransfer_projects_locations_transfer_configs_runs_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigquerydatatransfer.googleapis.com/v1/projects/{}/locations/{locationsId}/transferConfigs/{transferConfigsId}/runs/{runsId}",
@@ -3278,10 +3336,13 @@ pub fn bigquerydatatransfer_projects_locations_transfer_configs_runs_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigquerydatatransfer_projects_locations_transfer_configs_runs_get_execute()` to send, or `bigquerydatatransfer_projects_locations_transfer_configs_runs_get` for simplest API.
 
-pub fn bigquerydatatransfer_projects_locations_transfer_configs_runs_get_builder(
-    client: &SimpleHttpClient,
+pub fn bigquerydatatransfer_projects_locations_transfer_configs_runs_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigquerydatatransfer.googleapis.com/v1/projects/{}/locations/{locationsId}/transferConfigs/{transferConfigsId}/runs/{runsId}",
@@ -3437,14 +3498,17 @@ pub fn bigquerydatatransfer_projects_locations_transfer_configs_runs_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigquerydatatransfer_projects_locations_transfer_configs_runs_list_execute()` to send, or `bigquerydatatransfer_projects_locations_transfer_configs_runs_list` for simplest API.
 
-pub fn bigquerydatatransfer_projects_locations_transfer_configs_runs_list_builder(
-    client: &SimpleHttpClient,
+pub fn bigquerydatatransfer_projects_locations_transfer_configs_runs_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     runAttempt: &Option<Option<String>>,
     states: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigquerydatatransfer.googleapis.com/v1/projects/{}/locations/{locationsId}/transferConfigs/{transferConfigsId}/runs",
@@ -3637,13 +3701,16 @@ pub fn bigquerydatatransfer_projects_locations_transfer_configs_runs_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigquerydatatransfer_projects_locations_transfer_configs_runs_transfer_logs_list_execute()` to send, or `bigquerydatatransfer_projects_locations_transfer_configs_runs_transfer_logs_list` for simplest API.
 
-pub fn bigquerydatatransfer_projects_locations_transfer_configs_runs_transfer_logs_list_builder(
-    client: &SimpleHttpClient,
+pub fn bigquerydatatransfer_projects_locations_transfer_configs_runs_transfer_logs_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     messageTypes: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigquerydatatransfer.googleapis.com/v1/projects/{}/locations/{locationsId}/transferConfigs/{transferConfigsId}/runs/{runsId}/transferLogs",
@@ -3836,10 +3903,13 @@ pub fn bigquerydatatransfer_projects_locations_transfer_configs_runs_transfer_lo
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigquerydatatransfer_projects_locations_transfer_configs_transfer_resources_get_execute()` to send, or `bigquerydatatransfer_projects_locations_transfer_configs_transfer_resources_get` for simplest API.
 
-pub fn bigquerydatatransfer_projects_locations_transfer_configs_transfer_resources_get_builder(
-    client: &SimpleHttpClient,
+pub fn bigquerydatatransfer_projects_locations_transfer_configs_transfer_resources_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigquerydatatransfer.googleapis.com/v1/projects/{}/locations/{locationsId}/transferConfigs/{transferConfigsId}/transferResources/{transferResourcesId}",
@@ -4003,13 +4073,16 @@ pub fn bigquerydatatransfer_projects_locations_transfer_configs_transfer_resourc
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigquerydatatransfer_projects_locations_transfer_configs_transfer_resources_list_execute()` to send, or `bigquerydatatransfer_projects_locations_transfer_configs_transfer_resources_list` for simplest API.
 
-pub fn bigquerydatatransfer_projects_locations_transfer_configs_transfer_resources_list_builder(
-    client: &SimpleHttpClient,
+pub fn bigquerydatatransfer_projects_locations_transfer_configs_transfer_resources_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigquerydatatransfer.googleapis.com/v1/projects/{}/locations/{locationsId}/transferConfigs/{transferConfigsId}/transferResources",
@@ -4206,13 +4279,16 @@ pub fn bigquerydatatransfer_projects_locations_transfer_configs_transfer_resourc
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigquerydatatransfer_projects_transfer_configs_create_execute()` to send, or `bigquerydatatransfer_projects_transfer_configs_create` for simplest API.
 
-pub fn bigquerydatatransfer_projects_transfer_configs_create_builder(
-    client: &SimpleHttpClient,
+pub fn bigquerydatatransfer_projects_transfer_configs_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     authorizationCode: &Option<Option<String>>,
     serviceAccountName: &Option<Option<String>>,
     versionInfo: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigquerydatatransfer.googleapis.com/v1/projects/{}/transferConfigs",
@@ -4399,10 +4475,13 @@ pub fn bigquerydatatransfer_projects_transfer_configs_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigquerydatatransfer_projects_transfer_configs_delete_execute()` to send, or `bigquerydatatransfer_projects_transfer_configs_delete` for simplest API.
 
-pub fn bigquerydatatransfer_projects_transfer_configs_delete_builder(
-    client: &SimpleHttpClient,
+pub fn bigquerydatatransfer_projects_transfer_configs_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigquerydatatransfer.googleapis.com/v1/projects/{}/transferConfigs/{transferConfigsId}",
@@ -4557,10 +4636,13 @@ pub fn bigquerydatatransfer_projects_transfer_configs_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigquerydatatransfer_projects_transfer_configs_get_execute()` to send, or `bigquerydatatransfer_projects_transfer_configs_get` for simplest API.
 
-pub fn bigquerydatatransfer_projects_transfer_configs_get_builder(
-    client: &SimpleHttpClient,
+pub fn bigquerydatatransfer_projects_transfer_configs_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigquerydatatransfer.googleapis.com/v1/projects/{}/transferConfigs/{transferConfigsId}",
@@ -4718,13 +4800,16 @@ pub fn bigquerydatatransfer_projects_transfer_configs_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigquerydatatransfer_projects_transfer_configs_list_execute()` to send, or `bigquerydatatransfer_projects_transfer_configs_list` for simplest API.
 
-pub fn bigquerydatatransfer_projects_transfer_configs_list_builder(
-    client: &SimpleHttpClient,
+pub fn bigquerydatatransfer_projects_transfer_configs_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     dataSourceIds: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigquerydatatransfer.googleapis.com/v1/projects/{}/transferConfigs",
@@ -4915,14 +5000,17 @@ pub fn bigquerydatatransfer_projects_transfer_configs_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigquerydatatransfer_projects_transfer_configs_patch_execute()` to send, or `bigquerydatatransfer_projects_transfer_configs_patch` for simplest API.
 
-pub fn bigquerydatatransfer_projects_transfer_configs_patch_builder(
-    client: &SimpleHttpClient,
+pub fn bigquerydatatransfer_projects_transfer_configs_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     authorizationCode: &Option<Option<String>>,
     serviceAccountName: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
     versionInfo: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigquerydatatransfer.googleapis.com/v1/projects/{}/transferConfigs/{transferConfigsId}",
@@ -5115,10 +5203,13 @@ pub fn bigquerydatatransfer_projects_transfer_configs_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigquerydatatransfer_projects_transfer_configs_schedule_runs_execute()` to send, or `bigquerydatatransfer_projects_transfer_configs_schedule_runs` for simplest API.
 
-pub fn bigquerydatatransfer_projects_transfer_configs_schedule_runs_builder(
-    client: &SimpleHttpClient,
+pub fn bigquerydatatransfer_projects_transfer_configs_schedule_runs_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigquerydatatransfer.googleapis.com/v1/projects/{}/transferConfigs/{transferConfigsId}:scheduleRuns",
@@ -5281,10 +5372,13 @@ pub fn bigquerydatatransfer_projects_transfer_configs_schedule_runs(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigquerydatatransfer_projects_transfer_configs_start_manual_runs_execute()` to send, or `bigquerydatatransfer_projects_transfer_configs_start_manual_runs` for simplest API.
 
-pub fn bigquerydatatransfer_projects_transfer_configs_start_manual_runs_builder(
-    client: &SimpleHttpClient,
+pub fn bigquerydatatransfer_projects_transfer_configs_start_manual_runs_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigquerydatatransfer.googleapis.com/v1/projects/{}/transferConfigs/{transferConfigsId}:startManualRuns",
@@ -5449,10 +5543,13 @@ pub fn bigquerydatatransfer_projects_transfer_configs_start_manual_runs(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigquerydatatransfer_projects_transfer_configs_runs_delete_execute()` to send, or `bigquerydatatransfer_projects_transfer_configs_runs_delete` for simplest API.
 
-pub fn bigquerydatatransfer_projects_transfer_configs_runs_delete_builder(
-    client: &SimpleHttpClient,
+pub fn bigquerydatatransfer_projects_transfer_configs_runs_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigquerydatatransfer.googleapis.com/v1/projects/{}/transferConfigs/{transferConfigsId}/runs/{runsId}",
@@ -5607,10 +5704,13 @@ pub fn bigquerydatatransfer_projects_transfer_configs_runs_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigquerydatatransfer_projects_transfer_configs_runs_get_execute()` to send, or `bigquerydatatransfer_projects_transfer_configs_runs_get` for simplest API.
 
-pub fn bigquerydatatransfer_projects_transfer_configs_runs_get_builder(
-    client: &SimpleHttpClient,
+pub fn bigquerydatatransfer_projects_transfer_configs_runs_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigquerydatatransfer.googleapis.com/v1/projects/{}/transferConfigs/{transferConfigsId}/runs/{runsId}",
@@ -5765,14 +5865,17 @@ pub fn bigquerydatatransfer_projects_transfer_configs_runs_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigquerydatatransfer_projects_transfer_configs_runs_list_execute()` to send, or `bigquerydatatransfer_projects_transfer_configs_runs_list` for simplest API.
 
-pub fn bigquerydatatransfer_projects_transfer_configs_runs_list_builder(
-    client: &SimpleHttpClient,
+pub fn bigquerydatatransfer_projects_transfer_configs_runs_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     runAttempt: &Option<Option<String>>,
     states: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigquerydatatransfer.googleapis.com/v1/projects/{}/transferConfigs/{transferConfigsId}/runs",
@@ -5965,13 +6068,16 @@ pub fn bigquerydatatransfer_projects_transfer_configs_runs_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigquerydatatransfer_projects_transfer_configs_runs_transfer_logs_list_execute()` to send, or `bigquerydatatransfer_projects_transfer_configs_runs_transfer_logs_list` for simplest API.
 
-pub fn bigquerydatatransfer_projects_transfer_configs_runs_transfer_logs_list_builder(
-    client: &SimpleHttpClient,
+pub fn bigquerydatatransfer_projects_transfer_configs_runs_transfer_logs_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     messageTypes: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigquerydatatransfer.googleapis.com/v1/projects/{}/transferConfigs/{transferConfigsId}/runs/{runsId}/transferLogs",
@@ -6159,10 +6265,13 @@ pub fn bigquerydatatransfer_projects_transfer_configs_runs_transfer_logs_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigquerydatatransfer_projects_transfer_configs_transfer_resources_get_execute()` to send, or `bigquerydatatransfer_projects_transfer_configs_transfer_resources_get` for simplest API.
 
-pub fn bigquerydatatransfer_projects_transfer_configs_transfer_resources_get_builder(
-    client: &SimpleHttpClient,
+pub fn bigquerydatatransfer_projects_transfer_configs_transfer_resources_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigquerydatatransfer.googleapis.com/v1/projects/{}/transferConfigs/{transferConfigsId}/transferResources/{transferResourcesId}",
@@ -6322,13 +6431,16 @@ pub fn bigquerydatatransfer_projects_transfer_configs_transfer_resources_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigquerydatatransfer_projects_transfer_configs_transfer_resources_list_execute()` to send, or `bigquerydatatransfer_projects_transfer_configs_transfer_resources_list` for simplest API.
 
-pub fn bigquerydatatransfer_projects_transfer_configs_transfer_resources_list_builder(
-    client: &SimpleHttpClient,
+pub fn bigquerydatatransfer_projects_transfer_configs_transfer_resources_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigquerydatatransfer.googleapis.com/v1/projects/{}/transferConfigs/{transferConfigsId}/transferResources",

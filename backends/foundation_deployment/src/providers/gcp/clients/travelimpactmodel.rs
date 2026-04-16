@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,9 +27,12 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `travelimpactmodel_flights_compute_flight_emissions_execute()` to send, or `travelimpactmodel_flights_compute_flight_emissions` for simplest API.
 
-pub fn travelimpactmodel_flights_compute_flight_emissions_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn travelimpactmodel_flights_compute_flight_emissions_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://travelimpactmodel.googleapis.com/v1/flights:computeFlightEmissions",);
@@ -180,9 +184,12 @@ pub fn travelimpactmodel_flights_compute_flight_emissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `travelimpactmodel_flights_compute_scope3_flight_emissions_execute()` to send, or `travelimpactmodel_flights_compute_scope3_flight_emissions` for simplest API.
 
-pub fn travelimpactmodel_flights_compute_scope3_flight_emissions_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn travelimpactmodel_flights_compute_scope3_flight_emissions_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://travelimpactmodel.googleapis.com/v1/flights:computeScope3FlightEmissions",
@@ -335,9 +342,12 @@ pub fn travelimpactmodel_flights_compute_scope3_flight_emissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `travelimpactmodel_flights_compute_typical_flight_emissions_execute()` to send, or `travelimpactmodel_flights_compute_typical_flight_emissions` for simplest API.
 
-pub fn travelimpactmodel_flights_compute_typical_flight_emissions_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn travelimpactmodel_flights_compute_typical_flight_emissions_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://travelimpactmodel.googleapis.com/v1/flights:computeTypicalFlightEmissions",

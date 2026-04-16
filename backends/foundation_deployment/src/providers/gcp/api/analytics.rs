@@ -149,7 +149,6 @@ use crate::providers::gcp::clients::analytics::AnalyticsManagementAccountUserLin
 use crate::providers::gcp::clients::analytics::AnalyticsManagementAccountUserLinksListArgs;
 use crate::providers::gcp::clients::analytics::AnalyticsManagementAccountUserLinksUpdateArgs;
 use crate::providers::gcp::clients::analytics::AnalyticsManagementAccountsListArgs;
-use crate::providers::gcp::clients::analytics::AnalyticsManagementClientIdHashClientIdArgs;
 use crate::providers::gcp::clients::analytics::AnalyticsManagementCustomDataSourcesListArgs;
 use crate::providers::gcp::clients::analytics::AnalyticsManagementCustomDimensionsGetArgs;
 use crate::providers::gcp::clients::analytics::AnalyticsManagementCustomDimensionsInsertArgs;
@@ -225,12 +224,9 @@ use crate::providers::gcp::clients::analytics::AnalyticsManagementWebpropertyUse
 use crate::providers::gcp::clients::analytics::AnalyticsManagementWebpropertyUserLinksListArgs;
 use crate::providers::gcp::clients::analytics::AnalyticsManagementWebpropertyUserLinksUpdateArgs;
 use crate::providers::gcp::clients::analytics::AnalyticsMetadataColumnsListArgs;
-use crate::providers::gcp::clients::analytics::AnalyticsProvisioningCreateAccountTicketArgs;
-use crate::providers::gcp::clients::analytics::AnalyticsProvisioningCreateAccountTreeArgs;
-use crate::providers::gcp::clients::analytics::AnalyticsUserDeletionUserDeletionRequestUpsertArgs;
 use crate::provider_client::{ProviderClient, ProviderError};
 use foundation_core::valtron::{execute, StreamIterator};
-use foundation_core::wire::simple_http::client::SimpleHttpClient;
+use foundation_core::wire::simple_http::client::{SimpleHttpClient, DnsResolver};
 use foundation_db::state::store_state_task::StoreStateIdentifierTask;
 use std::sync::Arc;
 
@@ -239,34 +235,44 @@ use std::sync::Arc;
 /// # Type Parameters
 ///
 /// * `S` - StateStore implementation (FileStateStore, SqliteStateStore, etc.)
+/// * `R` - DNS resolver type for HTTP client
 ///
 /// # Example
 ///
 /// ```rust
 /// let state_store = FileStateStore::new("/path", "my-project", "dev");
-/// let client = ProviderClient::new("my-project", "dev", state_store);
-/// let http_client = SimpleHttpClient::new(...);
-/// let provider = AnalyticsProvider::new(client, http_client);
+/// let http_client = SimpleHttpClient::with_resolver(StaticSocketAddr::new(addr));
+/// let client = ProviderClient::new("my-project", "dev", state_store, http_client);
+/// let provider = AnalyticsProvider::from_provider_client(client);
 /// ```
 #[derive(Clone)]
-pub struct AnalyticsProvider<S>
+pub struct AnalyticsProvider<S, R>
 where
     S: foundation_db::state::traits::StateStore + Send + Sync + 'static,
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + 'static,
 {
-    client: ProviderClient<S>,
-    http_client: Arc<SimpleHttpClient>,
+    client: ProviderClient<S, R>,
+    http_client: Arc<SimpleHttpClient<R>>,
 }
 
-impl<S> AnalyticsProvider<S>
+impl<S, R> AnalyticsProvider<S, R>
 where
     S: foundation_db::state::traits::StateStore + Send + Sync + 'static,
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + 'static,
 {
     /// Create new AnalyticsProvider.
-    pub fn new(client: ProviderClient<S>, http_client: SimpleHttpClient) -> Self {
+    pub fn new(client: ProviderClient<S, R>, http_client: Arc<SimpleHttpClient<R>>) -> Self {
         Self {
             client,
-            http_client: Arc::new(http_client),
+            http_client,
         }
+    }
+
+    /// Create new AnalyticsProvider from ProviderClient, extracting the HTTP client.
+    ///
+    /// This is a convenience method that calls `Self::new()` with `client.http_client()`.
+    pub fn from_provider_client(client: ProviderClient<S, R>) -> Self {
+        Self::new(client, client.http_client.clone())
     }
 
     /// Analytics data ga get.
@@ -298,18 +304,18 @@ where
         let builder = analytics_data_ga_get_builder(
             &self.http_client,
             &args.dimensions,
-            &args.end-date,
+            &args.end_date,
             &args.filters,
             &args.ids,
-            &args.include-empty-rows,
-            &args.max-results,
+            &args.include_empty_rows,
+            &args.max_results,
             &args.metrics,
             &args.output,
             &args.samplingLevel,
             &args.segment,
             &args.sort,
-            &args.start-date,
-            &args.start-index,
+            &args.start_date,
+            &args.start_index,
         )
         .map_err(ProviderError::Api)?;
 
@@ -348,15 +354,15 @@ where
         let builder = analytics_data_mcf_get_builder(
             &self.http_client,
             &args.dimensions,
-            &args.end-date,
+            &args.end_date,
             &args.filters,
             &args.ids,
-            &args.max-results,
+            &args.max_results,
             &args.metrics,
             &args.samplingLevel,
             &args.sort,
-            &args.start-date,
-            &args.start-index,
+            &args.start_date,
+            &args.start_index,
         )
         .map_err(ProviderError::Api)?;
 
@@ -397,7 +403,7 @@ where
             &args.dimensions,
             &args.filters,
             &args.ids,
-            &args.max-results,
+            &args.max_results,
             &args.metrics,
             &args.sort,
         )
@@ -437,8 +443,8 @@ where
     > {
         let builder = analytics_management_account_summaries_list_builder(
             &self.http_client,
-            &args.max-results,
-            &args.start-index,
+            &args.max_results,
+            &args.start_index,
         )
         .map_err(ProviderError::Api)?;
 
@@ -564,8 +570,8 @@ where
         let builder = analytics_management_account_user_links_list_builder(
             &self.http_client,
             &args.accountId,
-            &args.max-results,
-            &args.start-index,
+            &args.max_results,
+            &args.start_index,
         )
         .map_err(ProviderError::Api)?;
 
@@ -647,8 +653,8 @@ where
     > {
         let builder = analytics_management_accounts_list_builder(
             &self.http_client,
-            &args.max-results,
-            &args.start-index,
+            &args.max_results,
+            &args.start_index,
         )
         .map_err(ProviderError::Api)?;
 
@@ -730,8 +736,8 @@ where
             &self.http_client,
             &args.accountId,
             &args.webPropertyId,
-            &args.max-results,
-            &args.start-index,
+            &args.max_results,
+            &args.start_index,
         )
         .map_err(ProviderError::Api)?;
 
@@ -855,8 +861,8 @@ where
             &self.http_client,
             &args.accountId,
             &args.webPropertyId,
-            &args.max-results,
-            &args.start-index,
+            &args.max_results,
+            &args.start_index,
         )
         .map_err(ProviderError::Api)?;
 
@@ -1072,8 +1078,8 @@ where
             &self.http_client,
             &args.accountId,
             &args.webPropertyId,
-            &args.max-results,
-            &args.start-index,
+            &args.max_results,
+            &args.start_index,
         )
         .map_err(ProviderError::Api)?;
 
@@ -1338,8 +1344,8 @@ where
             &args.accountId,
             &args.webPropertyId,
             &args.profileId,
-            &args.max-results,
-            &args.start-index,
+            &args.max_results,
+            &args.start_index,
         )
         .map_err(ProviderError::Api)?;
 
@@ -1596,8 +1602,8 @@ where
         let builder = analytics_management_filters_list_builder(
             &self.http_client,
             &args.accountId,
-            &args.max-results,
-            &args.start-index,
+            &args.max_results,
+            &args.start_index,
         )
         .map_err(ProviderError::Api)?;
 
@@ -1812,8 +1818,8 @@ where
             &args.accountId,
             &args.webPropertyId,
             &args.profileId,
-            &args.max-results,
-            &args.start-index,
+            &args.max_results,
+            &args.start_index,
         )
         .map_err(ProviderError::Api)?;
 
@@ -2078,8 +2084,8 @@ where
             &args.accountId,
             &args.webPropertyId,
             &args.profileId,
-            &args.max-results,
-            &args.start-index,
+            &args.max_results,
+            &args.start_index,
         )
         .map_err(ProviderError::Api)?;
 
@@ -2303,8 +2309,8 @@ where
             &args.accountId,
             &args.webPropertyId,
             &args.profileId,
-            &args.max-results,
-            &args.start-index,
+            &args.max_results,
+            &args.start_index,
         )
         .map_err(ProviderError::Api)?;
 
@@ -2519,8 +2525,8 @@ where
             &self.http_client,
             &args.accountId,
             &args.webPropertyId,
-            &args.max-results,
-            &args.start-index,
+            &args.max_results,
+            &args.start_index,
         )
         .map_err(ProviderError::Api)?;
 
@@ -2779,8 +2785,8 @@ where
             &self.http_client,
             &args.accountId,
             &args.webPropertyId,
-            &args.max-results,
-            &args.start-index,
+            &args.max_results,
+            &args.start_index,
             &args.type_rs,
         )
         .map_err(ProviderError::Api)?;
@@ -2909,8 +2915,8 @@ where
     > {
         let builder = analytics_management_segments_list_builder(
             &self.http_client,
-            &args.max-results,
-            &args.start-index,
+            &args.max_results,
+            &args.start_index,
         )
         .map_err(ProviderError::Api)?;
 
@@ -3083,8 +3089,8 @@ where
             &args.accountId,
             &args.webPropertyId,
             &args.profileId,
-            &args.max-results,
-            &args.start-index,
+            &args.max_results,
+            &args.start_index,
         )
         .map_err(ProviderError::Api)?;
 
@@ -3211,8 +3217,8 @@ where
             &args.accountId,
             &args.webPropertyId,
             &args.customDataSourceId,
-            &args.max-results,
-            &args.start-index,
+            &args.max_results,
+            &args.start_index,
         )
         .map_err(ProviderError::Api)?;
 
@@ -3426,8 +3432,8 @@ where
             &self.http_client,
             &args.accountId,
             &args.webPropertyId,
-            &args.max-results,
-            &args.start-index,
+            &args.max_results,
+            &args.start_index,
         )
         .map_err(ProviderError::Api)?;
 
@@ -3638,8 +3644,8 @@ where
         let builder = analytics_management_webproperties_list_builder(
             &self.http_client,
             &args.accountId,
-            &args.max-results,
-            &args.start-index,
+            &args.max_results,
+            &args.start_index,
         )
         .map_err(ProviderError::Api)?;
 
@@ -3856,8 +3862,8 @@ where
             &self.http_client,
             &args.accountId,
             &args.webPropertyId,
-            &args.max-results,
-            &args.start-index,
+            &args.max_results,
+            &args.start_index,
         )
         .map_err(ProviderError::Api)?;
 

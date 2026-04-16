@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,8 +27,8 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `pollen_forecast_lookup_execute()` to send, or `pollen_forecast_lookup` for simplest API.
 
-pub fn pollen_forecast_lookup_builder(
-    client: &SimpleHttpClient,
+pub fn pollen_forecast_lookup_builder<R>(
+    client: &SimpleHttpClient<R>,
     days: &Option<Option<String>>,
     languageCode: &Option<Option<String>>,
     location_latitude: &Option<Option<String>>,
@@ -35,7 +36,10 @@ pub fn pollen_forecast_lookup_builder(
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     plantsDescription: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://pollen.googleapis.com/v1/forecast:lookup",);
 
@@ -240,13 +244,16 @@ pub fn pollen_forecast_lookup(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `pollen_map_types_heatmap_tiles_lookup_heatmap_tile_execute()` to send, or `pollen_map_types_heatmap_tiles_lookup_heatmap_tile` for simplest API.
 
-pub fn pollen_map_types_heatmap_tiles_lookup_heatmap_tile_builder(
-    client: &SimpleHttpClient,
+pub fn pollen_map_types_heatmap_tiles_lookup_heatmap_tile_builder<R>(
+    client: &SimpleHttpClient<R>,
     mapType: &String,
     zoom: &String,
     x: &String,
     y: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://pollen.googleapis.com/v1/mapTypes/{}/heatmapTiles/{}/{}/{}",

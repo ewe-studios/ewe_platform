@@ -81,7 +81,7 @@ use crate::providers::gcp::clients::cloudasset::CloudassetSearchAllIamPoliciesAr
 use crate::providers::gcp::clients::cloudasset::CloudassetSearchAllResourcesArgs;
 use crate::provider_client::{ProviderClient, ProviderError};
 use foundation_core::valtron::{execute, StreamIterator};
-use foundation_core::wire::simple_http::client::SimpleHttpClient;
+use foundation_core::wire::simple_http::client::{SimpleHttpClient, DnsResolver};
 use foundation_db::state::store_state_task::StoreStateIdentifierTask;
 use std::sync::Arc;
 
@@ -90,34 +90,44 @@ use std::sync::Arc;
 /// # Type Parameters
 ///
 /// * `S` - StateStore implementation (FileStateStore, SqliteStateStore, etc.)
+/// * `R` - DNS resolver type for HTTP client
 ///
 /// # Example
 ///
 /// ```rust
 /// let state_store = FileStateStore::new("/path", "my-project", "dev");
-/// let client = ProviderClient::new("my-project", "dev", state_store);
-/// let http_client = SimpleHttpClient::new(...);
-/// let provider = CloudassetProvider::new(client, http_client);
+/// let http_client = SimpleHttpClient::with_resolver(StaticSocketAddr::new(addr));
+/// let client = ProviderClient::new("my-project", "dev", state_store, http_client);
+/// let provider = CloudassetProvider::from_provider_client(client);
 /// ```
 #[derive(Clone)]
-pub struct CloudassetProvider<S>
+pub struct CloudassetProvider<S, R>
 where
     S: foundation_db::state::traits::StateStore + Send + Sync + 'static,
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + 'static,
 {
-    client: ProviderClient<S>,
-    http_client: Arc<SimpleHttpClient>,
+    client: ProviderClient<S, R>,
+    http_client: Arc<SimpleHttpClient<R>>,
 }
 
-impl<S> CloudassetProvider<S>
+impl<S, R> CloudassetProvider<S, R>
 where
     S: foundation_db::state::traits::StateStore + Send + Sync + 'static,
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + 'static,
 {
     /// Create new CloudassetProvider.
-    pub fn new(client: ProviderClient<S>, http_client: SimpleHttpClient) -> Self {
+    pub fn new(client: ProviderClient<S, R>, http_client: Arc<SimpleHttpClient<R>>) -> Self {
         Self {
             client,
-            http_client: Arc::new(http_client),
+            http_client,
         }
+    }
+
+    /// Create new CloudassetProvider from ProviderClient, extracting the HTTP client.
+    ///
+    /// This is a convenience method that calls `Self::new()` with `client.http_client()`.
+    pub fn from_provider_client(client: ProviderClient<S, R>) -> Self {
+        Self::new(client, client.http_client.clone())
     }
 
     /// Cloudasset assets list.
@@ -685,17 +695,17 @@ where
         let builder = cloudasset_analyze_iam_policy_builder(
             &self.http_client,
             &args.scope,
-            &args.analysisQuery.accessSelector.permissions,
-            &args.analysisQuery.accessSelector.roles,
-            &args.analysisQuery.conditionContext.accessTime,
-            &args.analysisQuery.identitySelector.identity,
-            &args.analysisQuery.options.analyzeServiceAccountImpersonation,
-            &args.analysisQuery.options.expandGroups,
-            &args.analysisQuery.options.expandResources,
-            &args.analysisQuery.options.expandRoles,
-            &args.analysisQuery.options.outputGroupEdges,
-            &args.analysisQuery.options.outputResourceEdges,
-            &args.analysisQuery.resourceSelector.fullResourceName,
+            &args.analysisQuery_accessSelector_permissions,
+            &args.analysisQuery_accessSelector_roles,
+            &args.analysisQuery_conditionContext_accessTime,
+            &args.analysisQuery_identitySelector_identity,
+            &args.analysisQuery_options_analyzeServiceAccountImpersonation,
+            &args.analysisQuery_options_expandGroups,
+            &args.analysisQuery_options_expandResources,
+            &args.analysisQuery_options_expandRoles,
+            &args.analysisQuery_options_outputGroupEdges,
+            &args.analysisQuery_options_outputResourceEdges,
+            &args.analysisQuery_resourceSelector_fullResourceName,
             &args.executionTimeout,
             &args.savedAnalysisQuery,
         )
@@ -972,8 +982,8 @@ where
             &args.parent,
             &args.assetNames,
             &args.contentType,
-            &args.readTimeWindow.endTime,
-            &args.readTimeWindow.startTime,
+            &args.readTimeWindow_endTime,
+            &args.readTimeWindow_startTime,
             &args.relationshipTypes,
         )
         .map_err(ProviderError::Api)?;

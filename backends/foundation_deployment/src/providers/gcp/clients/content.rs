@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,9 +27,12 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_accounts_authinfo_execute()` to send, or `content_accounts_authinfo` for simplest API.
 
-pub fn content_accounts_authinfo_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn content_accounts_authinfo_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://shoppingcontent.googleapis.com/content/v2.1/accounts/authinfo",);
@@ -176,12 +180,15 @@ pub fn content_accounts_authinfo(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_accounts_claimwebsite_execute()` to send, or `content_accounts_claimwebsite` for simplest API.
 
-pub fn content_accounts_claimwebsite_builder(
-    client: &SimpleHttpClient,
+pub fn content_accounts_claimwebsite_builder<R>(
+    client: &SimpleHttpClient<R>,
     merchantId: &String,
     accountId: &String,
     overwrite: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/accounts/{}/claimwebsite",
@@ -363,9 +370,12 @@ pub fn content_accounts_claimwebsite(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_accounts_custombatch_execute()` to send, or `content_accounts_custombatch` for simplest API.
 
-pub fn content_accounts_custombatch_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn content_accounts_custombatch_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://shoppingcontent.googleapis.com/content/v2.1/accounts/batch",);
@@ -517,12 +527,15 @@ pub fn content_accounts_custombatch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_accounts_delete_execute()` to send, or `content_accounts_delete` for simplest API.
 
-pub fn content_accounts_delete_builder(
-    client: &SimpleHttpClient,
+pub fn content_accounts_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     merchantId: &String,
     accountId: &String,
     force: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/accounts/{}",
@@ -689,12 +702,15 @@ pub fn content_accounts_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_accounts_get_execute()` to send, or `content_accounts_get` for simplest API.
 
-pub fn content_accounts_get_builder(
-    client: &SimpleHttpClient,
+pub fn content_accounts_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     merchantId: &String,
     accountId: &String,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/accounts/{}",
@@ -864,10 +880,13 @@ pub fn content_accounts_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_accounts_insert_execute()` to send, or `content_accounts_insert` for simplest API.
 
-pub fn content_accounts_insert_builder(
-    client: &SimpleHttpClient,
+pub fn content_accounts_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     merchantId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/accounts",
@@ -1021,11 +1040,14 @@ pub fn content_accounts_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_accounts_link_execute()` to send, or `content_accounts_link` for simplest API.
 
-pub fn content_accounts_link_builder(
-    client: &SimpleHttpClient,
+pub fn content_accounts_link_builder<R>(
+    client: &SimpleHttpClient<R>,
     merchantId: &String,
     accountId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/accounts/{}/link",
@@ -1185,15 +1207,18 @@ pub fn content_accounts_link(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_accounts_list_execute()` to send, or `content_accounts_list` for simplest API.
 
-pub fn content_accounts_list_builder(
-    client: &SimpleHttpClient,
+pub fn content_accounts_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     merchantId: &String,
     label: &Option<Option<String>>,
     maxResults: &Option<Option<String>>,
     name: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/accounts",
@@ -1392,13 +1417,16 @@ pub fn content_accounts_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_accounts_listlinks_execute()` to send, or `content_accounts_listlinks` for simplest API.
 
-pub fn content_accounts_listlinks_builder(
-    client: &SimpleHttpClient,
+pub fn content_accounts_listlinks_builder<R>(
+    client: &SimpleHttpClient<R>,
     merchantId: &String,
     accountId: &String,
     maxResults: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/accounts/{}/listlinks",
@@ -1582,11 +1610,14 @@ pub fn content_accounts_listlinks(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_accounts_requestphoneverification_execute()` to send, or `content_accounts_requestphoneverification` for simplest API.
 
-pub fn content_accounts_requestphoneverification_builder(
-    client: &SimpleHttpClient,
+pub fn content_accounts_requestphoneverification_builder<R>(
+    client: &SimpleHttpClient<R>,
     merchantId: &String,
     accountId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/accounts/{}/requestphoneverification",
@@ -1755,11 +1786,14 @@ pub fn content_accounts_requestphoneverification(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_accounts_update_execute()` to send, or `content_accounts_update` for simplest API.
 
-pub fn content_accounts_update_builder(
-    client: &SimpleHttpClient,
+pub fn content_accounts_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     merchantId: &String,
     accountId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/accounts/{}",
@@ -1915,11 +1949,14 @@ pub fn content_accounts_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_accounts_updatelabels_execute()` to send, or `content_accounts_updatelabels` for simplest API.
 
-pub fn content_accounts_updatelabels_builder(
-    client: &SimpleHttpClient,
+pub fn content_accounts_updatelabels_builder<R>(
+    client: &SimpleHttpClient<R>,
     merchantId: &String,
     accountId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/accounts/{}/updatelabels",
@@ -2083,11 +2120,14 @@ pub fn content_accounts_updatelabels(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_accounts_verifyphonenumber_execute()` to send, or `content_accounts_verifyphonenumber` for simplest API.
 
-pub fn content_accounts_verifyphonenumber_builder(
-    client: &SimpleHttpClient,
+pub fn content_accounts_verifyphonenumber_builder<R>(
+    client: &SimpleHttpClient<R>,
     merchantId: &String,
     accountId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/accounts/{}/verifyphonenumber",
@@ -2248,10 +2288,13 @@ pub fn content_accounts_verifyphonenumber(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_accounts_credentials_create_execute()` to send, or `content_accounts_credentials_create` for simplest API.
 
-pub fn content_accounts_credentials_create_builder(
-    client: &SimpleHttpClient,
+pub fn content_accounts_credentials_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     accountId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/accounts/{}/credentials",
@@ -2409,10 +2452,13 @@ pub fn content_accounts_credentials_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_accounts_labels_create_execute()` to send, or `content_accounts_labels_create` for simplest API.
 
-pub fn content_accounts_labels_create_builder(
-    client: &SimpleHttpClient,
+pub fn content_accounts_labels_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     accountId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/accounts/{}/labels",
@@ -2570,11 +2616,14 @@ pub fn content_accounts_labels_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_accounts_labels_delete_execute()` to send, or `content_accounts_labels_delete` for simplest API.
 
-pub fn content_accounts_labels_delete_builder(
-    client: &SimpleHttpClient,
+pub fn content_accounts_labels_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     accountId: &String,
     labelId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/accounts/{}/labels/{}",
@@ -2727,12 +2776,15 @@ pub fn content_accounts_labels_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_accounts_labels_list_execute()` to send, or `content_accounts_labels_list` for simplest API.
 
-pub fn content_accounts_labels_list_builder(
-    client: &SimpleHttpClient,
+pub fn content_accounts_labels_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     accountId: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/accounts/{}/labels",
@@ -2913,11 +2965,14 @@ pub fn content_accounts_labels_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_accounts_labels_patch_execute()` to send, or `content_accounts_labels_patch` for simplest API.
 
-pub fn content_accounts_labels_patch_builder(
-    client: &SimpleHttpClient,
+pub fn content_accounts_labels_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     accountId: &String,
     labelId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/accounts/{}/labels/{}",
@@ -3077,10 +3132,13 @@ pub fn content_accounts_labels_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_accounts_returncarrier_create_execute()` to send, or `content_accounts_returncarrier_create` for simplest API.
 
-pub fn content_accounts_returncarrier_create_builder(
-    client: &SimpleHttpClient,
+pub fn content_accounts_returncarrier_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     accountId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/accounts/{}/returncarrier",
@@ -3238,11 +3296,14 @@ pub fn content_accounts_returncarrier_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_accounts_returncarrier_delete_execute()` to send, or `content_accounts_returncarrier_delete` for simplest API.
 
-pub fn content_accounts_returncarrier_delete_builder(
-    client: &SimpleHttpClient,
+pub fn content_accounts_returncarrier_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     accountId: &String,
     carrierAccountId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/accounts/{}/returncarrier/{}",
@@ -3399,10 +3460,13 @@ pub fn content_accounts_returncarrier_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_accounts_returncarrier_list_execute()` to send, or `content_accounts_returncarrier_list` for simplest API.
 
-pub fn content_accounts_returncarrier_list_builder(
-    client: &SimpleHttpClient,
+pub fn content_accounts_returncarrier_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     accountId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/accounts/{}/returncarrier",
@@ -3564,11 +3628,14 @@ pub fn content_accounts_returncarrier_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_accounts_returncarrier_patch_execute()` to send, or `content_accounts_returncarrier_patch` for simplest API.
 
-pub fn content_accounts_returncarrier_patch_builder(
-    client: &SimpleHttpClient,
+pub fn content_accounts_returncarrier_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     accountId: &String,
     carrierAccountId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/accounts/{}/returncarrier/{}",
@@ -3732,9 +3799,12 @@ pub fn content_accounts_returncarrier_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_accountstatuses_custombatch_execute()` to send, or `content_accountstatuses_custombatch` for simplest API.
 
-pub fn content_accountstatuses_custombatch_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn content_accountstatuses_custombatch_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://shoppingcontent.googleapis.com/content/v2.1/accountstatuses/batch",);
@@ -3886,12 +3956,15 @@ pub fn content_accountstatuses_custombatch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_accountstatuses_get_execute()` to send, or `content_accountstatuses_get` for simplest API.
 
-pub fn content_accountstatuses_get_builder(
-    client: &SimpleHttpClient,
+pub fn content_accountstatuses_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     merchantId: &String,
     accountId: &String,
     destinations: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/accountstatuses/{}",
@@ -4069,14 +4142,17 @@ pub fn content_accountstatuses_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_accountstatuses_list_execute()` to send, or `content_accountstatuses_list` for simplest API.
 
-pub fn content_accountstatuses_list_builder(
-    client: &SimpleHttpClient,
+pub fn content_accountstatuses_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     merchantId: &String,
     destinations: &Option<Option<String>>,
     maxResults: &Option<Option<String>>,
     name: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/accountstatuses",
@@ -4273,9 +4349,12 @@ pub fn content_accountstatuses_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_accounttax_custombatch_execute()` to send, or `content_accounttax_custombatch` for simplest API.
 
-pub fn content_accounttax_custombatch_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn content_accounttax_custombatch_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://shoppingcontent.googleapis.com/content/v2.1/accounttax/batch",);
@@ -4427,11 +4506,14 @@ pub fn content_accounttax_custombatch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_accounttax_get_execute()` to send, or `content_accounttax_get` for simplest API.
 
-pub fn content_accounttax_get_builder(
-    client: &SimpleHttpClient,
+pub fn content_accounttax_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     merchantId: &String,
     accountId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/accounttax/{}",
@@ -4587,12 +4669,15 @@ pub fn content_accounttax_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_accounttax_list_execute()` to send, or `content_accounttax_list` for simplest API.
 
-pub fn content_accounttax_list_builder(
-    client: &SimpleHttpClient,
+pub fn content_accounttax_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     merchantId: &String,
     maxResults: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/accounttax",
@@ -4773,11 +4858,14 @@ pub fn content_accounttax_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_accounttax_update_execute()` to send, or `content_accounttax_update` for simplest API.
 
-pub fn content_accounttax_update_builder(
-    client: &SimpleHttpClient,
+pub fn content_accounttax_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     merchantId: &String,
     accountId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/accounttax/{}",
@@ -4933,10 +5021,13 @@ pub fn content_accounttax_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_collections_create_execute()` to send, or `content_collections_create` for simplest API.
 
-pub fn content_collections_create_builder(
-    client: &SimpleHttpClient,
+pub fn content_collections_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     merchantId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/collections",
@@ -5090,11 +5181,14 @@ pub fn content_collections_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_collections_delete_execute()` to send, or `content_collections_delete` for simplest API.
 
-pub fn content_collections_delete_builder(
-    client: &SimpleHttpClient,
+pub fn content_collections_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     merchantId: &String,
     collectionId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/collections/{}",
@@ -5247,11 +5341,14 @@ pub fn content_collections_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_collections_get_execute()` to send, or `content_collections_get` for simplest API.
 
-pub fn content_collections_get_builder(
-    client: &SimpleHttpClient,
+pub fn content_collections_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     merchantId: &String,
     collectionId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/collections/{}",
@@ -5407,12 +5504,15 @@ pub fn content_collections_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_collections_list_execute()` to send, or `content_collections_list` for simplest API.
 
-pub fn content_collections_list_builder(
-    client: &SimpleHttpClient,
+pub fn content_collections_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     merchantId: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/collections",
@@ -5593,11 +5693,14 @@ pub fn content_collections_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_collectionstatuses_get_execute()` to send, or `content_collectionstatuses_get` for simplest API.
 
-pub fn content_collectionstatuses_get_builder(
-    client: &SimpleHttpClient,
+pub fn content_collectionstatuses_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     merchantId: &String,
     collectionId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/collectionstatuses/{}",
@@ -5758,12 +5861,15 @@ pub fn content_collectionstatuses_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_collectionstatuses_list_execute()` to send, or `content_collectionstatuses_list` for simplest API.
 
-pub fn content_collectionstatuses_list_builder(
-    client: &SimpleHttpClient,
+pub fn content_collectionstatuses_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     merchantId: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/collectionstatuses",
@@ -5948,10 +6054,13 @@ pub fn content_collectionstatuses_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_conversionsources_create_execute()` to send, or `content_conversionsources_create` for simplest API.
 
-pub fn content_conversionsources_create_builder(
-    client: &SimpleHttpClient,
+pub fn content_conversionsources_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     merchantId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/conversionsources",
@@ -6109,11 +6218,14 @@ pub fn content_conversionsources_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_conversionsources_delete_execute()` to send, or `content_conversionsources_delete` for simplest API.
 
-pub fn content_conversionsources_delete_builder(
-    client: &SimpleHttpClient,
+pub fn content_conversionsources_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     merchantId: &String,
     conversionSourceId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/conversionsources/{}",
@@ -6270,11 +6382,14 @@ pub fn content_conversionsources_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_conversionsources_get_execute()` to send, or `content_conversionsources_get` for simplest API.
 
-pub fn content_conversionsources_get_builder(
-    client: &SimpleHttpClient,
+pub fn content_conversionsources_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     merchantId: &String,
     conversionSourceId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/conversionsources/{}",
@@ -6435,13 +6550,16 @@ pub fn content_conversionsources_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_conversionsources_list_execute()` to send, or `content_conversionsources_list` for simplest API.
 
-pub fn content_conversionsources_list_builder(
-    client: &SimpleHttpClient,
+pub fn content_conversionsources_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     merchantId: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     showDeleted: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/conversionsources",
@@ -6632,12 +6750,15 @@ pub fn content_conversionsources_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_conversionsources_patch_execute()` to send, or `content_conversionsources_patch` for simplest API.
 
-pub fn content_conversionsources_patch_builder(
-    client: &SimpleHttpClient,
+pub fn content_conversionsources_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     merchantId: &String,
     conversionSourceId: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/conversionsources/{}",
@@ -6815,11 +6936,14 @@ pub fn content_conversionsources_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_conversionsources_undelete_execute()` to send, or `content_conversionsources_undelete` for simplest API.
 
-pub fn content_conversionsources_undelete_builder(
-    client: &SimpleHttpClient,
+pub fn content_conversionsources_undelete_builder<R>(
+    client: &SimpleHttpClient<R>,
     merchantId: &String,
     conversionSourceId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/conversionsources/{}:undelete",
@@ -6976,11 +7100,14 @@ pub fn content_conversionsources_undelete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_csses_get_execute()` to send, or `content_csses_get` for simplest API.
 
-pub fn content_csses_get_builder(
-    client: &SimpleHttpClient,
+pub fn content_csses_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     cssGroupId: &String,
     cssDomainId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/csses/{}",
@@ -7136,12 +7263,15 @@ pub fn content_csses_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_csses_list_execute()` to send, or `content_csses_list` for simplest API.
 
-pub fn content_csses_list_builder(
-    client: &SimpleHttpClient,
+pub fn content_csses_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     cssGroupId: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/csses",
@@ -7318,11 +7448,14 @@ pub fn content_csses_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_csses_updatelabels_execute()` to send, or `content_csses_updatelabels` for simplest API.
 
-pub fn content_csses_updatelabels_builder(
-    client: &SimpleHttpClient,
+pub fn content_csses_updatelabels_builder<R>(
+    client: &SimpleHttpClient<R>,
     cssGroupId: &String,
     cssDomainId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/csses/{}/updatelabels",
@@ -7478,9 +7611,12 @@ pub fn content_csses_updatelabels(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_datafeeds_custombatch_execute()` to send, or `content_datafeeds_custombatch` for simplest API.
 
-pub fn content_datafeeds_custombatch_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn content_datafeeds_custombatch_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://shoppingcontent.googleapis.com/content/v2.1/datafeeds/batch",);
@@ -7632,11 +7768,14 @@ pub fn content_datafeeds_custombatch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_datafeeds_delete_execute()` to send, or `content_datafeeds_delete` for simplest API.
 
-pub fn content_datafeeds_delete_builder(
-    client: &SimpleHttpClient,
+pub fn content_datafeeds_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     merchantId: &String,
     datafeedId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/datafeeds/{}",
@@ -7789,11 +7928,14 @@ pub fn content_datafeeds_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_datafeeds_fetchnow_execute()` to send, or `content_datafeeds_fetchnow` for simplest API.
 
-pub fn content_datafeeds_fetchnow_builder(
-    client: &SimpleHttpClient,
+pub fn content_datafeeds_fetchnow_builder<R>(
+    client: &SimpleHttpClient<R>,
     merchantId: &String,
     datafeedId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/datafeeds/{}/fetchNow",
@@ -7953,11 +8095,14 @@ pub fn content_datafeeds_fetchnow(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_datafeeds_get_execute()` to send, or `content_datafeeds_get` for simplest API.
 
-pub fn content_datafeeds_get_builder(
-    client: &SimpleHttpClient,
+pub fn content_datafeeds_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     merchantId: &String,
     datafeedId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/datafeeds/{}",
@@ -8113,10 +8258,13 @@ pub fn content_datafeeds_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_datafeeds_insert_execute()` to send, or `content_datafeeds_insert` for simplest API.
 
-pub fn content_datafeeds_insert_builder(
-    client: &SimpleHttpClient,
+pub fn content_datafeeds_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     merchantId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/datafeeds",
@@ -8270,12 +8418,15 @@ pub fn content_datafeeds_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_datafeeds_list_execute()` to send, or `content_datafeeds_list` for simplest API.
 
-pub fn content_datafeeds_list_builder(
-    client: &SimpleHttpClient,
+pub fn content_datafeeds_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     merchantId: &String,
     maxResults: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/datafeeds",
@@ -8456,11 +8607,14 @@ pub fn content_datafeeds_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_datafeeds_update_execute()` to send, or `content_datafeeds_update` for simplest API.
 
-pub fn content_datafeeds_update_builder(
-    client: &SimpleHttpClient,
+pub fn content_datafeeds_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     merchantId: &String,
     datafeedId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/datafeeds/{}",
@@ -8616,9 +8770,12 @@ pub fn content_datafeeds_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_datafeedstatuses_custombatch_execute()` to send, or `content_datafeedstatuses_custombatch` for simplest API.
 
-pub fn content_datafeedstatuses_custombatch_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn content_datafeedstatuses_custombatch_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://shoppingcontent.googleapis.com/content/v2.1/datafeedstatuses/batch",);
@@ -8770,14 +8927,17 @@ pub fn content_datafeedstatuses_custombatch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_datafeedstatuses_get_execute()` to send, or `content_datafeedstatuses_get` for simplest API.
 
-pub fn content_datafeedstatuses_get_builder(
-    client: &SimpleHttpClient,
+pub fn content_datafeedstatuses_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     merchantId: &String,
     datafeedId: &String,
     country: &Option<Option<String>>,
     feedLabel: &Option<Option<String>>,
     language: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/datafeedstatuses/{}",
@@ -8967,12 +9127,15 @@ pub fn content_datafeedstatuses_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_datafeedstatuses_list_execute()` to send, or `content_datafeedstatuses_list` for simplest API.
 
-pub fn content_datafeedstatuses_list_builder(
-    client: &SimpleHttpClient,
+pub fn content_datafeedstatuses_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     merchantId: &String,
     maxResults: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/datafeedstatuses",
@@ -9157,10 +9320,13 @@ pub fn content_datafeedstatuses_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_freelistingsprogram_get_execute()` to send, or `content_freelistingsprogram_get` for simplest API.
 
-pub fn content_freelistingsprogram_get_builder(
-    client: &SimpleHttpClient,
+pub fn content_freelistingsprogram_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     merchantId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/freelistingsprogram",
@@ -9318,10 +9484,13 @@ pub fn content_freelistingsprogram_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_freelistingsprogram_requestreview_execute()` to send, or `content_freelistingsprogram_requestreview` for simplest API.
 
-pub fn content_freelistingsprogram_requestreview_builder(
-    client: &SimpleHttpClient,
+pub fn content_freelistingsprogram_requestreview_builder<R>(
+    client: &SimpleHttpClient<R>,
     merchantId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/freelistingsprogram/requestreview",
@@ -9472,10 +9641,13 @@ pub fn content_freelistingsprogram_requestreview(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_freelistingsprogram_checkoutsettings_delete_execute()` to send, or `content_freelistingsprogram_checkoutsettings_delete` for simplest API.
 
-pub fn content_freelistingsprogram_checkoutsettings_delete_builder(
-    client: &SimpleHttpClient,
+pub fn content_freelistingsprogram_checkoutsettings_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     merchantId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/freelistingsprogram/checkoutsettings",
@@ -9627,10 +9799,13 @@ pub fn content_freelistingsprogram_checkoutsettings_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_freelistingsprogram_checkoutsettings_get_execute()` to send, or `content_freelistingsprogram_checkoutsettings_get` for simplest API.
 
-pub fn content_freelistingsprogram_checkoutsettings_get_builder(
-    client: &SimpleHttpClient,
+pub fn content_freelistingsprogram_checkoutsettings_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     merchantId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/freelistingsprogram/checkoutsettings",
@@ -9789,10 +9964,13 @@ pub fn content_freelistingsprogram_checkoutsettings_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_freelistingsprogram_checkoutsettings_insert_execute()` to send, or `content_freelistingsprogram_checkoutsettings_insert` for simplest API.
 
-pub fn content_freelistingsprogram_checkoutsettings_insert_builder(
-    client: &SimpleHttpClient,
+pub fn content_freelistingsprogram_checkoutsettings_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     merchantId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/freelistingsprogram/checkoutsettings",
@@ -9951,9 +10129,12 @@ pub fn content_freelistingsprogram_checkoutsettings_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_liasettings_custombatch_execute()` to send, or `content_liasettings_custombatch` for simplest API.
 
-pub fn content_liasettings_custombatch_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn content_liasettings_custombatch_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://shoppingcontent.googleapis.com/content/v2.1/liasettings/batch",);
@@ -10105,11 +10286,14 @@ pub fn content_liasettings_custombatch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_liasettings_get_execute()` to send, or `content_liasettings_get` for simplest API.
 
-pub fn content_liasettings_get_builder(
-    client: &SimpleHttpClient,
+pub fn content_liasettings_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     merchantId: &String,
     accountId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/liasettings/{}",
@@ -10265,11 +10449,14 @@ pub fn content_liasettings_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_liasettings_getaccessiblegmbaccounts_execute()` to send, or `content_liasettings_getaccessiblegmbaccounts` for simplest API.
 
-pub fn content_liasettings_getaccessiblegmbaccounts_builder(
-    client: &SimpleHttpClient,
+pub fn content_liasettings_getaccessiblegmbaccounts_builder<R>(
+    client: &SimpleHttpClient<R>,
     merchantId: &String,
     accountId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/liasettings/{}/accessiblegmbaccounts",
@@ -10439,12 +10626,15 @@ pub fn content_liasettings_getaccessiblegmbaccounts(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_liasettings_list_execute()` to send, or `content_liasettings_list` for simplest API.
 
-pub fn content_liasettings_list_builder(
-    client: &SimpleHttpClient,
+pub fn content_liasettings_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     merchantId: &String,
     maxResults: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/liasettings",
@@ -10625,9 +10815,12 @@ pub fn content_liasettings_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_liasettings_listposdataproviders_execute()` to send, or `content_liasettings_listposdataproviders` for simplest API.
 
-pub fn content_liasettings_listposdataproviders_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn content_liasettings_listposdataproviders_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/liasettings/posdataproviders",
@@ -10781,12 +10974,15 @@ pub fn content_liasettings_listposdataproviders(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_liasettings_requestgmbaccess_execute()` to send, or `content_liasettings_requestgmbaccess` for simplest API.
 
-pub fn content_liasettings_requestgmbaccess_builder(
-    client: &SimpleHttpClient,
+pub fn content_liasettings_requestgmbaccess_builder<R>(
+    client: &SimpleHttpClient<R>,
     merchantId: &String,
     accountId: &String,
     gmbEmail: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/liasettings/{}/requestgmbaccess",
@@ -10968,12 +11164,15 @@ pub fn content_liasettings_requestgmbaccess(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_liasettings_requestinventoryverification_execute()` to send, or `content_liasettings_requestinventoryverification` for simplest API.
 
-pub fn content_liasettings_requestinventoryverification_builder(
-    client: &SimpleHttpClient,
+pub fn content_liasettings_requestinventoryverification_builder<R>(
+    client: &SimpleHttpClient<R>,
     merchantId: &String,
     accountId: &String,
     country: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/liasettings/{}/requestinventoryverification/{}",
@@ -11147,15 +11346,18 @@ pub fn content_liasettings_requestinventoryverification(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_liasettings_setinventoryverificationcontact_execute()` to send, or `content_liasettings_setinventoryverificationcontact` for simplest API.
 
-pub fn content_liasettings_setinventoryverificationcontact_builder(
-    client: &SimpleHttpClient,
+pub fn content_liasettings_setinventoryverificationcontact_builder<R>(
+    client: &SimpleHttpClient<R>,
     merchantId: &String,
     accountId: &String,
     contactEmail: &Option<Option<String>>,
     contactName: &Option<Option<String>>,
     country: &Option<Option<String>>,
     language: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/liasettings/{}/setinventoryverificationcontact",
@@ -11360,14 +11562,17 @@ pub fn content_liasettings_setinventoryverificationcontact(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_liasettings_setomnichannelexperience_execute()` to send, or `content_liasettings_setomnichannelexperience` for simplest API.
 
-pub fn content_liasettings_setomnichannelexperience_builder(
-    client: &SimpleHttpClient,
+pub fn content_liasettings_setomnichannelexperience_builder<R>(
+    client: &SimpleHttpClient<R>,
     merchantId: &String,
     accountId: &String,
     country: &Option<Option<String>>,
     lsfType: &Option<Option<String>>,
     pickupTypes: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/liasettings/{}/setomnichannelexperience",
@@ -11558,14 +11763,17 @@ pub fn content_liasettings_setomnichannelexperience(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_liasettings_setposdataprovider_execute()` to send, or `content_liasettings_setposdataprovider` for simplest API.
 
-pub fn content_liasettings_setposdataprovider_builder(
-    client: &SimpleHttpClient,
+pub fn content_liasettings_setposdataprovider_builder<R>(
+    client: &SimpleHttpClient<R>,
     merchantId: &String,
     accountId: &String,
     country: &Option<Option<String>>,
     posDataProviderId: &Option<Option<String>>,
     posExternalAccountId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/liasettings/{}/setposdataprovider",
@@ -11759,11 +11967,14 @@ pub fn content_liasettings_setposdataprovider(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_liasettings_update_execute()` to send, or `content_liasettings_update` for simplest API.
 
-pub fn content_liasettings_update_builder(
-    client: &SimpleHttpClient,
+pub fn content_liasettings_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     merchantId: &String,
     accountId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/liasettings/{}",
@@ -11919,9 +12130,12 @@ pub fn content_liasettings_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_localinventory_custombatch_execute()` to send, or `content_localinventory_custombatch` for simplest API.
 
-pub fn content_localinventory_custombatch_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn content_localinventory_custombatch_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://shoppingcontent.googleapis.com/content/v2.1/localinventory/batch",);
@@ -12073,11 +12287,14 @@ pub fn content_localinventory_custombatch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_localinventory_insert_execute()` to send, or `content_localinventory_insert` for simplest API.
 
-pub fn content_localinventory_insert_builder(
-    client: &SimpleHttpClient,
+pub fn content_localinventory_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     merchantId: &String,
     productId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/products/{}/localinventory",
@@ -12237,12 +12454,15 @@ pub fn content_localinventory_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_merchantsupport_renderaccountissues_execute()` to send, or `content_merchantsupport_renderaccountissues` for simplest API.
 
-pub fn content_merchantsupport_renderaccountissues_builder(
-    client: &SimpleHttpClient,
+pub fn content_merchantsupport_renderaccountissues_builder<R>(
+    client: &SimpleHttpClient<R>,
     merchantId: &String,
     languageCode: &Option<Option<String>>,
     timeZone: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/merchantsupport/renderaccountissues",
@@ -12427,13 +12647,16 @@ pub fn content_merchantsupport_renderaccountissues(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_merchantsupport_renderproductissues_execute()` to send, or `content_merchantsupport_renderproductissues` for simplest API.
 
-pub fn content_merchantsupport_renderproductissues_builder(
-    client: &SimpleHttpClient,
+pub fn content_merchantsupport_renderproductissues_builder<R>(
+    client: &SimpleHttpClient<R>,
     merchantId: &String,
     productId: &String,
     languageCode: &Option<Option<String>>,
     timeZone: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/merchantsupport/renderproductissues/{}",
@@ -12622,11 +12845,14 @@ pub fn content_merchantsupport_renderproductissues(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_merchantsupport_triggeraction_execute()` to send, or `content_merchantsupport_triggeraction` for simplest API.
 
-pub fn content_merchantsupport_triggeraction_builder(
-    client: &SimpleHttpClient,
+pub fn content_merchantsupport_triggeraction_builder<R>(
+    client: &SimpleHttpClient<R>,
     merchantId: &String,
     languageCode: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/merchantsupport/triggeraction",
@@ -12801,10 +13027,13 @@ pub fn content_merchantsupport_triggeraction(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_ordertrackingsignals_create_execute()` to send, or `content_ordertrackingsignals_create` for simplest API.
 
-pub fn content_ordertrackingsignals_create_builder(
-    client: &SimpleHttpClient,
+pub fn content_ordertrackingsignals_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     merchantId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/ordertrackingsignals",
@@ -12962,9 +13191,12 @@ pub fn content_ordertrackingsignals_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_pos_custombatch_execute()` to send, or `content_pos_custombatch` for simplest API.
 
-pub fn content_pos_custombatch_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn content_pos_custombatch_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://shoppingcontent.googleapis.com/content/v2.1/pos/batch",);
 
@@ -13111,12 +13343,15 @@ pub fn content_pos_custombatch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_pos_delete_execute()` to send, or `content_pos_delete` for simplest API.
 
-pub fn content_pos_delete_builder(
-    client: &SimpleHttpClient,
+pub fn content_pos_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     merchantId: &String,
     targetMerchantId: &String,
     storeCode: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/pos/{}/store/{}",
@@ -13276,12 +13511,15 @@ pub fn content_pos_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_pos_get_execute()` to send, or `content_pos_get` for simplest API.
 
-pub fn content_pos_get_builder(
-    client: &SimpleHttpClient,
+pub fn content_pos_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     merchantId: &String,
     targetMerchantId: &String,
     storeCode: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/pos/{}/store/{}",
@@ -13444,11 +13682,14 @@ pub fn content_pos_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_pos_insert_execute()` to send, or `content_pos_insert` for simplest API.
 
-pub fn content_pos_insert_builder(
-    client: &SimpleHttpClient,
+pub fn content_pos_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     merchantId: &String,
     targetMerchantId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/pos/{}/store",
@@ -13604,11 +13845,14 @@ pub fn content_pos_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_pos_inventory_execute()` to send, or `content_pos_inventory` for simplest API.
 
-pub fn content_pos_inventory_builder(
-    client: &SimpleHttpClient,
+pub fn content_pos_inventory_builder<R>(
+    client: &SimpleHttpClient<R>,
     merchantId: &String,
     targetMerchantId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/pos/{}/inventory",
@@ -13768,11 +14012,14 @@ pub fn content_pos_inventory(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_pos_list_execute()` to send, or `content_pos_list` for simplest API.
 
-pub fn content_pos_list_builder(
-    client: &SimpleHttpClient,
+pub fn content_pos_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     merchantId: &String,
     targetMerchantId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/pos/{}/store",
@@ -13932,11 +14179,14 @@ pub fn content_pos_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_pos_sale_execute()` to send, or `content_pos_sale` for simplest API.
 
-pub fn content_pos_sale_builder(
-    client: &SimpleHttpClient,
+pub fn content_pos_sale_builder<R>(
+    client: &SimpleHttpClient<R>,
     merchantId: &String,
     targetMerchantId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/pos/{}/sale",
@@ -14096,10 +14346,13 @@ pub fn content_pos_sale(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_productdeliverytime_create_execute()` to send, or `content_productdeliverytime_create` for simplest API.
 
-pub fn content_productdeliverytime_create_builder(
-    client: &SimpleHttpClient,
+pub fn content_productdeliverytime_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     merchantId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/productdeliverytime",
@@ -14257,11 +14510,14 @@ pub fn content_productdeliverytime_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_productdeliverytime_delete_execute()` to send, or `content_productdeliverytime_delete` for simplest API.
 
-pub fn content_productdeliverytime_delete_builder(
-    client: &SimpleHttpClient,
+pub fn content_productdeliverytime_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     merchantId: &String,
     productId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/productdeliverytime/{}",
@@ -14415,11 +14671,14 @@ pub fn content_productdeliverytime_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_productdeliverytime_get_execute()` to send, or `content_productdeliverytime_get` for simplest API.
 
-pub fn content_productdeliverytime_get_builder(
-    client: &SimpleHttpClient,
+pub fn content_productdeliverytime_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     merchantId: &String,
     productId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/productdeliverytime/{}",
@@ -14580,9 +14839,12 @@ pub fn content_productdeliverytime_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_products_custombatch_execute()` to send, or `content_products_custombatch` for simplest API.
 
-pub fn content_products_custombatch_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn content_products_custombatch_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://shoppingcontent.googleapis.com/content/v2.1/products/batch",);
@@ -14734,12 +14996,15 @@ pub fn content_products_custombatch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_products_delete_execute()` to send, or `content_products_delete` for simplest API.
 
-pub fn content_products_delete_builder(
-    client: &SimpleHttpClient,
+pub fn content_products_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     merchantId: &String,
     productId: &String,
     feedId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/products/{}",
@@ -14906,11 +15171,14 @@ pub fn content_products_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_products_get_execute()` to send, or `content_products_get` for simplest API.
 
-pub fn content_products_get_builder(
-    client: &SimpleHttpClient,
+pub fn content_products_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     merchantId: &String,
     productId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/products/{}",
@@ -15066,11 +15334,14 @@ pub fn content_products_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_products_insert_execute()` to send, or `content_products_insert` for simplest API.
 
-pub fn content_products_insert_builder(
-    client: &SimpleHttpClient,
+pub fn content_products_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     merchantId: &String,
     feedId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/products",
@@ -15237,12 +15508,15 @@ pub fn content_products_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_products_list_execute()` to send, or `content_products_list` for simplest API.
 
-pub fn content_products_list_builder(
-    client: &SimpleHttpClient,
+pub fn content_products_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     merchantId: &String,
     maxResults: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/products",
@@ -15419,12 +15693,15 @@ pub fn content_products_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_products_update_execute()` to send, or `content_products_update` for simplest API.
 
-pub fn content_products_update_builder(
-    client: &SimpleHttpClient,
+pub fn content_products_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     merchantId: &String,
     productId: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/products/{}",
@@ -15598,9 +15875,12 @@ pub fn content_products_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_productstatuses_custombatch_execute()` to send, or `content_productstatuses_custombatch` for simplest API.
 
-pub fn content_productstatuses_custombatch_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn content_productstatuses_custombatch_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://shoppingcontent.googleapis.com/content/v2.1/productstatuses/batch",);
@@ -15752,12 +16032,15 @@ pub fn content_productstatuses_custombatch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_productstatuses_get_execute()` to send, or `content_productstatuses_get` for simplest API.
 
-pub fn content_productstatuses_get_builder(
-    client: &SimpleHttpClient,
+pub fn content_productstatuses_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     merchantId: &String,
     productId: &String,
     destinations: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/productstatuses/{}",
@@ -15935,13 +16218,16 @@ pub fn content_productstatuses_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_productstatuses_list_execute()` to send, or `content_productstatuses_list` for simplest API.
 
-pub fn content_productstatuses_list_builder(
-    client: &SimpleHttpClient,
+pub fn content_productstatuses_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     merchantId: &String,
     destinations: &Option<Option<String>>,
     maxResults: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/productstatuses",
@@ -16132,10 +16418,13 @@ pub fn content_productstatuses_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_promotions_create_execute()` to send, or `content_promotions_create` for simplest API.
 
-pub fn content_promotions_create_builder(
-    client: &SimpleHttpClient,
+pub fn content_promotions_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     merchantId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/promotions",
@@ -16289,11 +16578,14 @@ pub fn content_promotions_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_promotions_get_execute()` to send, or `content_promotions_get` for simplest API.
 
-pub fn content_promotions_get_builder(
-    client: &SimpleHttpClient,
+pub fn content_promotions_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     merchantId: &String,
     id: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/promotions/{}",
@@ -16449,14 +16741,17 @@ pub fn content_promotions_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_promotions_list_execute()` to send, or `content_promotions_list` for simplest API.
 
-pub fn content_promotions_list_builder(
-    client: &SimpleHttpClient,
+pub fn content_promotions_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     merchantId: &String,
     countryCode: &Option<Option<String>>,
     languageCode: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/promotions",
@@ -16649,10 +16944,13 @@ pub fn content_promotions_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_pubsubnotificationsettings_get_execute()` to send, or `content_pubsubnotificationsettings_get` for simplest API.
 
-pub fn content_pubsubnotificationsettings_get_builder(
-    client: &SimpleHttpClient,
+pub fn content_pubsubnotificationsettings_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     merchantId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/pubsubnotificationsettings",
@@ -16814,10 +17112,13 @@ pub fn content_pubsubnotificationsettings_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_pubsubnotificationsettings_update_execute()` to send, or `content_pubsubnotificationsettings_update` for simplest API.
 
-pub fn content_pubsubnotificationsettings_update_builder(
-    client: &SimpleHttpClient,
+pub fn content_pubsubnotificationsettings_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     merchantId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/pubsubnotificationsettings",
@@ -16979,12 +17280,15 @@ pub fn content_pubsubnotificationsettings_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_quotas_list_execute()` to send, or `content_quotas_list` for simplest API.
 
-pub fn content_quotas_list_builder(
-    client: &SimpleHttpClient,
+pub fn content_quotas_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     merchantId: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/quotas",
@@ -17161,12 +17465,15 @@ pub fn content_quotas_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_recommendations_generate_execute()` to send, or `content_recommendations_generate` for simplest API.
 
-pub fn content_recommendations_generate_builder(
-    client: &SimpleHttpClient,
+pub fn content_recommendations_generate_builder<R>(
+    client: &SimpleHttpClient<R>,
     merchantId: &String,
     allowedTag: &Option<Option<String>>,
     languageCode: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/recommendations/generate",
@@ -17351,10 +17658,13 @@ pub fn content_recommendations_generate(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_recommendations_report_interaction_execute()` to send, or `content_recommendations_report_interaction` for simplest API.
 
-pub fn content_recommendations_report_interaction_builder(
-    client: &SimpleHttpClient,
+pub fn content_recommendations_report_interaction_builder<R>(
+    client: &SimpleHttpClient<R>,
     merchantId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/recommendations/reportInteraction",
@@ -17505,9 +17815,12 @@ pub fn content_recommendations_report_interaction(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_regionalinventory_custombatch_execute()` to send, or `content_regionalinventory_custombatch` for simplest API.
 
-pub fn content_regionalinventory_custombatch_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn content_regionalinventory_custombatch_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://shoppingcontent.googleapis.com/content/v2.1/regionalinventory/batch",);
@@ -17659,11 +17972,14 @@ pub fn content_regionalinventory_custombatch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_regionalinventory_insert_execute()` to send, or `content_regionalinventory_insert` for simplest API.
 
-pub fn content_regionalinventory_insert_builder(
-    client: &SimpleHttpClient,
+pub fn content_regionalinventory_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     merchantId: &String,
     productId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/products/{}/regionalinventory",
@@ -17824,11 +18140,14 @@ pub fn content_regionalinventory_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_regions_create_execute()` to send, or `content_regions_create` for simplest API.
 
-pub fn content_regions_create_builder(
-    client: &SimpleHttpClient,
+pub fn content_regions_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     merchantId: &String,
     regionId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/regions",
@@ -17995,11 +18314,14 @@ pub fn content_regions_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_regions_delete_execute()` to send, or `content_regions_delete` for simplest API.
 
-pub fn content_regions_delete_builder(
-    client: &SimpleHttpClient,
+pub fn content_regions_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     merchantId: &String,
     regionId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/regions/{}",
@@ -18152,11 +18474,14 @@ pub fn content_regions_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_regions_get_execute()` to send, or `content_regions_get` for simplest API.
 
-pub fn content_regions_get_builder(
-    client: &SimpleHttpClient,
+pub fn content_regions_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     merchantId: &String,
     regionId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/regions/{}",
@@ -18312,12 +18637,15 @@ pub fn content_regions_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_regions_list_execute()` to send, or `content_regions_list` for simplest API.
 
-pub fn content_regions_list_builder(
-    client: &SimpleHttpClient,
+pub fn content_regions_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     merchantId: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/regions",
@@ -18494,12 +18822,15 @@ pub fn content_regions_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_regions_patch_execute()` to send, or `content_regions_patch` for simplest API.
 
-pub fn content_regions_patch_builder(
-    client: &SimpleHttpClient,
+pub fn content_regions_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     merchantId: &String,
     regionId: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/regions/{}",
@@ -18669,10 +19000,13 @@ pub fn content_regions_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_reports_search_execute()` to send, or `content_reports_search` for simplest API.
 
-pub fn content_reports_search_builder(
-    client: &SimpleHttpClient,
+pub fn content_reports_search_builder<R>(
+    client: &SimpleHttpClient<R>,
     merchantId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/reports/search",
@@ -18830,10 +19164,13 @@ pub fn content_reports_search(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_returnpolicyonline_create_execute()` to send, or `content_returnpolicyonline_create` for simplest API.
 
-pub fn content_returnpolicyonline_create_builder(
-    client: &SimpleHttpClient,
+pub fn content_returnpolicyonline_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     merchantId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/returnpolicyonline",
@@ -18991,11 +19328,14 @@ pub fn content_returnpolicyonline_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_returnpolicyonline_delete_execute()` to send, or `content_returnpolicyonline_delete` for simplest API.
 
-pub fn content_returnpolicyonline_delete_builder(
-    client: &SimpleHttpClient,
+pub fn content_returnpolicyonline_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     merchantId: &String,
     returnPolicyId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/returnpolicyonline/{}",
@@ -19149,11 +19489,14 @@ pub fn content_returnpolicyonline_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_returnpolicyonline_get_execute()` to send, or `content_returnpolicyonline_get` for simplest API.
 
-pub fn content_returnpolicyonline_get_builder(
-    client: &SimpleHttpClient,
+pub fn content_returnpolicyonline_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     merchantId: &String,
     returnPolicyId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/returnpolicyonline/{}",
@@ -19314,10 +19657,13 @@ pub fn content_returnpolicyonline_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_returnpolicyonline_list_execute()` to send, or `content_returnpolicyonline_list` for simplest API.
 
-pub fn content_returnpolicyonline_list_builder(
-    client: &SimpleHttpClient,
+pub fn content_returnpolicyonline_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     merchantId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/returnpolicyonline",
@@ -19479,11 +19825,14 @@ pub fn content_returnpolicyonline_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_returnpolicyonline_patch_execute()` to send, or `content_returnpolicyonline_patch` for simplest API.
 
-pub fn content_returnpolicyonline_patch_builder(
-    client: &SimpleHttpClient,
+pub fn content_returnpolicyonline_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     merchantId: &String,
     returnPolicyId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/returnpolicyonline/{}",
@@ -19644,9 +19993,12 @@ pub fn content_returnpolicyonline_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_shippingsettings_custombatch_execute()` to send, or `content_shippingsettings_custombatch` for simplest API.
 
-pub fn content_shippingsettings_custombatch_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn content_shippingsettings_custombatch_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://shoppingcontent.googleapis.com/content/v2.1/shippingsettings/batch",);
@@ -19798,11 +20150,14 @@ pub fn content_shippingsettings_custombatch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_shippingsettings_get_execute()` to send, or `content_shippingsettings_get` for simplest API.
 
-pub fn content_shippingsettings_get_builder(
-    client: &SimpleHttpClient,
+pub fn content_shippingsettings_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     merchantId: &String,
     accountId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/shippingsettings/{}",
@@ -19962,10 +20317,13 @@ pub fn content_shippingsettings_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_shippingsettings_getsupportedcarriers_execute()` to send, or `content_shippingsettings_getsupportedcarriers` for simplest API.
 
-pub fn content_shippingsettings_getsupportedcarriers_builder(
-    client: &SimpleHttpClient,
+pub fn content_shippingsettings_getsupportedcarriers_builder<R>(
+    client: &SimpleHttpClient<R>,
     merchantId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/supportedCarriers",
@@ -20128,10 +20486,13 @@ pub fn content_shippingsettings_getsupportedcarriers(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_shippingsettings_getsupportedholidays_execute()` to send, or `content_shippingsettings_getsupportedholidays` for simplest API.
 
-pub fn content_shippingsettings_getsupportedholidays_builder(
-    client: &SimpleHttpClient,
+pub fn content_shippingsettings_getsupportedholidays_builder<R>(
+    client: &SimpleHttpClient<R>,
     merchantId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/supportedHolidays",
@@ -20294,10 +20655,13 @@ pub fn content_shippingsettings_getsupportedholidays(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_shippingsettings_getsupportedpickupservices_execute()` to send, or `content_shippingsettings_getsupportedpickupservices` for simplest API.
 
-pub fn content_shippingsettings_getsupportedpickupservices_builder(
-    client: &SimpleHttpClient,
+pub fn content_shippingsettings_getsupportedpickupservices_builder<R>(
+    client: &SimpleHttpClient<R>,
     merchantId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/supportedPickupServices",
@@ -20464,12 +20828,15 @@ pub fn content_shippingsettings_getsupportedpickupservices(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_shippingsettings_list_execute()` to send, or `content_shippingsettings_list` for simplest API.
 
-pub fn content_shippingsettings_list_builder(
-    client: &SimpleHttpClient,
+pub fn content_shippingsettings_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     merchantId: &String,
     maxResults: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/shippingsettings",
@@ -20654,11 +21021,14 @@ pub fn content_shippingsettings_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_shippingsettings_update_execute()` to send, or `content_shippingsettings_update` for simplest API.
 
-pub fn content_shippingsettings_update_builder(
-    client: &SimpleHttpClient,
+pub fn content_shippingsettings_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     merchantId: &String,
     accountId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/shippingsettings/{}",
@@ -20819,10 +21189,13 @@ pub fn content_shippingsettings_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_shoppingadsprogram_get_execute()` to send, or `content_shoppingadsprogram_get` for simplest API.
 
-pub fn content_shoppingadsprogram_get_builder(
-    client: &SimpleHttpClient,
+pub fn content_shoppingadsprogram_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     merchantId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/shoppingadsprogram",
@@ -20980,10 +21353,13 @@ pub fn content_shoppingadsprogram_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_shoppingadsprogram_requestreview_execute()` to send, or `content_shoppingadsprogram_requestreview` for simplest API.
 
-pub fn content_shoppingadsprogram_requestreview_builder(
-    client: &SimpleHttpClient,
+pub fn content_shoppingadsprogram_requestreview_builder<R>(
+    client: &SimpleHttpClient<R>,
     merchantId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/shoppingadsprogram/requestreview",

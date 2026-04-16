@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,9 +27,12 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `alertcenter_alerts_batch_delete_execute()` to send, or `alertcenter_alerts_batch_delete` for simplest API.
 
-pub fn alertcenter_alerts_batch_delete_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn alertcenter_alerts_batch_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://alertcenter.googleapis.com/v1beta1/alerts:batchDelete",);
 
@@ -175,9 +179,12 @@ pub fn alertcenter_alerts_batch_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `alertcenter_alerts_batch_undelete_execute()` to send, or `alertcenter_alerts_batch_undelete` for simplest API.
 
-pub fn alertcenter_alerts_batch_undelete_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn alertcenter_alerts_batch_undelete_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://alertcenter.googleapis.com/v1beta1/alerts:batchUndelete",);
 
@@ -328,11 +335,14 @@ pub fn alertcenter_alerts_batch_undelete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `alertcenter_alerts_delete_execute()` to send, or `alertcenter_alerts_delete` for simplest API.
 
-pub fn alertcenter_alerts_delete_builder(
-    client: &SimpleHttpClient,
+pub fn alertcenter_alerts_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     alertId: &String,
     customerId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://alertcenter.googleapis.com/v1beta1/alerts/{}",
@@ -499,11 +509,14 @@ pub fn alertcenter_alerts_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `alertcenter_alerts_get_execute()` to send, or `alertcenter_alerts_get` for simplest API.
 
-pub fn alertcenter_alerts_get_builder(
-    client: &SimpleHttpClient,
+pub fn alertcenter_alerts_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     alertId: &String,
     customerId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://alertcenter.googleapis.com/v1beta1/alerts/{}",
@@ -670,11 +683,14 @@ pub fn alertcenter_alerts_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `alertcenter_alerts_get_metadata_execute()` to send, or `alertcenter_alerts_get_metadata` for simplest API.
 
-pub fn alertcenter_alerts_get_metadata_builder(
-    client: &SimpleHttpClient,
+pub fn alertcenter_alerts_get_metadata_builder<R>(
+    client: &SimpleHttpClient<R>,
     alertId: &String,
     customerId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://alertcenter.googleapis.com/v1beta1/alerts/{}/metadata",
@@ -845,14 +861,17 @@ pub fn alertcenter_alerts_get_metadata(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `alertcenter_alerts_list_execute()` to send, or `alertcenter_alerts_list` for simplest API.
 
-pub fn alertcenter_alerts_list_builder(
-    client: &SimpleHttpClient,
+pub fn alertcenter_alerts_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     customerId: &Option<Option<String>>,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://alertcenter.googleapis.com/v1beta1/alerts",);
 
@@ -1045,10 +1064,13 @@ pub fn alertcenter_alerts_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `alertcenter_alerts_undelete_execute()` to send, or `alertcenter_alerts_undelete` for simplest API.
 
-pub fn alertcenter_alerts_undelete_builder(
-    client: &SimpleHttpClient,
+pub fn alertcenter_alerts_undelete_builder<R>(
+    client: &SimpleHttpClient<R>,
     alertId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://alertcenter.googleapis.com/v1beta1/alerts/{}:undelete",
@@ -1202,11 +1224,14 @@ pub fn alertcenter_alerts_undelete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `alertcenter_alerts_feedback_create_execute()` to send, or `alertcenter_alerts_feedback_create` for simplest API.
 
-pub fn alertcenter_alerts_feedback_create_builder(
-    client: &SimpleHttpClient,
+pub fn alertcenter_alerts_feedback_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     alertId: &String,
     customerId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://alertcenter.googleapis.com/v1beta1/alerts/{}/feedback",
@@ -1378,12 +1403,15 @@ pub fn alertcenter_alerts_feedback_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `alertcenter_alerts_feedback_list_execute()` to send, or `alertcenter_alerts_feedback_list` for simplest API.
 
-pub fn alertcenter_alerts_feedback_list_builder(
-    client: &SimpleHttpClient,
+pub fn alertcenter_alerts_feedback_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     alertId: &String,
     customerId: &Option<Option<String>>,
     filter: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://alertcenter.googleapis.com/v1beta1/alerts/{}/feedback",
@@ -1564,10 +1592,13 @@ pub fn alertcenter_alerts_feedback_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `alertcenter_get_settings_execute()` to send, or `alertcenter_get_settings` for simplest API.
 
-pub fn alertcenter_get_settings_builder(
-    client: &SimpleHttpClient,
+pub fn alertcenter_get_settings_builder<R>(
+    client: &SimpleHttpClient<R>,
     customerId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://alertcenter.googleapis.com/v1beta1/settings",);
 
@@ -1729,10 +1760,13 @@ pub fn alertcenter_get_settings(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `alertcenter_update_settings_execute()` to send, or `alertcenter_update_settings` for simplest API.
 
-pub fn alertcenter_update_settings_builder(
-    client: &SimpleHttpClient,
+pub fn alertcenter_update_settings_builder<R>(
+    client: &SimpleHttpClient<R>,
     customerId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://alertcenter.googleapis.com/v1beta1/settings",);
 

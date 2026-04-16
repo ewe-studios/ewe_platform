@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `secretmanager_projects_locations_get_execute()` to send, or `secretmanager_projects_locations_get` for simplest API.
 
-pub fn secretmanager_projects_locations_get_builder(
-    client: &SimpleHttpClient,
+pub fn secretmanager_projects_locations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://secretmanager.googleapis.com/v1/projects/{}/locations/{locationsId}",
@@ -183,14 +187,17 @@ pub fn secretmanager_projects_locations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `secretmanager_projects_locations_list_execute()` to send, or `secretmanager_projects_locations_list` for simplest API.
 
-pub fn secretmanager_projects_locations_list_builder(
-    client: &SimpleHttpClient,
+pub fn secretmanager_projects_locations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     extraLocationTypes: &Option<Option<String>>,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://secretmanager.googleapis.com/v1/projects/{}/locations",
@@ -383,10 +390,13 @@ pub fn secretmanager_projects_locations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `secretmanager_projects_locations_secrets_add_version_execute()` to send, or `secretmanager_projects_locations_secrets_add_version` for simplest API.
 
-pub fn secretmanager_projects_locations_secrets_add_version_builder(
-    client: &SimpleHttpClient,
+pub fn secretmanager_projects_locations_secrets_add_version_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://secretmanager.googleapis.com/v1/projects/{}/locations/{locationsId}/secrets/{secretsId}:addVersion",
@@ -545,11 +555,14 @@ pub fn secretmanager_projects_locations_secrets_add_version(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `secretmanager_projects_locations_secrets_create_execute()` to send, or `secretmanager_projects_locations_secrets_create` for simplest API.
 
-pub fn secretmanager_projects_locations_secrets_create_builder(
-    client: &SimpleHttpClient,
+pub fn secretmanager_projects_locations_secrets_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     secretId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://secretmanager.googleapis.com/v1/projects/{}/locations/{locationsId}/secrets",
@@ -720,11 +733,14 @@ pub fn secretmanager_projects_locations_secrets_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `secretmanager_projects_locations_secrets_delete_execute()` to send, or `secretmanager_projects_locations_secrets_delete` for simplest API.
 
-pub fn secretmanager_projects_locations_secrets_delete_builder(
-    client: &SimpleHttpClient,
+pub fn secretmanager_projects_locations_secrets_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     etag: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://secretmanager.googleapis.com/v1/projects/{}/locations/{locationsId}/secrets/{secretsId}",
@@ -892,10 +908,13 @@ pub fn secretmanager_projects_locations_secrets_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `secretmanager_projects_locations_secrets_get_execute()` to send, or `secretmanager_projects_locations_secrets_get` for simplest API.
 
-pub fn secretmanager_projects_locations_secrets_get_builder(
-    client: &SimpleHttpClient,
+pub fn secretmanager_projects_locations_secrets_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://secretmanager.googleapis.com/v1/projects/{}/locations/{locationsId}/secrets/{secretsId}",
@@ -1049,11 +1068,14 @@ pub fn secretmanager_projects_locations_secrets_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `secretmanager_projects_locations_secrets_get_iam_policy_execute()` to send, or `secretmanager_projects_locations_secrets_get_iam_policy` for simplest API.
 
-pub fn secretmanager_projects_locations_secrets_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn secretmanager_projects_locations_secrets_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://secretmanager.googleapis.com/v1/projects/{}/locations/{locationsId}/secrets/{secretsId}:getIamPolicy",
@@ -1224,13 +1246,16 @@ pub fn secretmanager_projects_locations_secrets_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `secretmanager_projects_locations_secrets_list_execute()` to send, or `secretmanager_projects_locations_secrets_list` for simplest API.
 
-pub fn secretmanager_projects_locations_secrets_list_builder(
-    client: &SimpleHttpClient,
+pub fn secretmanager_projects_locations_secrets_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://secretmanager.googleapis.com/v1/projects/{}/locations/{locationsId}/secrets",
@@ -1417,11 +1442,14 @@ pub fn secretmanager_projects_locations_secrets_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `secretmanager_projects_locations_secrets_patch_execute()` to send, or `secretmanager_projects_locations_secrets_patch` for simplest API.
 
-pub fn secretmanager_projects_locations_secrets_patch_builder(
-    client: &SimpleHttpClient,
+pub fn secretmanager_projects_locations_secrets_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://secretmanager.googleapis.com/v1/projects/{}/locations/{locationsId}/secrets/{secretsId}",
@@ -1592,10 +1620,13 @@ pub fn secretmanager_projects_locations_secrets_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `secretmanager_projects_locations_secrets_set_iam_policy_execute()` to send, or `secretmanager_projects_locations_secrets_set_iam_policy` for simplest API.
 
-pub fn secretmanager_projects_locations_secrets_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn secretmanager_projects_locations_secrets_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://secretmanager.googleapis.com/v1/projects/{}/locations/{locationsId}/secrets/{secretsId}:setIamPolicy",
@@ -1750,10 +1781,13 @@ pub fn secretmanager_projects_locations_secrets_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `secretmanager_projects_locations_secrets_test_iam_permissions_execute()` to send, or `secretmanager_projects_locations_secrets_test_iam_permissions` for simplest API.
 
-pub fn secretmanager_projects_locations_secrets_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn secretmanager_projects_locations_secrets_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://secretmanager.googleapis.com/v1/projects/{}/locations/{locationsId}/secrets/{secretsId}:testIamPermissions",
@@ -1918,10 +1952,13 @@ pub fn secretmanager_projects_locations_secrets_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `secretmanager_projects_locations_secrets_versions_access_execute()` to send, or `secretmanager_projects_locations_secrets_versions_access` for simplest API.
 
-pub fn secretmanager_projects_locations_secrets_versions_access_builder(
-    client: &SimpleHttpClient,
+pub fn secretmanager_projects_locations_secrets_versions_access_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://secretmanager.googleapis.com/v1/projects/{}/locations/{locationsId}/secrets/{secretsId}/versions/{versionsId}:access",
@@ -2084,10 +2121,13 @@ pub fn secretmanager_projects_locations_secrets_versions_access(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `secretmanager_projects_locations_secrets_versions_destroy_execute()` to send, or `secretmanager_projects_locations_secrets_versions_destroy` for simplest API.
 
-pub fn secretmanager_projects_locations_secrets_versions_destroy_builder(
-    client: &SimpleHttpClient,
+pub fn secretmanager_projects_locations_secrets_versions_destroy_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://secretmanager.googleapis.com/v1/projects/{}/locations/{locationsId}/secrets/{secretsId}/versions/{versionsId}:destroy",
@@ -2246,10 +2286,13 @@ pub fn secretmanager_projects_locations_secrets_versions_destroy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `secretmanager_projects_locations_secrets_versions_disable_execute()` to send, or `secretmanager_projects_locations_secrets_versions_disable` for simplest API.
 
-pub fn secretmanager_projects_locations_secrets_versions_disable_builder(
-    client: &SimpleHttpClient,
+pub fn secretmanager_projects_locations_secrets_versions_disable_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://secretmanager.googleapis.com/v1/projects/{}/locations/{locationsId}/secrets/{secretsId}/versions/{versionsId}:disable",
@@ -2408,10 +2451,13 @@ pub fn secretmanager_projects_locations_secrets_versions_disable(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `secretmanager_projects_locations_secrets_versions_enable_execute()` to send, or `secretmanager_projects_locations_secrets_versions_enable` for simplest API.
 
-pub fn secretmanager_projects_locations_secrets_versions_enable_builder(
-    client: &SimpleHttpClient,
+pub fn secretmanager_projects_locations_secrets_versions_enable_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://secretmanager.googleapis.com/v1/projects/{}/locations/{locationsId}/secrets/{secretsId}/versions/{versionsId}:enable",
@@ -2570,10 +2616,13 @@ pub fn secretmanager_projects_locations_secrets_versions_enable(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `secretmanager_projects_locations_secrets_versions_get_execute()` to send, or `secretmanager_projects_locations_secrets_versions_get` for simplest API.
 
-pub fn secretmanager_projects_locations_secrets_versions_get_builder(
-    client: &SimpleHttpClient,
+pub fn secretmanager_projects_locations_secrets_versions_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://secretmanager.googleapis.com/v1/projects/{}/locations/{locationsId}/secrets/{secretsId}/versions/{versionsId}",
@@ -2732,13 +2781,16 @@ pub fn secretmanager_projects_locations_secrets_versions_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `secretmanager_projects_locations_secrets_versions_list_execute()` to send, or `secretmanager_projects_locations_secrets_versions_list` for simplest API.
 
-pub fn secretmanager_projects_locations_secrets_versions_list_builder(
-    client: &SimpleHttpClient,
+pub fn secretmanager_projects_locations_secrets_versions_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://secretmanager.googleapis.com/v1/projects/{}/locations/{locationsId}/secrets/{secretsId}/versions",
@@ -2929,10 +2981,13 @@ pub fn secretmanager_projects_locations_secrets_versions_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `secretmanager_projects_secrets_add_version_execute()` to send, or `secretmanager_projects_secrets_add_version` for simplest API.
 
-pub fn secretmanager_projects_secrets_add_version_builder(
-    client: &SimpleHttpClient,
+pub fn secretmanager_projects_secrets_add_version_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://secretmanager.googleapis.com/v1/projects/{}/secrets/{secretsId}:addVersion",
@@ -3090,11 +3145,14 @@ pub fn secretmanager_projects_secrets_add_version(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `secretmanager_projects_secrets_create_execute()` to send, or `secretmanager_projects_secrets_create` for simplest API.
 
-pub fn secretmanager_projects_secrets_create_builder(
-    client: &SimpleHttpClient,
+pub fn secretmanager_projects_secrets_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     secretId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://secretmanager.googleapis.com/v1/projects/{}/secrets",
@@ -3262,11 +3320,14 @@ pub fn secretmanager_projects_secrets_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `secretmanager_projects_secrets_delete_execute()` to send, or `secretmanager_projects_secrets_delete` for simplest API.
 
-pub fn secretmanager_projects_secrets_delete_builder(
-    client: &SimpleHttpClient,
+pub fn secretmanager_projects_secrets_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     etag: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://secretmanager.googleapis.com/v1/projects/{}/secrets/{secretsId}",
@@ -3433,10 +3494,13 @@ pub fn secretmanager_projects_secrets_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `secretmanager_projects_secrets_get_execute()` to send, or `secretmanager_projects_secrets_get` for simplest API.
 
-pub fn secretmanager_projects_secrets_get_builder(
-    client: &SimpleHttpClient,
+pub fn secretmanager_projects_secrets_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://secretmanager.googleapis.com/v1/projects/{}/secrets/{secretsId}",
@@ -3590,11 +3654,14 @@ pub fn secretmanager_projects_secrets_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `secretmanager_projects_secrets_get_iam_policy_execute()` to send, or `secretmanager_projects_secrets_get_iam_policy` for simplest API.
 
-pub fn secretmanager_projects_secrets_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn secretmanager_projects_secrets_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://secretmanager.googleapis.com/v1/projects/{}/secrets/{secretsId}:getIamPolicy",
@@ -3765,13 +3832,16 @@ pub fn secretmanager_projects_secrets_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `secretmanager_projects_secrets_list_execute()` to send, or `secretmanager_projects_secrets_list` for simplest API.
 
-pub fn secretmanager_projects_secrets_list_builder(
-    client: &SimpleHttpClient,
+pub fn secretmanager_projects_secrets_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://secretmanager.googleapis.com/v1/projects/{}/secrets",
@@ -3958,11 +4028,14 @@ pub fn secretmanager_projects_secrets_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `secretmanager_projects_secrets_patch_execute()` to send, or `secretmanager_projects_secrets_patch` for simplest API.
 
-pub fn secretmanager_projects_secrets_patch_builder(
-    client: &SimpleHttpClient,
+pub fn secretmanager_projects_secrets_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://secretmanager.googleapis.com/v1/projects/{}/secrets/{secretsId}",
@@ -4130,10 +4203,13 @@ pub fn secretmanager_projects_secrets_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `secretmanager_projects_secrets_set_iam_policy_execute()` to send, or `secretmanager_projects_secrets_set_iam_policy` for simplest API.
 
-pub fn secretmanager_projects_secrets_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn secretmanager_projects_secrets_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://secretmanager.googleapis.com/v1/projects/{}/secrets/{secretsId}:setIamPolicy",
@@ -4287,10 +4363,13 @@ pub fn secretmanager_projects_secrets_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `secretmanager_projects_secrets_test_iam_permissions_execute()` to send, or `secretmanager_projects_secrets_test_iam_permissions` for simplest API.
 
-pub fn secretmanager_projects_secrets_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn secretmanager_projects_secrets_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://secretmanager.googleapis.com/v1/projects/{}/secrets/{secretsId}:testIamPermissions",
@@ -4453,10 +4532,13 @@ pub fn secretmanager_projects_secrets_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `secretmanager_projects_secrets_versions_access_execute()` to send, or `secretmanager_projects_secrets_versions_access` for simplest API.
 
-pub fn secretmanager_projects_secrets_versions_access_builder(
-    client: &SimpleHttpClient,
+pub fn secretmanager_projects_secrets_versions_access_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://secretmanager.googleapis.com/v1/projects/{}/secrets/{secretsId}/versions/{versionsId}:access",
@@ -4618,10 +4700,13 @@ pub fn secretmanager_projects_secrets_versions_access(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `secretmanager_projects_secrets_versions_destroy_execute()` to send, or `secretmanager_projects_secrets_versions_destroy` for simplest API.
 
-pub fn secretmanager_projects_secrets_versions_destroy_builder(
-    client: &SimpleHttpClient,
+pub fn secretmanager_projects_secrets_versions_destroy_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://secretmanager.googleapis.com/v1/projects/{}/secrets/{secretsId}/versions/{versionsId}:destroy",
@@ -4779,10 +4864,13 @@ pub fn secretmanager_projects_secrets_versions_destroy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `secretmanager_projects_secrets_versions_disable_execute()` to send, or `secretmanager_projects_secrets_versions_disable` for simplest API.
 
-pub fn secretmanager_projects_secrets_versions_disable_builder(
-    client: &SimpleHttpClient,
+pub fn secretmanager_projects_secrets_versions_disable_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://secretmanager.googleapis.com/v1/projects/{}/secrets/{secretsId}/versions/{versionsId}:disable",
@@ -4940,10 +5028,13 @@ pub fn secretmanager_projects_secrets_versions_disable(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `secretmanager_projects_secrets_versions_enable_execute()` to send, or `secretmanager_projects_secrets_versions_enable` for simplest API.
 
-pub fn secretmanager_projects_secrets_versions_enable_builder(
-    client: &SimpleHttpClient,
+pub fn secretmanager_projects_secrets_versions_enable_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://secretmanager.googleapis.com/v1/projects/{}/secrets/{secretsId}/versions/{versionsId}:enable",
@@ -5101,10 +5192,13 @@ pub fn secretmanager_projects_secrets_versions_enable(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `secretmanager_projects_secrets_versions_get_execute()` to send, or `secretmanager_projects_secrets_versions_get` for simplest API.
 
-pub fn secretmanager_projects_secrets_versions_get_builder(
-    client: &SimpleHttpClient,
+pub fn secretmanager_projects_secrets_versions_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://secretmanager.googleapis.com/v1/projects/{}/secrets/{secretsId}/versions/{versionsId}",
@@ -5262,13 +5356,16 @@ pub fn secretmanager_projects_secrets_versions_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `secretmanager_projects_secrets_versions_list_execute()` to send, or `secretmanager_projects_secrets_versions_list` for simplest API.
 
-pub fn secretmanager_projects_secrets_versions_list_builder(
-    client: &SimpleHttpClient,
+pub fn secretmanager_projects_secrets_versions_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://secretmanager.googleapis.com/v1/projects/{}/secrets/{secretsId}/versions",

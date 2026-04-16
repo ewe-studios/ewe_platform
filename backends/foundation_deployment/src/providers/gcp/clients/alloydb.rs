@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `alloydb_projects_locations_get_execute()` to send, or `alloydb_projects_locations_get` for simplest API.
 
-pub fn alloydb_projects_locations_get_builder(
-    client: &SimpleHttpClient,
+pub fn alloydb_projects_locations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://alloydb.googleapis.com/v1/projects/{}/locations/{locationsId}",
@@ -191,14 +195,17 @@ pub fn alloydb_projects_locations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `alloydb_projects_locations_list_execute()` to send, or `alloydb_projects_locations_list` for simplest API.
 
-pub fn alloydb_projects_locations_list_builder(
-    client: &SimpleHttpClient,
+pub fn alloydb_projects_locations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     extraLocationTypes: &Option<Option<String>>,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://alloydb.googleapis.com/v1/projects/{}/locations",
@@ -395,13 +402,16 @@ pub fn alloydb_projects_locations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `alloydb_projects_locations_backups_create_execute()` to send, or `alloydb_projects_locations_backups_create` for simplest API.
 
-pub fn alloydb_projects_locations_backups_create_builder(
-    client: &SimpleHttpClient,
+pub fn alloydb_projects_locations_backups_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     backupId: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://alloydb.googleapis.com/v1/projects/{}/locations/{locationsId}/backups",
@@ -584,13 +594,16 @@ pub fn alloydb_projects_locations_backups_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `alloydb_projects_locations_backups_delete_execute()` to send, or `alloydb_projects_locations_backups_delete` for simplest API.
 
-pub fn alloydb_projects_locations_backups_delete_builder(
-    client: &SimpleHttpClient,
+pub fn alloydb_projects_locations_backups_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     etag: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://alloydb.googleapis.com/v1/projects/{}/locations/{locationsId}/backups/{backupsId}",
@@ -773,11 +786,14 @@ pub fn alloydb_projects_locations_backups_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `alloydb_projects_locations_backups_get_execute()` to send, or `alloydb_projects_locations_backups_get` for simplest API.
 
-pub fn alloydb_projects_locations_backups_get_builder(
-    client: &SimpleHttpClient,
+pub fn alloydb_projects_locations_backups_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://alloydb.googleapis.com/v1/projects/{}/locations/{locationsId}/backups/{backupsId}",
@@ -944,15 +960,18 @@ pub fn alloydb_projects_locations_backups_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `alloydb_projects_locations_backups_list_execute()` to send, or `alloydb_projects_locations_backups_list` for simplest API.
 
-pub fn alloydb_projects_locations_backups_list_builder(
-    client: &SimpleHttpClient,
+pub fn alloydb_projects_locations_backups_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://alloydb.googleapis.com/v1/projects/{}/locations/{locationsId}/backups",
@@ -1151,14 +1170,17 @@ pub fn alloydb_projects_locations_backups_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `alloydb_projects_locations_backups_patch_execute()` to send, or `alloydb_projects_locations_backups_patch` for simplest API.
 
-pub fn alloydb_projects_locations_backups_patch_builder(
-    client: &SimpleHttpClient,
+pub fn alloydb_projects_locations_backups_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     allowMissing: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://alloydb.googleapis.com/v1/projects/{}/locations/{locationsId}/backups/{backupsId}",
@@ -1347,13 +1369,16 @@ pub fn alloydb_projects_locations_backups_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `alloydb_projects_locations_clusters_create_execute()` to send, or `alloydb_projects_locations_clusters_create` for simplest API.
 
-pub fn alloydb_projects_locations_clusters_create_builder(
-    client: &SimpleHttpClient,
+pub fn alloydb_projects_locations_clusters_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     clusterId: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://alloydb.googleapis.com/v1/projects/{}/locations/{locationsId}/clusters",
@@ -1536,13 +1561,16 @@ pub fn alloydb_projects_locations_clusters_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `alloydb_projects_locations_clusters_createsecondary_execute()` to send, or `alloydb_projects_locations_clusters_createsecondary` for simplest API.
 
-pub fn alloydb_projects_locations_clusters_createsecondary_builder(
-    client: &SimpleHttpClient,
+pub fn alloydb_projects_locations_clusters_createsecondary_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     clusterId: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://alloydb.googleapis.com/v1/projects/{}/locations/{locationsId}/clusters:createsecondary",
@@ -1725,14 +1753,17 @@ pub fn alloydb_projects_locations_clusters_createsecondary(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `alloydb_projects_locations_clusters_delete_execute()` to send, or `alloydb_projects_locations_clusters_delete` for simplest API.
 
-pub fn alloydb_projects_locations_clusters_delete_builder(
-    client: &SimpleHttpClient,
+pub fn alloydb_projects_locations_clusters_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     etag: &Option<Option<String>>,
     force: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://alloydb.googleapis.com/v1/projects/{}/locations/{locationsId}/clusters/{clustersId}",
@@ -1921,10 +1952,13 @@ pub fn alloydb_projects_locations_clusters_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `alloydb_projects_locations_clusters_export_execute()` to send, or `alloydb_projects_locations_clusters_export` for simplest API.
 
-pub fn alloydb_projects_locations_clusters_export_builder(
-    client: &SimpleHttpClient,
+pub fn alloydb_projects_locations_clusters_export_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://alloydb.googleapis.com/v1/projects/{}/locations/{locationsId}/clusters/{clustersId}:export",
@@ -2078,11 +2112,14 @@ pub fn alloydb_projects_locations_clusters_export(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `alloydb_projects_locations_clusters_get_execute()` to send, or `alloydb_projects_locations_clusters_get` for simplest API.
 
-pub fn alloydb_projects_locations_clusters_get_builder(
-    client: &SimpleHttpClient,
+pub fn alloydb_projects_locations_clusters_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://alloydb.googleapis.com/v1/projects/{}/locations/{locationsId}/clusters/{clustersId}",
@@ -2249,10 +2286,13 @@ pub fn alloydb_projects_locations_clusters_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `alloydb_projects_locations_clusters_import_execute()` to send, or `alloydb_projects_locations_clusters_import` for simplest API.
 
-pub fn alloydb_projects_locations_clusters_import_builder(
-    client: &SimpleHttpClient,
+pub fn alloydb_projects_locations_clusters_import_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://alloydb.googleapis.com/v1/projects/{}/locations/{locationsId}/clusters/{clustersId}:import",
@@ -2406,14 +2446,17 @@ pub fn alloydb_projects_locations_clusters_import(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `alloydb_projects_locations_clusters_list_execute()` to send, or `alloydb_projects_locations_clusters_list` for simplest API.
 
-pub fn alloydb_projects_locations_clusters_list_builder(
-    client: &SimpleHttpClient,
+pub fn alloydb_projects_locations_clusters_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://alloydb.googleapis.com/v1/projects/{}/locations/{locationsId}/clusters",
@@ -2606,14 +2649,17 @@ pub fn alloydb_projects_locations_clusters_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `alloydb_projects_locations_clusters_patch_execute()` to send, or `alloydb_projects_locations_clusters_patch` for simplest API.
 
-pub fn alloydb_projects_locations_clusters_patch_builder(
-    client: &SimpleHttpClient,
+pub fn alloydb_projects_locations_clusters_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     allowMissing: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://alloydb.googleapis.com/v1/projects/{}/locations/{locationsId}/clusters/{clustersId}",
@@ -2802,10 +2848,13 @@ pub fn alloydb_projects_locations_clusters_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `alloydb_projects_locations_clusters_promote_execute()` to send, or `alloydb_projects_locations_clusters_promote` for simplest API.
 
-pub fn alloydb_projects_locations_clusters_promote_builder(
-    client: &SimpleHttpClient,
+pub fn alloydb_projects_locations_clusters_promote_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://alloydb.googleapis.com/v1/projects/{}/locations/{locationsId}/clusters/{clustersId}:promote",
@@ -2959,10 +3008,13 @@ pub fn alloydb_projects_locations_clusters_promote(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `alloydb_projects_locations_clusters_restore_execute()` to send, or `alloydb_projects_locations_clusters_restore` for simplest API.
 
-pub fn alloydb_projects_locations_clusters_restore_builder(
-    client: &SimpleHttpClient,
+pub fn alloydb_projects_locations_clusters_restore_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://alloydb.googleapis.com/v1/projects/{}/locations/{locationsId}/clusters:restore",
@@ -3116,10 +3168,13 @@ pub fn alloydb_projects_locations_clusters_restore(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `alloydb_projects_locations_clusters_restore_from_cloud_sql_execute()` to send, or `alloydb_projects_locations_clusters_restore_from_cloud_sql` for simplest API.
 
-pub fn alloydb_projects_locations_clusters_restore_from_cloud_sql_builder(
-    client: &SimpleHttpClient,
+pub fn alloydb_projects_locations_clusters_restore_from_cloud_sql_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://alloydb.googleapis.com/v1/projects/{}/locations/{locationsId}/clusters:restoreFromCloudSQL",
@@ -3274,10 +3329,13 @@ pub fn alloydb_projects_locations_clusters_restore_from_cloud_sql(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `alloydb_projects_locations_clusters_switchover_execute()` to send, or `alloydb_projects_locations_clusters_switchover` for simplest API.
 
-pub fn alloydb_projects_locations_clusters_switchover_builder(
-    client: &SimpleHttpClient,
+pub fn alloydb_projects_locations_clusters_switchover_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://alloydb.googleapis.com/v1/projects/{}/locations/{locationsId}/clusters/{clustersId}:switchover",
@@ -3431,10 +3489,13 @@ pub fn alloydb_projects_locations_clusters_switchover(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `alloydb_projects_locations_clusters_upgrade_execute()` to send, or `alloydb_projects_locations_clusters_upgrade` for simplest API.
 
-pub fn alloydb_projects_locations_clusters_upgrade_builder(
-    client: &SimpleHttpClient,
+pub fn alloydb_projects_locations_clusters_upgrade_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://alloydb.googleapis.com/v1/projects/{}/locations/{locationsId}/clusters/{clustersId}:upgrade",
@@ -3588,13 +3649,16 @@ pub fn alloydb_projects_locations_clusters_upgrade(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `alloydb_projects_locations_clusters_instances_create_execute()` to send, or `alloydb_projects_locations_clusters_instances_create` for simplest API.
 
-pub fn alloydb_projects_locations_clusters_instances_create_builder(
-    client: &SimpleHttpClient,
+pub fn alloydb_projects_locations_clusters_instances_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     instanceId: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://alloydb.googleapis.com/v1/projects/{}/locations/{locationsId}/clusters/{clustersId}/instances",
@@ -3777,13 +3841,16 @@ pub fn alloydb_projects_locations_clusters_instances_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `alloydb_projects_locations_clusters_instances_createsecondary_execute()` to send, or `alloydb_projects_locations_clusters_instances_createsecondary` for simplest API.
 
-pub fn alloydb_projects_locations_clusters_instances_createsecondary_builder(
-    client: &SimpleHttpClient,
+pub fn alloydb_projects_locations_clusters_instances_createsecondary_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     instanceId: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://alloydb.googleapis.com/v1/projects/{}/locations/{locationsId}/clusters/{clustersId}/instances:createsecondary",
@@ -3966,13 +4033,16 @@ pub fn alloydb_projects_locations_clusters_instances_createsecondary(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `alloydb_projects_locations_clusters_instances_delete_execute()` to send, or `alloydb_projects_locations_clusters_instances_delete` for simplest API.
 
-pub fn alloydb_projects_locations_clusters_instances_delete_builder(
-    client: &SimpleHttpClient,
+pub fn alloydb_projects_locations_clusters_instances_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     etag: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://alloydb.googleapis.com/v1/projects/{}/locations/{locationsId}/clusters/{clustersId}/instances/{instancesId}",
@@ -4155,10 +4225,13 @@ pub fn alloydb_projects_locations_clusters_instances_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `alloydb_projects_locations_clusters_instances_failover_execute()` to send, or `alloydb_projects_locations_clusters_instances_failover` for simplest API.
 
-pub fn alloydb_projects_locations_clusters_instances_failover_builder(
-    client: &SimpleHttpClient,
+pub fn alloydb_projects_locations_clusters_instances_failover_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://alloydb.googleapis.com/v1/projects/{}/locations/{locationsId}/clusters/{clustersId}/instances/{instancesId}:failover",
@@ -4313,11 +4386,14 @@ pub fn alloydb_projects_locations_clusters_instances_failover(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `alloydb_projects_locations_clusters_instances_get_execute()` to send, or `alloydb_projects_locations_clusters_instances_get` for simplest API.
 
-pub fn alloydb_projects_locations_clusters_instances_get_builder(
-    client: &SimpleHttpClient,
+pub fn alloydb_projects_locations_clusters_instances_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://alloydb.googleapis.com/v1/projects/{}/locations/{locationsId}/clusters/{clustersId}/instances/{instancesId}",
@@ -4485,11 +4561,14 @@ pub fn alloydb_projects_locations_clusters_instances_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `alloydb_projects_locations_clusters_instances_get_connection_info_execute()` to send, or `alloydb_projects_locations_clusters_instances_get_connection_info` for simplest API.
 
-pub fn alloydb_projects_locations_clusters_instances_get_connection_info_builder(
-    client: &SimpleHttpClient,
+pub fn alloydb_projects_locations_clusters_instances_get_connection_info_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://alloydb.googleapis.com/v1/projects/{}/locations/{locationsId}/clusters/{clustersId}/instances/{instancesId}/connectionInfo",
@@ -4664,10 +4743,13 @@ pub fn alloydb_projects_locations_clusters_instances_get_connection_info(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `alloydb_projects_locations_clusters_instances_inject_fault_execute()` to send, or `alloydb_projects_locations_clusters_instances_inject_fault` for simplest API.
 
-pub fn alloydb_projects_locations_clusters_instances_inject_fault_builder(
-    client: &SimpleHttpClient,
+pub fn alloydb_projects_locations_clusters_instances_inject_fault_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://alloydb.googleapis.com/v1/projects/{}/locations/{locationsId}/clusters/{clustersId}/instances/{instancesId}:injectFault",
@@ -4822,14 +4904,17 @@ pub fn alloydb_projects_locations_clusters_instances_inject_fault(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `alloydb_projects_locations_clusters_instances_list_execute()` to send, or `alloydb_projects_locations_clusters_instances_list` for simplest API.
 
-pub fn alloydb_projects_locations_clusters_instances_list_builder(
-    client: &SimpleHttpClient,
+pub fn alloydb_projects_locations_clusters_instances_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://alloydb.googleapis.com/v1/projects/{}/locations/{locationsId}/clusters/{clustersId}/instances",
@@ -5022,14 +5107,17 @@ pub fn alloydb_projects_locations_clusters_instances_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `alloydb_projects_locations_clusters_instances_patch_execute()` to send, or `alloydb_projects_locations_clusters_instances_patch` for simplest API.
 
-pub fn alloydb_projects_locations_clusters_instances_patch_builder(
-    client: &SimpleHttpClient,
+pub fn alloydb_projects_locations_clusters_instances_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     allowMissing: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://alloydb.googleapis.com/v1/projects/{}/locations/{locationsId}/clusters/{clustersId}/instances/{instancesId}",
@@ -5218,10 +5306,13 @@ pub fn alloydb_projects_locations_clusters_instances_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `alloydb_projects_locations_clusters_instances_restart_execute()` to send, or `alloydb_projects_locations_clusters_instances_restart` for simplest API.
 
-pub fn alloydb_projects_locations_clusters_instances_restart_builder(
-    client: &SimpleHttpClient,
+pub fn alloydb_projects_locations_clusters_instances_restart_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://alloydb.googleapis.com/v1/projects/{}/locations/{locationsId}/clusters/{clustersId}/instances/{instancesId}:restart",
@@ -5376,13 +5467,16 @@ pub fn alloydb_projects_locations_clusters_instances_restart(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `alloydb_projects_locations_clusters_users_create_execute()` to send, or `alloydb_projects_locations_clusters_users_create` for simplest API.
 
-pub fn alloydb_projects_locations_clusters_users_create_builder(
-    client: &SimpleHttpClient,
+pub fn alloydb_projects_locations_clusters_users_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     requestId: &Option<Option<String>>,
     userId: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://alloydb.googleapis.com/v1/projects/{}/locations/{locationsId}/clusters/{clustersId}/users",
@@ -5565,12 +5659,15 @@ pub fn alloydb_projects_locations_clusters_users_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `alloydb_projects_locations_clusters_users_delete_execute()` to send, or `alloydb_projects_locations_clusters_users_delete` for simplest API.
 
-pub fn alloydb_projects_locations_clusters_users_delete_builder(
-    client: &SimpleHttpClient,
+pub fn alloydb_projects_locations_clusters_users_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://alloydb.googleapis.com/v1/projects/{}/locations/{locationsId}/clusters/{clustersId}/users/{usersId}",
@@ -5747,10 +5844,13 @@ pub fn alloydb_projects_locations_clusters_users_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `alloydb_projects_locations_clusters_users_get_execute()` to send, or `alloydb_projects_locations_clusters_users_get` for simplest API.
 
-pub fn alloydb_projects_locations_clusters_users_get_builder(
-    client: &SimpleHttpClient,
+pub fn alloydb_projects_locations_clusters_users_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://alloydb.googleapis.com/v1/projects/{}/locations/{locationsId}/clusters/{clustersId}/users/{usersId}",
@@ -5904,14 +6004,17 @@ pub fn alloydb_projects_locations_clusters_users_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `alloydb_projects_locations_clusters_users_list_execute()` to send, or `alloydb_projects_locations_clusters_users_list` for simplest API.
 
-pub fn alloydb_projects_locations_clusters_users_list_builder(
-    client: &SimpleHttpClient,
+pub fn alloydb_projects_locations_clusters_users_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://alloydb.googleapis.com/v1/projects/{}/locations/{locationsId}/clusters/{clustersId}/users",
@@ -6104,14 +6207,17 @@ pub fn alloydb_projects_locations_clusters_users_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `alloydb_projects_locations_clusters_users_patch_execute()` to send, or `alloydb_projects_locations_clusters_users_patch` for simplest API.
 
-pub fn alloydb_projects_locations_clusters_users_patch_builder(
-    client: &SimpleHttpClient,
+pub fn alloydb_projects_locations_clusters_users_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     allowMissing: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://alloydb.googleapis.com/v1/projects/{}/locations/{locationsId}/clusters/{clustersId}/users/{usersId}",
@@ -6300,10 +6406,13 @@ pub fn alloydb_projects_locations_clusters_users_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `alloydb_projects_locations_operations_cancel_execute()` to send, or `alloydb_projects_locations_operations_cancel` for simplest API.
 
-pub fn alloydb_projects_locations_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn alloydb_projects_locations_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://alloydb.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}:cancel",
@@ -6457,10 +6566,13 @@ pub fn alloydb_projects_locations_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `alloydb_projects_locations_operations_delete_execute()` to send, or `alloydb_projects_locations_operations_delete` for simplest API.
 
-pub fn alloydb_projects_locations_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn alloydb_projects_locations_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://alloydb.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -6614,10 +6726,13 @@ pub fn alloydb_projects_locations_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `alloydb_projects_locations_operations_get_execute()` to send, or `alloydb_projects_locations_operations_get` for simplest API.
 
-pub fn alloydb_projects_locations_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn alloydb_projects_locations_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://alloydb.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -6771,14 +6886,17 @@ pub fn alloydb_projects_locations_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `alloydb_projects_locations_operations_list_execute()` to send, or `alloydb_projects_locations_operations_list` for simplest API.
 
-pub fn alloydb_projects_locations_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn alloydb_projects_locations_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://alloydb.googleapis.com/v1/projects/{}/locations/{locationsId}/operations",
@@ -6971,13 +7089,16 @@ pub fn alloydb_projects_locations_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `alloydb_projects_locations_supported_database_flags_list_execute()` to send, or `alloydb_projects_locations_supported_database_flags_list` for simplest API.
 
-pub fn alloydb_projects_locations_supported_database_flags_list_builder(
-    client: &SimpleHttpClient,
+pub fn alloydb_projects_locations_supported_database_flags_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     scope: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://alloydb.googleapis.com/v1/projects/{}/locations/{locationsId}/supportedDatabaseFlags",

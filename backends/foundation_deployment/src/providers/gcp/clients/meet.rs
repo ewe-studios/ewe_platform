@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `meet_conference_records_get_execute()` to send, or `meet_conference_records_get` for simplest API.
 
-pub fn meet_conference_records_get_builder(
-    client: &SimpleHttpClient,
+pub fn meet_conference_records_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://meet.googleapis.com/v2/conferenceRecords/{}", name,);
 
@@ -184,12 +188,15 @@ pub fn meet_conference_records_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `meet_conference_records_list_execute()` to send, or `meet_conference_records_list` for simplest API.
 
-pub fn meet_conference_records_list_builder(
-    client: &SimpleHttpClient,
+pub fn meet_conference_records_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://meet.googleapis.com/v2/conferenceRecords",);
 
@@ -374,10 +381,13 @@ pub fn meet_conference_records_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `meet_conference_records_participants_get_execute()` to send, or `meet_conference_records_participants_get` for simplest API.
 
-pub fn meet_conference_records_participants_get_builder(
-    client: &SimpleHttpClient,
+pub fn meet_conference_records_participants_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://meet.googleapis.com/v2/conferenceRecords/{}/participants/{participantsId}",
@@ -531,13 +541,16 @@ pub fn meet_conference_records_participants_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `meet_conference_records_participants_list_execute()` to send, or `meet_conference_records_participants_list` for simplest API.
 
-pub fn meet_conference_records_participants_list_builder(
-    client: &SimpleHttpClient,
+pub fn meet_conference_records_participants_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://meet.googleapis.com/v2/conferenceRecords/{}/participants",
@@ -724,10 +737,13 @@ pub fn meet_conference_records_participants_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `meet_conference_records_participants_participant_sessions_get_execute()` to send, or `meet_conference_records_participants_participant_sessions_get` for simplest API.
 
-pub fn meet_conference_records_participants_participant_sessions_get_builder(
-    client: &SimpleHttpClient,
+pub fn meet_conference_records_participants_participant_sessions_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://meet.googleapis.com/v2/conferenceRecords/{}/participants/{participantsId}/participantSessions/{participantSessionsId}",
@@ -886,13 +902,16 @@ pub fn meet_conference_records_participants_participant_sessions_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `meet_conference_records_participants_participant_sessions_list_execute()` to send, or `meet_conference_records_participants_participant_sessions_list` for simplest API.
 
-pub fn meet_conference_records_participants_participant_sessions_list_builder(
-    client: &SimpleHttpClient,
+pub fn meet_conference_records_participants_participant_sessions_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://meet.googleapis.com/v2/conferenceRecords/{}/participants/{participantsId}/participantSessions",
@@ -1083,10 +1102,13 @@ pub fn meet_conference_records_participants_participant_sessions_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `meet_conference_records_recordings_get_execute()` to send, or `meet_conference_records_recordings_get` for simplest API.
 
-pub fn meet_conference_records_recordings_get_builder(
-    client: &SimpleHttpClient,
+pub fn meet_conference_records_recordings_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://meet.googleapis.com/v2/conferenceRecords/{}/recordings/{recordingsId}",
@@ -1240,12 +1262,15 @@ pub fn meet_conference_records_recordings_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `meet_conference_records_recordings_list_execute()` to send, or `meet_conference_records_recordings_list` for simplest API.
 
-pub fn meet_conference_records_recordings_list_builder(
-    client: &SimpleHttpClient,
+pub fn meet_conference_records_recordings_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://meet.googleapis.com/v2/conferenceRecords/{}/recordings",
@@ -1426,10 +1451,13 @@ pub fn meet_conference_records_recordings_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `meet_conference_records_smart_notes_get_execute()` to send, or `meet_conference_records_smart_notes_get` for simplest API.
 
-pub fn meet_conference_records_smart_notes_get_builder(
-    client: &SimpleHttpClient,
+pub fn meet_conference_records_smart_notes_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://meet.googleapis.com/v2/conferenceRecords/{}/smartNotes/{smartNotesId}",
@@ -1583,12 +1611,15 @@ pub fn meet_conference_records_smart_notes_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `meet_conference_records_smart_notes_list_execute()` to send, or `meet_conference_records_smart_notes_list` for simplest API.
 
-pub fn meet_conference_records_smart_notes_list_builder(
-    client: &SimpleHttpClient,
+pub fn meet_conference_records_smart_notes_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://meet.googleapis.com/v2/conferenceRecords/{}/smartNotes",
@@ -1769,10 +1800,13 @@ pub fn meet_conference_records_smart_notes_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `meet_conference_records_transcripts_get_execute()` to send, or `meet_conference_records_transcripts_get` for simplest API.
 
-pub fn meet_conference_records_transcripts_get_builder(
-    client: &SimpleHttpClient,
+pub fn meet_conference_records_transcripts_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://meet.googleapis.com/v2/conferenceRecords/{}/transcripts/{transcriptsId}",
@@ -1926,12 +1960,15 @@ pub fn meet_conference_records_transcripts_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `meet_conference_records_transcripts_list_execute()` to send, or `meet_conference_records_transcripts_list` for simplest API.
 
-pub fn meet_conference_records_transcripts_list_builder(
-    client: &SimpleHttpClient,
+pub fn meet_conference_records_transcripts_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://meet.googleapis.com/v2/conferenceRecords/{}/transcripts",
@@ -2112,10 +2149,13 @@ pub fn meet_conference_records_transcripts_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `meet_conference_records_transcripts_entries_get_execute()` to send, or `meet_conference_records_transcripts_entries_get` for simplest API.
 
-pub fn meet_conference_records_transcripts_entries_get_builder(
-    client: &SimpleHttpClient,
+pub fn meet_conference_records_transcripts_entries_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://meet.googleapis.com/v2/conferenceRecords/{}/transcripts/{transcriptsId}/entries/{entriesId}",
@@ -2273,12 +2313,15 @@ pub fn meet_conference_records_transcripts_entries_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `meet_conference_records_transcripts_entries_list_execute()` to send, or `meet_conference_records_transcripts_entries_list` for simplest API.
 
-pub fn meet_conference_records_transcripts_entries_list_builder(
-    client: &SimpleHttpClient,
+pub fn meet_conference_records_transcripts_entries_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://meet.googleapis.com/v2/conferenceRecords/{}/transcripts/{transcriptsId}/entries",
@@ -2463,9 +2506,12 @@ pub fn meet_conference_records_transcripts_entries_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `meet_spaces_create_execute()` to send, or `meet_spaces_create` for simplest API.
 
-pub fn meet_spaces_create_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn meet_spaces_create_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://meet.googleapis.com/v2/spaces",);
 
@@ -2608,10 +2654,13 @@ pub fn meet_spaces_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `meet_spaces_end_active_conference_execute()` to send, or `meet_spaces_end_active_conference` for simplest API.
 
-pub fn meet_spaces_end_active_conference_builder(
-    client: &SimpleHttpClient,
+pub fn meet_spaces_end_active_conference_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://meet.googleapis.com/v2/spaces/{}:endActiveConference",
@@ -2765,10 +2814,13 @@ pub fn meet_spaces_end_active_conference(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `meet_spaces_get_execute()` to send, or `meet_spaces_get` for simplest API.
 
-pub fn meet_spaces_get_builder(
-    client: &SimpleHttpClient,
+pub fn meet_spaces_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://meet.googleapis.com/v2/spaces/{}", name,);
 
@@ -2919,11 +2971,14 @@ pub fn meet_spaces_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `meet_spaces_patch_execute()` to send, or `meet_spaces_patch` for simplest API.
 
-pub fn meet_spaces_patch_builder(
-    client: &SimpleHttpClient,
+pub fn meet_spaces_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://meet.googleapis.com/v2/spaces/{}", name,);
 

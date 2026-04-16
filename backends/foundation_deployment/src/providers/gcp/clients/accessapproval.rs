@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `accessapproval_folders_delete_access_approval_settings_execute()` to send, or `accessapproval_folders_delete_access_approval_settings` for simplest API.
 
-pub fn accessapproval_folders_delete_access_approval_settings_builder(
-    client: &SimpleHttpClient,
+pub fn accessapproval_folders_delete_access_approval_settings_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://accessapproval.googleapis.com/v1/folders/{}/accessApprovalSettings",
@@ -184,10 +188,13 @@ pub fn accessapproval_folders_delete_access_approval_settings(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `accessapproval_folders_get_access_approval_settings_execute()` to send, or `accessapproval_folders_get_access_approval_settings` for simplest API.
 
-pub fn accessapproval_folders_get_access_approval_settings_builder(
-    client: &SimpleHttpClient,
+pub fn accessapproval_folders_get_access_approval_settings_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://accessapproval.googleapis.com/v1/folders/{}/accessApprovalSettings",
@@ -345,10 +352,13 @@ pub fn accessapproval_folders_get_access_approval_settings(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `accessapproval_folders_get_service_account_execute()` to send, or `accessapproval_folders_get_service_account` for simplest API.
 
-pub fn accessapproval_folders_get_service_account_builder(
-    client: &SimpleHttpClient,
+pub fn accessapproval_folders_get_service_account_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://accessapproval.googleapis.com/v1/folders/{}/serviceAccount",
@@ -510,11 +520,14 @@ pub fn accessapproval_folders_get_service_account(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `accessapproval_folders_update_access_approval_settings_execute()` to send, or `accessapproval_folders_update_access_approval_settings` for simplest API.
 
-pub fn accessapproval_folders_update_access_approval_settings_builder(
-    client: &SimpleHttpClient,
+pub fn accessapproval_folders_update_access_approval_settings_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://accessapproval.googleapis.com/v1/folders/{}/accessApprovalSettings",
@@ -689,10 +702,13 @@ pub fn accessapproval_folders_update_access_approval_settings(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `accessapproval_folders_approval_requests_approve_execute()` to send, or `accessapproval_folders_approval_requests_approve` for simplest API.
 
-pub fn accessapproval_folders_approval_requests_approve_builder(
-    client: &SimpleHttpClient,
+pub fn accessapproval_folders_approval_requests_approve_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://accessapproval.googleapis.com/v1/folders/{}/approvalRequests/{approvalRequestsId}:approve",
@@ -850,10 +866,13 @@ pub fn accessapproval_folders_approval_requests_approve(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `accessapproval_folders_approval_requests_dismiss_execute()` to send, or `accessapproval_folders_approval_requests_dismiss` for simplest API.
 
-pub fn accessapproval_folders_approval_requests_dismiss_builder(
-    client: &SimpleHttpClient,
+pub fn accessapproval_folders_approval_requests_dismiss_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://accessapproval.googleapis.com/v1/folders/{}/approvalRequests/{approvalRequestsId}:dismiss",
@@ -1011,10 +1030,13 @@ pub fn accessapproval_folders_approval_requests_dismiss(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `accessapproval_folders_approval_requests_get_execute()` to send, or `accessapproval_folders_approval_requests_get` for simplest API.
 
-pub fn accessapproval_folders_approval_requests_get_builder(
-    client: &SimpleHttpClient,
+pub fn accessapproval_folders_approval_requests_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://accessapproval.googleapis.com/v1/folders/{}/approvalRequests/{approvalRequestsId}",
@@ -1172,10 +1194,13 @@ pub fn accessapproval_folders_approval_requests_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `accessapproval_folders_approval_requests_invalidate_execute()` to send, or `accessapproval_folders_approval_requests_invalidate` for simplest API.
 
-pub fn accessapproval_folders_approval_requests_invalidate_builder(
-    client: &SimpleHttpClient,
+pub fn accessapproval_folders_approval_requests_invalidate_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://accessapproval.googleapis.com/v1/folders/{}/approvalRequests/{approvalRequestsId}:invalidate",
@@ -1333,13 +1358,16 @@ pub fn accessapproval_folders_approval_requests_invalidate(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `accessapproval_folders_approval_requests_list_execute()` to send, or `accessapproval_folders_approval_requests_list` for simplest API.
 
-pub fn accessapproval_folders_approval_requests_list_builder(
-    client: &SimpleHttpClient,
+pub fn accessapproval_folders_approval_requests_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://accessapproval.googleapis.com/v1/folders/{}/approvalRequests",
@@ -1530,10 +1558,13 @@ pub fn accessapproval_folders_approval_requests_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `accessapproval_organizations_delete_access_approval_settings_execute()` to send, or `accessapproval_organizations_delete_access_approval_settings` for simplest API.
 
-pub fn accessapproval_organizations_delete_access_approval_settings_builder(
-    client: &SimpleHttpClient,
+pub fn accessapproval_organizations_delete_access_approval_settings_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://accessapproval.googleapis.com/v1/organizations/{}/accessApprovalSettings",
@@ -1688,10 +1719,13 @@ pub fn accessapproval_organizations_delete_access_approval_settings(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `accessapproval_organizations_get_access_approval_settings_execute()` to send, or `accessapproval_organizations_get_access_approval_settings` for simplest API.
 
-pub fn accessapproval_organizations_get_access_approval_settings_builder(
-    client: &SimpleHttpClient,
+pub fn accessapproval_organizations_get_access_approval_settings_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://accessapproval.googleapis.com/v1/organizations/{}/accessApprovalSettings",
@@ -1850,10 +1884,13 @@ pub fn accessapproval_organizations_get_access_approval_settings(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `accessapproval_organizations_get_service_account_execute()` to send, or `accessapproval_organizations_get_service_account` for simplest API.
 
-pub fn accessapproval_organizations_get_service_account_builder(
-    client: &SimpleHttpClient,
+pub fn accessapproval_organizations_get_service_account_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://accessapproval.googleapis.com/v1/organizations/{}/serviceAccount",
@@ -2015,11 +2052,14 @@ pub fn accessapproval_organizations_get_service_account(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `accessapproval_organizations_update_access_approval_settings_execute()` to send, or `accessapproval_organizations_update_access_approval_settings` for simplest API.
 
-pub fn accessapproval_organizations_update_access_approval_settings_builder(
-    client: &SimpleHttpClient,
+pub fn accessapproval_organizations_update_access_approval_settings_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://accessapproval.googleapis.com/v1/organizations/{}/accessApprovalSettings",
@@ -2194,10 +2234,13 @@ pub fn accessapproval_organizations_update_access_approval_settings(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `accessapproval_organizations_approval_requests_approve_execute()` to send, or `accessapproval_organizations_approval_requests_approve` for simplest API.
 
-pub fn accessapproval_organizations_approval_requests_approve_builder(
-    client: &SimpleHttpClient,
+pub fn accessapproval_organizations_approval_requests_approve_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://accessapproval.googleapis.com/v1/organizations/{}/approvalRequests/{approvalRequestsId}:approve",
@@ -2356,10 +2399,13 @@ pub fn accessapproval_organizations_approval_requests_approve(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `accessapproval_organizations_approval_requests_dismiss_execute()` to send, or `accessapproval_organizations_approval_requests_dismiss` for simplest API.
 
-pub fn accessapproval_organizations_approval_requests_dismiss_builder(
-    client: &SimpleHttpClient,
+pub fn accessapproval_organizations_approval_requests_dismiss_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://accessapproval.googleapis.com/v1/organizations/{}/approvalRequests/{approvalRequestsId}:dismiss",
@@ -2518,10 +2564,13 @@ pub fn accessapproval_organizations_approval_requests_dismiss(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `accessapproval_organizations_approval_requests_get_execute()` to send, or `accessapproval_organizations_approval_requests_get` for simplest API.
 
-pub fn accessapproval_organizations_approval_requests_get_builder(
-    client: &SimpleHttpClient,
+pub fn accessapproval_organizations_approval_requests_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://accessapproval.googleapis.com/v1/organizations/{}/approvalRequests/{approvalRequestsId}",
@@ -2679,10 +2728,13 @@ pub fn accessapproval_organizations_approval_requests_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `accessapproval_organizations_approval_requests_invalidate_execute()` to send, or `accessapproval_organizations_approval_requests_invalidate` for simplest API.
 
-pub fn accessapproval_organizations_approval_requests_invalidate_builder(
-    client: &SimpleHttpClient,
+pub fn accessapproval_organizations_approval_requests_invalidate_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://accessapproval.googleapis.com/v1/organizations/{}/approvalRequests/{approvalRequestsId}:invalidate",
@@ -2841,13 +2893,16 @@ pub fn accessapproval_organizations_approval_requests_invalidate(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `accessapproval_organizations_approval_requests_list_execute()` to send, or `accessapproval_organizations_approval_requests_list` for simplest API.
 
-pub fn accessapproval_organizations_approval_requests_list_builder(
-    client: &SimpleHttpClient,
+pub fn accessapproval_organizations_approval_requests_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://accessapproval.googleapis.com/v1/organizations/{}/approvalRequests",
@@ -3038,10 +3093,13 @@ pub fn accessapproval_organizations_approval_requests_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `accessapproval_projects_delete_access_approval_settings_execute()` to send, or `accessapproval_projects_delete_access_approval_settings` for simplest API.
 
-pub fn accessapproval_projects_delete_access_approval_settings_builder(
-    client: &SimpleHttpClient,
+pub fn accessapproval_projects_delete_access_approval_settings_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://accessapproval.googleapis.com/v1/projects/{}/accessApprovalSettings",
@@ -3196,10 +3254,13 @@ pub fn accessapproval_projects_delete_access_approval_settings(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `accessapproval_projects_get_access_approval_settings_execute()` to send, or `accessapproval_projects_get_access_approval_settings` for simplest API.
 
-pub fn accessapproval_projects_get_access_approval_settings_builder(
-    client: &SimpleHttpClient,
+pub fn accessapproval_projects_get_access_approval_settings_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://accessapproval.googleapis.com/v1/projects/{}/accessApprovalSettings",
@@ -3357,10 +3418,13 @@ pub fn accessapproval_projects_get_access_approval_settings(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `accessapproval_projects_get_service_account_execute()` to send, or `accessapproval_projects_get_service_account` for simplest API.
 
-pub fn accessapproval_projects_get_service_account_builder(
-    client: &SimpleHttpClient,
+pub fn accessapproval_projects_get_service_account_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://accessapproval.googleapis.com/v1/projects/{}/serviceAccount",
@@ -3522,11 +3586,14 @@ pub fn accessapproval_projects_get_service_account(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `accessapproval_projects_update_access_approval_settings_execute()` to send, or `accessapproval_projects_update_access_approval_settings` for simplest API.
 
-pub fn accessapproval_projects_update_access_approval_settings_builder(
-    client: &SimpleHttpClient,
+pub fn accessapproval_projects_update_access_approval_settings_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://accessapproval.googleapis.com/v1/projects/{}/accessApprovalSettings",
@@ -3701,10 +3768,13 @@ pub fn accessapproval_projects_update_access_approval_settings(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `accessapproval_projects_approval_requests_approve_execute()` to send, or `accessapproval_projects_approval_requests_approve` for simplest API.
 
-pub fn accessapproval_projects_approval_requests_approve_builder(
-    client: &SimpleHttpClient,
+pub fn accessapproval_projects_approval_requests_approve_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://accessapproval.googleapis.com/v1/projects/{}/approvalRequests/{approvalRequestsId}:approve",
@@ -3862,10 +3932,13 @@ pub fn accessapproval_projects_approval_requests_approve(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `accessapproval_projects_approval_requests_dismiss_execute()` to send, or `accessapproval_projects_approval_requests_dismiss` for simplest API.
 
-pub fn accessapproval_projects_approval_requests_dismiss_builder(
-    client: &SimpleHttpClient,
+pub fn accessapproval_projects_approval_requests_dismiss_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://accessapproval.googleapis.com/v1/projects/{}/approvalRequests/{approvalRequestsId}:dismiss",
@@ -4023,10 +4096,13 @@ pub fn accessapproval_projects_approval_requests_dismiss(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `accessapproval_projects_approval_requests_get_execute()` to send, or `accessapproval_projects_approval_requests_get` for simplest API.
 
-pub fn accessapproval_projects_approval_requests_get_builder(
-    client: &SimpleHttpClient,
+pub fn accessapproval_projects_approval_requests_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://accessapproval.googleapis.com/v1/projects/{}/approvalRequests/{approvalRequestsId}",
@@ -4184,10 +4260,13 @@ pub fn accessapproval_projects_approval_requests_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `accessapproval_projects_approval_requests_invalidate_execute()` to send, or `accessapproval_projects_approval_requests_invalidate` for simplest API.
 
-pub fn accessapproval_projects_approval_requests_invalidate_builder(
-    client: &SimpleHttpClient,
+pub fn accessapproval_projects_approval_requests_invalidate_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://accessapproval.googleapis.com/v1/projects/{}/approvalRequests/{approvalRequestsId}:invalidate",
@@ -4345,13 +4424,16 @@ pub fn accessapproval_projects_approval_requests_invalidate(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `accessapproval_projects_approval_requests_list_execute()` to send, or `accessapproval_projects_approval_requests_list` for simplest API.
 
-pub fn accessapproval_projects_approval_requests_list_builder(
-    client: &SimpleHttpClient,
+pub fn accessapproval_projects_approval_requests_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://accessapproval.googleapis.com/v1/projects/{}/approvalRequests",

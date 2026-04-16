@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `abusiveexperiencereport_sites_get_execute()` to send, or `abusiveexperiencereport_sites_get` for simplest API.
 
-pub fn abusiveexperiencereport_sites_get_builder(
-    client: &SimpleHttpClient,
+pub fn abusiveexperiencereport_sites_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://abusiveexperiencereport.googleapis.com/v1/sites/{}",
@@ -187,9 +191,12 @@ pub fn abusiveexperiencereport_sites_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `abusiveexperiencereport_violating_sites_list_execute()` to send, or `abusiveexperiencereport_violating_sites_list` for simplest API.
 
-pub fn abusiveexperiencereport_violating_sites_list_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn abusiveexperiencereport_violating_sites_list_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://abusiveexperiencereport.googleapis.com/v1/violatingSites",);
 

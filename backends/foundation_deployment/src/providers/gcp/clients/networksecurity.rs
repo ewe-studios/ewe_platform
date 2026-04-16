@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_organizations_locations_address_groups_add_items_execute()` to send, or `networksecurity_organizations_locations_address_groups_add_items` for simplest API.
 
-pub fn networksecurity_organizations_locations_address_groups_add_items_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_organizations_locations_address_groups_add_items_builder<R>(
+    client: &SimpleHttpClient<R>,
     addressGroup: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/organizations/{}/locations/{locationsId}/addressGroups/{addressGroupsId}:addItems",
@@ -186,10 +190,13 @@ pub fn networksecurity_organizations_locations_address_groups_add_items(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_organizations_locations_address_groups_clone_items_execute()` to send, or `networksecurity_organizations_locations_address_groups_clone_items` for simplest API.
 
-pub fn networksecurity_organizations_locations_address_groups_clone_items_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_organizations_locations_address_groups_clone_items_builder<R>(
+    client: &SimpleHttpClient<R>,
     addressGroup: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/organizations/{}/locations/{locationsId}/addressGroups/{addressGroupsId}:cloneItems",
@@ -346,12 +353,15 @@ pub fn networksecurity_organizations_locations_address_groups_clone_items(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_organizations_locations_address_groups_create_execute()` to send, or `networksecurity_organizations_locations_address_groups_create` for simplest API.
 
-pub fn networksecurity_organizations_locations_address_groups_create_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_organizations_locations_address_groups_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     addressGroupId: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/organizations/{}/locations/{locationsId}/addressGroups",
@@ -528,11 +538,14 @@ pub fn networksecurity_organizations_locations_address_groups_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_organizations_locations_address_groups_delete_execute()` to send, or `networksecurity_organizations_locations_address_groups_delete` for simplest API.
 
-pub fn networksecurity_organizations_locations_address_groups_delete_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_organizations_locations_address_groups_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/organizations/{}/locations/{locationsId}/addressGroups/{addressGroupsId}",
@@ -703,10 +716,13 @@ pub fn networksecurity_organizations_locations_address_groups_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_organizations_locations_address_groups_get_execute()` to send, or `networksecurity_organizations_locations_address_groups_get` for simplest API.
 
-pub fn networksecurity_organizations_locations_address_groups_get_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_organizations_locations_address_groups_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/organizations/{}/locations/{locationsId}/addressGroups/{addressGroupsId}",
@@ -865,13 +881,16 @@ pub fn networksecurity_organizations_locations_address_groups_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_organizations_locations_address_groups_list_execute()` to send, or `networksecurity_organizations_locations_address_groups_list` for simplest API.
 
-pub fn networksecurity_organizations_locations_address_groups_list_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_organizations_locations_address_groups_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/organizations/{}/locations/{locationsId}/addressGroups",
@@ -1058,12 +1077,15 @@ pub fn networksecurity_organizations_locations_address_groups_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_organizations_locations_address_groups_list_references_execute()` to send, or `networksecurity_organizations_locations_address_groups_list_references` for simplest API.
 
-pub fn networksecurity_organizations_locations_address_groups_list_references_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_organizations_locations_address_groups_list_references_builder<R>(
+    client: &SimpleHttpClient<R>,
     addressGroup: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/organizations/{}/locations/{locationsId}/addressGroups/{addressGroupsId}:listReferences",
@@ -1249,12 +1271,15 @@ pub fn networksecurity_organizations_locations_address_groups_list_references(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_organizations_locations_address_groups_patch_execute()` to send, or `networksecurity_organizations_locations_address_groups_patch` for simplest API.
 
-pub fn networksecurity_organizations_locations_address_groups_patch_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_organizations_locations_address_groups_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/organizations/{}/locations/{locationsId}/addressGroups/{addressGroupsId}",
@@ -1431,10 +1456,13 @@ pub fn networksecurity_organizations_locations_address_groups_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_organizations_locations_address_groups_remove_items_execute()` to send, or `networksecurity_organizations_locations_address_groups_remove_items` for simplest API.
 
-pub fn networksecurity_organizations_locations_address_groups_remove_items_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_organizations_locations_address_groups_remove_items_builder<R>(
+    client: &SimpleHttpClient<R>,
     addressGroup: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/organizations/{}/locations/{locationsId}/addressGroups/{addressGroupsId}:removeItems",
@@ -1591,12 +1619,15 @@ pub fn networksecurity_organizations_locations_address_groups_remove_items(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_organizations_locations_firewall_endpoints_create_execute()` to send, or `networksecurity_organizations_locations_firewall_endpoints_create` for simplest API.
 
-pub fn networksecurity_organizations_locations_firewall_endpoints_create_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_organizations_locations_firewall_endpoints_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     firewallEndpointId: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/organizations/{}/locations/{locationsId}/firewallEndpoints",
@@ -1773,11 +1804,14 @@ pub fn networksecurity_organizations_locations_firewall_endpoints_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_organizations_locations_firewall_endpoints_delete_execute()` to send, or `networksecurity_organizations_locations_firewall_endpoints_delete` for simplest API.
 
-pub fn networksecurity_organizations_locations_firewall_endpoints_delete_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_organizations_locations_firewall_endpoints_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/organizations/{}/locations/{locationsId}/firewallEndpoints/{firewallEndpointsId}",
@@ -1948,10 +1982,13 @@ pub fn networksecurity_organizations_locations_firewall_endpoints_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_organizations_locations_firewall_endpoints_get_execute()` to send, or `networksecurity_organizations_locations_firewall_endpoints_get` for simplest API.
 
-pub fn networksecurity_organizations_locations_firewall_endpoints_get_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_organizations_locations_firewall_endpoints_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/organizations/{}/locations/{locationsId}/firewallEndpoints/{firewallEndpointsId}",
@@ -2110,14 +2147,17 @@ pub fn networksecurity_organizations_locations_firewall_endpoints_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_organizations_locations_firewall_endpoints_list_execute()` to send, or `networksecurity_organizations_locations_firewall_endpoints_list` for simplest API.
 
-pub fn networksecurity_organizations_locations_firewall_endpoints_list_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_organizations_locations_firewall_endpoints_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/organizations/{}/locations/{locationsId}/firewallEndpoints",
@@ -2314,12 +2354,15 @@ pub fn networksecurity_organizations_locations_firewall_endpoints_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_organizations_locations_firewall_endpoints_patch_execute()` to send, or `networksecurity_organizations_locations_firewall_endpoints_patch` for simplest API.
 
-pub fn networksecurity_organizations_locations_firewall_endpoints_patch_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_organizations_locations_firewall_endpoints_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/organizations/{}/locations/{locationsId}/firewallEndpoints/{firewallEndpointsId}",
@@ -2496,10 +2539,13 @@ pub fn networksecurity_organizations_locations_firewall_endpoints_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_organizations_locations_operations_cancel_execute()` to send, or `networksecurity_organizations_locations_operations_cancel` for simplest API.
 
-pub fn networksecurity_organizations_locations_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_organizations_locations_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/organizations/{}/locations/{locationsId}/operations/{operationsId}:cancel",
@@ -2654,10 +2700,13 @@ pub fn networksecurity_organizations_locations_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_organizations_locations_operations_delete_execute()` to send, or `networksecurity_organizations_locations_operations_delete` for simplest API.
 
-pub fn networksecurity_organizations_locations_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_organizations_locations_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/organizations/{}/locations/{locationsId}/operations/{operationsId}",
@@ -2812,10 +2861,13 @@ pub fn networksecurity_organizations_locations_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_organizations_locations_operations_get_execute()` to send, or `networksecurity_organizations_locations_operations_get` for simplest API.
 
-pub fn networksecurity_organizations_locations_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_organizations_locations_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/organizations/{}/locations/{locationsId}/operations/{operationsId}",
@@ -2970,14 +3022,17 @@ pub fn networksecurity_organizations_locations_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_organizations_locations_operations_list_execute()` to send, or `networksecurity_organizations_locations_operations_list` for simplest API.
 
-pub fn networksecurity_organizations_locations_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_organizations_locations_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/organizations/{}/locations/{locationsId}/operations",
@@ -3170,11 +3225,14 @@ pub fn networksecurity_organizations_locations_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_organizations_locations_security_profile_groups_create_execute()` to send, or `networksecurity_organizations_locations_security_profile_groups_create` for simplest API.
 
-pub fn networksecurity_organizations_locations_security_profile_groups_create_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_organizations_locations_security_profile_groups_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     securityProfileGroupId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/organizations/{}/locations/{locationsId}/securityProfileGroups",
@@ -3346,11 +3404,14 @@ pub fn networksecurity_organizations_locations_security_profile_groups_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_organizations_locations_security_profile_groups_delete_execute()` to send, or `networksecurity_organizations_locations_security_profile_groups_delete` for simplest API.
 
-pub fn networksecurity_organizations_locations_security_profile_groups_delete_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_organizations_locations_security_profile_groups_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     etag: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/organizations/{}/locations/{locationsId}/securityProfileGroups/{securityProfileGroupsId}",
@@ -3520,10 +3581,13 @@ pub fn networksecurity_organizations_locations_security_profile_groups_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_organizations_locations_security_profile_groups_get_execute()` to send, or `networksecurity_organizations_locations_security_profile_groups_get` for simplest API.
 
-pub fn networksecurity_organizations_locations_security_profile_groups_get_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_organizations_locations_security_profile_groups_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/organizations/{}/locations/{locationsId}/securityProfileGroups/{securityProfileGroupsId}",
@@ -3683,12 +3747,15 @@ pub fn networksecurity_organizations_locations_security_profile_groups_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_organizations_locations_security_profile_groups_list_execute()` to send, or `networksecurity_organizations_locations_security_profile_groups_list` for simplest API.
 
-pub fn networksecurity_organizations_locations_security_profile_groups_list_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_organizations_locations_security_profile_groups_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/organizations/{}/locations/{locationsId}/securityProfileGroups",
@@ -3873,11 +3940,14 @@ pub fn networksecurity_organizations_locations_security_profile_groups_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_organizations_locations_security_profile_groups_patch_execute()` to send, or `networksecurity_organizations_locations_security_profile_groups_patch` for simplest API.
 
-pub fn networksecurity_organizations_locations_security_profile_groups_patch_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_organizations_locations_security_profile_groups_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/organizations/{}/locations/{locationsId}/securityProfileGroups/{securityProfileGroupsId}",
@@ -4048,11 +4118,14 @@ pub fn networksecurity_organizations_locations_security_profile_groups_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_organizations_locations_security_profiles_create_execute()` to send, or `networksecurity_organizations_locations_security_profiles_create` for simplest API.
 
-pub fn networksecurity_organizations_locations_security_profiles_create_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_organizations_locations_security_profiles_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     securityProfileId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/organizations/{}/locations/{locationsId}/securityProfiles",
@@ -4223,11 +4296,14 @@ pub fn networksecurity_organizations_locations_security_profiles_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_organizations_locations_security_profiles_delete_execute()` to send, or `networksecurity_organizations_locations_security_profiles_delete` for simplest API.
 
-pub fn networksecurity_organizations_locations_security_profiles_delete_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_organizations_locations_security_profiles_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     etag: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/organizations/{}/locations/{locationsId}/securityProfiles/{securityProfilesId}",
@@ -4396,10 +4472,13 @@ pub fn networksecurity_organizations_locations_security_profiles_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_organizations_locations_security_profiles_get_execute()` to send, or `networksecurity_organizations_locations_security_profiles_get` for simplest API.
 
-pub fn networksecurity_organizations_locations_security_profiles_get_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_organizations_locations_security_profiles_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/organizations/{}/locations/{locationsId}/securityProfiles/{securityProfilesId}",
@@ -4558,12 +4637,15 @@ pub fn networksecurity_organizations_locations_security_profiles_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_organizations_locations_security_profiles_list_execute()` to send, or `networksecurity_organizations_locations_security_profiles_list` for simplest API.
 
-pub fn networksecurity_organizations_locations_security_profiles_list_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_organizations_locations_security_profiles_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/organizations/{}/locations/{locationsId}/securityProfiles",
@@ -4748,11 +4830,14 @@ pub fn networksecurity_organizations_locations_security_profiles_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_organizations_locations_security_profiles_patch_execute()` to send, or `networksecurity_organizations_locations_security_profiles_patch` for simplest API.
 
-pub fn networksecurity_organizations_locations_security_profiles_patch_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_organizations_locations_security_profiles_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/organizations/{}/locations/{locationsId}/securityProfiles/{securityProfilesId}",
@@ -4923,10 +5008,13 @@ pub fn networksecurity_organizations_locations_security_profiles_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_get_execute()` to send, or `networksecurity_projects_locations_get` for simplest API.
 
-pub fn networksecurity_projects_locations_get_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations/{locationsId}",
@@ -5080,14 +5168,17 @@ pub fn networksecurity_projects_locations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_list_execute()` to send, or `networksecurity_projects_locations_list` for simplest API.
 
-pub fn networksecurity_projects_locations_list_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     extraLocationTypes: &Option<Option<String>>,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations",
@@ -5280,10 +5371,13 @@ pub fn networksecurity_projects_locations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_address_groups_add_items_execute()` to send, or `networksecurity_projects_locations_address_groups_add_items` for simplest API.
 
-pub fn networksecurity_projects_locations_address_groups_add_items_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_address_groups_add_items_builder<R>(
+    client: &SimpleHttpClient<R>,
     addressGroup: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations/{locationsId}/addressGroups/{addressGroupsId}:addItems",
@@ -5440,10 +5534,13 @@ pub fn networksecurity_projects_locations_address_groups_add_items(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_address_groups_clone_items_execute()` to send, or `networksecurity_projects_locations_address_groups_clone_items` for simplest API.
 
-pub fn networksecurity_projects_locations_address_groups_clone_items_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_address_groups_clone_items_builder<R>(
+    client: &SimpleHttpClient<R>,
     addressGroup: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations/{locationsId}/addressGroups/{addressGroupsId}:cloneItems",
@@ -5600,12 +5697,15 @@ pub fn networksecurity_projects_locations_address_groups_clone_items(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_address_groups_create_execute()` to send, or `networksecurity_projects_locations_address_groups_create` for simplest API.
 
-pub fn networksecurity_projects_locations_address_groups_create_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_address_groups_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     addressGroupId: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations/{locationsId}/addressGroups",
@@ -5782,11 +5882,14 @@ pub fn networksecurity_projects_locations_address_groups_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_address_groups_delete_execute()` to send, or `networksecurity_projects_locations_address_groups_delete` for simplest API.
 
-pub fn networksecurity_projects_locations_address_groups_delete_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_address_groups_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations/{locationsId}/addressGroups/{addressGroupsId}",
@@ -5957,10 +6060,13 @@ pub fn networksecurity_projects_locations_address_groups_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_address_groups_get_execute()` to send, or `networksecurity_projects_locations_address_groups_get` for simplest API.
 
-pub fn networksecurity_projects_locations_address_groups_get_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_address_groups_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations/{locationsId}/addressGroups/{addressGroupsId}",
@@ -6119,11 +6225,14 @@ pub fn networksecurity_projects_locations_address_groups_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_address_groups_get_iam_policy_execute()` to send, or `networksecurity_projects_locations_address_groups_get_iam_policy` for simplest API.
 
-pub fn networksecurity_projects_locations_address_groups_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_address_groups_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations/{locationsId}/addressGroups/{addressGroupsId}:getIamPolicy",
@@ -6298,13 +6407,16 @@ pub fn networksecurity_projects_locations_address_groups_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_address_groups_list_execute()` to send, or `networksecurity_projects_locations_address_groups_list` for simplest API.
 
-pub fn networksecurity_projects_locations_address_groups_list_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_address_groups_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations/{locationsId}/addressGroups",
@@ -6491,12 +6603,15 @@ pub fn networksecurity_projects_locations_address_groups_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_address_groups_list_references_execute()` to send, or `networksecurity_projects_locations_address_groups_list_references` for simplest API.
 
-pub fn networksecurity_projects_locations_address_groups_list_references_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_address_groups_list_references_builder<R>(
+    client: &SimpleHttpClient<R>,
     addressGroup: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations/{locationsId}/addressGroups/{addressGroupsId}:listReferences",
@@ -6681,12 +6796,15 @@ pub fn networksecurity_projects_locations_address_groups_list_references(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_address_groups_patch_execute()` to send, or `networksecurity_projects_locations_address_groups_patch` for simplest API.
 
-pub fn networksecurity_projects_locations_address_groups_patch_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_address_groups_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations/{locationsId}/addressGroups/{addressGroupsId}",
@@ -6863,10 +6981,13 @@ pub fn networksecurity_projects_locations_address_groups_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_address_groups_remove_items_execute()` to send, or `networksecurity_projects_locations_address_groups_remove_items` for simplest API.
 
-pub fn networksecurity_projects_locations_address_groups_remove_items_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_address_groups_remove_items_builder<R>(
+    client: &SimpleHttpClient<R>,
     addressGroup: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations/{locationsId}/addressGroups/{addressGroupsId}:removeItems",
@@ -7023,10 +7144,13 @@ pub fn networksecurity_projects_locations_address_groups_remove_items(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_address_groups_set_iam_policy_execute()` to send, or `networksecurity_projects_locations_address_groups_set_iam_policy` for simplest API.
 
-pub fn networksecurity_projects_locations_address_groups_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_address_groups_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations/{locationsId}/addressGroups/{addressGroupsId}:setIamPolicy",
@@ -7187,10 +7311,13 @@ pub fn networksecurity_projects_locations_address_groups_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_address_groups_test_iam_permissions_execute()` to send, or `networksecurity_projects_locations_address_groups_test_iam_permissions` for simplest API.
 
-pub fn networksecurity_projects_locations_address_groups_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_address_groups_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations/{locationsId}/addressGroups/{addressGroupsId}:testIamPermissions",
@@ -7356,11 +7483,14 @@ pub fn networksecurity_projects_locations_address_groups_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_authorization_policies_create_execute()` to send, or `networksecurity_projects_locations_authorization_policies_create` for simplest API.
 
-pub fn networksecurity_projects_locations_authorization_policies_create_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_authorization_policies_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     authorizationPolicyId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations/{locationsId}/authorizationPolicies",
@@ -7531,10 +7661,13 @@ pub fn networksecurity_projects_locations_authorization_policies_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_authorization_policies_delete_execute()` to send, or `networksecurity_projects_locations_authorization_policies_delete` for simplest API.
 
-pub fn networksecurity_projects_locations_authorization_policies_delete_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_authorization_policies_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations/{locationsId}/authorizationPolicies/{authorizationPoliciesId}",
@@ -7690,10 +7823,13 @@ pub fn networksecurity_projects_locations_authorization_policies_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_authorization_policies_get_execute()` to send, or `networksecurity_projects_locations_authorization_policies_get` for simplest API.
 
-pub fn networksecurity_projects_locations_authorization_policies_get_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_authorization_policies_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations/{locationsId}/authorizationPolicies/{authorizationPoliciesId}",
@@ -7852,11 +7988,14 @@ pub fn networksecurity_projects_locations_authorization_policies_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_authorization_policies_get_iam_policy_execute()` to send, or `networksecurity_projects_locations_authorization_policies_get_iam_policy` for simplest API.
 
-pub fn networksecurity_projects_locations_authorization_policies_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_authorization_policies_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations/{locationsId}/authorizationPolicies/{authorizationPoliciesId}:getIamPolicy",
@@ -8032,12 +8171,15 @@ pub fn networksecurity_projects_locations_authorization_policies_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_authorization_policies_list_execute()` to send, or `networksecurity_projects_locations_authorization_policies_list` for simplest API.
 
-pub fn networksecurity_projects_locations_authorization_policies_list_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_authorization_policies_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations/{locationsId}/authorizationPolicies",
@@ -8222,11 +8364,14 @@ pub fn networksecurity_projects_locations_authorization_policies_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_authorization_policies_patch_execute()` to send, or `networksecurity_projects_locations_authorization_policies_patch` for simplest API.
 
-pub fn networksecurity_projects_locations_authorization_policies_patch_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_authorization_policies_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations/{locationsId}/authorizationPolicies/{authorizationPoliciesId}",
@@ -8397,10 +8542,13 @@ pub fn networksecurity_projects_locations_authorization_policies_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_authorization_policies_set_iam_policy_execute()` to send, or `networksecurity_projects_locations_authorization_policies_set_iam_policy` for simplest API.
 
-pub fn networksecurity_projects_locations_authorization_policies_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_authorization_policies_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations/{locationsId}/authorizationPolicies/{authorizationPoliciesId}:setIamPolicy",
@@ -8562,10 +8710,13 @@ pub fn networksecurity_projects_locations_authorization_policies_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_authorization_policies_test_iam_permissions_execute()` to send, or `networksecurity_projects_locations_authorization_policies_test_iam_permissions` for simplest API.
 
-pub fn networksecurity_projects_locations_authorization_policies_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_authorization_policies_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations/{locationsId}/authorizationPolicies/{authorizationPoliciesId}:testIamPermissions",
@@ -8733,12 +8884,15 @@ pub fn networksecurity_projects_locations_authorization_policies_test_iam_permis
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_authz_policies_create_execute()` to send, or `networksecurity_projects_locations_authz_policies_create` for simplest API.
 
-pub fn networksecurity_projects_locations_authz_policies_create_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_authz_policies_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     authzPolicyId: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations/{locationsId}/authzPolicies",
@@ -8915,11 +9069,14 @@ pub fn networksecurity_projects_locations_authz_policies_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_authz_policies_delete_execute()` to send, or `networksecurity_projects_locations_authz_policies_delete` for simplest API.
 
-pub fn networksecurity_projects_locations_authz_policies_delete_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_authz_policies_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations/{locationsId}/authzPolicies/{authzPoliciesId}",
@@ -9090,10 +9247,13 @@ pub fn networksecurity_projects_locations_authz_policies_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_authz_policies_get_execute()` to send, or `networksecurity_projects_locations_authz_policies_get` for simplest API.
 
-pub fn networksecurity_projects_locations_authz_policies_get_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_authz_policies_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations/{locationsId}/authzPolicies/{authzPoliciesId}",
@@ -9248,11 +9408,14 @@ pub fn networksecurity_projects_locations_authz_policies_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_authz_policies_get_iam_policy_execute()` to send, or `networksecurity_projects_locations_authz_policies_get_iam_policy` for simplest API.
 
-pub fn networksecurity_projects_locations_authz_policies_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_authz_policies_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations/{locationsId}/authzPolicies/{authzPoliciesId}:getIamPolicy",
@@ -9427,14 +9590,17 @@ pub fn networksecurity_projects_locations_authz_policies_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_authz_policies_list_execute()` to send, or `networksecurity_projects_locations_authz_policies_list` for simplest API.
 
-pub fn networksecurity_projects_locations_authz_policies_list_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_authz_policies_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations/{locationsId}/authzPolicies",
@@ -9627,12 +9793,15 @@ pub fn networksecurity_projects_locations_authz_policies_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_authz_policies_patch_execute()` to send, or `networksecurity_projects_locations_authz_policies_patch` for simplest API.
 
-pub fn networksecurity_projects_locations_authz_policies_patch_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_authz_policies_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations/{locationsId}/authzPolicies/{authzPoliciesId}",
@@ -9809,10 +9978,13 @@ pub fn networksecurity_projects_locations_authz_policies_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_authz_policies_set_iam_policy_execute()` to send, or `networksecurity_projects_locations_authz_policies_set_iam_policy` for simplest API.
 
-pub fn networksecurity_projects_locations_authz_policies_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_authz_policies_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations/{locationsId}/authzPolicies/{authzPoliciesId}:setIamPolicy",
@@ -9973,10 +10145,13 @@ pub fn networksecurity_projects_locations_authz_policies_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_authz_policies_test_iam_permissions_execute()` to send, or `networksecurity_projects_locations_authz_policies_test_iam_permissions` for simplest API.
 
-pub fn networksecurity_projects_locations_authz_policies_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_authz_policies_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations/{locationsId}/authzPolicies/{authzPoliciesId}:testIamPermissions",
@@ -10142,11 +10317,14 @@ pub fn networksecurity_projects_locations_authz_policies_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_backend_authentication_configs_create_execute()` to send, or `networksecurity_projects_locations_backend_authentication_configs_create` for simplest API.
 
-pub fn networksecurity_projects_locations_backend_authentication_configs_create_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_backend_authentication_configs_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     backendAuthenticationConfigId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations/{locationsId}/backendAuthenticationConfigs",
@@ -10318,11 +10496,14 @@ pub fn networksecurity_projects_locations_backend_authentication_configs_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_backend_authentication_configs_delete_execute()` to send, or `networksecurity_projects_locations_backend_authentication_configs_delete` for simplest API.
 
-pub fn networksecurity_projects_locations_backend_authentication_configs_delete_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_backend_authentication_configs_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     etag: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations/{locationsId}/backendAuthenticationConfigs/{backendAuthenticationConfigsId}",
@@ -10492,10 +10673,13 @@ pub fn networksecurity_projects_locations_backend_authentication_configs_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_backend_authentication_configs_get_execute()` to send, or `networksecurity_projects_locations_backend_authentication_configs_get` for simplest API.
 
-pub fn networksecurity_projects_locations_backend_authentication_configs_get_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_backend_authentication_configs_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations/{locationsId}/backendAuthenticationConfigs/{backendAuthenticationConfigsId}",
@@ -10659,12 +10843,15 @@ pub fn networksecurity_projects_locations_backend_authentication_configs_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_backend_authentication_configs_list_execute()` to send, or `networksecurity_projects_locations_backend_authentication_configs_list` for simplest API.
 
-pub fn networksecurity_projects_locations_backend_authentication_configs_list_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_backend_authentication_configs_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations/{locationsId}/backendAuthenticationConfigs",
@@ -10850,11 +11037,14 @@ pub fn networksecurity_projects_locations_backend_authentication_configs_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_backend_authentication_configs_patch_execute()` to send, or `networksecurity_projects_locations_backend_authentication_configs_patch` for simplest API.
 
-pub fn networksecurity_projects_locations_backend_authentication_configs_patch_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_backend_authentication_configs_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations/{locationsId}/backendAuthenticationConfigs/{backendAuthenticationConfigsId}",
@@ -11026,11 +11216,14 @@ pub fn networksecurity_projects_locations_backend_authentication_configs_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_client_tls_policies_create_execute()` to send, or `networksecurity_projects_locations_client_tls_policies_create` for simplest API.
 
-pub fn networksecurity_projects_locations_client_tls_policies_create_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_client_tls_policies_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     clientTlsPolicyId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations/{locationsId}/clientTlsPolicies",
@@ -11201,10 +11394,13 @@ pub fn networksecurity_projects_locations_client_tls_policies_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_client_tls_policies_delete_execute()` to send, or `networksecurity_projects_locations_client_tls_policies_delete` for simplest API.
 
-pub fn networksecurity_projects_locations_client_tls_policies_delete_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_client_tls_policies_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations/{locationsId}/clientTlsPolicies/{clientTlsPoliciesId}",
@@ -11359,10 +11555,13 @@ pub fn networksecurity_projects_locations_client_tls_policies_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_client_tls_policies_get_execute()` to send, or `networksecurity_projects_locations_client_tls_policies_get` for simplest API.
 
-pub fn networksecurity_projects_locations_client_tls_policies_get_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_client_tls_policies_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations/{locationsId}/clientTlsPolicies/{clientTlsPoliciesId}",
@@ -11521,11 +11720,14 @@ pub fn networksecurity_projects_locations_client_tls_policies_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_client_tls_policies_get_iam_policy_execute()` to send, or `networksecurity_projects_locations_client_tls_policies_get_iam_policy` for simplest API.
 
-pub fn networksecurity_projects_locations_client_tls_policies_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_client_tls_policies_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations/{locationsId}/clientTlsPolicies/{clientTlsPoliciesId}:getIamPolicy",
@@ -11700,12 +11902,15 @@ pub fn networksecurity_projects_locations_client_tls_policies_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_client_tls_policies_list_execute()` to send, or `networksecurity_projects_locations_client_tls_policies_list` for simplest API.
 
-pub fn networksecurity_projects_locations_client_tls_policies_list_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_client_tls_policies_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations/{locationsId}/clientTlsPolicies",
@@ -11890,11 +12095,14 @@ pub fn networksecurity_projects_locations_client_tls_policies_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_client_tls_policies_patch_execute()` to send, or `networksecurity_projects_locations_client_tls_policies_patch` for simplest API.
 
-pub fn networksecurity_projects_locations_client_tls_policies_patch_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_client_tls_policies_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations/{locationsId}/clientTlsPolicies/{clientTlsPoliciesId}",
@@ -12065,10 +12273,13 @@ pub fn networksecurity_projects_locations_client_tls_policies_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_client_tls_policies_set_iam_policy_execute()` to send, or `networksecurity_projects_locations_client_tls_policies_set_iam_policy` for simplest API.
 
-pub fn networksecurity_projects_locations_client_tls_policies_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_client_tls_policies_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations/{locationsId}/clientTlsPolicies/{clientTlsPoliciesId}:setIamPolicy",
@@ -12229,10 +12440,13 @@ pub fn networksecurity_projects_locations_client_tls_policies_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_client_tls_policies_test_iam_permissions_execute()` to send, or `networksecurity_projects_locations_client_tls_policies_test_iam_permissions` for simplest API.
 
-pub fn networksecurity_projects_locations_client_tls_policies_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_client_tls_policies_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations/{locationsId}/clientTlsPolicies/{clientTlsPoliciesId}:testIamPermissions",
@@ -12399,11 +12613,14 @@ pub fn networksecurity_projects_locations_client_tls_policies_test_iam_permissio
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_dns_threat_detectors_create_execute()` to send, or `networksecurity_projects_locations_dns_threat_detectors_create` for simplest API.
 
-pub fn networksecurity_projects_locations_dns_threat_detectors_create_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_dns_threat_detectors_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     dnsThreatDetectorId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations/{locationsId}/dnsThreatDetectors",
@@ -12578,10 +12795,13 @@ pub fn networksecurity_projects_locations_dns_threat_detectors_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_dns_threat_detectors_delete_execute()` to send, or `networksecurity_projects_locations_dns_threat_detectors_delete` for simplest API.
 
-pub fn networksecurity_projects_locations_dns_threat_detectors_delete_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_dns_threat_detectors_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations/{locationsId}/dnsThreatDetectors/{dnsThreatDetectorsId}",
@@ -12736,10 +12956,13 @@ pub fn networksecurity_projects_locations_dns_threat_detectors_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_dns_threat_detectors_get_execute()` to send, or `networksecurity_projects_locations_dns_threat_detectors_get` for simplest API.
 
-pub fn networksecurity_projects_locations_dns_threat_detectors_get_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_dns_threat_detectors_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations/{locationsId}/dnsThreatDetectors/{dnsThreatDetectorsId}",
@@ -12898,12 +13121,15 @@ pub fn networksecurity_projects_locations_dns_threat_detectors_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_dns_threat_detectors_list_execute()` to send, or `networksecurity_projects_locations_dns_threat_detectors_list` for simplest API.
 
-pub fn networksecurity_projects_locations_dns_threat_detectors_list_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_dns_threat_detectors_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations/{locationsId}/dnsThreatDetectors",
@@ -13088,11 +13314,14 @@ pub fn networksecurity_projects_locations_dns_threat_detectors_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_dns_threat_detectors_patch_execute()` to send, or `networksecurity_projects_locations_dns_threat_detectors_patch` for simplest API.
 
-pub fn networksecurity_projects_locations_dns_threat_detectors_patch_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_dns_threat_detectors_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations/{locationsId}/dnsThreatDetectors/{dnsThreatDetectorsId}",
@@ -13267,12 +13496,15 @@ pub fn networksecurity_projects_locations_dns_threat_detectors_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_firewall_endpoint_associations_create_execute()` to send, or `networksecurity_projects_locations_firewall_endpoint_associations_create` for simplest API.
 
-pub fn networksecurity_projects_locations_firewall_endpoint_associations_create_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_firewall_endpoint_associations_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     firewallEndpointAssociationId: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations/{locationsId}/firewallEndpointAssociations",
@@ -13450,11 +13682,14 @@ pub fn networksecurity_projects_locations_firewall_endpoint_associations_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_firewall_endpoint_associations_delete_execute()` to send, or `networksecurity_projects_locations_firewall_endpoint_associations_delete` for simplest API.
 
-pub fn networksecurity_projects_locations_firewall_endpoint_associations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_firewall_endpoint_associations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations/{locationsId}/firewallEndpointAssociations/{firewallEndpointAssociationsId}",
@@ -13626,10 +13861,13 @@ pub fn networksecurity_projects_locations_firewall_endpoint_associations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_firewall_endpoint_associations_get_execute()` to send, or `networksecurity_projects_locations_firewall_endpoint_associations_get` for simplest API.
 
-pub fn networksecurity_projects_locations_firewall_endpoint_associations_get_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_firewall_endpoint_associations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations/{locationsId}/firewallEndpointAssociations/{firewallEndpointAssociationsId}",
@@ -13793,14 +14031,17 @@ pub fn networksecurity_projects_locations_firewall_endpoint_associations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_firewall_endpoint_associations_list_execute()` to send, or `networksecurity_projects_locations_firewall_endpoint_associations_list` for simplest API.
 
-pub fn networksecurity_projects_locations_firewall_endpoint_associations_list_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_firewall_endpoint_associations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations/{locationsId}/firewallEndpointAssociations",
@@ -13998,12 +14239,15 @@ pub fn networksecurity_projects_locations_firewall_endpoint_associations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_firewall_endpoint_associations_patch_execute()` to send, or `networksecurity_projects_locations_firewall_endpoint_associations_patch` for simplest API.
 
-pub fn networksecurity_projects_locations_firewall_endpoint_associations_patch_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_firewall_endpoint_associations_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations/{locationsId}/firewallEndpointAssociations/{firewallEndpointAssociationsId}",
@@ -14181,11 +14425,14 @@ pub fn networksecurity_projects_locations_firewall_endpoint_associations_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_gateway_security_policies_create_execute()` to send, or `networksecurity_projects_locations_gateway_security_policies_create` for simplest API.
 
-pub fn networksecurity_projects_locations_gateway_security_policies_create_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_gateway_security_policies_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     gatewaySecurityPolicyId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations/{locationsId}/gatewaySecurityPolicies",
@@ -14356,10 +14603,13 @@ pub fn networksecurity_projects_locations_gateway_security_policies_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_gateway_security_policies_delete_execute()` to send, or `networksecurity_projects_locations_gateway_security_policies_delete` for simplest API.
 
-pub fn networksecurity_projects_locations_gateway_security_policies_delete_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_gateway_security_policies_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations/{locationsId}/gatewaySecurityPolicies/{gatewaySecurityPoliciesId}",
@@ -14515,10 +14765,13 @@ pub fn networksecurity_projects_locations_gateway_security_policies_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_gateway_security_policies_get_execute()` to send, or `networksecurity_projects_locations_gateway_security_policies_get` for simplest API.
 
-pub fn networksecurity_projects_locations_gateway_security_policies_get_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_gateway_security_policies_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations/{locationsId}/gatewaySecurityPolicies/{gatewaySecurityPoliciesId}",
@@ -14678,12 +14931,15 @@ pub fn networksecurity_projects_locations_gateway_security_policies_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_gateway_security_policies_list_execute()` to send, or `networksecurity_projects_locations_gateway_security_policies_list` for simplest API.
 
-pub fn networksecurity_projects_locations_gateway_security_policies_list_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_gateway_security_policies_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations/{locationsId}/gatewaySecurityPolicies",
@@ -14868,11 +15124,14 @@ pub fn networksecurity_projects_locations_gateway_security_policies_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_gateway_security_policies_patch_execute()` to send, or `networksecurity_projects_locations_gateway_security_policies_patch` for simplest API.
 
-pub fn networksecurity_projects_locations_gateway_security_policies_patch_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_gateway_security_policies_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations/{locationsId}/gatewaySecurityPolicies/{gatewaySecurityPoliciesId}",
@@ -15043,11 +15302,14 @@ pub fn networksecurity_projects_locations_gateway_security_policies_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_gateway_security_policies_rules_create_execute()` to send, or `networksecurity_projects_locations_gateway_security_policies_rules_create` for simplest API.
 
-pub fn networksecurity_projects_locations_gateway_security_policies_rules_create_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_gateway_security_policies_rules_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     gatewaySecurityPolicyRuleId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations/{locationsId}/gatewaySecurityPolicies/{gatewaySecurityPoliciesId}/rules",
@@ -15220,10 +15482,13 @@ pub fn networksecurity_projects_locations_gateway_security_policies_rules_create
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_gateway_security_policies_rules_delete_execute()` to send, or `networksecurity_projects_locations_gateway_security_policies_rules_delete` for simplest API.
 
-pub fn networksecurity_projects_locations_gateway_security_policies_rules_delete_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_gateway_security_policies_rules_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations/{locationsId}/gatewaySecurityPolicies/{gatewaySecurityPoliciesId}/rules/{rulesId}",
@@ -15381,10 +15646,13 @@ pub fn networksecurity_projects_locations_gateway_security_policies_rules_delete
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_gateway_security_policies_rules_get_execute()` to send, or `networksecurity_projects_locations_gateway_security_policies_rules_get` for simplest API.
 
-pub fn networksecurity_projects_locations_gateway_security_policies_rules_get_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_gateway_security_policies_rules_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations/{locationsId}/gatewaySecurityPolicies/{gatewaySecurityPoliciesId}/rules/{rulesId}",
@@ -15545,12 +15813,15 @@ pub fn networksecurity_projects_locations_gateway_security_policies_rules_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_gateway_security_policies_rules_list_execute()` to send, or `networksecurity_projects_locations_gateway_security_policies_rules_list` for simplest API.
 
-pub fn networksecurity_projects_locations_gateway_security_policies_rules_list_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_gateway_security_policies_rules_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations/{locationsId}/gatewaySecurityPolicies/{gatewaySecurityPoliciesId}/rules",
@@ -15736,11 +16007,14 @@ pub fn networksecurity_projects_locations_gateway_security_policies_rules_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_gateway_security_policies_rules_patch_execute()` to send, or `networksecurity_projects_locations_gateway_security_policies_rules_patch` for simplest API.
 
-pub fn networksecurity_projects_locations_gateway_security_policies_rules_patch_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_gateway_security_policies_rules_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations/{locationsId}/gatewaySecurityPolicies/{gatewaySecurityPoliciesId}/rules/{rulesId}",
@@ -15912,12 +16186,15 @@ pub fn networksecurity_projects_locations_gateway_security_policies_rules_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_intercept_deployment_groups_create_execute()` to send, or `networksecurity_projects_locations_intercept_deployment_groups_create` for simplest API.
 
-pub fn networksecurity_projects_locations_intercept_deployment_groups_create_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_intercept_deployment_groups_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     interceptDeploymentGroupId: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations/{locationsId}/interceptDeploymentGroups",
@@ -16094,11 +16371,14 @@ pub fn networksecurity_projects_locations_intercept_deployment_groups_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_intercept_deployment_groups_delete_execute()` to send, or `networksecurity_projects_locations_intercept_deployment_groups_delete` for simplest API.
 
-pub fn networksecurity_projects_locations_intercept_deployment_groups_delete_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_intercept_deployment_groups_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations/{locationsId}/interceptDeploymentGroups/{interceptDeploymentGroupsId}",
@@ -16269,10 +16549,13 @@ pub fn networksecurity_projects_locations_intercept_deployment_groups_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_intercept_deployment_groups_get_execute()` to send, or `networksecurity_projects_locations_intercept_deployment_groups_get` for simplest API.
 
-pub fn networksecurity_projects_locations_intercept_deployment_groups_get_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_intercept_deployment_groups_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations/{locationsId}/interceptDeploymentGroups/{interceptDeploymentGroupsId}",
@@ -16432,14 +16715,17 @@ pub fn networksecurity_projects_locations_intercept_deployment_groups_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_intercept_deployment_groups_list_execute()` to send, or `networksecurity_projects_locations_intercept_deployment_groups_list` for simplest API.
 
-pub fn networksecurity_projects_locations_intercept_deployment_groups_list_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_intercept_deployment_groups_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations/{locationsId}/interceptDeploymentGroups",
@@ -16636,12 +16922,15 @@ pub fn networksecurity_projects_locations_intercept_deployment_groups_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_intercept_deployment_groups_patch_execute()` to send, or `networksecurity_projects_locations_intercept_deployment_groups_patch` for simplest API.
 
-pub fn networksecurity_projects_locations_intercept_deployment_groups_patch_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_intercept_deployment_groups_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations/{locationsId}/interceptDeploymentGroups/{interceptDeploymentGroupsId}",
@@ -16818,12 +17107,15 @@ pub fn networksecurity_projects_locations_intercept_deployment_groups_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_intercept_deployments_create_execute()` to send, or `networksecurity_projects_locations_intercept_deployments_create` for simplest API.
 
-pub fn networksecurity_projects_locations_intercept_deployments_create_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_intercept_deployments_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     interceptDeploymentId: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations/{locationsId}/interceptDeployments",
@@ -17000,11 +17292,14 @@ pub fn networksecurity_projects_locations_intercept_deployments_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_intercept_deployments_delete_execute()` to send, or `networksecurity_projects_locations_intercept_deployments_delete` for simplest API.
 
-pub fn networksecurity_projects_locations_intercept_deployments_delete_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_intercept_deployments_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations/{locationsId}/interceptDeployments/{interceptDeploymentsId}",
@@ -17175,10 +17470,13 @@ pub fn networksecurity_projects_locations_intercept_deployments_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_intercept_deployments_get_execute()` to send, or `networksecurity_projects_locations_intercept_deployments_get` for simplest API.
 
-pub fn networksecurity_projects_locations_intercept_deployments_get_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_intercept_deployments_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations/{locationsId}/interceptDeployments/{interceptDeploymentsId}",
@@ -17337,14 +17635,17 @@ pub fn networksecurity_projects_locations_intercept_deployments_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_intercept_deployments_list_execute()` to send, or `networksecurity_projects_locations_intercept_deployments_list` for simplest API.
 
-pub fn networksecurity_projects_locations_intercept_deployments_list_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_intercept_deployments_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations/{locationsId}/interceptDeployments",
@@ -17541,12 +17842,15 @@ pub fn networksecurity_projects_locations_intercept_deployments_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_intercept_deployments_patch_execute()` to send, or `networksecurity_projects_locations_intercept_deployments_patch` for simplest API.
 
-pub fn networksecurity_projects_locations_intercept_deployments_patch_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_intercept_deployments_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations/{locationsId}/interceptDeployments/{interceptDeploymentsId}",
@@ -17723,12 +18027,15 @@ pub fn networksecurity_projects_locations_intercept_deployments_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_intercept_endpoint_group_associations_create_execute()` to send, or `networksecurity_projects_locations_intercept_endpoint_group_associations_create` for simplest API.
 
-pub fn networksecurity_projects_locations_intercept_endpoint_group_associations_create_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_intercept_endpoint_group_associations_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     interceptEndpointGroupAssociationId: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations/{locationsId}/interceptEndpointGroupAssociations",
@@ -17909,11 +18216,14 @@ pub fn networksecurity_projects_locations_intercept_endpoint_group_associations_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_intercept_endpoint_group_associations_delete_execute()` to send, or `networksecurity_projects_locations_intercept_endpoint_group_associations_delete` for simplest API.
 
-pub fn networksecurity_projects_locations_intercept_endpoint_group_associations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_intercept_endpoint_group_associations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations/{locationsId}/interceptEndpointGroupAssociations/{interceptEndpointGroupAssociationsId}",
@@ -18088,10 +18398,13 @@ pub fn networksecurity_projects_locations_intercept_endpoint_group_associations_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_intercept_endpoint_group_associations_get_execute()` to send, or `networksecurity_projects_locations_intercept_endpoint_group_associations_get` for simplest API.
 
-pub fn networksecurity_projects_locations_intercept_endpoint_group_associations_get_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_intercept_endpoint_group_associations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations/{locationsId}/interceptEndpointGroupAssociations/{interceptEndpointGroupAssociationsId}",
@@ -18257,14 +18570,17 @@ pub fn networksecurity_projects_locations_intercept_endpoint_group_associations_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_intercept_endpoint_group_associations_list_execute()` to send, or `networksecurity_projects_locations_intercept_endpoint_group_associations_list` for simplest API.
 
-pub fn networksecurity_projects_locations_intercept_endpoint_group_associations_list_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_intercept_endpoint_group_associations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations/{locationsId}/interceptEndpointGroupAssociations",
@@ -18465,12 +18781,15 @@ pub fn networksecurity_projects_locations_intercept_endpoint_group_associations_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_intercept_endpoint_group_associations_patch_execute()` to send, or `networksecurity_projects_locations_intercept_endpoint_group_associations_patch` for simplest API.
 
-pub fn networksecurity_projects_locations_intercept_endpoint_group_associations_patch_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_intercept_endpoint_group_associations_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations/{locationsId}/interceptEndpointGroupAssociations/{interceptEndpointGroupAssociationsId}",
@@ -18650,12 +18969,15 @@ pub fn networksecurity_projects_locations_intercept_endpoint_group_associations_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_intercept_endpoint_groups_create_execute()` to send, or `networksecurity_projects_locations_intercept_endpoint_groups_create` for simplest API.
 
-pub fn networksecurity_projects_locations_intercept_endpoint_groups_create_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_intercept_endpoint_groups_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     interceptEndpointGroupId: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations/{locationsId}/interceptEndpointGroups",
@@ -18832,11 +19154,14 @@ pub fn networksecurity_projects_locations_intercept_endpoint_groups_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_intercept_endpoint_groups_delete_execute()` to send, or `networksecurity_projects_locations_intercept_endpoint_groups_delete` for simplest API.
 
-pub fn networksecurity_projects_locations_intercept_endpoint_groups_delete_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_intercept_endpoint_groups_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations/{locationsId}/interceptEndpointGroups/{interceptEndpointGroupsId}",
@@ -19007,10 +19332,13 @@ pub fn networksecurity_projects_locations_intercept_endpoint_groups_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_intercept_endpoint_groups_get_execute()` to send, or `networksecurity_projects_locations_intercept_endpoint_groups_get` for simplest API.
 
-pub fn networksecurity_projects_locations_intercept_endpoint_groups_get_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_intercept_endpoint_groups_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations/{locationsId}/interceptEndpointGroups/{interceptEndpointGroupsId}",
@@ -19170,14 +19498,17 @@ pub fn networksecurity_projects_locations_intercept_endpoint_groups_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_intercept_endpoint_groups_list_execute()` to send, or `networksecurity_projects_locations_intercept_endpoint_groups_list` for simplest API.
 
-pub fn networksecurity_projects_locations_intercept_endpoint_groups_list_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_intercept_endpoint_groups_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations/{locationsId}/interceptEndpointGroups",
@@ -19374,12 +19705,15 @@ pub fn networksecurity_projects_locations_intercept_endpoint_groups_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_intercept_endpoint_groups_patch_execute()` to send, or `networksecurity_projects_locations_intercept_endpoint_groups_patch` for simplest API.
 
-pub fn networksecurity_projects_locations_intercept_endpoint_groups_patch_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_intercept_endpoint_groups_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations/{locationsId}/interceptEndpointGroups/{interceptEndpointGroupsId}",
@@ -19556,12 +19890,15 @@ pub fn networksecurity_projects_locations_intercept_endpoint_groups_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_mirroring_deployment_groups_create_execute()` to send, or `networksecurity_projects_locations_mirroring_deployment_groups_create` for simplest API.
 
-pub fn networksecurity_projects_locations_mirroring_deployment_groups_create_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_mirroring_deployment_groups_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     mirroringDeploymentGroupId: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations/{locationsId}/mirroringDeploymentGroups",
@@ -19738,11 +20075,14 @@ pub fn networksecurity_projects_locations_mirroring_deployment_groups_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_mirroring_deployment_groups_delete_execute()` to send, or `networksecurity_projects_locations_mirroring_deployment_groups_delete` for simplest API.
 
-pub fn networksecurity_projects_locations_mirroring_deployment_groups_delete_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_mirroring_deployment_groups_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations/{locationsId}/mirroringDeploymentGroups/{mirroringDeploymentGroupsId}",
@@ -19913,10 +20253,13 @@ pub fn networksecurity_projects_locations_mirroring_deployment_groups_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_mirroring_deployment_groups_get_execute()` to send, or `networksecurity_projects_locations_mirroring_deployment_groups_get` for simplest API.
 
-pub fn networksecurity_projects_locations_mirroring_deployment_groups_get_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_mirroring_deployment_groups_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations/{locationsId}/mirroringDeploymentGroups/{mirroringDeploymentGroupsId}",
@@ -20076,14 +20419,17 @@ pub fn networksecurity_projects_locations_mirroring_deployment_groups_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_mirroring_deployment_groups_list_execute()` to send, or `networksecurity_projects_locations_mirroring_deployment_groups_list` for simplest API.
 
-pub fn networksecurity_projects_locations_mirroring_deployment_groups_list_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_mirroring_deployment_groups_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations/{locationsId}/mirroringDeploymentGroups",
@@ -20280,12 +20626,15 @@ pub fn networksecurity_projects_locations_mirroring_deployment_groups_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_mirroring_deployment_groups_patch_execute()` to send, or `networksecurity_projects_locations_mirroring_deployment_groups_patch` for simplest API.
 
-pub fn networksecurity_projects_locations_mirroring_deployment_groups_patch_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_mirroring_deployment_groups_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations/{locationsId}/mirroringDeploymentGroups/{mirroringDeploymentGroupsId}",
@@ -20462,12 +20811,15 @@ pub fn networksecurity_projects_locations_mirroring_deployment_groups_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_mirroring_deployments_create_execute()` to send, or `networksecurity_projects_locations_mirroring_deployments_create` for simplest API.
 
-pub fn networksecurity_projects_locations_mirroring_deployments_create_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_mirroring_deployments_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     mirroringDeploymentId: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations/{locationsId}/mirroringDeployments",
@@ -20644,11 +20996,14 @@ pub fn networksecurity_projects_locations_mirroring_deployments_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_mirroring_deployments_delete_execute()` to send, or `networksecurity_projects_locations_mirroring_deployments_delete` for simplest API.
 
-pub fn networksecurity_projects_locations_mirroring_deployments_delete_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_mirroring_deployments_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations/{locationsId}/mirroringDeployments/{mirroringDeploymentsId}",
@@ -20819,10 +21174,13 @@ pub fn networksecurity_projects_locations_mirroring_deployments_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_mirroring_deployments_get_execute()` to send, or `networksecurity_projects_locations_mirroring_deployments_get` for simplest API.
 
-pub fn networksecurity_projects_locations_mirroring_deployments_get_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_mirroring_deployments_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations/{locationsId}/mirroringDeployments/{mirroringDeploymentsId}",
@@ -20981,14 +21339,17 @@ pub fn networksecurity_projects_locations_mirroring_deployments_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_mirroring_deployments_list_execute()` to send, or `networksecurity_projects_locations_mirroring_deployments_list` for simplest API.
 
-pub fn networksecurity_projects_locations_mirroring_deployments_list_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_mirroring_deployments_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations/{locationsId}/mirroringDeployments",
@@ -21185,12 +21546,15 @@ pub fn networksecurity_projects_locations_mirroring_deployments_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_mirroring_deployments_patch_execute()` to send, or `networksecurity_projects_locations_mirroring_deployments_patch` for simplest API.
 
-pub fn networksecurity_projects_locations_mirroring_deployments_patch_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_mirroring_deployments_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations/{locationsId}/mirroringDeployments/{mirroringDeploymentsId}",
@@ -21367,12 +21731,15 @@ pub fn networksecurity_projects_locations_mirroring_deployments_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_mirroring_endpoint_group_associations_create_execute()` to send, or `networksecurity_projects_locations_mirroring_endpoint_group_associations_create` for simplest API.
 
-pub fn networksecurity_projects_locations_mirroring_endpoint_group_associations_create_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_mirroring_endpoint_group_associations_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     mirroringEndpointGroupAssociationId: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations/{locationsId}/mirroringEndpointGroupAssociations",
@@ -21553,11 +21920,14 @@ pub fn networksecurity_projects_locations_mirroring_endpoint_group_associations_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_mirroring_endpoint_group_associations_delete_execute()` to send, or `networksecurity_projects_locations_mirroring_endpoint_group_associations_delete` for simplest API.
 
-pub fn networksecurity_projects_locations_mirroring_endpoint_group_associations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_mirroring_endpoint_group_associations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations/{locationsId}/mirroringEndpointGroupAssociations/{mirroringEndpointGroupAssociationsId}",
@@ -21732,10 +22102,13 @@ pub fn networksecurity_projects_locations_mirroring_endpoint_group_associations_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_mirroring_endpoint_group_associations_get_execute()` to send, or `networksecurity_projects_locations_mirroring_endpoint_group_associations_get` for simplest API.
 
-pub fn networksecurity_projects_locations_mirroring_endpoint_group_associations_get_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_mirroring_endpoint_group_associations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations/{locationsId}/mirroringEndpointGroupAssociations/{mirroringEndpointGroupAssociationsId}",
@@ -21901,14 +22274,17 @@ pub fn networksecurity_projects_locations_mirroring_endpoint_group_associations_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_mirroring_endpoint_group_associations_list_execute()` to send, or `networksecurity_projects_locations_mirroring_endpoint_group_associations_list` for simplest API.
 
-pub fn networksecurity_projects_locations_mirroring_endpoint_group_associations_list_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_mirroring_endpoint_group_associations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations/{locationsId}/mirroringEndpointGroupAssociations",
@@ -22109,12 +22485,15 @@ pub fn networksecurity_projects_locations_mirroring_endpoint_group_associations_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_mirroring_endpoint_group_associations_patch_execute()` to send, or `networksecurity_projects_locations_mirroring_endpoint_group_associations_patch` for simplest API.
 
-pub fn networksecurity_projects_locations_mirroring_endpoint_group_associations_patch_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_mirroring_endpoint_group_associations_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations/{locationsId}/mirroringEndpointGroupAssociations/{mirroringEndpointGroupAssociationsId}",
@@ -22294,12 +22673,15 @@ pub fn networksecurity_projects_locations_mirroring_endpoint_group_associations_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_mirroring_endpoint_groups_create_execute()` to send, or `networksecurity_projects_locations_mirroring_endpoint_groups_create` for simplest API.
 
-pub fn networksecurity_projects_locations_mirroring_endpoint_groups_create_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_mirroring_endpoint_groups_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     mirroringEndpointGroupId: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations/{locationsId}/mirroringEndpointGroups",
@@ -22476,11 +22858,14 @@ pub fn networksecurity_projects_locations_mirroring_endpoint_groups_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_mirroring_endpoint_groups_delete_execute()` to send, or `networksecurity_projects_locations_mirroring_endpoint_groups_delete` for simplest API.
 
-pub fn networksecurity_projects_locations_mirroring_endpoint_groups_delete_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_mirroring_endpoint_groups_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations/{locationsId}/mirroringEndpointGroups/{mirroringEndpointGroupsId}",
@@ -22651,10 +23036,13 @@ pub fn networksecurity_projects_locations_mirroring_endpoint_groups_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_mirroring_endpoint_groups_get_execute()` to send, or `networksecurity_projects_locations_mirroring_endpoint_groups_get` for simplest API.
 
-pub fn networksecurity_projects_locations_mirroring_endpoint_groups_get_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_mirroring_endpoint_groups_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations/{locationsId}/mirroringEndpointGroups/{mirroringEndpointGroupsId}",
@@ -22814,14 +23202,17 @@ pub fn networksecurity_projects_locations_mirroring_endpoint_groups_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_mirroring_endpoint_groups_list_execute()` to send, or `networksecurity_projects_locations_mirroring_endpoint_groups_list` for simplest API.
 
-pub fn networksecurity_projects_locations_mirroring_endpoint_groups_list_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_mirroring_endpoint_groups_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations/{locationsId}/mirroringEndpointGroups",
@@ -23018,12 +23409,15 @@ pub fn networksecurity_projects_locations_mirroring_endpoint_groups_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_mirroring_endpoint_groups_patch_execute()` to send, or `networksecurity_projects_locations_mirroring_endpoint_groups_patch` for simplest API.
 
-pub fn networksecurity_projects_locations_mirroring_endpoint_groups_patch_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_mirroring_endpoint_groups_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations/{locationsId}/mirroringEndpointGroups/{mirroringEndpointGroupsId}",
@@ -23200,10 +23594,13 @@ pub fn networksecurity_projects_locations_mirroring_endpoint_groups_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_operations_cancel_execute()` to send, or `networksecurity_projects_locations_operations_cancel` for simplest API.
 
-pub fn networksecurity_projects_locations_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}:cancel",
@@ -23357,10 +23754,13 @@ pub fn networksecurity_projects_locations_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_operations_delete_execute()` to send, or `networksecurity_projects_locations_operations_delete` for simplest API.
 
-pub fn networksecurity_projects_locations_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -23514,10 +23914,13 @@ pub fn networksecurity_projects_locations_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_operations_get_execute()` to send, or `networksecurity_projects_locations_operations_get` for simplest API.
 
-pub fn networksecurity_projects_locations_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -23671,14 +24074,17 @@ pub fn networksecurity_projects_locations_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_operations_list_execute()` to send, or `networksecurity_projects_locations_operations_list` for simplest API.
 
-pub fn networksecurity_projects_locations_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations/{locationsId}/operations",
@@ -23871,11 +24277,14 @@ pub fn networksecurity_projects_locations_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_server_tls_policies_create_execute()` to send, or `networksecurity_projects_locations_server_tls_policies_create` for simplest API.
 
-pub fn networksecurity_projects_locations_server_tls_policies_create_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_server_tls_policies_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     serverTlsPolicyId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations/{locationsId}/serverTlsPolicies",
@@ -24046,10 +24455,13 @@ pub fn networksecurity_projects_locations_server_tls_policies_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_server_tls_policies_delete_execute()` to send, or `networksecurity_projects_locations_server_tls_policies_delete` for simplest API.
 
-pub fn networksecurity_projects_locations_server_tls_policies_delete_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_server_tls_policies_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations/{locationsId}/serverTlsPolicies/{serverTlsPoliciesId}",
@@ -24204,10 +24616,13 @@ pub fn networksecurity_projects_locations_server_tls_policies_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_server_tls_policies_get_execute()` to send, or `networksecurity_projects_locations_server_tls_policies_get` for simplest API.
 
-pub fn networksecurity_projects_locations_server_tls_policies_get_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_server_tls_policies_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations/{locationsId}/serverTlsPolicies/{serverTlsPoliciesId}",
@@ -24366,11 +24781,14 @@ pub fn networksecurity_projects_locations_server_tls_policies_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_server_tls_policies_get_iam_policy_execute()` to send, or `networksecurity_projects_locations_server_tls_policies_get_iam_policy` for simplest API.
 
-pub fn networksecurity_projects_locations_server_tls_policies_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_server_tls_policies_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations/{locationsId}/serverTlsPolicies/{serverTlsPoliciesId}:getIamPolicy",
@@ -24545,13 +24963,16 @@ pub fn networksecurity_projects_locations_server_tls_policies_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_server_tls_policies_list_execute()` to send, or `networksecurity_projects_locations_server_tls_policies_list` for simplest API.
 
-pub fn networksecurity_projects_locations_server_tls_policies_list_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_server_tls_policies_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations/{locationsId}/serverTlsPolicies",
@@ -24742,11 +25163,14 @@ pub fn networksecurity_projects_locations_server_tls_policies_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_server_tls_policies_patch_execute()` to send, or `networksecurity_projects_locations_server_tls_policies_patch` for simplest API.
 
-pub fn networksecurity_projects_locations_server_tls_policies_patch_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_server_tls_policies_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations/{locationsId}/serverTlsPolicies/{serverTlsPoliciesId}",
@@ -24917,10 +25341,13 @@ pub fn networksecurity_projects_locations_server_tls_policies_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_server_tls_policies_set_iam_policy_execute()` to send, or `networksecurity_projects_locations_server_tls_policies_set_iam_policy` for simplest API.
 
-pub fn networksecurity_projects_locations_server_tls_policies_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_server_tls_policies_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations/{locationsId}/serverTlsPolicies/{serverTlsPoliciesId}:setIamPolicy",
@@ -25081,10 +25508,13 @@ pub fn networksecurity_projects_locations_server_tls_policies_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_server_tls_policies_test_iam_permissions_execute()` to send, or `networksecurity_projects_locations_server_tls_policies_test_iam_permissions` for simplest API.
 
-pub fn networksecurity_projects_locations_server_tls_policies_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_server_tls_policies_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations/{locationsId}/serverTlsPolicies/{serverTlsPoliciesId}:testIamPermissions",
@@ -25251,11 +25681,14 @@ pub fn networksecurity_projects_locations_server_tls_policies_test_iam_permissio
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_tls_inspection_policies_create_execute()` to send, or `networksecurity_projects_locations_tls_inspection_policies_create` for simplest API.
 
-pub fn networksecurity_projects_locations_tls_inspection_policies_create_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_tls_inspection_policies_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     tlsInspectionPolicyId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations/{locationsId}/tlsInspectionPolicies",
@@ -25426,11 +25859,14 @@ pub fn networksecurity_projects_locations_tls_inspection_policies_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_tls_inspection_policies_delete_execute()` to send, or `networksecurity_projects_locations_tls_inspection_policies_delete` for simplest API.
 
-pub fn networksecurity_projects_locations_tls_inspection_policies_delete_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_tls_inspection_policies_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     force: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations/{locationsId}/tlsInspectionPolicies/{tlsInspectionPoliciesId}",
@@ -25601,10 +26037,13 @@ pub fn networksecurity_projects_locations_tls_inspection_policies_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_tls_inspection_policies_get_execute()` to send, or `networksecurity_projects_locations_tls_inspection_policies_get` for simplest API.
 
-pub fn networksecurity_projects_locations_tls_inspection_policies_get_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_tls_inspection_policies_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations/{locationsId}/tlsInspectionPolicies/{tlsInspectionPoliciesId}",
@@ -25763,12 +26202,15 @@ pub fn networksecurity_projects_locations_tls_inspection_policies_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_tls_inspection_policies_list_execute()` to send, or `networksecurity_projects_locations_tls_inspection_policies_list` for simplest API.
 
-pub fn networksecurity_projects_locations_tls_inspection_policies_list_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_tls_inspection_policies_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations/{locationsId}/tlsInspectionPolicies",
@@ -25953,11 +26395,14 @@ pub fn networksecurity_projects_locations_tls_inspection_policies_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_tls_inspection_policies_patch_execute()` to send, or `networksecurity_projects_locations_tls_inspection_policies_patch` for simplest API.
 
-pub fn networksecurity_projects_locations_tls_inspection_policies_patch_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_tls_inspection_policies_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations/{locationsId}/tlsInspectionPolicies/{tlsInspectionPoliciesId}",
@@ -26128,11 +26573,14 @@ pub fn networksecurity_projects_locations_tls_inspection_policies_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_url_lists_create_execute()` to send, or `networksecurity_projects_locations_url_lists_create` for simplest API.
 
-pub fn networksecurity_projects_locations_url_lists_create_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_url_lists_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     urlListId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations/{locationsId}/urlLists",
@@ -26303,10 +26751,13 @@ pub fn networksecurity_projects_locations_url_lists_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_url_lists_delete_execute()` to send, or `networksecurity_projects_locations_url_lists_delete` for simplest API.
 
-pub fn networksecurity_projects_locations_url_lists_delete_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_url_lists_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations/{locationsId}/urlLists/{urlListsId}",
@@ -26460,10 +26911,13 @@ pub fn networksecurity_projects_locations_url_lists_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_url_lists_get_execute()` to send, or `networksecurity_projects_locations_url_lists_get` for simplest API.
 
-pub fn networksecurity_projects_locations_url_lists_get_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_url_lists_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations/{locationsId}/urlLists/{urlListsId}",
@@ -26617,12 +27071,15 @@ pub fn networksecurity_projects_locations_url_lists_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_url_lists_list_execute()` to send, or `networksecurity_projects_locations_url_lists_list` for simplest API.
 
-pub fn networksecurity_projects_locations_url_lists_list_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_url_lists_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations/{locationsId}/urlLists",
@@ -26803,11 +27260,14 @@ pub fn networksecurity_projects_locations_url_lists_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `networksecurity_projects_locations_url_lists_patch_execute()` to send, or `networksecurity_projects_locations_url_lists_patch` for simplest API.
 
-pub fn networksecurity_projects_locations_url_lists_patch_builder(
-    client: &SimpleHttpClient,
+pub fn networksecurity_projects_locations_url_lists_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://networksecurity.googleapis.com/v1/projects/{}/locations/{locationsId}/urlLists/{urlListsId}",

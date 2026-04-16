@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,11 +27,14 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `playgrouping_apps_tokens_verify_execute()` to send, or `playgrouping_apps_tokens_verify` for simplest API.
 
-pub fn playgrouping_apps_tokens_verify_builder(
-    client: &SimpleHttpClient,
+pub fn playgrouping_apps_tokens_verify_builder<R>(
+    client: &SimpleHttpClient<R>,
     appPackage: &String,
     token: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://playgrouping.googleapis.com/v1alpha1/apps/{}/tokens/{}:verify",
@@ -190,11 +194,14 @@ pub fn playgrouping_apps_tokens_verify(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `playgrouping_apps_tokens_tags_create_or_update_execute()` to send, or `playgrouping_apps_tokens_tags_create_or_update` for simplest API.
 
-pub fn playgrouping_apps_tokens_tags_create_or_update_builder(
-    client: &SimpleHttpClient,
+pub fn playgrouping_apps_tokens_tags_create_or_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     appPackage: &String,
     token: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://playgrouping.googleapis.com/v1alpha1/apps/{}/tokens/{}/tags:createOrUpdate",

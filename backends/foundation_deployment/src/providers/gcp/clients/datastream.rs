@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,12 +27,15 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datastream_projects_locations_fetch_static_ips_execute()` to send, or `datastream_projects_locations_fetch_static_ips` for simplest API.
 
-pub fn datastream_projects_locations_fetch_static_ips_builder(
-    client: &SimpleHttpClient,
+pub fn datastream_projects_locations_fetch_static_ips_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datastream.googleapis.com/v1/projects/{}/locations/{locationsId}:fetchStaticIps",
@@ -212,10 +216,13 @@ pub fn datastream_projects_locations_fetch_static_ips(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datastream_projects_locations_get_execute()` to send, or `datastream_projects_locations_get` for simplest API.
 
-pub fn datastream_projects_locations_get_builder(
-    client: &SimpleHttpClient,
+pub fn datastream_projects_locations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datastream.googleapis.com/v1/projects/{}/locations/{locationsId}",
@@ -369,14 +376,17 @@ pub fn datastream_projects_locations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datastream_projects_locations_list_execute()` to send, or `datastream_projects_locations_list` for simplest API.
 
-pub fn datastream_projects_locations_list_builder(
-    client: &SimpleHttpClient,
+pub fn datastream_projects_locations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     extraLocationTypes: &Option<Option<String>>,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datastream.googleapis.com/v1/projects/{}/locations",
@@ -569,14 +579,17 @@ pub fn datastream_projects_locations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datastream_projects_locations_connection_profiles_create_execute()` to send, or `datastream_projects_locations_connection_profiles_create` for simplest API.
 
-pub fn datastream_projects_locations_connection_profiles_create_builder(
-    client: &SimpleHttpClient,
+pub fn datastream_projects_locations_connection_profiles_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     connectionProfileId: &Option<Option<String>>,
     force: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datastream.googleapis.com/v1/projects/{}/locations/{locationsId}/connectionProfiles",
@@ -765,11 +778,14 @@ pub fn datastream_projects_locations_connection_profiles_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datastream_projects_locations_connection_profiles_delete_execute()` to send, or `datastream_projects_locations_connection_profiles_delete` for simplest API.
 
-pub fn datastream_projects_locations_connection_profiles_delete_builder(
-    client: &SimpleHttpClient,
+pub fn datastream_projects_locations_connection_profiles_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datastream.googleapis.com/v1/projects/{}/locations/{locationsId}/connectionProfiles/{connectionProfilesId}",
@@ -940,10 +956,13 @@ pub fn datastream_projects_locations_connection_profiles_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datastream_projects_locations_connection_profiles_discover_execute()` to send, or `datastream_projects_locations_connection_profiles_discover` for simplest API.
 
-pub fn datastream_projects_locations_connection_profiles_discover_builder(
-    client: &SimpleHttpClient,
+pub fn datastream_projects_locations_connection_profiles_discover_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datastream.googleapis.com/v1/projects/{}/locations/{locationsId}/connectionProfiles:discover",
@@ -1106,10 +1125,13 @@ pub fn datastream_projects_locations_connection_profiles_discover(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datastream_projects_locations_connection_profiles_get_execute()` to send, or `datastream_projects_locations_connection_profiles_get` for simplest API.
 
-pub fn datastream_projects_locations_connection_profiles_get_builder(
-    client: &SimpleHttpClient,
+pub fn datastream_projects_locations_connection_profiles_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datastream.googleapis.com/v1/projects/{}/locations/{locationsId}/connectionProfiles/{connectionProfilesId}",
@@ -1268,14 +1290,17 @@ pub fn datastream_projects_locations_connection_profiles_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datastream_projects_locations_connection_profiles_list_execute()` to send, or `datastream_projects_locations_connection_profiles_list` for simplest API.
 
-pub fn datastream_projects_locations_connection_profiles_list_builder(
-    client: &SimpleHttpClient,
+pub fn datastream_projects_locations_connection_profiles_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datastream.googleapis.com/v1/projects/{}/locations/{locationsId}/connectionProfiles",
@@ -1472,14 +1497,17 @@ pub fn datastream_projects_locations_connection_profiles_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datastream_projects_locations_connection_profiles_patch_execute()` to send, or `datastream_projects_locations_connection_profiles_patch` for simplest API.
 
-pub fn datastream_projects_locations_connection_profiles_patch_builder(
-    client: &SimpleHttpClient,
+pub fn datastream_projects_locations_connection_profiles_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     force: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datastream.googleapis.com/v1/projects/{}/locations/{locationsId}/connectionProfiles/{connectionProfilesId}",
@@ -1668,10 +1696,13 @@ pub fn datastream_projects_locations_connection_profiles_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datastream_projects_locations_operations_cancel_execute()` to send, or `datastream_projects_locations_operations_cancel` for simplest API.
 
-pub fn datastream_projects_locations_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn datastream_projects_locations_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datastream.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}:cancel",
@@ -1825,10 +1856,13 @@ pub fn datastream_projects_locations_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datastream_projects_locations_operations_delete_execute()` to send, or `datastream_projects_locations_operations_delete` for simplest API.
 
-pub fn datastream_projects_locations_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn datastream_projects_locations_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datastream.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -1982,10 +2016,13 @@ pub fn datastream_projects_locations_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datastream_projects_locations_operations_get_execute()` to send, or `datastream_projects_locations_operations_get` for simplest API.
 
-pub fn datastream_projects_locations_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn datastream_projects_locations_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datastream.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -2139,14 +2176,17 @@ pub fn datastream_projects_locations_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datastream_projects_locations_operations_list_execute()` to send, or `datastream_projects_locations_operations_list` for simplest API.
 
-pub fn datastream_projects_locations_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn datastream_projects_locations_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datastream.googleapis.com/v1/projects/{}/locations/{locationsId}/operations",
@@ -2339,14 +2379,17 @@ pub fn datastream_projects_locations_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datastream_projects_locations_private_connections_create_execute()` to send, or `datastream_projects_locations_private_connections_create` for simplest API.
 
-pub fn datastream_projects_locations_private_connections_create_builder(
-    client: &SimpleHttpClient,
+pub fn datastream_projects_locations_private_connections_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     force: &Option<Option<String>>,
     privateConnectionId: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datastream.googleapis.com/v1/projects/{}/locations/{locationsId}/privateConnections",
@@ -2535,12 +2578,15 @@ pub fn datastream_projects_locations_private_connections_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datastream_projects_locations_private_connections_delete_execute()` to send, or `datastream_projects_locations_private_connections_delete` for simplest API.
 
-pub fn datastream_projects_locations_private_connections_delete_builder(
-    client: &SimpleHttpClient,
+pub fn datastream_projects_locations_private_connections_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     force: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datastream.googleapis.com/v1/projects/{}/locations/{locationsId}/privateConnections/{privateConnectionsId}",
@@ -2717,10 +2763,13 @@ pub fn datastream_projects_locations_private_connections_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datastream_projects_locations_private_connections_get_execute()` to send, or `datastream_projects_locations_private_connections_get` for simplest API.
 
-pub fn datastream_projects_locations_private_connections_get_builder(
-    client: &SimpleHttpClient,
+pub fn datastream_projects_locations_private_connections_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datastream.googleapis.com/v1/projects/{}/locations/{locationsId}/privateConnections/{privateConnectionsId}",
@@ -2879,14 +2928,17 @@ pub fn datastream_projects_locations_private_connections_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datastream_projects_locations_private_connections_list_execute()` to send, or `datastream_projects_locations_private_connections_list` for simplest API.
 
-pub fn datastream_projects_locations_private_connections_list_builder(
-    client: &SimpleHttpClient,
+pub fn datastream_projects_locations_private_connections_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datastream.googleapis.com/v1/projects/{}/locations/{locationsId}/privateConnections",
@@ -3083,12 +3135,15 @@ pub fn datastream_projects_locations_private_connections_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datastream_projects_locations_private_connections_routes_create_execute()` to send, or `datastream_projects_locations_private_connections_routes_create` for simplest API.
 
-pub fn datastream_projects_locations_private_connections_routes_create_builder(
-    client: &SimpleHttpClient,
+pub fn datastream_projects_locations_private_connections_routes_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     requestId: &Option<Option<String>>,
     routeId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datastream.googleapis.com/v1/projects/{}/locations/{locationsId}/privateConnections/{privateConnectionsId}/routes",
@@ -3265,11 +3320,14 @@ pub fn datastream_projects_locations_private_connections_routes_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datastream_projects_locations_private_connections_routes_delete_execute()` to send, or `datastream_projects_locations_private_connections_routes_delete` for simplest API.
 
-pub fn datastream_projects_locations_private_connections_routes_delete_builder(
-    client: &SimpleHttpClient,
+pub fn datastream_projects_locations_private_connections_routes_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datastream.googleapis.com/v1/projects/{}/locations/{locationsId}/privateConnections/{privateConnectionsId}/routes/{routesId}",
@@ -3440,10 +3498,13 @@ pub fn datastream_projects_locations_private_connections_routes_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datastream_projects_locations_private_connections_routes_get_execute()` to send, or `datastream_projects_locations_private_connections_routes_get` for simplest API.
 
-pub fn datastream_projects_locations_private_connections_routes_get_builder(
-    client: &SimpleHttpClient,
+pub fn datastream_projects_locations_private_connections_routes_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datastream.googleapis.com/v1/projects/{}/locations/{locationsId}/privateConnections/{privateConnectionsId}/routes/{routesId}",
@@ -3598,14 +3659,17 @@ pub fn datastream_projects_locations_private_connections_routes_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datastream_projects_locations_private_connections_routes_list_execute()` to send, or `datastream_projects_locations_private_connections_routes_list` for simplest API.
 
-pub fn datastream_projects_locations_private_connections_routes_list_builder(
-    client: &SimpleHttpClient,
+pub fn datastream_projects_locations_private_connections_routes_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datastream.googleapis.com/v1/projects/{}/locations/{locationsId}/privateConnections/{privateConnectionsId}/routes",
@@ -3798,14 +3862,17 @@ pub fn datastream_projects_locations_private_connections_routes_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datastream_projects_locations_streams_create_execute()` to send, or `datastream_projects_locations_streams_create` for simplest API.
 
-pub fn datastream_projects_locations_streams_create_builder(
-    client: &SimpleHttpClient,
+pub fn datastream_projects_locations_streams_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     force: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
     streamId: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datastream.googleapis.com/v1/projects/{}/locations/{locationsId}/streams",
@@ -3994,11 +4061,14 @@ pub fn datastream_projects_locations_streams_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datastream_projects_locations_streams_delete_execute()` to send, or `datastream_projects_locations_streams_delete` for simplest API.
 
-pub fn datastream_projects_locations_streams_delete_builder(
-    client: &SimpleHttpClient,
+pub fn datastream_projects_locations_streams_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datastream.googleapis.com/v1/projects/{}/locations/{locationsId}/streams/{streamsId}",
@@ -4166,10 +4236,13 @@ pub fn datastream_projects_locations_streams_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datastream_projects_locations_streams_get_execute()` to send, or `datastream_projects_locations_streams_get` for simplest API.
 
-pub fn datastream_projects_locations_streams_get_builder(
-    client: &SimpleHttpClient,
+pub fn datastream_projects_locations_streams_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datastream.googleapis.com/v1/projects/{}/locations/{locationsId}/streams/{streamsId}",
@@ -4323,14 +4396,17 @@ pub fn datastream_projects_locations_streams_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datastream_projects_locations_streams_list_execute()` to send, or `datastream_projects_locations_streams_list` for simplest API.
 
-pub fn datastream_projects_locations_streams_list_builder(
-    client: &SimpleHttpClient,
+pub fn datastream_projects_locations_streams_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datastream.googleapis.com/v1/projects/{}/locations/{locationsId}/streams",
@@ -4523,14 +4599,17 @@ pub fn datastream_projects_locations_streams_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datastream_projects_locations_streams_patch_execute()` to send, or `datastream_projects_locations_streams_patch` for simplest API.
 
-pub fn datastream_projects_locations_streams_patch_builder(
-    client: &SimpleHttpClient,
+pub fn datastream_projects_locations_streams_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     force: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datastream.googleapis.com/v1/projects/{}/locations/{locationsId}/streams/{streamsId}",
@@ -4719,10 +4798,13 @@ pub fn datastream_projects_locations_streams_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datastream_projects_locations_streams_run_execute()` to send, or `datastream_projects_locations_streams_run` for simplest API.
 
-pub fn datastream_projects_locations_streams_run_builder(
-    client: &SimpleHttpClient,
+pub fn datastream_projects_locations_streams_run_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datastream.googleapis.com/v1/projects/{}/locations/{locationsId}/streams/{streamsId}:run",
@@ -4876,10 +4958,13 @@ pub fn datastream_projects_locations_streams_run(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datastream_projects_locations_streams_objects_get_execute()` to send, or `datastream_projects_locations_streams_objects_get` for simplest API.
 
-pub fn datastream_projects_locations_streams_objects_get_builder(
-    client: &SimpleHttpClient,
+pub fn datastream_projects_locations_streams_objects_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datastream.googleapis.com/v1/projects/{}/locations/{locationsId}/streams/{streamsId}/objects/{objectsId}",
@@ -5037,12 +5122,15 @@ pub fn datastream_projects_locations_streams_objects_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datastream_projects_locations_streams_objects_list_execute()` to send, or `datastream_projects_locations_streams_objects_list` for simplest API.
 
-pub fn datastream_projects_locations_streams_objects_list_builder(
-    client: &SimpleHttpClient,
+pub fn datastream_projects_locations_streams_objects_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datastream.googleapis.com/v1/projects/{}/locations/{locationsId}/streams/{streamsId}/objects",
@@ -5223,10 +5311,13 @@ pub fn datastream_projects_locations_streams_objects_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datastream_projects_locations_streams_objects_lookup_execute()` to send, or `datastream_projects_locations_streams_objects_lookup` for simplest API.
 
-pub fn datastream_projects_locations_streams_objects_lookup_builder(
-    client: &SimpleHttpClient,
+pub fn datastream_projects_locations_streams_objects_lookup_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datastream.googleapis.com/v1/projects/{}/locations/{locationsId}/streams/{streamsId}/objects:lookup",
@@ -5385,10 +5476,13 @@ pub fn datastream_projects_locations_streams_objects_lookup(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datastream_projects_locations_streams_objects_start_backfill_job_execute()` to send, or `datastream_projects_locations_streams_objects_start_backfill_job` for simplest API.
 
-pub fn datastream_projects_locations_streams_objects_start_backfill_job_builder(
-    client: &SimpleHttpClient,
+pub fn datastream_projects_locations_streams_objects_start_backfill_job_builder<R>(
+    client: &SimpleHttpClient<R>,
     object: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datastream.googleapis.com/v1/projects/{}/locations/{locationsId}/streams/{streamsId}/objects/{objectsId}:startBackfillJob",
@@ -5549,10 +5643,13 @@ pub fn datastream_projects_locations_streams_objects_start_backfill_job(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datastream_projects_locations_streams_objects_stop_backfill_job_execute()` to send, or `datastream_projects_locations_streams_objects_stop_backfill_job` for simplest API.
 
-pub fn datastream_projects_locations_streams_objects_stop_backfill_job_builder(
-    client: &SimpleHttpClient,
+pub fn datastream_projects_locations_streams_objects_stop_backfill_job_builder<R>(
+    client: &SimpleHttpClient<R>,
     object: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://datastream.googleapis.com/v1/projects/{}/locations/{locationsId}/streams/{streamsId}/objects/{objectsId}:stopBackfillJob",

@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,13 +27,16 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `safebrowsing_hash_list_get_execute()` to send, or `safebrowsing_hash_list_get` for simplest API.
 
-pub fn safebrowsing_hash_list_get_builder(
-    client: &SimpleHttpClient,
+pub fn safebrowsing_hash_list_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     sizeConstraints_maxDatabaseEntries: &Option<Option<String>>,
     sizeConstraints_maxUpdateEntries: &Option<Option<String>>,
     version: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://safebrowsing.googleapis.com/v5/hashList/{}", name,);
 
@@ -220,13 +224,16 @@ pub fn safebrowsing_hash_list_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `safebrowsing_hash_lists_batch_get_execute()` to send, or `safebrowsing_hash_lists_batch_get` for simplest API.
 
-pub fn safebrowsing_hash_lists_batch_get_builder(
-    client: &SimpleHttpClient,
+pub fn safebrowsing_hash_lists_batch_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     names: &Option<Option<String>>,
     sizeConstraints_maxDatabaseEntries: &Option<Option<String>>,
     sizeConstraints_maxUpdateEntries: &Option<Option<String>>,
     version: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://safebrowsing.googleapis.com/v5/hashLists:batchGet",);
 
@@ -427,11 +434,14 @@ pub fn safebrowsing_hash_lists_batch_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `safebrowsing_hash_lists_list_execute()` to send, or `safebrowsing_hash_lists_list` for simplest API.
 
-pub fn safebrowsing_hash_lists_list_builder(
-    client: &SimpleHttpClient,
+pub fn safebrowsing_hash_lists_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://safebrowsing.googleapis.com/v5/hashLists",);
 
@@ -610,10 +620,13 @@ pub fn safebrowsing_hash_lists_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `safebrowsing_hashes_search_execute()` to send, or `safebrowsing_hashes_search` for simplest API.
 
-pub fn safebrowsing_hashes_search_builder(
-    client: &SimpleHttpClient,
+pub fn safebrowsing_hashes_search_builder<R>(
+    client: &SimpleHttpClient<R>,
     hashPrefixes: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://safebrowsing.googleapis.com/v5/hashes:search",);
 
@@ -784,10 +797,13 @@ pub fn safebrowsing_hashes_search(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `safebrowsing_urls_search_execute()` to send, or `safebrowsing_urls_search` for simplest API.
 
-pub fn safebrowsing_urls_search_builder(
-    client: &SimpleHttpClient,
+pub fn safebrowsing_urls_search_builder<R>(
+    client: &SimpleHttpClient<R>,
     urls: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://safebrowsing.googleapis.com/v5/urls:search",);
 

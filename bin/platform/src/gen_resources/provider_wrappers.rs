@@ -96,6 +96,9 @@ struct EndpointFn {
     path_params: Vec<String>,
     /// Query parameter names
     query_params: Vec<String>,
+    /// Does this endpoint have path params, query params, or request body?
+    /// Determines if Args struct is generated in clients.rs
+    has_params: bool,
 }
 
 /// Represents a provider wrapper to generate.
@@ -216,6 +219,11 @@ impl ProviderWrapperGenerator {
                 .map(|p| sanitize_operation_id(p))
                 .collect();
 
+            // Check if endpoint has params (matches clients.rs has_params logic)
+            let has_params = !ep.path_params.is_empty()
+                || !ep.query_params.is_empty()
+                || ep.request_type.is_some();
+
             endpoints.push(EndpointFn {
                 base_name: base_name.clone(),
                 args_type: to_pascal_case(&sanitized_id) + "Args",
@@ -223,6 +231,7 @@ impl ProviderWrapperGenerator {
                 is_mutating,
                 path_params,
                 query_params,
+                has_params,
             });
         }
 
@@ -256,11 +265,18 @@ impl ProviderWrapperGenerator {
             writeln!(out, "    S: foundation_db::state::traits::StateStore + Send + Sync + 'static,")?;
             writeln!(out, "{{")?;
             writeln!(out, "    /// Create new {}Provider.", to_pascal_case(&api.name))?;
-            writeln!(out, "    pub fn new(client: ProviderClient<S>, http_client: SimpleHttpClient) -> Self {{")?;
+            writeln!(out, "    pub fn new(client: ProviderClient<S>, http_client: Arc<SimpleHttpClient>) -> Self {{")?;
             writeln!(out, "        Self {{")?;
             writeln!(out, "            client,")?;
-            writeln!(out, "            http_client: Arc::new(http_client),")?;
+            writeln!(out, "            http_client,")?;
             writeln!(out, "        }}")?;
+            writeln!(out, "    }}")?;
+            writeln!(out)?;
+            writeln!(out, "    /// Create new {}Provider from ProviderClient, extracting the HTTP client.", to_pascal_case(&api.name))?;
+            writeln!(out, "    ///")?;
+            writeln!(out, "    /// This is a convenience method that calls `Self::new()` with `client.http_client()`.")?;
+            writeln!(out, "    pub fn from_provider_client(client: ProviderClient<S>) -> Self {{")?;
+            writeln!(out, "        Self::new(client, client.http_client.clone())")?;
             writeln!(out, "    }}")?;
             writeln!(out)?;
             writeln!(out, "}}")?;
@@ -312,7 +328,10 @@ impl ProviderWrapperGenerator {
 
         for endpoint in &wrapper.endpoints {
             response_types.insert(endpoint.response_type.clone(), true);
-            args_types.insert(endpoint.args_type.clone(), true);
+            // Only collect Args types for endpoints that have params
+            if endpoint.has_params {
+                args_types.insert(endpoint.args_type.clone(), true);
+            }
         }
 
         // Only generate imports for mutating endpoints if there are any
@@ -346,7 +365,7 @@ impl ProviderWrapperGenerator {
         }
         writeln!(out, "use crate::provider_client::{{ProviderClient, ProviderError}};")?;
         writeln!(out, "use foundation_core::valtron::{{execute, StreamIterator}};")?;
-        writeln!(out, "use foundation_core::wire::simple_http::client::SimpleHttpClient;")?;
+        writeln!(out, "use foundation_core::wire::simple_http::client::{{SimpleHttpClient, DnsResolver}};")?;
         writeln!(out, "use foundation_db::state::store_state_task::StoreStateIdentifierTask;")?;
         writeln!(out, "use std::sync::Arc;")?;
         writeln!(out)?;
@@ -357,36 +376,46 @@ impl ProviderWrapperGenerator {
         writeln!(out, "/// # Type Parameters")?;
         writeln!(out, "///")?;
         writeln!(out, "/// * `S` - StateStore implementation (FileStateStore, SqliteStateStore, etc.)")?;
+        writeln!(out, "/// * `R` - DNS resolver type for HTTP client")?;
         writeln!(out, "///")?;
         writeln!(out, "/// # Example")?;
         writeln!(out, "///")?;
         writeln!(out, "/// ```rust")?;
         writeln!(out, "/// let state_store = FileStateStore::new(\"/path\", \"my-project\", \"dev\");")?;
-        writeln!(out, "/// let client = ProviderClient::new(\"my-project\", \"dev\", state_store);")?;
-        writeln!(out, "/// let http_client = SimpleHttpClient::new(...);")?;
-        writeln!(out, "/// let provider = {}::new(client, http_client);", wrapper.name)?;
+        writeln!(out, "/// let http_client = SimpleHttpClient::with_resolver(StaticSocketAddr::new(addr));")?;
+        writeln!(out, "/// let client = ProviderClient::new(\"my-project\", \"dev\", state_store, http_client);")?;
+        writeln!(out, "/// let provider = {}::from_provider_client(client);", wrapper.name)?;
         writeln!(out, "/// ```")?;
         writeln!(out, "#[derive(Clone)]")?;
-        writeln!(out, "pub struct {}<S>", wrapper.name)?;
+        writeln!(out, "pub struct {}<S, R>", wrapper.name)?;
         writeln!(out, "where")?;
         writeln!(out, "    S: foundation_db::state::traits::StateStore + Send + Sync + 'static,")?;
+        writeln!(out, "    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + 'static,")?;
         writeln!(out, "{{")?;
-        writeln!(out, "    client: ProviderClient<S>,")?;
-        writeln!(out, "    http_client: Arc<SimpleHttpClient>,")?;
+        writeln!(out, "    client: ProviderClient<S, R>,")?;
+        writeln!(out, "    http_client: Arc<SimpleHttpClient<R>>,")?;
         writeln!(out, "}}")?;
         writeln!(out)?;
 
         // Implementation
-        writeln!(out, "impl<S> {}<S>", wrapper.name)?;
+        writeln!(out, "impl<S, R> {}<S, R>", wrapper.name)?;
         writeln!(out, "where")?;
         writeln!(out, "    S: foundation_db::state::traits::StateStore + Send + Sync + 'static,")?;
+        writeln!(out, "    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + 'static,")?;
         writeln!(out, "{{")?;
         writeln!(out, "    /// Create new {}.", wrapper.name)?;
-        writeln!(out, "    pub fn new(client: ProviderClient<S>, http_client: SimpleHttpClient) -> Self {{")?;
+        writeln!(out, "    pub fn new(client: ProviderClient<S, R>, http_client: Arc<SimpleHttpClient<R>>) -> Self {{")?;
         writeln!(out, "        Self {{")?;
         writeln!(out, "            client,")?;
-        writeln!(out, "            http_client: Arc::new(http_client),")?;
+        writeln!(out, "            http_client,")?;
         writeln!(out, "        }}")?;
+        writeln!(out, "    }}")?;
+        writeln!(out)?;
+        writeln!(out, "    /// Create new {} from ProviderClient, extracting the HTTP client.", wrapper.name)?;
+        writeln!(out, "    ///")?;
+        writeln!(out, "    /// This is a convenience method that calls `Self::new()` with `client.http_client()`.")?;
+        writeln!(out, "    pub fn from_provider_client(client: ProviderClient<S, R>) -> Self {{")?;
+        writeln!(out, "        Self::new(client, client.http_client.clone())")?;
         writeln!(out, "    }}")?;
         writeln!(out)?;
 

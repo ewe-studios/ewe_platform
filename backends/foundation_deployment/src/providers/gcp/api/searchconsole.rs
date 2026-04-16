@@ -32,8 +32,6 @@ use crate::providers::gcp::clients::searchconsole::SitemapsListResponse;
 use crate::providers::gcp::clients::searchconsole::SitesListResponse;
 use crate::providers::gcp::clients::searchconsole::WmxSite;
 use crate::providers::gcp::clients::searchconsole::WmxSitemap;
-use crate::providers::gcp::clients::searchconsole::SearchconsoleUrlInspectionIndexInspectArgs;
-use crate::providers::gcp::clients::searchconsole::SearchconsoleUrlTestingToolsMobileFriendlyTestRunArgs;
 use crate::providers::gcp::clients::searchconsole::WebmastersSearchanalyticsQueryArgs;
 use crate::providers::gcp::clients::searchconsole::WebmastersSitemapsDeleteArgs;
 use crate::providers::gcp::clients::searchconsole::WebmastersSitemapsGetArgs;
@@ -42,10 +40,9 @@ use crate::providers::gcp::clients::searchconsole::WebmastersSitemapsSubmitArgs;
 use crate::providers::gcp::clients::searchconsole::WebmastersSitesAddArgs;
 use crate::providers::gcp::clients::searchconsole::WebmastersSitesDeleteArgs;
 use crate::providers::gcp::clients::searchconsole::WebmastersSitesGetArgs;
-use crate::providers::gcp::clients::searchconsole::WebmastersSitesListArgs;
 use crate::provider_client::{ProviderClient, ProviderError};
 use foundation_core::valtron::{execute, StreamIterator};
-use foundation_core::wire::simple_http::client::SimpleHttpClient;
+use foundation_core::wire::simple_http::client::{SimpleHttpClient, DnsResolver};
 use foundation_db::state::store_state_task::StoreStateIdentifierTask;
 use std::sync::Arc;
 
@@ -54,34 +51,44 @@ use std::sync::Arc;
 /// # Type Parameters
 ///
 /// * `S` - StateStore implementation (FileStateStore, SqliteStateStore, etc.)
+/// * `R` - DNS resolver type for HTTP client
 ///
 /// # Example
 ///
 /// ```rust
 /// let state_store = FileStateStore::new("/path", "my-project", "dev");
-/// let client = ProviderClient::new("my-project", "dev", state_store);
-/// let http_client = SimpleHttpClient::new(...);
-/// let provider = SearchconsoleProvider::new(client, http_client);
+/// let http_client = SimpleHttpClient::with_resolver(StaticSocketAddr::new(addr));
+/// let client = ProviderClient::new("my-project", "dev", state_store, http_client);
+/// let provider = SearchconsoleProvider::from_provider_client(client);
 /// ```
 #[derive(Clone)]
-pub struct SearchconsoleProvider<S>
+pub struct SearchconsoleProvider<S, R>
 where
     S: foundation_db::state::traits::StateStore + Send + Sync + 'static,
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + 'static,
 {
-    client: ProviderClient<S>,
-    http_client: Arc<SimpleHttpClient>,
+    client: ProviderClient<S, R>,
+    http_client: Arc<SimpleHttpClient<R>>,
 }
 
-impl<S> SearchconsoleProvider<S>
+impl<S, R> SearchconsoleProvider<S, R>
 where
     S: foundation_db::state::traits::StateStore + Send + Sync + 'static,
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + 'static,
 {
     /// Create new SearchconsoleProvider.
-    pub fn new(client: ProviderClient<S>, http_client: SimpleHttpClient) -> Self {
+    pub fn new(client: ProviderClient<S, R>, http_client: Arc<SimpleHttpClient<R>>) -> Self {
         Self {
             client,
-            http_client: Arc::new(http_client),
+            http_client,
         }
+    }
+
+    /// Create new SearchconsoleProvider from ProviderClient, extracting the HTTP client.
+    ///
+    /// This is a convenience method that calls `Self::new()` with `client.http_client()`.
+    pub fn from_provider_client(client: ProviderClient<S, R>) -> Self {
+        Self::new(client, client.http_client.clone())
     }
 
     /// Webmasters searchanalytics query.

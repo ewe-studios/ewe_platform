@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudbuild_projects_locations_get_execute()` to send, or `cloudbuild_projects_locations_get` for simplest API.
 
-pub fn cloudbuild_projects_locations_get_builder(
-    client: &SimpleHttpClient,
+pub fn cloudbuild_projects_locations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudbuild.googleapis.com/v2/projects/{}/locations/{locationsId}",
@@ -183,14 +187,17 @@ pub fn cloudbuild_projects_locations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudbuild_projects_locations_list_execute()` to send, or `cloudbuild_projects_locations_list` for simplest API.
 
-pub fn cloudbuild_projects_locations_list_builder(
-    client: &SimpleHttpClient,
+pub fn cloudbuild_projects_locations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     extraLocationTypes: &Option<Option<String>>,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudbuild.googleapis.com/v2/projects/{}/locations",
@@ -383,11 +390,14 @@ pub fn cloudbuild_projects_locations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudbuild_projects_locations_connections_create_execute()` to send, or `cloudbuild_projects_locations_connections_create` for simplest API.
 
-pub fn cloudbuild_projects_locations_connections_create_builder(
-    client: &SimpleHttpClient,
+pub fn cloudbuild_projects_locations_connections_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     connectionId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudbuild.googleapis.com/v2/projects/{}/locations/{locationsId}/connections",
@@ -558,12 +568,15 @@ pub fn cloudbuild_projects_locations_connections_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudbuild_projects_locations_connections_delete_execute()` to send, or `cloudbuild_projects_locations_connections_delete` for simplest API.
 
-pub fn cloudbuild_projects_locations_connections_delete_builder(
-    client: &SimpleHttpClient,
+pub fn cloudbuild_projects_locations_connections_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     etag: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudbuild.googleapis.com/v2/projects/{}/locations/{locationsId}/connections/{connectionsId}",
@@ -740,12 +753,15 @@ pub fn cloudbuild_projects_locations_connections_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudbuild_projects_locations_connections_fetch_linkable_repositories_execute()` to send, or `cloudbuild_projects_locations_connections_fetch_linkable_repositories` for simplest API.
 
-pub fn cloudbuild_projects_locations_connections_fetch_linkable_repositories_builder(
-    client: &SimpleHttpClient,
+pub fn cloudbuild_projects_locations_connections_fetch_linkable_repositories_builder<R>(
+    client: &SimpleHttpClient<R>,
     connection: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudbuild.googleapis.com/v2/projects/{}/locations/{locationsId}/connections/{connectionsId}:fetchLinkableRepositories",
@@ -930,10 +946,13 @@ pub fn cloudbuild_projects_locations_connections_fetch_linkable_repositories(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudbuild_projects_locations_connections_get_execute()` to send, or `cloudbuild_projects_locations_connections_get` for simplest API.
 
-pub fn cloudbuild_projects_locations_connections_get_builder(
-    client: &SimpleHttpClient,
+pub fn cloudbuild_projects_locations_connections_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudbuild.googleapis.com/v2/projects/{}/locations/{locationsId}/connections/{connectionsId}",
@@ -1087,11 +1106,14 @@ pub fn cloudbuild_projects_locations_connections_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudbuild_projects_locations_connections_get_iam_policy_execute()` to send, or `cloudbuild_projects_locations_connections_get_iam_policy` for simplest API.
 
-pub fn cloudbuild_projects_locations_connections_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn cloudbuild_projects_locations_connections_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudbuild.googleapis.com/v2/projects/{}/locations/{locationsId}/connections/{connectionsId}:getIamPolicy",
@@ -1262,13 +1284,16 @@ pub fn cloudbuild_projects_locations_connections_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudbuild_projects_locations_connections_list_execute()` to send, or `cloudbuild_projects_locations_connections_list` for simplest API.
 
-pub fn cloudbuild_projects_locations_connections_list_builder(
-    client: &SimpleHttpClient,
+pub fn cloudbuild_projects_locations_connections_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudbuild.googleapis.com/v2/projects/{}/locations/{locationsId}/connections",
@@ -1455,13 +1480,16 @@ pub fn cloudbuild_projects_locations_connections_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudbuild_projects_locations_connections_patch_execute()` to send, or `cloudbuild_projects_locations_connections_patch` for simplest API.
 
-pub fn cloudbuild_projects_locations_connections_patch_builder(
-    client: &SimpleHttpClient,
+pub fn cloudbuild_projects_locations_connections_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     allowMissing: &Option<Option<String>>,
     etag: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudbuild.googleapis.com/v2/projects/{}/locations/{locationsId}/connections/{connectionsId}",
@@ -1644,11 +1672,14 @@ pub fn cloudbuild_projects_locations_connections_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudbuild_projects_locations_connections_process_webhook_execute()` to send, or `cloudbuild_projects_locations_connections_process_webhook` for simplest API.
 
-pub fn cloudbuild_projects_locations_connections_process_webhook_builder(
-    client: &SimpleHttpClient,
+pub fn cloudbuild_projects_locations_connections_process_webhook_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     webhookKey: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudbuild.googleapis.com/v2/projects/{}/locations/{locationsId}/connections:processWebhook",
@@ -1819,10 +1850,13 @@ pub fn cloudbuild_projects_locations_connections_process_webhook(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudbuild_projects_locations_connections_set_iam_policy_execute()` to send, or `cloudbuild_projects_locations_connections_set_iam_policy` for simplest API.
 
-pub fn cloudbuild_projects_locations_connections_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn cloudbuild_projects_locations_connections_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudbuild.googleapis.com/v2/projects/{}/locations/{locationsId}/connections/{connectionsId}:setIamPolicy",
@@ -1977,10 +2011,13 @@ pub fn cloudbuild_projects_locations_connections_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudbuild_projects_locations_connections_test_iam_permissions_execute()` to send, or `cloudbuild_projects_locations_connections_test_iam_permissions` for simplest API.
 
-pub fn cloudbuild_projects_locations_connections_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn cloudbuild_projects_locations_connections_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudbuild.googleapis.com/v2/projects/{}/locations/{locationsId}/connections/{connectionsId}:testIamPermissions",
@@ -2145,10 +2182,13 @@ pub fn cloudbuild_projects_locations_connections_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudbuild_projects_locations_connections_repositories_access_read_token_execute()` to send, or `cloudbuild_projects_locations_connections_repositories_access_read_token` for simplest API.
 
-pub fn cloudbuild_projects_locations_connections_repositories_access_read_token_builder(
-    client: &SimpleHttpClient,
+pub fn cloudbuild_projects_locations_connections_repositories_access_read_token_builder<R>(
+    client: &SimpleHttpClient<R>,
     repository: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudbuild.googleapis.com/v2/projects/{}/locations/{locationsId}/connections/{connectionsId}/repositories/{repositoriesId}:accessReadToken",
@@ -2310,10 +2350,13 @@ pub fn cloudbuild_projects_locations_connections_repositories_access_read_token(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudbuild_projects_locations_connections_repositories_access_read_write_token_execute()` to send, or `cloudbuild_projects_locations_connections_repositories_access_read_write_token` for simplest API.
 
-pub fn cloudbuild_projects_locations_connections_repositories_access_read_write_token_builder(
-    client: &SimpleHttpClient,
+pub fn cloudbuild_projects_locations_connections_repositories_access_read_write_token_builder<R>(
+    client: &SimpleHttpClient<R>,
     repository: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudbuild.googleapis.com/v2/projects/{}/locations/{locationsId}/connections/{connectionsId}/repositories/{repositoriesId}:accessReadWriteToken",
@@ -2481,10 +2524,13 @@ pub fn cloudbuild_projects_locations_connections_repositories_access_read_write_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudbuild_projects_locations_connections_repositories_batch_create_execute()` to send, or `cloudbuild_projects_locations_connections_repositories_batch_create` for simplest API.
 
-pub fn cloudbuild_projects_locations_connections_repositories_batch_create_builder(
-    client: &SimpleHttpClient,
+pub fn cloudbuild_projects_locations_connections_repositories_batch_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudbuild.googleapis.com/v2/projects/{}/locations/{locationsId}/connections/{connectionsId}/repositories:batchCreate",
@@ -2641,11 +2687,14 @@ pub fn cloudbuild_projects_locations_connections_repositories_batch_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudbuild_projects_locations_connections_repositories_create_execute()` to send, or `cloudbuild_projects_locations_connections_repositories_create` for simplest API.
 
-pub fn cloudbuild_projects_locations_connections_repositories_create_builder(
-    client: &SimpleHttpClient,
+pub fn cloudbuild_projects_locations_connections_repositories_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     repositoryId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudbuild.googleapis.com/v2/projects/{}/locations/{locationsId}/connections/{connectionsId}/repositories",
@@ -2816,12 +2865,15 @@ pub fn cloudbuild_projects_locations_connections_repositories_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudbuild_projects_locations_connections_repositories_delete_execute()` to send, or `cloudbuild_projects_locations_connections_repositories_delete` for simplest API.
 
-pub fn cloudbuild_projects_locations_connections_repositories_delete_builder(
-    client: &SimpleHttpClient,
+pub fn cloudbuild_projects_locations_connections_repositories_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     etag: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudbuild.googleapis.com/v2/projects/{}/locations/{locationsId}/connections/{connectionsId}/repositories/{repositoriesId}",
@@ -2998,13 +3050,16 @@ pub fn cloudbuild_projects_locations_connections_repositories_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudbuild_projects_locations_connections_repositories_fetch_git_refs_execute()` to send, or `cloudbuild_projects_locations_connections_repositories_fetch_git_refs` for simplest API.
 
-pub fn cloudbuild_projects_locations_connections_repositories_fetch_git_refs_builder(
-    client: &SimpleHttpClient,
+pub fn cloudbuild_projects_locations_connections_repositories_fetch_git_refs_builder<R>(
+    client: &SimpleHttpClient<R>,
     repository: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     refType: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudbuild.googleapis.com/v2/projects/{}/locations/{locationsId}/connections/{connectionsId}/repositories/{repositoriesId}:fetchGitRefs",
@@ -3191,10 +3246,13 @@ pub fn cloudbuild_projects_locations_connections_repositories_fetch_git_refs(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudbuild_projects_locations_connections_repositories_get_execute()` to send, or `cloudbuild_projects_locations_connections_repositories_get` for simplest API.
 
-pub fn cloudbuild_projects_locations_connections_repositories_get_builder(
-    client: &SimpleHttpClient,
+pub fn cloudbuild_projects_locations_connections_repositories_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudbuild.googleapis.com/v2/projects/{}/locations/{locationsId}/connections/{connectionsId}/repositories/{repositoriesId}",
@@ -3349,14 +3407,17 @@ pub fn cloudbuild_projects_locations_connections_repositories_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudbuild_projects_locations_connections_repositories_list_execute()` to send, or `cloudbuild_projects_locations_connections_repositories_list` for simplest API.
 
-pub fn cloudbuild_projects_locations_connections_repositories_list_builder(
-    client: &SimpleHttpClient,
+pub fn cloudbuild_projects_locations_connections_repositories_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudbuild.googleapis.com/v2/projects/{}/locations/{locationsId}/connections/{connectionsId}/repositories",
@@ -3549,10 +3610,13 @@ pub fn cloudbuild_projects_locations_connections_repositories_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudbuild_projects_locations_operations_cancel_execute()` to send, or `cloudbuild_projects_locations_operations_cancel` for simplest API.
 
-pub fn cloudbuild_projects_locations_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn cloudbuild_projects_locations_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudbuild.googleapis.com/v2/projects/{}/locations/{locationsId}/operations/{operationsId}:cancel",
@@ -3706,10 +3770,13 @@ pub fn cloudbuild_projects_locations_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudbuild_projects_locations_operations_get_execute()` to send, or `cloudbuild_projects_locations_operations_get` for simplest API.
 
-pub fn cloudbuild_projects_locations_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn cloudbuild_projects_locations_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudbuild.googleapis.com/v2/projects/{}/locations/{locationsId}/operations/{operationsId}",

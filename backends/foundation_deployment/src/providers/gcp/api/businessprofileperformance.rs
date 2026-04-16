@@ -25,7 +25,7 @@ use crate::providers::gcp::clients::businessprofileperformance::Businessprofilep
 use crate::providers::gcp::clients::businessprofileperformance::BusinessprofileperformanceLocationsSearchkeywordsImpressionsMonthlyListArgs;
 use crate::provider_client::{ProviderClient, ProviderError};
 use foundation_core::valtron::{execute, StreamIterator};
-use foundation_core::wire::simple_http::client::SimpleHttpClient;
+use foundation_core::wire::simple_http::client::{SimpleHttpClient, DnsResolver};
 use foundation_db::state::store_state_task::StoreStateIdentifierTask;
 use std::sync::Arc;
 
@@ -34,34 +34,44 @@ use std::sync::Arc;
 /// # Type Parameters
 ///
 /// * `S` - StateStore implementation (FileStateStore, SqliteStateStore, etc.)
+/// * `R` - DNS resolver type for HTTP client
 ///
 /// # Example
 ///
 /// ```rust
 /// let state_store = FileStateStore::new("/path", "my-project", "dev");
-/// let client = ProviderClient::new("my-project", "dev", state_store);
-/// let http_client = SimpleHttpClient::new(...);
-/// let provider = BusinessprofileperformanceProvider::new(client, http_client);
+/// let http_client = SimpleHttpClient::with_resolver(StaticSocketAddr::new(addr));
+/// let client = ProviderClient::new("my-project", "dev", state_store, http_client);
+/// let provider = BusinessprofileperformanceProvider::from_provider_client(client);
 /// ```
 #[derive(Clone)]
-pub struct BusinessprofileperformanceProvider<S>
+pub struct BusinessprofileperformanceProvider<S, R>
 where
     S: foundation_db::state::traits::StateStore + Send + Sync + 'static,
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + 'static,
 {
-    client: ProviderClient<S>,
-    http_client: Arc<SimpleHttpClient>,
+    client: ProviderClient<S, R>,
+    http_client: Arc<SimpleHttpClient<R>>,
 }
 
-impl<S> BusinessprofileperformanceProvider<S>
+impl<S, R> BusinessprofileperformanceProvider<S, R>
 where
     S: foundation_db::state::traits::StateStore + Send + Sync + 'static,
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + 'static,
 {
     /// Create new BusinessprofileperformanceProvider.
-    pub fn new(client: ProviderClient<S>, http_client: SimpleHttpClient) -> Self {
+    pub fn new(client: ProviderClient<S, R>, http_client: Arc<SimpleHttpClient<R>>) -> Self {
         Self {
             client,
-            http_client: Arc::new(http_client),
+            http_client,
         }
+    }
+
+    /// Create new BusinessprofileperformanceProvider from ProviderClient, extracting the HTTP client.
+    ///
+    /// This is a convenience method that calls `Self::new()` with `client.http_client()`.
+    pub fn from_provider_client(client: ProviderClient<S, R>) -> Self {
+        Self::new(client, client.http_client.clone())
     }
 
     /// Businessprofileperformance locations fetch multi daily metrics time series.
@@ -94,12 +104,12 @@ where
             &self.http_client,
             &args.location,
             &args.dailyMetrics,
-            &args.dailyRange.endDate.day,
-            &args.dailyRange.endDate.month,
-            &args.dailyRange.endDate.year,
-            &args.dailyRange.startDate.day,
-            &args.dailyRange.startDate.month,
-            &args.dailyRange.startDate.year,
+            &args.dailyRange_endDate_day,
+            &args.dailyRange_endDate_month,
+            &args.dailyRange_endDate_year,
+            &args.dailyRange_startDate_day,
+            &args.dailyRange_startDate_month,
+            &args.dailyRange_startDate_year,
         )
         .map_err(ProviderError::Api)?;
 
@@ -139,17 +149,17 @@ where
             &self.http_client,
             &args.name,
             &args.dailyMetric,
-            &args.dailyRange.endDate.day,
-            &args.dailyRange.endDate.month,
-            &args.dailyRange.endDate.year,
-            &args.dailyRange.startDate.day,
-            &args.dailyRange.startDate.month,
-            &args.dailyRange.startDate.year,
-            &args.dailySubEntityType.dayOfWeek,
-            &args.dailySubEntityType.timeOfDay.hours,
-            &args.dailySubEntityType.timeOfDay.minutes,
-            &args.dailySubEntityType.timeOfDay.nanos,
-            &args.dailySubEntityType.timeOfDay.seconds,
+            &args.dailyRange_endDate_day,
+            &args.dailyRange_endDate_month,
+            &args.dailyRange_endDate_year,
+            &args.dailyRange_startDate_day,
+            &args.dailyRange_startDate_month,
+            &args.dailyRange_startDate_year,
+            &args.dailySubEntityType_dayOfWeek,
+            &args.dailySubEntityType_timeOfDay_hours,
+            &args.dailySubEntityType_timeOfDay_minutes,
+            &args.dailySubEntityType_timeOfDay_nanos,
+            &args.dailySubEntityType_timeOfDay_seconds,
         )
         .map_err(ProviderError::Api)?;
 
@@ -188,12 +198,12 @@ where
         let builder = businessprofileperformance_locations_searchkeywords_impressions_monthly_list_builder(
             &self.http_client,
             &args.parent,
-            &args.monthlyRange.endMonth.day,
-            &args.monthlyRange.endMonth.month,
-            &args.monthlyRange.endMonth.year,
-            &args.monthlyRange.startMonth.day,
-            &args.monthlyRange.startMonth.month,
-            &args.monthlyRange.startMonth.year,
+            &args.monthlyRange_endMonth_day,
+            &args.monthlyRange_endMonth_month,
+            &args.monthlyRange_endMonth_year,
+            &args.monthlyRange_startMonth_day,
+            &args.monthlyRange_startMonth_month,
+            &args.monthlyRange_startMonth_year,
             &args.pageSize,
             &args.pageToken,
         )

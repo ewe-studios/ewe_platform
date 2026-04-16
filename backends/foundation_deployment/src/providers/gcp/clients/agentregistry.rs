@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `agentregistry_projects_locations_get_execute()` to send, or `agentregistry_projects_locations_get` for simplest API.
 
-pub fn agentregistry_projects_locations_get_builder(
-    client: &SimpleHttpClient,
+pub fn agentregistry_projects_locations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://agentregistry.googleapis.com/v1alpha/projects/{}/locations/{locationsId}",
@@ -183,14 +187,17 @@ pub fn agentregistry_projects_locations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `agentregistry_projects_locations_list_execute()` to send, or `agentregistry_projects_locations_list` for simplest API.
 
-pub fn agentregistry_projects_locations_list_builder(
-    client: &SimpleHttpClient,
+pub fn agentregistry_projects_locations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     extraLocationTypes: &Option<Option<String>>,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://agentregistry.googleapis.com/v1alpha/projects/{}/locations",
@@ -383,10 +390,13 @@ pub fn agentregistry_projects_locations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `agentregistry_projects_locations_agents_get_execute()` to send, or `agentregistry_projects_locations_agents_get` for simplest API.
 
-pub fn agentregistry_projects_locations_agents_get_builder(
-    client: &SimpleHttpClient,
+pub fn agentregistry_projects_locations_agents_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://agentregistry.googleapis.com/v1alpha/projects/{}/locations/{locationsId}/agents/{agentsId}",
@@ -540,14 +550,17 @@ pub fn agentregistry_projects_locations_agents_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `agentregistry_projects_locations_agents_list_execute()` to send, or `agentregistry_projects_locations_agents_list` for simplest API.
 
-pub fn agentregistry_projects_locations_agents_list_builder(
-    client: &SimpleHttpClient,
+pub fn agentregistry_projects_locations_agents_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://agentregistry.googleapis.com/v1alpha/projects/{}/locations/{locationsId}/agents",
@@ -740,10 +753,13 @@ pub fn agentregistry_projects_locations_agents_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `agentregistry_projects_locations_agents_search_execute()` to send, or `agentregistry_projects_locations_agents_search` for simplest API.
 
-pub fn agentregistry_projects_locations_agents_search_builder(
-    client: &SimpleHttpClient,
+pub fn agentregistry_projects_locations_agents_search_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://agentregistry.googleapis.com/v1alpha/projects/{}/locations/{locationsId}/agents:search",
@@ -901,12 +917,15 @@ pub fn agentregistry_projects_locations_agents_search(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `agentregistry_projects_locations_bindings_create_execute()` to send, or `agentregistry_projects_locations_bindings_create` for simplest API.
 
-pub fn agentregistry_projects_locations_bindings_create_builder(
-    client: &SimpleHttpClient,
+pub fn agentregistry_projects_locations_bindings_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     bindingId: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://agentregistry.googleapis.com/v1alpha/projects/{}/locations/{locationsId}/bindings",
@@ -1083,11 +1102,14 @@ pub fn agentregistry_projects_locations_bindings_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `agentregistry_projects_locations_bindings_delete_execute()` to send, or `agentregistry_projects_locations_bindings_delete` for simplest API.
 
-pub fn agentregistry_projects_locations_bindings_delete_builder(
-    client: &SimpleHttpClient,
+pub fn agentregistry_projects_locations_bindings_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://agentregistry.googleapis.com/v1alpha/projects/{}/locations/{locationsId}/bindings/{bindingsId}",
@@ -1258,14 +1280,17 @@ pub fn agentregistry_projects_locations_bindings_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `agentregistry_projects_locations_bindings_fetch_available_execute()` to send, or `agentregistry_projects_locations_bindings_fetch_available` for simplest API.
 
-pub fn agentregistry_projects_locations_bindings_fetch_available_builder(
-    client: &SimpleHttpClient,
+pub fn agentregistry_projects_locations_bindings_fetch_available_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     sourceIdentifier: &Option<Option<String>>,
     targetIdentifier: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://agentregistry.googleapis.com/v1alpha/projects/{}/locations/{locationsId}/bindings:fetchAvailable",
@@ -1462,10 +1487,13 @@ pub fn agentregistry_projects_locations_bindings_fetch_available(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `agentregistry_projects_locations_bindings_get_execute()` to send, or `agentregistry_projects_locations_bindings_get` for simplest API.
 
-pub fn agentregistry_projects_locations_bindings_get_builder(
-    client: &SimpleHttpClient,
+pub fn agentregistry_projects_locations_bindings_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://agentregistry.googleapis.com/v1alpha/projects/{}/locations/{locationsId}/bindings/{bindingsId}",
@@ -1619,14 +1647,17 @@ pub fn agentregistry_projects_locations_bindings_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `agentregistry_projects_locations_bindings_list_execute()` to send, or `agentregistry_projects_locations_bindings_list` for simplest API.
 
-pub fn agentregistry_projects_locations_bindings_list_builder(
-    client: &SimpleHttpClient,
+pub fn agentregistry_projects_locations_bindings_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://agentregistry.googleapis.com/v1alpha/projects/{}/locations/{locationsId}/bindings",
@@ -1819,12 +1850,15 @@ pub fn agentregistry_projects_locations_bindings_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `agentregistry_projects_locations_bindings_patch_execute()` to send, or `agentregistry_projects_locations_bindings_patch` for simplest API.
 
-pub fn agentregistry_projects_locations_bindings_patch_builder(
-    client: &SimpleHttpClient,
+pub fn agentregistry_projects_locations_bindings_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://agentregistry.googleapis.com/v1alpha/projects/{}/locations/{locationsId}/bindings/{bindingsId}",
@@ -2001,10 +2035,13 @@ pub fn agentregistry_projects_locations_bindings_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `agentregistry_projects_locations_endpoints_get_execute()` to send, or `agentregistry_projects_locations_endpoints_get` for simplest API.
 
-pub fn agentregistry_projects_locations_endpoints_get_builder(
-    client: &SimpleHttpClient,
+pub fn agentregistry_projects_locations_endpoints_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://agentregistry.googleapis.com/v1alpha/projects/{}/locations/{locationsId}/endpoints/{endpointsId}",
@@ -2158,13 +2195,16 @@ pub fn agentregistry_projects_locations_endpoints_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `agentregistry_projects_locations_endpoints_list_execute()` to send, or `agentregistry_projects_locations_endpoints_list` for simplest API.
 
-pub fn agentregistry_projects_locations_endpoints_list_builder(
-    client: &SimpleHttpClient,
+pub fn agentregistry_projects_locations_endpoints_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://agentregistry.googleapis.com/v1alpha/projects/{}/locations/{locationsId}/endpoints",
@@ -2351,10 +2391,13 @@ pub fn agentregistry_projects_locations_endpoints_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `agentregistry_projects_locations_mcp_servers_get_execute()` to send, or `agentregistry_projects_locations_mcp_servers_get` for simplest API.
 
-pub fn agentregistry_projects_locations_mcp_servers_get_builder(
-    client: &SimpleHttpClient,
+pub fn agentregistry_projects_locations_mcp_servers_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://agentregistry.googleapis.com/v1alpha/projects/{}/locations/{locationsId}/mcpServers/{mcpServersId}",
@@ -2508,14 +2551,17 @@ pub fn agentregistry_projects_locations_mcp_servers_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `agentregistry_projects_locations_mcp_servers_list_execute()` to send, or `agentregistry_projects_locations_mcp_servers_list` for simplest API.
 
-pub fn agentregistry_projects_locations_mcp_servers_list_builder(
-    client: &SimpleHttpClient,
+pub fn agentregistry_projects_locations_mcp_servers_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://agentregistry.googleapis.com/v1alpha/projects/{}/locations/{locationsId}/mcpServers",
@@ -2708,10 +2754,13 @@ pub fn agentregistry_projects_locations_mcp_servers_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `agentregistry_projects_locations_mcp_servers_search_execute()` to send, or `agentregistry_projects_locations_mcp_servers_search` for simplest API.
 
-pub fn agentregistry_projects_locations_mcp_servers_search_builder(
-    client: &SimpleHttpClient,
+pub fn agentregistry_projects_locations_mcp_servers_search_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://agentregistry.googleapis.com/v1alpha/projects/{}/locations/{locationsId}/mcpServers:search",
@@ -2870,10 +2919,13 @@ pub fn agentregistry_projects_locations_mcp_servers_search(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `agentregistry_projects_locations_operations_cancel_execute()` to send, or `agentregistry_projects_locations_operations_cancel` for simplest API.
 
-pub fn agentregistry_projects_locations_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn agentregistry_projects_locations_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://agentregistry.googleapis.com/v1alpha/projects/{}/locations/{locationsId}/operations/{operationsId}:cancel",
@@ -3027,10 +3079,13 @@ pub fn agentregistry_projects_locations_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `agentregistry_projects_locations_operations_delete_execute()` to send, or `agentregistry_projects_locations_operations_delete` for simplest API.
 
-pub fn agentregistry_projects_locations_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn agentregistry_projects_locations_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://agentregistry.googleapis.com/v1alpha/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -3184,10 +3239,13 @@ pub fn agentregistry_projects_locations_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `agentregistry_projects_locations_operations_get_execute()` to send, or `agentregistry_projects_locations_operations_get` for simplest API.
 
-pub fn agentregistry_projects_locations_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn agentregistry_projects_locations_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://agentregistry.googleapis.com/v1alpha/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -3341,14 +3399,17 @@ pub fn agentregistry_projects_locations_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `agentregistry_projects_locations_operations_list_execute()` to send, or `agentregistry_projects_locations_operations_list` for simplest API.
 
-pub fn agentregistry_projects_locations_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn agentregistry_projects_locations_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://agentregistry.googleapis.com/v1alpha/projects/{}/locations/{locationsId}/operations",
@@ -3541,12 +3602,15 @@ pub fn agentregistry_projects_locations_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `agentregistry_projects_locations_services_create_execute()` to send, or `agentregistry_projects_locations_services_create` for simplest API.
 
-pub fn agentregistry_projects_locations_services_create_builder(
-    client: &SimpleHttpClient,
+pub fn agentregistry_projects_locations_services_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     requestId: &Option<Option<String>>,
     serviceId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://agentregistry.googleapis.com/v1alpha/projects/{}/locations/{locationsId}/services",
@@ -3723,11 +3787,14 @@ pub fn agentregistry_projects_locations_services_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `agentregistry_projects_locations_services_delete_execute()` to send, or `agentregistry_projects_locations_services_delete` for simplest API.
 
-pub fn agentregistry_projects_locations_services_delete_builder(
-    client: &SimpleHttpClient,
+pub fn agentregistry_projects_locations_services_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://agentregistry.googleapis.com/v1alpha/projects/{}/locations/{locationsId}/services/{servicesId}",
@@ -3898,10 +3965,13 @@ pub fn agentregistry_projects_locations_services_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `agentregistry_projects_locations_services_get_execute()` to send, or `agentregistry_projects_locations_services_get` for simplest API.
 
-pub fn agentregistry_projects_locations_services_get_builder(
-    client: &SimpleHttpClient,
+pub fn agentregistry_projects_locations_services_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://agentregistry.googleapis.com/v1alpha/projects/{}/locations/{locationsId}/services/{servicesId}",
@@ -4055,13 +4125,16 @@ pub fn agentregistry_projects_locations_services_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `agentregistry_projects_locations_services_list_execute()` to send, or `agentregistry_projects_locations_services_list` for simplest API.
 
-pub fn agentregistry_projects_locations_services_list_builder(
-    client: &SimpleHttpClient,
+pub fn agentregistry_projects_locations_services_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://agentregistry.googleapis.com/v1alpha/projects/{}/locations/{locationsId}/services",
@@ -4248,12 +4321,15 @@ pub fn agentregistry_projects_locations_services_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `agentregistry_projects_locations_services_patch_execute()` to send, or `agentregistry_projects_locations_services_patch` for simplest API.
 
-pub fn agentregistry_projects_locations_services_patch_builder(
-    client: &SimpleHttpClient,
+pub fn agentregistry_projects_locations_services_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://agentregistry.googleapis.com/v1alpha/projects/{}/locations/{locationsId}/services/{servicesId}",

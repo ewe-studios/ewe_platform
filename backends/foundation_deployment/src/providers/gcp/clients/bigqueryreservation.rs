@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigqueryreservation_projects_locations_get_bi_reservation_execute()` to send, or `bigqueryreservation_projects_locations_get_bi_reservation` for simplest API.
 
-pub fn bigqueryreservation_projects_locations_get_bi_reservation_builder(
-    client: &SimpleHttpClient,
+pub fn bigqueryreservation_projects_locations_get_bi_reservation_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigqueryreservation.googleapis.com/v1/projects/{}/locations/{locationsId}/biReservation",
@@ -188,13 +192,16 @@ pub fn bigqueryreservation_projects_locations_get_bi_reservation(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigqueryreservation_projects_locations_search_all_assignments_execute()` to send, or `bigqueryreservation_projects_locations_search_all_assignments` for simplest API.
 
-pub fn bigqueryreservation_projects_locations_search_all_assignments_builder(
-    client: &SimpleHttpClient,
+pub fn bigqueryreservation_projects_locations_search_all_assignments_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     query: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigqueryreservation.googleapis.com/v1/projects/{}/locations/{locationsId}:searchAllAssignments",
@@ -385,13 +392,16 @@ pub fn bigqueryreservation_projects_locations_search_all_assignments(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigqueryreservation_projects_locations_search_assignments_execute()` to send, or `bigqueryreservation_projects_locations_search_assignments` for simplest API.
 
-pub fn bigqueryreservation_projects_locations_search_assignments_builder(
-    client: &SimpleHttpClient,
+pub fn bigqueryreservation_projects_locations_search_assignments_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     query: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigqueryreservation.googleapis.com/v1/projects/{}/locations/{locationsId}:searchAssignments",
@@ -578,11 +588,14 @@ pub fn bigqueryreservation_projects_locations_search_assignments(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigqueryreservation_projects_locations_update_bi_reservation_execute()` to send, or `bigqueryreservation_projects_locations_update_bi_reservation` for simplest API.
 
-pub fn bigqueryreservation_projects_locations_update_bi_reservation_builder(
-    client: &SimpleHttpClient,
+pub fn bigqueryreservation_projects_locations_update_bi_reservation_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigqueryreservation.googleapis.com/v1/projects/{}/locations/{locationsId}/biReservation",
@@ -757,12 +770,15 @@ pub fn bigqueryreservation_projects_locations_update_bi_reservation(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigqueryreservation_projects_locations_capacity_commitments_create_execute()` to send, or `bigqueryreservation_projects_locations_capacity_commitments_create` for simplest API.
 
-pub fn bigqueryreservation_projects_locations_capacity_commitments_create_builder(
-    client: &SimpleHttpClient,
+pub fn bigqueryreservation_projects_locations_capacity_commitments_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     capacityCommitmentId: &Option<Option<String>>,
     enforceSingleAdminProjectPerOrg: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigqueryreservation.googleapis.com/v1/projects/{}/locations/{locationsId}/capacityCommitments",
@@ -943,11 +959,14 @@ pub fn bigqueryreservation_projects_locations_capacity_commitments_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigqueryreservation_projects_locations_capacity_commitments_delete_execute()` to send, or `bigqueryreservation_projects_locations_capacity_commitments_delete` for simplest API.
 
-pub fn bigqueryreservation_projects_locations_capacity_commitments_delete_builder(
-    client: &SimpleHttpClient,
+pub fn bigqueryreservation_projects_locations_capacity_commitments_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     force: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigqueryreservation.googleapis.com/v1/projects/{}/locations/{locationsId}/capacityCommitments/{capacityCommitmentsId}",
@@ -1118,10 +1137,13 @@ pub fn bigqueryreservation_projects_locations_capacity_commitments_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigqueryreservation_projects_locations_capacity_commitments_get_execute()` to send, or `bigqueryreservation_projects_locations_capacity_commitments_get` for simplest API.
 
-pub fn bigqueryreservation_projects_locations_capacity_commitments_get_builder(
-    client: &SimpleHttpClient,
+pub fn bigqueryreservation_projects_locations_capacity_commitments_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigqueryreservation.googleapis.com/v1/projects/{}/locations/{locationsId}/capacityCommitments/{capacityCommitmentsId}",
@@ -1281,12 +1303,15 @@ pub fn bigqueryreservation_projects_locations_capacity_commitments_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigqueryreservation_projects_locations_capacity_commitments_list_execute()` to send, or `bigqueryreservation_projects_locations_capacity_commitments_list` for simplest API.
 
-pub fn bigqueryreservation_projects_locations_capacity_commitments_list_builder(
-    client: &SimpleHttpClient,
+pub fn bigqueryreservation_projects_locations_capacity_commitments_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigqueryreservation.googleapis.com/v1/projects/{}/locations/{locationsId}/capacityCommitments",
@@ -1471,10 +1496,13 @@ pub fn bigqueryreservation_projects_locations_capacity_commitments_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigqueryreservation_projects_locations_capacity_commitments_merge_execute()` to send, or `bigqueryreservation_projects_locations_capacity_commitments_merge` for simplest API.
 
-pub fn bigqueryreservation_projects_locations_capacity_commitments_merge_builder(
-    client: &SimpleHttpClient,
+pub fn bigqueryreservation_projects_locations_capacity_commitments_merge_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigqueryreservation.googleapis.com/v1/projects/{}/locations/{locationsId}/capacityCommitments:merge",
@@ -1635,11 +1663,14 @@ pub fn bigqueryreservation_projects_locations_capacity_commitments_merge(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigqueryreservation_projects_locations_capacity_commitments_patch_execute()` to send, or `bigqueryreservation_projects_locations_capacity_commitments_patch` for simplest API.
 
-pub fn bigqueryreservation_projects_locations_capacity_commitments_patch_builder(
-    client: &SimpleHttpClient,
+pub fn bigqueryreservation_projects_locations_capacity_commitments_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigqueryreservation.googleapis.com/v1/projects/{}/locations/{locationsId}/capacityCommitments/{capacityCommitmentsId}",
@@ -1814,10 +1845,13 @@ pub fn bigqueryreservation_projects_locations_capacity_commitments_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigqueryreservation_projects_locations_capacity_commitments_split_execute()` to send, or `bigqueryreservation_projects_locations_capacity_commitments_split` for simplest API.
 
-pub fn bigqueryreservation_projects_locations_capacity_commitments_split_builder(
-    client: &SimpleHttpClient,
+pub fn bigqueryreservation_projects_locations_capacity_commitments_split_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigqueryreservation.googleapis.com/v1/projects/{}/locations/{locationsId}/capacityCommitments/{capacityCommitmentsId}:split",
@@ -1981,11 +2015,14 @@ pub fn bigqueryreservation_projects_locations_capacity_commitments_split(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigqueryreservation_projects_locations_reservation_groups_create_execute()` to send, or `bigqueryreservation_projects_locations_reservation_groups_create` for simplest API.
 
-pub fn bigqueryreservation_projects_locations_reservation_groups_create_builder(
-    client: &SimpleHttpClient,
+pub fn bigqueryreservation_projects_locations_reservation_groups_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     reservationGroupId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigqueryreservation.googleapis.com/v1/projects/{}/locations/{locationsId}/reservationGroups",
@@ -2160,10 +2197,13 @@ pub fn bigqueryreservation_projects_locations_reservation_groups_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigqueryreservation_projects_locations_reservation_groups_delete_execute()` to send, or `bigqueryreservation_projects_locations_reservation_groups_delete` for simplest API.
 
-pub fn bigqueryreservation_projects_locations_reservation_groups_delete_builder(
-    client: &SimpleHttpClient,
+pub fn bigqueryreservation_projects_locations_reservation_groups_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigqueryreservation.googleapis.com/v1/projects/{}/locations/{locationsId}/reservationGroups/{reservationGroupsId}",
@@ -2319,10 +2359,13 @@ pub fn bigqueryreservation_projects_locations_reservation_groups_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigqueryreservation_projects_locations_reservation_groups_get_execute()` to send, or `bigqueryreservation_projects_locations_reservation_groups_get` for simplest API.
 
-pub fn bigqueryreservation_projects_locations_reservation_groups_get_builder(
-    client: &SimpleHttpClient,
+pub fn bigqueryreservation_projects_locations_reservation_groups_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigqueryreservation.googleapis.com/v1/projects/{}/locations/{locationsId}/reservationGroups/{reservationGroupsId}",
@@ -2481,12 +2524,15 @@ pub fn bigqueryreservation_projects_locations_reservation_groups_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigqueryreservation_projects_locations_reservation_groups_list_execute()` to send, or `bigqueryreservation_projects_locations_reservation_groups_list` for simplest API.
 
-pub fn bigqueryreservation_projects_locations_reservation_groups_list_builder(
-    client: &SimpleHttpClient,
+pub fn bigqueryreservation_projects_locations_reservation_groups_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigqueryreservation.googleapis.com/v1/projects/{}/locations/{locationsId}/reservationGroups",
@@ -2671,11 +2717,14 @@ pub fn bigqueryreservation_projects_locations_reservation_groups_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigqueryreservation_projects_locations_reservations_create_execute()` to send, or `bigqueryreservation_projects_locations_reservations_create` for simplest API.
 
-pub fn bigqueryreservation_projects_locations_reservations_create_builder(
-    client: &SimpleHttpClient,
+pub fn bigqueryreservation_projects_locations_reservations_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     reservationId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigqueryreservation.googleapis.com/v1/projects/{}/locations/{locationsId}/reservations",
@@ -2846,10 +2895,13 @@ pub fn bigqueryreservation_projects_locations_reservations_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigqueryreservation_projects_locations_reservations_delete_execute()` to send, or `bigqueryreservation_projects_locations_reservations_delete` for simplest API.
 
-pub fn bigqueryreservation_projects_locations_reservations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn bigqueryreservation_projects_locations_reservations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigqueryreservation.googleapis.com/v1/projects/{}/locations/{locationsId}/reservations/{reservationsId}",
@@ -3004,10 +3056,13 @@ pub fn bigqueryreservation_projects_locations_reservations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigqueryreservation_projects_locations_reservations_failover_reservation_execute()` to send, or `bigqueryreservation_projects_locations_reservations_failover_reservation` for simplest API.
 
-pub fn bigqueryreservation_projects_locations_reservations_failover_reservation_builder(
-    client: &SimpleHttpClient,
+pub fn bigqueryreservation_projects_locations_reservations_failover_reservation_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigqueryreservation.googleapis.com/v1/projects/{}/locations/{locationsId}/reservations/{reservationsId}:failoverReservation",
@@ -3164,10 +3219,13 @@ pub fn bigqueryreservation_projects_locations_reservations_failover_reservation(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigqueryreservation_projects_locations_reservations_get_execute()` to send, or `bigqueryreservation_projects_locations_reservations_get` for simplest API.
 
-pub fn bigqueryreservation_projects_locations_reservations_get_builder(
-    client: &SimpleHttpClient,
+pub fn bigqueryreservation_projects_locations_reservations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigqueryreservation.googleapis.com/v1/projects/{}/locations/{locationsId}/reservations/{reservationsId}",
@@ -3322,11 +3380,14 @@ pub fn bigqueryreservation_projects_locations_reservations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigqueryreservation_projects_locations_reservations_get_iam_policy_execute()` to send, or `bigqueryreservation_projects_locations_reservations_get_iam_policy` for simplest API.
 
-pub fn bigqueryreservation_projects_locations_reservations_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn bigqueryreservation_projects_locations_reservations_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigqueryreservation.googleapis.com/v1/projects/{}/locations/{locationsId}/reservations/{reservationsId}:getIamPolicy",
@@ -3497,12 +3558,15 @@ pub fn bigqueryreservation_projects_locations_reservations_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigqueryreservation_projects_locations_reservations_list_execute()` to send, or `bigqueryreservation_projects_locations_reservations_list` for simplest API.
 
-pub fn bigqueryreservation_projects_locations_reservations_list_builder(
-    client: &SimpleHttpClient,
+pub fn bigqueryreservation_projects_locations_reservations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigqueryreservation.googleapis.com/v1/projects/{}/locations/{locationsId}/reservations",
@@ -3683,11 +3747,14 @@ pub fn bigqueryreservation_projects_locations_reservations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigqueryreservation_projects_locations_reservations_patch_execute()` to send, or `bigqueryreservation_projects_locations_reservations_patch` for simplest API.
 
-pub fn bigqueryreservation_projects_locations_reservations_patch_builder(
-    client: &SimpleHttpClient,
+pub fn bigqueryreservation_projects_locations_reservations_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigqueryreservation.googleapis.com/v1/projects/{}/locations/{locationsId}/reservations/{reservationsId}",
@@ -3858,10 +3925,13 @@ pub fn bigqueryreservation_projects_locations_reservations_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigqueryreservation_projects_locations_reservations_set_iam_policy_execute()` to send, or `bigqueryreservation_projects_locations_reservations_set_iam_policy` for simplest API.
 
-pub fn bigqueryreservation_projects_locations_reservations_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn bigqueryreservation_projects_locations_reservations_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigqueryreservation.googleapis.com/v1/projects/{}/locations/{locationsId}/reservations/{reservationsId}:setIamPolicy",
@@ -4018,10 +4088,13 @@ pub fn bigqueryreservation_projects_locations_reservations_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigqueryreservation_projects_locations_reservations_test_iam_permissions_execute()` to send, or `bigqueryreservation_projects_locations_reservations_test_iam_permissions` for simplest API.
 
-pub fn bigqueryreservation_projects_locations_reservations_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn bigqueryreservation_projects_locations_reservations_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigqueryreservation.googleapis.com/v1/projects/{}/locations/{locationsId}/reservations/{reservationsId}:testIamPermissions",
@@ -4187,11 +4260,14 @@ pub fn bigqueryreservation_projects_locations_reservations_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigqueryreservation_projects_locations_reservations_assignments_create_execute()` to send, or `bigqueryreservation_projects_locations_reservations_assignments_create` for simplest API.
 
-pub fn bigqueryreservation_projects_locations_reservations_assignments_create_builder(
-    client: &SimpleHttpClient,
+pub fn bigqueryreservation_projects_locations_reservations_assignments_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     assignmentId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigqueryreservation.googleapis.com/v1/projects/{}/locations/{locationsId}/reservations/{reservationsId}/assignments",
@@ -4363,10 +4439,13 @@ pub fn bigqueryreservation_projects_locations_reservations_assignments_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigqueryreservation_projects_locations_reservations_assignments_delete_execute()` to send, or `bigqueryreservation_projects_locations_reservations_assignments_delete` for simplest API.
 
-pub fn bigqueryreservation_projects_locations_reservations_assignments_delete_builder(
-    client: &SimpleHttpClient,
+pub fn bigqueryreservation_projects_locations_reservations_assignments_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigqueryreservation.googleapis.com/v1/projects/{}/locations/{locationsId}/reservations/{reservationsId}/assignments/{assignmentsId}",
@@ -4523,11 +4602,14 @@ pub fn bigqueryreservation_projects_locations_reservations_assignments_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigqueryreservation_projects_locations_reservations_assignments_get_iam_policy_execute()` to send, or `bigqueryreservation_projects_locations_reservations_assignments_get_iam_policy` for simplest API.
 
-pub fn bigqueryreservation_projects_locations_reservations_assignments_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn bigqueryreservation_projects_locations_reservations_assignments_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigqueryreservation.googleapis.com/v1/projects/{}/locations/{locationsId}/reservations/{reservationsId}/assignments/{assignmentsId}:getIamPolicy",
@@ -4701,12 +4783,15 @@ pub fn bigqueryreservation_projects_locations_reservations_assignments_get_iam_p
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigqueryreservation_projects_locations_reservations_assignments_list_execute()` to send, or `bigqueryreservation_projects_locations_reservations_assignments_list` for simplest API.
 
-pub fn bigqueryreservation_projects_locations_reservations_assignments_list_builder(
-    client: &SimpleHttpClient,
+pub fn bigqueryreservation_projects_locations_reservations_assignments_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigqueryreservation.googleapis.com/v1/projects/{}/locations/{locationsId}/reservations/{reservationsId}/assignments",
@@ -4887,10 +4972,13 @@ pub fn bigqueryreservation_projects_locations_reservations_assignments_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigqueryreservation_projects_locations_reservations_assignments_move_execute()` to send, or `bigqueryreservation_projects_locations_reservations_assignments_move` for simplest API.
 
-pub fn bigqueryreservation_projects_locations_reservations_assignments_move_builder(
-    client: &SimpleHttpClient,
+pub fn bigqueryreservation_projects_locations_reservations_assignments_move_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigqueryreservation.googleapis.com/v1/projects/{}/locations/{locationsId}/reservations/{reservationsId}/assignments/{assignmentsId}:move",
@@ -5046,11 +5134,14 @@ pub fn bigqueryreservation_projects_locations_reservations_assignments_move(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigqueryreservation_projects_locations_reservations_assignments_patch_execute()` to send, or `bigqueryreservation_projects_locations_reservations_assignments_patch` for simplest API.
 
-pub fn bigqueryreservation_projects_locations_reservations_assignments_patch_builder(
-    client: &SimpleHttpClient,
+pub fn bigqueryreservation_projects_locations_reservations_assignments_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigqueryreservation.googleapis.com/v1/projects/{}/locations/{locationsId}/reservations/{reservationsId}/assignments/{assignmentsId}",
@@ -5221,10 +5312,13 @@ pub fn bigqueryreservation_projects_locations_reservations_assignments_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigqueryreservation_projects_locations_reservations_assignments_set_iam_policy_execute()` to send, or `bigqueryreservation_projects_locations_reservations_assignments_set_iam_policy` for simplest API.
 
-pub fn bigqueryreservation_projects_locations_reservations_assignments_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn bigqueryreservation_projects_locations_reservations_assignments_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigqueryreservation.googleapis.com/v1/projects/{}/locations/{locationsId}/reservations/{reservationsId}/assignments/{assignmentsId}:setIamPolicy",
@@ -5384,10 +5478,15 @@ pub fn bigqueryreservation_projects_locations_reservations_assignments_set_iam_p
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigqueryreservation_projects_locations_reservations_assignments_test_iam_permissions_execute()` to send, or `bigqueryreservation_projects_locations_reservations_assignments_test_iam_permissions` for simplest API.
 
-pub fn bigqueryreservation_projects_locations_reservations_assignments_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn bigqueryreservation_projects_locations_reservations_assignments_test_iam_permissions_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://bigqueryreservation.googleapis.com/v1/projects/{}/locations/{locationsId}/reservations/{reservationsId}/assignments/{assignmentsId}:testIamPermissions",

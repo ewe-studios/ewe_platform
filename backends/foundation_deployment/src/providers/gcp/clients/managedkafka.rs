@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedkafka_projects_locations_get_execute()` to send, or `managedkafka_projects_locations_get` for simplest API.
 
-pub fn managedkafka_projects_locations_get_builder(
-    client: &SimpleHttpClient,
+pub fn managedkafka_projects_locations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}",
@@ -183,14 +187,17 @@ pub fn managedkafka_projects_locations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedkafka_projects_locations_list_execute()` to send, or `managedkafka_projects_locations_list` for simplest API.
 
-pub fn managedkafka_projects_locations_list_builder(
-    client: &SimpleHttpClient,
+pub fn managedkafka_projects_locations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     extraLocationTypes: &Option<Option<String>>,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedkafka.googleapis.com/v1/projects/{}/locations",
@@ -383,12 +390,15 @@ pub fn managedkafka_projects_locations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedkafka_projects_locations_clusters_create_execute()` to send, or `managedkafka_projects_locations_clusters_create` for simplest API.
 
-pub fn managedkafka_projects_locations_clusters_create_builder(
-    client: &SimpleHttpClient,
+pub fn managedkafka_projects_locations_clusters_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     clusterId: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/clusters",
@@ -565,11 +575,14 @@ pub fn managedkafka_projects_locations_clusters_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedkafka_projects_locations_clusters_delete_execute()` to send, or `managedkafka_projects_locations_clusters_delete` for simplest API.
 
-pub fn managedkafka_projects_locations_clusters_delete_builder(
-    client: &SimpleHttpClient,
+pub fn managedkafka_projects_locations_clusters_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/clusters/{clustersId}",
@@ -740,11 +753,14 @@ pub fn managedkafka_projects_locations_clusters_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedkafka_projects_locations_clusters_get_execute()` to send, or `managedkafka_projects_locations_clusters_get` for simplest API.
 
-pub fn managedkafka_projects_locations_clusters_get_builder(
-    client: &SimpleHttpClient,
+pub fn managedkafka_projects_locations_clusters_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/clusters/{clustersId}",
@@ -912,14 +928,17 @@ pub fn managedkafka_projects_locations_clusters_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedkafka_projects_locations_clusters_list_execute()` to send, or `managedkafka_projects_locations_clusters_list` for simplest API.
 
-pub fn managedkafka_projects_locations_clusters_list_builder(
-    client: &SimpleHttpClient,
+pub fn managedkafka_projects_locations_clusters_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/clusters",
@@ -1112,12 +1131,15 @@ pub fn managedkafka_projects_locations_clusters_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedkafka_projects_locations_clusters_patch_execute()` to send, or `managedkafka_projects_locations_clusters_patch` for simplest API.
 
-pub fn managedkafka_projects_locations_clusters_patch_builder(
-    client: &SimpleHttpClient,
+pub fn managedkafka_projects_locations_clusters_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/clusters/{clustersId}",
@@ -1294,10 +1316,13 @@ pub fn managedkafka_projects_locations_clusters_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedkafka_projects_locations_clusters_acls_add_acl_entry_execute()` to send, or `managedkafka_projects_locations_clusters_acls_add_acl_entry` for simplest API.
 
-pub fn managedkafka_projects_locations_clusters_acls_add_acl_entry_builder(
-    client: &SimpleHttpClient,
+pub fn managedkafka_projects_locations_clusters_acls_add_acl_entry_builder<R>(
+    client: &SimpleHttpClient<R>,
     acl: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/clusters/{clustersId}/acls/{aclsId}:addAclEntry",
@@ -1456,11 +1481,14 @@ pub fn managedkafka_projects_locations_clusters_acls_add_acl_entry(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedkafka_projects_locations_clusters_acls_create_execute()` to send, or `managedkafka_projects_locations_clusters_acls_create` for simplest API.
 
-pub fn managedkafka_projects_locations_clusters_acls_create_builder(
-    client: &SimpleHttpClient,
+pub fn managedkafka_projects_locations_clusters_acls_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     aclId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/clusters/{clustersId}/acls",
@@ -1631,10 +1659,13 @@ pub fn managedkafka_projects_locations_clusters_acls_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedkafka_projects_locations_clusters_acls_delete_execute()` to send, or `managedkafka_projects_locations_clusters_acls_delete` for simplest API.
 
-pub fn managedkafka_projects_locations_clusters_acls_delete_builder(
-    client: &SimpleHttpClient,
+pub fn managedkafka_projects_locations_clusters_acls_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/clusters/{clustersId}/acls/{aclsId}",
@@ -1788,10 +1819,13 @@ pub fn managedkafka_projects_locations_clusters_acls_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedkafka_projects_locations_clusters_acls_get_execute()` to send, or `managedkafka_projects_locations_clusters_acls_get` for simplest API.
 
-pub fn managedkafka_projects_locations_clusters_acls_get_builder(
-    client: &SimpleHttpClient,
+pub fn managedkafka_projects_locations_clusters_acls_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/clusters/{clustersId}/acls/{aclsId}",
@@ -1945,12 +1979,15 @@ pub fn managedkafka_projects_locations_clusters_acls_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedkafka_projects_locations_clusters_acls_list_execute()` to send, or `managedkafka_projects_locations_clusters_acls_list` for simplest API.
 
-pub fn managedkafka_projects_locations_clusters_acls_list_builder(
-    client: &SimpleHttpClient,
+pub fn managedkafka_projects_locations_clusters_acls_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/clusters/{clustersId}/acls",
@@ -2131,11 +2168,14 @@ pub fn managedkafka_projects_locations_clusters_acls_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedkafka_projects_locations_clusters_acls_patch_execute()` to send, or `managedkafka_projects_locations_clusters_acls_patch` for simplest API.
 
-pub fn managedkafka_projects_locations_clusters_acls_patch_builder(
-    client: &SimpleHttpClient,
+pub fn managedkafka_projects_locations_clusters_acls_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/clusters/{clustersId}/acls/{aclsId}",
@@ -2306,10 +2346,13 @@ pub fn managedkafka_projects_locations_clusters_acls_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedkafka_projects_locations_clusters_acls_remove_acl_entry_execute()` to send, or `managedkafka_projects_locations_clusters_acls_remove_acl_entry` for simplest API.
 
-pub fn managedkafka_projects_locations_clusters_acls_remove_acl_entry_builder(
-    client: &SimpleHttpClient,
+pub fn managedkafka_projects_locations_clusters_acls_remove_acl_entry_builder<R>(
+    client: &SimpleHttpClient<R>,
     acl: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/clusters/{clustersId}/acls/{aclsId}:removeAclEntry",
@@ -2468,10 +2511,13 @@ pub fn managedkafka_projects_locations_clusters_acls_remove_acl_entry(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedkafka_projects_locations_clusters_consumer_groups_delete_execute()` to send, or `managedkafka_projects_locations_clusters_consumer_groups_delete` for simplest API.
 
-pub fn managedkafka_projects_locations_clusters_consumer_groups_delete_builder(
-    client: &SimpleHttpClient,
+pub fn managedkafka_projects_locations_clusters_consumer_groups_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/clusters/{clustersId}/consumerGroups/{consumerGroupsId}",
@@ -2627,10 +2673,13 @@ pub fn managedkafka_projects_locations_clusters_consumer_groups_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedkafka_projects_locations_clusters_consumer_groups_get_execute()` to send, or `managedkafka_projects_locations_clusters_consumer_groups_get` for simplest API.
 
-pub fn managedkafka_projects_locations_clusters_consumer_groups_get_builder(
-    client: &SimpleHttpClient,
+pub fn managedkafka_projects_locations_clusters_consumer_groups_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/clusters/{clustersId}/consumerGroups/{consumerGroupsId}",
@@ -2789,14 +2838,17 @@ pub fn managedkafka_projects_locations_clusters_consumer_groups_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedkafka_projects_locations_clusters_consumer_groups_list_execute()` to send, or `managedkafka_projects_locations_clusters_consumer_groups_list` for simplest API.
 
-pub fn managedkafka_projects_locations_clusters_consumer_groups_list_builder(
-    client: &SimpleHttpClient,
+pub fn managedkafka_projects_locations_clusters_consumer_groups_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/clusters/{clustersId}/consumerGroups",
@@ -2993,11 +3045,14 @@ pub fn managedkafka_projects_locations_clusters_consumer_groups_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedkafka_projects_locations_clusters_consumer_groups_patch_execute()` to send, or `managedkafka_projects_locations_clusters_consumer_groups_patch` for simplest API.
 
-pub fn managedkafka_projects_locations_clusters_consumer_groups_patch_builder(
-    client: &SimpleHttpClient,
+pub fn managedkafka_projects_locations_clusters_consumer_groups_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/clusters/{clustersId}/consumerGroups/{consumerGroupsId}",
@@ -3172,11 +3227,14 @@ pub fn managedkafka_projects_locations_clusters_consumer_groups_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedkafka_projects_locations_clusters_topics_create_execute()` to send, or `managedkafka_projects_locations_clusters_topics_create` for simplest API.
 
-pub fn managedkafka_projects_locations_clusters_topics_create_builder(
-    client: &SimpleHttpClient,
+pub fn managedkafka_projects_locations_clusters_topics_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     topicId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/clusters/{clustersId}/topics",
@@ -3347,10 +3405,13 @@ pub fn managedkafka_projects_locations_clusters_topics_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedkafka_projects_locations_clusters_topics_delete_execute()` to send, or `managedkafka_projects_locations_clusters_topics_delete` for simplest API.
 
-pub fn managedkafka_projects_locations_clusters_topics_delete_builder(
-    client: &SimpleHttpClient,
+pub fn managedkafka_projects_locations_clusters_topics_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/clusters/{clustersId}/topics/{topicsId}",
@@ -3505,10 +3566,13 @@ pub fn managedkafka_projects_locations_clusters_topics_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedkafka_projects_locations_clusters_topics_get_execute()` to send, or `managedkafka_projects_locations_clusters_topics_get` for simplest API.
 
-pub fn managedkafka_projects_locations_clusters_topics_get_builder(
-    client: &SimpleHttpClient,
+pub fn managedkafka_projects_locations_clusters_topics_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/clusters/{clustersId}/topics/{topicsId}",
@@ -3662,12 +3726,15 @@ pub fn managedkafka_projects_locations_clusters_topics_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedkafka_projects_locations_clusters_topics_list_execute()` to send, or `managedkafka_projects_locations_clusters_topics_list` for simplest API.
 
-pub fn managedkafka_projects_locations_clusters_topics_list_builder(
-    client: &SimpleHttpClient,
+pub fn managedkafka_projects_locations_clusters_topics_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/clusters/{clustersId}/topics",
@@ -3848,11 +3915,14 @@ pub fn managedkafka_projects_locations_clusters_topics_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedkafka_projects_locations_clusters_topics_patch_execute()` to send, or `managedkafka_projects_locations_clusters_topics_patch` for simplest API.
 
-pub fn managedkafka_projects_locations_clusters_topics_patch_builder(
-    client: &SimpleHttpClient,
+pub fn managedkafka_projects_locations_clusters_topics_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/clusters/{clustersId}/topics/{topicsId}",
@@ -4023,12 +4093,15 @@ pub fn managedkafka_projects_locations_clusters_topics_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedkafka_projects_locations_connect_clusters_create_execute()` to send, or `managedkafka_projects_locations_connect_clusters_create` for simplest API.
 
-pub fn managedkafka_projects_locations_connect_clusters_create_builder(
-    client: &SimpleHttpClient,
+pub fn managedkafka_projects_locations_connect_clusters_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     connectClusterId: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/connectClusters",
@@ -4205,11 +4278,14 @@ pub fn managedkafka_projects_locations_connect_clusters_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedkafka_projects_locations_connect_clusters_delete_execute()` to send, or `managedkafka_projects_locations_connect_clusters_delete` for simplest API.
 
-pub fn managedkafka_projects_locations_connect_clusters_delete_builder(
-    client: &SimpleHttpClient,
+pub fn managedkafka_projects_locations_connect_clusters_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/connectClusters/{connectClustersId}",
@@ -4380,10 +4456,13 @@ pub fn managedkafka_projects_locations_connect_clusters_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedkafka_projects_locations_connect_clusters_get_execute()` to send, or `managedkafka_projects_locations_connect_clusters_get` for simplest API.
 
-pub fn managedkafka_projects_locations_connect_clusters_get_builder(
-    client: &SimpleHttpClient,
+pub fn managedkafka_projects_locations_connect_clusters_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/connectClusters/{connectClustersId}",
@@ -4541,14 +4620,17 @@ pub fn managedkafka_projects_locations_connect_clusters_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedkafka_projects_locations_connect_clusters_list_execute()` to send, or `managedkafka_projects_locations_connect_clusters_list` for simplest API.
 
-pub fn managedkafka_projects_locations_connect_clusters_list_builder(
-    client: &SimpleHttpClient,
+pub fn managedkafka_projects_locations_connect_clusters_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/connectClusters",
@@ -4745,12 +4827,15 @@ pub fn managedkafka_projects_locations_connect_clusters_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedkafka_projects_locations_connect_clusters_patch_execute()` to send, or `managedkafka_projects_locations_connect_clusters_patch` for simplest API.
 
-pub fn managedkafka_projects_locations_connect_clusters_patch_builder(
-    client: &SimpleHttpClient,
+pub fn managedkafka_projects_locations_connect_clusters_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/connectClusters/{connectClustersId}",
@@ -4927,11 +5012,14 @@ pub fn managedkafka_projects_locations_connect_clusters_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedkafka_projects_locations_connect_clusters_connectors_create_execute()` to send, or `managedkafka_projects_locations_connect_clusters_connectors_create` for simplest API.
 
-pub fn managedkafka_projects_locations_connect_clusters_connectors_create_builder(
-    client: &SimpleHttpClient,
+pub fn managedkafka_projects_locations_connect_clusters_connectors_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     connectorId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/connectClusters/{connectClustersId}/connectors",
@@ -5102,10 +5190,13 @@ pub fn managedkafka_projects_locations_connect_clusters_connectors_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedkafka_projects_locations_connect_clusters_connectors_delete_execute()` to send, or `managedkafka_projects_locations_connect_clusters_connectors_delete` for simplest API.
 
-pub fn managedkafka_projects_locations_connect_clusters_connectors_delete_builder(
-    client: &SimpleHttpClient,
+pub fn managedkafka_projects_locations_connect_clusters_connectors_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/connectClusters/{connectClustersId}/connectors/{connectorsId}",
@@ -5261,10 +5352,13 @@ pub fn managedkafka_projects_locations_connect_clusters_connectors_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedkafka_projects_locations_connect_clusters_connectors_get_execute()` to send, or `managedkafka_projects_locations_connect_clusters_connectors_get` for simplest API.
 
-pub fn managedkafka_projects_locations_connect_clusters_connectors_get_builder(
-    client: &SimpleHttpClient,
+pub fn managedkafka_projects_locations_connect_clusters_connectors_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/connectClusters/{connectClustersId}/connectors/{connectorsId}",
@@ -5420,12 +5514,15 @@ pub fn managedkafka_projects_locations_connect_clusters_connectors_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedkafka_projects_locations_connect_clusters_connectors_list_execute()` to send, or `managedkafka_projects_locations_connect_clusters_connectors_list` for simplest API.
 
-pub fn managedkafka_projects_locations_connect_clusters_connectors_list_builder(
-    client: &SimpleHttpClient,
+pub fn managedkafka_projects_locations_connect_clusters_connectors_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/connectClusters/{connectClustersId}/connectors",
@@ -5606,11 +5703,14 @@ pub fn managedkafka_projects_locations_connect_clusters_connectors_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedkafka_projects_locations_connect_clusters_connectors_patch_execute()` to send, or `managedkafka_projects_locations_connect_clusters_connectors_patch` for simplest API.
 
-pub fn managedkafka_projects_locations_connect_clusters_connectors_patch_builder(
-    client: &SimpleHttpClient,
+pub fn managedkafka_projects_locations_connect_clusters_connectors_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/connectClusters/{connectClustersId}/connectors/{connectorsId}",
@@ -5781,10 +5881,13 @@ pub fn managedkafka_projects_locations_connect_clusters_connectors_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedkafka_projects_locations_connect_clusters_connectors_pause_execute()` to send, or `managedkafka_projects_locations_connect_clusters_connectors_pause` for simplest API.
 
-pub fn managedkafka_projects_locations_connect_clusters_connectors_pause_builder(
-    client: &SimpleHttpClient,
+pub fn managedkafka_projects_locations_connect_clusters_connectors_pause_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/connectClusters/{connectClustersId}/connectors/{connectorsId}:pause",
@@ -5944,10 +6047,13 @@ pub fn managedkafka_projects_locations_connect_clusters_connectors_pause(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedkafka_projects_locations_connect_clusters_connectors_restart_execute()` to send, or `managedkafka_projects_locations_connect_clusters_connectors_restart` for simplest API.
 
-pub fn managedkafka_projects_locations_connect_clusters_connectors_restart_builder(
-    client: &SimpleHttpClient,
+pub fn managedkafka_projects_locations_connect_clusters_connectors_restart_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/connectClusters/{connectClustersId}/connectors/{connectorsId}:restart",
@@ -6107,10 +6213,13 @@ pub fn managedkafka_projects_locations_connect_clusters_connectors_restart(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedkafka_projects_locations_connect_clusters_connectors_resume_execute()` to send, or `managedkafka_projects_locations_connect_clusters_connectors_resume` for simplest API.
 
-pub fn managedkafka_projects_locations_connect_clusters_connectors_resume_builder(
-    client: &SimpleHttpClient,
+pub fn managedkafka_projects_locations_connect_clusters_connectors_resume_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/connectClusters/{connectClustersId}/connectors/{connectorsId}:resume",
@@ -6270,10 +6379,13 @@ pub fn managedkafka_projects_locations_connect_clusters_connectors_resume(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedkafka_projects_locations_connect_clusters_connectors_stop_execute()` to send, or `managedkafka_projects_locations_connect_clusters_connectors_stop` for simplest API.
 
-pub fn managedkafka_projects_locations_connect_clusters_connectors_stop_builder(
-    client: &SimpleHttpClient,
+pub fn managedkafka_projects_locations_connect_clusters_connectors_stop_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/connectClusters/{connectClustersId}/connectors/{connectorsId}:stop",
@@ -6433,10 +6545,13 @@ pub fn managedkafka_projects_locations_connect_clusters_connectors_stop(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedkafka_projects_locations_operations_cancel_execute()` to send, or `managedkafka_projects_locations_operations_cancel` for simplest API.
 
-pub fn managedkafka_projects_locations_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn managedkafka_projects_locations_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}:cancel",
@@ -6590,10 +6705,13 @@ pub fn managedkafka_projects_locations_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedkafka_projects_locations_operations_delete_execute()` to send, or `managedkafka_projects_locations_operations_delete` for simplest API.
 
-pub fn managedkafka_projects_locations_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn managedkafka_projects_locations_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -6747,10 +6865,13 @@ pub fn managedkafka_projects_locations_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedkafka_projects_locations_operations_get_execute()` to send, or `managedkafka_projects_locations_operations_get` for simplest API.
 
-pub fn managedkafka_projects_locations_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn managedkafka_projects_locations_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -6904,14 +7025,17 @@ pub fn managedkafka_projects_locations_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedkafka_projects_locations_operations_list_execute()` to send, or `managedkafka_projects_locations_operations_list` for simplest API.
 
-pub fn managedkafka_projects_locations_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn managedkafka_projects_locations_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/operations",
@@ -7104,10 +7228,13 @@ pub fn managedkafka_projects_locations_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedkafka_projects_locations_schema_registries_create_execute()` to send, or `managedkafka_projects_locations_schema_registries_create` for simplest API.
 
-pub fn managedkafka_projects_locations_schema_registries_create_builder(
-    client: &SimpleHttpClient,
+pub fn managedkafka_projects_locations_schema_registries_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/schemaRegistries",
@@ -7266,10 +7393,13 @@ pub fn managedkafka_projects_locations_schema_registries_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedkafka_projects_locations_schema_registries_delete_execute()` to send, or `managedkafka_projects_locations_schema_registries_delete` for simplest API.
 
-pub fn managedkafka_projects_locations_schema_registries_delete_builder(
-    client: &SimpleHttpClient,
+pub fn managedkafka_projects_locations_schema_registries_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}",
@@ -7424,10 +7554,13 @@ pub fn managedkafka_projects_locations_schema_registries_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedkafka_projects_locations_schema_registries_get_execute()` to send, or `managedkafka_projects_locations_schema_registries_get` for simplest API.
 
-pub fn managedkafka_projects_locations_schema_registries_get_builder(
-    client: &SimpleHttpClient,
+pub fn managedkafka_projects_locations_schema_registries_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}",
@@ -7586,11 +7719,14 @@ pub fn managedkafka_projects_locations_schema_registries_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedkafka_projects_locations_schema_registries_list_execute()` to send, or `managedkafka_projects_locations_schema_registries_list` for simplest API.
 
-pub fn managedkafka_projects_locations_schema_registries_list_builder(
-    client: &SimpleHttpClient,
+pub fn managedkafka_projects_locations_schema_registries_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/schemaRegistries",
@@ -7769,10 +7905,15 @@ pub fn managedkafka_projects_locations_schema_registries_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedkafka_projects_locations_schema_registries_compatibility_check_compatibility_execute()` to send, or `managedkafka_projects_locations_schema_registries_compatibility_check_compatibility` for simplest API.
 
-pub fn managedkafka_projects_locations_schema_registries_compatibility_check_compatibility_builder(
-    client: &SimpleHttpClient,
+pub fn managedkafka_projects_locations_schema_registries_compatibility_check_compatibility_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/compatibility/{compatibilityId}",
@@ -7939,10 +8080,13 @@ pub fn managedkafka_projects_locations_schema_registries_compatibility_check_com
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedkafka_projects_locations_schema_registries_config_delete_execute()` to send, or `managedkafka_projects_locations_schema_registries_config_delete` for simplest API.
 
-pub fn managedkafka_projects_locations_schema_registries_config_delete_builder(
-    client: &SimpleHttpClient,
+pub fn managedkafka_projects_locations_schema_registries_config_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/config/{configId}",
@@ -8102,11 +8246,14 @@ pub fn managedkafka_projects_locations_schema_registries_config_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedkafka_projects_locations_schema_registries_config_get_execute()` to send, or `managedkafka_projects_locations_schema_registries_config_get` for simplest API.
 
-pub fn managedkafka_projects_locations_schema_registries_config_get_builder(
-    client: &SimpleHttpClient,
+pub fn managedkafka_projects_locations_schema_registries_config_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     defaultToGlobal: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/config/{configId}",
@@ -8281,10 +8428,13 @@ pub fn managedkafka_projects_locations_schema_registries_config_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedkafka_projects_locations_schema_registries_config_update_execute()` to send, or `managedkafka_projects_locations_schema_registries_config_update` for simplest API.
 
-pub fn managedkafka_projects_locations_schema_registries_config_update_builder(
-    client: &SimpleHttpClient,
+pub fn managedkafka_projects_locations_schema_registries_config_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/config/{configId}",
@@ -8444,10 +8594,13 @@ pub fn managedkafka_projects_locations_schema_registries_config_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedkafka_projects_locations_schema_registries_contexts_get_execute()` to send, or `managedkafka_projects_locations_schema_registries_contexts_get` for simplest API.
 
-pub fn managedkafka_projects_locations_schema_registries_contexts_get_builder(
-    client: &SimpleHttpClient,
+pub fn managedkafka_projects_locations_schema_registries_contexts_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}",
@@ -8602,10 +8755,13 @@ pub fn managedkafka_projects_locations_schema_registries_contexts_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedkafka_projects_locations_schema_registries_contexts_list_execute()` to send, or `managedkafka_projects_locations_schema_registries_contexts_list` for simplest API.
 
-pub fn managedkafka_projects_locations_schema_registries_contexts_list_builder(
-    client: &SimpleHttpClient,
+pub fn managedkafka_projects_locations_schema_registries_contexts_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts",
@@ -8762,10 +8918,15 @@ pub fn managedkafka_projects_locations_schema_registries_contexts_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedkafka_projects_locations_schema_registries_contexts_compatibility_check_compatibility_execute()` to send, or `managedkafka_projects_locations_schema_registries_contexts_compatibility_check_compatibility` for simplest API.
 
-pub fn managedkafka_projects_locations_schema_registries_contexts_compatibility_check_compatibility_builder(
-    client: &SimpleHttpClient,
+pub fn managedkafka_projects_locations_schema_registries_contexts_compatibility_check_compatibility_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/compatibility/{compatibilityId}",
@@ -8928,10 +9089,13 @@ pub fn managedkafka_projects_locations_schema_registries_contexts_compatibility_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedkafka_projects_locations_schema_registries_contexts_config_delete_execute()` to send, or `managedkafka_projects_locations_schema_registries_contexts_config_delete` for simplest API.
 
-pub fn managedkafka_projects_locations_schema_registries_contexts_config_delete_builder(
-    client: &SimpleHttpClient,
+pub fn managedkafka_projects_locations_schema_registries_contexts_config_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/config/{configId}",
@@ -9092,11 +9256,14 @@ pub fn managedkafka_projects_locations_schema_registries_contexts_config_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedkafka_projects_locations_schema_registries_contexts_config_get_execute()` to send, or `managedkafka_projects_locations_schema_registries_contexts_config_get` for simplest API.
 
-pub fn managedkafka_projects_locations_schema_registries_contexts_config_get_builder(
-    client: &SimpleHttpClient,
+pub fn managedkafka_projects_locations_schema_registries_contexts_config_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     defaultToGlobal: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/config/{configId}",
@@ -9271,10 +9438,13 @@ pub fn managedkafka_projects_locations_schema_registries_contexts_config_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedkafka_projects_locations_schema_registries_contexts_config_update_execute()` to send, or `managedkafka_projects_locations_schema_registries_contexts_config_update` for simplest API.
 
-pub fn managedkafka_projects_locations_schema_registries_contexts_config_update_builder(
-    client: &SimpleHttpClient,
+pub fn managedkafka_projects_locations_schema_registries_contexts_config_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/config/{configId}",
@@ -9435,10 +9605,13 @@ pub fn managedkafka_projects_locations_schema_registries_contexts_config_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedkafka_projects_locations_schema_registries_contexts_mode_delete_execute()` to send, or `managedkafka_projects_locations_schema_registries_contexts_mode_delete` for simplest API.
 
-pub fn managedkafka_projects_locations_schema_registries_contexts_mode_delete_builder(
-    client: &SimpleHttpClient,
+pub fn managedkafka_projects_locations_schema_registries_contexts_mode_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/mode/{modeId}",
@@ -9595,10 +9768,13 @@ pub fn managedkafka_projects_locations_schema_registries_contexts_mode_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedkafka_projects_locations_schema_registries_contexts_mode_get_execute()` to send, or `managedkafka_projects_locations_schema_registries_contexts_mode_get` for simplest API.
 
-pub fn managedkafka_projects_locations_schema_registries_contexts_mode_get_builder(
-    client: &SimpleHttpClient,
+pub fn managedkafka_projects_locations_schema_registries_contexts_mode_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/mode/{modeId}",
@@ -9754,10 +9930,13 @@ pub fn managedkafka_projects_locations_schema_registries_contexts_mode_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedkafka_projects_locations_schema_registries_contexts_mode_update_execute()` to send, or `managedkafka_projects_locations_schema_registries_contexts_mode_update` for simplest API.
 
-pub fn managedkafka_projects_locations_schema_registries_contexts_mode_update_builder(
-    client: &SimpleHttpClient,
+pub fn managedkafka_projects_locations_schema_registries_contexts_mode_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/mode/{modeId}",
@@ -9914,11 +10093,14 @@ pub fn managedkafka_projects_locations_schema_registries_contexts_mode_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedkafka_projects_locations_schema_registries_contexts_schemas_get_execute()` to send, or `managedkafka_projects_locations_schema_registries_contexts_schemas_get` for simplest API.
 
-pub fn managedkafka_projects_locations_schema_registries_contexts_schemas_get_builder(
-    client: &SimpleHttpClient,
+pub fn managedkafka_projects_locations_schema_registries_contexts_schemas_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     subject: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/schemas/{schemasId}",
@@ -10090,11 +10272,14 @@ pub fn managedkafka_projects_locations_schema_registries_contexts_schemas_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedkafka_projects_locations_schema_registries_contexts_schemas_get_schema_execute()` to send, or `managedkafka_projects_locations_schema_registries_contexts_schemas_get_schema` for simplest API.
 
-pub fn managedkafka_projects_locations_schema_registries_contexts_schemas_get_schema_builder(
-    client: &SimpleHttpClient,
+pub fn managedkafka_projects_locations_schema_registries_contexts_schemas_get_schema_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     subject: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/schemas/{schemasId}/schema",
@@ -10268,12 +10453,15 @@ pub fn managedkafka_projects_locations_schema_registries_contexts_schemas_get_sc
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedkafka_projects_locations_schema_registries_contexts_schemas_subjects_list_execute()` to send, or `managedkafka_projects_locations_schema_registries_contexts_schemas_subjects_list` for simplest API.
 
-pub fn managedkafka_projects_locations_schema_registries_contexts_schemas_subjects_list_builder(
-    client: &SimpleHttpClient,
+pub fn managedkafka_projects_locations_schema_registries_contexts_schemas_subjects_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     deleted: &Option<Option<String>>,
     subject: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/schemas/{schemasId}/subjects",
@@ -10456,10 +10644,13 @@ pub fn managedkafka_projects_locations_schema_registries_contexts_schemas_subjec
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedkafka_projects_locations_schema_registries_contexts_schemas_types_list_execute()` to send, or `managedkafka_projects_locations_schema_registries_contexts_schemas_types_list` for simplest API.
 
-pub fn managedkafka_projects_locations_schema_registries_contexts_schemas_types_list_builder(
-    client: &SimpleHttpClient,
+pub fn managedkafka_projects_locations_schema_registries_contexts_schemas_types_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/schemas/types",
@@ -10619,12 +10810,15 @@ pub fn managedkafka_projects_locations_schema_registries_contexts_schemas_types_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedkafka_projects_locations_schema_registries_contexts_schemas_versions_list_execute()` to send, or `managedkafka_projects_locations_schema_registries_contexts_schemas_versions_list` for simplest API.
 
-pub fn managedkafka_projects_locations_schema_registries_contexts_schemas_versions_list_builder(
-    client: &SimpleHttpClient,
+pub fn managedkafka_projects_locations_schema_registries_contexts_schemas_versions_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     deleted: &Option<Option<String>>,
     subject: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/schemas/{schemasId}/versions",
@@ -10807,11 +11001,14 @@ pub fn managedkafka_projects_locations_schema_registries_contexts_schemas_versio
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedkafka_projects_locations_schema_registries_contexts_subjects_delete_execute()` to send, or `managedkafka_projects_locations_schema_registries_contexts_subjects_delete` for simplest API.
 
-pub fn managedkafka_projects_locations_schema_registries_contexts_subjects_delete_builder(
-    client: &SimpleHttpClient,
+pub fn managedkafka_projects_locations_schema_registries_contexts_subjects_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     permanent: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/subjects/{subjectsId}",
@@ -10984,12 +11181,15 @@ pub fn managedkafka_projects_locations_schema_registries_contexts_subjects_delet
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedkafka_projects_locations_schema_registries_contexts_subjects_list_execute()` to send, or `managedkafka_projects_locations_schema_registries_contexts_subjects_list` for simplest API.
 
-pub fn managedkafka_projects_locations_schema_registries_contexts_subjects_list_builder(
-    client: &SimpleHttpClient,
+pub fn managedkafka_projects_locations_schema_registries_contexts_subjects_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     deleted: &Option<Option<String>>,
     subjectPrefix: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/subjects",
@@ -11167,10 +11367,15 @@ pub fn managedkafka_projects_locations_schema_registries_contexts_subjects_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedkafka_projects_locations_schema_registries_contexts_subjects_lookup_version_execute()` to send, or `managedkafka_projects_locations_schema_registries_contexts_subjects_lookup_version` for simplest API.
 
-pub fn managedkafka_projects_locations_schema_registries_contexts_subjects_lookup_version_builder(
-    client: &SimpleHttpClient,
+pub fn managedkafka_projects_locations_schema_registries_contexts_subjects_lookup_version_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/subjects/{subjectsId}",
@@ -11337,10 +11542,15 @@ pub fn managedkafka_projects_locations_schema_registries_contexts_subjects_looku
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedkafka_projects_locations_schema_registries_contexts_subjects_versions_create_execute()` to send, or `managedkafka_projects_locations_schema_registries_contexts_subjects_versions_create` for simplest API.
 
-pub fn managedkafka_projects_locations_schema_registries_contexts_subjects_versions_create_builder(
-    client: &SimpleHttpClient,
+pub fn managedkafka_projects_locations_schema_registries_contexts_subjects_versions_create_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/subjects/{subjectsId}/versions",
@@ -11503,11 +11713,16 @@ pub fn managedkafka_projects_locations_schema_registries_contexts_subjects_versi
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedkafka_projects_locations_schema_registries_contexts_subjects_versions_delete_execute()` to send, or `managedkafka_projects_locations_schema_registries_contexts_subjects_versions_delete` for simplest API.
 
-pub fn managedkafka_projects_locations_schema_registries_contexts_subjects_versions_delete_builder(
-    client: &SimpleHttpClient,
+pub fn managedkafka_projects_locations_schema_registries_contexts_subjects_versions_delete_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     permanent: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/subjects/{subjectsId}/versions/{versionsId}",
@@ -11679,11 +11894,14 @@ pub fn managedkafka_projects_locations_schema_registries_contexts_subjects_versi
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedkafka_projects_locations_schema_registries_contexts_subjects_versions_get_execute()` to send, or `managedkafka_projects_locations_schema_registries_contexts_subjects_versions_get` for simplest API.
 
-pub fn managedkafka_projects_locations_schema_registries_contexts_subjects_versions_get_builder(
-    client: &SimpleHttpClient,
+pub fn managedkafka_projects_locations_schema_registries_contexts_subjects_versions_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     deleted: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/subjects/{subjectsId}/versions/{versionsId}",
@@ -11864,11 +12082,16 @@ pub fn managedkafka_projects_locations_schema_registries_contexts_subjects_versi
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedkafka_projects_locations_schema_registries_contexts_subjects_versions_get_schema_execute()` to send, or `managedkafka_projects_locations_schema_registries_contexts_subjects_versions_get_schema` for simplest API.
 
-pub fn managedkafka_projects_locations_schema_registries_contexts_subjects_versions_get_schema_builder(
-    client: &SimpleHttpClient,
+pub fn managedkafka_projects_locations_schema_registries_contexts_subjects_versions_get_schema_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     deleted: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/subjects/{subjectsId}/versions/{versionsId}/schema",
@@ -12037,11 +12260,16 @@ pub fn managedkafka_projects_locations_schema_registries_contexts_subjects_versi
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedkafka_projects_locations_schema_registries_contexts_subjects_versions_list_execute()` to send, or `managedkafka_projects_locations_schema_registries_contexts_subjects_versions_list` for simplest API.
 
-pub fn managedkafka_projects_locations_schema_registries_contexts_subjects_versions_list_builder(
-    client: &SimpleHttpClient,
+pub fn managedkafka_projects_locations_schema_registries_contexts_subjects_versions_list_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     deleted: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/subjects/{subjectsId}/versions",
@@ -12218,10 +12446,15 @@ pub fn managedkafka_projects_locations_schema_registries_contexts_subjects_versi
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedkafka_projects_locations_schema_registries_contexts_subjects_versions_referencedby_list_execute()` to send, or `managedkafka_projects_locations_schema_registries_contexts_subjects_versions_referencedby_list` for simplest API.
 
-pub fn managedkafka_projects_locations_schema_registries_contexts_subjects_versions_referencedby_list_builder(
-    client: &SimpleHttpClient,
+pub fn managedkafka_projects_locations_schema_registries_contexts_subjects_versions_referencedby_list_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/subjects/{subjectsId}/versions/{versionsId}/referencedby",
@@ -12376,10 +12609,13 @@ pub fn managedkafka_projects_locations_schema_registries_contexts_subjects_versi
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedkafka_projects_locations_schema_registries_mode_delete_execute()` to send, or `managedkafka_projects_locations_schema_registries_mode_delete` for simplest API.
 
-pub fn managedkafka_projects_locations_schema_registries_mode_delete_builder(
-    client: &SimpleHttpClient,
+pub fn managedkafka_projects_locations_schema_registries_mode_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/mode/{modeId}",
@@ -12534,10 +12770,13 @@ pub fn managedkafka_projects_locations_schema_registries_mode_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedkafka_projects_locations_schema_registries_mode_get_execute()` to send, or `managedkafka_projects_locations_schema_registries_mode_get` for simplest API.
 
-pub fn managedkafka_projects_locations_schema_registries_mode_get_builder(
-    client: &SimpleHttpClient,
+pub fn managedkafka_projects_locations_schema_registries_mode_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/mode/{modeId}",
@@ -12692,10 +12931,13 @@ pub fn managedkafka_projects_locations_schema_registries_mode_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedkafka_projects_locations_schema_registries_mode_update_execute()` to send, or `managedkafka_projects_locations_schema_registries_mode_update` for simplest API.
 
-pub fn managedkafka_projects_locations_schema_registries_mode_update_builder(
-    client: &SimpleHttpClient,
+pub fn managedkafka_projects_locations_schema_registries_mode_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/mode/{modeId}",
@@ -12850,11 +13092,14 @@ pub fn managedkafka_projects_locations_schema_registries_mode_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedkafka_projects_locations_schema_registries_schemas_get_execute()` to send, or `managedkafka_projects_locations_schema_registries_schemas_get` for simplest API.
 
-pub fn managedkafka_projects_locations_schema_registries_schemas_get_builder(
-    client: &SimpleHttpClient,
+pub fn managedkafka_projects_locations_schema_registries_schemas_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     subject: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/schemas/{schemasId}",
@@ -13025,11 +13270,14 @@ pub fn managedkafka_projects_locations_schema_registries_schemas_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedkafka_projects_locations_schema_registries_schemas_get_schema_execute()` to send, or `managedkafka_projects_locations_schema_registries_schemas_get_schema` for simplest API.
 
-pub fn managedkafka_projects_locations_schema_registries_schemas_get_schema_builder(
-    client: &SimpleHttpClient,
+pub fn managedkafka_projects_locations_schema_registries_schemas_get_schema_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     subject: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/schemas/{schemasId}/schema",
@@ -13200,12 +13448,15 @@ pub fn managedkafka_projects_locations_schema_registries_schemas_get_schema(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedkafka_projects_locations_schema_registries_schemas_subjects_list_execute()` to send, or `managedkafka_projects_locations_schema_registries_schemas_subjects_list` for simplest API.
 
-pub fn managedkafka_projects_locations_schema_registries_schemas_subjects_list_builder(
-    client: &SimpleHttpClient,
+pub fn managedkafka_projects_locations_schema_registries_schemas_subjects_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     deleted: &Option<Option<String>>,
     subject: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/schemas/{schemasId}/subjects",
@@ -13383,10 +13634,13 @@ pub fn managedkafka_projects_locations_schema_registries_schemas_subjects_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedkafka_projects_locations_schema_registries_schemas_types_list_execute()` to send, or `managedkafka_projects_locations_schema_registries_schemas_types_list` for simplest API.
 
-pub fn managedkafka_projects_locations_schema_registries_schemas_types_list_builder(
-    client: &SimpleHttpClient,
+pub fn managedkafka_projects_locations_schema_registries_schemas_types_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/schemas/types",
@@ -13543,12 +13797,15 @@ pub fn managedkafka_projects_locations_schema_registries_schemas_types_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedkafka_projects_locations_schema_registries_schemas_versions_list_execute()` to send, or `managedkafka_projects_locations_schema_registries_schemas_versions_list` for simplest API.
 
-pub fn managedkafka_projects_locations_schema_registries_schemas_versions_list_builder(
-    client: &SimpleHttpClient,
+pub fn managedkafka_projects_locations_schema_registries_schemas_versions_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     deleted: &Option<Option<String>>,
     subject: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/schemas/{schemasId}/versions",
@@ -13726,11 +13983,14 @@ pub fn managedkafka_projects_locations_schema_registries_schemas_versions_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedkafka_projects_locations_schema_registries_subjects_delete_execute()` to send, or `managedkafka_projects_locations_schema_registries_subjects_delete` for simplest API.
 
-pub fn managedkafka_projects_locations_schema_registries_subjects_delete_builder(
-    client: &SimpleHttpClient,
+pub fn managedkafka_projects_locations_schema_registries_subjects_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     permanent: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/subjects/{subjectsId}",
@@ -13901,12 +14161,15 @@ pub fn managedkafka_projects_locations_schema_registries_subjects_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedkafka_projects_locations_schema_registries_subjects_list_execute()` to send, or `managedkafka_projects_locations_schema_registries_subjects_list` for simplest API.
 
-pub fn managedkafka_projects_locations_schema_registries_subjects_list_builder(
-    client: &SimpleHttpClient,
+pub fn managedkafka_projects_locations_schema_registries_subjects_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     deleted: &Option<Option<String>>,
     subjectPrefix: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/subjects",
@@ -14083,10 +14346,13 @@ pub fn managedkafka_projects_locations_schema_registries_subjects_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedkafka_projects_locations_schema_registries_subjects_lookup_version_execute()` to send, or `managedkafka_projects_locations_schema_registries_subjects_lookup_version` for simplest API.
 
-pub fn managedkafka_projects_locations_schema_registries_subjects_lookup_version_builder(
-    client: &SimpleHttpClient,
+pub fn managedkafka_projects_locations_schema_registries_subjects_lookup_version_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/subjects/{subjectsId}",
@@ -14249,10 +14515,13 @@ pub fn managedkafka_projects_locations_schema_registries_subjects_lookup_version
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedkafka_projects_locations_schema_registries_subjects_versions_create_execute()` to send, or `managedkafka_projects_locations_schema_registries_subjects_versions_create` for simplest API.
 
-pub fn managedkafka_projects_locations_schema_registries_subjects_versions_create_builder(
-    client: &SimpleHttpClient,
+pub fn managedkafka_projects_locations_schema_registries_subjects_versions_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/subjects/{subjectsId}/versions",
@@ -14415,11 +14684,14 @@ pub fn managedkafka_projects_locations_schema_registries_subjects_versions_creat
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedkafka_projects_locations_schema_registries_subjects_versions_delete_execute()` to send, or `managedkafka_projects_locations_schema_registries_subjects_versions_delete` for simplest API.
 
-pub fn managedkafka_projects_locations_schema_registries_subjects_versions_delete_builder(
-    client: &SimpleHttpClient,
+pub fn managedkafka_projects_locations_schema_registries_subjects_versions_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     permanent: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/subjects/{subjectsId}/versions/{versionsId}",
@@ -14592,11 +14864,14 @@ pub fn managedkafka_projects_locations_schema_registries_subjects_versions_delet
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedkafka_projects_locations_schema_registries_subjects_versions_get_execute()` to send, or `managedkafka_projects_locations_schema_registries_subjects_versions_get` for simplest API.
 
-pub fn managedkafka_projects_locations_schema_registries_subjects_versions_get_builder(
-    client: &SimpleHttpClient,
+pub fn managedkafka_projects_locations_schema_registries_subjects_versions_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     deleted: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/subjects/{subjectsId}/versions/{versionsId}",
@@ -14772,11 +15047,14 @@ pub fn managedkafka_projects_locations_schema_registries_subjects_versions_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedkafka_projects_locations_schema_registries_subjects_versions_get_schema_execute()` to send, or `managedkafka_projects_locations_schema_registries_subjects_versions_get_schema` for simplest API.
 
-pub fn managedkafka_projects_locations_schema_registries_subjects_versions_get_schema_builder(
-    client: &SimpleHttpClient,
+pub fn managedkafka_projects_locations_schema_registries_subjects_versions_get_schema_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     deleted: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/subjects/{subjectsId}/versions/{versionsId}/schema",
@@ -14950,11 +15228,14 @@ pub fn managedkafka_projects_locations_schema_registries_subjects_versions_get_s
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedkafka_projects_locations_schema_registries_subjects_versions_list_execute()` to send, or `managedkafka_projects_locations_schema_registries_subjects_versions_list` for simplest API.
 
-pub fn managedkafka_projects_locations_schema_registries_subjects_versions_list_builder(
-    client: &SimpleHttpClient,
+pub fn managedkafka_projects_locations_schema_registries_subjects_versions_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     deleted: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/subjects/{subjectsId}/versions",
@@ -15126,10 +15407,15 @@ pub fn managedkafka_projects_locations_schema_registries_subjects_versions_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedkafka_projects_locations_schema_registries_subjects_versions_referencedby_list_execute()` to send, or `managedkafka_projects_locations_schema_registries_subjects_versions_referencedby_list` for simplest API.
 
-pub fn managedkafka_projects_locations_schema_registries_subjects_versions_referencedby_list_builder(
-    client: &SimpleHttpClient,
+pub fn managedkafka_projects_locations_schema_registries_subjects_versions_referencedby_list_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/subjects/{subjectsId}/versions/{versionsId}/referencedby",

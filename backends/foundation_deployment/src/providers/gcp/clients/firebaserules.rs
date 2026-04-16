@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebaserules_projects_test_execute()` to send, or `firebaserules_projects_test` for simplest API.
 
-pub fn firebaserules_projects_test_builder(
-    client: &SimpleHttpClient,
+pub fn firebaserules_projects_test_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebaserules.googleapis.com/v1/projects/{}:test",
@@ -187,10 +191,13 @@ pub fn firebaserules_projects_test(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebaserules_projects_releases_create_execute()` to send, or `firebaserules_projects_releases_create` for simplest API.
 
-pub fn firebaserules_projects_releases_create_builder(
-    client: &SimpleHttpClient,
+pub fn firebaserules_projects_releases_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebaserules.googleapis.com/v1/projects/{}/releases",
@@ -344,10 +351,13 @@ pub fn firebaserules_projects_releases_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebaserules_projects_releases_delete_execute()` to send, or `firebaserules_projects_releases_delete` for simplest API.
 
-pub fn firebaserules_projects_releases_delete_builder(
-    client: &SimpleHttpClient,
+pub fn firebaserules_projects_releases_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebaserules.googleapis.com/v1/projects/{}/releases/{releasesId}",
@@ -501,10 +511,13 @@ pub fn firebaserules_projects_releases_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebaserules_projects_releases_get_execute()` to send, or `firebaserules_projects_releases_get` for simplest API.
 
-pub fn firebaserules_projects_releases_get_builder(
-    client: &SimpleHttpClient,
+pub fn firebaserules_projects_releases_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebaserules.googleapis.com/v1/projects/{}/releases/{releasesId}",
@@ -658,11 +671,14 @@ pub fn firebaserules_projects_releases_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebaserules_projects_releases_get_executable_execute()` to send, or `firebaserules_projects_releases_get_executable` for simplest API.
 
-pub fn firebaserules_projects_releases_get_executable_builder(
-    client: &SimpleHttpClient,
+pub fn firebaserules_projects_releases_get_executable_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     executableVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebaserules.googleapis.com/v1/projects/{}/releases/{releasesId}:getExecutable",
@@ -841,13 +857,16 @@ pub fn firebaserules_projects_releases_get_executable(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebaserules_projects_releases_list_execute()` to send, or `firebaserules_projects_releases_list` for simplest API.
 
-pub fn firebaserules_projects_releases_list_builder(
-    client: &SimpleHttpClient,
+pub fn firebaserules_projects_releases_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebaserules.googleapis.com/v1/projects/{}/releases",
@@ -1034,10 +1053,13 @@ pub fn firebaserules_projects_releases_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebaserules_projects_releases_patch_execute()` to send, or `firebaserules_projects_releases_patch` for simplest API.
 
-pub fn firebaserules_projects_releases_patch_builder(
-    client: &SimpleHttpClient,
+pub fn firebaserules_projects_releases_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebaserules.googleapis.com/v1/projects/{}/releases/{releasesId}",
@@ -1191,10 +1213,13 @@ pub fn firebaserules_projects_releases_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebaserules_projects_rulesets_create_execute()` to send, or `firebaserules_projects_rulesets_create` for simplest API.
 
-pub fn firebaserules_projects_rulesets_create_builder(
-    client: &SimpleHttpClient,
+pub fn firebaserules_projects_rulesets_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebaserules.googleapis.com/v1/projects/{}/rulesets",
@@ -1348,10 +1373,13 @@ pub fn firebaserules_projects_rulesets_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebaserules_projects_rulesets_delete_execute()` to send, or `firebaserules_projects_rulesets_delete` for simplest API.
 
-pub fn firebaserules_projects_rulesets_delete_builder(
-    client: &SimpleHttpClient,
+pub fn firebaserules_projects_rulesets_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebaserules.googleapis.com/v1/projects/{}/rulesets/{rulesetsId}",
@@ -1505,10 +1533,13 @@ pub fn firebaserules_projects_rulesets_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebaserules_projects_rulesets_get_execute()` to send, or `firebaserules_projects_rulesets_get` for simplest API.
 
-pub fn firebaserules_projects_rulesets_get_builder(
-    client: &SimpleHttpClient,
+pub fn firebaserules_projects_rulesets_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebaserules.googleapis.com/v1/projects/{}/rulesets/{rulesetsId}",
@@ -1662,13 +1693,16 @@ pub fn firebaserules_projects_rulesets_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebaserules_projects_rulesets_list_execute()` to send, or `firebaserules_projects_rulesets_list` for simplest API.
 
-pub fn firebaserules_projects_rulesets_list_builder(
-    client: &SimpleHttpClient,
+pub fn firebaserules_projects_rulesets_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebaserules.googleapis.com/v1/projects/{}/rulesets",

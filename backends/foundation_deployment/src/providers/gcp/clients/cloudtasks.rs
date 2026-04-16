@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudtasks_projects_locations_get_execute()` to send, or `cloudtasks_projects_locations_get` for simplest API.
 
-pub fn cloudtasks_projects_locations_get_builder(
-    client: &SimpleHttpClient,
+pub fn cloudtasks_projects_locations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudtasks.googleapis.com/v2/projects/{}/locations/{locationsId}",
@@ -183,10 +187,13 @@ pub fn cloudtasks_projects_locations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudtasks_projects_locations_get_cmek_config_execute()` to send, or `cloudtasks_projects_locations_get_cmek_config` for simplest API.
 
-pub fn cloudtasks_projects_locations_get_cmek_config_builder(
-    client: &SimpleHttpClient,
+pub fn cloudtasks_projects_locations_get_cmek_config_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudtasks.googleapis.com/v2/projects/{}/locations/{locationsId}/cmekConfig",
@@ -340,14 +347,17 @@ pub fn cloudtasks_projects_locations_get_cmek_config(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudtasks_projects_locations_list_execute()` to send, or `cloudtasks_projects_locations_list` for simplest API.
 
-pub fn cloudtasks_projects_locations_list_builder(
-    client: &SimpleHttpClient,
+pub fn cloudtasks_projects_locations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     extraLocationTypes: &Option<Option<String>>,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudtasks.googleapis.com/v2/projects/{}/locations",
@@ -540,11 +550,14 @@ pub fn cloudtasks_projects_locations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudtasks_projects_locations_update_cmek_config_execute()` to send, or `cloudtasks_projects_locations_update_cmek_config` for simplest API.
 
-pub fn cloudtasks_projects_locations_update_cmek_config_builder(
-    client: &SimpleHttpClient,
+pub fn cloudtasks_projects_locations_update_cmek_config_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudtasks.googleapis.com/v2/projects/{}/locations/{locationsId}/cmekConfig",
@@ -715,10 +728,13 @@ pub fn cloudtasks_projects_locations_update_cmek_config(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudtasks_projects_locations_queues_create_execute()` to send, or `cloudtasks_projects_locations_queues_create` for simplest API.
 
-pub fn cloudtasks_projects_locations_queues_create_builder(
-    client: &SimpleHttpClient,
+pub fn cloudtasks_projects_locations_queues_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudtasks.googleapis.com/v2/projects/{}/locations/{locationsId}/queues",
@@ -872,10 +888,13 @@ pub fn cloudtasks_projects_locations_queues_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudtasks_projects_locations_queues_delete_execute()` to send, or `cloudtasks_projects_locations_queues_delete` for simplest API.
 
-pub fn cloudtasks_projects_locations_queues_delete_builder(
-    client: &SimpleHttpClient,
+pub fn cloudtasks_projects_locations_queues_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudtasks.googleapis.com/v2/projects/{}/locations/{locationsId}/queues/{queuesId}",
@@ -1029,10 +1048,13 @@ pub fn cloudtasks_projects_locations_queues_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudtasks_projects_locations_queues_get_execute()` to send, or `cloudtasks_projects_locations_queues_get` for simplest API.
 
-pub fn cloudtasks_projects_locations_queues_get_builder(
-    client: &SimpleHttpClient,
+pub fn cloudtasks_projects_locations_queues_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudtasks.googleapis.com/v2/projects/{}/locations/{locationsId}/queues/{queuesId}",
@@ -1186,10 +1208,13 @@ pub fn cloudtasks_projects_locations_queues_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudtasks_projects_locations_queues_get_iam_policy_execute()` to send, or `cloudtasks_projects_locations_queues_get_iam_policy` for simplest API.
 
-pub fn cloudtasks_projects_locations_queues_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn cloudtasks_projects_locations_queues_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudtasks.googleapis.com/v2/projects/{}/locations/{locationsId}/queues/{queuesId}:getIamPolicy",
@@ -1344,13 +1369,16 @@ pub fn cloudtasks_projects_locations_queues_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudtasks_projects_locations_queues_list_execute()` to send, or `cloudtasks_projects_locations_queues_list` for simplest API.
 
-pub fn cloudtasks_projects_locations_queues_list_builder(
-    client: &SimpleHttpClient,
+pub fn cloudtasks_projects_locations_queues_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudtasks.googleapis.com/v2/projects/{}/locations/{locationsId}/queues",
@@ -1537,11 +1565,14 @@ pub fn cloudtasks_projects_locations_queues_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudtasks_projects_locations_queues_patch_execute()` to send, or `cloudtasks_projects_locations_queues_patch` for simplest API.
 
-pub fn cloudtasks_projects_locations_queues_patch_builder(
-    client: &SimpleHttpClient,
+pub fn cloudtasks_projects_locations_queues_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudtasks.googleapis.com/v2/projects/{}/locations/{locationsId}/queues/{queuesId}",
@@ -1709,10 +1740,13 @@ pub fn cloudtasks_projects_locations_queues_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudtasks_projects_locations_queues_pause_execute()` to send, or `cloudtasks_projects_locations_queues_pause` for simplest API.
 
-pub fn cloudtasks_projects_locations_queues_pause_builder(
-    client: &SimpleHttpClient,
+pub fn cloudtasks_projects_locations_queues_pause_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudtasks.googleapis.com/v2/projects/{}/locations/{locationsId}/queues/{queuesId}:pause",
@@ -1866,10 +1900,13 @@ pub fn cloudtasks_projects_locations_queues_pause(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudtasks_projects_locations_queues_purge_execute()` to send, or `cloudtasks_projects_locations_queues_purge` for simplest API.
 
-pub fn cloudtasks_projects_locations_queues_purge_builder(
-    client: &SimpleHttpClient,
+pub fn cloudtasks_projects_locations_queues_purge_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudtasks.googleapis.com/v2/projects/{}/locations/{locationsId}/queues/{queuesId}:purge",
@@ -2023,10 +2060,13 @@ pub fn cloudtasks_projects_locations_queues_purge(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudtasks_projects_locations_queues_resume_execute()` to send, or `cloudtasks_projects_locations_queues_resume` for simplest API.
 
-pub fn cloudtasks_projects_locations_queues_resume_builder(
-    client: &SimpleHttpClient,
+pub fn cloudtasks_projects_locations_queues_resume_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudtasks.googleapis.com/v2/projects/{}/locations/{locationsId}/queues/{queuesId}:resume",
@@ -2180,10 +2220,13 @@ pub fn cloudtasks_projects_locations_queues_resume(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudtasks_projects_locations_queues_set_iam_policy_execute()` to send, or `cloudtasks_projects_locations_queues_set_iam_policy` for simplest API.
 
-pub fn cloudtasks_projects_locations_queues_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn cloudtasks_projects_locations_queues_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudtasks.googleapis.com/v2/projects/{}/locations/{locationsId}/queues/{queuesId}:setIamPolicy",
@@ -2338,10 +2381,13 @@ pub fn cloudtasks_projects_locations_queues_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudtasks_projects_locations_queues_test_iam_permissions_execute()` to send, or `cloudtasks_projects_locations_queues_test_iam_permissions` for simplest API.
 
-pub fn cloudtasks_projects_locations_queues_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn cloudtasks_projects_locations_queues_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudtasks.googleapis.com/v2/projects/{}/locations/{locationsId}/queues/{queuesId}:testIamPermissions",
@@ -2504,11 +2550,14 @@ pub fn cloudtasks_projects_locations_queues_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudtasks_projects_locations_queues_tasks_buffer_execute()` to send, or `cloudtasks_projects_locations_queues_tasks_buffer` for simplest API.
 
-pub fn cloudtasks_projects_locations_queues_tasks_buffer_builder(
-    client: &SimpleHttpClient,
+pub fn cloudtasks_projects_locations_queues_tasks_buffer_builder<R>(
+    client: &SimpleHttpClient<R>,
     queue: &String,
     taskId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudtasks.googleapis.com/v2/projects/{}/locations/{}/queues/{queuesId}/tasks/{taskId}:buffer",
@@ -2673,10 +2722,13 @@ pub fn cloudtasks_projects_locations_queues_tasks_buffer(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudtasks_projects_locations_queues_tasks_create_execute()` to send, or `cloudtasks_projects_locations_queues_tasks_create` for simplest API.
 
-pub fn cloudtasks_projects_locations_queues_tasks_create_builder(
-    client: &SimpleHttpClient,
+pub fn cloudtasks_projects_locations_queues_tasks_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudtasks.googleapis.com/v2/projects/{}/locations/{locationsId}/queues/{queuesId}/tasks",
@@ -2830,10 +2882,13 @@ pub fn cloudtasks_projects_locations_queues_tasks_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudtasks_projects_locations_queues_tasks_delete_execute()` to send, or `cloudtasks_projects_locations_queues_tasks_delete` for simplest API.
 
-pub fn cloudtasks_projects_locations_queues_tasks_delete_builder(
-    client: &SimpleHttpClient,
+pub fn cloudtasks_projects_locations_queues_tasks_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudtasks.googleapis.com/v2/projects/{}/locations/{locationsId}/queues/{queuesId}/tasks/{tasksId}",
@@ -2987,11 +3042,14 @@ pub fn cloudtasks_projects_locations_queues_tasks_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudtasks_projects_locations_queues_tasks_get_execute()` to send, or `cloudtasks_projects_locations_queues_tasks_get` for simplest API.
 
-pub fn cloudtasks_projects_locations_queues_tasks_get_builder(
-    client: &SimpleHttpClient,
+pub fn cloudtasks_projects_locations_queues_tasks_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     responseView: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudtasks.googleapis.com/v2/projects/{}/locations/{locationsId}/queues/{queuesId}/tasks/{tasksId}",
@@ -3162,13 +3220,16 @@ pub fn cloudtasks_projects_locations_queues_tasks_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudtasks_projects_locations_queues_tasks_list_execute()` to send, or `cloudtasks_projects_locations_queues_tasks_list` for simplest API.
 
-pub fn cloudtasks_projects_locations_queues_tasks_list_builder(
-    client: &SimpleHttpClient,
+pub fn cloudtasks_projects_locations_queues_tasks_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     responseView: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudtasks.googleapis.com/v2/projects/{}/locations/{locationsId}/queues/{queuesId}/tasks",
@@ -3355,10 +3416,13 @@ pub fn cloudtasks_projects_locations_queues_tasks_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudtasks_projects_locations_queues_tasks_run_execute()` to send, or `cloudtasks_projects_locations_queues_tasks_run` for simplest API.
 
-pub fn cloudtasks_projects_locations_queues_tasks_run_builder(
-    client: &SimpleHttpClient,
+pub fn cloudtasks_projects_locations_queues_tasks_run_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudtasks.googleapis.com/v2/projects/{}/locations/{locationsId}/queues/{queuesId}/tasks/{tasksId}:run",

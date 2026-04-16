@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,12 +27,15 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `versionhistory_platforms_list_execute()` to send, or `versionhistory_platforms_list` for simplest API.
 
-pub fn versionhistory_platforms_list_builder(
-    client: &SimpleHttpClient,
+pub fn versionhistory_platforms_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://versionhistory.googleapis.com/v1/{}/platforms",
@@ -212,12 +216,15 @@ pub fn versionhistory_platforms_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `versionhistory_platforms_channels_list_execute()` to send, or `versionhistory_platforms_channels_list` for simplest API.
 
-pub fn versionhistory_platforms_channels_list_builder(
-    client: &SimpleHttpClient,
+pub fn versionhistory_platforms_channels_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://versionhistory.googleapis.com/v1/{}/platforms/{platformsId}/channels",
@@ -398,14 +405,17 @@ pub fn versionhistory_platforms_channels_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `versionhistory_platforms_channels_versions_list_execute()` to send, or `versionhistory_platforms_channels_versions_list` for simplest API.
 
-pub fn versionhistory_platforms_channels_versions_list_builder(
-    client: &SimpleHttpClient,
+pub fn versionhistory_platforms_channels_versions_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://versionhistory.googleapis.com/v1/{}/platforms/{platformsId}/channels/{channelsId}/versions",
@@ -598,14 +608,17 @@ pub fn versionhistory_platforms_channels_versions_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `versionhistory_platforms_channels_versions_releases_list_execute()` to send, or `versionhistory_platforms_channels_versions_releases_list` for simplest API.
 
-pub fn versionhistory_platforms_channels_versions_releases_list_builder(
-    client: &SimpleHttpClient,
+pub fn versionhistory_platforms_channels_versions_releases_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://versionhistory.googleapis.com/v1/{}/platforms/{platformsId}/channels/{channelsId}/versions/{versionsId}/releases",

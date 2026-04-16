@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,12 +27,15 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `recommendationengine_projects_locations_catalogs_list_execute()` to send, or `recommendationengine_projects_locations_catalogs_list` for simplest API.
 
-pub fn recommendationengine_projects_locations_catalogs_list_builder(
-    client: &SimpleHttpClient,
+pub fn recommendationengine_projects_locations_catalogs_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://recommendationengine.googleapis.com/v1beta1/projects/{}/locations/{locationsId}/catalogs",
@@ -226,11 +230,14 @@ pub fn recommendationengine_projects_locations_catalogs_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `recommendationengine_projects_locations_catalogs_patch_execute()` to send, or `recommendationengine_projects_locations_catalogs_patch` for simplest API.
 
-pub fn recommendationengine_projects_locations_catalogs_patch_builder(
-    client: &SimpleHttpClient,
+pub fn recommendationengine_projects_locations_catalogs_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://recommendationengine.googleapis.com/v1beta1/projects/{}/locations/{locationsId}/catalogs/{catalogsId}",
@@ -410,10 +417,13 @@ pub fn recommendationengine_projects_locations_catalogs_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `recommendationengine_projects_locations_catalogs_catalog_items_create_execute()` to send, or `recommendationengine_projects_locations_catalogs_catalog_items_create` for simplest API.
 
-pub fn recommendationengine_projects_locations_catalogs_catalog_items_create_builder(
-    client: &SimpleHttpClient,
+pub fn recommendationengine_projects_locations_catalogs_catalog_items_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://recommendationengine.googleapis.com/v1beta1/projects/{}/locations/{locationsId}/catalogs/{catalogsId}/catalogItems",
@@ -582,10 +592,13 @@ pub fn recommendationengine_projects_locations_catalogs_catalog_items_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `recommendationengine_projects_locations_catalogs_catalog_items_delete_execute()` to send, or `recommendationengine_projects_locations_catalogs_catalog_items_delete` for simplest API.
 
-pub fn recommendationengine_projects_locations_catalogs_catalog_items_delete_builder(
-    client: &SimpleHttpClient,
+pub fn recommendationengine_projects_locations_catalogs_catalog_items_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://recommendationengine.googleapis.com/v1beta1/projects/{}/locations/{locationsId}/catalogs/{catalogsId}/catalogItems/{catalogItemsId}",
@@ -745,10 +758,13 @@ pub fn recommendationengine_projects_locations_catalogs_catalog_items_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `recommendationengine_projects_locations_catalogs_catalog_items_get_execute()` to send, or `recommendationengine_projects_locations_catalogs_catalog_items_get` for simplest API.
 
-pub fn recommendationengine_projects_locations_catalogs_catalog_items_get_builder(
-    client: &SimpleHttpClient,
+pub fn recommendationengine_projects_locations_catalogs_catalog_items_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://recommendationengine.googleapis.com/v1beta1/projects/{}/locations/{locationsId}/catalogs/{catalogsId}/catalogItems/{catalogItemsId}",
@@ -916,10 +932,13 @@ pub fn recommendationengine_projects_locations_catalogs_catalog_items_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `recommendationengine_projects_locations_catalogs_catalog_items_import_execute()` to send, or `recommendationengine_projects_locations_catalogs_catalog_items_import` for simplest API.
 
-pub fn recommendationengine_projects_locations_catalogs_catalog_items_import_builder(
-    client: &SimpleHttpClient,
+pub fn recommendationengine_projects_locations_catalogs_catalog_items_import_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://recommendationengine.googleapis.com/v1beta1/projects/{}/locations/{locationsId}/catalogs/{catalogsId}/catalogItems:import",
@@ -1084,13 +1103,16 @@ pub fn recommendationengine_projects_locations_catalogs_catalog_items_import(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `recommendationengine_projects_locations_catalogs_catalog_items_list_execute()` to send, or `recommendationengine_projects_locations_catalogs_catalog_items_list` for simplest API.
 
-pub fn recommendationengine_projects_locations_catalogs_catalog_items_list_builder(
-    client: &SimpleHttpClient,
+pub fn recommendationengine_projects_locations_catalogs_catalog_items_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://recommendationengine.googleapis.com/v1beta1/projects/{}/locations/{locationsId}/catalogs/{catalogsId}/catalogItems",
@@ -1291,11 +1313,14 @@ pub fn recommendationengine_projects_locations_catalogs_catalog_items_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `recommendationengine_projects_locations_catalogs_catalog_items_patch_execute()` to send, or `recommendationengine_projects_locations_catalogs_catalog_items_patch` for simplest API.
 
-pub fn recommendationengine_projects_locations_catalogs_catalog_items_patch_builder(
-    client: &SimpleHttpClient,
+pub fn recommendationengine_projects_locations_catalogs_catalog_items_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://recommendationengine.googleapis.com/v1beta1/projects/{}/locations/{locationsId}/catalogs/{catalogsId}/catalogItems/{catalogItemsId}",
@@ -1478,10 +1503,13 @@ pub fn recommendationengine_projects_locations_catalogs_catalog_items_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `recommendationengine_projects_locations_catalogs_event_stores_operations_get_execute()` to send, or `recommendationengine_projects_locations_catalogs_event_stores_operations_get` for simplest API.
 
-pub fn recommendationengine_projects_locations_catalogs_event_stores_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn recommendationengine_projects_locations_catalogs_event_stores_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://recommendationengine.googleapis.com/v1beta1/projects/{}/locations/{locationsId}/catalogs/{catalogsId}/eventStores/{eventStoresId}/operations/{operationsId}",
@@ -1647,14 +1675,17 @@ pub fn recommendationengine_projects_locations_catalogs_event_stores_operations_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `recommendationengine_projects_locations_catalogs_event_stores_operations_list_execute()` to send, or `recommendationengine_projects_locations_catalogs_event_stores_operations_list` for simplest API.
 
-pub fn recommendationengine_projects_locations_catalogs_event_stores_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn recommendationengine_projects_locations_catalogs_event_stores_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://recommendationengine.googleapis.com/v1beta1/projects/{}/locations/{locationsId}/catalogs/{catalogsId}/eventStores/{eventStoresId}/operations",
@@ -1855,10 +1886,13 @@ pub fn recommendationengine_projects_locations_catalogs_event_stores_operations_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `recommendationengine_projects_locations_catalogs_event_stores_placements_predict_execute()` to send, or `recommendationengine_projects_locations_catalogs_event_stores_placements_predict` for simplest API.
 
-pub fn recommendationengine_projects_locations_catalogs_event_stores_placements_predict_builder(
-    client: &SimpleHttpClient,
+pub fn recommendationengine_projects_locations_catalogs_event_stores_placements_predict_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://recommendationengine.googleapis.com/v1beta1/projects/{}/locations/{locationsId}/catalogs/{catalogsId}/eventStores/{eventStoresId}/placements/{placementsId}:predict",
@@ -2038,10 +2072,15 @@ pub fn recommendationengine_projects_locations_catalogs_event_stores_placements_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `recommendationengine_projects_locations_catalogs_event_stores_prediction_api_key_registrations_create_execute()` to send, or `recommendationengine_projects_locations_catalogs_event_stores_prediction_api_key_registrations_create` for simplest API.
 
-pub fn recommendationengine_projects_locations_catalogs_event_stores_prediction_api_key_registrations_create_builder(
-    client: &SimpleHttpClient,
+pub fn recommendationengine_projects_locations_catalogs_event_stores_prediction_api_key_registrations_create_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://recommendationengine.googleapis.com/v1beta1/projects/{}/locations/{locationsId}/catalogs/{catalogsId}/eventStores/{eventStoresId}/predictionApiKeyRegistrations",
@@ -2214,10 +2253,15 @@ pub fn recommendationengine_projects_locations_catalogs_event_stores_prediction_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `recommendationengine_projects_locations_catalogs_event_stores_prediction_api_key_registrations_delete_execute()` to send, or `recommendationengine_projects_locations_catalogs_event_stores_prediction_api_key_registrations_delete` for simplest API.
 
-pub fn recommendationengine_projects_locations_catalogs_event_stores_prediction_api_key_registrations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn recommendationengine_projects_locations_catalogs_event_stores_prediction_api_key_registrations_delete_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://recommendationengine.googleapis.com/v1beta1/projects/{}/locations/{locationsId}/catalogs/{catalogsId}/eventStores/{eventStoresId}/predictionApiKeyRegistrations/{predictionApiKeyRegistrationsId}",
@@ -2376,12 +2420,17 @@ pub fn recommendationengine_projects_locations_catalogs_event_stores_prediction_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `recommendationengine_projects_locations_catalogs_event_stores_prediction_api_key_registrations_list_execute()` to send, or `recommendationengine_projects_locations_catalogs_event_stores_prediction_api_key_registrations_list` for simplest API.
 
-pub fn recommendationengine_projects_locations_catalogs_event_stores_prediction_api_key_registrations_list_builder(
-    client: &SimpleHttpClient,
+pub fn recommendationengine_projects_locations_catalogs_event_stores_prediction_api_key_registrations_list_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://recommendationengine.googleapis.com/v1beta1/projects/{}/locations/{locationsId}/catalogs/{catalogsId}/eventStores/{eventStoresId}/predictionApiKeyRegistrations",
@@ -2572,13 +2621,18 @@ pub fn recommendationengine_projects_locations_catalogs_event_stores_prediction_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `recommendationengine_projects_locations_catalogs_event_stores_user_events_collect_execute()` to send, or `recommendationengine_projects_locations_catalogs_event_stores_user_events_collect` for simplest API.
 
-pub fn recommendationengine_projects_locations_catalogs_event_stores_user_events_collect_builder(
-    client: &SimpleHttpClient,
+pub fn recommendationengine_projects_locations_catalogs_event_stores_user_events_collect_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     ets: &Option<Option<String>>,
     uri: &Option<Option<String>>,
     userEvent: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://recommendationengine.googleapis.com/v1beta1/projects/{}/locations/{locationsId}/catalogs/{catalogsId}/eventStores/{eventStoresId}/userEvents:collect",
@@ -2771,10 +2825,13 @@ pub fn recommendationengine_projects_locations_catalogs_event_stores_user_events
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `recommendationengine_projects_locations_catalogs_event_stores_user_events_import_execute()` to send, or `recommendationengine_projects_locations_catalogs_event_stores_user_events_import` for simplest API.
 
-pub fn recommendationengine_projects_locations_catalogs_event_stores_user_events_import_builder(
-    client: &SimpleHttpClient,
+pub fn recommendationengine_projects_locations_catalogs_event_stores_user_events_import_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://recommendationengine.googleapis.com/v1beta1/projects/{}/locations/{locationsId}/catalogs/{catalogsId}/eventStores/{eventStoresId}/userEvents:import",
@@ -2945,13 +3002,16 @@ pub fn recommendationengine_projects_locations_catalogs_event_stores_user_events
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `recommendationengine_projects_locations_catalogs_event_stores_user_events_list_execute()` to send, or `recommendationengine_projects_locations_catalogs_event_stores_user_events_list` for simplest API.
 
-pub fn recommendationengine_projects_locations_catalogs_event_stores_user_events_list_builder(
-    client: &SimpleHttpClient,
+pub fn recommendationengine_projects_locations_catalogs_event_stores_user_events_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://recommendationengine.googleapis.com/v1beta1/projects/{}/locations/{locationsId}/catalogs/{catalogsId}/eventStores/{eventStoresId}/userEvents",
@@ -3155,10 +3215,13 @@ pub fn recommendationengine_projects_locations_catalogs_event_stores_user_events
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `recommendationengine_projects_locations_catalogs_event_stores_user_events_purge_execute()` to send, or `recommendationengine_projects_locations_catalogs_event_stores_user_events_purge` for simplest API.
 
-pub fn recommendationengine_projects_locations_catalogs_event_stores_user_events_purge_builder(
-    client: &SimpleHttpClient,
+pub fn recommendationengine_projects_locations_catalogs_event_stores_user_events_purge_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://recommendationengine.googleapis.com/v1beta1/projects/{}/locations/{locationsId}/catalogs/{catalogsId}/eventStores/{eventStoresId}/userEvents:purge",
@@ -3327,10 +3390,13 @@ pub fn recommendationengine_projects_locations_catalogs_event_stores_user_events
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `recommendationengine_projects_locations_catalogs_event_stores_user_events_rejoin_execute()` to send, or `recommendationengine_projects_locations_catalogs_event_stores_user_events_rejoin` for simplest API.
 
-pub fn recommendationengine_projects_locations_catalogs_event_stores_user_events_rejoin_builder(
-    client: &SimpleHttpClient,
+pub fn recommendationengine_projects_locations_catalogs_event_stores_user_events_rejoin_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://recommendationengine.googleapis.com/v1beta1/projects/{}/locations/{locationsId}/catalogs/{catalogsId}/eventStores/{eventStoresId}/userEvents:rejoin",
@@ -3501,10 +3567,13 @@ pub fn recommendationengine_projects_locations_catalogs_event_stores_user_events
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `recommendationengine_projects_locations_catalogs_event_stores_user_events_write_execute()` to send, or `recommendationengine_projects_locations_catalogs_event_stores_user_events_write` for simplest API.
 
-pub fn recommendationengine_projects_locations_catalogs_event_stores_user_events_write_builder(
-    client: &SimpleHttpClient,
+pub fn recommendationengine_projects_locations_catalogs_event_stores_user_events_write_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://recommendationengine.googleapis.com/v1beta1/projects/{}/locations/{locationsId}/catalogs/{catalogsId}/eventStores/{eventStoresId}/userEvents:write",
@@ -3674,10 +3743,13 @@ pub fn recommendationengine_projects_locations_catalogs_event_stores_user_events
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `recommendationengine_projects_locations_catalogs_operations_get_execute()` to send, or `recommendationengine_projects_locations_catalogs_operations_get` for simplest API.
 
-pub fn recommendationengine_projects_locations_catalogs_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn recommendationengine_projects_locations_catalogs_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://recommendationengine.googleapis.com/v1beta1/projects/{}/locations/{locationsId}/catalogs/{catalogsId}/operations/{operationsId}",
@@ -3841,14 +3913,17 @@ pub fn recommendationengine_projects_locations_catalogs_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `recommendationengine_projects_locations_catalogs_operations_list_execute()` to send, or `recommendationengine_projects_locations_catalogs_operations_list` for simplest API.
 
-pub fn recommendationengine_projects_locations_catalogs_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn recommendationengine_projects_locations_catalogs_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://recommendationengine.googleapis.com/v1beta1/projects/{}/locations/{locationsId}/catalogs/{catalogsId}/operations",

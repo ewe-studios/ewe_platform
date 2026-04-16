@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,9 +27,12 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `chat_custom_emojis_create_execute()` to send, or `chat_custom_emojis_create` for simplest API.
 
-pub fn chat_custom_emojis_create_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn chat_custom_emojis_create_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://chat.googleapis.com/v1/customEmojis",);
 
@@ -171,10 +175,13 @@ pub fn chat_custom_emojis_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `chat_custom_emojis_delete_execute()` to send, or `chat_custom_emojis_delete` for simplest API.
 
-pub fn chat_custom_emojis_delete_builder(
-    client: &SimpleHttpClient,
+pub fn chat_custom_emojis_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://chat.googleapis.com/v1/customEmojis/{}", name,);
 
@@ -325,10 +332,13 @@ pub fn chat_custom_emojis_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `chat_custom_emojis_get_execute()` to send, or `chat_custom_emojis_get` for simplest API.
 
-pub fn chat_custom_emojis_get_builder(
-    client: &SimpleHttpClient,
+pub fn chat_custom_emojis_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://chat.googleapis.com/v1/customEmojis/{}", name,);
 
@@ -479,12 +489,15 @@ pub fn chat_custom_emojis_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `chat_custom_emojis_list_execute()` to send, or `chat_custom_emojis_list` for simplest API.
 
-pub fn chat_custom_emojis_list_builder(
-    client: &SimpleHttpClient,
+pub fn chat_custom_emojis_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://chat.googleapis.com/v1/customEmojis",);
 
@@ -661,10 +674,13 @@ pub fn chat_custom_emojis_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `chat_media_download_execute()` to send, or `chat_media_download` for simplest API.
 
-pub fn chat_media_download_builder(
-    client: &SimpleHttpClient,
+pub fn chat_media_download_builder<R>(
+    client: &SimpleHttpClient<R>,
     resourceName: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://chat.googleapis.com/v1/media/{}", resourceName,);
 
@@ -815,10 +831,13 @@ pub fn chat_media_download(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `chat_media_upload_execute()` to send, or `chat_media_upload` for simplest API.
 
-pub fn chat_media_upload_builder(
-    client: &SimpleHttpClient,
+pub fn chat_media_upload_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://chat.googleapis.com/v1/spaces/{}/attachments:upload",
@@ -976,10 +995,13 @@ pub fn chat_media_upload(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `chat_spaces_complete_import_execute()` to send, or `chat_spaces_complete_import` for simplest API.
 
-pub fn chat_spaces_complete_import_builder(
-    client: &SimpleHttpClient,
+pub fn chat_spaces_complete_import_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://chat.googleapis.com/v1/spaces/{}:completeImport",
@@ -1141,10 +1163,13 @@ pub fn chat_spaces_complete_import(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `chat_spaces_create_execute()` to send, or `chat_spaces_create` for simplest API.
 
-pub fn chat_spaces_create_builder(
-    client: &SimpleHttpClient,
+pub fn chat_spaces_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://chat.googleapis.com/v1/spaces",);
 
@@ -1306,11 +1331,14 @@ pub fn chat_spaces_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `chat_spaces_delete_execute()` to send, or `chat_spaces_delete` for simplest API.
 
-pub fn chat_spaces_delete_builder(
-    client: &SimpleHttpClient,
+pub fn chat_spaces_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     useAdminAccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://chat.googleapis.com/v1/spaces/{}", name,);
 
@@ -1474,10 +1502,13 @@ pub fn chat_spaces_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `chat_spaces_find_direct_message_execute()` to send, or `chat_spaces_find_direct_message` for simplest API.
 
-pub fn chat_spaces_find_direct_message_builder(
-    client: &SimpleHttpClient,
+pub fn chat_spaces_find_direct_message_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://chat.googleapis.com/v1/spaces:findDirectMessage",);
 
@@ -1639,13 +1670,16 @@ pub fn chat_spaces_find_direct_message(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `chat_spaces_find_group_chats_execute()` to send, or `chat_spaces_find_group_chats` for simplest API.
 
-pub fn chat_spaces_find_group_chats_builder(
-    client: &SimpleHttpClient,
+pub fn chat_spaces_find_group_chats_builder<R>(
+    client: &SimpleHttpClient<R>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     spaceView: &Option<Option<String>>,
     users: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://chat.googleapis.com/v1/spaces:findGroupChats",);
 
@@ -1832,11 +1866,14 @@ pub fn chat_spaces_find_group_chats(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `chat_spaces_get_execute()` to send, or `chat_spaces_get` for simplest API.
 
-pub fn chat_spaces_get_builder(
-    client: &SimpleHttpClient,
+pub fn chat_spaces_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     useAdminAccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://chat.googleapis.com/v1/spaces/{}", name,);
 
@@ -2000,12 +2037,15 @@ pub fn chat_spaces_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `chat_spaces_list_execute()` to send, or `chat_spaces_list` for simplest API.
 
-pub fn chat_spaces_list_builder(
-    client: &SimpleHttpClient,
+pub fn chat_spaces_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://chat.googleapis.com/v1/spaces",);
 
@@ -2181,12 +2221,15 @@ pub fn chat_spaces_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `chat_spaces_patch_execute()` to send, or `chat_spaces_patch` for simplest API.
 
-pub fn chat_spaces_patch_builder(
-    client: &SimpleHttpClient,
+pub fn chat_spaces_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
     useAdminAccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://chat.googleapis.com/v1/spaces/{}", name,);
 
@@ -2356,14 +2399,17 @@ pub fn chat_spaces_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `chat_spaces_search_execute()` to send, or `chat_spaces_search` for simplest API.
 
-pub fn chat_spaces_search_builder(
-    client: &SimpleHttpClient,
+pub fn chat_spaces_search_builder<R>(
+    client: &SimpleHttpClient<R>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     query: &Option<Option<String>>,
     useAdminAccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://chat.googleapis.com/v1/spaces:search",);
 
@@ -2556,9 +2602,12 @@ pub fn chat_spaces_search(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `chat_spaces_setup_execute()` to send, or `chat_spaces_setup` for simplest API.
 
-pub fn chat_spaces_setup_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn chat_spaces_setup_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://chat.googleapis.com/v1/spaces:setup",);
 
@@ -2701,11 +2750,14 @@ pub fn chat_spaces_setup(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `chat_spaces_members_create_execute()` to send, or `chat_spaces_members_create` for simplest API.
 
-pub fn chat_spaces_members_create_builder(
-    client: &SimpleHttpClient,
+pub fn chat_spaces_members_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     useAdminAccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://chat.googleapis.com/v1/spaces/{}/members", parent,);
 
@@ -2869,11 +2921,14 @@ pub fn chat_spaces_members_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `chat_spaces_members_delete_execute()` to send, or `chat_spaces_members_delete` for simplest API.
 
-pub fn chat_spaces_members_delete_builder(
-    client: &SimpleHttpClient,
+pub fn chat_spaces_members_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     useAdminAccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://chat.googleapis.com/v1/spaces/{}/members/{membersId}",
@@ -3040,11 +3095,14 @@ pub fn chat_spaces_members_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `chat_spaces_members_get_execute()` to send, or `chat_spaces_members_get` for simplest API.
 
-pub fn chat_spaces_members_get_builder(
-    client: &SimpleHttpClient,
+pub fn chat_spaces_members_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     useAdminAccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://chat.googleapis.com/v1/spaces/{}/members/{membersId}",
@@ -3211,8 +3269,8 @@ pub fn chat_spaces_members_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `chat_spaces_members_list_execute()` to send, or `chat_spaces_members_list` for simplest API.
 
-pub fn chat_spaces_members_list_builder(
-    client: &SimpleHttpClient,
+pub fn chat_spaces_members_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
@@ -3220,7 +3278,10 @@ pub fn chat_spaces_members_list_builder(
     showGroups: &Option<Option<String>>,
     showInvited: &Option<Option<String>>,
     useAdminAccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://chat.googleapis.com/v1/spaces/{}/members", parent,);
 
@@ -3422,12 +3483,15 @@ pub fn chat_spaces_members_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `chat_spaces_members_patch_execute()` to send, or `chat_spaces_members_patch` for simplest API.
 
-pub fn chat_spaces_members_patch_builder(
-    client: &SimpleHttpClient,
+pub fn chat_spaces_members_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
     useAdminAccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://chat.googleapis.com/v1/spaces/{}/members/{membersId}",
@@ -3604,14 +3668,17 @@ pub fn chat_spaces_members_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `chat_spaces_messages_create_execute()` to send, or `chat_spaces_messages_create` for simplest API.
 
-pub fn chat_spaces_messages_create_builder(
-    client: &SimpleHttpClient,
+pub fn chat_spaces_messages_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     messageId: &Option<Option<String>>,
     messageReplyOption: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
     threadKey: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://chat.googleapis.com/v1/spaces/{}/messages", parent,);
 
@@ -3797,11 +3864,14 @@ pub fn chat_spaces_messages_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `chat_spaces_messages_delete_execute()` to send, or `chat_spaces_messages_delete` for simplest API.
 
-pub fn chat_spaces_messages_delete_builder(
-    client: &SimpleHttpClient,
+pub fn chat_spaces_messages_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     force: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://chat.googleapis.com/v1/spaces/{}/messages/{messagesId}",
@@ -3968,10 +4038,13 @@ pub fn chat_spaces_messages_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `chat_spaces_messages_get_execute()` to send, or `chat_spaces_messages_get` for simplest API.
 
-pub fn chat_spaces_messages_get_builder(
-    client: &SimpleHttpClient,
+pub fn chat_spaces_messages_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://chat.googleapis.com/v1/spaces/{}/messages/{messagesId}",
@@ -4125,15 +4198,18 @@ pub fn chat_spaces_messages_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `chat_spaces_messages_list_execute()` to send, or `chat_spaces_messages_list` for simplest API.
 
-pub fn chat_spaces_messages_list_builder(
-    client: &SimpleHttpClient,
+pub fn chat_spaces_messages_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     showDeleted: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://chat.googleapis.com/v1/spaces/{}/messages", parent,);
 
@@ -4329,12 +4405,15 @@ pub fn chat_spaces_messages_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `chat_spaces_messages_patch_execute()` to send, or `chat_spaces_messages_patch` for simplest API.
 
-pub fn chat_spaces_messages_patch_builder(
-    client: &SimpleHttpClient,
+pub fn chat_spaces_messages_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     allowMissing: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://chat.googleapis.com/v1/spaces/{}/messages/{messagesId}",
@@ -4511,12 +4590,15 @@ pub fn chat_spaces_messages_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `chat_spaces_messages_update_execute()` to send, or `chat_spaces_messages_update` for simplest API.
 
-pub fn chat_spaces_messages_update_builder(
-    client: &SimpleHttpClient,
+pub fn chat_spaces_messages_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     allowMissing: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://chat.googleapis.com/v1/spaces/{}/messages/{messagesId}",
@@ -4693,10 +4775,13 @@ pub fn chat_spaces_messages_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `chat_spaces_messages_attachments_get_execute()` to send, or `chat_spaces_messages_attachments_get` for simplest API.
 
-pub fn chat_spaces_messages_attachments_get_builder(
-    client: &SimpleHttpClient,
+pub fn chat_spaces_messages_attachments_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://chat.googleapis.com/v1/spaces/{}/messages/{messagesId}/attachments/{attachmentsId}",
@@ -4850,10 +4935,13 @@ pub fn chat_spaces_messages_attachments_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `chat_spaces_messages_reactions_create_execute()` to send, or `chat_spaces_messages_reactions_create` for simplest API.
 
-pub fn chat_spaces_messages_reactions_create_builder(
-    client: &SimpleHttpClient,
+pub fn chat_spaces_messages_reactions_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://chat.googleapis.com/v1/spaces/{}/messages/{messagesId}/reactions",
@@ -5007,10 +5095,13 @@ pub fn chat_spaces_messages_reactions_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `chat_spaces_messages_reactions_delete_execute()` to send, or `chat_spaces_messages_reactions_delete` for simplest API.
 
-pub fn chat_spaces_messages_reactions_delete_builder(
-    client: &SimpleHttpClient,
+pub fn chat_spaces_messages_reactions_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://chat.googleapis.com/v1/spaces/{}/messages/{messagesId}/reactions/{reactionsId}",
@@ -5164,13 +5255,16 @@ pub fn chat_spaces_messages_reactions_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `chat_spaces_messages_reactions_list_execute()` to send, or `chat_spaces_messages_reactions_list` for simplest API.
 
-pub fn chat_spaces_messages_reactions_list_builder(
-    client: &SimpleHttpClient,
+pub fn chat_spaces_messages_reactions_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://chat.googleapis.com/v1/spaces/{}/messages/{messagesId}/reactions",
@@ -5357,10 +5451,13 @@ pub fn chat_spaces_messages_reactions_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `chat_spaces_space_events_get_execute()` to send, or `chat_spaces_space_events_get` for simplest API.
 
-pub fn chat_spaces_space_events_get_builder(
-    client: &SimpleHttpClient,
+pub fn chat_spaces_space_events_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://chat.googleapis.com/v1/spaces/{}/spaceEvents/{spaceEventsId}",
@@ -5514,13 +5611,16 @@ pub fn chat_spaces_space_events_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `chat_spaces_space_events_list_execute()` to send, or `chat_spaces_space_events_list` for simplest API.
 
-pub fn chat_spaces_space_events_list_builder(
-    client: &SimpleHttpClient,
+pub fn chat_spaces_space_events_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://chat.googleapis.com/v1/spaces/{}/spaceEvents",
@@ -5707,10 +5807,13 @@ pub fn chat_spaces_space_events_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `chat_users_sections_create_execute()` to send, or `chat_users_sections_create` for simplest API.
 
-pub fn chat_users_sections_create_builder(
-    client: &SimpleHttpClient,
+pub fn chat_users_sections_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://chat.googleapis.com/v1/users/{}/sections", parent,);
 
@@ -5865,10 +5968,13 @@ pub fn chat_users_sections_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `chat_users_sections_delete_execute()` to send, or `chat_users_sections_delete` for simplest API.
 
-pub fn chat_users_sections_delete_builder(
-    client: &SimpleHttpClient,
+pub fn chat_users_sections_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://chat.googleapis.com/v1/users/{}/sections/{sectionsId}",
@@ -6022,12 +6128,15 @@ pub fn chat_users_sections_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `chat_users_sections_list_execute()` to send, or `chat_users_sections_list` for simplest API.
 
-pub fn chat_users_sections_list_builder(
-    client: &SimpleHttpClient,
+pub fn chat_users_sections_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://chat.googleapis.com/v1/users/{}/sections", parent,);
 
@@ -6201,11 +6310,14 @@ pub fn chat_users_sections_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `chat_users_sections_patch_execute()` to send, or `chat_users_sections_patch` for simplest API.
 
-pub fn chat_users_sections_patch_builder(
-    client: &SimpleHttpClient,
+pub fn chat_users_sections_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://chat.googleapis.com/v1/users/{}/sections/{sectionsId}",
@@ -6376,10 +6488,13 @@ pub fn chat_users_sections_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `chat_users_sections_position_execute()` to send, or `chat_users_sections_position` for simplest API.
 
-pub fn chat_users_sections_position_builder(
-    client: &SimpleHttpClient,
+pub fn chat_users_sections_position_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://chat.googleapis.com/v1/users/{}/sections/{sectionsId}:position",
@@ -6537,13 +6652,16 @@ pub fn chat_users_sections_position(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `chat_users_sections_items_list_execute()` to send, or `chat_users_sections_items_list` for simplest API.
 
-pub fn chat_users_sections_items_list_builder(
-    client: &SimpleHttpClient,
+pub fn chat_users_sections_items_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://chat.googleapis.com/v1/users/{}/sections/{sectionsId}/items",
@@ -6730,10 +6848,13 @@ pub fn chat_users_sections_items_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `chat_users_sections_items_move_execute()` to send, or `chat_users_sections_items_move` for simplest API.
 
-pub fn chat_users_sections_items_move_builder(
-    client: &SimpleHttpClient,
+pub fn chat_users_sections_items_move_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://chat.googleapis.com/v1/users/{}/sections/{sectionsId}/items/{itemsId}:move",
@@ -6891,10 +7012,13 @@ pub fn chat_users_sections_items_move(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `chat_users_spaces_get_space_read_state_execute()` to send, or `chat_users_spaces_get_space_read_state` for simplest API.
 
-pub fn chat_users_spaces_get_space_read_state_builder(
-    client: &SimpleHttpClient,
+pub fn chat_users_spaces_get_space_read_state_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://chat.googleapis.com/v1/users/{}/spaces/{spacesId}/spaceReadState",
@@ -7052,11 +7176,14 @@ pub fn chat_users_spaces_get_space_read_state(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `chat_users_spaces_update_space_read_state_execute()` to send, or `chat_users_spaces_update_space_read_state` for simplest API.
 
-pub fn chat_users_spaces_update_space_read_state_builder(
-    client: &SimpleHttpClient,
+pub fn chat_users_spaces_update_space_read_state_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://chat.googleapis.com/v1/users/{}/spaces/{spacesId}/spaceReadState",
@@ -7228,10 +7355,13 @@ pub fn chat_users_spaces_update_space_read_state(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `chat_users_spaces_space_notification_setting_get_execute()` to send, or `chat_users_spaces_space_notification_setting_get` for simplest API.
 
-pub fn chat_users_spaces_space_notification_setting_get_builder(
-    client: &SimpleHttpClient,
+pub fn chat_users_spaces_space_notification_setting_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://chat.googleapis.com/v1/users/{}/spaces/{spacesId}/spaceNotificationSetting",
@@ -7389,11 +7519,14 @@ pub fn chat_users_spaces_space_notification_setting_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `chat_users_spaces_space_notification_setting_patch_execute()` to send, or `chat_users_spaces_space_notification_setting_patch` for simplest API.
 
-pub fn chat_users_spaces_space_notification_setting_patch_builder(
-    client: &SimpleHttpClient,
+pub fn chat_users_spaces_space_notification_setting_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://chat.googleapis.com/v1/users/{}/spaces/{spacesId}/spaceNotificationSetting",
@@ -7568,10 +7701,13 @@ pub fn chat_users_spaces_space_notification_setting_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `chat_users_spaces_threads_get_thread_read_state_execute()` to send, or `chat_users_spaces_threads_get_thread_read_state` for simplest API.
 
-pub fn chat_users_spaces_threads_get_thread_read_state_builder(
-    client: &SimpleHttpClient,
+pub fn chat_users_spaces_threads_get_thread_read_state_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://chat.googleapis.com/v1/users/{}/spaces/{spacesId}/threads/{threadsId}/threadReadState",

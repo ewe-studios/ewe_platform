@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,8 +27,8 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `localservices_account_reports_search_execute()` to send, or `localservices_account_reports_search` for simplest API.
 
-pub fn localservices_account_reports_search_builder(
-    client: &SimpleHttpClient,
+pub fn localservices_account_reports_search_builder<R>(
+    client: &SimpleHttpClient<R>,
     endDate_day: &Option<Option<String>>,
     endDate_month: &Option<Option<String>>,
     endDate_year: &Option<Option<String>>,
@@ -37,7 +38,10 @@ pub fn localservices_account_reports_search_builder(
     startDate_day: &Option<Option<String>>,
     startDate_month: &Option<Option<String>>,
     startDate_year: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://localservices.googleapis.com/v1/accountReports:search",);
 
@@ -268,8 +272,8 @@ pub fn localservices_account_reports_search(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `localservices_detailed_lead_reports_search_execute()` to send, or `localservices_detailed_lead_reports_search` for simplest API.
 
-pub fn localservices_detailed_lead_reports_search_builder(
-    client: &SimpleHttpClient,
+pub fn localservices_detailed_lead_reports_search_builder<R>(
+    client: &SimpleHttpClient<R>,
     endDate_day: &Option<Option<String>>,
     endDate_month: &Option<Option<String>>,
     endDate_year: &Option<Option<String>>,
@@ -279,7 +283,10 @@ pub fn localservices_detailed_lead_reports_search_builder(
     startDate_day: &Option<Option<String>>,
     startDate_month: &Option<Option<String>>,
     startDate_year: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://localservices.googleapis.com/v1/detailedLeadReports:search",);

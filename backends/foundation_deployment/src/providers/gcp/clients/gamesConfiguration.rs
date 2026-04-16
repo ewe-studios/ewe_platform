@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `games_configuration_achievement_configurations_delete_execute()` to send, or `games_configuration_achievement_configurations_delete` for simplest API.
 
-pub fn games_configuration_achievement_configurations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn games_configuration_achievement_configurations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     achievementId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gamesconfiguration.googleapis.com/games/v1configuration/achievements/{}",
@@ -181,10 +185,13 @@ pub fn games_configuration_achievement_configurations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `games_configuration_achievement_configurations_get_execute()` to send, or `games_configuration_achievement_configurations_get` for simplest API.
 
-pub fn games_configuration_achievement_configurations_get_builder(
-    client: &SimpleHttpClient,
+pub fn games_configuration_achievement_configurations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     achievementId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gamesconfiguration.googleapis.com/games/v1configuration/achievements/{}",
@@ -343,10 +350,13 @@ pub fn games_configuration_achievement_configurations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `games_configuration_achievement_configurations_insert_execute()` to send, or `games_configuration_achievement_configurations_insert` for simplest API.
 
-pub fn games_configuration_achievement_configurations_insert_builder(
-    client: &SimpleHttpClient,
+pub fn games_configuration_achievement_configurations_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     applicationId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gamesconfiguration.googleapis.com/games/v1configuration/applications/{}/achievements",
@@ -505,12 +515,15 @@ pub fn games_configuration_achievement_configurations_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `games_configuration_achievement_configurations_list_execute()` to send, or `games_configuration_achievement_configurations_list` for simplest API.
 
-pub fn games_configuration_achievement_configurations_list_builder(
-    client: &SimpleHttpClient,
+pub fn games_configuration_achievement_configurations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     applicationId: &String,
     maxResults: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gamesconfiguration.googleapis.com/games/v1configuration/applications/{}/achievements",
@@ -695,10 +708,13 @@ pub fn games_configuration_achievement_configurations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `games_configuration_achievement_configurations_update_execute()` to send, or `games_configuration_achievement_configurations_update` for simplest API.
 
-pub fn games_configuration_achievement_configurations_update_builder(
-    client: &SimpleHttpClient,
+pub fn games_configuration_achievement_configurations_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     achievementId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gamesconfiguration.googleapis.com/games/v1configuration/achievements/{}",
@@ -857,10 +873,13 @@ pub fn games_configuration_achievement_configurations_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `games_configuration_leaderboard_configurations_delete_execute()` to send, or `games_configuration_leaderboard_configurations_delete` for simplest API.
 
-pub fn games_configuration_leaderboard_configurations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn games_configuration_leaderboard_configurations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     leaderboardId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gamesconfiguration.googleapis.com/games/v1configuration/leaderboards/{}",
@@ -1012,10 +1031,13 @@ pub fn games_configuration_leaderboard_configurations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `games_configuration_leaderboard_configurations_get_execute()` to send, or `games_configuration_leaderboard_configurations_get` for simplest API.
 
-pub fn games_configuration_leaderboard_configurations_get_builder(
-    client: &SimpleHttpClient,
+pub fn games_configuration_leaderboard_configurations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     leaderboardId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gamesconfiguration.googleapis.com/games/v1configuration/leaderboards/{}",
@@ -1174,10 +1196,13 @@ pub fn games_configuration_leaderboard_configurations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `games_configuration_leaderboard_configurations_insert_execute()` to send, or `games_configuration_leaderboard_configurations_insert` for simplest API.
 
-pub fn games_configuration_leaderboard_configurations_insert_builder(
-    client: &SimpleHttpClient,
+pub fn games_configuration_leaderboard_configurations_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     applicationId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gamesconfiguration.googleapis.com/games/v1configuration/applications/{}/leaderboards",
@@ -1336,12 +1361,15 @@ pub fn games_configuration_leaderboard_configurations_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `games_configuration_leaderboard_configurations_list_execute()` to send, or `games_configuration_leaderboard_configurations_list` for simplest API.
 
-pub fn games_configuration_leaderboard_configurations_list_builder(
-    client: &SimpleHttpClient,
+pub fn games_configuration_leaderboard_configurations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     applicationId: &String,
     maxResults: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gamesconfiguration.googleapis.com/games/v1configuration/applications/{}/leaderboards",
@@ -1526,10 +1554,13 @@ pub fn games_configuration_leaderboard_configurations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `games_configuration_leaderboard_configurations_update_execute()` to send, or `games_configuration_leaderboard_configurations_update` for simplest API.
 
-pub fn games_configuration_leaderboard_configurations_update_builder(
-    client: &SimpleHttpClient,
+pub fn games_configuration_leaderboard_configurations_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     leaderboardId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gamesconfiguration.googleapis.com/games/v1configuration/leaderboards/{}",

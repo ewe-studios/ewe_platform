@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,13 +27,16 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `playdeveloperreporting_anomalies_list_execute()` to send, or `playdeveloperreporting_anomalies_list` for simplest API.
 
-pub fn playdeveloperreporting_anomalies_list_builder(
-    client: &SimpleHttpClient,
+pub fn playdeveloperreporting_anomalies_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://playdeveloperreporting.googleapis.com/v1beta1/apps/{}/anomalies",
@@ -233,10 +237,13 @@ pub fn playdeveloperreporting_anomalies_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `playdeveloperreporting_apps_fetch_release_filter_options_execute()` to send, or `playdeveloperreporting_apps_fetch_release_filter_options` for simplest API.
 
-pub fn playdeveloperreporting_apps_fetch_release_filter_options_builder(
-    client: &SimpleHttpClient,
+pub fn playdeveloperreporting_apps_fetch_release_filter_options_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://playdeveloperreporting.googleapis.com/v1beta1/apps/{}:fetchReleaseFilterOptions",
@@ -409,11 +416,14 @@ pub fn playdeveloperreporting_apps_fetch_release_filter_options(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `playdeveloperreporting_apps_search_execute()` to send, or `playdeveloperreporting_apps_search` for simplest API.
 
-pub fn playdeveloperreporting_apps_search_builder(
-    client: &SimpleHttpClient,
+pub fn playdeveloperreporting_apps_search_builder<R>(
+    client: &SimpleHttpClient<R>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://playdeveloperreporting.googleapis.com/v1beta1/apps:search",);
@@ -600,10 +610,13 @@ pub fn playdeveloperreporting_apps_search(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `playdeveloperreporting_vitals_anrrate_get_execute()` to send, or `playdeveloperreporting_vitals_anrrate_get` for simplest API.
 
-pub fn playdeveloperreporting_vitals_anrrate_get_builder(
-    client: &SimpleHttpClient,
+pub fn playdeveloperreporting_vitals_anrrate_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://playdeveloperreporting.googleapis.com/v1beta1/apps/{}/anrRateMetricSet",
@@ -769,10 +782,13 @@ pub fn playdeveloperreporting_vitals_anrrate_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `playdeveloperreporting_vitals_anrrate_query_execute()` to send, or `playdeveloperreporting_vitals_anrrate_query` for simplest API.
 
-pub fn playdeveloperreporting_vitals_anrrate_query_builder(
-    client: &SimpleHttpClient,
+pub fn playdeveloperreporting_vitals_anrrate_query_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://playdeveloperreporting.googleapis.com/v1beta1/apps/{}/anrRateMetricSet:query",
@@ -944,10 +960,13 @@ pub fn playdeveloperreporting_vitals_anrrate_query(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `playdeveloperreporting_vitals_crashrate_get_execute()` to send, or `playdeveloperreporting_vitals_crashrate_get` for simplest API.
 
-pub fn playdeveloperreporting_vitals_crashrate_get_builder(
-    client: &SimpleHttpClient,
+pub fn playdeveloperreporting_vitals_crashrate_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://playdeveloperreporting.googleapis.com/v1beta1/apps/{}/crashRateMetricSet",
@@ -1119,10 +1138,13 @@ pub fn playdeveloperreporting_vitals_crashrate_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `playdeveloperreporting_vitals_crashrate_query_execute()` to send, or `playdeveloperreporting_vitals_crashrate_query` for simplest API.
 
-pub fn playdeveloperreporting_vitals_crashrate_query_builder(
-    client: &SimpleHttpClient,
+pub fn playdeveloperreporting_vitals_crashrate_query_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://playdeveloperreporting.googleapis.com/v1beta1/apps/{}/crashRateMetricSet:query",
@@ -1294,10 +1316,13 @@ pub fn playdeveloperreporting_vitals_crashrate_query(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `playdeveloperreporting_vitals_errors_counts_get_execute()` to send, or `playdeveloperreporting_vitals_errors_counts_get` for simplest API.
 
-pub fn playdeveloperreporting_vitals_errors_counts_get_builder(
-    client: &SimpleHttpClient,
+pub fn playdeveloperreporting_vitals_errors_counts_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://playdeveloperreporting.googleapis.com/v1beta1/apps/{}/errorCountMetricSet",
@@ -1469,10 +1494,13 @@ pub fn playdeveloperreporting_vitals_errors_counts_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `playdeveloperreporting_vitals_errors_counts_query_execute()` to send, or `playdeveloperreporting_vitals_errors_counts_query` for simplest API.
 
-pub fn playdeveloperreporting_vitals_errors_counts_query_builder(
-    client: &SimpleHttpClient,
+pub fn playdeveloperreporting_vitals_errors_counts_query_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://playdeveloperreporting.googleapis.com/v1beta1/apps/{}/errorCountMetricSet:query",
@@ -1644,8 +1672,8 @@ pub fn playdeveloperreporting_vitals_errors_counts_query(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `playdeveloperreporting_vitals_errors_issues_search_execute()` to send, or `playdeveloperreporting_vitals_errors_issues_search` for simplest API.
 
-pub fn playdeveloperreporting_vitals_errors_issues_search_builder(
-    client: &SimpleHttpClient,
+pub fn playdeveloperreporting_vitals_errors_issues_search_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     interval_endTime_day: &Option<Option<String>>,
@@ -1672,7 +1700,10 @@ pub fn playdeveloperreporting_vitals_errors_issues_search_builder(
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     sampleErrorReportLimit: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://playdeveloperreporting.googleapis.com/v1beta1/apps/{}/errorIssues:search",
@@ -2005,8 +2036,8 @@ pub fn playdeveloperreporting_vitals_errors_issues_search(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `playdeveloperreporting_vitals_errors_reports_search_execute()` to send, or `playdeveloperreporting_vitals_errors_reports_search` for simplest API.
 
-pub fn playdeveloperreporting_vitals_errors_reports_search_builder(
-    client: &SimpleHttpClient,
+pub fn playdeveloperreporting_vitals_errors_reports_search_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     interval_endTime_day: &Option<Option<String>>,
@@ -2031,7 +2062,10 @@ pub fn playdeveloperreporting_vitals_errors_reports_search_builder(
     interval_startTime_year: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://playdeveloperreporting.googleapis.com/v1beta1/apps/{}/errorReports:search",
@@ -2352,10 +2386,13 @@ pub fn playdeveloperreporting_vitals_errors_reports_search(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `playdeveloperreporting_vitals_excessivewakeuprate_get_execute()` to send, or `playdeveloperreporting_vitals_excessivewakeuprate_get` for simplest API.
 
-pub fn playdeveloperreporting_vitals_excessivewakeuprate_get_builder(
-    client: &SimpleHttpClient,
+pub fn playdeveloperreporting_vitals_excessivewakeuprate_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://playdeveloperreporting.googleapis.com/v1beta1/apps/{}/excessiveWakeupRateMetricSet",
@@ -2528,10 +2565,13 @@ pub fn playdeveloperreporting_vitals_excessivewakeuprate_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `playdeveloperreporting_vitals_excessivewakeuprate_query_execute()` to send, or `playdeveloperreporting_vitals_excessivewakeuprate_query` for simplest API.
 
-pub fn playdeveloperreporting_vitals_excessivewakeuprate_query_builder(
-    client: &SimpleHttpClient,
+pub fn playdeveloperreporting_vitals_excessivewakeuprate_query_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://playdeveloperreporting.googleapis.com/v1beta1/apps/{}/excessiveWakeupRateMetricSet:query",
@@ -2704,10 +2744,13 @@ pub fn playdeveloperreporting_vitals_excessivewakeuprate_query(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `playdeveloperreporting_vitals_lmkrate_get_execute()` to send, or `playdeveloperreporting_vitals_lmkrate_get` for simplest API.
 
-pub fn playdeveloperreporting_vitals_lmkrate_get_builder(
-    client: &SimpleHttpClient,
+pub fn playdeveloperreporting_vitals_lmkrate_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://playdeveloperreporting.googleapis.com/v1beta1/apps/{}/lmkRateMetricSet",
@@ -2873,10 +2916,13 @@ pub fn playdeveloperreporting_vitals_lmkrate_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `playdeveloperreporting_vitals_lmkrate_query_execute()` to send, or `playdeveloperreporting_vitals_lmkrate_query` for simplest API.
 
-pub fn playdeveloperreporting_vitals_lmkrate_query_builder(
-    client: &SimpleHttpClient,
+pub fn playdeveloperreporting_vitals_lmkrate_query_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://playdeveloperreporting.googleapis.com/v1beta1/apps/{}/lmkRateMetricSet:query",
@@ -3048,10 +3094,13 @@ pub fn playdeveloperreporting_vitals_lmkrate_query(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `playdeveloperreporting_vitals_slowrenderingrate_get_execute()` to send, or `playdeveloperreporting_vitals_slowrenderingrate_get` for simplest API.
 
-pub fn playdeveloperreporting_vitals_slowrenderingrate_get_builder(
-    client: &SimpleHttpClient,
+pub fn playdeveloperreporting_vitals_slowrenderingrate_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://playdeveloperreporting.googleapis.com/v1beta1/apps/{}/slowRenderingRateMetricSet",
@@ -3223,10 +3272,13 @@ pub fn playdeveloperreporting_vitals_slowrenderingrate_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `playdeveloperreporting_vitals_slowrenderingrate_query_execute()` to send, or `playdeveloperreporting_vitals_slowrenderingrate_query` for simplest API.
 
-pub fn playdeveloperreporting_vitals_slowrenderingrate_query_builder(
-    client: &SimpleHttpClient,
+pub fn playdeveloperreporting_vitals_slowrenderingrate_query_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://playdeveloperreporting.googleapis.com/v1beta1/apps/{}/slowRenderingRateMetricSet:query",
@@ -3399,10 +3451,13 @@ pub fn playdeveloperreporting_vitals_slowrenderingrate_query(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `playdeveloperreporting_vitals_slowstartrate_get_execute()` to send, or `playdeveloperreporting_vitals_slowstartrate_get` for simplest API.
 
-pub fn playdeveloperreporting_vitals_slowstartrate_get_builder(
-    client: &SimpleHttpClient,
+pub fn playdeveloperreporting_vitals_slowstartrate_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://playdeveloperreporting.googleapis.com/v1beta1/apps/{}/slowStartRateMetricSet",
@@ -3574,10 +3629,13 @@ pub fn playdeveloperreporting_vitals_slowstartrate_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `playdeveloperreporting_vitals_slowstartrate_query_execute()` to send, or `playdeveloperreporting_vitals_slowstartrate_query` for simplest API.
 
-pub fn playdeveloperreporting_vitals_slowstartrate_query_builder(
-    client: &SimpleHttpClient,
+pub fn playdeveloperreporting_vitals_slowstartrate_query_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://playdeveloperreporting.googleapis.com/v1beta1/apps/{}/slowStartRateMetricSet:query",
@@ -3748,10 +3806,13 @@ pub fn playdeveloperreporting_vitals_slowstartrate_query(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `playdeveloperreporting_vitals_stuckbackgroundwakelockrate_get_execute()` to send, or `playdeveloperreporting_vitals_stuckbackgroundwakelockrate_get` for simplest API.
 
-pub fn playdeveloperreporting_vitals_stuckbackgroundwakelockrate_get_builder(
-    client: &SimpleHttpClient,
+pub fn playdeveloperreporting_vitals_stuckbackgroundwakelockrate_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://playdeveloperreporting.googleapis.com/v1beta1/apps/{}/stuckBackgroundWakelockRateMetricSet",
@@ -3924,10 +3985,13 @@ pub fn playdeveloperreporting_vitals_stuckbackgroundwakelockrate_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `playdeveloperreporting_vitals_stuckbackgroundwakelockrate_query_execute()` to send, or `playdeveloperreporting_vitals_stuckbackgroundwakelockrate_query` for simplest API.
 
-pub fn playdeveloperreporting_vitals_stuckbackgroundwakelockrate_query_builder(
-    client: &SimpleHttpClient,
+pub fn playdeveloperreporting_vitals_stuckbackgroundwakelockrate_query_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://playdeveloperreporting.googleapis.com/v1beta1/apps/{}/stuckBackgroundWakelockRateMetricSet:query",

@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `run_projects_locations_export_image_execute()` to send, or `run_projects_locations_export_image` for simplest API.
 
-pub fn run_projects_locations_export_image_builder(
-    client: &SimpleHttpClient,
+pub fn run_projects_locations_export_image_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://run.googleapis.com/v2/projects/{}/locations/{locationsId}/{locationsId1}:exportImage",
@@ -191,10 +195,13 @@ pub fn run_projects_locations_export_image(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `run_projects_locations_export_image_metadata_execute()` to send, or `run_projects_locations_export_image_metadata` for simplest API.
 
-pub fn run_projects_locations_export_image_metadata_builder(
-    client: &SimpleHttpClient,
+pub fn run_projects_locations_export_image_metadata_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://run.googleapis.com/v2/projects/{}/locations/{locationsId}/{locationsId1}:exportImageMetadata",
@@ -352,10 +359,13 @@ pub fn run_projects_locations_export_image_metadata(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `run_projects_locations_export_metadata_execute()` to send, or `run_projects_locations_export_metadata` for simplest API.
 
-pub fn run_projects_locations_export_metadata_builder(
-    client: &SimpleHttpClient,
+pub fn run_projects_locations_export_metadata_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://run.googleapis.com/v2/projects/{}/locations/{locationsId}/{locationsId1}:exportMetadata",
@@ -513,10 +523,13 @@ pub fn run_projects_locations_export_metadata(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `run_projects_locations_export_project_metadata_execute()` to send, or `run_projects_locations_export_project_metadata` for simplest API.
 
-pub fn run_projects_locations_export_project_metadata_builder(
-    client: &SimpleHttpClient,
+pub fn run_projects_locations_export_project_metadata_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://run.googleapis.com/v2/projects/{}/locations/{locationsId}:exportProjectMetadata",
@@ -674,10 +687,13 @@ pub fn run_projects_locations_export_project_metadata(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `run_projects_locations_builds_submit_execute()` to send, or `run_projects_locations_builds_submit` for simplest API.
 
-pub fn run_projects_locations_builds_submit_builder(
-    client: &SimpleHttpClient,
+pub fn run_projects_locations_builds_submit_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://run.googleapis.com/v2/projects/{}/locations/{locationsId}/builds:submit",
@@ -839,12 +855,15 @@ pub fn run_projects_locations_builds_submit(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `run_projects_locations_instances_create_execute()` to send, or `run_projects_locations_instances_create` for simplest API.
 
-pub fn run_projects_locations_instances_create_builder(
-    client: &SimpleHttpClient,
+pub fn run_projects_locations_instances_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     instanceId: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://run.googleapis.com/v2/projects/{}/locations/{locationsId}/instances",
@@ -1029,12 +1048,15 @@ pub fn run_projects_locations_instances_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `run_projects_locations_instances_delete_execute()` to send, or `run_projects_locations_instances_delete` for simplest API.
 
-pub fn run_projects_locations_instances_delete_builder(
-    client: &SimpleHttpClient,
+pub fn run_projects_locations_instances_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     etag: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://run.googleapis.com/v2/projects/{}/locations/{locationsId}/instances/{instancesId}",
@@ -1219,10 +1241,13 @@ pub fn run_projects_locations_instances_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `run_projects_locations_instances_get_execute()` to send, or `run_projects_locations_instances_get` for simplest API.
 
-pub fn run_projects_locations_instances_get_builder(
-    client: &SimpleHttpClient,
+pub fn run_projects_locations_instances_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://run.googleapis.com/v2/projects/{}/locations/{locationsId}/instances/{instancesId}",
@@ -1380,13 +1405,16 @@ pub fn run_projects_locations_instances_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `run_projects_locations_instances_list_execute()` to send, or `run_projects_locations_instances_list` for simplest API.
 
-pub fn run_projects_locations_instances_list_builder(
-    client: &SimpleHttpClient,
+pub fn run_projects_locations_instances_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     showDeleted: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://run.googleapis.com/v2/projects/{}/locations/{locationsId}/instances",
@@ -1577,10 +1605,13 @@ pub fn run_projects_locations_instances_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `run_projects_locations_instances_start_execute()` to send, or `run_projects_locations_instances_start` for simplest API.
 
-pub fn run_projects_locations_instances_start_builder(
-    client: &SimpleHttpClient,
+pub fn run_projects_locations_instances_start_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://run.googleapis.com/v2/projects/{}/locations/{locationsId}/instances/{instancesId}:start",
@@ -1742,10 +1773,13 @@ pub fn run_projects_locations_instances_start(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `run_projects_locations_instances_stop_execute()` to send, or `run_projects_locations_instances_stop` for simplest API.
 
-pub fn run_projects_locations_instances_stop_builder(
-    client: &SimpleHttpClient,
+pub fn run_projects_locations_instances_stop_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://run.googleapis.com/v2/projects/{}/locations/{locationsId}/instances/{instancesId}:stop",
@@ -1907,12 +1941,15 @@ pub fn run_projects_locations_instances_stop(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `run_projects_locations_jobs_create_execute()` to send, or `run_projects_locations_jobs_create` for simplest API.
 
-pub fn run_projects_locations_jobs_create_builder(
-    client: &SimpleHttpClient,
+pub fn run_projects_locations_jobs_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     jobId: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://run.googleapis.com/v2/projects/{}/locations/{locationsId}/jobs",
@@ -2097,12 +2134,15 @@ pub fn run_projects_locations_jobs_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `run_projects_locations_jobs_delete_execute()` to send, or `run_projects_locations_jobs_delete` for simplest API.
 
-pub fn run_projects_locations_jobs_delete_builder(
-    client: &SimpleHttpClient,
+pub fn run_projects_locations_jobs_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     etag: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://run.googleapis.com/v2/projects/{}/locations/{locationsId}/jobs/{jobsId}",
@@ -2287,10 +2327,13 @@ pub fn run_projects_locations_jobs_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `run_projects_locations_jobs_get_execute()` to send, or `run_projects_locations_jobs_get` for simplest API.
 
-pub fn run_projects_locations_jobs_get_builder(
-    client: &SimpleHttpClient,
+pub fn run_projects_locations_jobs_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://run.googleapis.com/v2/projects/{}/locations/{locationsId}/jobs/{jobsId}",
@@ -2448,11 +2491,14 @@ pub fn run_projects_locations_jobs_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `run_projects_locations_jobs_get_iam_policy_execute()` to send, or `run_projects_locations_jobs_get_iam_policy` for simplest API.
 
-pub fn run_projects_locations_jobs_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn run_projects_locations_jobs_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://run.googleapis.com/v2/projects/{}/locations/{locationsId}/jobs/{jobsId}:getIamPolicy",
@@ -2627,13 +2673,16 @@ pub fn run_projects_locations_jobs_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `run_projects_locations_jobs_list_execute()` to send, or `run_projects_locations_jobs_list` for simplest API.
 
-pub fn run_projects_locations_jobs_list_builder(
-    client: &SimpleHttpClient,
+pub fn run_projects_locations_jobs_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     showDeleted: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://run.googleapis.com/v2/projects/{}/locations/{locationsId}/jobs",
@@ -2824,12 +2873,15 @@ pub fn run_projects_locations_jobs_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `run_projects_locations_jobs_patch_execute()` to send, or `run_projects_locations_jobs_patch` for simplest API.
 
-pub fn run_projects_locations_jobs_patch_builder(
-    client: &SimpleHttpClient,
+pub fn run_projects_locations_jobs_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     allowMissing: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://run.googleapis.com/v2/projects/{}/locations/{locationsId}/jobs/{jobsId}",
@@ -3014,10 +3066,13 @@ pub fn run_projects_locations_jobs_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `run_projects_locations_jobs_run_execute()` to send, or `run_projects_locations_jobs_run` for simplest API.
 
-pub fn run_projects_locations_jobs_run_builder(
-    client: &SimpleHttpClient,
+pub fn run_projects_locations_jobs_run_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://run.googleapis.com/v2/projects/{}/locations/{locationsId}/jobs/{jobsId}:run",
@@ -3179,10 +3234,13 @@ pub fn run_projects_locations_jobs_run(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `run_projects_locations_jobs_set_iam_policy_execute()` to send, or `run_projects_locations_jobs_set_iam_policy` for simplest API.
 
-pub fn run_projects_locations_jobs_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn run_projects_locations_jobs_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://run.googleapis.com/v2/projects/{}/locations/{locationsId}/jobs/{jobsId}:setIamPolicy",
@@ -3340,10 +3398,13 @@ pub fn run_projects_locations_jobs_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `run_projects_locations_jobs_test_iam_permissions_execute()` to send, or `run_projects_locations_jobs_test_iam_permissions` for simplest API.
 
-pub fn run_projects_locations_jobs_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn run_projects_locations_jobs_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://run.googleapis.com/v2/projects/{}/locations/{locationsId}/jobs/{jobsId}:testIamPermissions",
@@ -3505,10 +3566,13 @@ pub fn run_projects_locations_jobs_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `run_projects_locations_jobs_executions_cancel_execute()` to send, or `run_projects_locations_jobs_executions_cancel` for simplest API.
 
-pub fn run_projects_locations_jobs_executions_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn run_projects_locations_jobs_executions_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://run.googleapis.com/v2/projects/{}/locations/{locationsId}/jobs/{jobsId}/executions/{executionsId}:cancel",
@@ -3670,12 +3734,15 @@ pub fn run_projects_locations_jobs_executions_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `run_projects_locations_jobs_executions_delete_execute()` to send, or `run_projects_locations_jobs_executions_delete` for simplest API.
 
-pub fn run_projects_locations_jobs_executions_delete_builder(
-    client: &SimpleHttpClient,
+pub fn run_projects_locations_jobs_executions_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     etag: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://run.googleapis.com/v2/projects/{}/locations/{locationsId}/jobs/{jobsId}/executions/{executionsId}",
@@ -3860,11 +3927,14 @@ pub fn run_projects_locations_jobs_executions_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `run_projects_locations_jobs_executions_export_status_execute()` to send, or `run_projects_locations_jobs_executions_export_status` for simplest API.
 
-pub fn run_projects_locations_jobs_executions_export_status_builder(
-    client: &SimpleHttpClient,
+pub fn run_projects_locations_jobs_executions_export_status_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     operationId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://run.googleapis.com/v2/projects/{}/locations/{}/jobs/{jobsId}/executions/{executionsId}/{executionsId1}:exportStatus",
@@ -4033,10 +4103,13 @@ pub fn run_projects_locations_jobs_executions_export_status(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `run_projects_locations_jobs_executions_get_execute()` to send, or `run_projects_locations_jobs_executions_get` for simplest API.
 
-pub fn run_projects_locations_jobs_executions_get_builder(
-    client: &SimpleHttpClient,
+pub fn run_projects_locations_jobs_executions_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://run.googleapis.com/v2/projects/{}/locations/{locationsId}/jobs/{jobsId}/executions/{executionsId}",
@@ -4194,13 +4267,16 @@ pub fn run_projects_locations_jobs_executions_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `run_projects_locations_jobs_executions_list_execute()` to send, or `run_projects_locations_jobs_executions_list` for simplest API.
 
-pub fn run_projects_locations_jobs_executions_list_builder(
-    client: &SimpleHttpClient,
+pub fn run_projects_locations_jobs_executions_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     showDeleted: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://run.googleapis.com/v2/projects/{}/locations/{locationsId}/jobs/{jobsId}/executions",
@@ -4391,10 +4467,13 @@ pub fn run_projects_locations_jobs_executions_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `run_projects_locations_jobs_executions_tasks_get_execute()` to send, or `run_projects_locations_jobs_executions_tasks_get` for simplest API.
 
-pub fn run_projects_locations_jobs_executions_tasks_get_builder(
-    client: &SimpleHttpClient,
+pub fn run_projects_locations_jobs_executions_tasks_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://run.googleapis.com/v2/projects/{}/locations/{locationsId}/jobs/{jobsId}/executions/{executionsId}/tasks/{tasksId}",
@@ -4552,13 +4631,16 @@ pub fn run_projects_locations_jobs_executions_tasks_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `run_projects_locations_jobs_executions_tasks_list_execute()` to send, or `run_projects_locations_jobs_executions_tasks_list` for simplest API.
 
-pub fn run_projects_locations_jobs_executions_tasks_list_builder(
-    client: &SimpleHttpClient,
+pub fn run_projects_locations_jobs_executions_tasks_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     showDeleted: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://run.googleapis.com/v2/projects/{}/locations/{locationsId}/jobs/{jobsId}/executions/{executionsId}/tasks",
@@ -4749,10 +4831,13 @@ pub fn run_projects_locations_jobs_executions_tasks_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `run_projects_locations_operations_delete_execute()` to send, or `run_projects_locations_operations_delete` for simplest API.
 
-pub fn run_projects_locations_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn run_projects_locations_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://run.googleapis.com/v2/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -4910,10 +4995,13 @@ pub fn run_projects_locations_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `run_projects_locations_operations_get_execute()` to send, or `run_projects_locations_operations_get` for simplest API.
 
-pub fn run_projects_locations_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn run_projects_locations_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://run.googleapis.com/v2/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -5075,14 +5163,17 @@ pub fn run_projects_locations_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `run_projects_locations_operations_list_execute()` to send, or `run_projects_locations_operations_list` for simplest API.
 
-pub fn run_projects_locations_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn run_projects_locations_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://run.googleapis.com/v2/projects/{}/locations/{locationsId}/operations",
@@ -5280,10 +5371,13 @@ pub fn run_projects_locations_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `run_projects_locations_operations_wait_execute()` to send, or `run_projects_locations_operations_wait` for simplest API.
 
-pub fn run_projects_locations_operations_wait_builder(
-    client: &SimpleHttpClient,
+pub fn run_projects_locations_operations_wait_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://run.googleapis.com/v2/projects/{}/locations/{locationsId}/operations/{operationsId}:wait",
@@ -5445,12 +5539,15 @@ pub fn run_projects_locations_operations_wait(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `run_projects_locations_services_create_execute()` to send, or `run_projects_locations_services_create` for simplest API.
 
-pub fn run_projects_locations_services_create_builder(
-    client: &SimpleHttpClient,
+pub fn run_projects_locations_services_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     serviceId: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://run.googleapis.com/v2/projects/{}/locations/{locationsId}/services",
@@ -5635,12 +5732,15 @@ pub fn run_projects_locations_services_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `run_projects_locations_services_delete_execute()` to send, or `run_projects_locations_services_delete` for simplest API.
 
-pub fn run_projects_locations_services_delete_builder(
-    client: &SimpleHttpClient,
+pub fn run_projects_locations_services_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     etag: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://run.googleapis.com/v2/projects/{}/locations/{locationsId}/services/{servicesId}",
@@ -5825,10 +5925,13 @@ pub fn run_projects_locations_services_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `run_projects_locations_services_get_execute()` to send, or `run_projects_locations_services_get` for simplest API.
 
-pub fn run_projects_locations_services_get_builder(
-    client: &SimpleHttpClient,
+pub fn run_projects_locations_services_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://run.googleapis.com/v2/projects/{}/locations/{locationsId}/services/{servicesId}",
@@ -5986,11 +6089,14 @@ pub fn run_projects_locations_services_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `run_projects_locations_services_get_iam_policy_execute()` to send, or `run_projects_locations_services_get_iam_policy` for simplest API.
 
-pub fn run_projects_locations_services_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn run_projects_locations_services_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://run.googleapis.com/v2/projects/{}/locations/{locationsId}/services/{servicesId}:getIamPolicy",
@@ -6165,13 +6271,16 @@ pub fn run_projects_locations_services_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `run_projects_locations_services_list_execute()` to send, or `run_projects_locations_services_list` for simplest API.
 
-pub fn run_projects_locations_services_list_builder(
-    client: &SimpleHttpClient,
+pub fn run_projects_locations_services_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     showDeleted: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://run.googleapis.com/v2/projects/{}/locations/{locationsId}/services",
@@ -6362,14 +6471,17 @@ pub fn run_projects_locations_services_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `run_projects_locations_services_patch_execute()` to send, or `run_projects_locations_services_patch` for simplest API.
 
-pub fn run_projects_locations_services_patch_builder(
-    client: &SimpleHttpClient,
+pub fn run_projects_locations_services_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     allowMissing: &Option<Option<String>>,
     forceNewRevision: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://run.googleapis.com/v2/projects/{}/locations/{locationsId}/services/{servicesId}",
@@ -6566,10 +6678,13 @@ pub fn run_projects_locations_services_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `run_projects_locations_services_set_iam_policy_execute()` to send, or `run_projects_locations_services_set_iam_policy` for simplest API.
 
-pub fn run_projects_locations_services_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn run_projects_locations_services_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://run.googleapis.com/v2/projects/{}/locations/{locationsId}/services/{servicesId}:setIamPolicy",
@@ -6727,10 +6842,13 @@ pub fn run_projects_locations_services_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `run_projects_locations_services_test_iam_permissions_execute()` to send, or `run_projects_locations_services_test_iam_permissions` for simplest API.
 
-pub fn run_projects_locations_services_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn run_projects_locations_services_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://run.googleapis.com/v2/projects/{}/locations/{locationsId}/services/{servicesId}:testIamPermissions",
@@ -6893,12 +7011,15 @@ pub fn run_projects_locations_services_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `run_projects_locations_services_revisions_delete_execute()` to send, or `run_projects_locations_services_revisions_delete` for simplest API.
 
-pub fn run_projects_locations_services_revisions_delete_builder(
-    client: &SimpleHttpClient,
+pub fn run_projects_locations_services_revisions_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     etag: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://run.googleapis.com/v2/projects/{}/locations/{locationsId}/services/{servicesId}/revisions/{revisionsId}",
@@ -7083,11 +7204,14 @@ pub fn run_projects_locations_services_revisions_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `run_projects_locations_services_revisions_export_status_execute()` to send, or `run_projects_locations_services_revisions_export_status` for simplest API.
 
-pub fn run_projects_locations_services_revisions_export_status_builder(
-    client: &SimpleHttpClient,
+pub fn run_projects_locations_services_revisions_export_status_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     operationId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://run.googleapis.com/v2/projects/{}/locations/{}/services/{servicesId}/revisions/{revisionsId}/{revisionsId1}:exportStatus",
@@ -7256,10 +7380,13 @@ pub fn run_projects_locations_services_revisions_export_status(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `run_projects_locations_services_revisions_get_execute()` to send, or `run_projects_locations_services_revisions_get` for simplest API.
 
-pub fn run_projects_locations_services_revisions_get_builder(
-    client: &SimpleHttpClient,
+pub fn run_projects_locations_services_revisions_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://run.googleapis.com/v2/projects/{}/locations/{locationsId}/services/{servicesId}/revisions/{revisionsId}",
@@ -7417,13 +7544,16 @@ pub fn run_projects_locations_services_revisions_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `run_projects_locations_services_revisions_list_execute()` to send, or `run_projects_locations_services_revisions_list` for simplest API.
 
-pub fn run_projects_locations_services_revisions_list_builder(
-    client: &SimpleHttpClient,
+pub fn run_projects_locations_services_revisions_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     showDeleted: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://run.googleapis.com/v2/projects/{}/locations/{locationsId}/services/{servicesId}/revisions",
@@ -7614,12 +7744,15 @@ pub fn run_projects_locations_services_revisions_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `run_projects_locations_worker_pools_create_execute()` to send, or `run_projects_locations_worker_pools_create` for simplest API.
 
-pub fn run_projects_locations_worker_pools_create_builder(
-    client: &SimpleHttpClient,
+pub fn run_projects_locations_worker_pools_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     validateOnly: &Option<Option<String>>,
     workerPoolId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://run.googleapis.com/v2/projects/{}/locations/{locationsId}/workerPools",
@@ -7804,12 +7937,15 @@ pub fn run_projects_locations_worker_pools_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `run_projects_locations_worker_pools_delete_execute()` to send, or `run_projects_locations_worker_pools_delete` for simplest API.
 
-pub fn run_projects_locations_worker_pools_delete_builder(
-    client: &SimpleHttpClient,
+pub fn run_projects_locations_worker_pools_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     etag: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://run.googleapis.com/v2/projects/{}/locations/{locationsId}/workerPools/{workerPoolsId}",
@@ -7994,10 +8130,13 @@ pub fn run_projects_locations_worker_pools_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `run_projects_locations_worker_pools_get_execute()` to send, or `run_projects_locations_worker_pools_get` for simplest API.
 
-pub fn run_projects_locations_worker_pools_get_builder(
-    client: &SimpleHttpClient,
+pub fn run_projects_locations_worker_pools_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://run.googleapis.com/v2/projects/{}/locations/{locationsId}/workerPools/{workerPoolsId}",
@@ -8159,11 +8298,14 @@ pub fn run_projects_locations_worker_pools_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `run_projects_locations_worker_pools_get_iam_policy_execute()` to send, or `run_projects_locations_worker_pools_get_iam_policy` for simplest API.
 
-pub fn run_projects_locations_worker_pools_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn run_projects_locations_worker_pools_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://run.googleapis.com/v2/projects/{}/locations/{locationsId}/workerPools/{workerPoolsId}:getIamPolicy",
@@ -8338,13 +8480,16 @@ pub fn run_projects_locations_worker_pools_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `run_projects_locations_worker_pools_list_execute()` to send, or `run_projects_locations_worker_pools_list` for simplest API.
 
-pub fn run_projects_locations_worker_pools_list_builder(
-    client: &SimpleHttpClient,
+pub fn run_projects_locations_worker_pools_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     showDeleted: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://run.googleapis.com/v2/projects/{}/locations/{locationsId}/workerPools",
@@ -8536,14 +8681,17 @@ pub fn run_projects_locations_worker_pools_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `run_projects_locations_worker_pools_patch_execute()` to send, or `run_projects_locations_worker_pools_patch` for simplest API.
 
-pub fn run_projects_locations_worker_pools_patch_builder(
-    client: &SimpleHttpClient,
+pub fn run_projects_locations_worker_pools_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     allowMissing: &Option<Option<String>>,
     forceNewRevision: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://run.googleapis.com/v2/projects/{}/locations/{locationsId}/workerPools/{workerPoolsId}",
@@ -8740,10 +8888,13 @@ pub fn run_projects_locations_worker_pools_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `run_projects_locations_worker_pools_set_iam_policy_execute()` to send, or `run_projects_locations_worker_pools_set_iam_policy` for simplest API.
 
-pub fn run_projects_locations_worker_pools_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn run_projects_locations_worker_pools_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://run.googleapis.com/v2/projects/{}/locations/{locationsId}/workerPools/{workerPoolsId}:setIamPolicy",
@@ -8902,10 +9053,13 @@ pub fn run_projects_locations_worker_pools_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `run_projects_locations_worker_pools_test_iam_permissions_execute()` to send, or `run_projects_locations_worker_pools_test_iam_permissions` for simplest API.
 
-pub fn run_projects_locations_worker_pools_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn run_projects_locations_worker_pools_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://run.googleapis.com/v2/projects/{}/locations/{locationsId}/workerPools/{workerPoolsId}:testIamPermissions",
@@ -9068,12 +9222,15 @@ pub fn run_projects_locations_worker_pools_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `run_projects_locations_worker_pools_revisions_delete_execute()` to send, or `run_projects_locations_worker_pools_revisions_delete` for simplest API.
 
-pub fn run_projects_locations_worker_pools_revisions_delete_builder(
-    client: &SimpleHttpClient,
+pub fn run_projects_locations_worker_pools_revisions_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     etag: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://run.googleapis.com/v2/projects/{}/locations/{locationsId}/workerPools/{workerPoolsId}/revisions/{revisionsId}",
@@ -9258,10 +9415,13 @@ pub fn run_projects_locations_worker_pools_revisions_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `run_projects_locations_worker_pools_revisions_get_execute()` to send, or `run_projects_locations_worker_pools_revisions_get` for simplest API.
 
-pub fn run_projects_locations_worker_pools_revisions_get_builder(
-    client: &SimpleHttpClient,
+pub fn run_projects_locations_worker_pools_revisions_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://run.googleapis.com/v2/projects/{}/locations/{locationsId}/workerPools/{workerPoolsId}/revisions/{revisionsId}",
@@ -9419,13 +9579,16 @@ pub fn run_projects_locations_worker_pools_revisions_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `run_projects_locations_worker_pools_revisions_list_execute()` to send, or `run_projects_locations_worker_pools_revisions_list` for simplest API.
 
-pub fn run_projects_locations_worker_pools_revisions_list_builder(
-    client: &SimpleHttpClient,
+pub fn run_projects_locations_worker_pools_revisions_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     showDeleted: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://run.googleapis.com/v2/projects/{}/locations/{locationsId}/workerPools/{workerPoolsId}/revisions",

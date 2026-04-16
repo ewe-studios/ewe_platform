@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudtrace_projects_traces_batch_write_execute()` to send, or `cloudtrace_projects_traces_batch_write` for simplest API.
 
-pub fn cloudtrace_projects_traces_batch_write_builder(
-    client: &SimpleHttpClient,
+pub fn cloudtrace_projects_traces_batch_write_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudtrace.googleapis.com/v2/projects/{}/traces:batchWrite",
@@ -183,10 +187,13 @@ pub fn cloudtrace_projects_traces_batch_write(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudtrace_projects_traces_spans_create_span_execute()` to send, or `cloudtrace_projects_traces_spans_create_span` for simplest API.
 
-pub fn cloudtrace_projects_traces_spans_create_span_builder(
-    client: &SimpleHttpClient,
+pub fn cloudtrace_projects_traces_spans_create_span_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudtrace.googleapis.com/v2/projects/{}/traces/{tracesId}/spans/{spansId}",

@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,13 +27,16 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instance_config_operations_list_execute()` to send, or `spanner_projects_instance_config_operations_list` for simplest API.
 
-pub fn spanner_projects_instance_config_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn spanner_projects_instance_config_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://spanner.googleapis.com/v1/projects/{}/instanceConfigOperations",
@@ -223,10 +227,13 @@ pub fn spanner_projects_instance_config_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instance_configs_create_execute()` to send, or `spanner_projects_instance_configs_create` for simplest API.
 
-pub fn spanner_projects_instance_configs_create_builder(
-    client: &SimpleHttpClient,
+pub fn spanner_projects_instance_configs_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://spanner.googleapis.com/v1/projects/{}/instanceConfigs",
@@ -380,12 +387,15 @@ pub fn spanner_projects_instance_configs_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instance_configs_delete_execute()` to send, or `spanner_projects_instance_configs_delete` for simplest API.
 
-pub fn spanner_projects_instance_configs_delete_builder(
-    client: &SimpleHttpClient,
+pub fn spanner_projects_instance_configs_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     etag: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://spanner.googleapis.com/v1/projects/{}/instanceConfigs/{instanceConfigsId}",
@@ -562,10 +572,13 @@ pub fn spanner_projects_instance_configs_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instance_configs_get_execute()` to send, or `spanner_projects_instance_configs_get` for simplest API.
 
-pub fn spanner_projects_instance_configs_get_builder(
-    client: &SimpleHttpClient,
+pub fn spanner_projects_instance_configs_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://spanner.googleapis.com/v1/projects/{}/instanceConfigs/{instanceConfigsId}",
@@ -723,12 +736,15 @@ pub fn spanner_projects_instance_configs_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instance_configs_list_execute()` to send, or `spanner_projects_instance_configs_list` for simplest API.
 
-pub fn spanner_projects_instance_configs_list_builder(
-    client: &SimpleHttpClient,
+pub fn spanner_projects_instance_configs_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://spanner.googleapis.com/v1/projects/{}/instanceConfigs",
@@ -913,10 +929,13 @@ pub fn spanner_projects_instance_configs_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instance_configs_patch_execute()` to send, or `spanner_projects_instance_configs_patch` for simplest API.
 
-pub fn spanner_projects_instance_configs_patch_builder(
-    client: &SimpleHttpClient,
+pub fn spanner_projects_instance_configs_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://spanner.googleapis.com/v1/projects/{}/instanceConfigs/{instanceConfigsId}",
@@ -1070,10 +1089,13 @@ pub fn spanner_projects_instance_configs_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instance_configs_operations_cancel_execute()` to send, or `spanner_projects_instance_configs_operations_cancel` for simplest API.
 
-pub fn spanner_projects_instance_configs_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn spanner_projects_instance_configs_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://spanner.googleapis.com/v1/projects/{}/instanceConfigs/{instanceConfigsId}/operations/{operationsId}:cancel",
@@ -1227,10 +1249,13 @@ pub fn spanner_projects_instance_configs_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instance_configs_operations_delete_execute()` to send, or `spanner_projects_instance_configs_operations_delete` for simplest API.
 
-pub fn spanner_projects_instance_configs_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn spanner_projects_instance_configs_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://spanner.googleapis.com/v1/projects/{}/instanceConfigs/{instanceConfigsId}/operations/{operationsId}",
@@ -1384,10 +1409,13 @@ pub fn spanner_projects_instance_configs_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instance_configs_operations_get_execute()` to send, or `spanner_projects_instance_configs_operations_get` for simplest API.
 
-pub fn spanner_projects_instance_configs_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn spanner_projects_instance_configs_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://spanner.googleapis.com/v1/projects/{}/instanceConfigs/{instanceConfigsId}/operations/{operationsId}",
@@ -1541,14 +1569,17 @@ pub fn spanner_projects_instance_configs_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instance_configs_operations_list_execute()` to send, or `spanner_projects_instance_configs_operations_list` for simplest API.
 
-pub fn spanner_projects_instance_configs_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn spanner_projects_instance_configs_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://spanner.googleapis.com/v1/projects/{}/instanceConfigs/{instanceConfigsId}/operations",
@@ -1741,10 +1772,13 @@ pub fn spanner_projects_instance_configs_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instance_configs_ssd_caches_operations_cancel_execute()` to send, or `spanner_projects_instance_configs_ssd_caches_operations_cancel` for simplest API.
 
-pub fn spanner_projects_instance_configs_ssd_caches_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn spanner_projects_instance_configs_ssd_caches_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://spanner.googleapis.com/v1/projects/{}/instanceConfigs/{instanceConfigsId}/ssdCaches/{ssdCachesId}/operations/{operationsId}:cancel",
@@ -1899,10 +1933,13 @@ pub fn spanner_projects_instance_configs_ssd_caches_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instance_configs_ssd_caches_operations_delete_execute()` to send, or `spanner_projects_instance_configs_ssd_caches_operations_delete` for simplest API.
 
-pub fn spanner_projects_instance_configs_ssd_caches_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn spanner_projects_instance_configs_ssd_caches_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://spanner.googleapis.com/v1/projects/{}/instanceConfigs/{instanceConfigsId}/ssdCaches/{ssdCachesId}/operations/{operationsId}",
@@ -2057,10 +2094,13 @@ pub fn spanner_projects_instance_configs_ssd_caches_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instance_configs_ssd_caches_operations_get_execute()` to send, or `spanner_projects_instance_configs_ssd_caches_operations_get` for simplest API.
 
-pub fn spanner_projects_instance_configs_ssd_caches_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn spanner_projects_instance_configs_ssd_caches_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://spanner.googleapis.com/v1/projects/{}/instanceConfigs/{instanceConfigsId}/ssdCaches/{ssdCachesId}/operations/{operationsId}",
@@ -2215,14 +2255,17 @@ pub fn spanner_projects_instance_configs_ssd_caches_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instance_configs_ssd_caches_operations_list_execute()` to send, or `spanner_projects_instance_configs_ssd_caches_operations_list` for simplest API.
 
-pub fn spanner_projects_instance_configs_ssd_caches_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn spanner_projects_instance_configs_ssd_caches_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://spanner.googleapis.com/v1/projects/{}/instanceConfigs/{instanceConfigsId}/ssdCaches/{ssdCachesId}/operations",
@@ -2415,10 +2458,13 @@ pub fn spanner_projects_instance_configs_ssd_caches_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instances_create_execute()` to send, or `spanner_projects_instances_create` for simplest API.
 
-pub fn spanner_projects_instances_create_builder(
-    client: &SimpleHttpClient,
+pub fn spanner_projects_instances_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://spanner.googleapis.com/v1/projects/{}/instances",
@@ -2572,10 +2618,13 @@ pub fn spanner_projects_instances_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instances_delete_execute()` to send, or `spanner_projects_instances_delete` for simplest API.
 
-pub fn spanner_projects_instances_delete_builder(
-    client: &SimpleHttpClient,
+pub fn spanner_projects_instances_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}",
@@ -2729,11 +2778,14 @@ pub fn spanner_projects_instances_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instances_get_execute()` to send, or `spanner_projects_instances_get` for simplest API.
 
-pub fn spanner_projects_instances_get_builder(
-    client: &SimpleHttpClient,
+pub fn spanner_projects_instances_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     fieldMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}",
@@ -2900,10 +2952,13 @@ pub fn spanner_projects_instances_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instances_get_iam_policy_execute()` to send, or `spanner_projects_instances_get_iam_policy` for simplest API.
 
-pub fn spanner_projects_instances_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn spanner_projects_instances_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}:getIamPolicy",
@@ -3057,14 +3112,17 @@ pub fn spanner_projects_instances_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instances_list_execute()` to send, or `spanner_projects_instances_list` for simplest API.
 
-pub fn spanner_projects_instances_list_builder(
-    client: &SimpleHttpClient,
+pub fn spanner_projects_instances_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     instanceDeadline: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://spanner.googleapis.com/v1/projects/{}/instances",
@@ -3257,10 +3315,13 @@ pub fn spanner_projects_instances_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instances_move_execute()` to send, or `spanner_projects_instances_move` for simplest API.
 
-pub fn spanner_projects_instances_move_builder(
-    client: &SimpleHttpClient,
+pub fn spanner_projects_instances_move_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}:move",
@@ -3414,10 +3475,13 @@ pub fn spanner_projects_instances_move(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instances_patch_execute()` to send, or `spanner_projects_instances_patch` for simplest API.
 
-pub fn spanner_projects_instances_patch_builder(
-    client: &SimpleHttpClient,
+pub fn spanner_projects_instances_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}",
@@ -3571,10 +3635,13 @@ pub fn spanner_projects_instances_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instances_set_iam_policy_execute()` to send, or `spanner_projects_instances_set_iam_policy` for simplest API.
 
-pub fn spanner_projects_instances_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn spanner_projects_instances_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}:setIamPolicy",
@@ -3728,10 +3795,13 @@ pub fn spanner_projects_instances_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instances_test_iam_permissions_execute()` to send, or `spanner_projects_instances_test_iam_permissions` for simplest API.
 
-pub fn spanner_projects_instances_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn spanner_projects_instances_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}:testIamPermissions",
@@ -3893,13 +3963,16 @@ pub fn spanner_projects_instances_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instances_backup_operations_list_execute()` to send, or `spanner_projects_instances_backup_operations_list` for simplest API.
 
-pub fn spanner_projects_instances_backup_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn spanner_projects_instances_backup_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/backupOperations",
@@ -4090,10 +4163,13 @@ pub fn spanner_projects_instances_backup_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instances_backups_copy_execute()` to send, or `spanner_projects_instances_backups_copy` for simplest API.
 
-pub fn spanner_projects_instances_backups_copy_builder(
-    client: &SimpleHttpClient,
+pub fn spanner_projects_instances_backups_copy_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/backups:copy",
@@ -4247,14 +4323,17 @@ pub fn spanner_projects_instances_backups_copy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instances_backups_create_execute()` to send, or `spanner_projects_instances_backups_create` for simplest API.
 
-pub fn spanner_projects_instances_backups_create_builder(
-    client: &SimpleHttpClient,
+pub fn spanner_projects_instances_backups_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     backupId: &Option<Option<String>>,
     encryptionConfig_encryptionType: &Option<Option<String>>,
     encryptionConfig_kmsKeyName: &Option<Option<String>>,
     encryptionConfig_kmsKeyNames: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/backups",
@@ -4443,10 +4522,13 @@ pub fn spanner_projects_instances_backups_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instances_backups_delete_execute()` to send, or `spanner_projects_instances_backups_delete` for simplest API.
 
-pub fn spanner_projects_instances_backups_delete_builder(
-    client: &SimpleHttpClient,
+pub fn spanner_projects_instances_backups_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/backups/{backupsId}",
@@ -4600,10 +4682,13 @@ pub fn spanner_projects_instances_backups_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instances_backups_get_execute()` to send, or `spanner_projects_instances_backups_get` for simplest API.
 
-pub fn spanner_projects_instances_backups_get_builder(
-    client: &SimpleHttpClient,
+pub fn spanner_projects_instances_backups_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/backups/{backupsId}",
@@ -4757,10 +4842,13 @@ pub fn spanner_projects_instances_backups_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instances_backups_get_iam_policy_execute()` to send, or `spanner_projects_instances_backups_get_iam_policy` for simplest API.
 
-pub fn spanner_projects_instances_backups_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn spanner_projects_instances_backups_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/backups/{backupsId}:getIamPolicy",
@@ -4915,13 +5003,16 @@ pub fn spanner_projects_instances_backups_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instances_backups_list_execute()` to send, or `spanner_projects_instances_backups_list` for simplest API.
 
-pub fn spanner_projects_instances_backups_list_builder(
-    client: &SimpleHttpClient,
+pub fn spanner_projects_instances_backups_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/backups",
@@ -5108,11 +5199,14 @@ pub fn spanner_projects_instances_backups_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instances_backups_patch_execute()` to send, or `spanner_projects_instances_backups_patch` for simplest API.
 
-pub fn spanner_projects_instances_backups_patch_builder(
-    client: &SimpleHttpClient,
+pub fn spanner_projects_instances_backups_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/backups/{backupsId}",
@@ -5280,10 +5374,13 @@ pub fn spanner_projects_instances_backups_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instances_backups_set_iam_policy_execute()` to send, or `spanner_projects_instances_backups_set_iam_policy` for simplest API.
 
-pub fn spanner_projects_instances_backups_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn spanner_projects_instances_backups_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/backups/{backupsId}:setIamPolicy",
@@ -5438,10 +5535,13 @@ pub fn spanner_projects_instances_backups_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instances_backups_test_iam_permissions_execute()` to send, or `spanner_projects_instances_backups_test_iam_permissions` for simplest API.
 
-pub fn spanner_projects_instances_backups_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn spanner_projects_instances_backups_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/backups/{backupsId}:testIamPermissions",
@@ -5604,10 +5704,13 @@ pub fn spanner_projects_instances_backups_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instances_backups_operations_cancel_execute()` to send, or `spanner_projects_instances_backups_operations_cancel` for simplest API.
 
-pub fn spanner_projects_instances_backups_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn spanner_projects_instances_backups_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/backups/{backupsId}/operations/{operationsId}:cancel",
@@ -5761,10 +5864,13 @@ pub fn spanner_projects_instances_backups_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instances_backups_operations_delete_execute()` to send, or `spanner_projects_instances_backups_operations_delete` for simplest API.
 
-pub fn spanner_projects_instances_backups_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn spanner_projects_instances_backups_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/backups/{backupsId}/operations/{operationsId}",
@@ -5918,10 +6024,13 @@ pub fn spanner_projects_instances_backups_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instances_backups_operations_get_execute()` to send, or `spanner_projects_instances_backups_operations_get` for simplest API.
 
-pub fn spanner_projects_instances_backups_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn spanner_projects_instances_backups_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/backups/{backupsId}/operations/{operationsId}",
@@ -6075,14 +6184,17 @@ pub fn spanner_projects_instances_backups_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instances_backups_operations_list_execute()` to send, or `spanner_projects_instances_backups_operations_list` for simplest API.
 
-pub fn spanner_projects_instances_backups_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn spanner_projects_instances_backups_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/backups/{backupsId}/operations",
@@ -6275,13 +6387,16 @@ pub fn spanner_projects_instances_backups_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instances_database_operations_list_execute()` to send, or `spanner_projects_instances_database_operations_list` for simplest API.
 
-pub fn spanner_projects_instances_database_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn spanner_projects_instances_database_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/databaseOperations",
@@ -6472,10 +6587,13 @@ pub fn spanner_projects_instances_database_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instances_databases_add_split_points_execute()` to send, or `spanner_projects_instances_databases_add_split_points` for simplest API.
 
-pub fn spanner_projects_instances_databases_add_split_points_builder(
-    client: &SimpleHttpClient,
+pub fn spanner_projects_instances_databases_add_split_points_builder<R>(
+    client: &SimpleHttpClient<R>,
     database: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/databases/{databasesId}:addSplitPoints",
@@ -6634,10 +6752,13 @@ pub fn spanner_projects_instances_databases_add_split_points(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instances_databases_changequorum_execute()` to send, or `spanner_projects_instances_databases_changequorum` for simplest API.
 
-pub fn spanner_projects_instances_databases_changequorum_builder(
-    client: &SimpleHttpClient,
+pub fn spanner_projects_instances_databases_changequorum_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/databases/{databasesId}:changequorum",
@@ -6791,10 +6912,13 @@ pub fn spanner_projects_instances_databases_changequorum(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instances_databases_create_execute()` to send, or `spanner_projects_instances_databases_create` for simplest API.
 
-pub fn spanner_projects_instances_databases_create_builder(
-    client: &SimpleHttpClient,
+pub fn spanner_projects_instances_databases_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/databases",
@@ -6948,10 +7072,13 @@ pub fn spanner_projects_instances_databases_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instances_databases_drop_database_execute()` to send, or `spanner_projects_instances_databases_drop_database` for simplest API.
 
-pub fn spanner_projects_instances_databases_drop_database_builder(
-    client: &SimpleHttpClient,
+pub fn spanner_projects_instances_databases_drop_database_builder<R>(
+    client: &SimpleHttpClient<R>,
     database: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/databases/{databasesId}",
@@ -7106,10 +7233,13 @@ pub fn spanner_projects_instances_databases_drop_database(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instances_databases_get_execute()` to send, or `spanner_projects_instances_databases_get` for simplest API.
 
-pub fn spanner_projects_instances_databases_get_builder(
-    client: &SimpleHttpClient,
+pub fn spanner_projects_instances_databases_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/databases/{databasesId}",
@@ -7263,10 +7393,13 @@ pub fn spanner_projects_instances_databases_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instances_databases_get_ddl_execute()` to send, or `spanner_projects_instances_databases_get_ddl` for simplest API.
 
-pub fn spanner_projects_instances_databases_get_ddl_builder(
-    client: &SimpleHttpClient,
+pub fn spanner_projects_instances_databases_get_ddl_builder<R>(
+    client: &SimpleHttpClient<R>,
     database: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/databases/{databasesId}/ddl",
@@ -7424,10 +7557,13 @@ pub fn spanner_projects_instances_databases_get_ddl(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instances_databases_get_iam_policy_execute()` to send, or `spanner_projects_instances_databases_get_iam_policy` for simplest API.
 
-pub fn spanner_projects_instances_databases_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn spanner_projects_instances_databases_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/databases/{databasesId}:getIamPolicy",
@@ -7582,13 +7718,16 @@ pub fn spanner_projects_instances_databases_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instances_databases_get_scans_execute()` to send, or `spanner_projects_instances_databases_get_scans` for simplest API.
 
-pub fn spanner_projects_instances_databases_get_scans_builder(
-    client: &SimpleHttpClient,
+pub fn spanner_projects_instances_databases_get_scans_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     endTime: &Option<Option<String>>,
     startTime: &Option<Option<String>>,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/databases/{databasesId}/scans",
@@ -7771,12 +7910,15 @@ pub fn spanner_projects_instances_databases_get_scans(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instances_databases_list_execute()` to send, or `spanner_projects_instances_databases_list` for simplest API.
 
-pub fn spanner_projects_instances_databases_list_builder(
-    client: &SimpleHttpClient,
+pub fn spanner_projects_instances_databases_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/databases",
@@ -7957,11 +8099,14 @@ pub fn spanner_projects_instances_databases_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instances_databases_patch_execute()` to send, or `spanner_projects_instances_databases_patch` for simplest API.
 
-pub fn spanner_projects_instances_databases_patch_builder(
-    client: &SimpleHttpClient,
+pub fn spanner_projects_instances_databases_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/databases/{databasesId}",
@@ -8129,10 +8274,13 @@ pub fn spanner_projects_instances_databases_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instances_databases_restore_execute()` to send, or `spanner_projects_instances_databases_restore` for simplest API.
 
-pub fn spanner_projects_instances_databases_restore_builder(
-    client: &SimpleHttpClient,
+pub fn spanner_projects_instances_databases_restore_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/databases:restore",
@@ -8286,10 +8434,13 @@ pub fn spanner_projects_instances_databases_restore(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instances_databases_set_iam_policy_execute()` to send, or `spanner_projects_instances_databases_set_iam_policy` for simplest API.
 
-pub fn spanner_projects_instances_databases_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn spanner_projects_instances_databases_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/databases/{databasesId}:setIamPolicy",
@@ -8444,10 +8595,13 @@ pub fn spanner_projects_instances_databases_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instances_databases_test_iam_permissions_execute()` to send, or `spanner_projects_instances_databases_test_iam_permissions` for simplest API.
 
-pub fn spanner_projects_instances_databases_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn spanner_projects_instances_databases_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/databases/{databasesId}:testIamPermissions",
@@ -8610,10 +8764,13 @@ pub fn spanner_projects_instances_databases_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instances_databases_update_ddl_execute()` to send, or `spanner_projects_instances_databases_update_ddl` for simplest API.
 
-pub fn spanner_projects_instances_databases_update_ddl_builder(
-    client: &SimpleHttpClient,
+pub fn spanner_projects_instances_databases_update_ddl_builder<R>(
+    client: &SimpleHttpClient<R>,
     database: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/databases/{databasesId}/ddl",
@@ -8767,11 +8924,14 @@ pub fn spanner_projects_instances_databases_update_ddl(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instances_databases_backup_schedules_create_execute()` to send, or `spanner_projects_instances_databases_backup_schedules_create` for simplest API.
 
-pub fn spanner_projects_instances_databases_backup_schedules_create_builder(
-    client: &SimpleHttpClient,
+pub fn spanner_projects_instances_databases_backup_schedules_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     backupScheduleId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/databases/{databasesId}/backupSchedules",
@@ -8946,10 +9106,13 @@ pub fn spanner_projects_instances_databases_backup_schedules_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instances_databases_backup_schedules_delete_execute()` to send, or `spanner_projects_instances_databases_backup_schedules_delete` for simplest API.
 
-pub fn spanner_projects_instances_databases_backup_schedules_delete_builder(
-    client: &SimpleHttpClient,
+pub fn spanner_projects_instances_databases_backup_schedules_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/databases/{databasesId}/backupSchedules/{backupSchedulesId}",
@@ -9104,10 +9267,13 @@ pub fn spanner_projects_instances_databases_backup_schedules_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instances_databases_backup_schedules_get_execute()` to send, or `spanner_projects_instances_databases_backup_schedules_get` for simplest API.
 
-pub fn spanner_projects_instances_databases_backup_schedules_get_builder(
-    client: &SimpleHttpClient,
+pub fn spanner_projects_instances_databases_backup_schedules_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/databases/{databasesId}/backupSchedules/{backupSchedulesId}",
@@ -9266,10 +9432,13 @@ pub fn spanner_projects_instances_databases_backup_schedules_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instances_databases_backup_schedules_get_iam_policy_execute()` to send, or `spanner_projects_instances_databases_backup_schedules_get_iam_policy` for simplest API.
 
-pub fn spanner_projects_instances_databases_backup_schedules_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn spanner_projects_instances_databases_backup_schedules_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/databases/{databasesId}/backupSchedules/{backupSchedulesId}:getIamPolicy",
@@ -9426,12 +9595,15 @@ pub fn spanner_projects_instances_databases_backup_schedules_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instances_databases_backup_schedules_list_execute()` to send, or `spanner_projects_instances_databases_backup_schedules_list` for simplest API.
 
-pub fn spanner_projects_instances_databases_backup_schedules_list_builder(
-    client: &SimpleHttpClient,
+pub fn spanner_projects_instances_databases_backup_schedules_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/databases/{databasesId}/backupSchedules",
@@ -9616,11 +9788,14 @@ pub fn spanner_projects_instances_databases_backup_schedules_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instances_databases_backup_schedules_patch_execute()` to send, or `spanner_projects_instances_databases_backup_schedules_patch` for simplest API.
 
-pub fn spanner_projects_instances_databases_backup_schedules_patch_builder(
-    client: &SimpleHttpClient,
+pub fn spanner_projects_instances_databases_backup_schedules_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/databases/{databasesId}/backupSchedules/{backupSchedulesId}",
@@ -9795,10 +9970,13 @@ pub fn spanner_projects_instances_databases_backup_schedules_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instances_databases_backup_schedules_set_iam_policy_execute()` to send, or `spanner_projects_instances_databases_backup_schedules_set_iam_policy` for simplest API.
 
-pub fn spanner_projects_instances_databases_backup_schedules_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn spanner_projects_instances_databases_backup_schedules_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/databases/{databasesId}/backupSchedules/{backupSchedulesId}:setIamPolicy",
@@ -9955,10 +10133,13 @@ pub fn spanner_projects_instances_databases_backup_schedules_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instances_databases_backup_schedules_test_iam_permissions_execute()` to send, or `spanner_projects_instances_databases_backup_schedules_test_iam_permissions` for simplest API.
 
-pub fn spanner_projects_instances_databases_backup_schedules_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn spanner_projects_instances_databases_backup_schedules_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/databases/{databasesId}/backupSchedules/{backupSchedulesId}:testIamPermissions",
@@ -10125,12 +10306,15 @@ pub fn spanner_projects_instances_databases_backup_schedules_test_iam_permission
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instances_databases_database_roles_list_execute()` to send, or `spanner_projects_instances_databases_database_roles_list` for simplest API.
 
-pub fn spanner_projects_instances_databases_database_roles_list_builder(
-    client: &SimpleHttpClient,
+pub fn spanner_projects_instances_databases_database_roles_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/databases/{databasesId}/databaseRoles",
@@ -10311,10 +10495,13 @@ pub fn spanner_projects_instances_databases_database_roles_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instances_databases_database_roles_test_iam_permissions_execute()` to send, or `spanner_projects_instances_databases_database_roles_test_iam_permissions` for simplest API.
 
-pub fn spanner_projects_instances_databases_database_roles_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn spanner_projects_instances_databases_database_roles_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/databases/{databasesId}/databaseRoles/{databaseRolesId}:testIamPermissions",
@@ -10480,10 +10667,13 @@ pub fn spanner_projects_instances_databases_database_roles_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instances_databases_operations_cancel_execute()` to send, or `spanner_projects_instances_databases_operations_cancel` for simplest API.
 
-pub fn spanner_projects_instances_databases_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn spanner_projects_instances_databases_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/databases/{databasesId}/operations/{operationsId}:cancel",
@@ -10638,10 +10828,13 @@ pub fn spanner_projects_instances_databases_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instances_databases_operations_delete_execute()` to send, or `spanner_projects_instances_databases_operations_delete` for simplest API.
 
-pub fn spanner_projects_instances_databases_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn spanner_projects_instances_databases_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/databases/{databasesId}/operations/{operationsId}",
@@ -10796,10 +10989,13 @@ pub fn spanner_projects_instances_databases_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instances_databases_operations_get_execute()` to send, or `spanner_projects_instances_databases_operations_get` for simplest API.
 
-pub fn spanner_projects_instances_databases_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn spanner_projects_instances_databases_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/databases/{databasesId}/operations/{operationsId}",
@@ -10953,14 +11149,17 @@ pub fn spanner_projects_instances_databases_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instances_databases_operations_list_execute()` to send, or `spanner_projects_instances_databases_operations_list` for simplest API.
 
-pub fn spanner_projects_instances_databases_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn spanner_projects_instances_databases_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/databases/{databasesId}/operations",
@@ -11153,10 +11352,13 @@ pub fn spanner_projects_instances_databases_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instances_databases_sessions_adapt_message_execute()` to send, or `spanner_projects_instances_databases_sessions_adapt_message` for simplest API.
 
-pub fn spanner_projects_instances_databases_sessions_adapt_message_builder(
-    client: &SimpleHttpClient,
+pub fn spanner_projects_instances_databases_sessions_adapt_message_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}:adaptMessage",
@@ -11315,10 +11517,13 @@ pub fn spanner_projects_instances_databases_sessions_adapt_message(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instances_databases_sessions_adapter_execute()` to send, or `spanner_projects_instances_databases_sessions_adapter` for simplest API.
 
-pub fn spanner_projects_instances_databases_sessions_adapter_builder(
-    client: &SimpleHttpClient,
+pub fn spanner_projects_instances_databases_sessions_adapter_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/databases/{databasesId}/sessions:adapter",
@@ -11477,10 +11682,13 @@ pub fn spanner_projects_instances_databases_sessions_adapter(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instances_databases_sessions_batch_create_execute()` to send, or `spanner_projects_instances_databases_sessions_batch_create` for simplest API.
 
-pub fn spanner_projects_instances_databases_sessions_batch_create_builder(
-    client: &SimpleHttpClient,
+pub fn spanner_projects_instances_databases_sessions_batch_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     database: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/databases/{databasesId}/sessions:batchCreate",
@@ -11643,10 +11851,13 @@ pub fn spanner_projects_instances_databases_sessions_batch_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instances_databases_sessions_batch_write_execute()` to send, or `spanner_projects_instances_databases_sessions_batch_write` for simplest API.
 
-pub fn spanner_projects_instances_databases_sessions_batch_write_builder(
-    client: &SimpleHttpClient,
+pub fn spanner_projects_instances_databases_sessions_batch_write_builder<R>(
+    client: &SimpleHttpClient<R>,
     session: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}:batchWrite",
@@ -11805,10 +12016,13 @@ pub fn spanner_projects_instances_databases_sessions_batch_write(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instances_databases_sessions_begin_transaction_execute()` to send, or `spanner_projects_instances_databases_sessions_begin_transaction` for simplest API.
 
-pub fn spanner_projects_instances_databases_sessions_begin_transaction_builder(
-    client: &SimpleHttpClient,
+pub fn spanner_projects_instances_databases_sessions_begin_transaction_builder<R>(
+    client: &SimpleHttpClient<R>,
     session: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}:beginTransaction",
@@ -11965,10 +12179,13 @@ pub fn spanner_projects_instances_databases_sessions_begin_transaction(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instances_databases_sessions_commit_execute()` to send, or `spanner_projects_instances_databases_sessions_commit` for simplest API.
 
-pub fn spanner_projects_instances_databases_sessions_commit_builder(
-    client: &SimpleHttpClient,
+pub fn spanner_projects_instances_databases_sessions_commit_builder<R>(
+    client: &SimpleHttpClient<R>,
     session: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}:commit",
@@ -12127,10 +12344,13 @@ pub fn spanner_projects_instances_databases_sessions_commit(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instances_databases_sessions_create_execute()` to send, or `spanner_projects_instances_databases_sessions_create` for simplest API.
 
-pub fn spanner_projects_instances_databases_sessions_create_builder(
-    client: &SimpleHttpClient,
+pub fn spanner_projects_instances_databases_sessions_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     database: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/databases/{databasesId}/sessions",
@@ -12285,10 +12505,13 @@ pub fn spanner_projects_instances_databases_sessions_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instances_databases_sessions_delete_execute()` to send, or `spanner_projects_instances_databases_sessions_delete` for simplest API.
 
-pub fn spanner_projects_instances_databases_sessions_delete_builder(
-    client: &SimpleHttpClient,
+pub fn spanner_projects_instances_databases_sessions_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}",
@@ -12442,10 +12665,13 @@ pub fn spanner_projects_instances_databases_sessions_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instances_databases_sessions_execute_batch_dml_execute()` to send, or `spanner_projects_instances_databases_sessions_execute_batch_dml` for simplest API.
 
-pub fn spanner_projects_instances_databases_sessions_execute_batch_dml_builder(
-    client: &SimpleHttpClient,
+pub fn spanner_projects_instances_databases_sessions_execute_batch_dml_builder<R>(
+    client: &SimpleHttpClient<R>,
     session: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}:executeBatchDml",
@@ -12606,10 +12832,13 @@ pub fn spanner_projects_instances_databases_sessions_execute_batch_dml(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instances_databases_sessions_execute_sql_execute()` to send, or `spanner_projects_instances_databases_sessions_execute_sql` for simplest API.
 
-pub fn spanner_projects_instances_databases_sessions_execute_sql_builder(
-    client: &SimpleHttpClient,
+pub fn spanner_projects_instances_databases_sessions_execute_sql_builder<R>(
+    client: &SimpleHttpClient<R>,
     session: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}:executeSql",
@@ -12764,10 +12993,13 @@ pub fn spanner_projects_instances_databases_sessions_execute_sql(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instances_databases_sessions_execute_streaming_sql_execute()` to send, or `spanner_projects_instances_databases_sessions_execute_streaming_sql` for simplest API.
 
-pub fn spanner_projects_instances_databases_sessions_execute_streaming_sql_builder(
-    client: &SimpleHttpClient,
+pub fn spanner_projects_instances_databases_sessions_execute_streaming_sql_builder<R>(
+    client: &SimpleHttpClient<R>,
     session: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}:executeStreamingSql",
@@ -12928,10 +13160,13 @@ pub fn spanner_projects_instances_databases_sessions_execute_streaming_sql(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instances_databases_sessions_get_execute()` to send, or `spanner_projects_instances_databases_sessions_get` for simplest API.
 
-pub fn spanner_projects_instances_databases_sessions_get_builder(
-    client: &SimpleHttpClient,
+pub fn spanner_projects_instances_databases_sessions_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}",
@@ -13085,13 +13320,16 @@ pub fn spanner_projects_instances_databases_sessions_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instances_databases_sessions_list_execute()` to send, or `spanner_projects_instances_databases_sessions_list` for simplest API.
 
-pub fn spanner_projects_instances_databases_sessions_list_builder(
-    client: &SimpleHttpClient,
+pub fn spanner_projects_instances_databases_sessions_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     database: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/databases/{databasesId}/sessions",
@@ -13278,10 +13516,13 @@ pub fn spanner_projects_instances_databases_sessions_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instances_databases_sessions_partition_query_execute()` to send, or `spanner_projects_instances_databases_sessions_partition_query` for simplest API.
 
-pub fn spanner_projects_instances_databases_sessions_partition_query_builder(
-    client: &SimpleHttpClient,
+pub fn spanner_projects_instances_databases_sessions_partition_query_builder<R>(
+    client: &SimpleHttpClient<R>,
     session: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}:partitionQuery",
@@ -13442,10 +13683,13 @@ pub fn spanner_projects_instances_databases_sessions_partition_query(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instances_databases_sessions_partition_read_execute()` to send, or `spanner_projects_instances_databases_sessions_partition_read` for simplest API.
 
-pub fn spanner_projects_instances_databases_sessions_partition_read_builder(
-    client: &SimpleHttpClient,
+pub fn spanner_projects_instances_databases_sessions_partition_read_builder<R>(
+    client: &SimpleHttpClient<R>,
     session: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}:partitionRead",
@@ -13606,10 +13850,13 @@ pub fn spanner_projects_instances_databases_sessions_partition_read(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instances_databases_sessions_read_execute()` to send, or `spanner_projects_instances_databases_sessions_read` for simplest API.
 
-pub fn spanner_projects_instances_databases_sessions_read_builder(
-    client: &SimpleHttpClient,
+pub fn spanner_projects_instances_databases_sessions_read_builder<R>(
+    client: &SimpleHttpClient<R>,
     session: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}:read",
@@ -13764,10 +14011,13 @@ pub fn spanner_projects_instances_databases_sessions_read(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instances_databases_sessions_rollback_execute()` to send, or `spanner_projects_instances_databases_sessions_rollback` for simplest API.
 
-pub fn spanner_projects_instances_databases_sessions_rollback_builder(
-    client: &SimpleHttpClient,
+pub fn spanner_projects_instances_databases_sessions_rollback_builder<R>(
+    client: &SimpleHttpClient<R>,
     session: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}:rollback",
@@ -13922,10 +14172,13 @@ pub fn spanner_projects_instances_databases_sessions_rollback(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instances_databases_sessions_streaming_read_execute()` to send, or `spanner_projects_instances_databases_sessions_streaming_read` for simplest API.
 
-pub fn spanner_projects_instances_databases_sessions_streaming_read_builder(
-    client: &SimpleHttpClient,
+pub fn spanner_projects_instances_databases_sessions_streaming_read_builder<R>(
+    client: &SimpleHttpClient<R>,
     session: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}:streamingRead",
@@ -14086,14 +14339,17 @@ pub fn spanner_projects_instances_databases_sessions_streaming_read(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instances_instance_partition_operations_list_execute()` to send, or `spanner_projects_instances_instance_partition_operations_list` for simplest API.
 
-pub fn spanner_projects_instances_instance_partition_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn spanner_projects_instances_instance_partition_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     instancePartitionDeadline: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/instancePartitionOperations",
@@ -14291,10 +14547,13 @@ pub fn spanner_projects_instances_instance_partition_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instances_instance_partitions_create_execute()` to send, or `spanner_projects_instances_instance_partitions_create` for simplest API.
 
-pub fn spanner_projects_instances_instance_partitions_create_builder(
-    client: &SimpleHttpClient,
+pub fn spanner_projects_instances_instance_partitions_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/instancePartitions",
@@ -14449,11 +14708,14 @@ pub fn spanner_projects_instances_instance_partitions_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instances_instance_partitions_delete_execute()` to send, or `spanner_projects_instances_instance_partitions_delete` for simplest API.
 
-pub fn spanner_projects_instances_instance_partitions_delete_builder(
-    client: &SimpleHttpClient,
+pub fn spanner_projects_instances_instance_partitions_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     etag: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/instancePartitions/{instancePartitionsId}",
@@ -14622,10 +14884,13 @@ pub fn spanner_projects_instances_instance_partitions_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instances_instance_partitions_get_execute()` to send, or `spanner_projects_instances_instance_partitions_get` for simplest API.
 
-pub fn spanner_projects_instances_instance_partitions_get_builder(
-    client: &SimpleHttpClient,
+pub fn spanner_projects_instances_instance_partitions_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/instancePartitions/{instancePartitionsId}",
@@ -14783,13 +15048,16 @@ pub fn spanner_projects_instances_instance_partitions_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instances_instance_partitions_list_execute()` to send, or `spanner_projects_instances_instance_partitions_list` for simplest API.
 
-pub fn spanner_projects_instances_instance_partitions_list_builder(
-    client: &SimpleHttpClient,
+pub fn spanner_projects_instances_instance_partitions_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     instancePartitionDeadline: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/instancePartitions",
@@ -14980,10 +15248,13 @@ pub fn spanner_projects_instances_instance_partitions_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instances_instance_partitions_patch_execute()` to send, or `spanner_projects_instances_instance_partitions_patch` for simplest API.
 
-pub fn spanner_projects_instances_instance_partitions_patch_builder(
-    client: &SimpleHttpClient,
+pub fn spanner_projects_instances_instance_partitions_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/instancePartitions/{instancePartitionsId}",
@@ -15137,10 +15408,13 @@ pub fn spanner_projects_instances_instance_partitions_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instances_instance_partitions_operations_cancel_execute()` to send, or `spanner_projects_instances_instance_partitions_operations_cancel` for simplest API.
 
-pub fn spanner_projects_instances_instance_partitions_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn spanner_projects_instances_instance_partitions_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/instancePartitions/{instancePartitionsId}/operations/{operationsId}:cancel",
@@ -15296,10 +15570,13 @@ pub fn spanner_projects_instances_instance_partitions_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instances_instance_partitions_operations_delete_execute()` to send, or `spanner_projects_instances_instance_partitions_operations_delete` for simplest API.
 
-pub fn spanner_projects_instances_instance_partitions_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn spanner_projects_instances_instance_partitions_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/instancePartitions/{instancePartitionsId}/operations/{operationsId}",
@@ -15455,10 +15732,13 @@ pub fn spanner_projects_instances_instance_partitions_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instances_instance_partitions_operations_get_execute()` to send, or `spanner_projects_instances_instance_partitions_operations_get` for simplest API.
 
-pub fn spanner_projects_instances_instance_partitions_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn spanner_projects_instances_instance_partitions_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/instancePartitions/{instancePartitionsId}/operations/{operationsId}",
@@ -15613,14 +15893,17 @@ pub fn spanner_projects_instances_instance_partitions_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instances_instance_partitions_operations_list_execute()` to send, or `spanner_projects_instances_instance_partitions_operations_list` for simplest API.
 
-pub fn spanner_projects_instances_instance_partitions_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn spanner_projects_instances_instance_partitions_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/instancePartitions/{instancePartitionsId}/operations",
@@ -15813,10 +16096,13 @@ pub fn spanner_projects_instances_instance_partitions_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instances_operations_cancel_execute()` to send, or `spanner_projects_instances_operations_cancel` for simplest API.
 
-pub fn spanner_projects_instances_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn spanner_projects_instances_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/operations/{operationsId}:cancel",
@@ -15970,10 +16256,13 @@ pub fn spanner_projects_instances_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instances_operations_delete_execute()` to send, or `spanner_projects_instances_operations_delete` for simplest API.
 
-pub fn spanner_projects_instances_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn spanner_projects_instances_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/operations/{operationsId}",
@@ -16127,10 +16416,13 @@ pub fn spanner_projects_instances_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instances_operations_get_execute()` to send, or `spanner_projects_instances_operations_get` for simplest API.
 
-pub fn spanner_projects_instances_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn spanner_projects_instances_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/operations/{operationsId}",
@@ -16284,14 +16576,17 @@ pub fn spanner_projects_instances_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instances_operations_list_execute()` to send, or `spanner_projects_instances_operations_list` for simplest API.
 
-pub fn spanner_projects_instances_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn spanner_projects_instances_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/operations",
@@ -16484,13 +16779,16 @@ pub fn spanner_projects_instances_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_scans_list_execute()` to send, or `spanner_scans_list` for simplest API.
 
-pub fn spanner_scans_list_builder(
-    client: &SimpleHttpClient,
+pub fn spanner_scans_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://spanner.googleapis.com/v1/scans",);
 

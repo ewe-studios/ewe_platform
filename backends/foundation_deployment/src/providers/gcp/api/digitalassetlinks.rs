@@ -20,12 +20,11 @@ use crate::providers::gcp::clients::types::{ApiError, ApiPending};
 use crate::providers::gcp::clients::digitalassetlinks::BulkCheckResponse;
 use crate::providers::gcp::clients::digitalassetlinks::CheckResponse;
 use crate::providers::gcp::clients::digitalassetlinks::ListResponse;
-use crate::providers::gcp::clients::digitalassetlinks::DigitalassetlinksAssetlinksBulkCheckArgs;
 use crate::providers::gcp::clients::digitalassetlinks::DigitalassetlinksAssetlinksCheckArgs;
 use crate::providers::gcp::clients::digitalassetlinks::DigitalassetlinksStatementsListArgs;
 use crate::provider_client::{ProviderClient, ProviderError};
 use foundation_core::valtron::{execute, StreamIterator};
-use foundation_core::wire::simple_http::client::SimpleHttpClient;
+use foundation_core::wire::simple_http::client::{SimpleHttpClient, DnsResolver};
 use foundation_db::state::store_state_task::StoreStateIdentifierTask;
 use std::sync::Arc;
 
@@ -34,34 +33,44 @@ use std::sync::Arc;
 /// # Type Parameters
 ///
 /// * `S` - StateStore implementation (FileStateStore, SqliteStateStore, etc.)
+/// * `R` - DNS resolver type for HTTP client
 ///
 /// # Example
 ///
 /// ```rust
 /// let state_store = FileStateStore::new("/path", "my-project", "dev");
-/// let client = ProviderClient::new("my-project", "dev", state_store);
-/// let http_client = SimpleHttpClient::new(...);
-/// let provider = DigitalassetlinksProvider::new(client, http_client);
+/// let http_client = SimpleHttpClient::with_resolver(StaticSocketAddr::new(addr));
+/// let client = ProviderClient::new("my-project", "dev", state_store, http_client);
+/// let provider = DigitalassetlinksProvider::from_provider_client(client);
 /// ```
 #[derive(Clone)]
-pub struct DigitalassetlinksProvider<S>
+pub struct DigitalassetlinksProvider<S, R>
 where
     S: foundation_db::state::traits::StateStore + Send + Sync + 'static,
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + 'static,
 {
-    client: ProviderClient<S>,
-    http_client: Arc<SimpleHttpClient>,
+    client: ProviderClient<S, R>,
+    http_client: Arc<SimpleHttpClient<R>>,
 }
 
-impl<S> DigitalassetlinksProvider<S>
+impl<S, R> DigitalassetlinksProvider<S, R>
 where
     S: foundation_db::state::traits::StateStore + Send + Sync + 'static,
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + 'static,
 {
     /// Create new DigitalassetlinksProvider.
-    pub fn new(client: ProviderClient<S>, http_client: SimpleHttpClient) -> Self {
+    pub fn new(client: ProviderClient<S, R>, http_client: Arc<SimpleHttpClient<R>>) -> Self {
         Self {
             client,
-            http_client: Arc::new(http_client),
+            http_client,
         }
+    }
+
+    /// Create new DigitalassetlinksProvider from ProviderClient, extracting the HTTP client.
+    ///
+    /// This is a convenience method that calls `Self::new()` with `client.http_client()`.
+    pub fn from_provider_client(client: ProviderClient<S, R>) -> Self {
+        Self::new(client, client.http_client.clone())
     }
 
     /// Digitalassetlinks assetlinks bulk check.
@@ -136,12 +145,12 @@ where
             &self.http_client,
             &args.relation,
             &args.returnRelationExtensions,
-            &args.source.androidApp.certificate.sha256Fingerprint,
-            &args.source.androidApp.packageName,
-            &args.source.web.site,
-            &args.target.androidApp.certificate.sha256Fingerprint,
-            &args.target.androidApp.packageName,
-            &args.target.web.site,
+            &args.source_androidApp_certificate_sha256Fingerprint,
+            &args.source_androidApp_packageName,
+            &args.source_web_site,
+            &args.target_androidApp_certificate_sha256Fingerprint,
+            &args.target_androidApp_packageName,
+            &args.target_web_site,
         )
         .map_err(ProviderError::Api)?;
 
@@ -186,9 +195,9 @@ where
             &self.http_client,
             &args.relation,
             &args.returnRelationExtensions,
-            &args.source.androidApp.certificate.sha256Fingerprint,
-            &args.source.androidApp.packageName,
-            &args.source.web.site,
+            &args.source_androidApp_certificate_sha256Fingerprint,
+            &args.source_androidApp_packageName,
+            &args.source_web_site,
         )
         .map_err(ProviderError::Api)?;
 

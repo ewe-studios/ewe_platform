@@ -55,7 +55,6 @@ use crate::providers::gcp::clients::people::SearchDirectoryPeopleResponse;
 use crate::providers::gcp::clients::people::SearchResponse;
 use crate::providers::gcp::clients::people::UpdateContactPhotoResponse;
 use crate::providers::gcp::clients::people::PeopleContactGroupsBatchGetArgs;
-use crate::providers::gcp::clients::people::PeopleContactGroupsCreateArgs;
 use crate::providers::gcp::clients::people::PeopleContactGroupsDeleteArgs;
 use crate::providers::gcp::clients::people::PeopleContactGroupsGetArgs;
 use crate::providers::gcp::clients::people::PeopleContactGroupsListArgs;
@@ -64,9 +63,6 @@ use crate::providers::gcp::clients::people::PeopleContactGroupsUpdateArgs;
 use crate::providers::gcp::clients::people::PeopleOtherContactsCopyOtherContactToMyContactsGroupArgs;
 use crate::providers::gcp::clients::people::PeopleOtherContactsListArgs;
 use crate::providers::gcp::clients::people::PeopleOtherContactsSearchArgs;
-use crate::providers::gcp::clients::people::PeoplePeopleBatchCreateContactsArgs;
-use crate::providers::gcp::clients::people::PeoplePeopleBatchDeleteContactsArgs;
-use crate::providers::gcp::clients::people::PeoplePeopleBatchUpdateContactsArgs;
 use crate::providers::gcp::clients::people::PeoplePeopleConnectionsListArgs;
 use crate::providers::gcp::clients::people::PeoplePeopleCreateContactArgs;
 use crate::providers::gcp::clients::people::PeoplePeopleDeleteContactArgs;
@@ -80,7 +76,7 @@ use crate::providers::gcp::clients::people::PeoplePeopleUpdateContactArgs;
 use crate::providers::gcp::clients::people::PeoplePeopleUpdateContactPhotoArgs;
 use crate::provider_client::{ProviderClient, ProviderError};
 use foundation_core::valtron::{execute, StreamIterator};
-use foundation_core::wire::simple_http::client::SimpleHttpClient;
+use foundation_core::wire::simple_http::client::{SimpleHttpClient, DnsResolver};
 use foundation_db::state::store_state_task::StoreStateIdentifierTask;
 use std::sync::Arc;
 
@@ -89,34 +85,44 @@ use std::sync::Arc;
 /// # Type Parameters
 ///
 /// * `S` - StateStore implementation (FileStateStore, SqliteStateStore, etc.)
+/// * `R` - DNS resolver type for HTTP client
 ///
 /// # Example
 ///
 /// ```rust
 /// let state_store = FileStateStore::new("/path", "my-project", "dev");
-/// let client = ProviderClient::new("my-project", "dev", state_store);
-/// let http_client = SimpleHttpClient::new(...);
-/// let provider = PeopleProvider::new(client, http_client);
+/// let http_client = SimpleHttpClient::with_resolver(StaticSocketAddr::new(addr));
+/// let client = ProviderClient::new("my-project", "dev", state_store, http_client);
+/// let provider = PeopleProvider::from_provider_client(client);
 /// ```
 #[derive(Clone)]
-pub struct PeopleProvider<S>
+pub struct PeopleProvider<S, R>
 where
     S: foundation_db::state::traits::StateStore + Send + Sync + 'static,
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + 'static,
 {
-    client: ProviderClient<S>,
-    http_client: Arc<SimpleHttpClient>,
+    client: ProviderClient<S, R>,
+    http_client: Arc<SimpleHttpClient<R>>,
 }
 
-impl<S> PeopleProvider<S>
+impl<S, R> PeopleProvider<S, R>
 where
     S: foundation_db::state::traits::StateStore + Send + Sync + 'static,
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + 'static,
 {
     /// Create new PeopleProvider.
-    pub fn new(client: ProviderClient<S>, http_client: SimpleHttpClient) -> Self {
+    pub fn new(client: ProviderClient<S, R>, http_client: Arc<SimpleHttpClient<R>>) -> Self {
         Self {
             client,
-            http_client: Arc::new(http_client),
+            http_client,
         }
+    }
+
+    /// Create new PeopleProvider from ProviderClient, extracting the HTTP client.
+    ///
+    /// This is a convenience method that calls `Self::new()` with `client.http_client()`.
+    pub fn from_provider_client(client: ProviderClient<S, R>) -> Self {
+        Self::new(client, client.http_client.clone())
     }
 
     /// People contact groups batch get.
@@ -826,7 +832,7 @@ where
             &self.http_client,
             &args.resourceName,
             &args.personFields,
-            &args.requestMask.includeField,
+            &args.requestMask_includeField,
             &args.sources,
         )
         .map_err(ProviderError::Api)?;
@@ -866,7 +872,7 @@ where
         let builder = people_people_get_batch_get_builder(
             &self.http_client,
             &args.personFields,
-            &args.requestMask.includeField,
+            &args.requestMask_includeField,
             &args.resourceNames,
             &args.sources,
         )
@@ -1127,7 +1133,7 @@ where
             &args.pageSize,
             &args.pageToken,
             &args.personFields,
-            &args.requestMask.includeField,
+            &args.requestMask_includeField,
             &args.requestSyncToken,
             &args.sortOrder,
             &args.sources,

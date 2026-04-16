@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `adsenseplatform_platforms_accounts_close_execute()` to send, or `adsenseplatform_platforms_accounts_close` for simplest API.
 
-pub fn adsenseplatform_platforms_accounts_close_builder(
-    client: &SimpleHttpClient,
+pub fn adsenseplatform_platforms_accounts_close_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://adsenseplatform.googleapis.com/v1/platforms/{}/accounts/{accountsId}:close",
@@ -187,10 +191,13 @@ pub fn adsenseplatform_platforms_accounts_close(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `adsenseplatform_platforms_accounts_create_execute()` to send, or `adsenseplatform_platforms_accounts_create` for simplest API.
 
-pub fn adsenseplatform_platforms_accounts_create_builder(
-    client: &SimpleHttpClient,
+pub fn adsenseplatform_platforms_accounts_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://adsenseplatform.googleapis.com/v1/platforms/{}/accounts",
@@ -344,10 +351,13 @@ pub fn adsenseplatform_platforms_accounts_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `adsenseplatform_platforms_accounts_get_execute()` to send, or `adsenseplatform_platforms_accounts_get` for simplest API.
 
-pub fn adsenseplatform_platforms_accounts_get_builder(
-    client: &SimpleHttpClient,
+pub fn adsenseplatform_platforms_accounts_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://adsenseplatform.googleapis.com/v1/platforms/{}/accounts/{accountsId}",
@@ -501,12 +511,15 @@ pub fn adsenseplatform_platforms_accounts_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `adsenseplatform_platforms_accounts_list_execute()` to send, or `adsenseplatform_platforms_accounts_list` for simplest API.
 
-pub fn adsenseplatform_platforms_accounts_list_builder(
-    client: &SimpleHttpClient,
+pub fn adsenseplatform_platforms_accounts_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://adsenseplatform.googleapis.com/v1/platforms/{}/accounts",
@@ -687,11 +700,14 @@ pub fn adsenseplatform_platforms_accounts_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `adsenseplatform_platforms_accounts_lookup_execute()` to send, or `adsenseplatform_platforms_accounts_lookup` for simplest API.
 
-pub fn adsenseplatform_platforms_accounts_lookup_builder(
-    client: &SimpleHttpClient,
+pub fn adsenseplatform_platforms_accounts_lookup_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     creationRequestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://adsenseplatform.googleapis.com/v1/platforms/{}/accounts:lookup",
@@ -866,10 +882,13 @@ pub fn adsenseplatform_platforms_accounts_lookup(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `adsenseplatform_platforms_accounts_events_create_execute()` to send, or `adsenseplatform_platforms_accounts_events_create` for simplest API.
 
-pub fn adsenseplatform_platforms_accounts_events_create_builder(
-    client: &SimpleHttpClient,
+pub fn adsenseplatform_platforms_accounts_events_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://adsenseplatform.googleapis.com/v1/platforms/{}/accounts/{accountsId}/events",
@@ -1023,10 +1042,13 @@ pub fn adsenseplatform_platforms_accounts_events_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `adsenseplatform_platforms_accounts_sites_create_execute()` to send, or `adsenseplatform_platforms_accounts_sites_create` for simplest API.
 
-pub fn adsenseplatform_platforms_accounts_sites_create_builder(
-    client: &SimpleHttpClient,
+pub fn adsenseplatform_platforms_accounts_sites_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://adsenseplatform.googleapis.com/v1/platforms/{}/accounts/{accountsId}/sites",
@@ -1180,10 +1202,13 @@ pub fn adsenseplatform_platforms_accounts_sites_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `adsenseplatform_platforms_accounts_sites_delete_execute()` to send, or `adsenseplatform_platforms_accounts_sites_delete` for simplest API.
 
-pub fn adsenseplatform_platforms_accounts_sites_delete_builder(
-    client: &SimpleHttpClient,
+pub fn adsenseplatform_platforms_accounts_sites_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://adsenseplatform.googleapis.com/v1/platforms/{}/accounts/{accountsId}/sites/{sitesId}",
@@ -1337,10 +1362,13 @@ pub fn adsenseplatform_platforms_accounts_sites_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `adsenseplatform_platforms_accounts_sites_get_execute()` to send, or `adsenseplatform_platforms_accounts_sites_get` for simplest API.
 
-pub fn adsenseplatform_platforms_accounts_sites_get_builder(
-    client: &SimpleHttpClient,
+pub fn adsenseplatform_platforms_accounts_sites_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://adsenseplatform.googleapis.com/v1/platforms/{}/accounts/{accountsId}/sites/{sitesId}",
@@ -1494,12 +1522,15 @@ pub fn adsenseplatform_platforms_accounts_sites_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `adsenseplatform_platforms_accounts_sites_list_execute()` to send, or `adsenseplatform_platforms_accounts_sites_list` for simplest API.
 
-pub fn adsenseplatform_platforms_accounts_sites_list_builder(
-    client: &SimpleHttpClient,
+pub fn adsenseplatform_platforms_accounts_sites_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://adsenseplatform.googleapis.com/v1/platforms/{}/accounts/{accountsId}/sites",
@@ -1680,10 +1711,13 @@ pub fn adsenseplatform_platforms_accounts_sites_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `adsenseplatform_platforms_accounts_sites_request_review_execute()` to send, or `adsenseplatform_platforms_accounts_sites_request_review` for simplest API.
 
-pub fn adsenseplatform_platforms_accounts_sites_request_review_builder(
-    client: &SimpleHttpClient,
+pub fn adsenseplatform_platforms_accounts_sites_request_review_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://adsenseplatform.googleapis.com/v1/platforms/{}/accounts/{accountsId}/sites/{sitesId}:requestReview",

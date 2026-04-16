@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firestore_projects_databases_bulk_delete_documents_execute()` to send, or `firestore_projects_databases_bulk_delete_documents` for simplest API.
 
-pub fn firestore_projects_databases_bulk_delete_documents_builder(
-    client: &SimpleHttpClient,
+pub fn firestore_projects_databases_bulk_delete_documents_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firestore.googleapis.com/v1/projects/{}/databases/{databasesId}:bulkDeleteDocuments",
@@ -191,10 +195,13 @@ pub fn firestore_projects_databases_bulk_delete_documents(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firestore_projects_databases_clone_execute()` to send, or `firestore_projects_databases_clone` for simplest API.
 
-pub fn firestore_projects_databases_clone_builder(
-    client: &SimpleHttpClient,
+pub fn firestore_projects_databases_clone_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firestore.googleapis.com/v1/projects/{}/databases:clone",
@@ -356,11 +363,14 @@ pub fn firestore_projects_databases_clone(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firestore_projects_databases_create_execute()` to send, or `firestore_projects_databases_create` for simplest API.
 
-pub fn firestore_projects_databases_create_builder(
-    client: &SimpleHttpClient,
+pub fn firestore_projects_databases_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     databaseId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firestore.googleapis.com/v1/projects/{}/databases",
@@ -536,11 +546,14 @@ pub fn firestore_projects_databases_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firestore_projects_databases_delete_execute()` to send, or `firestore_projects_databases_delete` for simplest API.
 
-pub fn firestore_projects_databases_delete_builder(
-    client: &SimpleHttpClient,
+pub fn firestore_projects_databases_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     etag: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firestore.googleapis.com/v1/projects/{}/databases/{databasesId}",
@@ -715,10 +728,13 @@ pub fn firestore_projects_databases_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firestore_projects_databases_export_documents_execute()` to send, or `firestore_projects_databases_export_documents` for simplest API.
 
-pub fn firestore_projects_databases_export_documents_builder(
-    client: &SimpleHttpClient,
+pub fn firestore_projects_databases_export_documents_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firestore.googleapis.com/v1/projects/{}/databases/{databasesId}:exportDocuments",
@@ -880,10 +896,13 @@ pub fn firestore_projects_databases_export_documents(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firestore_projects_databases_get_execute()` to send, or `firestore_projects_databases_get` for simplest API.
 
-pub fn firestore_projects_databases_get_builder(
-    client: &SimpleHttpClient,
+pub fn firestore_projects_databases_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firestore.googleapis.com/v1/projects/{}/databases/{databasesId}",
@@ -1045,10 +1064,13 @@ pub fn firestore_projects_databases_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firestore_projects_databases_import_documents_execute()` to send, or `firestore_projects_databases_import_documents` for simplest API.
 
-pub fn firestore_projects_databases_import_documents_builder(
-    client: &SimpleHttpClient,
+pub fn firestore_projects_databases_import_documents_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firestore.googleapis.com/v1/projects/{}/databases/{databasesId}:importDocuments",
@@ -1210,11 +1232,14 @@ pub fn firestore_projects_databases_import_documents(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firestore_projects_databases_list_execute()` to send, or `firestore_projects_databases_list` for simplest API.
 
-pub fn firestore_projects_databases_list_builder(
-    client: &SimpleHttpClient,
+pub fn firestore_projects_databases_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     showDeleted: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firestore.googleapis.com/v1/projects/{}/databases",
@@ -1391,11 +1416,14 @@ pub fn firestore_projects_databases_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firestore_projects_databases_patch_execute()` to send, or `firestore_projects_databases_patch` for simplest API.
 
-pub fn firestore_projects_databases_patch_builder(
-    client: &SimpleHttpClient,
+pub fn firestore_projects_databases_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firestore.googleapis.com/v1/projects/{}/databases/{databasesId}",
@@ -1570,10 +1598,13 @@ pub fn firestore_projects_databases_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firestore_projects_databases_restore_execute()` to send, or `firestore_projects_databases_restore` for simplest API.
 
-pub fn firestore_projects_databases_restore_builder(
-    client: &SimpleHttpClient,
+pub fn firestore_projects_databases_restore_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firestore.googleapis.com/v1/projects/{}/databases:restore",
@@ -1735,10 +1766,13 @@ pub fn firestore_projects_databases_restore(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firestore_projects_databases_backup_schedules_create_execute()` to send, or `firestore_projects_databases_backup_schedules_create` for simplest API.
 
-pub fn firestore_projects_databases_backup_schedules_create_builder(
-    client: &SimpleHttpClient,
+pub fn firestore_projects_databases_backup_schedules_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firestore.googleapis.com/v1/projects/{}/databases/{databasesId}/backupSchedules",
@@ -1901,10 +1935,13 @@ pub fn firestore_projects_databases_backup_schedules_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firestore_projects_databases_backup_schedules_delete_execute()` to send, or `firestore_projects_databases_backup_schedules_delete` for simplest API.
 
-pub fn firestore_projects_databases_backup_schedules_delete_builder(
-    client: &SimpleHttpClient,
+pub fn firestore_projects_databases_backup_schedules_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firestore.googleapis.com/v1/projects/{}/databases/{databasesId}/backupSchedules/{backupSchedulesId}",
@@ -2058,10 +2095,13 @@ pub fn firestore_projects_databases_backup_schedules_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firestore_projects_databases_backup_schedules_get_execute()` to send, or `firestore_projects_databases_backup_schedules_get` for simplest API.
 
-pub fn firestore_projects_databases_backup_schedules_get_builder(
-    client: &SimpleHttpClient,
+pub fn firestore_projects_databases_backup_schedules_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firestore.googleapis.com/v1/projects/{}/databases/{databasesId}/backupSchedules/{backupSchedulesId}",
@@ -2223,10 +2263,13 @@ pub fn firestore_projects_databases_backup_schedules_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firestore_projects_databases_backup_schedules_list_execute()` to send, or `firestore_projects_databases_backup_schedules_list` for simplest API.
 
-pub fn firestore_projects_databases_backup_schedules_list_builder(
-    client: &SimpleHttpClient,
+pub fn firestore_projects_databases_backup_schedules_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firestore.googleapis.com/v1/projects/{}/databases/{databasesId}/backupSchedules",
@@ -2392,11 +2435,14 @@ pub fn firestore_projects_databases_backup_schedules_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firestore_projects_databases_backup_schedules_patch_execute()` to send, or `firestore_projects_databases_backup_schedules_patch` for simplest API.
 
-pub fn firestore_projects_databases_backup_schedules_patch_builder(
-    client: &SimpleHttpClient,
+pub fn firestore_projects_databases_backup_schedules_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firestore.googleapis.com/v1/projects/{}/databases/{databasesId}/backupSchedules/{backupSchedulesId}",
@@ -2575,10 +2621,13 @@ pub fn firestore_projects_databases_backup_schedules_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firestore_projects_databases_collection_groups_fields_get_execute()` to send, or `firestore_projects_databases_collection_groups_fields_get` for simplest API.
 
-pub fn firestore_projects_databases_collection_groups_fields_get_builder(
-    client: &SimpleHttpClient,
+pub fn firestore_projects_databases_collection_groups_fields_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firestore.googleapis.com/v1/projects/{}/databases/{databasesId}/collectionGroups/{collectionGroupsId}/fields/{fieldsId}",
@@ -2741,13 +2790,16 @@ pub fn firestore_projects_databases_collection_groups_fields_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firestore_projects_databases_collection_groups_fields_list_execute()` to send, or `firestore_projects_databases_collection_groups_fields_list` for simplest API.
 
-pub fn firestore_projects_databases_collection_groups_fields_list_builder(
-    client: &SimpleHttpClient,
+pub fn firestore_projects_databases_collection_groups_fields_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firestore.googleapis.com/v1/projects/{}/databases/{databasesId}/collectionGroups/{collectionGroupsId}/fields",
@@ -2938,11 +2990,14 @@ pub fn firestore_projects_databases_collection_groups_fields_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firestore_projects_databases_collection_groups_fields_patch_execute()` to send, or `firestore_projects_databases_collection_groups_fields_patch` for simplest API.
 
-pub fn firestore_projects_databases_collection_groups_fields_patch_builder(
-    client: &SimpleHttpClient,
+pub fn firestore_projects_databases_collection_groups_fields_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firestore.googleapis.com/v1/projects/{}/databases/{databasesId}/collectionGroups/{collectionGroupsId}/fields/{fieldsId}",
@@ -3121,10 +3176,13 @@ pub fn firestore_projects_databases_collection_groups_fields_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firestore_projects_databases_collection_groups_indexes_create_execute()` to send, or `firestore_projects_databases_collection_groups_indexes_create` for simplest API.
 
-pub fn firestore_projects_databases_collection_groups_indexes_create_builder(
-    client: &SimpleHttpClient,
+pub fn firestore_projects_databases_collection_groups_indexes_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firestore.googleapis.com/v1/projects/{}/databases/{databasesId}/collectionGroups/{collectionGroupsId}/indexes",
@@ -3289,10 +3347,13 @@ pub fn firestore_projects_databases_collection_groups_indexes_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firestore_projects_databases_collection_groups_indexes_delete_execute()` to send, or `firestore_projects_databases_collection_groups_indexes_delete` for simplest API.
 
-pub fn firestore_projects_databases_collection_groups_indexes_delete_builder(
-    client: &SimpleHttpClient,
+pub fn firestore_projects_databases_collection_groups_indexes_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firestore.googleapis.com/v1/projects/{}/databases/{databasesId}/collectionGroups/{collectionGroupsId}/indexes/{indexesId}",
@@ -3447,10 +3508,13 @@ pub fn firestore_projects_databases_collection_groups_indexes_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firestore_projects_databases_collection_groups_indexes_get_execute()` to send, or `firestore_projects_databases_collection_groups_indexes_get` for simplest API.
 
-pub fn firestore_projects_databases_collection_groups_indexes_get_builder(
-    client: &SimpleHttpClient,
+pub fn firestore_projects_databases_collection_groups_indexes_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firestore.googleapis.com/v1/projects/{}/databases/{databasesId}/collectionGroups/{collectionGroupsId}/indexes/{indexesId}",
@@ -3613,13 +3677,16 @@ pub fn firestore_projects_databases_collection_groups_indexes_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firestore_projects_databases_collection_groups_indexes_list_execute()` to send, or `firestore_projects_databases_collection_groups_indexes_list` for simplest API.
 
-pub fn firestore_projects_databases_collection_groups_indexes_list_builder(
-    client: &SimpleHttpClient,
+pub fn firestore_projects_databases_collection_groups_indexes_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firestore.googleapis.com/v1/projects/{}/databases/{databasesId}/collectionGroups/{collectionGroupsId}/indexes",
@@ -3810,10 +3877,13 @@ pub fn firestore_projects_databases_collection_groups_indexes_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firestore_projects_databases_documents_batch_get_execute()` to send, or `firestore_projects_databases_documents_batch_get` for simplest API.
 
-pub fn firestore_projects_databases_documents_batch_get_builder(
-    client: &SimpleHttpClient,
+pub fn firestore_projects_databases_documents_batch_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     database: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firestore.googleapis.com/v1/projects/{}/databases/{databasesId}/documents:batchGet",
@@ -3971,10 +4041,13 @@ pub fn firestore_projects_databases_documents_batch_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firestore_projects_databases_documents_batch_write_execute()` to send, or `firestore_projects_databases_documents_batch_write` for simplest API.
 
-pub fn firestore_projects_databases_documents_batch_write_builder(
-    client: &SimpleHttpClient,
+pub fn firestore_projects_databases_documents_batch_write_builder<R>(
+    client: &SimpleHttpClient<R>,
     database: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firestore.googleapis.com/v1/projects/{}/databases/{databasesId}/documents:batchWrite",
@@ -4133,10 +4206,13 @@ pub fn firestore_projects_databases_documents_batch_write(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firestore_projects_databases_documents_begin_transaction_execute()` to send, or `firestore_projects_databases_documents_begin_transaction` for simplest API.
 
-pub fn firestore_projects_databases_documents_begin_transaction_builder(
-    client: &SimpleHttpClient,
+pub fn firestore_projects_databases_documents_begin_transaction_builder<R>(
+    client: &SimpleHttpClient<R>,
     database: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firestore.googleapis.com/v1/projects/{}/databases/{databasesId}/documents:beginTransaction",
@@ -4295,10 +4371,13 @@ pub fn firestore_projects_databases_documents_begin_transaction(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firestore_projects_databases_documents_commit_execute()` to send, or `firestore_projects_databases_documents_commit` for simplest API.
 
-pub fn firestore_projects_databases_documents_commit_builder(
-    client: &SimpleHttpClient,
+pub fn firestore_projects_databases_documents_commit_builder<R>(
+    client: &SimpleHttpClient<R>,
     database: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firestore.googleapis.com/v1/projects/{}/databases/{databasesId}/documents:commit",
@@ -4456,13 +4535,16 @@ pub fn firestore_projects_databases_documents_commit(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firestore_projects_databases_documents_create_document_execute()` to send, or `firestore_projects_databases_documents_create_document` for simplest API.
 
-pub fn firestore_projects_databases_documents_create_document_builder(
-    client: &SimpleHttpClient,
+pub fn firestore_projects_databases_documents_create_document_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     collectionId: &String,
     documentId: &Option<Option<String>>,
     mask_fieldPaths: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firestore.googleapis.com/v1/projects/{}/databases/{}/documents/{documentsId}/{collectionId}",
@@ -4643,12 +4725,15 @@ pub fn firestore_projects_databases_documents_create_document(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firestore_projects_databases_documents_delete_execute()` to send, or `firestore_projects_databases_documents_delete` for simplest API.
 
-pub fn firestore_projects_databases_documents_delete_builder(
-    client: &SimpleHttpClient,
+pub fn firestore_projects_databases_documents_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     currentDocument_exists: &Option<Option<String>>,
     currentDocument_updateTime: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firestore.googleapis.com/v1/projects/{}/databases/{databasesId}/documents/{documentsId}/{documentsId1}",
@@ -4825,10 +4910,13 @@ pub fn firestore_projects_databases_documents_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firestore_projects_databases_documents_execute_pipeline_execute()` to send, or `firestore_projects_databases_documents_execute_pipeline` for simplest API.
 
-pub fn firestore_projects_databases_documents_execute_pipeline_builder(
-    client: &SimpleHttpClient,
+pub fn firestore_projects_databases_documents_execute_pipeline_builder<R>(
+    client: &SimpleHttpClient<R>,
     database: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firestore.googleapis.com/v1/projects/{}/databases/{databasesId}/documents:executePipeline",
@@ -4987,13 +5075,16 @@ pub fn firestore_projects_databases_documents_execute_pipeline(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firestore_projects_databases_documents_get_execute()` to send, or `firestore_projects_databases_documents_get` for simplest API.
 
-pub fn firestore_projects_databases_documents_get_builder(
-    client: &SimpleHttpClient,
+pub fn firestore_projects_databases_documents_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     mask_fieldPaths: &Option<Option<String>>,
     readTime: &Option<Option<String>>,
     transaction: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firestore.googleapis.com/v1/projects/{}/databases/{databasesId}/documents/{documentsId}/{documentsId1}",
@@ -5176,8 +5267,8 @@ pub fn firestore_projects_databases_documents_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firestore_projects_databases_documents_list_execute()` to send, or `firestore_projects_databases_documents_list` for simplest API.
 
-pub fn firestore_projects_databases_documents_list_builder(
-    client: &SimpleHttpClient,
+pub fn firestore_projects_databases_documents_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     collectionId: &String,
     mask_fieldPaths: &Option<Option<String>>,
@@ -5187,7 +5278,10 @@ pub fn firestore_projects_databases_documents_list_builder(
     readTime: &Option<Option<String>>,
     showMissing: &Option<Option<String>>,
     transaction: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firestore.googleapis.com/v1/projects/{}/databases/{}/documents/{documentsId}/{documentsId1}/{collectionId}",
@@ -5402,10 +5496,13 @@ pub fn firestore_projects_databases_documents_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firestore_projects_databases_documents_list_collection_ids_execute()` to send, or `firestore_projects_databases_documents_list_collection_ids` for simplest API.
 
-pub fn firestore_projects_databases_documents_list_collection_ids_builder(
-    client: &SimpleHttpClient,
+pub fn firestore_projects_databases_documents_list_collection_ids_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firestore.googleapis.com/v1/projects/{}/databases/{databasesId}/documents/{documentsId}/{documentsId1}:listCollectionIds",
@@ -5564,8 +5661,8 @@ pub fn firestore_projects_databases_documents_list_collection_ids(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firestore_projects_databases_documents_list_documents_execute()` to send, or `firestore_projects_databases_documents_list_documents` for simplest API.
 
-pub fn firestore_projects_databases_documents_list_documents_builder(
-    client: &SimpleHttpClient,
+pub fn firestore_projects_databases_documents_list_documents_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     collectionId: &String,
     mask_fieldPaths: &Option<Option<String>>,
@@ -5575,7 +5672,10 @@ pub fn firestore_projects_databases_documents_list_documents_builder(
     readTime: &Option<Option<String>>,
     showMissing: &Option<Option<String>>,
     transaction: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firestore.googleapis.com/v1/projects/{}/databases/{}/documents/{collectionId}",
@@ -5789,10 +5889,13 @@ pub fn firestore_projects_databases_documents_list_documents(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firestore_projects_databases_documents_listen_execute()` to send, or `firestore_projects_databases_documents_listen` for simplest API.
 
-pub fn firestore_projects_databases_documents_listen_builder(
-    client: &SimpleHttpClient,
+pub fn firestore_projects_databases_documents_listen_builder<R>(
+    client: &SimpleHttpClient<R>,
     database: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firestore.googleapis.com/v1/projects/{}/databases/{databasesId}/documents:listen",
@@ -5950,10 +6053,13 @@ pub fn firestore_projects_databases_documents_listen(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firestore_projects_databases_documents_partition_query_execute()` to send, or `firestore_projects_databases_documents_partition_query` for simplest API.
 
-pub fn firestore_projects_databases_documents_partition_query_builder(
-    client: &SimpleHttpClient,
+pub fn firestore_projects_databases_documents_partition_query_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firestore.googleapis.com/v1/projects/{}/databases/{databasesId}/documents/{documentsId}/{documentsId1}:partitionQuery",
@@ -6112,14 +6218,17 @@ pub fn firestore_projects_databases_documents_partition_query(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firestore_projects_databases_documents_patch_execute()` to send, or `firestore_projects_databases_documents_patch` for simplest API.
 
-pub fn firestore_projects_databases_documents_patch_builder(
-    client: &SimpleHttpClient,
+pub fn firestore_projects_databases_documents_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     currentDocument_exists: &Option<Option<String>>,
     currentDocument_updateTime: &Option<Option<String>>,
     mask_fieldPaths: &Option<Option<String>>,
     updateMask_fieldPaths: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firestore.googleapis.com/v1/projects/{}/databases/{databasesId}/documents/{documentsId}/{documentsId1}",
@@ -6308,10 +6417,13 @@ pub fn firestore_projects_databases_documents_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firestore_projects_databases_documents_rollback_execute()` to send, or `firestore_projects_databases_documents_rollback` for simplest API.
 
-pub fn firestore_projects_databases_documents_rollback_builder(
-    client: &SimpleHttpClient,
+pub fn firestore_projects_databases_documents_rollback_builder<R>(
+    client: &SimpleHttpClient<R>,
     database: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firestore.googleapis.com/v1/projects/{}/databases/{databasesId}/documents:rollback",
@@ -6465,10 +6577,13 @@ pub fn firestore_projects_databases_documents_rollback(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firestore_projects_databases_documents_run_aggregation_query_execute()` to send, or `firestore_projects_databases_documents_run_aggregation_query` for simplest API.
 
-pub fn firestore_projects_databases_documents_run_aggregation_query_builder(
-    client: &SimpleHttpClient,
+pub fn firestore_projects_databases_documents_run_aggregation_query_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firestore.googleapis.com/v1/projects/{}/databases/{databasesId}/documents/{documentsId}/{documentsId1}:runAggregationQuery",
@@ -6631,10 +6746,13 @@ pub fn firestore_projects_databases_documents_run_aggregation_query(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firestore_projects_databases_documents_run_query_execute()` to send, or `firestore_projects_databases_documents_run_query` for simplest API.
 
-pub fn firestore_projects_databases_documents_run_query_builder(
-    client: &SimpleHttpClient,
+pub fn firestore_projects_databases_documents_run_query_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firestore.googleapis.com/v1/projects/{}/databases/{databasesId}/documents/{documentsId}/{documentsId1}:runQuery",
@@ -6792,10 +6910,13 @@ pub fn firestore_projects_databases_documents_run_query(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firestore_projects_databases_documents_write_execute()` to send, or `firestore_projects_databases_documents_write` for simplest API.
 
-pub fn firestore_projects_databases_documents_write_builder(
-    client: &SimpleHttpClient,
+pub fn firestore_projects_databases_documents_write_builder<R>(
+    client: &SimpleHttpClient<R>,
     database: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firestore.googleapis.com/v1/projects/{}/databases/{databasesId}/documents:write",
@@ -6953,10 +7074,13 @@ pub fn firestore_projects_databases_documents_write(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firestore_projects_databases_operations_cancel_execute()` to send, or `firestore_projects_databases_operations_cancel` for simplest API.
 
-pub fn firestore_projects_databases_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn firestore_projects_databases_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firestore.googleapis.com/v1/projects/{}/databases/{databasesId}/operations/{operationsId}:cancel",
@@ -7110,10 +7234,13 @@ pub fn firestore_projects_databases_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firestore_projects_databases_operations_delete_execute()` to send, or `firestore_projects_databases_operations_delete` for simplest API.
 
-pub fn firestore_projects_databases_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn firestore_projects_databases_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firestore.googleapis.com/v1/projects/{}/databases/{databasesId}/operations/{operationsId}",
@@ -7267,10 +7394,13 @@ pub fn firestore_projects_databases_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firestore_projects_databases_operations_get_execute()` to send, or `firestore_projects_databases_operations_get` for simplest API.
 
-pub fn firestore_projects_databases_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn firestore_projects_databases_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firestore.googleapis.com/v1/projects/{}/databases/{databasesId}/operations/{operationsId}",
@@ -7432,14 +7562,17 @@ pub fn firestore_projects_databases_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firestore_projects_databases_operations_list_execute()` to send, or `firestore_projects_databases_operations_list` for simplest API.
 
-pub fn firestore_projects_databases_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn firestore_projects_databases_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firestore.googleapis.com/v1/projects/{}/databases/{databasesId}/operations",
@@ -7637,11 +7770,14 @@ pub fn firestore_projects_databases_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firestore_projects_databases_user_creds_create_execute()` to send, or `firestore_projects_databases_user_creds_create` for simplest API.
 
-pub fn firestore_projects_databases_user_creds_create_builder(
-    client: &SimpleHttpClient,
+pub fn firestore_projects_databases_user_creds_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     userCredsId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firestore.googleapis.com/v1/projects/{}/databases/{databasesId}/userCreds",
@@ -7820,10 +7956,13 @@ pub fn firestore_projects_databases_user_creds_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firestore_projects_databases_user_creds_delete_execute()` to send, or `firestore_projects_databases_user_creds_delete` for simplest API.
 
-pub fn firestore_projects_databases_user_creds_delete_builder(
-    client: &SimpleHttpClient,
+pub fn firestore_projects_databases_user_creds_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firestore.googleapis.com/v1/projects/{}/databases/{databasesId}/userCreds/{userCredsId}",
@@ -7977,10 +8116,13 @@ pub fn firestore_projects_databases_user_creds_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firestore_projects_databases_user_creds_disable_execute()` to send, or `firestore_projects_databases_user_creds_disable` for simplest API.
 
-pub fn firestore_projects_databases_user_creds_disable_builder(
-    client: &SimpleHttpClient,
+pub fn firestore_projects_databases_user_creds_disable_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firestore.googleapis.com/v1/projects/{}/databases/{databasesId}/userCreds/{userCredsId}:disable",
@@ -8142,10 +8284,13 @@ pub fn firestore_projects_databases_user_creds_disable(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firestore_projects_databases_user_creds_enable_execute()` to send, or `firestore_projects_databases_user_creds_enable` for simplest API.
 
-pub fn firestore_projects_databases_user_creds_enable_builder(
-    client: &SimpleHttpClient,
+pub fn firestore_projects_databases_user_creds_enable_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firestore.googleapis.com/v1/projects/{}/databases/{databasesId}/userCreds/{userCredsId}:enable",
@@ -8307,10 +8452,13 @@ pub fn firestore_projects_databases_user_creds_enable(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firestore_projects_databases_user_creds_get_execute()` to send, or `firestore_projects_databases_user_creds_get` for simplest API.
 
-pub fn firestore_projects_databases_user_creds_get_builder(
-    client: &SimpleHttpClient,
+pub fn firestore_projects_databases_user_creds_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firestore.googleapis.com/v1/projects/{}/databases/{databasesId}/userCreds/{userCredsId}",
@@ -8472,10 +8620,13 @@ pub fn firestore_projects_databases_user_creds_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firestore_projects_databases_user_creds_list_execute()` to send, or `firestore_projects_databases_user_creds_list` for simplest API.
 
-pub fn firestore_projects_databases_user_creds_list_builder(
-    client: &SimpleHttpClient,
+pub fn firestore_projects_databases_user_creds_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firestore.googleapis.com/v1/projects/{}/databases/{databasesId}/userCreds",
@@ -8638,10 +8789,13 @@ pub fn firestore_projects_databases_user_creds_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firestore_projects_databases_user_creds_reset_password_execute()` to send, or `firestore_projects_databases_user_creds_reset_password` for simplest API.
 
-pub fn firestore_projects_databases_user_creds_reset_password_builder(
-    client: &SimpleHttpClient,
+pub fn firestore_projects_databases_user_creds_reset_password_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firestore.googleapis.com/v1/projects/{}/databases/{databasesId}/userCreds/{userCredsId}:resetPassword",
@@ -8804,10 +8958,13 @@ pub fn firestore_projects_databases_user_creds_reset_password(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firestore_projects_locations_get_execute()` to send, or `firestore_projects_locations_get` for simplest API.
 
-pub fn firestore_projects_locations_get_builder(
-    client: &SimpleHttpClient,
+pub fn firestore_projects_locations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firestore.googleapis.com/v1/projects/{}/locations/{locationsId}",
@@ -8961,14 +9118,17 @@ pub fn firestore_projects_locations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firestore_projects_locations_list_execute()` to send, or `firestore_projects_locations_list` for simplest API.
 
-pub fn firestore_projects_locations_list_builder(
-    client: &SimpleHttpClient,
+pub fn firestore_projects_locations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     extraLocationTypes: &Option<Option<String>>,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firestore.googleapis.com/v1/projects/{}/locations",
@@ -9161,10 +9321,13 @@ pub fn firestore_projects_locations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firestore_projects_locations_backups_delete_execute()` to send, or `firestore_projects_locations_backups_delete` for simplest API.
 
-pub fn firestore_projects_locations_backups_delete_builder(
-    client: &SimpleHttpClient,
+pub fn firestore_projects_locations_backups_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firestore.googleapis.com/v1/projects/{}/locations/{locationsId}/backups/{backupsId}",
@@ -9318,10 +9481,13 @@ pub fn firestore_projects_locations_backups_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firestore_projects_locations_backups_get_execute()` to send, or `firestore_projects_locations_backups_get` for simplest API.
 
-pub fn firestore_projects_locations_backups_get_builder(
-    client: &SimpleHttpClient,
+pub fn firestore_projects_locations_backups_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firestore.googleapis.com/v1/projects/{}/locations/{locationsId}/backups/{backupsId}",
@@ -9483,11 +9649,14 @@ pub fn firestore_projects_locations_backups_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firestore_projects_locations_backups_list_execute()` to send, or `firestore_projects_locations_backups_list` for simplest API.
 
-pub fn firestore_projects_locations_backups_list_builder(
-    client: &SimpleHttpClient,
+pub fn firestore_projects_locations_backups_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firestore.googleapis.com/v1/projects/{}/locations/{locationsId}/backups",

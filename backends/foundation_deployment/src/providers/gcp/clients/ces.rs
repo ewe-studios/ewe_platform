@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `ces_projects_locations_get_execute()` to send, or `ces_projects_locations_get` for simplest API.
 
-pub fn ces_projects_locations_get_builder(
-    client: &SimpleHttpClient,
+pub fn ces_projects_locations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://ces.googleapis.com/v1/projects/{}/locations/{locationsId}",
@@ -183,14 +187,17 @@ pub fn ces_projects_locations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `ces_projects_locations_list_execute()` to send, or `ces_projects_locations_list` for simplest API.
 
-pub fn ces_projects_locations_list_builder(
-    client: &SimpleHttpClient,
+pub fn ces_projects_locations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     extraLocationTypes: &Option<Option<String>>,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://ces.googleapis.com/v1/projects/{}/locations", name,);
 
@@ -380,11 +387,14 @@ pub fn ces_projects_locations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `ces_projects_locations_apps_create_execute()` to send, or `ces_projects_locations_apps_create` for simplest API.
 
-pub fn ces_projects_locations_apps_create_builder(
-    client: &SimpleHttpClient,
+pub fn ces_projects_locations_apps_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     appId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://ces.googleapis.com/v1/projects/{}/locations/{locationsId}/apps",
@@ -551,11 +561,14 @@ pub fn ces_projects_locations_apps_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `ces_projects_locations_apps_delete_execute()` to send, or `ces_projects_locations_apps_delete` for simplest API.
 
-pub fn ces_projects_locations_apps_delete_builder(
-    client: &SimpleHttpClient,
+pub fn ces_projects_locations_apps_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     etag: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://ces.googleapis.com/v1/projects/{}/locations/{locationsId}/apps/{appsId}",
@@ -722,10 +735,13 @@ pub fn ces_projects_locations_apps_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `ces_projects_locations_apps_execute_tool_execute()` to send, or `ces_projects_locations_apps_execute_tool` for simplest API.
 
-pub fn ces_projects_locations_apps_execute_tool_builder(
-    client: &SimpleHttpClient,
+pub fn ces_projects_locations_apps_execute_tool_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://ces.googleapis.com/v1/projects/{}/locations/{locationsId}/apps/{appsId}:executeTool",
@@ -883,10 +899,13 @@ pub fn ces_projects_locations_apps_execute_tool(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `ces_projects_locations_apps_export_app_execute()` to send, or `ces_projects_locations_apps_export_app` for simplest API.
 
-pub fn ces_projects_locations_apps_export_app_builder(
-    client: &SimpleHttpClient,
+pub fn ces_projects_locations_apps_export_app_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://ces.googleapis.com/v1/projects/{}/locations/{locationsId}/apps/{appsId}:exportApp",
@@ -1040,10 +1059,13 @@ pub fn ces_projects_locations_apps_export_app(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `ces_projects_locations_apps_get_execute()` to send, or `ces_projects_locations_apps_get` for simplest API.
 
-pub fn ces_projects_locations_apps_get_builder(
-    client: &SimpleHttpClient,
+pub fn ces_projects_locations_apps_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://ces.googleapis.com/v1/projects/{}/locations/{locationsId}/apps/{appsId}",
@@ -1197,10 +1219,13 @@ pub fn ces_projects_locations_apps_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `ces_projects_locations_apps_import_app_execute()` to send, or `ces_projects_locations_apps_import_app` for simplest API.
 
-pub fn ces_projects_locations_apps_import_app_builder(
-    client: &SimpleHttpClient,
+pub fn ces_projects_locations_apps_import_app_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://ces.googleapis.com/v1/projects/{}/locations/{locationsId}/apps:importApp",
@@ -1354,14 +1379,17 @@ pub fn ces_projects_locations_apps_import_app(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `ces_projects_locations_apps_list_execute()` to send, or `ces_projects_locations_apps_list` for simplest API.
 
-pub fn ces_projects_locations_apps_list_builder(
-    client: &SimpleHttpClient,
+pub fn ces_projects_locations_apps_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://ces.googleapis.com/v1/projects/{}/locations/{locationsId}/apps",
@@ -1554,11 +1582,14 @@ pub fn ces_projects_locations_apps_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `ces_projects_locations_apps_patch_execute()` to send, or `ces_projects_locations_apps_patch` for simplest API.
 
-pub fn ces_projects_locations_apps_patch_builder(
-    client: &SimpleHttpClient,
+pub fn ces_projects_locations_apps_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://ces.googleapis.com/v1/projects/{}/locations/{locationsId}/apps/{appsId}",
@@ -1725,10 +1756,13 @@ pub fn ces_projects_locations_apps_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `ces_projects_locations_apps_retrieve_tool_schema_execute()` to send, or `ces_projects_locations_apps_retrieve_tool_schema` for simplest API.
 
-pub fn ces_projects_locations_apps_retrieve_tool_schema_builder(
-    client: &SimpleHttpClient,
+pub fn ces_projects_locations_apps_retrieve_tool_schema_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://ces.googleapis.com/v1/projects/{}/locations/{locationsId}/apps/{appsId}:retrieveToolSchema",
@@ -1890,11 +1924,14 @@ pub fn ces_projects_locations_apps_retrieve_tool_schema(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `ces_projects_locations_apps_agents_create_execute()` to send, or `ces_projects_locations_apps_agents_create` for simplest API.
 
-pub fn ces_projects_locations_apps_agents_create_builder(
-    client: &SimpleHttpClient,
+pub fn ces_projects_locations_apps_agents_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     agentId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://ces.googleapis.com/v1/projects/{}/locations/{locationsId}/apps/{appsId}/agents",
@@ -2062,12 +2099,15 @@ pub fn ces_projects_locations_apps_agents_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `ces_projects_locations_apps_agents_delete_execute()` to send, or `ces_projects_locations_apps_agents_delete` for simplest API.
 
-pub fn ces_projects_locations_apps_agents_delete_builder(
-    client: &SimpleHttpClient,
+pub fn ces_projects_locations_apps_agents_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     etag: &Option<Option<String>>,
     force: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://ces.googleapis.com/v1/projects/{}/locations/{locationsId}/apps/{appsId}/agents/{agentsId}",
@@ -2244,10 +2284,13 @@ pub fn ces_projects_locations_apps_agents_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `ces_projects_locations_apps_agents_get_execute()` to send, or `ces_projects_locations_apps_agents_get` for simplest API.
 
-pub fn ces_projects_locations_apps_agents_get_builder(
-    client: &SimpleHttpClient,
+pub fn ces_projects_locations_apps_agents_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://ces.googleapis.com/v1/projects/{}/locations/{locationsId}/apps/{appsId}/agents/{agentsId}",
@@ -2401,14 +2444,17 @@ pub fn ces_projects_locations_apps_agents_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `ces_projects_locations_apps_agents_list_execute()` to send, or `ces_projects_locations_apps_agents_list` for simplest API.
 
-pub fn ces_projects_locations_apps_agents_list_builder(
-    client: &SimpleHttpClient,
+pub fn ces_projects_locations_apps_agents_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://ces.googleapis.com/v1/projects/{}/locations/{locationsId}/apps/{appsId}/agents",
@@ -2601,11 +2647,14 @@ pub fn ces_projects_locations_apps_agents_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `ces_projects_locations_apps_agents_patch_execute()` to send, or `ces_projects_locations_apps_agents_patch` for simplest API.
 
-pub fn ces_projects_locations_apps_agents_patch_builder(
-    client: &SimpleHttpClient,
+pub fn ces_projects_locations_apps_agents_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://ces.googleapis.com/v1/projects/{}/locations/{locationsId}/apps/{appsId}/agents/{agentsId}",
@@ -2773,10 +2822,13 @@ pub fn ces_projects_locations_apps_agents_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `ces_projects_locations_apps_changelogs_get_execute()` to send, or `ces_projects_locations_apps_changelogs_get` for simplest API.
 
-pub fn ces_projects_locations_apps_changelogs_get_builder(
-    client: &SimpleHttpClient,
+pub fn ces_projects_locations_apps_changelogs_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://ces.googleapis.com/v1/projects/{}/locations/{locationsId}/apps/{appsId}/changelogs/{changelogsId}",
@@ -2930,14 +2982,17 @@ pub fn ces_projects_locations_apps_changelogs_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `ces_projects_locations_apps_changelogs_list_execute()` to send, or `ces_projects_locations_apps_changelogs_list` for simplest API.
 
-pub fn ces_projects_locations_apps_changelogs_list_builder(
-    client: &SimpleHttpClient,
+pub fn ces_projects_locations_apps_changelogs_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://ces.googleapis.com/v1/projects/{}/locations/{locationsId}/apps/{appsId}/changelogs",
@@ -3130,10 +3185,13 @@ pub fn ces_projects_locations_apps_changelogs_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `ces_projects_locations_apps_conversations_batch_delete_execute()` to send, or `ces_projects_locations_apps_conversations_batch_delete` for simplest API.
 
-pub fn ces_projects_locations_apps_conversations_batch_delete_builder(
-    client: &SimpleHttpClient,
+pub fn ces_projects_locations_apps_conversations_batch_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://ces.googleapis.com/v1/projects/{}/locations/{locationsId}/apps/{appsId}/conversations:batchDelete",
@@ -3288,11 +3346,14 @@ pub fn ces_projects_locations_apps_conversations_batch_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `ces_projects_locations_apps_conversations_delete_execute()` to send, or `ces_projects_locations_apps_conversations_delete` for simplest API.
 
-pub fn ces_projects_locations_apps_conversations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn ces_projects_locations_apps_conversations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     source: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://ces.googleapis.com/v1/projects/{}/locations/{locationsId}/apps/{appsId}/conversations/{conversationsId}",
@@ -3460,11 +3521,14 @@ pub fn ces_projects_locations_apps_conversations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `ces_projects_locations_apps_conversations_get_execute()` to send, or `ces_projects_locations_apps_conversations_get` for simplest API.
 
-pub fn ces_projects_locations_apps_conversations_get_builder(
-    client: &SimpleHttpClient,
+pub fn ces_projects_locations_apps_conversations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     source: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://ces.googleapis.com/v1/projects/{}/locations/{locationsId}/apps/{appsId}/conversations/{conversationsId}",
@@ -3636,15 +3700,18 @@ pub fn ces_projects_locations_apps_conversations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `ces_projects_locations_apps_conversations_list_execute()` to send, or `ces_projects_locations_apps_conversations_list` for simplest API.
 
-pub fn ces_projects_locations_apps_conversations_list_builder(
-    client: &SimpleHttpClient,
+pub fn ces_projects_locations_apps_conversations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     source: &Option<Option<String>>,
     sources: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://ces.googleapis.com/v1/projects/{}/locations/{locationsId}/apps/{appsId}/conversations",
@@ -3843,11 +3910,14 @@ pub fn ces_projects_locations_apps_conversations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `ces_projects_locations_apps_deployments_create_execute()` to send, or `ces_projects_locations_apps_deployments_create` for simplest API.
 
-pub fn ces_projects_locations_apps_deployments_create_builder(
-    client: &SimpleHttpClient,
+pub fn ces_projects_locations_apps_deployments_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     deploymentId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://ces.googleapis.com/v1/projects/{}/locations/{locationsId}/apps/{appsId}/deployments",
@@ -4018,11 +4088,14 @@ pub fn ces_projects_locations_apps_deployments_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `ces_projects_locations_apps_deployments_delete_execute()` to send, or `ces_projects_locations_apps_deployments_delete` for simplest API.
 
-pub fn ces_projects_locations_apps_deployments_delete_builder(
-    client: &SimpleHttpClient,
+pub fn ces_projects_locations_apps_deployments_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     etag: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://ces.googleapis.com/v1/projects/{}/locations/{locationsId}/apps/{appsId}/deployments/{deploymentsId}",
@@ -4190,10 +4263,13 @@ pub fn ces_projects_locations_apps_deployments_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `ces_projects_locations_apps_deployments_get_execute()` to send, or `ces_projects_locations_apps_deployments_get` for simplest API.
 
-pub fn ces_projects_locations_apps_deployments_get_builder(
-    client: &SimpleHttpClient,
+pub fn ces_projects_locations_apps_deployments_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://ces.googleapis.com/v1/projects/{}/locations/{locationsId}/apps/{appsId}/deployments/{deploymentsId}",
@@ -4347,13 +4423,16 @@ pub fn ces_projects_locations_apps_deployments_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `ces_projects_locations_apps_deployments_list_execute()` to send, or `ces_projects_locations_apps_deployments_list` for simplest API.
 
-pub fn ces_projects_locations_apps_deployments_list_builder(
-    client: &SimpleHttpClient,
+pub fn ces_projects_locations_apps_deployments_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://ces.googleapis.com/v1/projects/{}/locations/{locationsId}/apps/{appsId}/deployments",
@@ -4540,11 +4619,14 @@ pub fn ces_projects_locations_apps_deployments_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `ces_projects_locations_apps_deployments_patch_execute()` to send, or `ces_projects_locations_apps_deployments_patch` for simplest API.
 
-pub fn ces_projects_locations_apps_deployments_patch_builder(
-    client: &SimpleHttpClient,
+pub fn ces_projects_locations_apps_deployments_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://ces.googleapis.com/v1/projects/{}/locations/{locationsId}/apps/{appsId}/deployments/{deploymentsId}",
@@ -4715,11 +4797,14 @@ pub fn ces_projects_locations_apps_deployments_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `ces_projects_locations_apps_examples_create_execute()` to send, or `ces_projects_locations_apps_examples_create` for simplest API.
 
-pub fn ces_projects_locations_apps_examples_create_builder(
-    client: &SimpleHttpClient,
+pub fn ces_projects_locations_apps_examples_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     exampleId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://ces.googleapis.com/v1/projects/{}/locations/{locationsId}/apps/{appsId}/examples",
@@ -4887,11 +4972,14 @@ pub fn ces_projects_locations_apps_examples_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `ces_projects_locations_apps_examples_delete_execute()` to send, or `ces_projects_locations_apps_examples_delete` for simplest API.
 
-pub fn ces_projects_locations_apps_examples_delete_builder(
-    client: &SimpleHttpClient,
+pub fn ces_projects_locations_apps_examples_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     etag: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://ces.googleapis.com/v1/projects/{}/locations/{locationsId}/apps/{appsId}/examples/{examplesId}",
@@ -5059,10 +5147,13 @@ pub fn ces_projects_locations_apps_examples_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `ces_projects_locations_apps_examples_get_execute()` to send, or `ces_projects_locations_apps_examples_get` for simplest API.
 
-pub fn ces_projects_locations_apps_examples_get_builder(
-    client: &SimpleHttpClient,
+pub fn ces_projects_locations_apps_examples_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://ces.googleapis.com/v1/projects/{}/locations/{locationsId}/apps/{appsId}/examples/{examplesId}",
@@ -5216,14 +5307,17 @@ pub fn ces_projects_locations_apps_examples_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `ces_projects_locations_apps_examples_list_execute()` to send, or `ces_projects_locations_apps_examples_list` for simplest API.
 
-pub fn ces_projects_locations_apps_examples_list_builder(
-    client: &SimpleHttpClient,
+pub fn ces_projects_locations_apps_examples_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://ces.googleapis.com/v1/projects/{}/locations/{locationsId}/apps/{appsId}/examples",
@@ -5416,11 +5510,14 @@ pub fn ces_projects_locations_apps_examples_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `ces_projects_locations_apps_examples_patch_execute()` to send, or `ces_projects_locations_apps_examples_patch` for simplest API.
 
-pub fn ces_projects_locations_apps_examples_patch_builder(
-    client: &SimpleHttpClient,
+pub fn ces_projects_locations_apps_examples_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://ces.googleapis.com/v1/projects/{}/locations/{locationsId}/apps/{appsId}/examples/{examplesId}",
@@ -5588,11 +5685,14 @@ pub fn ces_projects_locations_apps_examples_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `ces_projects_locations_apps_guardrails_create_execute()` to send, or `ces_projects_locations_apps_guardrails_create` for simplest API.
 
-pub fn ces_projects_locations_apps_guardrails_create_builder(
-    client: &SimpleHttpClient,
+pub fn ces_projects_locations_apps_guardrails_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     guardrailId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://ces.googleapis.com/v1/projects/{}/locations/{locationsId}/apps/{appsId}/guardrails",
@@ -5763,12 +5863,15 @@ pub fn ces_projects_locations_apps_guardrails_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `ces_projects_locations_apps_guardrails_delete_execute()` to send, or `ces_projects_locations_apps_guardrails_delete` for simplest API.
 
-pub fn ces_projects_locations_apps_guardrails_delete_builder(
-    client: &SimpleHttpClient,
+pub fn ces_projects_locations_apps_guardrails_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     etag: &Option<Option<String>>,
     force: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://ces.googleapis.com/v1/projects/{}/locations/{locationsId}/apps/{appsId}/guardrails/{guardrailsId}",
@@ -5945,10 +6048,13 @@ pub fn ces_projects_locations_apps_guardrails_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `ces_projects_locations_apps_guardrails_get_execute()` to send, or `ces_projects_locations_apps_guardrails_get` for simplest API.
 
-pub fn ces_projects_locations_apps_guardrails_get_builder(
-    client: &SimpleHttpClient,
+pub fn ces_projects_locations_apps_guardrails_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://ces.googleapis.com/v1/projects/{}/locations/{locationsId}/apps/{appsId}/guardrails/{guardrailsId}",
@@ -6102,14 +6208,17 @@ pub fn ces_projects_locations_apps_guardrails_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `ces_projects_locations_apps_guardrails_list_execute()` to send, or `ces_projects_locations_apps_guardrails_list` for simplest API.
 
-pub fn ces_projects_locations_apps_guardrails_list_builder(
-    client: &SimpleHttpClient,
+pub fn ces_projects_locations_apps_guardrails_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://ces.googleapis.com/v1/projects/{}/locations/{locationsId}/apps/{appsId}/guardrails",
@@ -6302,11 +6411,14 @@ pub fn ces_projects_locations_apps_guardrails_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `ces_projects_locations_apps_guardrails_patch_execute()` to send, or `ces_projects_locations_apps_guardrails_patch` for simplest API.
 
-pub fn ces_projects_locations_apps_guardrails_patch_builder(
-    client: &SimpleHttpClient,
+pub fn ces_projects_locations_apps_guardrails_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://ces.googleapis.com/v1/projects/{}/locations/{locationsId}/apps/{appsId}/guardrails/{guardrailsId}",
@@ -6474,10 +6586,13 @@ pub fn ces_projects_locations_apps_guardrails_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `ces_projects_locations_apps_sessions_generate_chat_token_execute()` to send, or `ces_projects_locations_apps_sessions_generate_chat_token` for simplest API.
 
-pub fn ces_projects_locations_apps_sessions_generate_chat_token_builder(
-    client: &SimpleHttpClient,
+pub fn ces_projects_locations_apps_sessions_generate_chat_token_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://ces.googleapis.com/v1/projects/{}/locations/{locationsId}/apps/{appsId}/sessions/{sessionsId}:generateChatToken",
@@ -6636,10 +6751,13 @@ pub fn ces_projects_locations_apps_sessions_generate_chat_token(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `ces_projects_locations_apps_sessions_run_session_execute()` to send, or `ces_projects_locations_apps_sessions_run_session` for simplest API.
 
-pub fn ces_projects_locations_apps_sessions_run_session_builder(
-    client: &SimpleHttpClient,
+pub fn ces_projects_locations_apps_sessions_run_session_builder<R>(
+    client: &SimpleHttpClient<R>,
     session: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://ces.googleapis.com/v1/projects/{}/locations/{locationsId}/apps/{appsId}/sessions/{sessionsId}:runSession",
@@ -6797,10 +6915,13 @@ pub fn ces_projects_locations_apps_sessions_run_session(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `ces_projects_locations_apps_sessions_stream_run_session_execute()` to send, or `ces_projects_locations_apps_sessions_stream_run_session` for simplest API.
 
-pub fn ces_projects_locations_apps_sessions_stream_run_session_builder(
-    client: &SimpleHttpClient,
+pub fn ces_projects_locations_apps_sessions_stream_run_session_builder<R>(
+    client: &SimpleHttpClient<R>,
     session: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://ces.googleapis.com/v1/projects/{}/locations/{locationsId}/apps/{appsId}/sessions/{sessionsId}:streamRunSession",
@@ -6959,11 +7080,14 @@ pub fn ces_projects_locations_apps_sessions_stream_run_session(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `ces_projects_locations_apps_tools_create_execute()` to send, or `ces_projects_locations_apps_tools_create` for simplest API.
 
-pub fn ces_projects_locations_apps_tools_create_builder(
-    client: &SimpleHttpClient,
+pub fn ces_projects_locations_apps_tools_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     toolId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://ces.googleapis.com/v1/projects/{}/locations/{locationsId}/apps/{appsId}/tools",
@@ -7131,12 +7255,15 @@ pub fn ces_projects_locations_apps_tools_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `ces_projects_locations_apps_tools_delete_execute()` to send, or `ces_projects_locations_apps_tools_delete` for simplest API.
 
-pub fn ces_projects_locations_apps_tools_delete_builder(
-    client: &SimpleHttpClient,
+pub fn ces_projects_locations_apps_tools_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     etag: &Option<Option<String>>,
     force: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://ces.googleapis.com/v1/projects/{}/locations/{locationsId}/apps/{appsId}/tools/{toolsId}",
@@ -7313,10 +7440,13 @@ pub fn ces_projects_locations_apps_tools_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `ces_projects_locations_apps_tools_get_execute()` to send, or `ces_projects_locations_apps_tools_get` for simplest API.
 
-pub fn ces_projects_locations_apps_tools_get_builder(
-    client: &SimpleHttpClient,
+pub fn ces_projects_locations_apps_tools_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://ces.googleapis.com/v1/projects/{}/locations/{locationsId}/apps/{appsId}/tools/{toolsId}",
@@ -7470,14 +7600,17 @@ pub fn ces_projects_locations_apps_tools_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `ces_projects_locations_apps_tools_list_execute()` to send, or `ces_projects_locations_apps_tools_list` for simplest API.
 
-pub fn ces_projects_locations_apps_tools_list_builder(
-    client: &SimpleHttpClient,
+pub fn ces_projects_locations_apps_tools_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://ces.googleapis.com/v1/projects/{}/locations/{locationsId}/apps/{appsId}/tools",
@@ -7670,11 +7803,14 @@ pub fn ces_projects_locations_apps_tools_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `ces_projects_locations_apps_tools_patch_execute()` to send, or `ces_projects_locations_apps_tools_patch` for simplest API.
 
-pub fn ces_projects_locations_apps_tools_patch_builder(
-    client: &SimpleHttpClient,
+pub fn ces_projects_locations_apps_tools_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://ces.googleapis.com/v1/projects/{}/locations/{locationsId}/apps/{appsId}/tools/{toolsId}",
@@ -7842,11 +7978,14 @@ pub fn ces_projects_locations_apps_tools_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `ces_projects_locations_apps_toolsets_create_execute()` to send, or `ces_projects_locations_apps_toolsets_create` for simplest API.
 
-pub fn ces_projects_locations_apps_toolsets_create_builder(
-    client: &SimpleHttpClient,
+pub fn ces_projects_locations_apps_toolsets_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     toolsetId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://ces.googleapis.com/v1/projects/{}/locations/{locationsId}/apps/{appsId}/toolsets",
@@ -8014,12 +8153,15 @@ pub fn ces_projects_locations_apps_toolsets_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `ces_projects_locations_apps_toolsets_delete_execute()` to send, or `ces_projects_locations_apps_toolsets_delete` for simplest API.
 
-pub fn ces_projects_locations_apps_toolsets_delete_builder(
-    client: &SimpleHttpClient,
+pub fn ces_projects_locations_apps_toolsets_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     etag: &Option<Option<String>>,
     force: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://ces.googleapis.com/v1/projects/{}/locations/{locationsId}/apps/{appsId}/toolsets/{toolsetsId}",
@@ -8196,10 +8338,13 @@ pub fn ces_projects_locations_apps_toolsets_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `ces_projects_locations_apps_toolsets_get_execute()` to send, or `ces_projects_locations_apps_toolsets_get` for simplest API.
 
-pub fn ces_projects_locations_apps_toolsets_get_builder(
-    client: &SimpleHttpClient,
+pub fn ces_projects_locations_apps_toolsets_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://ces.googleapis.com/v1/projects/{}/locations/{locationsId}/apps/{appsId}/toolsets/{toolsetsId}",
@@ -8353,14 +8498,17 @@ pub fn ces_projects_locations_apps_toolsets_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `ces_projects_locations_apps_toolsets_list_execute()` to send, or `ces_projects_locations_apps_toolsets_list` for simplest API.
 
-pub fn ces_projects_locations_apps_toolsets_list_builder(
-    client: &SimpleHttpClient,
+pub fn ces_projects_locations_apps_toolsets_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://ces.googleapis.com/v1/projects/{}/locations/{locationsId}/apps/{appsId}/toolsets",
@@ -8553,11 +8701,14 @@ pub fn ces_projects_locations_apps_toolsets_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `ces_projects_locations_apps_toolsets_patch_execute()` to send, or `ces_projects_locations_apps_toolsets_patch` for simplest API.
 
-pub fn ces_projects_locations_apps_toolsets_patch_builder(
-    client: &SimpleHttpClient,
+pub fn ces_projects_locations_apps_toolsets_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://ces.googleapis.com/v1/projects/{}/locations/{locationsId}/apps/{appsId}/toolsets/{toolsetsId}",
@@ -8725,10 +8876,13 @@ pub fn ces_projects_locations_apps_toolsets_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `ces_projects_locations_apps_toolsets_retrieve_tools_execute()` to send, or `ces_projects_locations_apps_toolsets_retrieve_tools` for simplest API.
 
-pub fn ces_projects_locations_apps_toolsets_retrieve_tools_builder(
-    client: &SimpleHttpClient,
+pub fn ces_projects_locations_apps_toolsets_retrieve_tools_builder<R>(
+    client: &SimpleHttpClient<R>,
     toolset: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://ces.googleapis.com/v1/projects/{}/locations/{locationsId}/apps/{appsId}/toolsets/{toolsetsId}:retrieveTools",
@@ -8887,11 +9041,14 @@ pub fn ces_projects_locations_apps_toolsets_retrieve_tools(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `ces_projects_locations_apps_versions_create_execute()` to send, or `ces_projects_locations_apps_versions_create` for simplest API.
 
-pub fn ces_projects_locations_apps_versions_create_builder(
-    client: &SimpleHttpClient,
+pub fn ces_projects_locations_apps_versions_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     appVersionId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://ces.googleapis.com/v1/projects/{}/locations/{locationsId}/apps/{appsId}/versions",
@@ -9062,11 +9219,14 @@ pub fn ces_projects_locations_apps_versions_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `ces_projects_locations_apps_versions_delete_execute()` to send, or `ces_projects_locations_apps_versions_delete` for simplest API.
 
-pub fn ces_projects_locations_apps_versions_delete_builder(
-    client: &SimpleHttpClient,
+pub fn ces_projects_locations_apps_versions_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     etag: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://ces.googleapis.com/v1/projects/{}/locations/{locationsId}/apps/{appsId}/versions/{versionsId}",
@@ -9234,10 +9394,13 @@ pub fn ces_projects_locations_apps_versions_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `ces_projects_locations_apps_versions_get_execute()` to send, or `ces_projects_locations_apps_versions_get` for simplest API.
 
-pub fn ces_projects_locations_apps_versions_get_builder(
-    client: &SimpleHttpClient,
+pub fn ces_projects_locations_apps_versions_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://ces.googleapis.com/v1/projects/{}/locations/{locationsId}/apps/{appsId}/versions/{versionsId}",
@@ -9391,14 +9554,17 @@ pub fn ces_projects_locations_apps_versions_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `ces_projects_locations_apps_versions_list_execute()` to send, or `ces_projects_locations_apps_versions_list` for simplest API.
 
-pub fn ces_projects_locations_apps_versions_list_builder(
-    client: &SimpleHttpClient,
+pub fn ces_projects_locations_apps_versions_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://ces.googleapis.com/v1/projects/{}/locations/{locationsId}/apps/{appsId}/versions",
@@ -9591,10 +9757,13 @@ pub fn ces_projects_locations_apps_versions_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `ces_projects_locations_apps_versions_restore_execute()` to send, or `ces_projects_locations_apps_versions_restore` for simplest API.
 
-pub fn ces_projects_locations_apps_versions_restore_builder(
-    client: &SimpleHttpClient,
+pub fn ces_projects_locations_apps_versions_restore_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://ces.googleapis.com/v1/projects/{}/locations/{locationsId}/apps/{appsId}/versions/{versionsId}:restore",
@@ -9748,10 +9917,13 @@ pub fn ces_projects_locations_apps_versions_restore(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `ces_projects_locations_operations_cancel_execute()` to send, or `ces_projects_locations_operations_cancel` for simplest API.
 
-pub fn ces_projects_locations_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn ces_projects_locations_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://ces.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}:cancel",
@@ -9905,10 +10077,13 @@ pub fn ces_projects_locations_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `ces_projects_locations_operations_delete_execute()` to send, or `ces_projects_locations_operations_delete` for simplest API.
 
-pub fn ces_projects_locations_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn ces_projects_locations_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://ces.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -10062,10 +10237,13 @@ pub fn ces_projects_locations_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `ces_projects_locations_operations_get_execute()` to send, or `ces_projects_locations_operations_get` for simplest API.
 
-pub fn ces_projects_locations_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn ces_projects_locations_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://ces.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -10219,14 +10397,17 @@ pub fn ces_projects_locations_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `ces_projects_locations_operations_list_execute()` to send, or `ces_projects_locations_operations_list` for simplest API.
 
-pub fn ces_projects_locations_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn ces_projects_locations_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://ces.googleapis.com/v1/projects/{}/locations/{locationsId}/operations",

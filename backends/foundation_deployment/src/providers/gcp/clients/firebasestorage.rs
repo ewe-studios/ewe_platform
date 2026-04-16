@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebasestorage_projects_delete_default_bucket_execute()` to send, or `firebasestorage_projects_delete_default_bucket` for simplest API.
 
-pub fn firebasestorage_projects_delete_default_bucket_builder(
-    client: &SimpleHttpClient,
+pub fn firebasestorage_projects_delete_default_bucket_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebasestorage.googleapis.com/v1beta/projects/{}/defaultBucket",
@@ -183,10 +187,13 @@ pub fn firebasestorage_projects_delete_default_bucket(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebasestorage_projects_get_default_bucket_execute()` to send, or `firebasestorage_projects_get_default_bucket` for simplest API.
 
-pub fn firebasestorage_projects_get_default_bucket_builder(
-    client: &SimpleHttpClient,
+pub fn firebasestorage_projects_get_default_bucket_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebasestorage.googleapis.com/v1beta/projects/{}/defaultBucket",
@@ -344,10 +351,13 @@ pub fn firebasestorage_projects_get_default_bucket(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebasestorage_projects_buckets_add_firebase_execute()` to send, or `firebasestorage_projects_buckets_add_firebase` for simplest API.
 
-pub fn firebasestorage_projects_buckets_add_firebase_builder(
-    client: &SimpleHttpClient,
+pub fn firebasestorage_projects_buckets_add_firebase_builder<R>(
+    client: &SimpleHttpClient<R>,
     bucket: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebasestorage.googleapis.com/v1beta/projects/{}/buckets/{bucketsId}:addFirebase",
@@ -501,10 +511,13 @@ pub fn firebasestorage_projects_buckets_add_firebase(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebasestorage_projects_buckets_get_execute()` to send, or `firebasestorage_projects_buckets_get` for simplest API.
 
-pub fn firebasestorage_projects_buckets_get_builder(
-    client: &SimpleHttpClient,
+pub fn firebasestorage_projects_buckets_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebasestorage.googleapis.com/v1beta/projects/{}/buckets/{bucketsId}",
@@ -658,12 +671,15 @@ pub fn firebasestorage_projects_buckets_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebasestorage_projects_buckets_list_execute()` to send, or `firebasestorage_projects_buckets_list` for simplest API.
 
-pub fn firebasestorage_projects_buckets_list_builder(
-    client: &SimpleHttpClient,
+pub fn firebasestorage_projects_buckets_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebasestorage.googleapis.com/v1beta/projects/{}/buckets",
@@ -844,10 +860,13 @@ pub fn firebasestorage_projects_buckets_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebasestorage_projects_buckets_remove_firebase_execute()` to send, or `firebasestorage_projects_buckets_remove_firebase` for simplest API.
 
-pub fn firebasestorage_projects_buckets_remove_firebase_builder(
-    client: &SimpleHttpClient,
+pub fn firebasestorage_projects_buckets_remove_firebase_builder<R>(
+    client: &SimpleHttpClient<R>,
     bucket: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebasestorage.googleapis.com/v1beta/projects/{}/buckets/{bucketsId}:removeFirebase",
@@ -1001,10 +1020,13 @@ pub fn firebasestorage_projects_buckets_remove_firebase(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebasestorage_projects_default_bucket_create_execute()` to send, or `firebasestorage_projects_default_bucket_create` for simplest API.
 
-pub fn firebasestorage_projects_default_bucket_create_builder(
-    client: &SimpleHttpClient,
+pub fn firebasestorage_projects_default_bucket_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebasestorage.googleapis.com/v1beta/projects/{}/defaultBucket",

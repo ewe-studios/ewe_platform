@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `pubsub_projects_schemas_commit_execute()` to send, or `pubsub_projects_schemas_commit` for simplest API.
 
-pub fn pubsub_projects_schemas_commit_builder(
-    client: &SimpleHttpClient,
+pub fn pubsub_projects_schemas_commit_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://pubsub.googleapis.com/v1/projects/{}/schemas/{schemasId}:commit",
@@ -183,11 +187,14 @@ pub fn pubsub_projects_schemas_commit(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `pubsub_projects_schemas_create_execute()` to send, or `pubsub_projects_schemas_create` for simplest API.
 
-pub fn pubsub_projects_schemas_create_builder(
-    client: &SimpleHttpClient,
+pub fn pubsub_projects_schemas_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     schemaId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://pubsub.googleapis.com/v1/projects/{}/schemas",
@@ -354,10 +361,13 @@ pub fn pubsub_projects_schemas_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `pubsub_projects_schemas_delete_execute()` to send, or `pubsub_projects_schemas_delete` for simplest API.
 
-pub fn pubsub_projects_schemas_delete_builder(
-    client: &SimpleHttpClient,
+pub fn pubsub_projects_schemas_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://pubsub.googleapis.com/v1/projects/{}/schemas/{schemasId}",
@@ -511,11 +521,14 @@ pub fn pubsub_projects_schemas_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `pubsub_projects_schemas_delete_revision_execute()` to send, or `pubsub_projects_schemas_delete_revision` for simplest API.
 
-pub fn pubsub_projects_schemas_delete_revision_builder(
-    client: &SimpleHttpClient,
+pub fn pubsub_projects_schemas_delete_revision_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     revisionId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://pubsub.googleapis.com/v1/projects/{}/schemas/{schemasId}:deleteRevision",
@@ -683,11 +696,14 @@ pub fn pubsub_projects_schemas_delete_revision(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `pubsub_projects_schemas_get_execute()` to send, or `pubsub_projects_schemas_get` for simplest API.
 
-pub fn pubsub_projects_schemas_get_builder(
-    client: &SimpleHttpClient,
+pub fn pubsub_projects_schemas_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://pubsub.googleapis.com/v1/projects/{}/schemas/{schemasId}",
@@ -854,11 +870,14 @@ pub fn pubsub_projects_schemas_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `pubsub_projects_schemas_get_iam_policy_execute()` to send, or `pubsub_projects_schemas_get_iam_policy` for simplest API.
 
-pub fn pubsub_projects_schemas_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn pubsub_projects_schemas_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://pubsub.googleapis.com/v1/projects/{}/schemas/{schemasId}:getIamPolicy",
@@ -1029,13 +1048,16 @@ pub fn pubsub_projects_schemas_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `pubsub_projects_schemas_list_execute()` to send, or `pubsub_projects_schemas_list` for simplest API.
 
-pub fn pubsub_projects_schemas_list_builder(
-    client: &SimpleHttpClient,
+pub fn pubsub_projects_schemas_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://pubsub.googleapis.com/v1/projects/{}/schemas",
@@ -1222,13 +1244,16 @@ pub fn pubsub_projects_schemas_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `pubsub_projects_schemas_list_revisions_execute()` to send, or `pubsub_projects_schemas_list_revisions` for simplest API.
 
-pub fn pubsub_projects_schemas_list_revisions_builder(
-    client: &SimpleHttpClient,
+pub fn pubsub_projects_schemas_list_revisions_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://pubsub.googleapis.com/v1/projects/{}/schemas/{schemasId}:listRevisions",
@@ -1419,10 +1444,13 @@ pub fn pubsub_projects_schemas_list_revisions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `pubsub_projects_schemas_rollback_execute()` to send, or `pubsub_projects_schemas_rollback` for simplest API.
 
-pub fn pubsub_projects_schemas_rollback_builder(
-    client: &SimpleHttpClient,
+pub fn pubsub_projects_schemas_rollback_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://pubsub.googleapis.com/v1/projects/{}/schemas/{schemasId}:rollback",
@@ -1576,10 +1604,13 @@ pub fn pubsub_projects_schemas_rollback(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `pubsub_projects_schemas_set_iam_policy_execute()` to send, or `pubsub_projects_schemas_set_iam_policy` for simplest API.
 
-pub fn pubsub_projects_schemas_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn pubsub_projects_schemas_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://pubsub.googleapis.com/v1/projects/{}/schemas/{schemasId}:setIamPolicy",
@@ -1733,10 +1764,13 @@ pub fn pubsub_projects_schemas_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `pubsub_projects_schemas_test_iam_permissions_execute()` to send, or `pubsub_projects_schemas_test_iam_permissions` for simplest API.
 
-pub fn pubsub_projects_schemas_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn pubsub_projects_schemas_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://pubsub.googleapis.com/v1/projects/{}/schemas/{schemasId}:testIamPermissions",
@@ -1898,10 +1932,13 @@ pub fn pubsub_projects_schemas_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `pubsub_projects_schemas_validate_execute()` to send, or `pubsub_projects_schemas_validate` for simplest API.
 
-pub fn pubsub_projects_schemas_validate_builder(
-    client: &SimpleHttpClient,
+pub fn pubsub_projects_schemas_validate_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://pubsub.googleapis.com/v1/projects/{}/schemas:validate",
@@ -2059,10 +2096,13 @@ pub fn pubsub_projects_schemas_validate(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `pubsub_projects_schemas_validate_message_execute()` to send, or `pubsub_projects_schemas_validate_message` for simplest API.
 
-pub fn pubsub_projects_schemas_validate_message_builder(
-    client: &SimpleHttpClient,
+pub fn pubsub_projects_schemas_validate_message_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://pubsub.googleapis.com/v1/projects/{}/schemas:validateMessage",
@@ -2220,10 +2260,13 @@ pub fn pubsub_projects_schemas_validate_message(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `pubsub_projects_snapshots_create_execute()` to send, or `pubsub_projects_snapshots_create` for simplest API.
 
-pub fn pubsub_projects_snapshots_create_builder(
-    client: &SimpleHttpClient,
+pub fn pubsub_projects_snapshots_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://pubsub.googleapis.com/v1/projects/{}/snapshots/{snapshotsId}",
@@ -2377,10 +2420,13 @@ pub fn pubsub_projects_snapshots_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `pubsub_projects_snapshots_delete_execute()` to send, or `pubsub_projects_snapshots_delete` for simplest API.
 
-pub fn pubsub_projects_snapshots_delete_builder(
-    client: &SimpleHttpClient,
+pub fn pubsub_projects_snapshots_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     snapshot: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://pubsub.googleapis.com/v1/projects/{}/snapshots/{snapshotsId}",
@@ -2534,10 +2580,13 @@ pub fn pubsub_projects_snapshots_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `pubsub_projects_snapshots_get_execute()` to send, or `pubsub_projects_snapshots_get` for simplest API.
 
-pub fn pubsub_projects_snapshots_get_builder(
-    client: &SimpleHttpClient,
+pub fn pubsub_projects_snapshots_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     snapshot: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://pubsub.googleapis.com/v1/projects/{}/snapshots/{snapshotsId}",
@@ -2691,11 +2740,14 @@ pub fn pubsub_projects_snapshots_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `pubsub_projects_snapshots_get_iam_policy_execute()` to send, or `pubsub_projects_snapshots_get_iam_policy` for simplest API.
 
-pub fn pubsub_projects_snapshots_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn pubsub_projects_snapshots_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://pubsub.googleapis.com/v1/projects/{}/snapshots/{snapshotsId}:getIamPolicy",
@@ -2866,12 +2918,15 @@ pub fn pubsub_projects_snapshots_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `pubsub_projects_snapshots_list_execute()` to send, or `pubsub_projects_snapshots_list` for simplest API.
 
-pub fn pubsub_projects_snapshots_list_builder(
-    client: &SimpleHttpClient,
+pub fn pubsub_projects_snapshots_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://pubsub.googleapis.com/v1/projects/{}/snapshots",
@@ -3052,10 +3107,13 @@ pub fn pubsub_projects_snapshots_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `pubsub_projects_snapshots_patch_execute()` to send, or `pubsub_projects_snapshots_patch` for simplest API.
 
-pub fn pubsub_projects_snapshots_patch_builder(
-    client: &SimpleHttpClient,
+pub fn pubsub_projects_snapshots_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://pubsub.googleapis.com/v1/projects/{}/snapshots/{snapshotsId}",
@@ -3209,10 +3267,13 @@ pub fn pubsub_projects_snapshots_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `pubsub_projects_snapshots_set_iam_policy_execute()` to send, or `pubsub_projects_snapshots_set_iam_policy` for simplest API.
 
-pub fn pubsub_projects_snapshots_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn pubsub_projects_snapshots_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://pubsub.googleapis.com/v1/projects/{}/snapshots/{snapshotsId}:setIamPolicy",
@@ -3366,10 +3427,13 @@ pub fn pubsub_projects_snapshots_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `pubsub_projects_snapshots_test_iam_permissions_execute()` to send, or `pubsub_projects_snapshots_test_iam_permissions` for simplest API.
 
-pub fn pubsub_projects_snapshots_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn pubsub_projects_snapshots_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://pubsub.googleapis.com/v1/projects/{}/snapshots/{snapshotsId}:testIamPermissions",
@@ -3531,10 +3595,13 @@ pub fn pubsub_projects_snapshots_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `pubsub_projects_subscriptions_acknowledge_execute()` to send, or `pubsub_projects_subscriptions_acknowledge` for simplest API.
 
-pub fn pubsub_projects_subscriptions_acknowledge_builder(
-    client: &SimpleHttpClient,
+pub fn pubsub_projects_subscriptions_acknowledge_builder<R>(
+    client: &SimpleHttpClient<R>,
     subscription: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://pubsub.googleapis.com/v1/projects/{}/subscriptions/{subscriptionsId}:acknowledge",
@@ -3688,10 +3755,13 @@ pub fn pubsub_projects_subscriptions_acknowledge(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `pubsub_projects_subscriptions_create_execute()` to send, or `pubsub_projects_subscriptions_create` for simplest API.
 
-pub fn pubsub_projects_subscriptions_create_builder(
-    client: &SimpleHttpClient,
+pub fn pubsub_projects_subscriptions_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://pubsub.googleapis.com/v1/projects/{}/subscriptions/{subscriptionsId}",
@@ -3849,10 +3919,13 @@ pub fn pubsub_projects_subscriptions_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `pubsub_projects_subscriptions_delete_execute()` to send, or `pubsub_projects_subscriptions_delete` for simplest API.
 
-pub fn pubsub_projects_subscriptions_delete_builder(
-    client: &SimpleHttpClient,
+pub fn pubsub_projects_subscriptions_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     subscription: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://pubsub.googleapis.com/v1/projects/{}/subscriptions/{subscriptionsId}",
@@ -4006,10 +4079,13 @@ pub fn pubsub_projects_subscriptions_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `pubsub_projects_subscriptions_detach_execute()` to send, or `pubsub_projects_subscriptions_detach` for simplest API.
 
-pub fn pubsub_projects_subscriptions_detach_builder(
-    client: &SimpleHttpClient,
+pub fn pubsub_projects_subscriptions_detach_builder<R>(
+    client: &SimpleHttpClient<R>,
     subscription: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://pubsub.googleapis.com/v1/projects/{}/subscriptions/{subscriptionsId}:detach",
@@ -4171,10 +4247,13 @@ pub fn pubsub_projects_subscriptions_detach(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `pubsub_projects_subscriptions_get_execute()` to send, or `pubsub_projects_subscriptions_get` for simplest API.
 
-pub fn pubsub_projects_subscriptions_get_builder(
-    client: &SimpleHttpClient,
+pub fn pubsub_projects_subscriptions_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     subscription: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://pubsub.googleapis.com/v1/projects/{}/subscriptions/{subscriptionsId}",
@@ -4332,11 +4411,14 @@ pub fn pubsub_projects_subscriptions_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `pubsub_projects_subscriptions_get_iam_policy_execute()` to send, or `pubsub_projects_subscriptions_get_iam_policy` for simplest API.
 
-pub fn pubsub_projects_subscriptions_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn pubsub_projects_subscriptions_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://pubsub.googleapis.com/v1/projects/{}/subscriptions/{subscriptionsId}:getIamPolicy",
@@ -4507,12 +4589,15 @@ pub fn pubsub_projects_subscriptions_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `pubsub_projects_subscriptions_list_execute()` to send, or `pubsub_projects_subscriptions_list` for simplest API.
 
-pub fn pubsub_projects_subscriptions_list_builder(
-    client: &SimpleHttpClient,
+pub fn pubsub_projects_subscriptions_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://pubsub.googleapis.com/v1/projects/{}/subscriptions",
@@ -4693,10 +4778,13 @@ pub fn pubsub_projects_subscriptions_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `pubsub_projects_subscriptions_modify_ack_deadline_execute()` to send, or `pubsub_projects_subscriptions_modify_ack_deadline` for simplest API.
 
-pub fn pubsub_projects_subscriptions_modify_ack_deadline_builder(
-    client: &SimpleHttpClient,
+pub fn pubsub_projects_subscriptions_modify_ack_deadline_builder<R>(
+    client: &SimpleHttpClient<R>,
     subscription: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://pubsub.googleapis.com/v1/projects/{}/subscriptions/{subscriptionsId}:modifyAckDeadline",
@@ -4851,10 +4939,13 @@ pub fn pubsub_projects_subscriptions_modify_ack_deadline(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `pubsub_projects_subscriptions_modify_push_config_execute()` to send, or `pubsub_projects_subscriptions_modify_push_config` for simplest API.
 
-pub fn pubsub_projects_subscriptions_modify_push_config_builder(
-    client: &SimpleHttpClient,
+pub fn pubsub_projects_subscriptions_modify_push_config_builder<R>(
+    client: &SimpleHttpClient<R>,
     subscription: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://pubsub.googleapis.com/v1/projects/{}/subscriptions/{subscriptionsId}:modifyPushConfig",
@@ -5009,10 +5100,13 @@ pub fn pubsub_projects_subscriptions_modify_push_config(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `pubsub_projects_subscriptions_patch_execute()` to send, or `pubsub_projects_subscriptions_patch` for simplest API.
 
-pub fn pubsub_projects_subscriptions_patch_builder(
-    client: &SimpleHttpClient,
+pub fn pubsub_projects_subscriptions_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://pubsub.googleapis.com/v1/projects/{}/subscriptions/{subscriptionsId}",
@@ -5170,10 +5264,13 @@ pub fn pubsub_projects_subscriptions_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `pubsub_projects_subscriptions_pull_execute()` to send, or `pubsub_projects_subscriptions_pull` for simplest API.
 
-pub fn pubsub_projects_subscriptions_pull_builder(
-    client: &SimpleHttpClient,
+pub fn pubsub_projects_subscriptions_pull_builder<R>(
+    client: &SimpleHttpClient<R>,
     subscription: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://pubsub.googleapis.com/v1/projects/{}/subscriptions/{subscriptionsId}:pull",
@@ -5331,10 +5428,13 @@ pub fn pubsub_projects_subscriptions_pull(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `pubsub_projects_subscriptions_seek_execute()` to send, or `pubsub_projects_subscriptions_seek` for simplest API.
 
-pub fn pubsub_projects_subscriptions_seek_builder(
-    client: &SimpleHttpClient,
+pub fn pubsub_projects_subscriptions_seek_builder<R>(
+    client: &SimpleHttpClient<R>,
     subscription: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://pubsub.googleapis.com/v1/projects/{}/subscriptions/{subscriptionsId}:seek",
@@ -5492,10 +5592,13 @@ pub fn pubsub_projects_subscriptions_seek(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `pubsub_projects_subscriptions_set_iam_policy_execute()` to send, or `pubsub_projects_subscriptions_set_iam_policy` for simplest API.
 
-pub fn pubsub_projects_subscriptions_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn pubsub_projects_subscriptions_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://pubsub.googleapis.com/v1/projects/{}/subscriptions/{subscriptionsId}:setIamPolicy",
@@ -5649,10 +5752,13 @@ pub fn pubsub_projects_subscriptions_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `pubsub_projects_subscriptions_test_iam_permissions_execute()` to send, or `pubsub_projects_subscriptions_test_iam_permissions` for simplest API.
 
-pub fn pubsub_projects_subscriptions_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn pubsub_projects_subscriptions_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://pubsub.googleapis.com/v1/projects/{}/subscriptions/{subscriptionsId}:testIamPermissions",
@@ -5815,10 +5921,13 @@ pub fn pubsub_projects_subscriptions_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `pubsub_projects_topics_create_execute()` to send, or `pubsub_projects_topics_create` for simplest API.
 
-pub fn pubsub_projects_topics_create_builder(
-    client: &SimpleHttpClient,
+pub fn pubsub_projects_topics_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://pubsub.googleapis.com/v1/projects/{}/topics/{topicsId}",
@@ -5972,10 +6081,13 @@ pub fn pubsub_projects_topics_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `pubsub_projects_topics_delete_execute()` to send, or `pubsub_projects_topics_delete` for simplest API.
 
-pub fn pubsub_projects_topics_delete_builder(
-    client: &SimpleHttpClient,
+pub fn pubsub_projects_topics_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     topic: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://pubsub.googleapis.com/v1/projects/{}/topics/{topicsId}",
@@ -6129,10 +6241,13 @@ pub fn pubsub_projects_topics_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `pubsub_projects_topics_get_execute()` to send, or `pubsub_projects_topics_get` for simplest API.
 
-pub fn pubsub_projects_topics_get_builder(
-    client: &SimpleHttpClient,
+pub fn pubsub_projects_topics_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     topic: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://pubsub.googleapis.com/v1/projects/{}/topics/{topicsId}",
@@ -6286,11 +6401,14 @@ pub fn pubsub_projects_topics_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `pubsub_projects_topics_get_iam_policy_execute()` to send, or `pubsub_projects_topics_get_iam_policy` for simplest API.
 
-pub fn pubsub_projects_topics_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn pubsub_projects_topics_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://pubsub.googleapis.com/v1/projects/{}/topics/{topicsId}:getIamPolicy",
@@ -6461,12 +6579,15 @@ pub fn pubsub_projects_topics_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `pubsub_projects_topics_list_execute()` to send, or `pubsub_projects_topics_list` for simplest API.
 
-pub fn pubsub_projects_topics_list_builder(
-    client: &SimpleHttpClient,
+pub fn pubsub_projects_topics_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://pubsub.googleapis.com/v1/projects/{}/topics",
@@ -6647,10 +6768,13 @@ pub fn pubsub_projects_topics_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `pubsub_projects_topics_patch_execute()` to send, or `pubsub_projects_topics_patch` for simplest API.
 
-pub fn pubsub_projects_topics_patch_builder(
-    client: &SimpleHttpClient,
+pub fn pubsub_projects_topics_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://pubsub.googleapis.com/v1/projects/{}/topics/{topicsId}",
@@ -6804,10 +6928,13 @@ pub fn pubsub_projects_topics_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `pubsub_projects_topics_publish_execute()` to send, or `pubsub_projects_topics_publish` for simplest API.
 
-pub fn pubsub_projects_topics_publish_builder(
-    client: &SimpleHttpClient,
+pub fn pubsub_projects_topics_publish_builder<R>(
+    client: &SimpleHttpClient<R>,
     topic: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://pubsub.googleapis.com/v1/projects/{}/topics/{topicsId}:publish",
@@ -6965,10 +7092,13 @@ pub fn pubsub_projects_topics_publish(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `pubsub_projects_topics_set_iam_policy_execute()` to send, or `pubsub_projects_topics_set_iam_policy` for simplest API.
 
-pub fn pubsub_projects_topics_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn pubsub_projects_topics_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://pubsub.googleapis.com/v1/projects/{}/topics/{topicsId}:setIamPolicy",
@@ -7122,10 +7252,13 @@ pub fn pubsub_projects_topics_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `pubsub_projects_topics_test_iam_permissions_execute()` to send, or `pubsub_projects_topics_test_iam_permissions` for simplest API.
 
-pub fn pubsub_projects_topics_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn pubsub_projects_topics_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://pubsub.googleapis.com/v1/projects/{}/topics/{topicsId}:testIamPermissions",
@@ -7287,12 +7420,15 @@ pub fn pubsub_projects_topics_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `pubsub_projects_topics_snapshots_list_execute()` to send, or `pubsub_projects_topics_snapshots_list` for simplest API.
 
-pub fn pubsub_projects_topics_snapshots_list_builder(
-    client: &SimpleHttpClient,
+pub fn pubsub_projects_topics_snapshots_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     topic: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://pubsub.googleapis.com/v1/projects/{}/topics/{topicsId}/snapshots",
@@ -7477,12 +7613,15 @@ pub fn pubsub_projects_topics_snapshots_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `pubsub_projects_topics_subscriptions_list_execute()` to send, or `pubsub_projects_topics_subscriptions_list` for simplest API.
 
-pub fn pubsub_projects_topics_subscriptions_list_builder(
-    client: &SimpleHttpClient,
+pub fn pubsub_projects_topics_subscriptions_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     topic: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://pubsub.googleapis.com/v1/projects/{}/topics/{topicsId}/subscriptions",

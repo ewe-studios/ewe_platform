@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,11 +27,14 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `youtube_analytics_group_items_delete_execute()` to send, or `youtube_analytics_group_items_delete` for simplest API.
 
-pub fn youtube_analytics_group_items_delete_builder(
-    client: &SimpleHttpClient,
+pub fn youtube_analytics_group_items_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     id: &Option<Option<String>>,
     onBehalfOfContentOwner: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://youtubeanalytics.googleapis.com/v2/groupItems",);
 
@@ -205,10 +209,13 @@ pub fn youtube_analytics_group_items_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `youtube_analytics_group_items_insert_execute()` to send, or `youtube_analytics_group_items_insert` for simplest API.
 
-pub fn youtube_analytics_group_items_insert_builder(
-    client: &SimpleHttpClient,
+pub fn youtube_analytics_group_items_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     onBehalfOfContentOwner: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://youtubeanalytics.googleapis.com/v2/groupItems",);
 
@@ -371,11 +378,14 @@ pub fn youtube_analytics_group_items_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `youtube_analytics_group_items_list_execute()` to send, or `youtube_analytics_group_items_list` for simplest API.
 
-pub fn youtube_analytics_group_items_list_builder(
-    client: &SimpleHttpClient,
+pub fn youtube_analytics_group_items_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     groupId: &Option<Option<String>>,
     onBehalfOfContentOwner: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://youtubeanalytics.googleapis.com/v2/groupItems",);
 
@@ -550,11 +560,14 @@ pub fn youtube_analytics_group_items_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `youtube_analytics_groups_delete_execute()` to send, or `youtube_analytics_groups_delete` for simplest API.
 
-pub fn youtube_analytics_groups_delete_builder(
-    client: &SimpleHttpClient,
+pub fn youtube_analytics_groups_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     id: &Option<Option<String>>,
     onBehalfOfContentOwner: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://youtubeanalytics.googleapis.com/v2/groups",);
 
@@ -726,10 +739,13 @@ pub fn youtube_analytics_groups_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `youtube_analytics_groups_insert_execute()` to send, or `youtube_analytics_groups_insert` for simplest API.
 
-pub fn youtube_analytics_groups_insert_builder(
-    client: &SimpleHttpClient,
+pub fn youtube_analytics_groups_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     onBehalfOfContentOwner: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://youtubeanalytics.googleapis.com/v2/groups",);
 
@@ -891,13 +907,16 @@ pub fn youtube_analytics_groups_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `youtube_analytics_groups_list_execute()` to send, or `youtube_analytics_groups_list` for simplest API.
 
-pub fn youtube_analytics_groups_list_builder(
-    client: &SimpleHttpClient,
+pub fn youtube_analytics_groups_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     id: &Option<Option<String>>,
     mine: &Option<Option<String>>,
     onBehalfOfContentOwner: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://youtubeanalytics.googleapis.com/v2/groups",);
 
@@ -1084,10 +1103,13 @@ pub fn youtube_analytics_groups_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `youtube_analytics_groups_update_execute()` to send, or `youtube_analytics_groups_update` for simplest API.
 
-pub fn youtube_analytics_groups_update_builder(
-    client: &SimpleHttpClient,
+pub fn youtube_analytics_groups_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     onBehalfOfContentOwner: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://youtubeanalytics.googleapis.com/v2/groups",);
 
@@ -1249,8 +1271,8 @@ pub fn youtube_analytics_groups_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `youtube_analytics_reports_query_execute()` to send, or `youtube_analytics_reports_query` for simplest API.
 
-pub fn youtube_analytics_reports_query_builder(
-    client: &SimpleHttpClient,
+pub fn youtube_analytics_reports_query_builder<R>(
+    client: &SimpleHttpClient<R>,
     currency: &Option<Option<String>>,
     dimensions: &Option<Option<String>>,
     endDate: &Option<Option<String>>,
@@ -1262,7 +1284,10 @@ pub fn youtube_analytics_reports_query_builder(
     sort: &Option<Option<String>>,
     startDate: &Option<Option<String>>,
     startIndex: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://youtubeanalytics.googleapis.com/v2/reports",);
 

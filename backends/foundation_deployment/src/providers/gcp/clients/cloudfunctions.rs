@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,14 +27,17 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudfunctions_projects_locations_list_execute()` to send, or `cloudfunctions_projects_locations_list` for simplest API.
 
-pub fn cloudfunctions_projects_locations_list_builder(
-    client: &SimpleHttpClient,
+pub fn cloudfunctions_projects_locations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     extraLocationTypes: &Option<Option<String>>,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudfunctions.googleapis.com/v2/projects/{}/locations",
@@ -226,10 +230,13 @@ pub fn cloudfunctions_projects_locations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudfunctions_projects_locations_functions_abort_function_upgrade_execute()` to send, or `cloudfunctions_projects_locations_functions_abort_function_upgrade` for simplest API.
 
-pub fn cloudfunctions_projects_locations_functions_abort_function_upgrade_builder(
-    client: &SimpleHttpClient,
+pub fn cloudfunctions_projects_locations_functions_abort_function_upgrade_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudfunctions.googleapis.com/v2/projects/{}/locations/{locationsId}/functions/{functionsId}:abortFunctionUpgrade",
@@ -385,10 +392,13 @@ pub fn cloudfunctions_projects_locations_functions_abort_function_upgrade(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudfunctions_projects_locations_functions_commit_function_upgrade_execute()` to send, or `cloudfunctions_projects_locations_functions_commit_function_upgrade` for simplest API.
 
-pub fn cloudfunctions_projects_locations_functions_commit_function_upgrade_builder(
-    client: &SimpleHttpClient,
+pub fn cloudfunctions_projects_locations_functions_commit_function_upgrade_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudfunctions.googleapis.com/v2/projects/{}/locations/{locationsId}/functions/{functionsId}:commitFunctionUpgrade",
@@ -544,10 +554,13 @@ pub fn cloudfunctions_projects_locations_functions_commit_function_upgrade(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudfunctions_projects_locations_functions_commit_function_upgrade_as_gen2_execute()` to send, or `cloudfunctions_projects_locations_functions_commit_function_upgrade_as_gen2` for simplest API.
 
-pub fn cloudfunctions_projects_locations_functions_commit_function_upgrade_as_gen2_builder(
-    client: &SimpleHttpClient,
+pub fn cloudfunctions_projects_locations_functions_commit_function_upgrade_as_gen2_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudfunctions.googleapis.com/v2/projects/{}/locations/{locationsId}/functions/{functionsId}:commitFunctionUpgradeAsGen2",
@@ -705,11 +718,14 @@ pub fn cloudfunctions_projects_locations_functions_commit_function_upgrade_as_ge
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudfunctions_projects_locations_functions_create_execute()` to send, or `cloudfunctions_projects_locations_functions_create` for simplest API.
 
-pub fn cloudfunctions_projects_locations_functions_create_builder(
-    client: &SimpleHttpClient,
+pub fn cloudfunctions_projects_locations_functions_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     functionId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudfunctions.googleapis.com/v2/projects/{}/locations/{locationsId}/functions",
@@ -880,10 +896,13 @@ pub fn cloudfunctions_projects_locations_functions_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudfunctions_projects_locations_functions_delete_execute()` to send, or `cloudfunctions_projects_locations_functions_delete` for simplest API.
 
-pub fn cloudfunctions_projects_locations_functions_delete_builder(
-    client: &SimpleHttpClient,
+pub fn cloudfunctions_projects_locations_functions_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudfunctions.googleapis.com/v2/projects/{}/locations/{locationsId}/functions/{functionsId}",
@@ -1037,10 +1056,13 @@ pub fn cloudfunctions_projects_locations_functions_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudfunctions_projects_locations_functions_detach_function_execute()` to send, or `cloudfunctions_projects_locations_functions_detach_function` for simplest API.
 
-pub fn cloudfunctions_projects_locations_functions_detach_function_builder(
-    client: &SimpleHttpClient,
+pub fn cloudfunctions_projects_locations_functions_detach_function_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudfunctions.googleapis.com/v2/projects/{}/locations/{locationsId}/functions/{functionsId}:detachFunction",
@@ -1195,10 +1217,13 @@ pub fn cloudfunctions_projects_locations_functions_detach_function(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudfunctions_projects_locations_functions_generate_download_url_execute()` to send, or `cloudfunctions_projects_locations_functions_generate_download_url` for simplest API.
 
-pub fn cloudfunctions_projects_locations_functions_generate_download_url_builder(
-    client: &SimpleHttpClient,
+pub fn cloudfunctions_projects_locations_functions_generate_download_url_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudfunctions.googleapis.com/v2/projects/{}/locations/{locationsId}/functions/{functionsId}:generateDownloadUrl",
@@ -1362,10 +1387,13 @@ pub fn cloudfunctions_projects_locations_functions_generate_download_url(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudfunctions_projects_locations_functions_generate_upload_url_execute()` to send, or `cloudfunctions_projects_locations_functions_generate_upload_url` for simplest API.
 
-pub fn cloudfunctions_projects_locations_functions_generate_upload_url_builder(
-    client: &SimpleHttpClient,
+pub fn cloudfunctions_projects_locations_functions_generate_upload_url_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudfunctions.googleapis.com/v2/projects/{}/locations/{locationsId}/functions:generateUploadUrl",
@@ -1526,11 +1554,14 @@ pub fn cloudfunctions_projects_locations_functions_generate_upload_url(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudfunctions_projects_locations_functions_get_execute()` to send, or `cloudfunctions_projects_locations_functions_get` for simplest API.
 
-pub fn cloudfunctions_projects_locations_functions_get_builder(
-    client: &SimpleHttpClient,
+pub fn cloudfunctions_projects_locations_functions_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     revision: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudfunctions.googleapis.com/v2/projects/{}/locations/{locationsId}/functions/{functionsId}",
@@ -1701,11 +1732,14 @@ pub fn cloudfunctions_projects_locations_functions_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudfunctions_projects_locations_functions_get_iam_policy_execute()` to send, or `cloudfunctions_projects_locations_functions_get_iam_policy` for simplest API.
 
-pub fn cloudfunctions_projects_locations_functions_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn cloudfunctions_projects_locations_functions_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudfunctions.googleapis.com/v2/projects/{}/locations/{locationsId}/functions/{functionsId}:getIamPolicy",
@@ -1876,14 +1910,17 @@ pub fn cloudfunctions_projects_locations_functions_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudfunctions_projects_locations_functions_list_execute()` to send, or `cloudfunctions_projects_locations_functions_list` for simplest API.
 
-pub fn cloudfunctions_projects_locations_functions_list_builder(
-    client: &SimpleHttpClient,
+pub fn cloudfunctions_projects_locations_functions_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudfunctions.googleapis.com/v2/projects/{}/locations/{locationsId}/functions",
@@ -2076,11 +2113,14 @@ pub fn cloudfunctions_projects_locations_functions_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudfunctions_projects_locations_functions_patch_execute()` to send, or `cloudfunctions_projects_locations_functions_patch` for simplest API.
 
-pub fn cloudfunctions_projects_locations_functions_patch_builder(
-    client: &SimpleHttpClient,
+pub fn cloudfunctions_projects_locations_functions_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudfunctions.googleapis.com/v2/projects/{}/locations/{locationsId}/functions/{functionsId}",
@@ -2251,10 +2291,13 @@ pub fn cloudfunctions_projects_locations_functions_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudfunctions_projects_locations_functions_redirect_function_upgrade_traffic_execute()` to send, or `cloudfunctions_projects_locations_functions_redirect_function_upgrade_traffic` for simplest API.
 
-pub fn cloudfunctions_projects_locations_functions_redirect_function_upgrade_traffic_builder(
-    client: &SimpleHttpClient,
+pub fn cloudfunctions_projects_locations_functions_redirect_function_upgrade_traffic_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudfunctions.googleapis.com/v2/projects/{}/locations/{locationsId}/functions/{functionsId}:redirectFunctionUpgradeTraffic",
@@ -2413,10 +2456,13 @@ pub fn cloudfunctions_projects_locations_functions_redirect_function_upgrade_tra
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudfunctions_projects_locations_functions_rollback_function_upgrade_traffic_execute()` to send, or `cloudfunctions_projects_locations_functions_rollback_function_upgrade_traffic` for simplest API.
 
-pub fn cloudfunctions_projects_locations_functions_rollback_function_upgrade_traffic_builder(
-    client: &SimpleHttpClient,
+pub fn cloudfunctions_projects_locations_functions_rollback_function_upgrade_traffic_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudfunctions.googleapis.com/v2/projects/{}/locations/{locationsId}/functions/{functionsId}:rollbackFunctionUpgradeTraffic",
@@ -2575,10 +2621,13 @@ pub fn cloudfunctions_projects_locations_functions_rollback_function_upgrade_tra
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudfunctions_projects_locations_functions_set_iam_policy_execute()` to send, or `cloudfunctions_projects_locations_functions_set_iam_policy` for simplest API.
 
-pub fn cloudfunctions_projects_locations_functions_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn cloudfunctions_projects_locations_functions_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudfunctions.googleapis.com/v2/projects/{}/locations/{locationsId}/functions/{functionsId}:setIamPolicy",
@@ -2733,10 +2782,13 @@ pub fn cloudfunctions_projects_locations_functions_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudfunctions_projects_locations_functions_setup_function_upgrade_config_execute()` to send, or `cloudfunctions_projects_locations_functions_setup_function_upgrade_config` for simplest API.
 
-pub fn cloudfunctions_projects_locations_functions_setup_function_upgrade_config_builder(
-    client: &SimpleHttpClient,
+pub fn cloudfunctions_projects_locations_functions_setup_function_upgrade_config_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudfunctions.googleapis.com/v2/projects/{}/locations/{locationsId}/functions/{functionsId}:setupFunctionUpgradeConfig",
@@ -2894,10 +2946,13 @@ pub fn cloudfunctions_projects_locations_functions_setup_function_upgrade_config
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudfunctions_projects_locations_functions_test_iam_permissions_execute()` to send, or `cloudfunctions_projects_locations_functions_test_iam_permissions` for simplest API.
 
-pub fn cloudfunctions_projects_locations_functions_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn cloudfunctions_projects_locations_functions_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudfunctions.googleapis.com/v2/projects/{}/locations/{locationsId}/functions/{functionsId}:testIamPermissions",
@@ -3062,10 +3117,13 @@ pub fn cloudfunctions_projects_locations_functions_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudfunctions_projects_locations_operations_get_execute()` to send, or `cloudfunctions_projects_locations_operations_get` for simplest API.
 
-pub fn cloudfunctions_projects_locations_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn cloudfunctions_projects_locations_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudfunctions.googleapis.com/v2/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -3219,14 +3277,17 @@ pub fn cloudfunctions_projects_locations_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudfunctions_projects_locations_operations_list_execute()` to send, or `cloudfunctions_projects_locations_operations_list` for simplest API.
 
-pub fn cloudfunctions_projects_locations_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn cloudfunctions_projects_locations_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudfunctions.googleapis.com/v2/projects/{}/locations/{locationsId}/operations",
@@ -3419,11 +3480,14 @@ pub fn cloudfunctions_projects_locations_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudfunctions_projects_locations_runtimes_list_execute()` to send, or `cloudfunctions_projects_locations_runtimes_list` for simplest API.
 
-pub fn cloudfunctions_projects_locations_runtimes_list_builder(
-    client: &SimpleHttpClient,
+pub fn cloudfunctions_projects_locations_runtimes_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudfunctions.googleapis.com/v2/projects/{}/locations/{locationsId}/runtimes",

@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_folders_assets_group_execute()` to send, or `securitycenter_folders_assets_group` for simplest API.
 
-pub fn securitycenter_folders_assets_group_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_folders_assets_group_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/folders/{}/assets:group",
@@ -187,8 +191,8 @@ pub fn securitycenter_folders_assets_group(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_folders_assets_list_execute()` to send, or `securitycenter_folders_assets_list` for simplest API.
 
-pub fn securitycenter_folders_assets_list_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_folders_assets_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     compareDuration: &Option<Option<String>>,
     fieldMask: &Option<Option<String>>,
@@ -197,7 +201,10 @@ pub fn securitycenter_folders_assets_list_builder(
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     readTime: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/folders/{}/assets",
@@ -408,12 +415,15 @@ pub fn securitycenter_folders_assets_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_folders_assets_update_security_marks_execute()` to send, or `securitycenter_folders_assets_update_security_marks` for simplest API.
 
-pub fn securitycenter_folders_assets_update_security_marks_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_folders_assets_update_security_marks_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     startTime: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/folders/{}/assets/{assetsId}/securityMarks",
@@ -594,11 +604,14 @@ pub fn securitycenter_folders_assets_update_security_marks(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_folders_big_query_exports_create_execute()` to send, or `securitycenter_folders_big_query_exports_create` for simplest API.
 
-pub fn securitycenter_folders_big_query_exports_create_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_folders_big_query_exports_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     bigQueryExportId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/folders/{}/bigQueryExports",
@@ -777,10 +790,13 @@ pub fn securitycenter_folders_big_query_exports_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_folders_big_query_exports_delete_execute()` to send, or `securitycenter_folders_big_query_exports_delete` for simplest API.
 
-pub fn securitycenter_folders_big_query_exports_delete_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_folders_big_query_exports_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/folders/{}/bigQueryExports/{bigQueryExportsId}",
@@ -934,10 +950,13 @@ pub fn securitycenter_folders_big_query_exports_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_folders_big_query_exports_get_execute()` to send, or `securitycenter_folders_big_query_exports_get` for simplest API.
 
-pub fn securitycenter_folders_big_query_exports_get_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_folders_big_query_exports_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/folders/{}/bigQueryExports/{bigQueryExportsId}",
@@ -1099,12 +1118,15 @@ pub fn securitycenter_folders_big_query_exports_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_folders_big_query_exports_list_execute()` to send, or `securitycenter_folders_big_query_exports_list` for simplest API.
 
-pub fn securitycenter_folders_big_query_exports_list_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_folders_big_query_exports_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/folders/{}/bigQueryExports",
@@ -1289,11 +1311,14 @@ pub fn securitycenter_folders_big_query_exports_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_folders_big_query_exports_patch_execute()` to send, or `securitycenter_folders_big_query_exports_patch` for simplest API.
 
-pub fn securitycenter_folders_big_query_exports_patch_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_folders_big_query_exports_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/folders/{}/bigQueryExports/{bigQueryExportsId}",
@@ -1472,10 +1497,13 @@ pub fn securitycenter_folders_big_query_exports_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_folders_event_threat_detection_settings_validate_custom_module_execute()` to send, or `securitycenter_folders_event_threat_detection_settings_validate_custom_module` for simplest API.
 
-pub fn securitycenter_folders_event_threat_detection_settings_validate_custom_module_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_folders_event_threat_detection_settings_validate_custom_module_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/folders/{}/eventThreatDetectionSettings:validateCustomModule",
@@ -1644,10 +1672,13 @@ pub fn securitycenter_folders_event_threat_detection_settings_validate_custom_mo
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_folders_event_threat_detection_settings_custom_modules_create_execute()` to send, or `securitycenter_folders_event_threat_detection_settings_custom_modules_create` for simplest API.
 
-pub fn securitycenter_folders_event_threat_detection_settings_custom_modules_create_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_folders_event_threat_detection_settings_custom_modules_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/folders/{}/eventThreatDetectionSettings/customModules",
@@ -1814,10 +1845,13 @@ pub fn securitycenter_folders_event_threat_detection_settings_custom_modules_cre
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_folders_event_threat_detection_settings_custom_modules_delete_execute()` to send, or `securitycenter_folders_event_threat_detection_settings_custom_modules_delete` for simplest API.
 
-pub fn securitycenter_folders_event_threat_detection_settings_custom_modules_delete_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_folders_event_threat_detection_settings_custom_modules_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/folders/{}/eventThreatDetectionSettings/customModules/{customModulesId}",
@@ -1975,10 +2009,13 @@ pub fn securitycenter_folders_event_threat_detection_settings_custom_modules_del
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_folders_event_threat_detection_settings_custom_modules_get_execute()` to send, or `securitycenter_folders_event_threat_detection_settings_custom_modules_get` for simplest API.
 
-pub fn securitycenter_folders_event_threat_detection_settings_custom_modules_get_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_folders_event_threat_detection_settings_custom_modules_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/folders/{}/eventThreatDetectionSettings/customModules/{customModulesId}",
@@ -2144,12 +2181,15 @@ pub fn securitycenter_folders_event_threat_detection_settings_custom_modules_get
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_folders_event_threat_detection_settings_custom_modules_list_execute()` to send, or `securitycenter_folders_event_threat_detection_settings_custom_modules_list` for simplest API.
 
-pub fn securitycenter_folders_event_threat_detection_settings_custom_modules_list_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_folders_event_threat_detection_settings_custom_modules_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/folders/{}/eventThreatDetectionSettings/customModules",
@@ -2337,12 +2377,17 @@ pub fn securitycenter_folders_event_threat_detection_settings_custom_modules_lis
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_folders_event_threat_detection_settings_custom_modules_list_descendant_execute()` to send, or `securitycenter_folders_event_threat_detection_settings_custom_modules_list_descendant` for simplest API.
 
-pub fn securitycenter_folders_event_threat_detection_settings_custom_modules_list_descendant_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_folders_event_threat_detection_settings_custom_modules_list_descendant_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/folders/{}/eventThreatDetectionSettings/customModules:listDescendant",
@@ -2537,11 +2582,14 @@ pub fn securitycenter_folders_event_threat_detection_settings_custom_modules_lis
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_folders_event_threat_detection_settings_custom_modules_patch_execute()` to send, or `securitycenter_folders_event_threat_detection_settings_custom_modules_patch` for simplest API.
 
-pub fn securitycenter_folders_event_threat_detection_settings_custom_modules_patch_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_folders_event_threat_detection_settings_custom_modules_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/folders/{}/eventThreatDetectionSettings/customModules/{customModulesId}",
@@ -2722,10 +2770,15 @@ pub fn securitycenter_folders_event_threat_detection_settings_custom_modules_pat
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_folders_event_threat_detection_settings_effective_custom_modules_get_execute()` to send, or `securitycenter_folders_event_threat_detection_settings_effective_custom_modules_get` for simplest API.
 
-pub fn securitycenter_folders_event_threat_detection_settings_effective_custom_modules_get_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_folders_event_threat_detection_settings_effective_custom_modules_get_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/folders/{}/eventThreatDetectionSettings/effectiveCustomModules/{effectiveCustomModulesId}",
@@ -2892,12 +2945,17 @@ pub fn securitycenter_folders_event_threat_detection_settings_effective_custom_m
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_folders_event_threat_detection_settings_effective_custom_modules_list_execute()` to send, or `securitycenter_folders_event_threat_detection_settings_effective_custom_modules_list` for simplest API.
 
-pub fn securitycenter_folders_event_threat_detection_settings_effective_custom_modules_list_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_folders_event_threat_detection_settings_effective_custom_modules_list_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/folders/{}/eventThreatDetectionSettings/effectiveCustomModules",
@@ -3092,10 +3150,13 @@ pub fn securitycenter_folders_event_threat_detection_settings_effective_custom_m
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_folders_findings_bulk_mute_execute()` to send, or `securitycenter_folders_findings_bulk_mute` for simplest API.
 
-pub fn securitycenter_folders_findings_bulk_mute_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_folders_findings_bulk_mute_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/folders/{}/findings:bulkMute",
@@ -3249,10 +3310,13 @@ pub fn securitycenter_folders_findings_bulk_mute(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_folders_locations_mute_configs_delete_execute()` to send, or `securitycenter_folders_locations_mute_configs_delete` for simplest API.
 
-pub fn securitycenter_folders_locations_mute_configs_delete_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_folders_locations_mute_configs_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/folders/{}/locations/{locationsId}/muteConfigs/{muteConfigsId}",
@@ -3406,10 +3470,13 @@ pub fn securitycenter_folders_locations_mute_configs_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_folders_locations_mute_configs_get_execute()` to send, or `securitycenter_folders_locations_mute_configs_get` for simplest API.
 
-pub fn securitycenter_folders_locations_mute_configs_get_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_folders_locations_mute_configs_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/folders/{}/locations/{locationsId}/muteConfigs/{muteConfigsId}",
@@ -3571,11 +3638,14 @@ pub fn securitycenter_folders_locations_mute_configs_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_folders_locations_mute_configs_patch_execute()` to send, or `securitycenter_folders_locations_mute_configs_patch` for simplest API.
 
-pub fn securitycenter_folders_locations_mute_configs_patch_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_folders_locations_mute_configs_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/folders/{}/locations/{locationsId}/muteConfigs/{muteConfigsId}",
@@ -3754,11 +3824,14 @@ pub fn securitycenter_folders_locations_mute_configs_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_folders_mute_configs_create_execute()` to send, or `securitycenter_folders_mute_configs_create` for simplest API.
 
-pub fn securitycenter_folders_mute_configs_create_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_folders_mute_configs_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     muteConfigId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/folders/{}/muteConfigs",
@@ -3937,10 +4010,13 @@ pub fn securitycenter_folders_mute_configs_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_folders_mute_configs_delete_execute()` to send, or `securitycenter_folders_mute_configs_delete` for simplest API.
 
-pub fn securitycenter_folders_mute_configs_delete_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_folders_mute_configs_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/folders/{}/muteConfigs/{muteConfigsId}",
@@ -4094,10 +4170,13 @@ pub fn securitycenter_folders_mute_configs_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_folders_mute_configs_get_execute()` to send, or `securitycenter_folders_mute_configs_get` for simplest API.
 
-pub fn securitycenter_folders_mute_configs_get_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_folders_mute_configs_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/folders/{}/muteConfigs/{muteConfigsId}",
@@ -4259,12 +4338,15 @@ pub fn securitycenter_folders_mute_configs_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_folders_mute_configs_list_execute()` to send, or `securitycenter_folders_mute_configs_list` for simplest API.
 
-pub fn securitycenter_folders_mute_configs_list_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_folders_mute_configs_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/folders/{}/muteConfigs",
@@ -4445,11 +4527,14 @@ pub fn securitycenter_folders_mute_configs_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_folders_mute_configs_patch_execute()` to send, or `securitycenter_folders_mute_configs_patch` for simplest API.
 
-pub fn securitycenter_folders_mute_configs_patch_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_folders_mute_configs_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/folders/{}/muteConfigs/{muteConfigsId}",
@@ -4625,11 +4710,14 @@ pub fn securitycenter_folders_mute_configs_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_folders_notification_configs_create_execute()` to send, or `securitycenter_folders_notification_configs_create` for simplest API.
 
-pub fn securitycenter_folders_notification_configs_create_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_folders_notification_configs_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     configId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/folders/{}/notificationConfigs",
@@ -4804,10 +4892,13 @@ pub fn securitycenter_folders_notification_configs_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_folders_notification_configs_delete_execute()` to send, or `securitycenter_folders_notification_configs_delete` for simplest API.
 
-pub fn securitycenter_folders_notification_configs_delete_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_folders_notification_configs_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/folders/{}/notificationConfigs/{notificationConfigsId}",
@@ -4961,10 +5052,13 @@ pub fn securitycenter_folders_notification_configs_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_folders_notification_configs_get_execute()` to send, or `securitycenter_folders_notification_configs_get` for simplest API.
 
-pub fn securitycenter_folders_notification_configs_get_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_folders_notification_configs_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/folders/{}/notificationConfigs/{notificationConfigsId}",
@@ -5122,12 +5216,15 @@ pub fn securitycenter_folders_notification_configs_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_folders_notification_configs_list_execute()` to send, or `securitycenter_folders_notification_configs_list` for simplest API.
 
-pub fn securitycenter_folders_notification_configs_list_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_folders_notification_configs_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/folders/{}/notificationConfigs",
@@ -5312,11 +5409,14 @@ pub fn securitycenter_folders_notification_configs_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_folders_notification_configs_patch_execute()` to send, or `securitycenter_folders_notification_configs_patch` for simplest API.
 
-pub fn securitycenter_folders_notification_configs_patch_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_folders_notification_configs_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/folders/{}/notificationConfigs/{notificationConfigsId}",
@@ -5491,10 +5591,13 @@ pub fn securitycenter_folders_notification_configs_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_folders_security_health_analytics_settings_custom_modules_create_execute()` to send, or `securitycenter_folders_security_health_analytics_settings_custom_modules_create` for simplest API.
 
-pub fn securitycenter_folders_security_health_analytics_settings_custom_modules_create_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_folders_security_health_analytics_settings_custom_modules_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/folders/{}/securityHealthAnalyticsSettings/customModules",
@@ -5673,10 +5776,13 @@ pub fn securitycenter_folders_security_health_analytics_settings_custom_modules_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_folders_security_health_analytics_settings_custom_modules_delete_execute()` to send, or `securitycenter_folders_security_health_analytics_settings_custom_modules_delete` for simplest API.
 
-pub fn securitycenter_folders_security_health_analytics_settings_custom_modules_delete_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_folders_security_health_analytics_settings_custom_modules_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/folders/{}/securityHealthAnalyticsSettings/customModules/{customModulesId}",
@@ -5836,10 +5942,13 @@ pub fn securitycenter_folders_security_health_analytics_settings_custom_modules_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_folders_security_health_analytics_settings_custom_modules_get_execute()` to send, or `securitycenter_folders_security_health_analytics_settings_custom_modules_get` for simplest API.
 
-pub fn securitycenter_folders_security_health_analytics_settings_custom_modules_get_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_folders_security_health_analytics_settings_custom_modules_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/folders/{}/securityHealthAnalyticsSettings/customModules/{customModulesId}",
@@ -6015,12 +6124,15 @@ pub fn securitycenter_folders_security_health_analytics_settings_custom_modules_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_folders_security_health_analytics_settings_custom_modules_list_execute()` to send, or `securitycenter_folders_security_health_analytics_settings_custom_modules_list` for simplest API.
 
-pub fn securitycenter_folders_security_health_analytics_settings_custom_modules_list_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_folders_security_health_analytics_settings_custom_modules_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/folders/{}/securityHealthAnalyticsSettings/customModules",
@@ -6209,12 +6321,17 @@ pub fn securitycenter_folders_security_health_analytics_settings_custom_modules_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_folders_security_health_analytics_settings_custom_modules_list_descendant_execute()` to send, or `securitycenter_folders_security_health_analytics_settings_custom_modules_list_descendant` for simplest API.
 
-pub fn securitycenter_folders_security_health_analytics_settings_custom_modules_list_descendant_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_folders_security_health_analytics_settings_custom_modules_list_descendant_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/folders/{}/securityHealthAnalyticsSettings/customModules:listDescendant",
@@ -6406,11 +6523,14 @@ pub fn securitycenter_folders_security_health_analytics_settings_custom_modules_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_folders_security_health_analytics_settings_custom_modules_patch_execute()` to send, or `securitycenter_folders_security_health_analytics_settings_custom_modules_patch` for simplest API.
 
-pub fn securitycenter_folders_security_health_analytics_settings_custom_modules_patch_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_folders_security_health_analytics_settings_custom_modules_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/folders/{}/securityHealthAnalyticsSettings/customModules/{customModulesId}",
@@ -6602,10 +6722,15 @@ pub fn securitycenter_folders_security_health_analytics_settings_custom_modules_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_folders_security_health_analytics_settings_custom_modules_simulate_execute()` to send, or `securitycenter_folders_security_health_analytics_settings_custom_modules_simulate` for simplest API.
 
-pub fn securitycenter_folders_security_health_analytics_settings_custom_modules_simulate_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_folders_security_health_analytics_settings_custom_modules_simulate_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/folders/{}/securityHealthAnalyticsSettings/customModules:simulate",
@@ -6780,10 +6905,15 @@ pub fn securitycenter_folders_security_health_analytics_settings_custom_modules_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_folders_security_health_analytics_settings_effective_custom_modules_get_execute()` to send, or `securitycenter_folders_security_health_analytics_settings_effective_custom_modules_get` for simplest API.
 
-pub fn securitycenter_folders_security_health_analytics_settings_effective_custom_modules_get_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_folders_security_health_analytics_settings_effective_custom_modules_get_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/folders/{}/securityHealthAnalyticsSettings/effectiveCustomModules/{effectiveCustomModulesId}",
@@ -6957,12 +7087,17 @@ pub fn securitycenter_folders_security_health_analytics_settings_effective_custo
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_folders_security_health_analytics_settings_effective_custom_modules_list_execute()` to send, or `securitycenter_folders_security_health_analytics_settings_effective_custom_modules_list` for simplest API.
 
-pub fn securitycenter_folders_security_health_analytics_settings_effective_custom_modules_list_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_folders_security_health_analytics_settings_effective_custom_modules_list_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/folders/{}/securityHealthAnalyticsSettings/effectiveCustomModules",
@@ -7154,12 +7289,15 @@ pub fn securitycenter_folders_security_health_analytics_settings_effective_custo
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_folders_sources_list_execute()` to send, or `securitycenter_folders_sources_list` for simplest API.
 
-pub fn securitycenter_folders_sources_list_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_folders_sources_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/folders/{}/sources",
@@ -7340,10 +7478,13 @@ pub fn securitycenter_folders_sources_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_folders_sources_findings_group_execute()` to send, or `securitycenter_folders_sources_findings_group` for simplest API.
 
-pub fn securitycenter_folders_sources_findings_group_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_folders_sources_findings_group_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/folders/{}/sources/{sourcesId}/findings:group",
@@ -7501,8 +7642,8 @@ pub fn securitycenter_folders_sources_findings_group(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_folders_sources_findings_list_execute()` to send, or `securitycenter_folders_sources_findings_list` for simplest API.
 
-pub fn securitycenter_folders_sources_findings_list_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_folders_sources_findings_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     compareDuration: &Option<Option<String>>,
     fieldMask: &Option<Option<String>>,
@@ -7511,7 +7652,10 @@ pub fn securitycenter_folders_sources_findings_list_builder(
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     readTime: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/folders/{}/sources/{sourcesId}/findings",
@@ -7722,11 +7866,14 @@ pub fn securitycenter_folders_sources_findings_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_folders_sources_findings_patch_execute()` to send, or `securitycenter_folders_sources_findings_patch` for simplest API.
 
-pub fn securitycenter_folders_sources_findings_patch_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_folders_sources_findings_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/folders/{}/sources/{sourcesId}/findings/{findingsId}",
@@ -7897,10 +8044,13 @@ pub fn securitycenter_folders_sources_findings_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_folders_sources_findings_set_mute_execute()` to send, or `securitycenter_folders_sources_findings_set_mute` for simplest API.
 
-pub fn securitycenter_folders_sources_findings_set_mute_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_folders_sources_findings_set_mute_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/folders/{}/sources/{sourcesId}/findings/{findingsId}:setMute",
@@ -8054,10 +8204,13 @@ pub fn securitycenter_folders_sources_findings_set_mute(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_folders_sources_findings_set_state_execute()` to send, or `securitycenter_folders_sources_findings_set_state` for simplest API.
 
-pub fn securitycenter_folders_sources_findings_set_state_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_folders_sources_findings_set_state_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/folders/{}/sources/{sourcesId}/findings/{findingsId}:setState",
@@ -8211,12 +8364,15 @@ pub fn securitycenter_folders_sources_findings_set_state(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_folders_sources_findings_update_security_marks_execute()` to send, or `securitycenter_folders_sources_findings_update_security_marks` for simplest API.
 
-pub fn securitycenter_folders_sources_findings_update_security_marks_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_folders_sources_findings_update_security_marks_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     startTime: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/folders/{}/sources/{sourcesId}/findings/{findingsId}/securityMarks",
@@ -8397,11 +8553,14 @@ pub fn securitycenter_folders_sources_findings_update_security_marks(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_folders_sources_findings_external_systems_patch_execute()` to send, or `securitycenter_folders_sources_findings_external_systems_patch` for simplest API.
 
-pub fn securitycenter_folders_sources_findings_external_systems_patch_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_folders_sources_findings_external_systems_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/folders/{}/sources/{sourcesId}/findings/{findingsId}/externalSystems/{externalSystemsId}",
@@ -8580,10 +8739,13 @@ pub fn securitycenter_folders_sources_findings_external_systems_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_organizations_get_organization_settings_execute()` to send, or `securitycenter_organizations_get_organization_settings` for simplest API.
 
-pub fn securitycenter_organizations_get_organization_settings_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_organizations_get_organization_settings_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/organizations/{}/organizationSettings",
@@ -8742,11 +8904,14 @@ pub fn securitycenter_organizations_get_organization_settings(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_organizations_update_organization_settings_execute()` to send, or `securitycenter_organizations_update_organization_settings` for simplest API.
 
-pub fn securitycenter_organizations_update_organization_settings_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_organizations_update_organization_settings_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/organizations/{}/organizationSettings",
@@ -8921,10 +9086,13 @@ pub fn securitycenter_organizations_update_organization_settings(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_organizations_assets_group_execute()` to send, or `securitycenter_organizations_assets_group` for simplest API.
 
-pub fn securitycenter_organizations_assets_group_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_organizations_assets_group_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/organizations/{}/assets:group",
@@ -9082,8 +9250,8 @@ pub fn securitycenter_organizations_assets_group(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_organizations_assets_list_execute()` to send, or `securitycenter_organizations_assets_list` for simplest API.
 
-pub fn securitycenter_organizations_assets_list_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_organizations_assets_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     compareDuration: &Option<Option<String>>,
     fieldMask: &Option<Option<String>>,
@@ -9092,7 +9260,10 @@ pub fn securitycenter_organizations_assets_list_builder(
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     readTime: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/organizations/{}/assets",
@@ -9303,10 +9474,13 @@ pub fn securitycenter_organizations_assets_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_organizations_assets_run_discovery_execute()` to send, or `securitycenter_organizations_assets_run_discovery` for simplest API.
 
-pub fn securitycenter_organizations_assets_run_discovery_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_organizations_assets_run_discovery_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/organizations/{}/assets:runDiscovery",
@@ -9460,12 +9634,15 @@ pub fn securitycenter_organizations_assets_run_discovery(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_organizations_assets_update_security_marks_execute()` to send, or `securitycenter_organizations_assets_update_security_marks` for simplest API.
 
-pub fn securitycenter_organizations_assets_update_security_marks_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_organizations_assets_update_security_marks_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     startTime: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/organizations/{}/assets/{assetsId}/securityMarks",
@@ -9646,13 +9823,16 @@ pub fn securitycenter_organizations_assets_update_security_marks(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_organizations_attack_paths_list_execute()` to send, or `securitycenter_organizations_attack_paths_list` for simplest API.
 
-pub fn securitycenter_organizations_attack_paths_list_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_organizations_attack_paths_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/organizations/{}/attackPaths",
@@ -9839,11 +10019,14 @@ pub fn securitycenter_organizations_attack_paths_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_organizations_big_query_exports_create_execute()` to send, or `securitycenter_organizations_big_query_exports_create` for simplest API.
 
-pub fn securitycenter_organizations_big_query_exports_create_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_organizations_big_query_exports_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     bigQueryExportId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/organizations/{}/bigQueryExports",
@@ -10022,10 +10205,13 @@ pub fn securitycenter_organizations_big_query_exports_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_organizations_big_query_exports_delete_execute()` to send, or `securitycenter_organizations_big_query_exports_delete` for simplest API.
 
-pub fn securitycenter_organizations_big_query_exports_delete_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_organizations_big_query_exports_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/organizations/{}/bigQueryExports/{bigQueryExportsId}",
@@ -10180,10 +10366,13 @@ pub fn securitycenter_organizations_big_query_exports_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_organizations_big_query_exports_get_execute()` to send, or `securitycenter_organizations_big_query_exports_get` for simplest API.
 
-pub fn securitycenter_organizations_big_query_exports_get_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_organizations_big_query_exports_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/organizations/{}/bigQueryExports/{bigQueryExportsId}",
@@ -10345,12 +10534,15 @@ pub fn securitycenter_organizations_big_query_exports_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_organizations_big_query_exports_list_execute()` to send, or `securitycenter_organizations_big_query_exports_list` for simplest API.
 
-pub fn securitycenter_organizations_big_query_exports_list_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_organizations_big_query_exports_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/organizations/{}/bigQueryExports",
@@ -10535,11 +10727,14 @@ pub fn securitycenter_organizations_big_query_exports_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_organizations_big_query_exports_patch_execute()` to send, or `securitycenter_organizations_big_query_exports_patch` for simplest API.
 
-pub fn securitycenter_organizations_big_query_exports_patch_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_organizations_big_query_exports_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/organizations/{}/bigQueryExports/{bigQueryExportsId}",
@@ -10718,10 +10913,15 @@ pub fn securitycenter_organizations_big_query_exports_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_organizations_event_threat_detection_settings_validate_custom_module_execute()` to send, or `securitycenter_organizations_event_threat_detection_settings_validate_custom_module` for simplest API.
 
-pub fn securitycenter_organizations_event_threat_detection_settings_validate_custom_module_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_organizations_event_threat_detection_settings_validate_custom_module_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/organizations/{}/eventThreatDetectionSettings:validateCustomModule",
@@ -10889,10 +11089,15 @@ pub fn securitycenter_organizations_event_threat_detection_settings_validate_cus
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_organizations_event_threat_detection_settings_custom_modules_create_execute()` to send, or `securitycenter_organizations_event_threat_detection_settings_custom_modules_create` for simplest API.
 
-pub fn securitycenter_organizations_event_threat_detection_settings_custom_modules_create_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_organizations_event_threat_detection_settings_custom_modules_create_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/organizations/{}/eventThreatDetectionSettings/customModules",
@@ -11063,10 +11268,15 @@ pub fn securitycenter_organizations_event_threat_detection_settings_custom_modul
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_organizations_event_threat_detection_settings_custom_modules_delete_execute()` to send, or `securitycenter_organizations_event_threat_detection_settings_custom_modules_delete` for simplest API.
 
-pub fn securitycenter_organizations_event_threat_detection_settings_custom_modules_delete_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_organizations_event_threat_detection_settings_custom_modules_delete_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/organizations/{}/eventThreatDetectionSettings/customModules/{customModulesId}",
@@ -11228,10 +11438,13 @@ pub fn securitycenter_organizations_event_threat_detection_settings_custom_modul
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_organizations_event_threat_detection_settings_custom_modules_get_execute()` to send, or `securitycenter_organizations_event_threat_detection_settings_custom_modules_get` for simplest API.
 
-pub fn securitycenter_organizations_event_threat_detection_settings_custom_modules_get_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_organizations_event_threat_detection_settings_custom_modules_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/organizations/{}/eventThreatDetectionSettings/customModules/{customModulesId}",
@@ -11399,12 +11612,15 @@ pub fn securitycenter_organizations_event_threat_detection_settings_custom_modul
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_organizations_event_threat_detection_settings_custom_modules_list_execute()` to send, or `securitycenter_organizations_event_threat_detection_settings_custom_modules_list` for simplest API.
 
-pub fn securitycenter_organizations_event_threat_detection_settings_custom_modules_list_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_organizations_event_threat_detection_settings_custom_modules_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/organizations/{}/eventThreatDetectionSettings/customModules",
@@ -11596,12 +11812,17 @@ pub fn securitycenter_organizations_event_threat_detection_settings_custom_modul
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_organizations_event_threat_detection_settings_custom_modules_list_descendant_execute()` to send, or `securitycenter_organizations_event_threat_detection_settings_custom_modules_list_descendant` for simplest API.
 
-pub fn securitycenter_organizations_event_threat_detection_settings_custom_modules_list_descendant_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_organizations_event_threat_detection_settings_custom_modules_list_descendant_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/organizations/{}/eventThreatDetectionSettings/customModules:listDescendant",
@@ -11791,11 +12012,16 @@ pub fn securitycenter_organizations_event_threat_detection_settings_custom_modul
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_organizations_event_threat_detection_settings_custom_modules_patch_execute()` to send, or `securitycenter_organizations_event_threat_detection_settings_custom_modules_patch` for simplest API.
 
-pub fn securitycenter_organizations_event_threat_detection_settings_custom_modules_patch_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_organizations_event_threat_detection_settings_custom_modules_patch_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/organizations/{}/eventThreatDetectionSettings/customModules/{customModulesId}",
@@ -11980,10 +12206,15 @@ pub fn securitycenter_organizations_event_threat_detection_settings_custom_modul
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_organizations_event_threat_detection_settings_effective_custom_modules_get_execute()` to send, or `securitycenter_organizations_event_threat_detection_settings_effective_custom_modules_get` for simplest API.
 
-pub fn securitycenter_organizations_event_threat_detection_settings_effective_custom_modules_get_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_organizations_event_threat_detection_settings_effective_custom_modules_get_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/organizations/{}/eventThreatDetectionSettings/effectiveCustomModules/{effectiveCustomModulesId}",
@@ -12145,12 +12376,17 @@ pub fn securitycenter_organizations_event_threat_detection_settings_effective_cu
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_organizations_event_threat_detection_settings_effective_custom_modules_list_execute()` to send, or `securitycenter_organizations_event_threat_detection_settings_effective_custom_modules_list` for simplest API.
 
-pub fn securitycenter_organizations_event_threat_detection_settings_effective_custom_modules_list_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_organizations_event_threat_detection_settings_effective_custom_modules_list_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/organizations/{}/eventThreatDetectionSettings/effectiveCustomModules",
@@ -12340,10 +12576,13 @@ pub fn securitycenter_organizations_event_threat_detection_settings_effective_cu
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_organizations_findings_bulk_mute_execute()` to send, or `securitycenter_organizations_findings_bulk_mute` for simplest API.
 
-pub fn securitycenter_organizations_findings_bulk_mute_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_organizations_findings_bulk_mute_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/organizations/{}/findings:bulkMute",
@@ -12497,10 +12736,13 @@ pub fn securitycenter_organizations_findings_bulk_mute(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_organizations_locations_mute_configs_delete_execute()` to send, or `securitycenter_organizations_locations_mute_configs_delete` for simplest API.
 
-pub fn securitycenter_organizations_locations_mute_configs_delete_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_organizations_locations_mute_configs_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/organizations/{}/locations/{locationsId}/muteConfigs/{muteConfigsId}",
@@ -12655,10 +12897,13 @@ pub fn securitycenter_organizations_locations_mute_configs_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_organizations_locations_mute_configs_get_execute()` to send, or `securitycenter_organizations_locations_mute_configs_get` for simplest API.
 
-pub fn securitycenter_organizations_locations_mute_configs_get_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_organizations_locations_mute_configs_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/organizations/{}/locations/{locationsId}/muteConfigs/{muteConfigsId}",
@@ -12821,11 +13066,14 @@ pub fn securitycenter_organizations_locations_mute_configs_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_organizations_locations_mute_configs_patch_execute()` to send, or `securitycenter_organizations_locations_mute_configs_patch` for simplest API.
 
-pub fn securitycenter_organizations_locations_mute_configs_patch_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_organizations_locations_mute_configs_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/organizations/{}/locations/{locationsId}/muteConfigs/{muteConfigsId}",
@@ -13004,11 +13252,14 @@ pub fn securitycenter_organizations_locations_mute_configs_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_organizations_mute_configs_create_execute()` to send, or `securitycenter_organizations_mute_configs_create` for simplest API.
 
-pub fn securitycenter_organizations_mute_configs_create_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_organizations_mute_configs_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     muteConfigId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/organizations/{}/muteConfigs",
@@ -13187,10 +13438,13 @@ pub fn securitycenter_organizations_mute_configs_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_organizations_mute_configs_delete_execute()` to send, or `securitycenter_organizations_mute_configs_delete` for simplest API.
 
-pub fn securitycenter_organizations_mute_configs_delete_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_organizations_mute_configs_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/organizations/{}/muteConfigs/{muteConfigsId}",
@@ -13344,10 +13598,13 @@ pub fn securitycenter_organizations_mute_configs_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_organizations_mute_configs_get_execute()` to send, or `securitycenter_organizations_mute_configs_get` for simplest API.
 
-pub fn securitycenter_organizations_mute_configs_get_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_organizations_mute_configs_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/organizations/{}/muteConfigs/{muteConfigsId}",
@@ -13509,12 +13766,15 @@ pub fn securitycenter_organizations_mute_configs_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_organizations_mute_configs_list_execute()` to send, or `securitycenter_organizations_mute_configs_list` for simplest API.
 
-pub fn securitycenter_organizations_mute_configs_list_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_organizations_mute_configs_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/organizations/{}/muteConfigs",
@@ -13695,11 +13955,14 @@ pub fn securitycenter_organizations_mute_configs_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_organizations_mute_configs_patch_execute()` to send, or `securitycenter_organizations_mute_configs_patch` for simplest API.
 
-pub fn securitycenter_organizations_mute_configs_patch_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_organizations_mute_configs_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/organizations/{}/muteConfigs/{muteConfigsId}",
@@ -13878,11 +14141,14 @@ pub fn securitycenter_organizations_mute_configs_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_organizations_notification_configs_create_execute()` to send, or `securitycenter_organizations_notification_configs_create` for simplest API.
 
-pub fn securitycenter_organizations_notification_configs_create_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_organizations_notification_configs_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     configId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/organizations/{}/notificationConfigs",
@@ -14057,10 +14323,13 @@ pub fn securitycenter_organizations_notification_configs_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_organizations_notification_configs_delete_execute()` to send, or `securitycenter_organizations_notification_configs_delete` for simplest API.
 
-pub fn securitycenter_organizations_notification_configs_delete_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_organizations_notification_configs_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/organizations/{}/notificationConfigs/{notificationConfigsId}",
@@ -14215,10 +14484,13 @@ pub fn securitycenter_organizations_notification_configs_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_organizations_notification_configs_get_execute()` to send, or `securitycenter_organizations_notification_configs_get` for simplest API.
 
-pub fn securitycenter_organizations_notification_configs_get_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_organizations_notification_configs_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/organizations/{}/notificationConfigs/{notificationConfigsId}",
@@ -14377,12 +14649,15 @@ pub fn securitycenter_organizations_notification_configs_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_organizations_notification_configs_list_execute()` to send, or `securitycenter_organizations_notification_configs_list` for simplest API.
 
-pub fn securitycenter_organizations_notification_configs_list_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_organizations_notification_configs_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/organizations/{}/notificationConfigs",
@@ -14567,11 +14842,14 @@ pub fn securitycenter_organizations_notification_configs_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_organizations_notification_configs_patch_execute()` to send, or `securitycenter_organizations_notification_configs_patch` for simplest API.
 
-pub fn securitycenter_organizations_notification_configs_patch_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_organizations_notification_configs_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/organizations/{}/notificationConfigs/{notificationConfigsId}",
@@ -14746,10 +15024,13 @@ pub fn securitycenter_organizations_notification_configs_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_organizations_operations_cancel_execute()` to send, or `securitycenter_organizations_operations_cancel` for simplest API.
 
-pub fn securitycenter_organizations_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_organizations_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/organizations/{}/operations/{operationsId}:cancel",
@@ -14903,10 +15184,13 @@ pub fn securitycenter_organizations_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_organizations_operations_delete_execute()` to send, or `securitycenter_organizations_operations_delete` for simplest API.
 
-pub fn securitycenter_organizations_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_organizations_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/organizations/{}/operations/{operationsId}",
@@ -15060,10 +15344,13 @@ pub fn securitycenter_organizations_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_organizations_operations_get_execute()` to send, or `securitycenter_organizations_operations_get` for simplest API.
 
-pub fn securitycenter_organizations_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_organizations_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/organizations/{}/operations/{operationsId}",
@@ -15217,14 +15504,17 @@ pub fn securitycenter_organizations_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_organizations_operations_list_execute()` to send, or `securitycenter_organizations_operations_list` for simplest API.
 
-pub fn securitycenter_organizations_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_organizations_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/organizations/{}/operations",
@@ -15417,10 +15707,13 @@ pub fn securitycenter_organizations_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_organizations_resource_value_configs_batch_create_execute()` to send, or `securitycenter_organizations_resource_value_configs_batch_create` for simplest API.
 
-pub fn securitycenter_organizations_resource_value_configs_batch_create_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_organizations_resource_value_configs_batch_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/organizations/{}/resourceValueConfigs:batchCreate",
@@ -15586,10 +15879,13 @@ pub fn securitycenter_organizations_resource_value_configs_batch_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_organizations_resource_value_configs_delete_execute()` to send, or `securitycenter_organizations_resource_value_configs_delete` for simplest API.
 
-pub fn securitycenter_organizations_resource_value_configs_delete_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_organizations_resource_value_configs_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/organizations/{}/resourceValueConfigs/{resourceValueConfigsId}",
@@ -15744,10 +16040,13 @@ pub fn securitycenter_organizations_resource_value_configs_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_organizations_resource_value_configs_get_execute()` to send, or `securitycenter_organizations_resource_value_configs_get` for simplest API.
 
-pub fn securitycenter_organizations_resource_value_configs_get_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_organizations_resource_value_configs_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/organizations/{}/resourceValueConfigs/{resourceValueConfigsId}",
@@ -15911,12 +16210,15 @@ pub fn securitycenter_organizations_resource_value_configs_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_organizations_resource_value_configs_list_execute()` to send, or `securitycenter_organizations_resource_value_configs_list` for simplest API.
 
-pub fn securitycenter_organizations_resource_value_configs_list_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_organizations_resource_value_configs_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/organizations/{}/resourceValueConfigs",
@@ -16101,11 +16403,14 @@ pub fn securitycenter_organizations_resource_value_configs_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_organizations_resource_value_configs_patch_execute()` to send, or `securitycenter_organizations_resource_value_configs_patch` for simplest API.
 
-pub fn securitycenter_organizations_resource_value_configs_patch_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_organizations_resource_value_configs_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/organizations/{}/resourceValueConfigs/{resourceValueConfigsId}",
@@ -16285,10 +16590,15 @@ pub fn securitycenter_organizations_resource_value_configs_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_organizations_security_health_analytics_settings_custom_modules_create_execute()` to send, or `securitycenter_organizations_security_health_analytics_settings_custom_modules_create` for simplest API.
 
-pub fn securitycenter_organizations_security_health_analytics_settings_custom_modules_create_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_organizations_security_health_analytics_settings_custom_modules_create_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/organizations/{}/securityHealthAnalyticsSettings/customModules",
@@ -16465,10 +16775,15 @@ pub fn securitycenter_organizations_security_health_analytics_settings_custom_mo
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_organizations_security_health_analytics_settings_custom_modules_delete_execute()` to send, or `securitycenter_organizations_security_health_analytics_settings_custom_modules_delete` for simplest API.
 
-pub fn securitycenter_organizations_security_health_analytics_settings_custom_modules_delete_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_organizations_security_health_analytics_settings_custom_modules_delete_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/organizations/{}/securityHealthAnalyticsSettings/customModules/{customModulesId}",
@@ -16627,10 +16942,15 @@ pub fn securitycenter_organizations_security_health_analytics_settings_custom_mo
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_organizations_security_health_analytics_settings_custom_modules_get_execute()` to send, or `securitycenter_organizations_security_health_analytics_settings_custom_modules_get` for simplest API.
 
-pub fn securitycenter_organizations_security_health_analytics_settings_custom_modules_get_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_organizations_security_health_analytics_settings_custom_modules_get_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/organizations/{}/securityHealthAnalyticsSettings/customModules/{customModulesId}",
@@ -16810,12 +17130,17 @@ pub fn securitycenter_organizations_security_health_analytics_settings_custom_mo
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_organizations_security_health_analytics_settings_custom_modules_list_execute()` to send, or `securitycenter_organizations_security_health_analytics_settings_custom_modules_list` for simplest API.
 
-pub fn securitycenter_organizations_security_health_analytics_settings_custom_modules_list_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_organizations_security_health_analytics_settings_custom_modules_list_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/organizations/{}/securityHealthAnalyticsSettings/customModules",
@@ -17001,12 +17326,17 @@ pub fn securitycenter_organizations_security_health_analytics_settings_custom_mo
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_organizations_security_health_analytics_settings_custom_modules_list_descendant_execute()` to send, or `securitycenter_organizations_security_health_analytics_settings_custom_modules_list_descendant` for simplest API.
 
-pub fn securitycenter_organizations_security_health_analytics_settings_custom_modules_list_descendant_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_organizations_security_health_analytics_settings_custom_modules_list_descendant_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/organizations/{}/securityHealthAnalyticsSettings/customModules:listDescendant",
@@ -17197,11 +17527,16 @@ pub fn securitycenter_organizations_security_health_analytics_settings_custom_mo
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_organizations_security_health_analytics_settings_custom_modules_patch_execute()` to send, or `securitycenter_organizations_security_health_analytics_settings_custom_modules_patch` for simplest API.
 
-pub fn securitycenter_organizations_security_health_analytics_settings_custom_modules_patch_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_organizations_security_health_analytics_settings_custom_modules_patch_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/organizations/{}/securityHealthAnalyticsSettings/customModules/{customModulesId}",
@@ -17391,10 +17726,15 @@ pub fn securitycenter_organizations_security_health_analytics_settings_custom_mo
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_organizations_security_health_analytics_settings_custom_modules_simulate_execute()` to send, or `securitycenter_organizations_security_health_analytics_settings_custom_modules_simulate` for simplest API.
 
-pub fn securitycenter_organizations_security_health_analytics_settings_custom_modules_simulate_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_organizations_security_health_analytics_settings_custom_modules_simulate_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/organizations/{}/securityHealthAnalyticsSettings/customModules:simulate",
@@ -17562,10 +17902,15 @@ pub fn securitycenter_organizations_security_health_analytics_settings_custom_mo
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_organizations_security_health_analytics_settings_effective_custom_modules_get_execute()` to send, or `securitycenter_organizations_security_health_analytics_settings_effective_custom_modules_get` for simplest API.
 
-pub fn securitycenter_organizations_security_health_analytics_settings_effective_custom_modules_get_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_organizations_security_health_analytics_settings_effective_custom_modules_get_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/organizations/{}/securityHealthAnalyticsSettings/effectiveCustomModules/{effectiveCustomModulesId}",
@@ -17737,12 +18082,17 @@ pub fn securitycenter_organizations_security_health_analytics_settings_effective
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_organizations_security_health_analytics_settings_effective_custom_modules_list_execute()` to send, or `securitycenter_organizations_security_health_analytics_settings_effective_custom_modules_list` for simplest API.
 
-pub fn securitycenter_organizations_security_health_analytics_settings_effective_custom_modules_list_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_organizations_security_health_analytics_settings_effective_custom_modules_list_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/organizations/{}/securityHealthAnalyticsSettings/effectiveCustomModules",
@@ -17933,10 +18283,13 @@ pub fn securitycenter_organizations_security_health_analytics_settings_effective
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_organizations_simulations_get_execute()` to send, or `securitycenter_organizations_simulations_get` for simplest API.
 
-pub fn securitycenter_organizations_simulations_get_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_organizations_simulations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/organizations/{}/simulations/{simulationsId}",
@@ -18090,13 +18443,18 @@ pub fn securitycenter_organizations_simulations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_organizations_simulations_attack_exposure_results_attack_paths_list_execute()` to send, or `securitycenter_organizations_simulations_attack_exposure_results_attack_paths_list` for simplest API.
 
-pub fn securitycenter_organizations_simulations_attack_exposure_results_attack_paths_list_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_organizations_simulations_attack_exposure_results_attack_paths_list_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/organizations/{}/simulations/{simulationsId}/attackExposureResults/{attackExposureResultsId}/attackPaths",
@@ -18289,14 +18647,19 @@ pub fn securitycenter_organizations_simulations_attack_exposure_results_attack_p
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_organizations_simulations_attack_exposure_results_valued_resources_list_execute()` to send, or `securitycenter_organizations_simulations_attack_exposure_results_valued_resources_list` for simplest API.
 
-pub fn securitycenter_organizations_simulations_attack_exposure_results_valued_resources_list_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_organizations_simulations_attack_exposure_results_valued_resources_list_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/organizations/{}/simulations/{simulationsId}/attackExposureResults/{attackExposureResultsId}/valuedResources",
@@ -18488,13 +18851,16 @@ pub fn securitycenter_organizations_simulations_attack_exposure_results_valued_r
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_organizations_simulations_attack_paths_list_execute()` to send, or `securitycenter_organizations_simulations_attack_paths_list` for simplest API.
 
-pub fn securitycenter_organizations_simulations_attack_paths_list_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_organizations_simulations_attack_paths_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/organizations/{}/simulations/{simulationsId}/attackPaths",
@@ -18681,10 +19047,13 @@ pub fn securitycenter_organizations_simulations_attack_paths_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_organizations_simulations_valued_resources_get_execute()` to send, or `securitycenter_organizations_simulations_valued_resources_get` for simplest API.
 
-pub fn securitycenter_organizations_simulations_valued_resources_get_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_organizations_simulations_valued_resources_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/organizations/{}/simulations/{simulationsId}/valuedResources/{valuedResourcesId}",
@@ -18843,14 +19212,17 @@ pub fn securitycenter_organizations_simulations_valued_resources_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_organizations_simulations_valued_resources_list_execute()` to send, or `securitycenter_organizations_simulations_valued_resources_list` for simplest API.
 
-pub fn securitycenter_organizations_simulations_valued_resources_list_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_organizations_simulations_valued_resources_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/organizations/{}/simulations/{simulationsId}/valuedResources",
@@ -19047,13 +19419,16 @@ pub fn securitycenter_organizations_simulations_valued_resources_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_organizations_simulations_valued_resources_attack_paths_list_execute()` to send, or `securitycenter_organizations_simulations_valued_resources_attack_paths_list` for simplest API.
 
-pub fn securitycenter_organizations_simulations_valued_resources_attack_paths_list_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_organizations_simulations_valued_resources_attack_paths_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/organizations/{}/simulations/{simulationsId}/valuedResources/{valuedResourcesId}/attackPaths",
@@ -19242,10 +19617,13 @@ pub fn securitycenter_organizations_simulations_valued_resources_attack_paths_li
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_organizations_sources_create_execute()` to send, or `securitycenter_organizations_sources_create` for simplest API.
 
-pub fn securitycenter_organizations_sources_create_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_organizations_sources_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/organizations/{}/sources",
@@ -19399,10 +19777,13 @@ pub fn securitycenter_organizations_sources_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_organizations_sources_get_execute()` to send, or `securitycenter_organizations_sources_get` for simplest API.
 
-pub fn securitycenter_organizations_sources_get_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_organizations_sources_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/organizations/{}/sources/{sourcesId}",
@@ -19556,10 +19937,13 @@ pub fn securitycenter_organizations_sources_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_organizations_sources_get_iam_policy_execute()` to send, or `securitycenter_organizations_sources_get_iam_policy` for simplest API.
 
-pub fn securitycenter_organizations_sources_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_organizations_sources_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/organizations/{}/sources/{sourcesId}:getIamPolicy",
@@ -19714,12 +20098,15 @@ pub fn securitycenter_organizations_sources_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_organizations_sources_list_execute()` to send, or `securitycenter_organizations_sources_list` for simplest API.
 
-pub fn securitycenter_organizations_sources_list_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_organizations_sources_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/organizations/{}/sources",
@@ -19900,11 +20287,14 @@ pub fn securitycenter_organizations_sources_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_organizations_sources_patch_execute()` to send, or `securitycenter_organizations_sources_patch` for simplest API.
 
-pub fn securitycenter_organizations_sources_patch_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_organizations_sources_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/organizations/{}/sources/{sourcesId}",
@@ -20072,10 +20462,13 @@ pub fn securitycenter_organizations_sources_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_organizations_sources_set_iam_policy_execute()` to send, or `securitycenter_organizations_sources_set_iam_policy` for simplest API.
 
-pub fn securitycenter_organizations_sources_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_organizations_sources_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/organizations/{}/sources/{sourcesId}:setIamPolicy",
@@ -20230,10 +20623,13 @@ pub fn securitycenter_organizations_sources_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_organizations_sources_test_iam_permissions_execute()` to send, or `securitycenter_organizations_sources_test_iam_permissions` for simplest API.
 
-pub fn securitycenter_organizations_sources_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_organizations_sources_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/organizations/{}/sources/{sourcesId}:testIamPermissions",
@@ -20396,11 +20792,14 @@ pub fn securitycenter_organizations_sources_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_organizations_sources_findings_create_execute()` to send, or `securitycenter_organizations_sources_findings_create` for simplest API.
 
-pub fn securitycenter_organizations_sources_findings_create_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_organizations_sources_findings_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     findingId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/organizations/{}/sources/{sourcesId}/findings",
@@ -20571,10 +20970,13 @@ pub fn securitycenter_organizations_sources_findings_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_organizations_sources_findings_group_execute()` to send, or `securitycenter_organizations_sources_findings_group` for simplest API.
 
-pub fn securitycenter_organizations_sources_findings_group_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_organizations_sources_findings_group_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/organizations/{}/sources/{sourcesId}/findings:group",
@@ -20733,8 +21135,8 @@ pub fn securitycenter_organizations_sources_findings_group(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_organizations_sources_findings_list_execute()` to send, or `securitycenter_organizations_sources_findings_list` for simplest API.
 
-pub fn securitycenter_organizations_sources_findings_list_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_organizations_sources_findings_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     compareDuration: &Option<Option<String>>,
     fieldMask: &Option<Option<String>>,
@@ -20743,7 +21145,10 @@ pub fn securitycenter_organizations_sources_findings_list_builder(
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     readTime: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/organizations/{}/sources/{sourcesId}/findings",
@@ -20954,11 +21359,14 @@ pub fn securitycenter_organizations_sources_findings_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_organizations_sources_findings_patch_execute()` to send, or `securitycenter_organizations_sources_findings_patch` for simplest API.
 
-pub fn securitycenter_organizations_sources_findings_patch_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_organizations_sources_findings_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/organizations/{}/sources/{sourcesId}/findings/{findingsId}",
@@ -21129,10 +21537,13 @@ pub fn securitycenter_organizations_sources_findings_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_organizations_sources_findings_set_mute_execute()` to send, or `securitycenter_organizations_sources_findings_set_mute` for simplest API.
 
-pub fn securitycenter_organizations_sources_findings_set_mute_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_organizations_sources_findings_set_mute_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/organizations/{}/sources/{sourcesId}/findings/{findingsId}:setMute",
@@ -21287,10 +21698,13 @@ pub fn securitycenter_organizations_sources_findings_set_mute(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_organizations_sources_findings_set_state_execute()` to send, or `securitycenter_organizations_sources_findings_set_state` for simplest API.
 
-pub fn securitycenter_organizations_sources_findings_set_state_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_organizations_sources_findings_set_state_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/organizations/{}/sources/{sourcesId}/findings/{findingsId}:setState",
@@ -21445,12 +21859,15 @@ pub fn securitycenter_organizations_sources_findings_set_state(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_organizations_sources_findings_update_security_marks_execute()` to send, or `securitycenter_organizations_sources_findings_update_security_marks` for simplest API.
 
-pub fn securitycenter_organizations_sources_findings_update_security_marks_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_organizations_sources_findings_update_security_marks_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     startTime: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/organizations/{}/sources/{sourcesId}/findings/{findingsId}/securityMarks",
@@ -21631,11 +22048,14 @@ pub fn securitycenter_organizations_sources_findings_update_security_marks(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_organizations_sources_findings_external_systems_patch_execute()` to send, or `securitycenter_organizations_sources_findings_external_systems_patch` for simplest API.
 
-pub fn securitycenter_organizations_sources_findings_external_systems_patch_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_organizations_sources_findings_external_systems_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/organizations/{}/sources/{sourcesId}/findings/{findingsId}/externalSystems/{externalSystemsId}",
@@ -21814,14 +22234,17 @@ pub fn securitycenter_organizations_sources_findings_external_systems_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_organizations_valued_resources_list_execute()` to send, or `securitycenter_organizations_valued_resources_list` for simplest API.
 
-pub fn securitycenter_organizations_valued_resources_list_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_organizations_valued_resources_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/organizations/{}/valuedResources",
@@ -22018,10 +22441,13 @@ pub fn securitycenter_organizations_valued_resources_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_projects_assets_group_execute()` to send, or `securitycenter_projects_assets_group` for simplest API.
 
-pub fn securitycenter_projects_assets_group_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_projects_assets_group_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/projects/{}/assets:group",
@@ -22179,8 +22605,8 @@ pub fn securitycenter_projects_assets_group(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_projects_assets_list_execute()` to send, or `securitycenter_projects_assets_list` for simplest API.
 
-pub fn securitycenter_projects_assets_list_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_projects_assets_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     compareDuration: &Option<Option<String>>,
     fieldMask: &Option<Option<String>>,
@@ -22189,7 +22615,10 @@ pub fn securitycenter_projects_assets_list_builder(
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     readTime: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/projects/{}/assets",
@@ -22400,12 +22829,15 @@ pub fn securitycenter_projects_assets_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_projects_assets_update_security_marks_execute()` to send, or `securitycenter_projects_assets_update_security_marks` for simplest API.
 
-pub fn securitycenter_projects_assets_update_security_marks_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_projects_assets_update_security_marks_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     startTime: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/projects/{}/assets/{assetsId}/securityMarks",
@@ -22586,11 +23018,14 @@ pub fn securitycenter_projects_assets_update_security_marks(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_projects_big_query_exports_create_execute()` to send, or `securitycenter_projects_big_query_exports_create` for simplest API.
 
-pub fn securitycenter_projects_big_query_exports_create_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_projects_big_query_exports_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     bigQueryExportId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/projects/{}/bigQueryExports",
@@ -22769,10 +23204,13 @@ pub fn securitycenter_projects_big_query_exports_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_projects_big_query_exports_delete_execute()` to send, or `securitycenter_projects_big_query_exports_delete` for simplest API.
 
-pub fn securitycenter_projects_big_query_exports_delete_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_projects_big_query_exports_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/projects/{}/bigQueryExports/{bigQueryExportsId}",
@@ -22926,10 +23364,13 @@ pub fn securitycenter_projects_big_query_exports_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_projects_big_query_exports_get_execute()` to send, or `securitycenter_projects_big_query_exports_get` for simplest API.
 
-pub fn securitycenter_projects_big_query_exports_get_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_projects_big_query_exports_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/projects/{}/bigQueryExports/{bigQueryExportsId}",
@@ -23091,12 +23532,15 @@ pub fn securitycenter_projects_big_query_exports_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_projects_big_query_exports_list_execute()` to send, or `securitycenter_projects_big_query_exports_list` for simplest API.
 
-pub fn securitycenter_projects_big_query_exports_list_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_projects_big_query_exports_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/projects/{}/bigQueryExports",
@@ -23281,11 +23725,14 @@ pub fn securitycenter_projects_big_query_exports_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_projects_big_query_exports_patch_execute()` to send, or `securitycenter_projects_big_query_exports_patch` for simplest API.
 
-pub fn securitycenter_projects_big_query_exports_patch_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_projects_big_query_exports_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/projects/{}/bigQueryExports/{bigQueryExportsId}",
@@ -23464,10 +23911,13 @@ pub fn securitycenter_projects_big_query_exports_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_projects_event_threat_detection_settings_validate_custom_module_execute()` to send, or `securitycenter_projects_event_threat_detection_settings_validate_custom_module` for simplest API.
 
-pub fn securitycenter_projects_event_threat_detection_settings_validate_custom_module_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_projects_event_threat_detection_settings_validate_custom_module_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/projects/{}/eventThreatDetectionSettings:validateCustomModule",
@@ -23636,10 +24086,13 @@ pub fn securitycenter_projects_event_threat_detection_settings_validate_custom_m
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_projects_event_threat_detection_settings_custom_modules_create_execute()` to send, or `securitycenter_projects_event_threat_detection_settings_custom_modules_create` for simplest API.
 
-pub fn securitycenter_projects_event_threat_detection_settings_custom_modules_create_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_projects_event_threat_detection_settings_custom_modules_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/projects/{}/eventThreatDetectionSettings/customModules",
@@ -23807,10 +24260,13 @@ pub fn securitycenter_projects_event_threat_detection_settings_custom_modules_cr
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_projects_event_threat_detection_settings_custom_modules_delete_execute()` to send, or `securitycenter_projects_event_threat_detection_settings_custom_modules_delete` for simplest API.
 
-pub fn securitycenter_projects_event_threat_detection_settings_custom_modules_delete_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_projects_event_threat_detection_settings_custom_modules_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/projects/{}/eventThreatDetectionSettings/customModules/{customModulesId}",
@@ -23969,10 +24425,13 @@ pub fn securitycenter_projects_event_threat_detection_settings_custom_modules_de
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_projects_event_threat_detection_settings_custom_modules_get_execute()` to send, or `securitycenter_projects_event_threat_detection_settings_custom_modules_get` for simplest API.
 
-pub fn securitycenter_projects_event_threat_detection_settings_custom_modules_get_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_projects_event_threat_detection_settings_custom_modules_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/projects/{}/eventThreatDetectionSettings/customModules/{customModulesId}",
@@ -24138,12 +24597,15 @@ pub fn securitycenter_projects_event_threat_detection_settings_custom_modules_ge
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_projects_event_threat_detection_settings_custom_modules_list_execute()` to send, or `securitycenter_projects_event_threat_detection_settings_custom_modules_list` for simplest API.
 
-pub fn securitycenter_projects_event_threat_detection_settings_custom_modules_list_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_projects_event_threat_detection_settings_custom_modules_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/projects/{}/eventThreatDetectionSettings/customModules",
@@ -24331,12 +24793,17 @@ pub fn securitycenter_projects_event_threat_detection_settings_custom_modules_li
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_projects_event_threat_detection_settings_custom_modules_list_descendant_execute()` to send, or `securitycenter_projects_event_threat_detection_settings_custom_modules_list_descendant` for simplest API.
 
-pub fn securitycenter_projects_event_threat_detection_settings_custom_modules_list_descendant_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_projects_event_threat_detection_settings_custom_modules_list_descendant_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/projects/{}/eventThreatDetectionSettings/customModules:listDescendant",
@@ -24528,11 +24995,14 @@ pub fn securitycenter_projects_event_threat_detection_settings_custom_modules_li
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_projects_event_threat_detection_settings_custom_modules_patch_execute()` to send, or `securitycenter_projects_event_threat_detection_settings_custom_modules_patch` for simplest API.
 
-pub fn securitycenter_projects_event_threat_detection_settings_custom_modules_patch_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_projects_event_threat_detection_settings_custom_modules_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/projects/{}/eventThreatDetectionSettings/customModules/{customModulesId}",
@@ -24713,10 +25183,15 @@ pub fn securitycenter_projects_event_threat_detection_settings_custom_modules_pa
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_projects_event_threat_detection_settings_effective_custom_modules_get_execute()` to send, or `securitycenter_projects_event_threat_detection_settings_effective_custom_modules_get` for simplest API.
 
-pub fn securitycenter_projects_event_threat_detection_settings_effective_custom_modules_get_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_projects_event_threat_detection_settings_effective_custom_modules_get_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/projects/{}/eventThreatDetectionSettings/effectiveCustomModules/{effectiveCustomModulesId}",
@@ -24883,12 +25358,17 @@ pub fn securitycenter_projects_event_threat_detection_settings_effective_custom_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_projects_event_threat_detection_settings_effective_custom_modules_list_execute()` to send, or `securitycenter_projects_event_threat_detection_settings_effective_custom_modules_list` for simplest API.
 
-pub fn securitycenter_projects_event_threat_detection_settings_effective_custom_modules_list_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_projects_event_threat_detection_settings_effective_custom_modules_list_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/projects/{}/eventThreatDetectionSettings/effectiveCustomModules",
@@ -25083,10 +25563,13 @@ pub fn securitycenter_projects_event_threat_detection_settings_effective_custom_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_projects_findings_bulk_mute_execute()` to send, or `securitycenter_projects_findings_bulk_mute` for simplest API.
 
-pub fn securitycenter_projects_findings_bulk_mute_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_projects_findings_bulk_mute_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/projects/{}/findings:bulkMute",
@@ -25240,10 +25723,13 @@ pub fn securitycenter_projects_findings_bulk_mute(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_projects_locations_mute_configs_delete_execute()` to send, or `securitycenter_projects_locations_mute_configs_delete` for simplest API.
 
-pub fn securitycenter_projects_locations_mute_configs_delete_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_projects_locations_mute_configs_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/projects/{}/locations/{locationsId}/muteConfigs/{muteConfigsId}",
@@ -25398,10 +25884,13 @@ pub fn securitycenter_projects_locations_mute_configs_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_projects_locations_mute_configs_get_execute()` to send, or `securitycenter_projects_locations_mute_configs_get` for simplest API.
 
-pub fn securitycenter_projects_locations_mute_configs_get_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_projects_locations_mute_configs_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/projects/{}/locations/{locationsId}/muteConfigs/{muteConfigsId}",
@@ -25563,11 +26052,14 @@ pub fn securitycenter_projects_locations_mute_configs_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_projects_locations_mute_configs_patch_execute()` to send, or `securitycenter_projects_locations_mute_configs_patch` for simplest API.
 
-pub fn securitycenter_projects_locations_mute_configs_patch_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_projects_locations_mute_configs_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/projects/{}/locations/{locationsId}/muteConfigs/{muteConfigsId}",
@@ -25746,11 +26238,14 @@ pub fn securitycenter_projects_locations_mute_configs_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_projects_mute_configs_create_execute()` to send, or `securitycenter_projects_mute_configs_create` for simplest API.
 
-pub fn securitycenter_projects_mute_configs_create_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_projects_mute_configs_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     muteConfigId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/projects/{}/muteConfigs",
@@ -25929,10 +26424,13 @@ pub fn securitycenter_projects_mute_configs_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_projects_mute_configs_delete_execute()` to send, or `securitycenter_projects_mute_configs_delete` for simplest API.
 
-pub fn securitycenter_projects_mute_configs_delete_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_projects_mute_configs_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/projects/{}/muteConfigs/{muteConfigsId}",
@@ -26086,10 +26584,13 @@ pub fn securitycenter_projects_mute_configs_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_projects_mute_configs_get_execute()` to send, or `securitycenter_projects_mute_configs_get` for simplest API.
 
-pub fn securitycenter_projects_mute_configs_get_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_projects_mute_configs_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/projects/{}/muteConfigs/{muteConfigsId}",
@@ -26251,12 +26752,15 @@ pub fn securitycenter_projects_mute_configs_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_projects_mute_configs_list_execute()` to send, or `securitycenter_projects_mute_configs_list` for simplest API.
 
-pub fn securitycenter_projects_mute_configs_list_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_projects_mute_configs_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/projects/{}/muteConfigs",
@@ -26437,11 +26941,14 @@ pub fn securitycenter_projects_mute_configs_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_projects_mute_configs_patch_execute()` to send, or `securitycenter_projects_mute_configs_patch` for simplest API.
 
-pub fn securitycenter_projects_mute_configs_patch_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_projects_mute_configs_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/projects/{}/muteConfigs/{muteConfigsId}",
@@ -26617,11 +27124,14 @@ pub fn securitycenter_projects_mute_configs_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_projects_notification_configs_create_execute()` to send, or `securitycenter_projects_notification_configs_create` for simplest API.
 
-pub fn securitycenter_projects_notification_configs_create_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_projects_notification_configs_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     configId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/projects/{}/notificationConfigs",
@@ -26796,10 +27306,13 @@ pub fn securitycenter_projects_notification_configs_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_projects_notification_configs_delete_execute()` to send, or `securitycenter_projects_notification_configs_delete` for simplest API.
 
-pub fn securitycenter_projects_notification_configs_delete_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_projects_notification_configs_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/projects/{}/notificationConfigs/{notificationConfigsId}",
@@ -26953,10 +27466,13 @@ pub fn securitycenter_projects_notification_configs_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_projects_notification_configs_get_execute()` to send, or `securitycenter_projects_notification_configs_get` for simplest API.
 
-pub fn securitycenter_projects_notification_configs_get_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_projects_notification_configs_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/projects/{}/notificationConfigs/{notificationConfigsId}",
@@ -27114,12 +27630,15 @@ pub fn securitycenter_projects_notification_configs_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_projects_notification_configs_list_execute()` to send, or `securitycenter_projects_notification_configs_list` for simplest API.
 
-pub fn securitycenter_projects_notification_configs_list_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_projects_notification_configs_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/projects/{}/notificationConfigs",
@@ -27304,11 +27823,14 @@ pub fn securitycenter_projects_notification_configs_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_projects_notification_configs_patch_execute()` to send, or `securitycenter_projects_notification_configs_patch` for simplest API.
 
-pub fn securitycenter_projects_notification_configs_patch_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_projects_notification_configs_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/projects/{}/notificationConfigs/{notificationConfigsId}",
@@ -27483,10 +28005,13 @@ pub fn securitycenter_projects_notification_configs_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_projects_security_health_analytics_settings_custom_modules_create_execute()` to send, or `securitycenter_projects_security_health_analytics_settings_custom_modules_create` for simplest API.
 
-pub fn securitycenter_projects_security_health_analytics_settings_custom_modules_create_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_projects_security_health_analytics_settings_custom_modules_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/projects/{}/securityHealthAnalyticsSettings/customModules",
@@ -27667,10 +28192,13 @@ pub fn securitycenter_projects_security_health_analytics_settings_custom_modules
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_projects_security_health_analytics_settings_custom_modules_delete_execute()` to send, or `securitycenter_projects_security_health_analytics_settings_custom_modules_delete` for simplest API.
 
-pub fn securitycenter_projects_security_health_analytics_settings_custom_modules_delete_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_projects_security_health_analytics_settings_custom_modules_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/projects/{}/securityHealthAnalyticsSettings/customModules/{customModulesId}",
@@ -27832,10 +28360,13 @@ pub fn securitycenter_projects_security_health_analytics_settings_custom_modules
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_projects_security_health_analytics_settings_custom_modules_get_execute()` to send, or `securitycenter_projects_security_health_analytics_settings_custom_modules_get` for simplest API.
 
-pub fn securitycenter_projects_security_health_analytics_settings_custom_modules_get_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_projects_security_health_analytics_settings_custom_modules_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/projects/{}/securityHealthAnalyticsSettings/customModules/{customModulesId}",
@@ -28012,12 +28543,15 @@ pub fn securitycenter_projects_security_health_analytics_settings_custom_modules
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_projects_security_health_analytics_settings_custom_modules_list_execute()` to send, or `securitycenter_projects_security_health_analytics_settings_custom_modules_list` for simplest API.
 
-pub fn securitycenter_projects_security_health_analytics_settings_custom_modules_list_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_projects_security_health_analytics_settings_custom_modules_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/projects/{}/securityHealthAnalyticsSettings/customModules",
@@ -28206,12 +28740,17 @@ pub fn securitycenter_projects_security_health_analytics_settings_custom_modules
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_projects_security_health_analytics_settings_custom_modules_list_descendant_execute()` to send, or `securitycenter_projects_security_health_analytics_settings_custom_modules_list_descendant` for simplest API.
 
-pub fn securitycenter_projects_security_health_analytics_settings_custom_modules_list_descendant_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_projects_security_health_analytics_settings_custom_modules_list_descendant_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/projects/{}/securityHealthAnalyticsSettings/customModules:listDescendant",
@@ -28401,11 +28940,14 @@ pub fn securitycenter_projects_security_health_analytics_settings_custom_modules
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_projects_security_health_analytics_settings_custom_modules_patch_execute()` to send, or `securitycenter_projects_security_health_analytics_settings_custom_modules_patch` for simplest API.
 
-pub fn securitycenter_projects_security_health_analytics_settings_custom_modules_patch_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_projects_security_health_analytics_settings_custom_modules_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/projects/{}/securityHealthAnalyticsSettings/customModules/{customModulesId}",
@@ -28598,10 +29140,15 @@ pub fn securitycenter_projects_security_health_analytics_settings_custom_modules
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_projects_security_health_analytics_settings_custom_modules_simulate_execute()` to send, or `securitycenter_projects_security_health_analytics_settings_custom_modules_simulate` for simplest API.
 
-pub fn securitycenter_projects_security_health_analytics_settings_custom_modules_simulate_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_projects_security_health_analytics_settings_custom_modules_simulate_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/projects/{}/securityHealthAnalyticsSettings/customModules:simulate",
@@ -28776,10 +29323,15 @@ pub fn securitycenter_projects_security_health_analytics_settings_custom_modules
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_projects_security_health_analytics_settings_effective_custom_modules_get_execute()` to send, or `securitycenter_projects_security_health_analytics_settings_effective_custom_modules_get` for simplest API.
 
-pub fn securitycenter_projects_security_health_analytics_settings_effective_custom_modules_get_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_projects_security_health_analytics_settings_effective_custom_modules_get_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/projects/{}/securityHealthAnalyticsSettings/effectiveCustomModules/{effectiveCustomModulesId}",
@@ -28953,12 +29505,17 @@ pub fn securitycenter_projects_security_health_analytics_settings_effective_cust
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_projects_security_health_analytics_settings_effective_custom_modules_list_execute()` to send, or `securitycenter_projects_security_health_analytics_settings_effective_custom_modules_list` for simplest API.
 
-pub fn securitycenter_projects_security_health_analytics_settings_effective_custom_modules_list_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_projects_security_health_analytics_settings_effective_custom_modules_list_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/projects/{}/securityHealthAnalyticsSettings/effectiveCustomModules",
@@ -29150,12 +29707,15 @@ pub fn securitycenter_projects_security_health_analytics_settings_effective_cust
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_projects_sources_list_execute()` to send, or `securitycenter_projects_sources_list` for simplest API.
 
-pub fn securitycenter_projects_sources_list_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_projects_sources_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/projects/{}/sources",
@@ -29336,10 +29896,13 @@ pub fn securitycenter_projects_sources_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_projects_sources_findings_group_execute()` to send, or `securitycenter_projects_sources_findings_group` for simplest API.
 
-pub fn securitycenter_projects_sources_findings_group_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_projects_sources_findings_group_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/projects/{}/sources/{sourcesId}/findings:group",
@@ -29497,8 +30060,8 @@ pub fn securitycenter_projects_sources_findings_group(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_projects_sources_findings_list_execute()` to send, or `securitycenter_projects_sources_findings_list` for simplest API.
 
-pub fn securitycenter_projects_sources_findings_list_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_projects_sources_findings_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     compareDuration: &Option<Option<String>>,
     fieldMask: &Option<Option<String>>,
@@ -29507,7 +30070,10 @@ pub fn securitycenter_projects_sources_findings_list_builder(
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     readTime: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/projects/{}/sources/{sourcesId}/findings",
@@ -29718,11 +30284,14 @@ pub fn securitycenter_projects_sources_findings_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_projects_sources_findings_patch_execute()` to send, or `securitycenter_projects_sources_findings_patch` for simplest API.
 
-pub fn securitycenter_projects_sources_findings_patch_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_projects_sources_findings_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/projects/{}/sources/{sourcesId}/findings/{findingsId}",
@@ -29893,10 +30462,13 @@ pub fn securitycenter_projects_sources_findings_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_projects_sources_findings_set_mute_execute()` to send, or `securitycenter_projects_sources_findings_set_mute` for simplest API.
 
-pub fn securitycenter_projects_sources_findings_set_mute_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_projects_sources_findings_set_mute_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/projects/{}/sources/{sourcesId}/findings/{findingsId}:setMute",
@@ -30050,10 +30622,13 @@ pub fn securitycenter_projects_sources_findings_set_mute(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_projects_sources_findings_set_state_execute()` to send, or `securitycenter_projects_sources_findings_set_state` for simplest API.
 
-pub fn securitycenter_projects_sources_findings_set_state_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_projects_sources_findings_set_state_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/projects/{}/sources/{sourcesId}/findings/{findingsId}:setState",
@@ -30207,12 +30782,15 @@ pub fn securitycenter_projects_sources_findings_set_state(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_projects_sources_findings_update_security_marks_execute()` to send, or `securitycenter_projects_sources_findings_update_security_marks` for simplest API.
 
-pub fn securitycenter_projects_sources_findings_update_security_marks_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_projects_sources_findings_update_security_marks_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     startTime: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/projects/{}/sources/{sourcesId}/findings/{findingsId}/securityMarks",
@@ -30393,11 +30971,14 @@ pub fn securitycenter_projects_sources_findings_update_security_marks(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_projects_sources_findings_external_systems_patch_execute()` to send, or `securitycenter_projects_sources_findings_external_systems_patch` for simplest API.
 
-pub fn securitycenter_projects_sources_findings_external_systems_patch_builder(
-    client: &SimpleHttpClient,
+pub fn securitycenter_projects_sources_findings_external_systems_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securitycenter.googleapis.com/v1/projects/{}/sources/{sourcesId}/findings/{findingsId}/externalSystems/{externalSystemsId}",

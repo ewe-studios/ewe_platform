@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `chromewebstore_media_upload_execute()` to send, or `chromewebstore_media_upload` for simplest API.
 
-pub fn chromewebstore_media_upload_builder(
-    client: &SimpleHttpClient,
+pub fn chromewebstore_media_upload_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://chromewebstore.googleapis.com/v2/publishers/{}/items/{itemsId}:upload",
@@ -187,10 +191,13 @@ pub fn chromewebstore_media_upload(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `chromewebstore_publishers_items_cancel_submission_execute()` to send, or `chromewebstore_publishers_items_cancel_submission` for simplest API.
 
-pub fn chromewebstore_publishers_items_cancel_submission_builder(
-    client: &SimpleHttpClient,
+pub fn chromewebstore_publishers_items_cancel_submission_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://chromewebstore.googleapis.com/v2/publishers/{}/items/{itemsId}:cancelSubmission",
@@ -348,10 +355,13 @@ pub fn chromewebstore_publishers_items_cancel_submission(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `chromewebstore_publishers_items_fetch_status_execute()` to send, or `chromewebstore_publishers_items_fetch_status` for simplest API.
 
-pub fn chromewebstore_publishers_items_fetch_status_builder(
-    client: &SimpleHttpClient,
+pub fn chromewebstore_publishers_items_fetch_status_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://chromewebstore.googleapis.com/v2/publishers/{}/items/{itemsId}:fetchStatus",
@@ -509,10 +519,13 @@ pub fn chromewebstore_publishers_items_fetch_status(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `chromewebstore_publishers_items_publish_execute()` to send, or `chromewebstore_publishers_items_publish` for simplest API.
 
-pub fn chromewebstore_publishers_items_publish_builder(
-    client: &SimpleHttpClient,
+pub fn chromewebstore_publishers_items_publish_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://chromewebstore.googleapis.com/v2/publishers/{}/items/{itemsId}:publish",
@@ -670,10 +683,13 @@ pub fn chromewebstore_publishers_items_publish(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `chromewebstore_publishers_items_set_published_deploy_percentage_execute()` to send, or `chromewebstore_publishers_items_set_published_deploy_percentage` for simplest API.
 
-pub fn chromewebstore_publishers_items_set_published_deploy_percentage_builder(
-    client: &SimpleHttpClient,
+pub fn chromewebstore_publishers_items_set_published_deploy_percentage_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://chromewebstore.googleapis.com/v2/publishers/{}/items/{itemsId}:setPublishedDeployPercentage",

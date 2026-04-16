@@ -7,8 +7,6 @@
 
 #![cfg(feature = "neon")]
 
-pub mod types;
-
 use crate::providers::neon::clients::types::*;
 use crate::providers::neon::resources::*;
 use foundation_core::valtron::{
@@ -16,8 +14,10 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
 
@@ -25,11 +25,14 @@ use serde::Serialize;
 /// List API keys
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `get_api_keys_execute()` to send, or `get_api_keys` for simplest API.
+/// Use `list_api_keys_execute()` to send, or `list_api_keys` for simplest API.
 
-pub fn get_api_keys_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn list_api_keys_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://console.neon.tech/api/v2/api_keys",);
 
@@ -52,21 +55,21 @@ pub fn get_api_keys_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `get_api_keys_execute()` or `get_api_keys`.
+/// For direct execution, use `list_api_keys_execute()` or `list_api_keys`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `get_api_keys_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `list_api_keys_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_api_keys_task(
+pub fn list_api_keys_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            Ready = Result<ApiResponse<()>, ApiError>,
+            Ready = Result<ApiResponse<serde_json::Value>, ApiError>,
             Pending = ApiPending,
             Spawner = BoxedSendExecutionAction,
         > + Send
@@ -101,10 +104,13 @@ pub fn get_api_keys_task(
                 }
 
                 let body = body_reader::collect_string(stream);
+                let parsed: serde_json::Value = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
                 Ok(ApiResponse {
                     status: status_code as u16,
                     headers: headers.clone(),
-                    body: (),
+                    body: parsed,
                 })
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
@@ -118,27 +124,29 @@ pub fn get_api_keys_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `get_api_keys_builder()` to create the builder,
+/// For full customization, use `list_api_keys_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `get_api_keys_task()`.
-/// For the simplest API, use `get_api_keys()`.
+/// For task-level control, use `list_api_keys_task()`.
+/// For the simplest API, use `list_api_keys()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `get_api_keys_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `list_api_keys_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn get_api_keys_execute(
+pub fn list_api_keys_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<serde_json::Value>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-    let task = get_api_keys_task(builder)?;
+    let task = list_api_keys_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -146,33 +154,38 @@ pub fn get_api_keys_execute(
 /// List API keys
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `get_api_keys_builder()` + `get_api_keys_execute()`.
-/// For task-level control, use `get_api_keys_task()`.
+/// For customization, use `list_api_keys_builder()` + `list_api_keys_execute()`.
+/// For task-level control, use `list_api_keys_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_api_keys(
+pub fn list_api_keys(
     client: &SimpleHttpClient,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<serde_json::Value>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-    let builder = get_api_keys_builder(client)?;
-    get_api_keys_execute(builder)
+    let builder = list_api_keys_builder(client)?;
+    list_api_keys_execute(builder)
 }
 
 /// POST /api_keys
 /// Create API key
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `post_api_keys_execute()` to send, or `post_api_keys` for simplest API.
+/// Use `create_api_key_execute()` to send, or `create_api_key` for simplest API.
 
-pub fn post_api_keys_builder(
-    client: &SimpleHttpClient,
-    body: &serde_json::Value,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn create_api_key_builder<R>(
+    client: &SimpleHttpClient<R>,
+    body: &ApiKeyCreateRequest,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://console.neon.tech/api/v2/api_keys",);
 
@@ -197,17 +210,17 @@ pub fn post_api_keys_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `post_api_keys_execute()` or `post_api_keys`.
+/// For direct execution, use `create_api_key_execute()` or `create_api_key`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `post_api_keys_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `create_api_key_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_api_keys_task(
+pub fn create_api_key_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -266,21 +279,21 @@ pub fn post_api_keys_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `post_api_keys_builder()` to create the builder,
+/// For full customization, use `create_api_key_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `post_api_keys_task()`.
-/// For the simplest API, use `post_api_keys()`.
+/// For task-level control, use `create_api_key_task()`.
+/// For the simplest API, use `create_api_key()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `post_api_keys_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `create_api_key_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn post_api_keys_execute(
+pub fn create_api_key_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ApiKeyCreateResponse>, ApiError>, P = ApiPending>
@@ -288,51 +301,54 @@ pub fn post_api_keys_execute(
         + 'static,
     ApiError,
 > {
-    let task = post_api_keys_task(builder)?;
+    let task = create_api_key_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`post_api_keys`].
+/// Arguments for [`create_api_key`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct PostApiKeysArgs {
+pub struct CreateApiKeyArgs {
     /// Request body.
-    pub body: serde_json::Value,
+    pub body: ApiKeyCreateRequest,
 }
 
 /// POST /api_keys
 /// Create API key
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `post_api_keys_builder()` + `post_api_keys_execute()`.
-/// For task-level control, use `post_api_keys_task()`.
+/// For customization, use `create_api_key_builder()` + `create_api_key_execute()`.
+/// For task-level control, use `create_api_key_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_api_keys(
+pub fn create_api_key(
     client: &SimpleHttpClient,
-    args: &PostApiKeysArgs,
+    args: &CreateApiKeyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ApiKeyCreateResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = post_api_keys_builder(client, &args.body)?;
-    post_api_keys_execute(builder)
+    let builder = create_api_key_builder(client, &args.body)?;
+    create_api_key_execute(builder)
 }
 
 /// DELETE /api_keys/{key_id}
 /// Revoke API key
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `delete_api_keys_key_id_execute()` to send, or `delete_api_keys_key_id` for simplest API.
+/// Use `revoke_api_key_execute()` to send, or `revoke_api_key` for simplest API.
 
-pub fn delete_api_keys_key_id_builder(
-    client: &SimpleHttpClient,
-    key_id: &i64,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn revoke_api_key_builder<R>(
+    client: &SimpleHttpClient<R>,
+    key_id: &String,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://console.neon.tech/api/v2/api_keys/{}", key_id,);
 
@@ -355,17 +371,17 @@ pub fn delete_api_keys_key_id_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `delete_api_keys_key_id_execute()` or `delete_api_keys_key_id`.
+/// For direct execution, use `revoke_api_key_execute()` or `revoke_api_key`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `delete_api_keys_key_id_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `revoke_api_key_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn delete_api_keys_key_id_task(
+pub fn revoke_api_key_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -424,21 +440,21 @@ pub fn delete_api_keys_key_id_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `delete_api_keys_key_id_builder()` to create the builder,
+/// For full customization, use `revoke_api_key_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `delete_api_keys_key_id_task()`.
-/// For the simplest API, use `delete_api_keys_key_id()`.
+/// For task-level control, use `revoke_api_key_task()`.
+/// For the simplest API, use `revoke_api_key()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `delete_api_keys_key_id_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `revoke_api_key_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn delete_api_keys_key_id_execute(
+pub fn revoke_api_key_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ApiKeyRevokeResponse>, ApiError>, P = ApiPending>
@@ -446,50 +462,53 @@ pub fn delete_api_keys_key_id_execute(
         + 'static,
     ApiError,
 > {
-    let task = delete_api_keys_key_id_task(builder)?;
+    let task = revoke_api_key_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`delete_api_keys_key_id`].
+/// Arguments for [`revoke_api_key`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DeleteApiKeysKeyIdArgs {
+pub struct RevokeApiKeyArgs {
     /// Path parameter: key_id
-    pub key_id: i64,
+    pub key_id: String,
 }
 
 /// DELETE /api_keys/{key_id}
 /// Revoke API key
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `delete_api_keys_key_id_builder()` + `delete_api_keys_key_id_execute()`.
-/// For task-level control, use `delete_api_keys_key_id_task()`.
+/// For customization, use `revoke_api_key_builder()` + `revoke_api_key_execute()`.
+/// For task-level control, use `revoke_api_key_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn delete_api_keys_key_id(
+pub fn revoke_api_key(
     client: &SimpleHttpClient,
-    args: &DeleteApiKeysKeyIdArgs,
+    args: &RevokeApiKeyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ApiKeyRevokeResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = delete_api_keys_key_id_builder(client, &args.key_id)?;
-    delete_api_keys_key_id_execute(builder)
+    let builder = revoke_api_key_builder(client, &args.key_id)?;
+    revoke_api_key_execute(builder)
 }
 
 /// GET /auth
 /// Get request authentication details
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `get_auth_execute()` to send, or `get_auth` for simplest API.
+/// Use `get_auth_details_execute()` to send, or `get_auth_details` for simplest API.
 
-pub fn get_auth_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn get_auth_details_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://console.neon.tech/api/v2/auth",);
 
@@ -512,17 +531,17 @@ pub fn get_auth_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `get_auth_execute()` or `get_auth`.
+/// For direct execution, use `get_auth_details_execute()` or `get_auth_details`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `get_auth_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_auth_details_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_auth_task(
+pub fn get_auth_details_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -581,21 +600,21 @@ pub fn get_auth_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `get_auth_builder()` to create the builder,
+/// For full customization, use `get_auth_details_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `get_auth_task()`.
-/// For the simplest API, use `get_auth()`.
+/// For task-level control, use `get_auth_details_task()`.
+/// For the simplest API, use `get_auth_details()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `get_auth_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_auth_details_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn get_auth_execute(
+pub fn get_auth_details_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AuthDetailsResponse>, ApiError>, P = ApiPending>
@@ -603,7 +622,7 @@ pub fn get_auth_execute(
         + 'static,
     ApiError,
 > {
-    let task = get_auth_task(builder)?;
+    let task = get_auth_details_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -611,14 +630,14 @@ pub fn get_auth_execute(
 /// Get request authentication details
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `get_auth_builder()` + `get_auth_execute()`.
-/// For task-level control, use `get_auth_task()`.
+/// For customization, use `get_auth_details_builder()` + `get_auth_details_execute()`.
+/// For task-level control, use `get_auth_details_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_auth(
+pub fn get_auth_details(
     client: &SimpleHttpClient,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AuthDetailsResponse>, ApiError>, P = ApiPending>
@@ -626,25 +645,28 @@ pub fn get_auth(
         + 'static,
     ApiError,
 > {
-    let builder = get_auth_builder(client)?;
-    get_auth_execute(builder)
+    let builder = get_auth_details_builder(client)?;
+    get_auth_details_execute(builder)
 }
 
 /// GET /consumption_history/account
 /// Retrieve account consumption metrics (legacy plans)
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `get_consumption_history_account_execute()` to send, or `get_consumption_history_account` for simplest API.
+/// Use `get_consumption_history_per_account_execute()` to send, or `get_consumption_history_per_account` for simplest API.
 
-pub fn get_consumption_history_account_builder(
-    client: &SimpleHttpClient,
-    from: &Option<String>,
-    to: &Option<String>,
-    granularity: &Option<String>,
-    org_id: &Option<String>,
-    include_v1_metrics: &Option<bool>,
-    metrics: &Option<String>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn get_consumption_history_per_account_builder<R>(
+    client: &SimpleHttpClient<R>,
+    from: &Option<Option<String>>,
+    to: &Option<Option<String>>,
+    granularity: &Option<Option<String>>,
+    org_id: &Option<Option<String>>,
+    include_v1_metrics: &Option<Option<String>>,
+    metrics: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://console.neon.tech/api/v2/consumption_history/account",);
 
@@ -693,17 +715,17 @@ pub fn get_consumption_history_account_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `get_consumption_history_account_execute()` or `get_consumption_history_account`.
+/// For direct execution, use `get_consumption_history_per_account_execute()` or `get_consumption_history_per_account`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `get_consumption_history_account_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_consumption_history_per_account_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_consumption_history_account_task(
+pub fn get_consumption_history_per_account_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -762,21 +784,21 @@ pub fn get_consumption_history_account_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `get_consumption_history_account_builder()` to create the builder,
+/// For full customization, use `get_consumption_history_per_account_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `get_consumption_history_account_task()`.
-/// For the simplest API, use `get_consumption_history_account()`.
+/// For task-level control, use `get_consumption_history_per_account_task()`.
+/// For the simplest API, use `get_consumption_history_per_account()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `get_consumption_history_account_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_consumption_history_per_account_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn get_consumption_history_account_execute(
+pub fn get_consumption_history_per_account_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<
@@ -786,41 +808,41 @@ pub fn get_consumption_history_account_execute(
         + 'static,
     ApiError,
 > {
-    let task = get_consumption_history_account_task(builder)?;
+    let task = get_consumption_history_per_account_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`get_consumption_history_account`].
+/// Arguments for [`get_consumption_history_per_account`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct GetConsumptionHistoryAccountArgs {
+pub struct GetConsumptionHistoryPerAccountArgs {
     /// Query parameter: from
-    pub from: Option<String>,
+    pub from: Option<Option<String>>,
     /// Query parameter: to
-    pub to: Option<String>,
+    pub to: Option<Option<String>>,
     /// Query parameter: granularity
-    pub granularity: Option<String>,
+    pub granularity: Option<Option<String>>,
     /// Query parameter: org_id
-    pub org_id: Option<String>,
+    pub org_id: Option<Option<String>>,
     /// Query parameter: include_v1_metrics
-    pub include_v1_metrics: Option<bool>,
+    pub include_v1_metrics: Option<Option<String>>,
     /// Query parameter: metrics
-    pub metrics: Option<String>,
+    pub metrics: Option<Option<String>>,
 }
 
 /// GET /consumption_history/account
 /// Retrieve account consumption metrics (legacy plans)
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `get_consumption_history_account_builder()` + `get_consumption_history_account_execute()`.
-/// For task-level control, use `get_consumption_history_account_task()`.
+/// For customization, use `get_consumption_history_per_account_builder()` + `get_consumption_history_per_account_execute()`.
+/// For task-level control, use `get_consumption_history_per_account_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_consumption_history_account(
+pub fn get_consumption_history_per_account(
     client: &SimpleHttpClient,
-    args: &GetConsumptionHistoryAccountArgs,
+    args: &GetConsumptionHistoryPerAccountArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ConsumptionHistoryPerAccountResponse>, ApiError>,
@@ -829,7 +851,7 @@ pub fn get_consumption_history_account(
         + 'static,
     ApiError,
 > {
-    let builder = get_consumption_history_account_builder(
+    let builder = get_consumption_history_per_account_builder(
         client,
         &args.from,
         &args.to,
@@ -838,27 +860,30 @@ pub fn get_consumption_history_account(
         &args.include_v1_metrics,
         &args.metrics,
     )?;
-    get_consumption_history_account_execute(builder)
+    get_consumption_history_per_account_execute(builder)
 }
 
 /// GET /consumption_history/projects
 /// Retrieve project consumption metrics (legacy plans)
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `get_consumption_history_projects_execute()` to send, or `get_consumption_history_projects` for simplest API.
+/// Use `get_consumption_history_per_project_execute()` to send, or `get_consumption_history_per_project` for simplest API.
 
-pub fn get_consumption_history_projects_builder(
-    client: &SimpleHttpClient,
-    cursor: &Option<String>,
-    limit: &Option<i32>,
-    project_ids: &Option<Vec<String>>,
-    from: &Option<String>,
-    to: &Option<String>,
-    granularity: &Option<String>,
-    org_id: &Option<String>,
-    include_v1_metrics: &Option<bool>,
-    metrics: &Option<String>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn get_consumption_history_per_project_builder<R>(
+    client: &SimpleHttpClient<R>,
+    cursor: &Option<Option<String>>,
+    limit: &Option<Option<String>>,
+    project_ids: &Option<Option<String>>,
+    from: &Option<Option<String>>,
+    to: &Option<Option<String>>,
+    granularity: &Option<Option<String>>,
+    org_id: &Option<Option<String>>,
+    include_v1_metrics: &Option<Option<String>>,
+    metrics: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://console.neon.tech/api/v2/consumption_history/projects",);
 
@@ -870,10 +895,8 @@ pub fn get_consumption_history_projects_builder(
     if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(vals) = project_ids.as_ref() {
-        for val in vals {
-            query_parts.push(format!("project_ids={}", val));
-        }
+    if let Some(val) = project_ids.as_ref() {
+        query_parts.push(format!("project_ids={}", val));
     }
     if let Some(val) = from.as_ref() {
         query_parts.push(format!("from={}", val));
@@ -918,21 +941,21 @@ pub fn get_consumption_history_projects_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `get_consumption_history_projects_execute()` or `get_consumption_history_projects`.
+/// For direct execution, use `get_consumption_history_per_project_execute()` or `get_consumption_history_per_project`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `get_consumption_history_projects_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_consumption_history_per_project_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_consumption_history_projects_task(
+pub fn get_consumption_history_per_project_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            Ready = Result<ApiResponse<serde_json::Value>, ApiError>,
+            Ready = Result<ApiResponse<()>, ApiError>,
             Pending = ApiPending,
             Spawner = BoxedSendExecutionAction,
         > + Send
@@ -967,13 +990,10 @@ pub fn get_consumption_history_projects_task(
                 }
 
                 let body = body_reader::collect_string(stream);
-                let parsed: serde_json::Value = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
                 Ok(ApiResponse {
                     status: status_code as u16,
                     headers: headers.clone(),
-                    body: parsed,
+                    body: (),
                 })
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
@@ -987,76 +1007,72 @@ pub fn get_consumption_history_projects_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `get_consumption_history_projects_builder()` to create the builder,
+/// For full customization, use `get_consumption_history_per_project_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `get_consumption_history_projects_task()`.
-/// For the simplest API, use `get_consumption_history_projects()`.
+/// For task-level control, use `get_consumption_history_per_project_task()`.
+/// For the simplest API, use `get_consumption_history_per_project()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `get_consumption_history_projects_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_consumption_history_per_project_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn get_consumption_history_projects_execute(
+pub fn get_consumption_history_per_project_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<serde_json::Value>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let task = get_consumption_history_projects_task(builder)?;
+    let task = get_consumption_history_per_project_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`get_consumption_history_projects`].
+/// Arguments for [`get_consumption_history_per_project`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct GetConsumptionHistoryProjectsArgs {
+pub struct GetConsumptionHistoryPerProjectArgs {
     /// Query parameter: cursor
-    pub cursor: Option<String>,
+    pub cursor: Option<Option<String>>,
     /// Query parameter: limit
-    pub limit: Option<i32>,
+    pub limit: Option<Option<String>>,
     /// Query parameter: project_ids
-    pub project_ids: Option<Vec<String>>,
+    pub project_ids: Option<Option<String>>,
     /// Query parameter: from
-    pub from: Option<String>,
+    pub from: Option<Option<String>>,
     /// Query parameter: to
-    pub to: Option<String>,
+    pub to: Option<Option<String>>,
     /// Query parameter: granularity
-    pub granularity: Option<String>,
+    pub granularity: Option<Option<String>>,
     /// Query parameter: org_id
-    pub org_id: Option<String>,
+    pub org_id: Option<Option<String>>,
     /// Query parameter: include_v1_metrics
-    pub include_v1_metrics: Option<bool>,
+    pub include_v1_metrics: Option<Option<String>>,
     /// Query parameter: metrics
-    pub metrics: Option<String>,
+    pub metrics: Option<Option<String>>,
 }
 
 /// GET /consumption_history/projects
 /// Retrieve project consumption metrics (legacy plans)
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `get_consumption_history_projects_builder()` + `get_consumption_history_projects_execute()`.
-/// For task-level control, use `get_consumption_history_projects_task()`.
+/// For customization, use `get_consumption_history_per_project_builder()` + `get_consumption_history_per_project_execute()`.
+/// For task-level control, use `get_consumption_history_per_project_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_consumption_history_projects(
+pub fn get_consumption_history_per_project(
     client: &SimpleHttpClient,
-    args: &GetConsumptionHistoryProjectsArgs,
+    args: &GetConsumptionHistoryPerProjectArgs,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<serde_json::Value>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = get_consumption_history_projects_builder(
+    let builder = get_consumption_history_per_project_builder(
         client,
         &args.cursor,
         &args.limit,
@@ -1068,26 +1084,29 @@ pub fn get_consumption_history_projects(
         &args.include_v1_metrics,
         &args.metrics,
     )?;
-    get_consumption_history_projects_execute(builder)
+    get_consumption_history_per_project_execute(builder)
 }
 
 /// GET /consumption_history/v2/projects
 /// Retrieve project consumption metrics
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `get_consumption_history_v2_projects_execute()` to send, or `get_consumption_history_v2_projects` for simplest API.
+/// Use `get_consumption_history_per_project_v2_execute()` to send, or `get_consumption_history_per_project_v2` for simplest API.
 
-pub fn get_consumption_history_v2_projects_builder(
-    client: &SimpleHttpClient,
-    cursor: &Option<String>,
-    limit: &Option<i32>,
-    project_ids: &Option<Vec<String>>,
-    from: &Option<String>,
-    to: &Option<String>,
-    granularity: &Option<String>,
-    org_id: &Option<String>,
-    metrics: &Option<String>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn get_consumption_history_per_project_v2_builder<R>(
+    client: &SimpleHttpClient<R>,
+    cursor: &Option<Option<String>>,
+    limit: &Option<Option<String>>,
+    project_ids: &Option<Option<String>>,
+    from: &Option<Option<String>>,
+    to: &Option<Option<String>>,
+    granularity: &Option<Option<String>>,
+    org_id: &Option<Option<String>>,
+    metrics: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://console.neon.tech/api/v2/consumption_history/v2/projects",);
 
@@ -1099,10 +1118,8 @@ pub fn get_consumption_history_v2_projects_builder(
     if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(vals) = project_ids.as_ref() {
-        for val in vals {
-            query_parts.push(format!("project_ids={}", val));
-        }
+    if let Some(val) = project_ids.as_ref() {
+        query_parts.push(format!("project_ids={}", val));
     }
     if let Some(val) = from.as_ref() {
         query_parts.push(format!("from={}", val));
@@ -1144,17 +1161,359 @@ pub fn get_consumption_history_v2_projects_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `get_consumption_history_v2_projects_execute()` or `get_consumption_history_v2_projects`.
+/// For direct execution, use `get_consumption_history_per_project_v2_execute()` or `get_consumption_history_per_project_v2`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `get_consumption_history_v2_projects_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_consumption_history_per_project_v2_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_consumption_history_v2_projects_task(
+pub fn get_consumption_history_per_project_v2_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: (),
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET /consumption_history/v2/projects
+/// Retrieve project consumption metrics
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_consumption_history_per_project_v2_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_consumption_history_per_project_v2_task()`.
+/// For the simplest API, use `get_consumption_history_per_project_v2()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_consumption_history_per_project_v2_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_consumption_history_per_project_v2_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = get_consumption_history_per_project_v2_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`get_consumption_history_per_project_v2`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetConsumptionHistoryPerProjectV2Args {
+    /// Query parameter: cursor
+    pub cursor: Option<Option<String>>,
+    /// Query parameter: limit
+    pub limit: Option<Option<String>>,
+    /// Query parameter: project_ids
+    pub project_ids: Option<Option<String>>,
+    /// Query parameter: from
+    pub from: Option<Option<String>>,
+    /// Query parameter: to
+    pub to: Option<Option<String>>,
+    /// Query parameter: granularity
+    pub granularity: Option<Option<String>>,
+    /// Query parameter: org_id
+    pub org_id: Option<Option<String>>,
+    /// Query parameter: metrics
+    pub metrics: Option<Option<String>>,
+}
+
+/// GET /consumption_history/v2/projects
+/// Retrieve project consumption metrics
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `get_consumption_history_per_project_v2_builder()` + `get_consumption_history_per_project_v2_execute()`.
+/// For task-level control, use `get_consumption_history_per_project_v2_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn get_consumption_history_per_project_v2(
+    client: &SimpleHttpClient,
+    args: &GetConsumptionHistoryPerProjectV2Args,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = get_consumption_history_per_project_v2_builder(
+        client,
+        &args.cursor,
+        &args.limit,
+        &args.project_ids,
+        &args.from,
+        &args.to,
+        &args.granularity,
+        &args.org_id,
+        &args.metrics,
+    )?;
+    get_consumption_history_per_project_v2_execute(builder)
+}
+
+/// GET /organizations/{org_id}
+/// Retrieve organization details
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `get_organization_execute()` to send, or `get_organization` for simplest API.
+
+pub fn get_organization_builder<R>(
+    client: &SimpleHttpClient<R>,
+    org_id: &String,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
+    // Build URL
+    let endpoint_url = format!("https://console.neon.tech/api/v2/organizations/{}", org_id,);
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET /organizations/{org_id}
+/// Retrieve organization details
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_organization_execute()` or `get_organization`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organization_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn get_organization_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Organization>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Organization = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET /organizations/{org_id}
+/// Retrieve organization details
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_organization_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_organization_task()`.
+/// For the simplest API, use `get_organization()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organization_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_organization_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Organization>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = get_organization_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`get_organization`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetOrganizationArgs {
+    /// Path parameter: org_id
+    pub org_id: String,
+}
+
+/// GET /organizations/{org_id}
+/// Retrieve organization details
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `get_organization_builder()` + `get_organization_execute()`.
+/// For task-level control, use `get_organization_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn get_organization(
+    client: &SimpleHttpClient,
+    args: &GetOrganizationArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Organization>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = get_organization_builder(client, &args.org_id)?;
+    get_organization_execute(builder)
+}
+
+/// GET /organizations/{org_id}/api_keys
+/// List organization API keys
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `list_org_api_keys_execute()` to send, or `list_org_api_keys` for simplest API.
+
+pub fn list_org_api_keys_builder<R>(
+    client: &SimpleHttpClient<R>,
+    org_id: &String,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
+    // Build URL
+    let endpoint_url = format!(
+        "https://console.neon.tech/api/v2/organizations/{}/api_keys",
+        org_id,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET /organizations/{org_id}/api_keys
+/// List organization API keys
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `list_org_api_keys_execute()` or `list_org_api_keys`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `list_org_api_keys_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn list_org_api_keys_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -1207,27 +1566,27 @@ pub fn get_consumption_history_v2_projects_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET /consumption_history/v2/projects
-/// Retrieve project consumption metrics
+/// GET /organizations/{org_id}/api_keys
+/// List organization API keys
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `get_consumption_history_v2_projects_builder()` to create the builder,
+/// For full customization, use `list_org_api_keys_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `get_consumption_history_v2_projects_task()`.
-/// For the simplest API, use `get_consumption_history_v2_projects()`.
+/// For task-level control, use `list_org_api_keys_task()`.
+/// For the simplest API, use `list_org_api_keys()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `get_consumption_history_v2_projects_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `list_org_api_keys_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn get_consumption_history_v2_projects_execute(
+pub fn list_org_api_keys_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<serde_json::Value>, ApiError>, P = ApiPending>
@@ -1235,79 +1594,2431 @@ pub fn get_consumption_history_v2_projects_execute(
         + 'static,
     ApiError,
 > {
-    let task = get_consumption_history_v2_projects_task(builder)?;
+    let task = list_org_api_keys_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`get_consumption_history_v2_projects`].
+/// Arguments for [`list_org_api_keys`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct GetConsumptionHistoryV2ProjectsArgs {
-    /// Query parameter: cursor
-    pub cursor: Option<String>,
-    /// Query parameter: limit
-    pub limit: Option<i32>,
-    /// Query parameter: project_ids
-    pub project_ids: Option<Vec<String>>,
-    /// Query parameter: from
-    pub from: Option<String>,
-    /// Query parameter: to
-    pub to: Option<String>,
-    /// Query parameter: granularity
-    pub granularity: Option<String>,
-    /// Query parameter: org_id
-    pub org_id: Option<String>,
-    /// Query parameter: metrics
-    pub metrics: Option<String>,
+pub struct ListOrgApiKeysArgs {
+    /// Path parameter: org_id
+    pub org_id: String,
 }
 
-/// GET /consumption_history/v2/projects
-/// Retrieve project consumption metrics
+/// GET /organizations/{org_id}/api_keys
+/// List organization API keys
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `get_consumption_history_v2_projects_builder()` + `get_consumption_history_v2_projects_execute()`.
-/// For task-level control, use `get_consumption_history_v2_projects_task()`.
+/// For customization, use `list_org_api_keys_builder()` + `list_org_api_keys_execute()`.
+/// For task-level control, use `list_org_api_keys_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_consumption_history_v2_projects(
+pub fn list_org_api_keys(
     client: &SimpleHttpClient,
-    args: &GetConsumptionHistoryV2ProjectsArgs,
+    args: &ListOrgApiKeysArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<serde_json::Value>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = get_consumption_history_v2_projects_builder(
+    let builder = list_org_api_keys_builder(client, &args.org_id)?;
+    list_org_api_keys_execute(builder)
+}
+
+/// POST /organizations/{org_id}/api_keys
+/// Create organization API key
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `create_org_api_key_execute()` to send, or `create_org_api_key` for simplest API.
+
+pub fn create_org_api_key_builder<R>(
+    client: &SimpleHttpClient<R>,
+    org_id: &String,
+    body: &OrgApiKeyCreateRequest,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
+    // Build URL
+    let endpoint_url = format!(
+        "https://console.neon.tech/api/v2/organizations/{}/api_keys",
+        org_id,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder
+        .body_json(body)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// POST /organizations/{org_id}/api_keys
+/// Create organization API key
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `create_org_api_key_execute()` or `create_org_api_key`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `create_org_api_key_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn create_org_api_key_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<OrgApiKeyCreateResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: OrgApiKeyCreateResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST /organizations/{org_id}/api_keys
+/// Create organization API key
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `create_org_api_key_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `create_org_api_key_task()`.
+/// For the simplest API, use `create_org_api_key()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `create_org_api_key_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn create_org_api_key_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<OrgApiKeyCreateResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = create_org_api_key_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`create_org_api_key`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CreateOrgApiKeyArgs {
+    /// Path parameter: org_id
+    pub org_id: String,
+    /// Request body.
+    pub body: OrgApiKeyCreateRequest,
+}
+
+/// POST /organizations/{org_id}/api_keys
+/// Create organization API key
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `create_org_api_key_builder()` + `create_org_api_key_execute()`.
+/// For task-level control, use `create_org_api_key_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn create_org_api_key(
+    client: &SimpleHttpClient,
+    args: &CreateOrgApiKeyArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<OrgApiKeyCreateResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = create_org_api_key_builder(client, &args.org_id, &args.body)?;
+    create_org_api_key_execute(builder)
+}
+
+/// DELETE /organizations/{org_id}/api_keys/{key_id}
+/// Revoke organization API key
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `revoke_org_api_key_execute()` to send, or `revoke_org_api_key` for simplest API.
+
+pub fn revoke_org_api_key_builder<R>(
+    client: &SimpleHttpClient<R>,
+    key_id: &String,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
+    // Build URL
+    let endpoint_url = format!(
+        "https://console.neon.tech/api/v2/organizations/{}/api_keys/{key_id}",
+        key_id,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE /organizations/{org_id}/api_keys/{key_id}
+/// Revoke organization API key
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `revoke_org_api_key_execute()` or `revoke_org_api_key`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `revoke_org_api_key_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn revoke_org_api_key_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<OrgApiKeyRevokeResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: OrgApiKeyRevokeResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE /organizations/{org_id}/api_keys/{key_id}
+/// Revoke organization API key
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `revoke_org_api_key_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `revoke_org_api_key_task()`.
+/// For the simplest API, use `revoke_org_api_key()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `revoke_org_api_key_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn revoke_org_api_key_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<OrgApiKeyRevokeResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = revoke_org_api_key_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`revoke_org_api_key`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RevokeOrgApiKeyArgs {
+    /// Path parameter: key_id
+    pub key_id: String,
+}
+
+/// DELETE /organizations/{org_id}/api_keys/{key_id}
+/// Revoke organization API key
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `revoke_org_api_key_builder()` + `revoke_org_api_key_execute()`.
+/// For task-level control, use `revoke_org_api_key_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn revoke_org_api_key(
+    client: &SimpleHttpClient,
+    args: &RevokeOrgApiKeyArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<OrgApiKeyRevokeResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = revoke_org_api_key_builder(client, &args.key_id)?;
+    revoke_org_api_key_execute(builder)
+}
+
+/// GET /organizations/{org_id}/invitations
+/// Retrieve organization invitation details
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `get_organization_invitations_execute()` to send, or `get_organization_invitations` for simplest API.
+
+pub fn get_organization_invitations_builder<R>(
+    client: &SimpleHttpClient<R>,
+    org_id: &String,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
+    // Build URL
+    let endpoint_url = format!(
+        "https://console.neon.tech/api/v2/organizations/{}/invitations",
+        org_id,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET /organizations/{org_id}/invitations
+/// Retrieve organization invitation details
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_organization_invitations_execute()` or `get_organization_invitations`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organization_invitations_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn get_organization_invitations_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<OrganizationInvitationsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: OrganizationInvitationsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET /organizations/{org_id}/invitations
+/// Retrieve organization invitation details
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_organization_invitations_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_organization_invitations_task()`.
+/// For the simplest API, use `get_organization_invitations()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organization_invitations_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_organization_invitations_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<OrganizationInvitationsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = get_organization_invitations_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`get_organization_invitations`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetOrganizationInvitationsArgs {
+    /// Path parameter: org_id
+    pub org_id: String,
+}
+
+/// GET /organizations/{org_id}/invitations
+/// Retrieve organization invitation details
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `get_organization_invitations_builder()` + `get_organization_invitations_execute()`.
+/// For task-level control, use `get_organization_invitations_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn get_organization_invitations(
+    client: &SimpleHttpClient,
+    args: &GetOrganizationInvitationsArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<OrganizationInvitationsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = get_organization_invitations_builder(client, &args.org_id)?;
+    get_organization_invitations_execute(builder)
+}
+
+/// POST /organizations/{org_id}/invitations
+/// Create organization invitations
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `create_organization_invitations_execute()` to send, or `create_organization_invitations` for simplest API.
+
+pub fn create_organization_invitations_builder<R>(
+    client: &SimpleHttpClient<R>,
+    org_id: &String,
+    body: &OrganizationInvitesCreateRequest,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
+    // Build URL
+    let endpoint_url = format!(
+        "https://console.neon.tech/api/v2/organizations/{}/invitations",
+        org_id,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder
+        .body_json(body)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// POST /organizations/{org_id}/invitations
+/// Create organization invitations
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `create_organization_invitations_execute()` or `create_organization_invitations`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `create_organization_invitations_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn create_organization_invitations_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<OrganizationInvitationsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: OrganizationInvitationsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST /organizations/{org_id}/invitations
+/// Create organization invitations
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `create_organization_invitations_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `create_organization_invitations_task()`.
+/// For the simplest API, use `create_organization_invitations()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `create_organization_invitations_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn create_organization_invitations_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<OrganizationInvitationsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = create_organization_invitations_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`create_organization_invitations`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CreateOrganizationInvitationsArgs {
+    /// Path parameter: org_id
+    pub org_id: String,
+    /// Request body.
+    pub body: OrganizationInvitesCreateRequest,
+}
+
+/// POST /organizations/{org_id}/invitations
+/// Create organization invitations
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `create_organization_invitations_builder()` + `create_organization_invitations_execute()`.
+/// For task-level control, use `create_organization_invitations_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn create_organization_invitations(
+    client: &SimpleHttpClient,
+    args: &CreateOrganizationInvitationsArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<OrganizationInvitationsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = create_organization_invitations_builder(client, &args.org_id, &args.body)?;
+    create_organization_invitations_execute(builder)
+}
+
+/// GET /organizations/{org_id}/members
+/// Retrieve organization members details
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `get_organization_members_execute()` to send, or `get_organization_members` for simplest API.
+
+pub fn get_organization_members_builder<R>(
+    client: &SimpleHttpClient<R>,
+    org_id: &String,
+    sort_by: &Option<Option<String>>,
+    limit: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
+    // Build URL
+    let endpoint_url = format!(
+        "https://console.neon.tech/api/v2/organizations/{}/members",
+        org_id,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = sort_by.as_ref() {
+        query_parts.push(format!("sort_by={}", val));
+    }
+    if let Some(val) = limit.as_ref() {
+        query_parts.push(format!("limit={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET /organizations/{org_id}/members
+/// Retrieve organization members details
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_organization_members_execute()` or `get_organization_members`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organization_members_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn get_organization_members_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: (),
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET /organizations/{org_id}/members
+/// Retrieve organization members details
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_organization_members_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_organization_members_task()`.
+/// For the simplest API, use `get_organization_members()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organization_members_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_organization_members_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = get_organization_members_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`get_organization_members`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetOrganizationMembersArgs {
+    /// Path parameter: org_id
+    pub org_id: String,
+    /// Query parameter: sort_by
+    pub sort_by: Option<Option<String>>,
+    /// Query parameter: limit
+    pub limit: Option<Option<String>>,
+}
+
+/// GET /organizations/{org_id}/members
+/// Retrieve organization members details
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `get_organization_members_builder()` + `get_organization_members_execute()`.
+/// For task-level control, use `get_organization_members_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn get_organization_members(
+    client: &SimpleHttpClient,
+    args: &GetOrganizationMembersArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        get_organization_members_builder(client, &args.org_id, &args.sort_by, &args.limit)?;
+    get_organization_members_execute(builder)
+}
+
+/// GET /organizations/{org_id}/members/{member_id}
+/// Retrieve organization member details
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `get_organization_member_execute()` to send, or `get_organization_member` for simplest API.
+
+pub fn get_organization_member_builder<R>(
+    client: &SimpleHttpClient<R>,
+    org_id: &String,
+    member_id: &String,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
+    // Build URL
+    let endpoint_url = format!(
+        "https://console.neon.tech/api/v2/organizations/{}/members/{}",
+        org_id, member_id,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET /organizations/{org_id}/members/{member_id}
+/// Retrieve organization member details
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_organization_member_execute()` or `get_organization_member`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organization_member_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn get_organization_member_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Member>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Member = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET /organizations/{org_id}/members/{member_id}
+/// Retrieve organization member details
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_organization_member_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_organization_member_task()`.
+/// For the simplest API, use `get_organization_member()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organization_member_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_organization_member_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Member>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = get_organization_member_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`get_organization_member`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetOrganizationMemberArgs {
+    /// Path parameter: org_id
+    pub org_id: String,
+    /// Path parameter: member_id
+    pub member_id: String,
+}
+
+/// GET /organizations/{org_id}/members/{member_id}
+/// Retrieve organization member details
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `get_organization_member_builder()` + `get_organization_member_execute()`.
+/// For task-level control, use `get_organization_member_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn get_organization_member(
+    client: &SimpleHttpClient,
+    args: &GetOrganizationMemberArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Member>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = get_organization_member_builder(client, &args.org_id, &args.member_id)?;
+    get_organization_member_execute(builder)
+}
+
+/// PATCH /organizations/{org_id}/members/{member_id}
+/// Update role for organization member
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `update_organization_member_execute()` to send, or `update_organization_member` for simplest API.
+
+pub fn update_organization_member_builder<R>(
+    client: &SimpleHttpClient<R>,
+    org_id: &String,
+    member_id: &String,
+    body: &OrganizationMemberUpdateRequest,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
+    // Build URL
+    let endpoint_url = format!(
+        "https://console.neon.tech/api/v2/organizations/{}/members/{}",
+        org_id, member_id,
+    );
+
+    // Build request
+    let builder = client
+        .patch(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder
+        .body_json(body)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// PATCH /organizations/{org_id}/members/{member_id}
+/// Update role for organization member
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `update_organization_member_execute()` or `update_organization_member`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `update_organization_member_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn update_organization_member_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Member>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Member = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH /organizations/{org_id}/members/{member_id}
+/// Update role for organization member
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `update_organization_member_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `update_organization_member_task()`.
+/// For the simplest API, use `update_organization_member()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `update_organization_member_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn update_organization_member_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Member>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = update_organization_member_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`update_organization_member`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct UpdateOrganizationMemberArgs {
+    /// Path parameter: org_id
+    pub org_id: String,
+    /// Path parameter: member_id
+    pub member_id: String,
+    /// Request body.
+    pub body: OrganizationMemberUpdateRequest,
+}
+
+/// PATCH /organizations/{org_id}/members/{member_id}
+/// Update role for organization member
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `update_organization_member_builder()` + `update_organization_member_execute()`.
+/// For task-level control, use `update_organization_member_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn update_organization_member(
+    client: &SimpleHttpClient,
+    args: &UpdateOrganizationMemberArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Member>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        update_organization_member_builder(client, &args.org_id, &args.member_id, &args.body)?;
+    update_organization_member_execute(builder)
+}
+
+/// DELETE /organizations/{org_id}/members/{member_id}
+/// Remove member from the organization
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `remove_organization_member_execute()` to send, or `remove_organization_member` for simplest API.
+
+pub fn remove_organization_member_builder<R>(
+    client: &SimpleHttpClient<R>,
+    org_id: &String,
+    member_id: &String,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
+    // Build URL
+    let endpoint_url = format!(
+        "https://console.neon.tech/api/v2/organizations/{}/members/{}",
+        org_id, member_id,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE /organizations/{org_id}/members/{member_id}
+/// Remove member from the organization
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `remove_organization_member_execute()` or `remove_organization_member`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `remove_organization_member_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn remove_organization_member_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<EmptyResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: EmptyResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE /organizations/{org_id}/members/{member_id}
+/// Remove member from the organization
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `remove_organization_member_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `remove_organization_member_task()`.
+/// For the simplest API, use `remove_organization_member()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `remove_organization_member_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn remove_organization_member_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<EmptyResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = remove_organization_member_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`remove_organization_member`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RemoveOrganizationMemberArgs {
+    /// Path parameter: org_id
+    pub org_id: String,
+    /// Path parameter: member_id
+    pub member_id: String,
+}
+
+/// DELETE /organizations/{org_id}/members/{member_id}
+/// Remove member from the organization
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `remove_organization_member_builder()` + `remove_organization_member_execute()`.
+/// For task-level control, use `remove_organization_member_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn remove_organization_member(
+    client: &SimpleHttpClient,
+    args: &RemoveOrganizationMemberArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<EmptyResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = remove_organization_member_builder(client, &args.org_id, &args.member_id)?;
+    remove_organization_member_execute(builder)
+}
+
+/// GET /organizations/{org_id}/vpc/region/{region_id}/vpc_endpoints
+/// List VPC endpoints
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `list_organization_vpcendpoints_execute()` to send, or `list_organization_vpcendpoints` for simplest API.
+
+pub fn list_organization_vpcendpoints_builder<R>(
+    client: &SimpleHttpClient<R>,
+    org_id: &String,
+    region_id: &String,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
+    // Build URL
+    let endpoint_url = format!(
+        "https://console.neon.tech/api/v2/organizations/{}/vpc/region/{}/vpc_endpoints",
+        org_id, region_id,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET /organizations/{org_id}/vpc/region/{region_id}/vpc_endpoints
+/// List VPC endpoints
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `list_organization_vpcendpoints_execute()` or `list_organization_vpcendpoints`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `list_organization_vpcendpoints_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn list_organization_vpcendpoints_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<VPCEndpointsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: VPCEndpointsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET /organizations/{org_id}/vpc/region/{region_id}/vpc_endpoints
+/// List VPC endpoints
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `list_organization_vpcendpoints_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `list_organization_vpcendpoints_task()`.
+/// For the simplest API, use `list_organization_vpcendpoints()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `list_organization_vpcendpoints_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn list_organization_vpcendpoints_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<VPCEndpointsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = list_organization_vpcendpoints_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`list_organization_vpcendpoints`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ListOrganizationVpcendpointsArgs {
+    /// Path parameter: org_id
+    pub org_id: String,
+    /// Path parameter: region_id
+    pub region_id: String,
+}
+
+/// GET /organizations/{org_id}/vpc/region/{region_id}/vpc_endpoints
+/// List VPC endpoints
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `list_organization_vpcendpoints_builder()` + `list_organization_vpcendpoints_execute()`.
+/// For task-level control, use `list_organization_vpcendpoints_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn list_organization_vpcendpoints(
+    client: &SimpleHttpClient,
+    args: &ListOrganizationVpcendpointsArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<VPCEndpointsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = list_organization_vpcendpoints_builder(client, &args.org_id, &args.region_id)?;
+    list_organization_vpcendpoints_execute(builder)
+}
+
+/// GET /organizations/{org_id}/vpc/region/{region_id}/vpc_endpoints/{vpc_endpoint_id}
+/// Retrieve VPC endpoint details
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `get_organization_vpcendpoint_details_execute()` to send, or `get_organization_vpcendpoint_details` for simplest API.
+
+pub fn get_organization_vpcendpoint_details_builder<R>(
+    client: &SimpleHttpClient<R>,
+    org_id: &String,
+    region_id: &String,
+    vpc_endpoint_id: &String,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
+    // Build URL
+    let endpoint_url = format!(
+        "https://console.neon.tech/api/v2/organizations/{}/vpc/region/{}/vpc_endpoints/{}",
+        org_id, region_id, vpc_endpoint_id,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET /organizations/{org_id}/vpc/region/{region_id}/vpc_endpoints/{vpc_endpoint_id}
+/// Retrieve VPC endpoint details
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_organization_vpcendpoint_details_execute()` or `get_organization_vpcendpoint_details`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organization_vpcendpoint_details_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn get_organization_vpcendpoint_details_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<VPCEndpointDetails>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: VPCEndpointDetails = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET /organizations/{org_id}/vpc/region/{region_id}/vpc_endpoints/{vpc_endpoint_id}
+/// Retrieve VPC endpoint details
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_organization_vpcendpoint_details_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_organization_vpcendpoint_details_task()`.
+/// For the simplest API, use `get_organization_vpcendpoint_details()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organization_vpcendpoint_details_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_organization_vpcendpoint_details_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<VPCEndpointDetails>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = get_organization_vpcendpoint_details_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`get_organization_vpcendpoint_details`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetOrganizationVpcendpointDetailsArgs {
+    /// Path parameter: org_id
+    pub org_id: String,
+    /// Path parameter: region_id
+    pub region_id: String,
+    /// Path parameter: vpc_endpoint_id
+    pub vpc_endpoint_id: String,
+}
+
+/// GET /organizations/{org_id}/vpc/region/{region_id}/vpc_endpoints/{vpc_endpoint_id}
+/// Retrieve VPC endpoint details
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `get_organization_vpcendpoint_details_builder()` + `get_organization_vpcendpoint_details_execute()`.
+/// For task-level control, use `get_organization_vpcendpoint_details_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn get_organization_vpcendpoint_details(
+    client: &SimpleHttpClient,
+    args: &GetOrganizationVpcendpointDetailsArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<VPCEndpointDetails>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = get_organization_vpcendpoint_details_builder(
         client,
-        &args.cursor,
-        &args.limit,
-        &args.project_ids,
-        &args.from,
-        &args.to,
-        &args.granularity,
         &args.org_id,
-        &args.metrics,
+        &args.region_id,
+        &args.vpc_endpoint_id,
     )?;
-    get_consumption_history_v2_projects_execute(builder)
+    get_organization_vpcendpoint_details_execute(builder)
+}
+
+/// POST /organizations/{org_id}/vpc/region/{region_id}/vpc_endpoints/{vpc_endpoint_id}
+/// Assign or update VPC endpoint
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `assign_organization_vpcendpoint_execute()` to send, or `assign_organization_vpcendpoint` for simplest API.
+
+pub fn assign_organization_vpcendpoint_builder<R>(
+    client: &SimpleHttpClient<R>,
+    org_id: &String,
+    region_id: &String,
+    vpc_endpoint_id: &String,
+    body: &VPCEndpointAssignment,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
+    // Build URL
+    let endpoint_url = format!(
+        "https://console.neon.tech/api/v2/organizations/{}/vpc/region/{}/vpc_endpoints/{}",
+        org_id, region_id, vpc_endpoint_id,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder
+        .body_json(body)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// POST /organizations/{org_id}/vpc/region/{region_id}/vpc_endpoints/{vpc_endpoint_id}
+/// Assign or update VPC endpoint
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `assign_organization_vpcendpoint_execute()` or `assign_organization_vpcendpoint`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `assign_organization_vpcendpoint_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn assign_organization_vpcendpoint_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: (),
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST /organizations/{org_id}/vpc/region/{region_id}/vpc_endpoints/{vpc_endpoint_id}
+/// Assign or update VPC endpoint
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `assign_organization_vpcendpoint_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `assign_organization_vpcendpoint_task()`.
+/// For the simplest API, use `assign_organization_vpcendpoint()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `assign_organization_vpcendpoint_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn assign_organization_vpcendpoint_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = assign_organization_vpcendpoint_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`assign_organization_vpcendpoint`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AssignOrganizationVpcendpointArgs {
+    /// Path parameter: org_id
+    pub org_id: String,
+    /// Path parameter: region_id
+    pub region_id: String,
+    /// Path parameter: vpc_endpoint_id
+    pub vpc_endpoint_id: String,
+    /// Request body.
+    pub body: VPCEndpointAssignment,
+}
+
+/// POST /organizations/{org_id}/vpc/region/{region_id}/vpc_endpoints/{vpc_endpoint_id}
+/// Assign or update VPC endpoint
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `assign_organization_vpcendpoint_builder()` + `assign_organization_vpcendpoint_execute()`.
+/// For task-level control, use `assign_organization_vpcendpoint_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn assign_organization_vpcendpoint(
+    client: &SimpleHttpClient,
+    args: &AssignOrganizationVpcendpointArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = assign_organization_vpcendpoint_builder(
+        client,
+        &args.org_id,
+        &args.region_id,
+        &args.vpc_endpoint_id,
+        &args.body,
+    )?;
+    assign_organization_vpcendpoint_execute(builder)
+}
+
+/// DELETE /organizations/{org_id}/vpc/region/{region_id}/vpc_endpoints/{vpc_endpoint_id}
+/// Delete VPC endpoint
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `delete_organization_vpcendpoint_execute()` to send, or `delete_organization_vpcendpoint` for simplest API.
+
+pub fn delete_organization_vpcendpoint_builder<R>(
+    client: &SimpleHttpClient<R>,
+    org_id: &String,
+    region_id: &String,
+    vpc_endpoint_id: &String,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
+    // Build URL
+    let endpoint_url = format!(
+        "https://console.neon.tech/api/v2/organizations/{}/vpc/region/{}/vpc_endpoints/{}",
+        org_id, region_id, vpc_endpoint_id,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE /organizations/{org_id}/vpc/region/{region_id}/vpc_endpoints/{vpc_endpoint_id}
+/// Delete VPC endpoint
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `delete_organization_vpcendpoint_execute()` or `delete_organization_vpcendpoint`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_organization_vpcendpoint_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn delete_organization_vpcendpoint_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: (),
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE /organizations/{org_id}/vpc/region/{region_id}/vpc_endpoints/{vpc_endpoint_id}
+/// Delete VPC endpoint
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `delete_organization_vpcendpoint_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `delete_organization_vpcendpoint_task()`.
+/// For the simplest API, use `delete_organization_vpcendpoint()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_organization_vpcendpoint_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn delete_organization_vpcendpoint_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = delete_organization_vpcendpoint_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`delete_organization_vpcendpoint`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DeleteOrganizationVpcendpointArgs {
+    /// Path parameter: org_id
+    pub org_id: String,
+    /// Path parameter: region_id
+    pub region_id: String,
+    /// Path parameter: vpc_endpoint_id
+    pub vpc_endpoint_id: String,
+}
+
+/// DELETE /organizations/{org_id}/vpc/region/{region_id}/vpc_endpoints/{vpc_endpoint_id}
+/// Delete VPC endpoint
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `delete_organization_vpcendpoint_builder()` + `delete_organization_vpcendpoint_execute()`.
+/// For task-level control, use `delete_organization_vpcendpoint_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn delete_organization_vpcendpoint(
+    client: &SimpleHttpClient,
+    args: &DeleteOrganizationVpcendpointArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = delete_organization_vpcendpoint_builder(
+        client,
+        &args.org_id,
+        &args.region_id,
+        &args.vpc_endpoint_id,
+    )?;
+    delete_organization_vpcendpoint_execute(builder)
+}
+
+/// GET /organizations/{org_id}/vpc/vpc_endpoints
+/// List VPC endpoints across all regions
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `list_organization_vpcendpoints_all_regions_execute()` to send, or `list_organization_vpcendpoints_all_regions` for simplest API.
+
+pub fn list_organization_vpcendpoints_all_regions_builder<R>(
+    client: &SimpleHttpClient<R>,
+    org_id: &String,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
+    // Build URL
+    let endpoint_url = format!(
+        "https://console.neon.tech/api/v2/organizations/{}/vpc/vpc_endpoints",
+        org_id,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET /organizations/{org_id}/vpc/vpc_endpoints
+/// List VPC endpoints across all regions
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `list_organization_vpcendpoints_all_regions_execute()` or `list_organization_vpcendpoints_all_regions`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `list_organization_vpcendpoints_all_regions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn list_organization_vpcendpoints_all_regions_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<VPCEndpointsWithRegionResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: VPCEndpointsWithRegionResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET /organizations/{org_id}/vpc/vpc_endpoints
+/// List VPC endpoints across all regions
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `list_organization_vpcendpoints_all_regions_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `list_organization_vpcendpoints_all_regions_task()`.
+/// For the simplest API, use `list_organization_vpcendpoints_all_regions()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `list_organization_vpcendpoints_all_regions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn list_organization_vpcendpoints_all_regions_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<VPCEndpointsWithRegionResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = list_organization_vpcendpoints_all_regions_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`list_organization_vpcendpoints_all_regions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ListOrganizationVpcendpointsAllRegionsArgs {
+    /// Path parameter: org_id
+    pub org_id: String,
+}
+
+/// GET /organizations/{org_id}/vpc/vpc_endpoints
+/// List VPC endpoints across all regions
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `list_organization_vpcendpoints_all_regions_builder()` + `list_organization_vpcendpoints_all_regions_execute()`.
+/// For task-level control, use `list_organization_vpcendpoints_all_regions_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn list_organization_vpcendpoints_all_regions(
+    client: &SimpleHttpClient,
+    args: &ListOrganizationVpcendpointsAllRegionsArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<VPCEndpointsWithRegionResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = list_organization_vpcendpoints_all_regions_builder(client, &args.org_id)?;
+    list_organization_vpcendpoints_all_regions_execute(builder)
+}
+
+/// POST /organizations/{source_org_id}/projects/transfer
+/// Transfer projects between organizations
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `transfer_projects_from_org_to_org_execute()` to send, or `transfer_projects_from_org_to_org` for simplest API.
+
+pub fn transfer_projects_from_org_to_org_builder<R>(
+    client: &SimpleHttpClient<R>,
+    source_org_id: &String,
+    body: &TransferProjectsToOrganizationRequest,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
+    // Build URL
+    let endpoint_url = format!(
+        "https://console.neon.tech/api/v2/organizations/{}/projects/transfer",
+        source_org_id,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder
+        .body_json(body)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// POST /organizations/{source_org_id}/projects/transfer
+/// Transfer projects between organizations
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `transfer_projects_from_org_to_org_execute()` or `transfer_projects_from_org_to_org`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `transfer_projects_from_org_to_org_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn transfer_projects_from_org_to_org_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<EmptyResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: EmptyResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST /organizations/{source_org_id}/projects/transfer
+/// Transfer projects between organizations
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `transfer_projects_from_org_to_org_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `transfer_projects_from_org_to_org_task()`.
+/// For the simplest API, use `transfer_projects_from_org_to_org()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `transfer_projects_from_org_to_org_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn transfer_projects_from_org_to_org_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<EmptyResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = transfer_projects_from_org_to_org_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`transfer_projects_from_org_to_org`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TransferProjectsFromOrgToOrgArgs {
+    /// Path parameter: source_org_id
+    pub source_org_id: String,
+    /// Request body.
+    pub body: TransferProjectsToOrganizationRequest,
+}
+
+/// POST /organizations/{source_org_id}/projects/transfer
+/// Transfer projects between organizations
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `transfer_projects_from_org_to_org_builder()` + `transfer_projects_from_org_to_org_execute()`.
+/// For task-level control, use `transfer_projects_from_org_to_org_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn transfer_projects_from_org_to_org(
+    client: &SimpleHttpClient,
+    args: &TransferProjectsFromOrgToOrgArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<EmptyResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        transfer_projects_from_org_to_org_builder(client, &args.source_org_id, &args.body)?;
+    transfer_projects_from_org_to_org_execute(builder)
 }
 
 /// GET /projects
 /// List projects
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `get_projects_execute()` to send, or `get_projects` for simplest API.
+/// Use `list_projects_execute()` to send, or `list_projects` for simplest API.
 
-pub fn get_projects_builder(
-    client: &SimpleHttpClient,
-    cursor: &Option<String>,
-    limit: &Option<i32>,
-    search: &Option<String>,
-    org_id: &Option<String>,
-    recoverable: &Option<bool>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn list_projects_builder<R>(
+    client: &SimpleHttpClient<R>,
+    cursor: &Option<Option<String>>,
+    limit: &Option<Option<String>>,
+    search: &Option<Option<String>>,
+    org_id: &Option<Option<String>>,
+    recoverable: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://console.neon.tech/api/v2/projects",);
 
@@ -1353,21 +4064,21 @@ pub fn get_projects_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `get_projects_execute()` or `get_projects`.
+/// For direct execution, use `list_projects_execute()` or `list_projects`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `get_projects_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `list_projects_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_projects_task(
+pub fn list_projects_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            Ready = Result<ApiResponse<serde_json::Value>, ApiError>,
+            Ready = Result<ApiResponse<()>, ApiError>,
             Pending = ApiPending,
             Spawner = BoxedSendExecutionAction,
         > + Send
@@ -1402,13 +4113,10 @@ pub fn get_projects_task(
                 }
 
                 let body = body_reader::collect_string(stream);
-                let parsed: serde_json::Value = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
                 Ok(ApiResponse {
                     status: status_code as u16,
                     headers: headers.clone(),
-                    body: parsed,
+                    body: (),
                 })
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
@@ -1422,68 +4130,64 @@ pub fn get_projects_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `get_projects_builder()` to create the builder,
+/// For full customization, use `list_projects_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `get_projects_task()`.
-/// For the simplest API, use `get_projects()`.
+/// For task-level control, use `list_projects_task()`.
+/// For the simplest API, use `list_projects()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `get_projects_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `list_projects_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn get_projects_execute(
+pub fn list_projects_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<serde_json::Value>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let task = get_projects_task(builder)?;
+    let task = list_projects_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`get_projects`].
+/// Arguments for [`list_projects`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct GetProjectsArgs {
+pub struct ListProjectsArgs {
     /// Query parameter: cursor
-    pub cursor: Option<String>,
+    pub cursor: Option<Option<String>>,
     /// Query parameter: limit
-    pub limit: Option<i32>,
+    pub limit: Option<Option<String>>,
     /// Query parameter: search
-    pub search: Option<String>,
+    pub search: Option<Option<String>>,
     /// Query parameter: org_id
-    pub org_id: Option<String>,
+    pub org_id: Option<Option<String>>,
     /// Query parameter: recoverable
-    pub recoverable: Option<bool>,
+    pub recoverable: Option<Option<String>>,
 }
 
 /// GET /projects
 /// List projects
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `get_projects_builder()` + `get_projects_execute()`.
-/// For task-level control, use `get_projects_task()`.
+/// For customization, use `list_projects_builder()` + `list_projects_execute()`.
+/// For task-level control, use `list_projects_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_projects(
+pub fn list_projects(
     client: &SimpleHttpClient,
-    args: &GetProjectsArgs,
+    args: &ListProjectsArgs,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<serde_json::Value>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = get_projects_builder(
+    let builder = list_projects_builder(
         client,
         &args.cursor,
         &args.limit,
@@ -1491,19 +4195,22 @@ pub fn get_projects(
         &args.org_id,
         &args.recoverable,
     )?;
-    get_projects_execute(builder)
+    list_projects_execute(builder)
 }
 
 /// POST /projects
 /// Create project
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `post_projects_execute()` to send, or `post_projects` for simplest API.
+/// Use `create_project_execute()` to send, or `create_project` for simplest API.
 
-pub fn post_projects_builder(
-    client: &SimpleHttpClient,
-    body: &serde_json::Value,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn create_project_builder<R>(
+    client: &SimpleHttpClient<R>,
+    body: &ProjectCreateRequest,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://console.neon.tech/api/v2/projects",);
 
@@ -1528,17 +4235,17 @@ pub fn post_projects_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `post_projects_execute()` or `post_projects`.
+/// For direct execution, use `create_project_execute()` or `create_project`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `post_projects_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `create_project_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_projects_task(
+pub fn create_project_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -1594,69 +4301,72 @@ pub fn post_projects_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `post_projects_builder()` to create the builder,
+/// For full customization, use `create_project_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `post_projects_task()`.
-/// For the simplest API, use `post_projects()`.
+/// For task-level control, use `create_project_task()`.
+/// For the simplest API, use `create_project()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `post_projects_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `create_project_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn post_projects_execute(
+pub fn create_project_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let task = post_projects_task(builder)?;
+    let task = create_project_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`post_projects`].
+/// Arguments for [`create_project`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct PostProjectsArgs {
+pub struct CreateProjectArgs {
     /// Request body.
-    pub body: serde_json::Value,
+    pub body: ProjectCreateRequest,
 }
 
 /// POST /projects
 /// Create project
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `post_projects_builder()` + `post_projects_execute()`.
-/// For task-level control, use `post_projects_task()`.
+/// For customization, use `create_project_builder()` + `create_project_execute()`.
+/// For task-level control, use `create_project_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_projects(
+pub fn create_project(
     client: &SimpleHttpClient,
-    args: &PostProjectsArgs,
+    args: &CreateProjectArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_projects_builder(client, &args.body)?;
-    post_projects_execute(builder)
+    let builder = create_project_builder(client, &args.body)?;
+    create_project_execute(builder)
 }
 
 /// POST /projects/auth/create
 /// Create Neon Auth integration
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `post_projects_auth_create_execute()` to send, or `post_projects_auth_create` for simplest API.
+/// Use `create_neon_auth_integration_execute()` to send, or `create_neon_auth_integration` for simplest API.
 
-pub fn post_projects_auth_create_builder(
-    client: &SimpleHttpClient,
-    body: &serde_json::Value,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn create_neon_auth_integration_builder<R>(
+    client: &SimpleHttpClient<R>,
+    body: &NeonAuthCreateIntegrationRequest,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://console.neon.tech/api/v2/projects/auth/create",);
 
@@ -1681,17 +4391,17 @@ pub fn post_projects_auth_create_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `post_projects_auth_create_execute()` or `post_projects_auth_create`.
+/// For direct execution, use `create_neon_auth_integration_execute()` or `create_neon_auth_integration`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `post_projects_auth_create_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `create_neon_auth_integration_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_projects_auth_create_task(
+pub fn create_neon_auth_integration_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -1750,21 +4460,21 @@ pub fn post_projects_auth_create_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `post_projects_auth_create_builder()` to create the builder,
+/// For full customization, use `create_neon_auth_integration_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `post_projects_auth_create_task()`.
-/// For the simplest API, use `post_projects_auth_create()`.
+/// For task-level control, use `create_neon_auth_integration_task()`.
+/// For the simplest API, use `create_neon_auth_integration()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `post_projects_auth_create_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `create_neon_auth_integration_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn post_projects_auth_create_execute(
+pub fn create_neon_auth_integration_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<
@@ -1774,31 +4484,31 @@ pub fn post_projects_auth_create_execute(
         + 'static,
     ApiError,
 > {
-    let task = post_projects_auth_create_task(builder)?;
+    let task = create_neon_auth_integration_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`post_projects_auth_create`].
+/// Arguments for [`create_neon_auth_integration`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct PostProjectsAuthCreateArgs {
+pub struct CreateNeonAuthIntegrationArgs {
     /// Request body.
-    pub body: serde_json::Value,
+    pub body: NeonAuthCreateIntegrationRequest,
 }
 
 /// POST /projects/auth/create
 /// Create Neon Auth integration
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `post_projects_auth_create_builder()` + `post_projects_auth_create_execute()`.
-/// For task-level control, use `post_projects_auth_create_task()`.
+/// For customization, use `create_neon_auth_integration_builder()` + `create_neon_auth_integration_execute()`.
+/// For task-level control, use `create_neon_auth_integration_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_projects_auth_create(
+pub fn create_neon_auth_integration(
     client: &SimpleHttpClient,
-    args: &PostProjectsAuthCreateArgs,
+    args: &CreateNeonAuthIntegrationArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<NeonAuthCreateIntegrationResponse>, ApiError>,
@@ -1807,20 +4517,23 @@ pub fn post_projects_auth_create(
         + 'static,
     ApiError,
 > {
-    let builder = post_projects_auth_create_builder(client, &args.body)?;
-    post_projects_auth_create_execute(builder)
+    let builder = create_neon_auth_integration_builder(client, &args.body)?;
+    create_neon_auth_integration_execute(builder)
 }
 
 /// POST /projects/auth/keys
 /// Create Auth Provider SDK keys
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `post_projects_auth_keys_execute()` to send, or `post_projects_auth_keys` for simplest API.
+/// Use `create_neon_auth_provider_sdkkeys_execute()` to send, or `create_neon_auth_provider_sdkkeys` for simplest API.
 
-pub fn post_projects_auth_keys_builder(
-    client: &SimpleHttpClient,
-    body: &serde_json::Value,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn create_neon_auth_provider_sdkkeys_builder<R>(
+    client: &SimpleHttpClient<R>,
+    body: &NeonAuthCreateAuthProviderSDKKeysRequest,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://console.neon.tech/api/v2/projects/auth/keys",);
 
@@ -1845,17 +4558,17 @@ pub fn post_projects_auth_keys_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `post_projects_auth_keys_execute()` or `post_projects_auth_keys`.
+/// For direct execution, use `create_neon_auth_provider_sdkkeys_execute()` or `create_neon_auth_provider_sdkkeys`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `post_projects_auth_keys_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `create_neon_auth_provider_sdkkeys_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_projects_auth_keys_task(
+pub fn create_neon_auth_provider_sdkkeys_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -1914,21 +4627,21 @@ pub fn post_projects_auth_keys_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `post_projects_auth_keys_builder()` to create the builder,
+/// For full customization, use `create_neon_auth_provider_sdkkeys_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `post_projects_auth_keys_task()`.
-/// For the simplest API, use `post_projects_auth_keys()`.
+/// For task-level control, use `create_neon_auth_provider_sdkkeys_task()`.
+/// For the simplest API, use `create_neon_auth_provider_sdkkeys()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `post_projects_auth_keys_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `create_neon_auth_provider_sdkkeys_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn post_projects_auth_keys_execute(
+pub fn create_neon_auth_provider_sdkkeys_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<
@@ -1938,31 +4651,31 @@ pub fn post_projects_auth_keys_execute(
         + 'static,
     ApiError,
 > {
-    let task = post_projects_auth_keys_task(builder)?;
+    let task = create_neon_auth_provider_sdkkeys_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`post_projects_auth_keys`].
+/// Arguments for [`create_neon_auth_provider_sdkkeys`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct PostProjectsAuthKeysArgs {
+pub struct CreateNeonAuthProviderSdkkeysArgs {
     /// Request body.
-    pub body: serde_json::Value,
+    pub body: NeonAuthCreateAuthProviderSDKKeysRequest,
 }
 
 /// POST /projects/auth/keys
 /// Create Auth Provider SDK keys
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `post_projects_auth_keys_builder()` + `post_projects_auth_keys_execute()`.
-/// For task-level control, use `post_projects_auth_keys_task()`.
+/// For customization, use `create_neon_auth_provider_sdkkeys_builder()` + `create_neon_auth_provider_sdkkeys_execute()`.
+/// For task-level control, use `create_neon_auth_provider_sdkkeys_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_projects_auth_keys(
+pub fn create_neon_auth_provider_sdkkeys(
     client: &SimpleHttpClient,
-    args: &PostProjectsAuthKeysArgs,
+    args: &CreateNeonAuthProviderSdkkeysArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<NeonAuthCreateIntegrationResponse>, ApiError>,
@@ -1971,20 +4684,23 @@ pub fn post_projects_auth_keys(
         + 'static,
     ApiError,
 > {
-    let builder = post_projects_auth_keys_builder(client, &args.body)?;
-    post_projects_auth_keys_execute(builder)
+    let builder = create_neon_auth_provider_sdkkeys_builder(client, &args.body)?;
+    create_neon_auth_provider_sdkkeys_execute(builder)
 }
 
 /// POST /projects/auth/transfer_ownership
 /// Transfer Neon-managed auth project to your own account
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `post_projects_auth_transfer_ownership_execute()` to send, or `post_projects_auth_transfer_ownership` for simplest API.
+/// Use `transfer_neon_auth_provider_project_execute()` to send, or `transfer_neon_auth_provider_project` for simplest API.
 
-pub fn post_projects_auth_transfer_ownership_builder(
-    client: &SimpleHttpClient,
-    body: &serde_json::Value,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn transfer_neon_auth_provider_project_builder<R>(
+    client: &SimpleHttpClient<R>,
+    body: &NeonAuthTransferAuthProviderProjectRequest,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://console.neon.tech/api/v2/projects/auth/transfer_ownership",);
@@ -2010,17 +4726,17 @@ pub fn post_projects_auth_transfer_ownership_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `post_projects_auth_transfer_ownership_execute()` or `post_projects_auth_transfer_ownership`.
+/// For direct execution, use `transfer_neon_auth_provider_project_execute()` or `transfer_neon_auth_provider_project`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `post_projects_auth_transfer_ownership_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `transfer_neon_auth_provider_project_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_projects_auth_transfer_ownership_task(
+pub fn transfer_neon_auth_provider_project_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -2080,21 +4796,21 @@ pub fn post_projects_auth_transfer_ownership_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `post_projects_auth_transfer_ownership_builder()` to create the builder,
+/// For full customization, use `transfer_neon_auth_provider_project_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `post_projects_auth_transfer_ownership_task()`.
-/// For the simplest API, use `post_projects_auth_transfer_ownership()`.
+/// For task-level control, use `transfer_neon_auth_provider_project_task()`.
+/// For the simplest API, use `transfer_neon_auth_provider_project()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `post_projects_auth_transfer_ownership_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `transfer_neon_auth_provider_project_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn post_projects_auth_transfer_ownership_execute(
+pub fn transfer_neon_auth_provider_project_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<
@@ -2104,31 +4820,31 @@ pub fn post_projects_auth_transfer_ownership_execute(
         + 'static,
     ApiError,
 > {
-    let task = post_projects_auth_transfer_ownership_task(builder)?;
+    let task = transfer_neon_auth_provider_project_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`post_projects_auth_transfer_ownership`].
+/// Arguments for [`transfer_neon_auth_provider_project`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct PostProjectsAuthTransferOwnershipArgs {
+pub struct TransferNeonAuthProviderProjectArgs {
     /// Request body.
-    pub body: serde_json::Value,
+    pub body: NeonAuthTransferAuthProviderProjectRequest,
 }
 
 /// POST /projects/auth/transfer_ownership
 /// Transfer Neon-managed auth project to your own account
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `post_projects_auth_transfer_ownership_builder()` + `post_projects_auth_transfer_ownership_execute()`.
-/// For task-level control, use `post_projects_auth_transfer_ownership_task()`.
+/// For customization, use `transfer_neon_auth_provider_project_builder()` + `transfer_neon_auth_provider_project_execute()`.
+/// For task-level control, use `transfer_neon_auth_provider_project_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_projects_auth_transfer_ownership(
+pub fn transfer_neon_auth_provider_project(
     client: &SimpleHttpClient,
-    args: &PostProjectsAuthTransferOwnershipArgs,
+    args: &TransferNeonAuthProviderProjectArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<NeonAuthTransferAuthProviderProjectResponse>, ApiError>,
@@ -2137,20 +4853,23 @@ pub fn post_projects_auth_transfer_ownership(
         + 'static,
     ApiError,
 > {
-    let builder = post_projects_auth_transfer_ownership_builder(client, &args.body)?;
-    post_projects_auth_transfer_ownership_execute(builder)
+    let builder = transfer_neon_auth_provider_project_builder(client, &args.body)?;
+    transfer_neon_auth_provider_project_execute(builder)
 }
 
 /// POST /projects/auth/user
 /// Create new auth user
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `post_projects_auth_user_execute()` to send, or `post_projects_auth_user` for simplest API.
+/// Use `create_neon_auth_new_user_execute()` to send, or `create_neon_auth_new_user` for simplest API.
 
-pub fn post_projects_auth_user_builder(
-    client: &SimpleHttpClient,
-    body: &serde_json::Value,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn create_neon_auth_new_user_builder<R>(
+    client: &SimpleHttpClient<R>,
+    body: &NeonAuthCreateNewUserRequest,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://console.neon.tech/api/v2/projects/auth/user",);
 
@@ -2175,17 +4894,17 @@ pub fn post_projects_auth_user_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `post_projects_auth_user_execute()` or `post_projects_auth_user`.
+/// For direct execution, use `create_neon_auth_new_user_execute()` or `create_neon_auth_new_user`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `post_projects_auth_user_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `create_neon_auth_new_user_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_projects_auth_user_task(
+pub fn create_neon_auth_new_user_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -2244,21 +4963,21 @@ pub fn post_projects_auth_user_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `post_projects_auth_user_builder()` to create the builder,
+/// For full customization, use `create_neon_auth_new_user_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `post_projects_auth_user_task()`.
-/// For the simplest API, use `post_projects_auth_user()`.
+/// For task-level control, use `create_neon_auth_new_user_task()`.
+/// For the simplest API, use `create_neon_auth_new_user()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `post_projects_auth_user_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `create_neon_auth_new_user_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn post_projects_auth_user_execute(
+pub fn create_neon_auth_new_user_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<
@@ -2268,31 +4987,31 @@ pub fn post_projects_auth_user_execute(
         + 'static,
     ApiError,
 > {
-    let task = post_projects_auth_user_task(builder)?;
+    let task = create_neon_auth_new_user_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`post_projects_auth_user`].
+/// Arguments for [`create_neon_auth_new_user`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct PostProjectsAuthUserArgs {
+pub struct CreateNeonAuthNewUserArgs {
     /// Request body.
-    pub body: serde_json::Value,
+    pub body: NeonAuthCreateNewUserRequest,
 }
 
 /// POST /projects/auth/user
 /// Create new auth user
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `post_projects_auth_user_builder()` + `post_projects_auth_user_execute()`.
-/// For task-level control, use `post_projects_auth_user_task()`.
+/// For customization, use `create_neon_auth_new_user_builder()` + `create_neon_auth_new_user_execute()`.
+/// For task-level control, use `create_neon_auth_new_user_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_projects_auth_user(
+pub fn create_neon_auth_new_user(
     client: &SimpleHttpClient,
-    args: &PostProjectsAuthUserArgs,
+    args: &CreateNeonAuthNewUserArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<NeonAuthCreateNewUserResponse>, ApiError>,
@@ -2301,22 +5020,25 @@ pub fn post_projects_auth_user(
         + 'static,
     ApiError,
 > {
-    let builder = post_projects_auth_user_builder(client, &args.body)?;
-    post_projects_auth_user_execute(builder)
+    let builder = create_neon_auth_new_user_builder(client, &args.body)?;
+    create_neon_auth_new_user_execute(builder)
 }
 
 /// GET /projects/shared
 /// List shared projects
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `get_projects_shared_execute()` to send, or `get_projects_shared` for simplest API.
+/// Use `list_shared_projects_execute()` to send, or `list_shared_projects` for simplest API.
 
-pub fn get_projects_shared_builder(
-    client: &SimpleHttpClient,
-    cursor: &Option<String>,
-    limit: &Option<i32>,
-    search: &Option<String>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn list_shared_projects_builder<R>(
+    client: &SimpleHttpClient<R>,
+    cursor: &Option<Option<String>>,
+    limit: &Option<Option<String>>,
+    search: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://console.neon.tech/api/v2/projects/shared",);
 
@@ -2356,21 +5078,21 @@ pub fn get_projects_shared_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `get_projects_shared_execute()` or `get_projects_shared`.
+/// For direct execution, use `list_shared_projects_execute()` or `list_shared_projects`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `get_projects_shared_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `list_shared_projects_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_projects_shared_task(
+pub fn list_shared_projects_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            Ready = Result<ApiResponse<serde_json::Value>, ApiError>,
+            Ready = Result<ApiResponse<()>, ApiError>,
             Pending = ApiPending,
             Spawner = BoxedSendExecutionAction,
         > + Send
@@ -2405,13 +5127,10 @@ pub fn get_projects_shared_task(
                 }
 
                 let body = body_reader::collect_string(stream);
-                let parsed: serde_json::Value = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
                 Ok(ApiResponse {
                     status: status_code as u16,
                     headers: headers.clone(),
-                    body: parsed,
+                    body: (),
                 })
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
@@ -2425,79 +5144,1587 @@ pub fn get_projects_shared_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `get_projects_shared_builder()` to create the builder,
+/// For full customization, use `list_shared_projects_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `get_projects_shared_task()`.
-/// For the simplest API, use `get_projects_shared()`.
+/// For task-level control, use `list_shared_projects_task()`.
+/// For the simplest API, use `list_shared_projects()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `get_projects_shared_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `list_shared_projects_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn get_projects_shared_execute(
+pub fn list_shared_projects_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<serde_json::Value>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let task = get_projects_shared_task(builder)?;
+    let task = list_shared_projects_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`get_projects_shared`].
+/// Arguments for [`list_shared_projects`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct GetProjectsSharedArgs {
+pub struct ListSharedProjectsArgs {
     /// Query parameter: cursor
-    pub cursor: Option<String>,
+    pub cursor: Option<Option<String>>,
     /// Query parameter: limit
-    pub limit: Option<i32>,
+    pub limit: Option<Option<String>>,
     /// Query parameter: search
-    pub search: Option<String>,
+    pub search: Option<Option<String>>,
 }
 
 /// GET /projects/shared
 /// List shared projects
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `get_projects_shared_builder()` + `get_projects_shared_execute()`.
-/// For task-level control, use `get_projects_shared_task()`.
+/// For customization, use `list_shared_projects_builder()` + `list_shared_projects_execute()`.
+/// For task-level control, use `list_shared_projects_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_projects_shared(
+pub fn list_shared_projects(
     client: &SimpleHttpClient,
-    args: &GetProjectsSharedArgs,
+    args: &ListSharedProjectsArgs,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<serde_json::Value>, ApiError>, P = ApiPending>
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = list_shared_projects_builder(client, &args.cursor, &args.limit, &args.search)?;
+    list_shared_projects_execute(builder)
+}
+
+/// GET /projects/{project_id}
+/// Retrieve project details
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `get_project_execute()` to send, or `get_project` for simplest API.
+
+pub fn get_project_builder<R>(
+    client: &SimpleHttpClient<R>,
+    project_id: &String,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
+    // Build URL
+    let endpoint_url = format!("https://console.neon.tech/api/v2/projects/{}", project_id,);
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET /projects/{project_id}
+/// Retrieve project details
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_project_execute()` or `get_project`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_project_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn get_project_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ProjectResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ProjectResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET /projects/{project_id}
+/// Retrieve project details
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_project_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_project_task()`.
+/// For the simplest API, use `get_project()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_project_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_project_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ProjectResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = get_projects_shared_builder(client, &args.cursor, &args.limit, &args.search)?;
-    get_projects_shared_execute(builder)
+    let task = get_project_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`get_project`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetProjectArgs {
+    /// Path parameter: project_id
+    pub project_id: String,
+}
+
+/// GET /projects/{project_id}
+/// Retrieve project details
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `get_project_builder()` + `get_project_execute()`.
+/// For task-level control, use `get_project_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn get_project(
+    client: &SimpleHttpClient,
+    args: &GetProjectArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ProjectResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = get_project_builder(client, &args.project_id)?;
+    get_project_execute(builder)
+}
+
+/// PATCH /projects/{project_id}
+/// Update project
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `update_project_execute()` to send, or `update_project` for simplest API.
+
+pub fn update_project_builder<R>(
+    client: &SimpleHttpClient<R>,
+    project_id: &String,
+    body: &ProjectUpdateRequest,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
+    // Build URL
+    let endpoint_url = format!("https://console.neon.tech/api/v2/projects/{}", project_id,);
+
+    // Build request
+    let builder = client
+        .patch(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder
+        .body_json(body)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// PATCH /projects/{project_id}
+/// Update project
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `update_project_execute()` or `update_project`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `update_project_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn update_project_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: (),
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH /projects/{project_id}
+/// Update project
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `update_project_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `update_project_task()`.
+/// For the simplest API, use `update_project()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `update_project_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn update_project_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = update_project_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`update_project`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct UpdateProjectArgs {
+    /// Path parameter: project_id
+    pub project_id: String,
+    /// Request body.
+    pub body: ProjectUpdateRequest,
+}
+
+/// PATCH /projects/{project_id}
+/// Update project
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `update_project_builder()` + `update_project_execute()`.
+/// For task-level control, use `update_project_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn update_project(
+    client: &SimpleHttpClient,
+    args: &UpdateProjectArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = update_project_builder(client, &args.project_id, &args.body)?;
+    update_project_execute(builder)
+}
+
+/// DELETE /projects/{project_id}
+/// Delete project
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `delete_project_execute()` to send, or `delete_project` for simplest API.
+
+pub fn delete_project_builder<R>(
+    client: &SimpleHttpClient<R>,
+    project_id: &String,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
+    // Build URL
+    let endpoint_url = format!("https://console.neon.tech/api/v2/projects/{}", project_id,);
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE /projects/{project_id}
+/// Delete project
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `delete_project_execute()` or `delete_project`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_project_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn delete_project_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ProjectResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ProjectResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE /projects/{project_id}
+/// Delete project
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `delete_project_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `delete_project_task()`.
+/// For the simplest API, use `delete_project()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_project_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn delete_project_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ProjectResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = delete_project_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`delete_project`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DeleteProjectArgs {
+    /// Path parameter: project_id
+    pub project_id: String,
+}
+
+/// DELETE /projects/{project_id}
+/// Delete project
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `delete_project_builder()` + `delete_project_execute()`.
+/// For task-level control, use `delete_project_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn delete_project(
+    client: &SimpleHttpClient,
+    args: &DeleteProjectArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ProjectResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = delete_project_builder(client, &args.project_id)?;
+    delete_project_execute(builder)
+}
+
+/// GET /projects/{project_id}/advisors
+/// Get advisor issues
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `get_project_advisor_security_issues_execute()` to send, or `get_project_advisor_security_issues` for simplest API.
+
+pub fn get_project_advisor_security_issues_builder<R>(
+    client: &SimpleHttpClient<R>,
+    project_id: &String,
+    branch_id: &Option<Option<String>>,
+    database_name: &Option<Option<String>>,
+    category: &Option<Option<String>>,
+    min_severity: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
+    // Build URL
+    let endpoint_url = format!(
+        "https://console.neon.tech/api/v2/projects/{}/advisors",
+        project_id,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = branch_id.as_ref() {
+        query_parts.push(format!("branch_id={}", val));
+    }
+    if let Some(val) = database_name.as_ref() {
+        query_parts.push(format!("database_name={}", val));
+    }
+    if let Some(val) = category.as_ref() {
+        query_parts.push(format!("category={}", val));
+    }
+    if let Some(val) = min_severity.as_ref() {
+        query_parts.push(format!("min_severity={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET /projects/{project_id}/advisors
+/// Get advisor issues
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_project_advisor_security_issues_execute()` or `get_project_advisor_security_issues`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_project_advisor_security_issues_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn get_project_advisor_security_issues_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: (),
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET /projects/{project_id}/advisors
+/// Get advisor issues
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_project_advisor_security_issues_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_project_advisor_security_issues_task()`.
+/// For the simplest API, use `get_project_advisor_security_issues()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_project_advisor_security_issues_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_project_advisor_security_issues_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = get_project_advisor_security_issues_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`get_project_advisor_security_issues`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetProjectAdvisorSecurityIssuesArgs {
+    /// Path parameter: project_id
+    pub project_id: String,
+    /// Query parameter: branch_id
+    pub branch_id: Option<Option<String>>,
+    /// Query parameter: database_name
+    pub database_name: Option<Option<String>>,
+    /// Query parameter: category
+    pub category: Option<Option<String>>,
+    /// Query parameter: min_severity
+    pub min_severity: Option<Option<String>>,
+}
+
+/// GET /projects/{project_id}/advisors
+/// Get advisor issues
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `get_project_advisor_security_issues_builder()` + `get_project_advisor_security_issues_execute()`.
+/// For task-level control, use `get_project_advisor_security_issues_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn get_project_advisor_security_issues(
+    client: &SimpleHttpClient,
+    args: &GetProjectAdvisorSecurityIssuesArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = get_project_advisor_security_issues_builder(
+        client,
+        &args.project_id,
+        &args.branch_id,
+        &args.database_name,
+        &args.category,
+        &args.min_severity,
+    )?;
+    get_project_advisor_security_issues_execute(builder)
+}
+
+/// GET /projects/{project_id}/auth/domains
+/// List domains in redirect_uri whitelist
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `list_neon_auth_redirect_uriwhitelist_domains_execute()` to send, or `list_neon_auth_redirect_uriwhitelist_domains` for simplest API.
+
+pub fn list_neon_auth_redirect_uriwhitelist_domains_builder<R>(
+    client: &SimpleHttpClient<R>,
+    project_id: &String,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
+    // Build URL
+    let endpoint_url = format!(
+        "https://console.neon.tech/api/v2/projects/{}/auth/domains",
+        project_id,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET /projects/{project_id}/auth/domains
+/// List domains in redirect_uri whitelist
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `list_neon_auth_redirect_uriwhitelist_domains_execute()` or `list_neon_auth_redirect_uriwhitelist_domains`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `list_neon_auth_redirect_uriwhitelist_domains_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn list_neon_auth_redirect_uriwhitelist_domains_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<NeonAuthRedirectURIWhitelistResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: NeonAuthRedirectURIWhitelistResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET /projects/{project_id}/auth/domains
+/// List domains in redirect_uri whitelist
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `list_neon_auth_redirect_uriwhitelist_domains_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `list_neon_auth_redirect_uriwhitelist_domains_task()`.
+/// For the simplest API, use `list_neon_auth_redirect_uriwhitelist_domains()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `list_neon_auth_redirect_uriwhitelist_domains_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn list_neon_auth_redirect_uriwhitelist_domains_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<NeonAuthRedirectURIWhitelistResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = list_neon_auth_redirect_uriwhitelist_domains_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`list_neon_auth_redirect_uriwhitelist_domains`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ListNeonAuthRedirectUriwhitelistDomainsArgs {
+    /// Path parameter: project_id
+    pub project_id: String,
+}
+
+/// GET /projects/{project_id}/auth/domains
+/// List domains in redirect_uri whitelist
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `list_neon_auth_redirect_uriwhitelist_domains_builder()` + `list_neon_auth_redirect_uriwhitelist_domains_execute()`.
+/// For task-level control, use `list_neon_auth_redirect_uriwhitelist_domains_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn list_neon_auth_redirect_uriwhitelist_domains(
+    client: &SimpleHttpClient,
+    args: &ListNeonAuthRedirectUriwhitelistDomainsArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<NeonAuthRedirectURIWhitelistResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = list_neon_auth_redirect_uriwhitelist_domains_builder(client, &args.project_id)?;
+    list_neon_auth_redirect_uriwhitelist_domains_execute(builder)
+}
+
+/// POST /projects/{project_id}/auth/domains
+/// Add domain to redirect_uri whitelist
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `add_neon_auth_domain_to_redirect_uriwhitelist_execute()` to send, or `add_neon_auth_domain_to_redirect_uriwhitelist` for simplest API.
+
+pub fn add_neon_auth_domain_to_redirect_uriwhitelist_builder<R>(
+    client: &SimpleHttpClient<R>,
+    project_id: &String,
+    body: &NeonAuthAddDomainToRedirectURIWhitelistRequest,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
+    // Build URL
+    let endpoint_url = format!(
+        "https://console.neon.tech/api/v2/projects/{}/auth/domains",
+        project_id,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder
+        .body_json(body)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// POST /projects/{project_id}/auth/domains
+/// Add domain to redirect_uri whitelist
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `add_neon_auth_domain_to_redirect_uriwhitelist_execute()` or `add_neon_auth_domain_to_redirect_uriwhitelist`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `add_neon_auth_domain_to_redirect_uriwhitelist_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn add_neon_auth_domain_to_redirect_uriwhitelist_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: (),
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST /projects/{project_id}/auth/domains
+/// Add domain to redirect_uri whitelist
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `add_neon_auth_domain_to_redirect_uriwhitelist_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `add_neon_auth_domain_to_redirect_uriwhitelist_task()`.
+/// For the simplest API, use `add_neon_auth_domain_to_redirect_uriwhitelist()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `add_neon_auth_domain_to_redirect_uriwhitelist_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn add_neon_auth_domain_to_redirect_uriwhitelist_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = add_neon_auth_domain_to_redirect_uriwhitelist_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`add_neon_auth_domain_to_redirect_uriwhitelist`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AddNeonAuthDomainToRedirectUriwhitelistArgs {
+    /// Path parameter: project_id
+    pub project_id: String,
+    /// Request body.
+    pub body: NeonAuthAddDomainToRedirectURIWhitelistRequest,
+}
+
+/// POST /projects/{project_id}/auth/domains
+/// Add domain to redirect_uri whitelist
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `add_neon_auth_domain_to_redirect_uriwhitelist_builder()` + `add_neon_auth_domain_to_redirect_uriwhitelist_execute()`.
+/// For task-level control, use `add_neon_auth_domain_to_redirect_uriwhitelist_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn add_neon_auth_domain_to_redirect_uriwhitelist(
+    client: &SimpleHttpClient,
+    args: &AddNeonAuthDomainToRedirectUriwhitelistArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = add_neon_auth_domain_to_redirect_uriwhitelist_builder(
+        client,
+        &args.project_id,
+        &args.body,
+    )?;
+    add_neon_auth_domain_to_redirect_uriwhitelist_execute(builder)
+}
+
+/// DELETE /projects/{project_id}/auth/domains
+/// Delete domain from redirect_uri whitelist
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `delete_neon_auth_domain_from_redirect_uriwhitelist_execute()` to send, or `delete_neon_auth_domain_from_redirect_uriwhitelist` for simplest API.
+
+pub fn delete_neon_auth_domain_from_redirect_uriwhitelist_builder<R>(
+    client: &SimpleHttpClient<R>,
+    project_id: &String,
+    body: &NeonAuthDeleteDomainFromRedirectURIWhitelistRequest,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
+    // Build URL
+    let endpoint_url = format!(
+        "https://console.neon.tech/api/v2/projects/{}/auth/domains",
+        project_id,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder
+        .body_json(body)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// DELETE /projects/{project_id}/auth/domains
+/// Delete domain from redirect_uri whitelist
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `delete_neon_auth_domain_from_redirect_uriwhitelist_execute()` or `delete_neon_auth_domain_from_redirect_uriwhitelist`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_neon_auth_domain_from_redirect_uriwhitelist_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn delete_neon_auth_domain_from_redirect_uriwhitelist_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: (),
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE /projects/{project_id}/auth/domains
+/// Delete domain from redirect_uri whitelist
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `delete_neon_auth_domain_from_redirect_uriwhitelist_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `delete_neon_auth_domain_from_redirect_uriwhitelist_task()`.
+/// For the simplest API, use `delete_neon_auth_domain_from_redirect_uriwhitelist()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_neon_auth_domain_from_redirect_uriwhitelist_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn delete_neon_auth_domain_from_redirect_uriwhitelist_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = delete_neon_auth_domain_from_redirect_uriwhitelist_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`delete_neon_auth_domain_from_redirect_uriwhitelist`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DeleteNeonAuthDomainFromRedirectUriwhitelistArgs {
+    /// Path parameter: project_id
+    pub project_id: String,
+    /// Request body.
+    pub body: NeonAuthDeleteDomainFromRedirectURIWhitelistRequest,
+}
+
+/// DELETE /projects/{project_id}/auth/domains
+/// Delete domain from redirect_uri whitelist
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `delete_neon_auth_domain_from_redirect_uriwhitelist_builder()` + `delete_neon_auth_domain_from_redirect_uriwhitelist_execute()`.
+/// For task-level control, use `delete_neon_auth_domain_from_redirect_uriwhitelist_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn delete_neon_auth_domain_from_redirect_uriwhitelist(
+    client: &SimpleHttpClient,
+    args: &DeleteNeonAuthDomainFromRedirectUriwhitelistArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = delete_neon_auth_domain_from_redirect_uriwhitelist_builder(
+        client,
+        &args.project_id,
+        &args.body,
+    )?;
+    delete_neon_auth_domain_from_redirect_uriwhitelist_execute(builder)
+}
+
+/// GET /projects/{project_id}/auth/email_server
+/// Get email server configuration
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `get_neon_auth_email_server_execute()` to send, or `get_neon_auth_email_server` for simplest API.
+
+pub fn get_neon_auth_email_server_builder<R>(
+    client: &SimpleHttpClient<R>,
+    project_id: &String,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
+    // Build URL
+    let endpoint_url = format!(
+        "https://console.neon.tech/api/v2/projects/{}/auth/email_server",
+        project_id,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET /projects/{project_id}/auth/email_server
+/// Get email server configuration
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_neon_auth_email_server_execute()` or `get_neon_auth_email_server`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_neon_auth_email_server_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn get_neon_auth_email_server_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<NeonAuthEmailServerConfig>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: NeonAuthEmailServerConfig = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET /projects/{project_id}/auth/email_server
+/// Get email server configuration
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_neon_auth_email_server_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_neon_auth_email_server_task()`.
+/// For the simplest API, use `get_neon_auth_email_server()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_neon_auth_email_server_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_neon_auth_email_server_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<NeonAuthEmailServerConfig>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = get_neon_auth_email_server_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`get_neon_auth_email_server`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetNeonAuthEmailServerArgs {
+    /// Path parameter: project_id
+    pub project_id: String,
+}
+
+/// GET /projects/{project_id}/auth/email_server
+/// Get email server configuration
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `get_neon_auth_email_server_builder()` + `get_neon_auth_email_server_execute()`.
+/// For task-level control, use `get_neon_auth_email_server_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn get_neon_auth_email_server(
+    client: &SimpleHttpClient,
+    args: &GetNeonAuthEmailServerArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<NeonAuthEmailServerConfig>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = get_neon_auth_email_server_builder(client, &args.project_id)?;
+    get_neon_auth_email_server_execute(builder)
+}
+
+/// PATCH /projects/{project_id}/auth/email_server
+/// Update email server configuration
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `update_neon_auth_email_server_execute()` to send, or `update_neon_auth_email_server` for simplest API.
+
+pub fn update_neon_auth_email_server_builder<R>(
+    client: &SimpleHttpClient<R>,
+    project_id: &String,
+    body: &NeonAuthEmailServerConfig,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
+    // Build URL
+    let endpoint_url = format!(
+        "https://console.neon.tech/api/v2/projects/{}/auth/email_server",
+        project_id,
+    );
+
+    // Build request
+    let builder = client
+        .patch(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder
+        .body_json(body)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// PATCH /projects/{project_id}/auth/email_server
+/// Update email server configuration
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `update_neon_auth_email_server_execute()` or `update_neon_auth_email_server`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `update_neon_auth_email_server_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn update_neon_auth_email_server_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<NeonAuthEmailServerConfig>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: NeonAuthEmailServerConfig = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH /projects/{project_id}/auth/email_server
+/// Update email server configuration
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `update_neon_auth_email_server_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `update_neon_auth_email_server_task()`.
+/// For the simplest API, use `update_neon_auth_email_server()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `update_neon_auth_email_server_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn update_neon_auth_email_server_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<NeonAuthEmailServerConfig>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = update_neon_auth_email_server_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`update_neon_auth_email_server`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct UpdateNeonAuthEmailServerArgs {
+    /// Path parameter: project_id
+    pub project_id: String,
+    /// Request body.
+    pub body: NeonAuthEmailServerConfig,
+}
+
+/// PATCH /projects/{project_id}/auth/email_server
+/// Update email server configuration
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `update_neon_auth_email_server_builder()` + `update_neon_auth_email_server_execute()`.
+/// For task-level control, use `update_neon_auth_email_server_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn update_neon_auth_email_server(
+    client: &SimpleHttpClient,
+    args: &UpdateNeonAuthEmailServerArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<NeonAuthEmailServerConfig>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = update_neon_auth_email_server_builder(client, &args.project_id, &args.body)?;
+    update_neon_auth_email_server_execute(builder)
 }
 
 /// DELETE /projects/{project_id}/auth/integration/{auth_provider}
 /// Delete integration with auth provider
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `delete_projects_project_id_auth_integration_auth_provider_execute()` to send, or `delete_projects_project_id_auth_integration_auth_provider` for simplest API.
+/// Use `delete_neon_auth_integration_execute()` to send, or `delete_neon_auth_integration` for simplest API.
 
-pub fn delete_projects_project_id_auth_integration_auth_provider_builder(
-    client: &SimpleHttpClient,
+pub fn delete_neon_auth_integration_builder<R>(
+    client: &SimpleHttpClient<R>,
     project_id: &String,
     auth_provider: &String,
-    body: &serde_json::Value,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://console.neon.tech/api/v2/projects/{}/auth/integration/{}",
@@ -2509,9 +6736,7 @@ pub fn delete_projects_project_id_auth_integration_auth_provider_builder(
         .delete(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
 /// DELETE /projects/{project_id}/auth/integration/{auth_provider}
@@ -2525,17 +6750,17 @@ pub fn delete_projects_project_id_auth_integration_auth_provider_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `delete_projects_project_id_auth_integration_auth_provider_execute()` or `delete_projects_project_id_auth_integration_auth_provider`.
+/// For direct execution, use `delete_neon_auth_integration_execute()` or `delete_neon_auth_integration`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `delete_projects_project_id_auth_integration_auth_provider_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_neon_auth_integration_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn delete_projects_project_id_auth_integration_auth_provider_task(
+pub fn delete_neon_auth_integration_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -2591,78 +6816,75 @@ pub fn delete_projects_project_id_auth_integration_auth_provider_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `delete_projects_project_id_auth_integration_auth_provider_builder()` to create the builder,
+/// For full customization, use `delete_neon_auth_integration_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `delete_projects_project_id_auth_integration_auth_provider_task()`.
-/// For the simplest API, use `delete_projects_project_id_auth_integration_auth_provider()`.
+/// For task-level control, use `delete_neon_auth_integration_task()`.
+/// For the simplest API, use `delete_neon_auth_integration()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `delete_projects_project_id_auth_integration_auth_provider_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_neon_auth_integration_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn delete_projects_project_id_auth_integration_auth_provider_execute(
+pub fn delete_neon_auth_integration_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let task = delete_projects_project_id_auth_integration_auth_provider_task(builder)?;
+    let task = delete_neon_auth_integration_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`delete_projects_project_id_auth_integration_auth_provider`].
+/// Arguments for [`delete_neon_auth_integration`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DeleteProjectsProjectIdAuthIntegrationAuthProviderArgs {
+pub struct DeleteNeonAuthIntegrationArgs {
     /// Path parameter: project_id
     pub project_id: String,
     /// Path parameter: auth_provider
     pub auth_provider: String,
-    /// Request body.
-    pub body: serde_json::Value,
 }
 
 /// DELETE /projects/{project_id}/auth/integration/{auth_provider}
 /// Delete integration with auth provider
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `delete_projects_project_id_auth_integration_auth_provider_builder()` + `delete_projects_project_id_auth_integration_auth_provider_execute()`.
-/// For task-level control, use `delete_projects_project_id_auth_integration_auth_provider_task()`.
+/// For customization, use `delete_neon_auth_integration_builder()` + `delete_neon_auth_integration_execute()`.
+/// For task-level control, use `delete_neon_auth_integration_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn delete_projects_project_id_auth_integration_auth_provider(
+pub fn delete_neon_auth_integration(
     client: &SimpleHttpClient,
-    args: &DeleteProjectsProjectIdAuthIntegrationAuthProviderArgs,
+    args: &DeleteNeonAuthIntegrationArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = delete_projects_project_id_auth_integration_auth_provider_builder(
-        client,
-        &args.project_id,
-        &args.auth_provider,
-        &args.body,
-    )?;
-    delete_projects_project_id_auth_integration_auth_provider_execute(builder)
+    let builder =
+        delete_neon_auth_integration_builder(client, &args.project_id, &args.auth_provider)?;
+    delete_neon_auth_integration_execute(builder)
 }
 
 /// GET /projects/{project_id}/auth/integrations
 /// Lists active integrations with auth providers
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `get_projects_project_id_auth_integrations_execute()` to send, or `get_projects_project_id_auth_integrations` for simplest API.
+/// Use `list_neon_auth_integrations_execute()` to send, or `list_neon_auth_integrations` for simplest API.
 
-pub fn get_projects_project_id_auth_integrations_builder(
-    client: &SimpleHttpClient,
+pub fn list_neon_auth_integrations_builder<R>(
+    client: &SimpleHttpClient<R>,
     project_id: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://console.neon.tech/api/v2/projects/{}/auth/integrations",
@@ -2688,17 +6910,17 @@ pub fn get_projects_project_id_auth_integrations_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `get_projects_project_id_auth_integrations_execute()` or `get_projects_project_id_auth_integrations`.
+/// For direct execution, use `list_neon_auth_integrations_execute()` or `list_neon_auth_integrations`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `get_projects_project_id_auth_integrations_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `list_neon_auth_integrations_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_projects_project_id_auth_integrations_task(
+pub fn list_neon_auth_integrations_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -2757,21 +6979,21 @@ pub fn get_projects_project_id_auth_integrations_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `get_projects_project_id_auth_integrations_builder()` to create the builder,
+/// For full customization, use `list_neon_auth_integrations_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `get_projects_project_id_auth_integrations_task()`.
-/// For the simplest API, use `get_projects_project_id_auth_integrations()`.
+/// For task-level control, use `list_neon_auth_integrations_task()`.
+/// For the simplest API, use `list_neon_auth_integrations()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `get_projects_project_id_auth_integrations_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `list_neon_auth_integrations_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn get_projects_project_id_auth_integrations_execute(
+pub fn list_neon_auth_integrations_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<
@@ -2781,13 +7003,13 @@ pub fn get_projects_project_id_auth_integrations_execute(
         + 'static,
     ApiError,
 > {
-    let task = get_projects_project_id_auth_integrations_task(builder)?;
+    let task = list_neon_auth_integrations_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`get_projects_project_id_auth_integrations`].
+/// Arguments for [`list_neon_auth_integrations`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct GetProjectsProjectIdAuthIntegrationsArgs {
+pub struct ListNeonAuthIntegrationsArgs {
     /// Path parameter: project_id
     pub project_id: String,
 }
@@ -2796,16 +7018,16 @@ pub struct GetProjectsProjectIdAuthIntegrationsArgs {
 /// Lists active integrations with auth providers
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `get_projects_project_id_auth_integrations_builder()` + `get_projects_project_id_auth_integrations_execute()`.
-/// For task-level control, use `get_projects_project_id_auth_integrations_task()`.
+/// For customization, use `list_neon_auth_integrations_builder()` + `list_neon_auth_integrations_execute()`.
+/// For task-level control, use `list_neon_auth_integrations_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_projects_project_id_auth_integrations(
+pub fn list_neon_auth_integrations(
     client: &SimpleHttpClient,
-    args: &GetProjectsProjectIdAuthIntegrationsArgs,
+    args: &ListNeonAuthIntegrationsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListNeonAuthIntegrationsResponse>, ApiError>,
@@ -2814,21 +7036,699 @@ pub fn get_projects_project_id_auth_integrations(
         + 'static,
     ApiError,
 > {
-    let builder = get_projects_project_id_auth_integrations_builder(client, &args.project_id)?;
-    get_projects_project_id_auth_integrations_execute(builder)
+    let builder = list_neon_auth_integrations_builder(client, &args.project_id)?;
+    list_neon_auth_integrations_execute(builder)
+}
+
+/// GET /projects/{project_id}/auth/oauth_providers
+/// List OAuth providers
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `list_neon_auth_oauth_providers_execute()` to send, or `list_neon_auth_oauth_providers` for simplest API.
+
+pub fn list_neon_auth_oauth_providers_builder<R>(
+    client: &SimpleHttpClient<R>,
+    project_id: &String,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
+    // Build URL
+    let endpoint_url = format!(
+        "https://console.neon.tech/api/v2/projects/{}/auth/oauth_providers",
+        project_id,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET /projects/{project_id}/auth/oauth_providers
+/// List OAuth providers
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `list_neon_auth_oauth_providers_execute()` or `list_neon_auth_oauth_providers`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `list_neon_auth_oauth_providers_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn list_neon_auth_oauth_providers_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListNeonAuthOauthProvidersResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListNeonAuthOauthProvidersResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET /projects/{project_id}/auth/oauth_providers
+/// List OAuth providers
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `list_neon_auth_oauth_providers_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `list_neon_auth_oauth_providers_task()`.
+/// For the simplest API, use `list_neon_auth_oauth_providers()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `list_neon_auth_oauth_providers_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn list_neon_auth_oauth_providers_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListNeonAuthOauthProvidersResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = list_neon_auth_oauth_providers_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`list_neon_auth_oauth_providers`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ListNeonAuthOauthProvidersArgs {
+    /// Path parameter: project_id
+    pub project_id: String,
+}
+
+/// GET /projects/{project_id}/auth/oauth_providers
+/// List OAuth providers
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `list_neon_auth_oauth_providers_builder()` + `list_neon_auth_oauth_providers_execute()`.
+/// For task-level control, use `list_neon_auth_oauth_providers_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn list_neon_auth_oauth_providers(
+    client: &SimpleHttpClient,
+    args: &ListNeonAuthOauthProvidersArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListNeonAuthOauthProvidersResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = list_neon_auth_oauth_providers_builder(client, &args.project_id)?;
+    list_neon_auth_oauth_providers_execute(builder)
+}
+
+/// POST /projects/{project_id}/auth/oauth_providers
+/// Add a OAuth provider
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `add_neon_auth_oauth_provider_execute()` to send, or `add_neon_auth_oauth_provider` for simplest API.
+
+pub fn add_neon_auth_oauth_provider_builder<R>(
+    client: &SimpleHttpClient<R>,
+    project_id: &String,
+    body: &NeonAuthAddOAuthProviderRequest,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
+    // Build URL
+    let endpoint_url = format!(
+        "https://console.neon.tech/api/v2/projects/{}/auth/oauth_providers",
+        project_id,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder
+        .body_json(body)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// POST /projects/{project_id}/auth/oauth_providers
+/// Add a OAuth provider
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `add_neon_auth_oauth_provider_execute()` or `add_neon_auth_oauth_provider`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `add_neon_auth_oauth_provider_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn add_neon_auth_oauth_provider_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<NeonAuthOauthProvider>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: NeonAuthOauthProvider = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST /projects/{project_id}/auth/oauth_providers
+/// Add a OAuth provider
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `add_neon_auth_oauth_provider_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `add_neon_auth_oauth_provider_task()`.
+/// For the simplest API, use `add_neon_auth_oauth_provider()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `add_neon_auth_oauth_provider_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn add_neon_auth_oauth_provider_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<NeonAuthOauthProvider>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = add_neon_auth_oauth_provider_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`add_neon_auth_oauth_provider`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AddNeonAuthOauthProviderArgs {
+    /// Path parameter: project_id
+    pub project_id: String,
+    /// Request body.
+    pub body: NeonAuthAddOAuthProviderRequest,
+}
+
+/// POST /projects/{project_id}/auth/oauth_providers
+/// Add a OAuth provider
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `add_neon_auth_oauth_provider_builder()` + `add_neon_auth_oauth_provider_execute()`.
+/// For task-level control, use `add_neon_auth_oauth_provider_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn add_neon_auth_oauth_provider(
+    client: &SimpleHttpClient,
+    args: &AddNeonAuthOauthProviderArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<NeonAuthOauthProvider>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = add_neon_auth_oauth_provider_builder(client, &args.project_id, &args.body)?;
+    add_neon_auth_oauth_provider_execute(builder)
+}
+
+/// PATCH /projects/{project_id}/auth/oauth_providers/{oauth_provider_id}
+/// Update OAuth provider
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `update_neon_auth_oauth_provider_execute()` to send, or `update_neon_auth_oauth_provider` for simplest API.
+
+pub fn update_neon_auth_oauth_provider_builder<R>(
+    client: &SimpleHttpClient<R>,
+    project_id: &String,
+    oauth_provider_id: &String,
+    body: &NeonAuthUpdateOAuthProviderRequest,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
+    // Build URL
+    let endpoint_url = format!(
+        "https://console.neon.tech/api/v2/projects/{}/auth/oauth_providers/{}",
+        project_id, oauth_provider_id,
+    );
+
+    // Build request
+    let builder = client
+        .patch(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder
+        .body_json(body)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// PATCH /projects/{project_id}/auth/oauth_providers/{oauth_provider_id}
+/// Update OAuth provider
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `update_neon_auth_oauth_provider_execute()` or `update_neon_auth_oauth_provider`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `update_neon_auth_oauth_provider_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn update_neon_auth_oauth_provider_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<NeonAuthOauthProvider>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: NeonAuthOauthProvider = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH /projects/{project_id}/auth/oauth_providers/{oauth_provider_id}
+/// Update OAuth provider
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `update_neon_auth_oauth_provider_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `update_neon_auth_oauth_provider_task()`.
+/// For the simplest API, use `update_neon_auth_oauth_provider()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `update_neon_auth_oauth_provider_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn update_neon_auth_oauth_provider_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<NeonAuthOauthProvider>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = update_neon_auth_oauth_provider_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`update_neon_auth_oauth_provider`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct UpdateNeonAuthOauthProviderArgs {
+    /// Path parameter: project_id
+    pub project_id: String,
+    /// Path parameter: oauth_provider_id
+    pub oauth_provider_id: String,
+    /// Request body.
+    pub body: NeonAuthUpdateOAuthProviderRequest,
+}
+
+/// PATCH /projects/{project_id}/auth/oauth_providers/{oauth_provider_id}
+/// Update OAuth provider
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `update_neon_auth_oauth_provider_builder()` + `update_neon_auth_oauth_provider_execute()`.
+/// For task-level control, use `update_neon_auth_oauth_provider_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn update_neon_auth_oauth_provider(
+    client: &SimpleHttpClient,
+    args: &UpdateNeonAuthOauthProviderArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<NeonAuthOauthProvider>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = update_neon_auth_oauth_provider_builder(
+        client,
+        &args.project_id,
+        &args.oauth_provider_id,
+        &args.body,
+    )?;
+    update_neon_auth_oauth_provider_execute(builder)
+}
+
+/// DELETE /projects/{project_id}/auth/oauth_providers/{oauth_provider_id}
+/// Delete OAuth provider
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `delete_neon_auth_oauth_provider_execute()` to send, or `delete_neon_auth_oauth_provider` for simplest API.
+
+pub fn delete_neon_auth_oauth_provider_builder<R>(
+    client: &SimpleHttpClient<R>,
+    project_id: &String,
+    oauth_provider_id: &String,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
+    // Build URL
+    let endpoint_url = format!(
+        "https://console.neon.tech/api/v2/projects/{}/auth/oauth_providers/{}",
+        project_id, oauth_provider_id,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE /projects/{project_id}/auth/oauth_providers/{oauth_provider_id}
+/// Delete OAuth provider
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `delete_neon_auth_oauth_provider_execute()` or `delete_neon_auth_oauth_provider`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_neon_auth_oauth_provider_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn delete_neon_auth_oauth_provider_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: (),
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE /projects/{project_id}/auth/oauth_providers/{oauth_provider_id}
+/// Delete OAuth provider
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `delete_neon_auth_oauth_provider_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `delete_neon_auth_oauth_provider_task()`.
+/// For the simplest API, use `delete_neon_auth_oauth_provider()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_neon_auth_oauth_provider_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn delete_neon_auth_oauth_provider_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = delete_neon_auth_oauth_provider_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`delete_neon_auth_oauth_provider`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DeleteNeonAuthOauthProviderArgs {
+    /// Path parameter: project_id
+    pub project_id: String,
+    /// Path parameter: oauth_provider_id
+    pub oauth_provider_id: String,
+}
+
+/// DELETE /projects/{project_id}/auth/oauth_providers/{oauth_provider_id}
+/// Delete OAuth provider
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `delete_neon_auth_oauth_provider_builder()` + `delete_neon_auth_oauth_provider_execute()`.
+/// For task-level control, use `delete_neon_auth_oauth_provider_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn delete_neon_auth_oauth_provider(
+    client: &SimpleHttpClient,
+    args: &DeleteNeonAuthOauthProviderArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        delete_neon_auth_oauth_provider_builder(client, &args.project_id, &args.oauth_provider_id)?;
+    delete_neon_auth_oauth_provider_execute(builder)
 }
 
 /// DELETE /projects/{project_id}/auth/users/{auth_user_id}
 /// Delete auth user
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `delete_projects_project_id_auth_users_auth_user_id_execute()` to send, or `delete_projects_project_id_auth_users_auth_user_id` for simplest API.
+/// Use `delete_neon_auth_user_execute()` to send, or `delete_neon_auth_user` for simplest API.
 
-pub fn delete_projects_project_id_auth_users_auth_user_id_builder(
-    client: &SimpleHttpClient,
+pub fn delete_neon_auth_user_builder<R>(
+    client: &SimpleHttpClient<R>,
     project_id: &String,
     auth_user_id: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://console.neon.tech/api/v2/projects/{}/auth/users/{}",
@@ -2854,17 +7754,17 @@ pub fn delete_projects_project_id_auth_users_auth_user_id_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `delete_projects_project_id_auth_users_auth_user_id_execute()` or `delete_projects_project_id_auth_users_auth_user_id`.
+/// For direct execution, use `delete_neon_auth_user_execute()` or `delete_neon_auth_user`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `delete_projects_project_id_auth_users_auth_user_id_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_neon_auth_user_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn delete_projects_project_id_auth_users_auth_user_id_task(
+pub fn delete_neon_auth_user_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -2920,33 +7820,33 @@ pub fn delete_projects_project_id_auth_users_auth_user_id_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `delete_projects_project_id_auth_users_auth_user_id_builder()` to create the builder,
+/// For full customization, use `delete_neon_auth_user_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `delete_projects_project_id_auth_users_auth_user_id_task()`.
-/// For the simplest API, use `delete_projects_project_id_auth_users_auth_user_id()`.
+/// For task-level control, use `delete_neon_auth_user_task()`.
+/// For the simplest API, use `delete_neon_auth_user()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `delete_projects_project_id_auth_users_auth_user_id_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_neon_auth_user_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn delete_projects_project_id_auth_users_auth_user_id_execute(
+pub fn delete_neon_auth_user_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let task = delete_projects_project_id_auth_users_auth_user_id_task(builder)?;
+    let task = delete_neon_auth_user_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`delete_projects_project_id_auth_users_auth_user_id`].
+/// Arguments for [`delete_neon_auth_user`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DeleteProjectsProjectIdAuthUsersAuthUserIdArgs {
+pub struct DeleteNeonAuthUserArgs {
     /// Path parameter: project_id
     pub project_id: String,
     /// Path parameter: auth_user_id
@@ -2957,38 +7857,37 @@ pub struct DeleteProjectsProjectIdAuthUsersAuthUserIdArgs {
 /// Delete auth user
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `delete_projects_project_id_auth_users_auth_user_id_builder()` + `delete_projects_project_id_auth_users_auth_user_id_execute()`.
-/// For task-level control, use `delete_projects_project_id_auth_users_auth_user_id_task()`.
+/// For customization, use `delete_neon_auth_user_builder()` + `delete_neon_auth_user_execute()`.
+/// For task-level control, use `delete_neon_auth_user_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn delete_projects_project_id_auth_users_auth_user_id(
+pub fn delete_neon_auth_user(
     client: &SimpleHttpClient,
-    args: &DeleteProjectsProjectIdAuthUsersAuthUserIdArgs,
+    args: &DeleteNeonAuthUserArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = delete_projects_project_id_auth_users_auth_user_id_builder(
-        client,
-        &args.project_id,
-        &args.auth_user_id,
-    )?;
-    delete_projects_project_id_auth_users_auth_user_id_execute(builder)
+    let builder = delete_neon_auth_user_builder(client, &args.project_id, &args.auth_user_id)?;
+    delete_neon_auth_user_execute(builder)
 }
 
 /// GET /projects/{project_id}/available_preload_libraries
 /// Return available shared preload libraries
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `get_projects_project_id_available_preload_libraries_execute()` to send, or `get_projects_project_id_available_preload_libraries` for simplest API.
+/// Use `get_available_preload_libraries_execute()` to send, or `get_available_preload_libraries` for simplest API.
 
-pub fn get_projects_project_id_available_preload_libraries_builder(
-    client: &SimpleHttpClient,
+pub fn get_available_preload_libraries_builder<R>(
+    client: &SimpleHttpClient<R>,
     project_id: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://console.neon.tech/api/v2/projects/{}/available_preload_libraries",
@@ -3014,17 +7913,17 @@ pub fn get_projects_project_id_available_preload_libraries_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `get_projects_project_id_available_preload_libraries_execute()` or `get_projects_project_id_available_preload_libraries`.
+/// For direct execution, use `get_available_preload_libraries_execute()` or `get_available_preload_libraries`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `get_projects_project_id_available_preload_libraries_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_available_preload_libraries_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_projects_project_id_available_preload_libraries_task(
+pub fn get_available_preload_libraries_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -3083,21 +7982,21 @@ pub fn get_projects_project_id_available_preload_libraries_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `get_projects_project_id_available_preload_libraries_builder()` to create the builder,
+/// For full customization, use `get_available_preload_libraries_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `get_projects_project_id_available_preload_libraries_task()`.
-/// For the simplest API, use `get_projects_project_id_available_preload_libraries()`.
+/// For task-level control, use `get_available_preload_libraries_task()`.
+/// For the simplest API, use `get_available_preload_libraries()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `get_projects_project_id_available_preload_libraries_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_available_preload_libraries_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn get_projects_project_id_available_preload_libraries_execute(
+pub fn get_available_preload_libraries_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AvailablePreloadLibraries>, ApiError>, P = ApiPending>
@@ -3105,13 +8004,13 @@ pub fn get_projects_project_id_available_preload_libraries_execute(
         + 'static,
     ApiError,
 > {
-    let task = get_projects_project_id_available_preload_libraries_task(builder)?;
+    let task = get_available_preload_libraries_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`get_projects_project_id_available_preload_libraries`].
+/// Arguments for [`get_available_preload_libraries`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct GetProjectsProjectIdAvailablePreloadLibrariesArgs {
+pub struct GetAvailablePreloadLibrariesArgs {
     /// Path parameter: project_id
     pub project_id: String,
 }
@@ -3120,44 +8019,6047 @@ pub struct GetProjectsProjectIdAvailablePreloadLibrariesArgs {
 /// Return available shared preload libraries
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `get_projects_project_id_available_preload_libraries_builder()` + `get_projects_project_id_available_preload_libraries_execute()`.
-/// For task-level control, use `get_projects_project_id_available_preload_libraries_task()`.
+/// For customization, use `get_available_preload_libraries_builder()` + `get_available_preload_libraries_execute()`.
+/// For task-level control, use `get_available_preload_libraries_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_projects_project_id_available_preload_libraries(
+pub fn get_available_preload_libraries(
     client: &SimpleHttpClient,
-    args: &GetProjectsProjectIdAvailablePreloadLibrariesArgs,
+    args: &GetAvailablePreloadLibrariesArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AvailablePreloadLibraries>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
+    let builder = get_available_preload_libraries_builder(client, &args.project_id)?;
+    get_available_preload_libraries_execute(builder)
+}
+
+/// POST /projects/{project_id}/branch_anonymized
+/// Create anonymized branch
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `create_project_branch_anonymized_execute()` to send, or `create_project_branch_anonymized` for simplest API.
+
+pub fn create_project_branch_anonymized_builder<R>(
+    client: &SimpleHttpClient<R>,
+    project_id: &String,
+    body: &BranchAnonymizedCreateRequest,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
+    // Build URL
+    let endpoint_url = format!(
+        "https://console.neon.tech/api/v2/projects/{}/branch_anonymized",
+        project_id,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder
+        .body_json(body)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// POST /projects/{project_id}/branch_anonymized
+/// Create anonymized branch
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `create_project_branch_anonymized_execute()` or `create_project_branch_anonymized`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `create_project_branch_anonymized_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn create_project_branch_anonymized_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: (),
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST /projects/{project_id}/branch_anonymized
+/// Create anonymized branch
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `create_project_branch_anonymized_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `create_project_branch_anonymized_task()`.
+/// For the simplest API, use `create_project_branch_anonymized()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `create_project_branch_anonymized_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn create_project_branch_anonymized_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = create_project_branch_anonymized_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`create_project_branch_anonymized`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CreateProjectBranchAnonymizedArgs {
+    /// Path parameter: project_id
+    pub project_id: String,
+    /// Request body.
+    pub body: BranchAnonymizedCreateRequest,
+}
+
+/// POST /projects/{project_id}/branch_anonymized
+/// Create anonymized branch
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `create_project_branch_anonymized_builder()` + `create_project_branch_anonymized_execute()`.
+/// For task-level control, use `create_project_branch_anonymized_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn create_project_branch_anonymized(
+    client: &SimpleHttpClient,
+    args: &CreateProjectBranchAnonymizedArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = create_project_branch_anonymized_builder(client, &args.project_id, &args.body)?;
+    create_project_branch_anonymized_execute(builder)
+}
+
+/// GET /projects/{project_id}/branches
+/// List branches
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `list_project_branches_execute()` to send, or `list_project_branches` for simplest API.
+
+pub fn list_project_branches_builder<R>(
+    client: &SimpleHttpClient<R>,
+    project_id: &String,
+    search: &Option<Option<String>>,
+    sort_by: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
+    // Build URL
+    let endpoint_url = format!(
+        "https://console.neon.tech/api/v2/projects/{}/branches",
+        project_id,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = search.as_ref() {
+        query_parts.push(format!("search={}", val));
+    }
+    if let Some(val) = sort_by.as_ref() {
+        query_parts.push(format!("sort_by={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET /projects/{project_id}/branches
+/// List branches
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `list_project_branches_execute()` or `list_project_branches`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `list_project_branches_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn list_project_branches_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: (),
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET /projects/{project_id}/branches
+/// List branches
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `list_project_branches_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `list_project_branches_task()`.
+/// For the simplest API, use `list_project_branches()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `list_project_branches_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn list_project_branches_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = list_project_branches_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`list_project_branches`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ListProjectBranchesArgs {
+    /// Path parameter: project_id
+    pub project_id: String,
+    /// Query parameter: search
+    pub search: Option<Option<String>>,
+    /// Query parameter: sort_by
+    pub sort_by: Option<Option<String>>,
+}
+
+/// GET /projects/{project_id}/branches
+/// List branches
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `list_project_branches_builder()` + `list_project_branches_execute()`.
+/// For task-level control, use `list_project_branches_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn list_project_branches(
+    client: &SimpleHttpClient,
+    args: &ListProjectBranchesArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
     let builder =
-        get_projects_project_id_available_preload_libraries_builder(client, &args.project_id)?;
-    get_projects_project_id_available_preload_libraries_execute(builder)
+        list_project_branches_builder(client, &args.project_id, &args.search, &args.sort_by)?;
+    list_project_branches_execute(builder)
+}
+
+/// POST /projects/{project_id}/branches
+/// Create branch
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `create_project_branch_execute()` to send, or `create_project_branch` for simplest API.
+
+pub fn create_project_branch_builder<R>(
+    client: &SimpleHttpClient<R>,
+    project_id: &String,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
+    // Build URL
+    let endpoint_url = format!(
+        "https://console.neon.tech/api/v2/projects/{}/branches",
+        project_id,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST /projects/{project_id}/branches
+/// Create branch
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `create_project_branch_execute()` or `create_project_branch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `create_project_branch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn create_project_branch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: (),
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST /projects/{project_id}/branches
+/// Create branch
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `create_project_branch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `create_project_branch_task()`.
+/// For the simplest API, use `create_project_branch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `create_project_branch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn create_project_branch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = create_project_branch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`create_project_branch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CreateProjectBranchArgs {
+    /// Path parameter: project_id
+    pub project_id: String,
+}
+
+/// POST /projects/{project_id}/branches
+/// Create branch
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `create_project_branch_builder()` + `create_project_branch_execute()`.
+/// For task-level control, use `create_project_branch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn create_project_branch(
+    client: &SimpleHttpClient,
+    args: &CreateProjectBranchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = create_project_branch_builder(client, &args.project_id)?;
+    create_project_branch_execute(builder)
+}
+
+/// GET /projects/{project_id}/branches/count
+/// Retrieve number of branches
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `count_project_branches_execute()` to send, or `count_project_branches` for simplest API.
+
+pub fn count_project_branches_builder<R>(
+    client: &SimpleHttpClient<R>,
+    project_id: &String,
+    search: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
+    // Build URL
+    let endpoint_url = format!(
+        "https://console.neon.tech/api/v2/projects/{}/branches/count",
+        project_id,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = search.as_ref() {
+        query_parts.push(format!("search={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET /projects/{project_id}/branches/count
+/// Retrieve number of branches
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `count_project_branches_execute()` or `count_project_branches`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `count_project_branches_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn count_project_branches_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: (),
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET /projects/{project_id}/branches/count
+/// Retrieve number of branches
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `count_project_branches_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `count_project_branches_task()`.
+/// For the simplest API, use `count_project_branches()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `count_project_branches_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn count_project_branches_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = count_project_branches_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`count_project_branches`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CountProjectBranchesArgs {
+    /// Path parameter: project_id
+    pub project_id: String,
+    /// Query parameter: search
+    pub search: Option<Option<String>>,
+}
+
+/// GET /projects/{project_id}/branches/count
+/// Retrieve number of branches
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `count_project_branches_builder()` + `count_project_branches_execute()`.
+/// For task-level control, use `count_project_branches_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn count_project_branches(
+    client: &SimpleHttpClient,
+    args: &CountProjectBranchesArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = count_project_branches_builder(client, &args.project_id, &args.search)?;
+    count_project_branches_execute(builder)
+}
+
+/// GET /projects/{project_id}/branches/{branch_id}
+/// Retrieve branch details
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `get_project_branch_execute()` to send, or `get_project_branch` for simplest API.
+
+pub fn get_project_branch_builder<R>(
+    client: &SimpleHttpClient<R>,
+    project_id: &String,
+    branch_id: &String,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
+    // Build URL
+    let endpoint_url = format!(
+        "https://console.neon.tech/api/v2/projects/{}/branches/{}",
+        project_id, branch_id,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET /projects/{project_id}/branches/{branch_id}
+/// Retrieve branch details
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_project_branch_execute()` or `get_project_branch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_project_branch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn get_project_branch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: (),
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET /projects/{project_id}/branches/{branch_id}
+/// Retrieve branch details
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_project_branch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_project_branch_task()`.
+/// For the simplest API, use `get_project_branch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_project_branch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_project_branch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = get_project_branch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`get_project_branch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetProjectBranchArgs {
+    /// Path parameter: project_id
+    pub project_id: String,
+    /// Path parameter: branch_id
+    pub branch_id: String,
+}
+
+/// GET /projects/{project_id}/branches/{branch_id}
+/// Retrieve branch details
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `get_project_branch_builder()` + `get_project_branch_execute()`.
+/// For task-level control, use `get_project_branch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn get_project_branch(
+    client: &SimpleHttpClient,
+    args: &GetProjectBranchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = get_project_branch_builder(client, &args.project_id, &args.branch_id)?;
+    get_project_branch_execute(builder)
+}
+
+/// PATCH /projects/{project_id}/branches/{branch_id}
+/// Update branch
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `update_project_branch_execute()` to send, or `update_project_branch` for simplest API.
+
+pub fn update_project_branch_builder<R>(
+    client: &SimpleHttpClient<R>,
+    project_id: &String,
+    branch_id: &String,
+    body: &BranchUpdateRequest,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
+    // Build URL
+    let endpoint_url = format!(
+        "https://console.neon.tech/api/v2/projects/{}/branches/{}",
+        project_id, branch_id,
+    );
+
+    // Build request
+    let builder = client
+        .patch(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder
+        .body_json(body)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// PATCH /projects/{project_id}/branches/{branch_id}
+/// Update branch
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `update_project_branch_execute()` or `update_project_branch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `update_project_branch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn update_project_branch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<BranchOperations>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: BranchOperations = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH /projects/{project_id}/branches/{branch_id}
+/// Update branch
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `update_project_branch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `update_project_branch_task()`.
+/// For the simplest API, use `update_project_branch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `update_project_branch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn update_project_branch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<BranchOperations>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = update_project_branch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`update_project_branch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct UpdateProjectBranchArgs {
+    /// Path parameter: project_id
+    pub project_id: String,
+    /// Path parameter: branch_id
+    pub branch_id: String,
+    /// Request body.
+    pub body: BranchUpdateRequest,
+}
+
+/// PATCH /projects/{project_id}/branches/{branch_id}
+/// Update branch
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `update_project_branch_builder()` + `update_project_branch_execute()`.
+/// For task-level control, use `update_project_branch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn update_project_branch(
+    client: &SimpleHttpClient,
+    args: &UpdateProjectBranchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<BranchOperations>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        update_project_branch_builder(client, &args.project_id, &args.branch_id, &args.body)?;
+    update_project_branch_execute(builder)
+}
+
+/// DELETE /projects/{project_id}/branches/{branch_id}
+/// Delete branch
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `delete_project_branch_execute()` to send, or `delete_project_branch` for simplest API.
+
+pub fn delete_project_branch_builder<R>(
+    client: &SimpleHttpClient<R>,
+    project_id: &String,
+    branch_id: &String,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
+    // Build URL
+    let endpoint_url = format!(
+        "https://console.neon.tech/api/v2/projects/{}/branches/{}",
+        project_id, branch_id,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE /projects/{project_id}/branches/{branch_id}
+/// Delete branch
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `delete_project_branch_execute()` or `delete_project_branch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_project_branch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn delete_project_branch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<BranchOperations>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: BranchOperations = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE /projects/{project_id}/branches/{branch_id}
+/// Delete branch
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `delete_project_branch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `delete_project_branch_task()`.
+/// For the simplest API, use `delete_project_branch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_project_branch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn delete_project_branch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<BranchOperations>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = delete_project_branch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`delete_project_branch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DeleteProjectBranchArgs {
+    /// Path parameter: project_id
+    pub project_id: String,
+    /// Path parameter: branch_id
+    pub branch_id: String,
+}
+
+/// DELETE /projects/{project_id}/branches/{branch_id}
+/// Delete branch
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `delete_project_branch_builder()` + `delete_project_branch_execute()`.
+/// For task-level control, use `delete_project_branch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn delete_project_branch(
+    client: &SimpleHttpClient,
+    args: &DeleteProjectBranchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<BranchOperations>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = delete_project_branch_builder(client, &args.project_id, &args.branch_id)?;
+    delete_project_branch_execute(builder)
+}
+
+/// POST /projects/{project_id}/branches/{branch_id}/anonymize
+/// Start anonymization
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `start_anonymization_execute()` to send, or `start_anonymization` for simplest API.
+
+pub fn start_anonymization_builder<R>(
+    client: &SimpleHttpClient<R>,
+    project_id: &String,
+    branch_id: &String,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
+    // Build URL
+    let endpoint_url = format!(
+        "https://console.neon.tech/api/v2/projects/{}/branches/{}/anonymize",
+        project_id, branch_id,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST /projects/{project_id}/branches/{branch_id}/anonymize
+/// Start anonymization
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `start_anonymization_execute()` or `start_anonymization`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `start_anonymization_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn start_anonymization_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<AnonymizedBranchStatusResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: AnonymizedBranchStatusResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST /projects/{project_id}/branches/{branch_id}/anonymize
+/// Start anonymization
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `start_anonymization_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `start_anonymization_task()`.
+/// For the simplest API, use `start_anonymization()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `start_anonymization_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn start_anonymization_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<AnonymizedBranchStatusResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = start_anonymization_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`start_anonymization`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StartAnonymizationArgs {
+    /// Path parameter: project_id
+    pub project_id: String,
+    /// Path parameter: branch_id
+    pub branch_id: String,
+}
+
+/// POST /projects/{project_id}/branches/{branch_id}/anonymize
+/// Start anonymization
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `start_anonymization_builder()` + `start_anonymization_execute()`.
+/// For task-level control, use `start_anonymization_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn start_anonymization(
+    client: &SimpleHttpClient,
+    args: &StartAnonymizationArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<AnonymizedBranchStatusResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = start_anonymization_builder(client, &args.project_id, &args.branch_id)?;
+    start_anonymization_execute(builder)
+}
+
+/// GET /projects/{project_id}/branches/{branch_id}/anonymized_status
+/// Get anonymized branch status
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `get_anonymized_branch_status_execute()` to send, or `get_anonymized_branch_status` for simplest API.
+
+pub fn get_anonymized_branch_status_builder<R>(
+    client: &SimpleHttpClient<R>,
+    project_id: &String,
+    branch_id: &String,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
+    // Build URL
+    let endpoint_url = format!(
+        "https://console.neon.tech/api/v2/projects/{}/branches/{}/anonymized_status",
+        project_id, branch_id,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET /projects/{project_id}/branches/{branch_id}/anonymized_status
+/// Get anonymized branch status
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_anonymized_branch_status_execute()` or `get_anonymized_branch_status`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_anonymized_branch_status_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn get_anonymized_branch_status_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<AnonymizedBranchStatusResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: AnonymizedBranchStatusResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET /projects/{project_id}/branches/{branch_id}/anonymized_status
+/// Get anonymized branch status
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_anonymized_branch_status_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_anonymized_branch_status_task()`.
+/// For the simplest API, use `get_anonymized_branch_status()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_anonymized_branch_status_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_anonymized_branch_status_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<AnonymizedBranchStatusResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = get_anonymized_branch_status_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`get_anonymized_branch_status`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetAnonymizedBranchStatusArgs {
+    /// Path parameter: project_id
+    pub project_id: String,
+    /// Path parameter: branch_id
+    pub branch_id: String,
+}
+
+/// GET /projects/{project_id}/branches/{branch_id}/anonymized_status
+/// Get anonymized branch status
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `get_anonymized_branch_status_builder()` + `get_anonymized_branch_status_execute()`.
+/// For task-level control, use `get_anonymized_branch_status_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn get_anonymized_branch_status(
+    client: &SimpleHttpClient,
+    args: &GetAnonymizedBranchStatusArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<AnonymizedBranchStatusResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = get_anonymized_branch_status_builder(client, &args.project_id, &args.branch_id)?;
+    get_anonymized_branch_status_execute(builder)
+}
+
+/// GET /projects/{project_id}/branches/{branch_id}/auth
+/// Get details of Neon Auth for the branch
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `get_neon_auth_execute()` to send, or `get_neon_auth` for simplest API.
+
+pub fn get_neon_auth_builder<R>(
+    client: &SimpleHttpClient<R>,
+    project_id: &String,
+    branch_id: &String,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
+    // Build URL
+    let endpoint_url = format!(
+        "https://console.neon.tech/api/v2/projects/{}/branches/{}/auth",
+        project_id, branch_id,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET /projects/{project_id}/branches/{branch_id}/auth
+/// Get details of Neon Auth for the branch
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_neon_auth_execute()` or `get_neon_auth`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_neon_auth_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn get_neon_auth_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<NeonAuthIntegration>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: NeonAuthIntegration = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET /projects/{project_id}/branches/{branch_id}/auth
+/// Get details of Neon Auth for the branch
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_neon_auth_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_neon_auth_task()`.
+/// For the simplest API, use `get_neon_auth()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_neon_auth_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_neon_auth_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<NeonAuthIntegration>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = get_neon_auth_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`get_neon_auth`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetNeonAuthArgs {
+    /// Path parameter: project_id
+    pub project_id: String,
+    /// Path parameter: branch_id
+    pub branch_id: String,
+}
+
+/// GET /projects/{project_id}/branches/{branch_id}/auth
+/// Get details of Neon Auth for the branch
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `get_neon_auth_builder()` + `get_neon_auth_execute()`.
+/// For task-level control, use `get_neon_auth_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn get_neon_auth(
+    client: &SimpleHttpClient,
+    args: &GetNeonAuthArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<NeonAuthIntegration>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = get_neon_auth_builder(client, &args.project_id, &args.branch_id)?;
+    get_neon_auth_execute(builder)
+}
+
+/// POST /projects/{project_id}/branches/{branch_id}/auth
+/// Enable Neon Auth for the branch
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `create_neon_auth_execute()` to send, or `create_neon_auth` for simplest API.
+
+pub fn create_neon_auth_builder<R>(
+    client: &SimpleHttpClient<R>,
+    project_id: &String,
+    branch_id: &String,
+    body: &EnableNeonAuthIntegrationRequest,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
+    // Build URL
+    let endpoint_url = format!(
+        "https://console.neon.tech/api/v2/projects/{}/branches/{}/auth",
+        project_id, branch_id,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder
+        .body_json(body)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// POST /projects/{project_id}/branches/{branch_id}/auth
+/// Enable Neon Auth for the branch
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `create_neon_auth_execute()` or `create_neon_auth`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `create_neon_auth_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn create_neon_auth_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<NeonAuthCreateIntegrationResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: NeonAuthCreateIntegrationResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST /projects/{project_id}/branches/{branch_id}/auth
+/// Enable Neon Auth for the branch
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `create_neon_auth_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `create_neon_auth_task()`.
+/// For the simplest API, use `create_neon_auth()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `create_neon_auth_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn create_neon_auth_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<NeonAuthCreateIntegrationResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = create_neon_auth_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`create_neon_auth`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CreateNeonAuthArgs {
+    /// Path parameter: project_id
+    pub project_id: String,
+    /// Path parameter: branch_id
+    pub branch_id: String,
+    /// Request body.
+    pub body: EnableNeonAuthIntegrationRequest,
+}
+
+/// POST /projects/{project_id}/branches/{branch_id}/auth
+/// Enable Neon Auth for the branch
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `create_neon_auth_builder()` + `create_neon_auth_execute()`.
+/// For task-level control, use `create_neon_auth_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn create_neon_auth(
+    client: &SimpleHttpClient,
+    args: &CreateNeonAuthArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<NeonAuthCreateIntegrationResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = create_neon_auth_builder(client, &args.project_id, &args.branch_id, &args.body)?;
+    create_neon_auth_execute(builder)
+}
+
+/// DELETE /projects/{project_id}/branches/{branch_id}/auth
+/// Disables Neon Auth for the branch
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `disable_neon_auth_execute()` to send, or `disable_neon_auth` for simplest API.
+
+pub fn disable_neon_auth_builder<R>(
+    client: &SimpleHttpClient<R>,
+    project_id: &String,
+    branch_id: &String,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
+    // Build URL
+    let endpoint_url = format!(
+        "https://console.neon.tech/api/v2/projects/{}/branches/{}/auth",
+        project_id, branch_id,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE /projects/{project_id}/branches/{branch_id}/auth
+/// Disables Neon Auth for the branch
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `disable_neon_auth_execute()` or `disable_neon_auth`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `disable_neon_auth_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn disable_neon_auth_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: (),
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE /projects/{project_id}/branches/{branch_id}/auth
+/// Disables Neon Auth for the branch
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `disable_neon_auth_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `disable_neon_auth_task()`.
+/// For the simplest API, use `disable_neon_auth()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `disable_neon_auth_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn disable_neon_auth_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = disable_neon_auth_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`disable_neon_auth`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisableNeonAuthArgs {
+    /// Path parameter: project_id
+    pub project_id: String,
+    /// Path parameter: branch_id
+    pub branch_id: String,
+}
+
+/// DELETE /projects/{project_id}/branches/{branch_id}/auth
+/// Disables Neon Auth for the branch
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `disable_neon_auth_builder()` + `disable_neon_auth_execute()`.
+/// For task-level control, use `disable_neon_auth_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn disable_neon_auth(
+    client: &SimpleHttpClient,
+    args: &DisableNeonAuthArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = disable_neon_auth_builder(client, &args.project_id, &args.branch_id)?;
+    disable_neon_auth_execute(builder)
+}
+
+/// GET /projects/{project_id}/branches/{branch_id}/auth/allow_localhost
+/// Get allow localhost
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `get_neon_auth_allow_localhost_execute()` to send, or `get_neon_auth_allow_localhost` for simplest API.
+
+pub fn get_neon_auth_allow_localhost_builder<R>(
+    client: &SimpleHttpClient<R>,
+    project_id: &String,
+    branch_id: &String,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
+    // Build URL
+    let endpoint_url = format!(
+        "https://console.neon.tech/api/v2/projects/{}/branches/{}/auth/allow_localhost",
+        project_id, branch_id,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET /projects/{project_id}/branches/{branch_id}/auth/allow_localhost
+/// Get allow localhost
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_neon_auth_allow_localhost_execute()` or `get_neon_auth_allow_localhost`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_neon_auth_allow_localhost_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn get_neon_auth_allow_localhost_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<NeonAuthAllowLocalhostResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: NeonAuthAllowLocalhostResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET /projects/{project_id}/branches/{branch_id}/auth/allow_localhost
+/// Get allow localhost
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_neon_auth_allow_localhost_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_neon_auth_allow_localhost_task()`.
+/// For the simplest API, use `get_neon_auth_allow_localhost()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_neon_auth_allow_localhost_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_neon_auth_allow_localhost_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<NeonAuthAllowLocalhostResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = get_neon_auth_allow_localhost_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`get_neon_auth_allow_localhost`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetNeonAuthAllowLocalhostArgs {
+    /// Path parameter: project_id
+    pub project_id: String,
+    /// Path parameter: branch_id
+    pub branch_id: String,
+}
+
+/// GET /projects/{project_id}/branches/{branch_id}/auth/allow_localhost
+/// Get allow localhost
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `get_neon_auth_allow_localhost_builder()` + `get_neon_auth_allow_localhost_execute()`.
+/// For task-level control, use `get_neon_auth_allow_localhost_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn get_neon_auth_allow_localhost(
+    client: &SimpleHttpClient,
+    args: &GetNeonAuthAllowLocalhostArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<NeonAuthAllowLocalhostResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = get_neon_auth_allow_localhost_builder(client, &args.project_id, &args.branch_id)?;
+    get_neon_auth_allow_localhost_execute(builder)
+}
+
+/// PATCH /projects/{project_id}/branches/{branch_id}/auth/allow_localhost
+/// Update allow localhost
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `update_neon_auth_allow_localhost_execute()` to send, or `update_neon_auth_allow_localhost` for simplest API.
+
+pub fn update_neon_auth_allow_localhost_builder<R>(
+    client: &SimpleHttpClient<R>,
+    project_id: &String,
+    branch_id: &String,
+    body: &UpdateNeonAuthAllowLocalhostRequest,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
+    // Build URL
+    let endpoint_url = format!(
+        "https://console.neon.tech/api/v2/projects/{}/branches/{}/auth/allow_localhost",
+        project_id, branch_id,
+    );
+
+    // Build request
+    let builder = client
+        .patch(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder
+        .body_json(body)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// PATCH /projects/{project_id}/branches/{branch_id}/auth/allow_localhost
+/// Update allow localhost
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `update_neon_auth_allow_localhost_execute()` or `update_neon_auth_allow_localhost`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `update_neon_auth_allow_localhost_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn update_neon_auth_allow_localhost_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<NeonAuthAllowLocalhostResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: NeonAuthAllowLocalhostResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH /projects/{project_id}/branches/{branch_id}/auth/allow_localhost
+/// Update allow localhost
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `update_neon_auth_allow_localhost_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `update_neon_auth_allow_localhost_task()`.
+/// For the simplest API, use `update_neon_auth_allow_localhost()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `update_neon_auth_allow_localhost_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn update_neon_auth_allow_localhost_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<NeonAuthAllowLocalhostResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = update_neon_auth_allow_localhost_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`update_neon_auth_allow_localhost`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct UpdateNeonAuthAllowLocalhostArgs {
+    /// Path parameter: project_id
+    pub project_id: String,
+    /// Path parameter: branch_id
+    pub branch_id: String,
+    /// Request body.
+    pub body: UpdateNeonAuthAllowLocalhostRequest,
+}
+
+/// PATCH /projects/{project_id}/branches/{branch_id}/auth/allow_localhost
+/// Update allow localhost
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `update_neon_auth_allow_localhost_builder()` + `update_neon_auth_allow_localhost_execute()`.
+/// For task-level control, use `update_neon_auth_allow_localhost_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn update_neon_auth_allow_localhost(
+    client: &SimpleHttpClient,
+    args: &UpdateNeonAuthAllowLocalhostArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<NeonAuthAllowLocalhostResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = update_neon_auth_allow_localhost_builder(
+        client,
+        &args.project_id,
+        &args.branch_id,
+        &args.body,
+    )?;
+    update_neon_auth_allow_localhost_execute(builder)
+}
+
+/// GET /projects/{project_id}/branches/{branch_id}/auth/domains
+/// List domains in redirect_uri whitelist
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `list_branch_neon_auth_trusted_domains_execute()` to send, or `list_branch_neon_auth_trusted_domains` for simplest API.
+
+pub fn list_branch_neon_auth_trusted_domains_builder<R>(
+    client: &SimpleHttpClient<R>,
+    project_id: &String,
+    branch_id: &String,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
+    // Build URL
+    let endpoint_url = format!(
+        "https://console.neon.tech/api/v2/projects/{}/branches/{}/auth/domains",
+        project_id, branch_id,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET /projects/{project_id}/branches/{branch_id}/auth/domains
+/// List domains in redirect_uri whitelist
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `list_branch_neon_auth_trusted_domains_execute()` or `list_branch_neon_auth_trusted_domains`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `list_branch_neon_auth_trusted_domains_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn list_branch_neon_auth_trusted_domains_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<NeonAuthRedirectURIWhitelistResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: NeonAuthRedirectURIWhitelistResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET /projects/{project_id}/branches/{branch_id}/auth/domains
+/// List domains in redirect_uri whitelist
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `list_branch_neon_auth_trusted_domains_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `list_branch_neon_auth_trusted_domains_task()`.
+/// For the simplest API, use `list_branch_neon_auth_trusted_domains()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `list_branch_neon_auth_trusted_domains_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn list_branch_neon_auth_trusted_domains_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<NeonAuthRedirectURIWhitelistResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = list_branch_neon_auth_trusted_domains_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`list_branch_neon_auth_trusted_domains`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ListBranchNeonAuthTrustedDomainsArgs {
+    /// Path parameter: project_id
+    pub project_id: String,
+    /// Path parameter: branch_id
+    pub branch_id: String,
+}
+
+/// GET /projects/{project_id}/branches/{branch_id}/auth/domains
+/// List domains in redirect_uri whitelist
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `list_branch_neon_auth_trusted_domains_builder()` + `list_branch_neon_auth_trusted_domains_execute()`.
+/// For task-level control, use `list_branch_neon_auth_trusted_domains_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn list_branch_neon_auth_trusted_domains(
+    client: &SimpleHttpClient,
+    args: &ListBranchNeonAuthTrustedDomainsArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<NeonAuthRedirectURIWhitelistResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        list_branch_neon_auth_trusted_domains_builder(client, &args.project_id, &args.branch_id)?;
+    list_branch_neon_auth_trusted_domains_execute(builder)
+}
+
+/// POST /projects/{project_id}/branches/{branch_id}/auth/domains
+/// Add domain to redirect_uri whitelist
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `add_branch_neon_auth_trusted_domain_execute()` to send, or `add_branch_neon_auth_trusted_domain` for simplest API.
+
+pub fn add_branch_neon_auth_trusted_domain_builder<R>(
+    client: &SimpleHttpClient<R>,
+    project_id: &String,
+    branch_id: &String,
+    body: &NeonAuthAddDomainToRedirectURIWhitelistRequest,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
+    // Build URL
+    let endpoint_url = format!(
+        "https://console.neon.tech/api/v2/projects/{}/branches/{}/auth/domains",
+        project_id, branch_id,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder
+        .body_json(body)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// POST /projects/{project_id}/branches/{branch_id}/auth/domains
+/// Add domain to redirect_uri whitelist
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `add_branch_neon_auth_trusted_domain_execute()` or `add_branch_neon_auth_trusted_domain`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `add_branch_neon_auth_trusted_domain_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn add_branch_neon_auth_trusted_domain_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: (),
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST /projects/{project_id}/branches/{branch_id}/auth/domains
+/// Add domain to redirect_uri whitelist
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `add_branch_neon_auth_trusted_domain_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `add_branch_neon_auth_trusted_domain_task()`.
+/// For the simplest API, use `add_branch_neon_auth_trusted_domain()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `add_branch_neon_auth_trusted_domain_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn add_branch_neon_auth_trusted_domain_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = add_branch_neon_auth_trusted_domain_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`add_branch_neon_auth_trusted_domain`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AddBranchNeonAuthTrustedDomainArgs {
+    /// Path parameter: project_id
+    pub project_id: String,
+    /// Path parameter: branch_id
+    pub branch_id: String,
+    /// Request body.
+    pub body: NeonAuthAddDomainToRedirectURIWhitelistRequest,
+}
+
+/// POST /projects/{project_id}/branches/{branch_id}/auth/domains
+/// Add domain to redirect_uri whitelist
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `add_branch_neon_auth_trusted_domain_builder()` + `add_branch_neon_auth_trusted_domain_execute()`.
+/// For task-level control, use `add_branch_neon_auth_trusted_domain_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn add_branch_neon_auth_trusted_domain(
+    client: &SimpleHttpClient,
+    args: &AddBranchNeonAuthTrustedDomainArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = add_branch_neon_auth_trusted_domain_builder(
+        client,
+        &args.project_id,
+        &args.branch_id,
+        &args.body,
+    )?;
+    add_branch_neon_auth_trusted_domain_execute(builder)
+}
+
+/// DELETE /projects/{project_id}/branches/{branch_id}/auth/domains
+/// Delete domain from redirect_uri whitelist
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `delete_branch_neon_auth_trusted_domain_execute()` to send, or `delete_branch_neon_auth_trusted_domain` for simplest API.
+
+pub fn delete_branch_neon_auth_trusted_domain_builder<R>(
+    client: &SimpleHttpClient<R>,
+    project_id: &String,
+    branch_id: &String,
+    body: &NeonAuthDeleteDomainFromRedirectURIWhitelistRequest,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
+    // Build URL
+    let endpoint_url = format!(
+        "https://console.neon.tech/api/v2/projects/{}/branches/{}/auth/domains",
+        project_id, branch_id,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder
+        .body_json(body)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// DELETE /projects/{project_id}/branches/{branch_id}/auth/domains
+/// Delete domain from redirect_uri whitelist
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `delete_branch_neon_auth_trusted_domain_execute()` or `delete_branch_neon_auth_trusted_domain`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_branch_neon_auth_trusted_domain_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn delete_branch_neon_auth_trusted_domain_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: (),
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE /projects/{project_id}/branches/{branch_id}/auth/domains
+/// Delete domain from redirect_uri whitelist
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `delete_branch_neon_auth_trusted_domain_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `delete_branch_neon_auth_trusted_domain_task()`.
+/// For the simplest API, use `delete_branch_neon_auth_trusted_domain()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_branch_neon_auth_trusted_domain_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn delete_branch_neon_auth_trusted_domain_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = delete_branch_neon_auth_trusted_domain_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`delete_branch_neon_auth_trusted_domain`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DeleteBranchNeonAuthTrustedDomainArgs {
+    /// Path parameter: project_id
+    pub project_id: String,
+    /// Path parameter: branch_id
+    pub branch_id: String,
+    /// Request body.
+    pub body: NeonAuthDeleteDomainFromRedirectURIWhitelistRequest,
+}
+
+/// DELETE /projects/{project_id}/branches/{branch_id}/auth/domains
+/// Delete domain from redirect_uri whitelist
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `delete_branch_neon_auth_trusted_domain_builder()` + `delete_branch_neon_auth_trusted_domain_execute()`.
+/// For task-level control, use `delete_branch_neon_auth_trusted_domain_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn delete_branch_neon_auth_trusted_domain(
+    client: &SimpleHttpClient,
+    args: &DeleteBranchNeonAuthTrustedDomainArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = delete_branch_neon_auth_trusted_domain_builder(
+        client,
+        &args.project_id,
+        &args.branch_id,
+        &args.body,
+    )?;
+    delete_branch_neon_auth_trusted_domain_execute(builder)
+}
+
+/// GET /projects/{project_id}/branches/{branch_id}/auth/email_and_password
+/// Get email and password configuration
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `get_neon_auth_email_and_password_config_execute()` to send, or `get_neon_auth_email_and_password_config` for simplest API.
+
+pub fn get_neon_auth_email_and_password_config_builder<R>(
+    client: &SimpleHttpClient<R>,
+    project_id: &String,
+    branch_id: &String,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
+    // Build URL
+    let endpoint_url = format!(
+        "https://console.neon.tech/api/v2/projects/{}/branches/{}/auth/email_and_password",
+        project_id, branch_id,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET /projects/{project_id}/branches/{branch_id}/auth/email_and_password
+/// Get email and password configuration
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_neon_auth_email_and_password_config_execute()` or `get_neon_auth_email_and_password_config`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_neon_auth_email_and_password_config_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn get_neon_auth_email_and_password_config_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<NeonAuthEmailAndPasswordConfig>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: NeonAuthEmailAndPasswordConfig = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET /projects/{project_id}/branches/{branch_id}/auth/email_and_password
+/// Get email and password configuration
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_neon_auth_email_and_password_config_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_neon_auth_email_and_password_config_task()`.
+/// For the simplest API, use `get_neon_auth_email_and_password_config()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_neon_auth_email_and_password_config_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_neon_auth_email_and_password_config_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<NeonAuthEmailAndPasswordConfig>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = get_neon_auth_email_and_password_config_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`get_neon_auth_email_and_password_config`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetNeonAuthEmailAndPasswordConfigArgs {
+    /// Path parameter: project_id
+    pub project_id: String,
+    /// Path parameter: branch_id
+    pub branch_id: String,
+}
+
+/// GET /projects/{project_id}/branches/{branch_id}/auth/email_and_password
+/// Get email and password configuration
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `get_neon_auth_email_and_password_config_builder()` + `get_neon_auth_email_and_password_config_execute()`.
+/// For task-level control, use `get_neon_auth_email_and_password_config_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn get_neon_auth_email_and_password_config(
+    client: &SimpleHttpClient,
+    args: &GetNeonAuthEmailAndPasswordConfigArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<NeonAuthEmailAndPasswordConfig>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        get_neon_auth_email_and_password_config_builder(client, &args.project_id, &args.branch_id)?;
+    get_neon_auth_email_and_password_config_execute(builder)
+}
+
+/// PATCH /projects/{project_id}/branches/{branch_id}/auth/email_and_password
+/// Update email and password configuration
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `update_neon_auth_email_and_password_config_execute()` to send, or `update_neon_auth_email_and_password_config` for simplest API.
+
+pub fn update_neon_auth_email_and_password_config_builder<R>(
+    client: &SimpleHttpClient<R>,
+    project_id: &String,
+    branch_id: &String,
+    body: &NeonAuthEmailAndPasswordConfigUpdate,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
+    // Build URL
+    let endpoint_url = format!(
+        "https://console.neon.tech/api/v2/projects/{}/branches/{}/auth/email_and_password",
+        project_id, branch_id,
+    );
+
+    // Build request
+    let builder = client
+        .patch(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder
+        .body_json(body)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// PATCH /projects/{project_id}/branches/{branch_id}/auth/email_and_password
+/// Update email and password configuration
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `update_neon_auth_email_and_password_config_execute()` or `update_neon_auth_email_and_password_config`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `update_neon_auth_email_and_password_config_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn update_neon_auth_email_and_password_config_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<NeonAuthEmailAndPasswordConfig>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: NeonAuthEmailAndPasswordConfig = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH /projects/{project_id}/branches/{branch_id}/auth/email_and_password
+/// Update email and password configuration
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `update_neon_auth_email_and_password_config_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `update_neon_auth_email_and_password_config_task()`.
+/// For the simplest API, use `update_neon_auth_email_and_password_config()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `update_neon_auth_email_and_password_config_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn update_neon_auth_email_and_password_config_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<NeonAuthEmailAndPasswordConfig>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = update_neon_auth_email_and_password_config_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`update_neon_auth_email_and_password_config`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct UpdateNeonAuthEmailAndPasswordConfigArgs {
+    /// Path parameter: project_id
+    pub project_id: String,
+    /// Path parameter: branch_id
+    pub branch_id: String,
+    /// Request body.
+    pub body: NeonAuthEmailAndPasswordConfigUpdate,
+}
+
+/// PATCH /projects/{project_id}/branches/{branch_id}/auth/email_and_password
+/// Update email and password configuration
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `update_neon_auth_email_and_password_config_builder()` + `update_neon_auth_email_and_password_config_execute()`.
+/// For task-level control, use `update_neon_auth_email_and_password_config_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn update_neon_auth_email_and_password_config(
+    client: &SimpleHttpClient,
+    args: &UpdateNeonAuthEmailAndPasswordConfigArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<NeonAuthEmailAndPasswordConfig>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = update_neon_auth_email_and_password_config_builder(
+        client,
+        &args.project_id,
+        &args.branch_id,
+        &args.body,
+    )?;
+    update_neon_auth_email_and_password_config_execute(builder)
+}
+
+/// GET /projects/{project_id}/branches/{branch_id}/auth/email_provider
+/// Get email provider configuration
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `get_neon_auth_email_provider_execute()` to send, or `get_neon_auth_email_provider` for simplest API.
+
+pub fn get_neon_auth_email_provider_builder<R>(
+    client: &SimpleHttpClient<R>,
+    project_id: &String,
+    branch_id: &String,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
+    // Build URL
+    let endpoint_url = format!(
+        "https://console.neon.tech/api/v2/projects/{}/branches/{}/auth/email_provider",
+        project_id, branch_id,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET /projects/{project_id}/branches/{branch_id}/auth/email_provider
+/// Get email provider configuration
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_neon_auth_email_provider_execute()` or `get_neon_auth_email_provider`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_neon_auth_email_provider_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn get_neon_auth_email_provider_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<NeonAuthEmailServerConfig>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: NeonAuthEmailServerConfig = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET /projects/{project_id}/branches/{branch_id}/auth/email_provider
+/// Get email provider configuration
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_neon_auth_email_provider_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_neon_auth_email_provider_task()`.
+/// For the simplest API, use `get_neon_auth_email_provider()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_neon_auth_email_provider_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_neon_auth_email_provider_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<NeonAuthEmailServerConfig>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = get_neon_auth_email_provider_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`get_neon_auth_email_provider`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetNeonAuthEmailProviderArgs {
+    /// Path parameter: project_id
+    pub project_id: String,
+    /// Path parameter: branch_id
+    pub branch_id: String,
+}
+
+/// GET /projects/{project_id}/branches/{branch_id}/auth/email_provider
+/// Get email provider configuration
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `get_neon_auth_email_provider_builder()` + `get_neon_auth_email_provider_execute()`.
+/// For task-level control, use `get_neon_auth_email_provider_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn get_neon_auth_email_provider(
+    client: &SimpleHttpClient,
+    args: &GetNeonAuthEmailProviderArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<NeonAuthEmailServerConfig>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = get_neon_auth_email_provider_builder(client, &args.project_id, &args.branch_id)?;
+    get_neon_auth_email_provider_execute(builder)
+}
+
+/// PATCH /projects/{project_id}/branches/{branch_id}/auth/email_provider
+/// Update email provider configuration
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `update_neon_auth_email_provider_execute()` to send, or `update_neon_auth_email_provider` for simplest API.
+
+pub fn update_neon_auth_email_provider_builder<R>(
+    client: &SimpleHttpClient<R>,
+    project_id: &String,
+    branch_id: &String,
+    body: &NeonAuthEmailServerConfig,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
+    // Build URL
+    let endpoint_url = format!(
+        "https://console.neon.tech/api/v2/projects/{}/branches/{}/auth/email_provider",
+        project_id, branch_id,
+    );
+
+    // Build request
+    let builder = client
+        .patch(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder
+        .body_json(body)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// PATCH /projects/{project_id}/branches/{branch_id}/auth/email_provider
+/// Update email provider configuration
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `update_neon_auth_email_provider_execute()` or `update_neon_auth_email_provider`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `update_neon_auth_email_provider_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn update_neon_auth_email_provider_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<NeonAuthEmailServerConfig>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: NeonAuthEmailServerConfig = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH /projects/{project_id}/branches/{branch_id}/auth/email_provider
+/// Update email provider configuration
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `update_neon_auth_email_provider_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `update_neon_auth_email_provider_task()`.
+/// For the simplest API, use `update_neon_auth_email_provider()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `update_neon_auth_email_provider_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn update_neon_auth_email_provider_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<NeonAuthEmailServerConfig>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = update_neon_auth_email_provider_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`update_neon_auth_email_provider`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct UpdateNeonAuthEmailProviderArgs {
+    /// Path parameter: project_id
+    pub project_id: String,
+    /// Path parameter: branch_id
+    pub branch_id: String,
+    /// Request body.
+    pub body: NeonAuthEmailServerConfig,
+}
+
+/// PATCH /projects/{project_id}/branches/{branch_id}/auth/email_provider
+/// Update email provider configuration
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `update_neon_auth_email_provider_builder()` + `update_neon_auth_email_provider_execute()`.
+/// For task-level control, use `update_neon_auth_email_provider_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn update_neon_auth_email_provider(
+    client: &SimpleHttpClient,
+    args: &UpdateNeonAuthEmailProviderArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<NeonAuthEmailServerConfig>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = update_neon_auth_email_provider_builder(
+        client,
+        &args.project_id,
+        &args.branch_id,
+        &args.body,
+    )?;
+    update_neon_auth_email_provider_execute(builder)
+}
+
+/// GET /projects/{project_id}/branches/{branch_id}/auth/oauth_providers
+/// List OAuth providers for neon auth for a branch
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `list_branch_neon_auth_oauth_providers_execute()` to send, or `list_branch_neon_auth_oauth_providers` for simplest API.
+
+pub fn list_branch_neon_auth_oauth_providers_builder<R>(
+    client: &SimpleHttpClient<R>,
+    project_id: &String,
+    branch_id: &String,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
+    // Build URL
+    let endpoint_url = format!(
+        "https://console.neon.tech/api/v2/projects/{}/branches/{}/auth/oauth_providers",
+        project_id, branch_id,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET /projects/{project_id}/branches/{branch_id}/auth/oauth_providers
+/// List OAuth providers for neon auth for a branch
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `list_branch_neon_auth_oauth_providers_execute()` or `list_branch_neon_auth_oauth_providers`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `list_branch_neon_auth_oauth_providers_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn list_branch_neon_auth_oauth_providers_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListNeonAuthOauthProvidersResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListNeonAuthOauthProvidersResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET /projects/{project_id}/branches/{branch_id}/auth/oauth_providers
+/// List OAuth providers for neon auth for a branch
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `list_branch_neon_auth_oauth_providers_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `list_branch_neon_auth_oauth_providers_task()`.
+/// For the simplest API, use `list_branch_neon_auth_oauth_providers()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `list_branch_neon_auth_oauth_providers_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn list_branch_neon_auth_oauth_providers_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListNeonAuthOauthProvidersResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = list_branch_neon_auth_oauth_providers_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`list_branch_neon_auth_oauth_providers`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ListBranchNeonAuthOauthProvidersArgs {
+    /// Path parameter: project_id
+    pub project_id: String,
+    /// Path parameter: branch_id
+    pub branch_id: String,
+}
+
+/// GET /projects/{project_id}/branches/{branch_id}/auth/oauth_providers
+/// List OAuth providers for neon auth for a branch
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `list_branch_neon_auth_oauth_providers_builder()` + `list_branch_neon_auth_oauth_providers_execute()`.
+/// For task-level control, use `list_branch_neon_auth_oauth_providers_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn list_branch_neon_auth_oauth_providers(
+    client: &SimpleHttpClient,
+    args: &ListBranchNeonAuthOauthProvidersArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListNeonAuthOauthProvidersResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        list_branch_neon_auth_oauth_providers_builder(client, &args.project_id, &args.branch_id)?;
+    list_branch_neon_auth_oauth_providers_execute(builder)
+}
+
+/// POST /projects/{project_id}/branches/{branch_id}/auth/oauth_providers
+/// Add a OAuth provider
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `add_branch_neon_auth_oauth_provider_execute()` to send, or `add_branch_neon_auth_oauth_provider` for simplest API.
+
+pub fn add_branch_neon_auth_oauth_provider_builder<R>(
+    client: &SimpleHttpClient<R>,
+    project_id: &String,
+    branch_id: &String,
+    body: &NeonAuthAddOAuthProviderRequest,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
+    // Build URL
+    let endpoint_url = format!(
+        "https://console.neon.tech/api/v2/projects/{}/branches/{}/auth/oauth_providers",
+        project_id, branch_id,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder
+        .body_json(body)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// POST /projects/{project_id}/branches/{branch_id}/auth/oauth_providers
+/// Add a OAuth provider
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `add_branch_neon_auth_oauth_provider_execute()` or `add_branch_neon_auth_oauth_provider`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `add_branch_neon_auth_oauth_provider_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn add_branch_neon_auth_oauth_provider_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<NeonAuthOauthProvider>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: NeonAuthOauthProvider = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST /projects/{project_id}/branches/{branch_id}/auth/oauth_providers
+/// Add a OAuth provider
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `add_branch_neon_auth_oauth_provider_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `add_branch_neon_auth_oauth_provider_task()`.
+/// For the simplest API, use `add_branch_neon_auth_oauth_provider()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `add_branch_neon_auth_oauth_provider_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn add_branch_neon_auth_oauth_provider_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<NeonAuthOauthProvider>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = add_branch_neon_auth_oauth_provider_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`add_branch_neon_auth_oauth_provider`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AddBranchNeonAuthOauthProviderArgs {
+    /// Path parameter: project_id
+    pub project_id: String,
+    /// Path parameter: branch_id
+    pub branch_id: String,
+    /// Request body.
+    pub body: NeonAuthAddOAuthProviderRequest,
+}
+
+/// POST /projects/{project_id}/branches/{branch_id}/auth/oauth_providers
+/// Add a OAuth provider
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `add_branch_neon_auth_oauth_provider_builder()` + `add_branch_neon_auth_oauth_provider_execute()`.
+/// For task-level control, use `add_branch_neon_auth_oauth_provider_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn add_branch_neon_auth_oauth_provider(
+    client: &SimpleHttpClient,
+    args: &AddBranchNeonAuthOauthProviderArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<NeonAuthOauthProvider>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = add_branch_neon_auth_oauth_provider_builder(
+        client,
+        &args.project_id,
+        &args.branch_id,
+        &args.body,
+    )?;
+    add_branch_neon_auth_oauth_provider_execute(builder)
+}
+
+/// PATCH /projects/{project_id}/branches/{branch_id}/auth/oauth_providers/{oauth_provider_id}
+/// Update OAuth provider
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `update_branch_neon_auth_oauth_provider_execute()` to send, or `update_branch_neon_auth_oauth_provider` for simplest API.
+
+pub fn update_branch_neon_auth_oauth_provider_builder<R>(
+    client: &SimpleHttpClient<R>,
+    project_id: &String,
+    branch_id: &String,
+    oauth_provider_id: &String,
+    body: &NeonAuthUpdateOAuthProviderRequest,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
+    // Build URL
+    let endpoint_url = format!(
+        "https://console.neon.tech/api/v2/projects/{}/branches/{}/auth/oauth_providers/{}",
+        project_id, branch_id, oauth_provider_id,
+    );
+
+    // Build request
+    let builder = client
+        .patch(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder
+        .body_json(body)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// PATCH /projects/{project_id}/branches/{branch_id}/auth/oauth_providers/{oauth_provider_id}
+/// Update OAuth provider
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `update_branch_neon_auth_oauth_provider_execute()` or `update_branch_neon_auth_oauth_provider`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `update_branch_neon_auth_oauth_provider_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn update_branch_neon_auth_oauth_provider_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<NeonAuthOauthProvider>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: NeonAuthOauthProvider = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH /projects/{project_id}/branches/{branch_id}/auth/oauth_providers/{oauth_provider_id}
+/// Update OAuth provider
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `update_branch_neon_auth_oauth_provider_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `update_branch_neon_auth_oauth_provider_task()`.
+/// For the simplest API, use `update_branch_neon_auth_oauth_provider()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `update_branch_neon_auth_oauth_provider_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn update_branch_neon_auth_oauth_provider_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<NeonAuthOauthProvider>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = update_branch_neon_auth_oauth_provider_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`update_branch_neon_auth_oauth_provider`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct UpdateBranchNeonAuthOauthProviderArgs {
+    /// Path parameter: project_id
+    pub project_id: String,
+    /// Path parameter: branch_id
+    pub branch_id: String,
+    /// Path parameter: oauth_provider_id
+    pub oauth_provider_id: String,
+    /// Request body.
+    pub body: NeonAuthUpdateOAuthProviderRequest,
+}
+
+/// PATCH /projects/{project_id}/branches/{branch_id}/auth/oauth_providers/{oauth_provider_id}
+/// Update OAuth provider
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `update_branch_neon_auth_oauth_provider_builder()` + `update_branch_neon_auth_oauth_provider_execute()`.
+/// For task-level control, use `update_branch_neon_auth_oauth_provider_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn update_branch_neon_auth_oauth_provider(
+    client: &SimpleHttpClient,
+    args: &UpdateBranchNeonAuthOauthProviderArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<NeonAuthOauthProvider>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = update_branch_neon_auth_oauth_provider_builder(
+        client,
+        &args.project_id,
+        &args.branch_id,
+        &args.oauth_provider_id,
+        &args.body,
+    )?;
+    update_branch_neon_auth_oauth_provider_execute(builder)
+}
+
+/// DELETE /projects/{project_id}/branches/{branch_id}/auth/oauth_providers/{oauth_provider_id}
+/// Delete OAuth provider
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `delete_branch_neon_auth_oauth_provider_execute()` to send, or `delete_branch_neon_auth_oauth_provider` for simplest API.
+
+pub fn delete_branch_neon_auth_oauth_provider_builder<R>(
+    client: &SimpleHttpClient<R>,
+    project_id: &String,
+    branch_id: &String,
+    oauth_provider_id: &String,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
+    // Build URL
+    let endpoint_url = format!(
+        "https://console.neon.tech/api/v2/projects/{}/branches/{}/auth/oauth_providers/{}",
+        project_id, branch_id, oauth_provider_id,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE /projects/{project_id}/branches/{branch_id}/auth/oauth_providers/{oauth_provider_id}
+/// Delete OAuth provider
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `delete_branch_neon_auth_oauth_provider_execute()` or `delete_branch_neon_auth_oauth_provider`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_branch_neon_auth_oauth_provider_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn delete_branch_neon_auth_oauth_provider_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: (),
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE /projects/{project_id}/branches/{branch_id}/auth/oauth_providers/{oauth_provider_id}
+/// Delete OAuth provider
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `delete_branch_neon_auth_oauth_provider_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `delete_branch_neon_auth_oauth_provider_task()`.
+/// For the simplest API, use `delete_branch_neon_auth_oauth_provider()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_branch_neon_auth_oauth_provider_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn delete_branch_neon_auth_oauth_provider_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = delete_branch_neon_auth_oauth_provider_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`delete_branch_neon_auth_oauth_provider`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DeleteBranchNeonAuthOauthProviderArgs {
+    /// Path parameter: project_id
+    pub project_id: String,
+    /// Path parameter: branch_id
+    pub branch_id: String,
+    /// Path parameter: oauth_provider_id
+    pub oauth_provider_id: String,
+}
+
+/// DELETE /projects/{project_id}/branches/{branch_id}/auth/oauth_providers/{oauth_provider_id}
+/// Delete OAuth provider
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `delete_branch_neon_auth_oauth_provider_builder()` + `delete_branch_neon_auth_oauth_provider_execute()`.
+/// For task-level control, use `delete_branch_neon_auth_oauth_provider_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn delete_branch_neon_auth_oauth_provider(
+    client: &SimpleHttpClient,
+    args: &DeleteBranchNeonAuthOauthProviderArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = delete_branch_neon_auth_oauth_provider_builder(
+        client,
+        &args.project_id,
+        &args.branch_id,
+        &args.oauth_provider_id,
+    )?;
+    delete_branch_neon_auth_oauth_provider_execute(builder)
+}
+
+/// GET /projects/{project_id}/branches/{branch_id}/auth/plugins
+/// Get all plugin configurations
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `get_neon_auth_plugin_configs_execute()` to send, or `get_neon_auth_plugin_configs` for simplest API.
+
+pub fn get_neon_auth_plugin_configs_builder<R>(
+    client: &SimpleHttpClient<R>,
+    project_id: &String,
+    branch_id: &String,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
+    // Build URL
+    let endpoint_url = format!(
+        "https://console.neon.tech/api/v2/projects/{}/branches/{}/auth/plugins",
+        project_id, branch_id,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET /projects/{project_id}/branches/{branch_id}/auth/plugins
+/// Get all plugin configurations
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_neon_auth_plugin_configs_execute()` or `get_neon_auth_plugin_configs`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_neon_auth_plugin_configs_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn get_neon_auth_plugin_configs_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<NeonAuthPluginConfigs>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: NeonAuthPluginConfigs = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET /projects/{project_id}/branches/{branch_id}/auth/plugins
+/// Get all plugin configurations
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_neon_auth_plugin_configs_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_neon_auth_plugin_configs_task()`.
+/// For the simplest API, use `get_neon_auth_plugin_configs()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_neon_auth_plugin_configs_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_neon_auth_plugin_configs_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<NeonAuthPluginConfigs>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = get_neon_auth_plugin_configs_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`get_neon_auth_plugin_configs`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetNeonAuthPluginConfigsArgs {
+    /// Path parameter: project_id
+    pub project_id: String,
+    /// Path parameter: branch_id
+    pub branch_id: String,
+}
+
+/// GET /projects/{project_id}/branches/{branch_id}/auth/plugins
+/// Get all plugin configurations
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `get_neon_auth_plugin_configs_builder()` + `get_neon_auth_plugin_configs_execute()`.
+/// For task-level control, use `get_neon_auth_plugin_configs_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn get_neon_auth_plugin_configs(
+    client: &SimpleHttpClient,
+    args: &GetNeonAuthPluginConfigsArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<NeonAuthPluginConfigs>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = get_neon_auth_plugin_configs_builder(client, &args.project_id, &args.branch_id)?;
+    get_neon_auth_plugin_configs_execute(builder)
+}
+
+/// PATCH /projects/{project_id}/branches/{branch_id}/auth/plugins/organization
+/// Update organization plugin configuration
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `update_neon_auth_organization_plugin_execute()` to send, or `update_neon_auth_organization_plugin` for simplest API.
+
+pub fn update_neon_auth_organization_plugin_builder<R>(
+    client: &SimpleHttpClient<R>,
+    project_id: &String,
+    branch_id: &String,
+    body: &NeonAuthOrganizationConfigUpdate,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
+    // Build URL
+    let endpoint_url = format!(
+        "https://console.neon.tech/api/v2/projects/{}/branches/{}/auth/plugins/organization",
+        project_id, branch_id,
+    );
+
+    // Build request
+    let builder = client
+        .patch(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder
+        .body_json(body)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// PATCH /projects/{project_id}/branches/{branch_id}/auth/plugins/organization
+/// Update organization plugin configuration
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `update_neon_auth_organization_plugin_execute()` or `update_neon_auth_organization_plugin`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `update_neon_auth_organization_plugin_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn update_neon_auth_organization_plugin_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<NeonAuthOrganizationConfig>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: NeonAuthOrganizationConfig = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH /projects/{project_id}/branches/{branch_id}/auth/plugins/organization
+/// Update organization plugin configuration
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `update_neon_auth_organization_plugin_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `update_neon_auth_organization_plugin_task()`.
+/// For the simplest API, use `update_neon_auth_organization_plugin()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `update_neon_auth_organization_plugin_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn update_neon_auth_organization_plugin_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<NeonAuthOrganizationConfig>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = update_neon_auth_organization_plugin_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`update_neon_auth_organization_plugin`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct UpdateNeonAuthOrganizationPluginArgs {
+    /// Path parameter: project_id
+    pub project_id: String,
+    /// Path parameter: branch_id
+    pub branch_id: String,
+    /// Request body.
+    pub body: NeonAuthOrganizationConfigUpdate,
+}
+
+/// PATCH /projects/{project_id}/branches/{branch_id}/auth/plugins/organization
+/// Update organization plugin configuration
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `update_neon_auth_organization_plugin_builder()` + `update_neon_auth_organization_plugin_execute()`.
+/// For task-level control, use `update_neon_auth_organization_plugin_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn update_neon_auth_organization_plugin(
+    client: &SimpleHttpClient,
+    args: &UpdateNeonAuthOrganizationPluginArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<NeonAuthOrganizationConfig>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = update_neon_auth_organization_plugin_builder(
+        client,
+        &args.project_id,
+        &args.branch_id,
+        &args.body,
+    )?;
+    update_neon_auth_organization_plugin_execute(builder)
+}
+
+/// POST /projects/{project_id}/branches/{branch_id}/auth/send_test_email
+/// Send test email
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `send_neon_auth_test_email_execute()` to send, or `send_neon_auth_test_email` for simplest API.
+
+pub fn send_neon_auth_test_email_builder<R>(
+    client: &SimpleHttpClient<R>,
+    project_id: &String,
+    branch_id: &String,
+    body: &SendNeonAuthTestEmailRequest,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
+    // Build URL
+    let endpoint_url = format!(
+        "https://console.neon.tech/api/v2/projects/{}/branches/{}/auth/send_test_email",
+        project_id, branch_id,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder
+        .body_json(body)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// POST /projects/{project_id}/branches/{branch_id}/auth/send_test_email
+/// Send test email
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `send_neon_auth_test_email_execute()` or `send_neon_auth_test_email`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `send_neon_auth_test_email_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn send_neon_auth_test_email_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SendNeonAuthTestEmailResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: SendNeonAuthTestEmailResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST /projects/{project_id}/branches/{branch_id}/auth/send_test_email
+/// Send test email
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `send_neon_auth_test_email_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `send_neon_auth_test_email_task()`.
+/// For the simplest API, use `send_neon_auth_test_email()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `send_neon_auth_test_email_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn send_neon_auth_test_email_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<SendNeonAuthTestEmailResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = send_neon_auth_test_email_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`send_neon_auth_test_email`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SendNeonAuthTestEmailArgs {
+    /// Path parameter: project_id
+    pub project_id: String,
+    /// Path parameter: branch_id
+    pub branch_id: String,
+    /// Request body.
+    pub body: SendNeonAuthTestEmailRequest,
+}
+
+/// POST /projects/{project_id}/branches/{branch_id}/auth/send_test_email
+/// Send test email
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `send_neon_auth_test_email_builder()` + `send_neon_auth_test_email_execute()`.
+/// For task-level control, use `send_neon_auth_test_email_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn send_neon_auth_test_email(
+    client: &SimpleHttpClient,
+    args: &SendNeonAuthTestEmailArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<SendNeonAuthTestEmailResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        send_neon_auth_test_email_builder(client, &args.project_id, &args.branch_id, &args.body)?;
+    send_neon_auth_test_email_execute(builder)
+}
+
+/// POST /projects/{project_id}/branches/{branch_id}/auth/users
+/// Create new auth user
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `create_branch_neon_auth_new_user_execute()` to send, or `create_branch_neon_auth_new_user` for simplest API.
+
+pub fn create_branch_neon_auth_new_user_builder<R>(
+    client: &SimpleHttpClient<R>,
+    project_id: &String,
+    branch_id: &String,
+    body: &CreateBranchNeonAuthNewUserRequest,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
+    // Build URL
+    let endpoint_url = format!(
+        "https://console.neon.tech/api/v2/projects/{}/branches/{}/auth/users",
+        project_id, branch_id,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder
+        .body_json(body)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// POST /projects/{project_id}/branches/{branch_id}/auth/users
+/// Create new auth user
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `create_branch_neon_auth_new_user_execute()` or `create_branch_neon_auth_new_user`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `create_branch_neon_auth_new_user_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn create_branch_neon_auth_new_user_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<NeonAuthCreateNewUserResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: NeonAuthCreateNewUserResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST /projects/{project_id}/branches/{branch_id}/auth/users
+/// Create new auth user
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `create_branch_neon_auth_new_user_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `create_branch_neon_auth_new_user_task()`.
+/// For the simplest API, use `create_branch_neon_auth_new_user()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `create_branch_neon_auth_new_user_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn create_branch_neon_auth_new_user_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<NeonAuthCreateNewUserResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = create_branch_neon_auth_new_user_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`create_branch_neon_auth_new_user`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CreateBranchNeonAuthNewUserArgs {
+    /// Path parameter: project_id
+    pub project_id: String,
+    /// Path parameter: branch_id
+    pub branch_id: String,
+    /// Request body.
+    pub body: CreateBranchNeonAuthNewUserRequest,
+}
+
+/// POST /projects/{project_id}/branches/{branch_id}/auth/users
+/// Create new auth user
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `create_branch_neon_auth_new_user_builder()` + `create_branch_neon_auth_new_user_execute()`.
+/// For task-level control, use `create_branch_neon_auth_new_user_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn create_branch_neon_auth_new_user(
+    client: &SimpleHttpClient,
+    args: &CreateBranchNeonAuthNewUserArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<NeonAuthCreateNewUserResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = create_branch_neon_auth_new_user_builder(
+        client,
+        &args.project_id,
+        &args.branch_id,
+        &args.body,
+    )?;
+    create_branch_neon_auth_new_user_execute(builder)
+}
+
+/// DELETE /projects/{project_id}/branches/{branch_id}/auth/users/{auth_user_id}
+/// Delete auth user
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `delete_branch_neon_auth_user_execute()` to send, or `delete_branch_neon_auth_user` for simplest API.
+
+pub fn delete_branch_neon_auth_user_builder<R>(
+    client: &SimpleHttpClient<R>,
+    project_id: &String,
+    branch_id: &String,
+    auth_user_id: &String,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
+    // Build URL
+    let endpoint_url = format!(
+        "https://console.neon.tech/api/v2/projects/{}/branches/{}/auth/users/{}",
+        project_id, branch_id, auth_user_id,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE /projects/{project_id}/branches/{branch_id}/auth/users/{auth_user_id}
+/// Delete auth user
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `delete_branch_neon_auth_user_execute()` or `delete_branch_neon_auth_user`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_branch_neon_auth_user_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn delete_branch_neon_auth_user_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: (),
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE /projects/{project_id}/branches/{branch_id}/auth/users/{auth_user_id}
+/// Delete auth user
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `delete_branch_neon_auth_user_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `delete_branch_neon_auth_user_task()`.
+/// For the simplest API, use `delete_branch_neon_auth_user()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_branch_neon_auth_user_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn delete_branch_neon_auth_user_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = delete_branch_neon_auth_user_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`delete_branch_neon_auth_user`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DeleteBranchNeonAuthUserArgs {
+    /// Path parameter: project_id
+    pub project_id: String,
+    /// Path parameter: branch_id
+    pub branch_id: String,
+    /// Path parameter: auth_user_id
+    pub auth_user_id: String,
+}
+
+/// DELETE /projects/{project_id}/branches/{branch_id}/auth/users/{auth_user_id}
+/// Delete auth user
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `delete_branch_neon_auth_user_builder()` + `delete_branch_neon_auth_user_execute()`.
+/// For task-level control, use `delete_branch_neon_auth_user_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn delete_branch_neon_auth_user(
+    client: &SimpleHttpClient,
+    args: &DeleteBranchNeonAuthUserArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = delete_branch_neon_auth_user_builder(
+        client,
+        &args.project_id,
+        &args.branch_id,
+        &args.auth_user_id,
+    )?;
+    delete_branch_neon_auth_user_execute(builder)
+}
+
+/// PUT /projects/{project_id}/branches/{branch_id}/auth/users/{auth_user_id}/role
+/// Update auth user role
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `update_neon_auth_user_role_execute()` to send, or `update_neon_auth_user_role` for simplest API.
+
+pub fn update_neon_auth_user_role_builder<R>(
+    client: &SimpleHttpClient<R>,
+    project_id: &String,
+    branch_id: &String,
+    auth_user_id: &String,
+    body: &UpdateNeonAuthUserRoleRequest,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
+    // Build URL
+    let endpoint_url = format!(
+        "https://console.neon.tech/api/v2/projects/{}/branches/{}/auth/users/{}/role",
+        project_id, branch_id, auth_user_id,
+    );
+
+    // Build request
+    let builder = client
+        .put(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder
+        .body_json(body)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// PUT /projects/{project_id}/branches/{branch_id}/auth/users/{auth_user_id}/role
+/// Update auth user role
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `update_neon_auth_user_role_execute()` or `update_neon_auth_user_role`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `update_neon_auth_user_role_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn update_neon_auth_user_role_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<UpdateNeonAuthUserRoleResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: UpdateNeonAuthUserRoleResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT /projects/{project_id}/branches/{branch_id}/auth/users/{auth_user_id}/role
+/// Update auth user role
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `update_neon_auth_user_role_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `update_neon_auth_user_role_task()`.
+/// For the simplest API, use `update_neon_auth_user_role()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `update_neon_auth_user_role_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn update_neon_auth_user_role_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<UpdateNeonAuthUserRoleResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = update_neon_auth_user_role_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`update_neon_auth_user_role`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct UpdateNeonAuthUserRoleArgs {
+    /// Path parameter: project_id
+    pub project_id: String,
+    /// Path parameter: branch_id
+    pub branch_id: String,
+    /// Path parameter: auth_user_id
+    pub auth_user_id: String,
+    /// Request body.
+    pub body: UpdateNeonAuthUserRoleRequest,
+}
+
+/// PUT /projects/{project_id}/branches/{branch_id}/auth/users/{auth_user_id}/role
+/// Update auth user role
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `update_neon_auth_user_role_builder()` + `update_neon_auth_user_role_execute()`.
+/// For task-level control, use `update_neon_auth_user_role_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn update_neon_auth_user_role(
+    client: &SimpleHttpClient,
+    args: &UpdateNeonAuthUserRoleArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<UpdateNeonAuthUserRoleResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = update_neon_auth_user_role_builder(
+        client,
+        &args.project_id,
+        &args.branch_id,
+        &args.auth_user_id,
+        &args.body,
+    )?;
+    update_neon_auth_user_role_execute(builder)
+}
+
+/// GET /projects/{project_id}/branches/{branch_id}/auth/webhooks
+/// Get webhook configuration for Neon Auth
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `get_neon_auth_webhook_config_execute()` to send, or `get_neon_auth_webhook_config` for simplest API.
+
+pub fn get_neon_auth_webhook_config_builder<R>(
+    client: &SimpleHttpClient<R>,
+    project_id: &String,
+    branch_id: &String,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
+    // Build URL
+    let endpoint_url = format!(
+        "https://console.neon.tech/api/v2/projects/{}/branches/{}/auth/webhooks",
+        project_id, branch_id,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET /projects/{project_id}/branches/{branch_id}/auth/webhooks
+/// Get webhook configuration for Neon Auth
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_neon_auth_webhook_config_execute()` or `get_neon_auth_webhook_config`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_neon_auth_webhook_config_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn get_neon_auth_webhook_config_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<NeonAuthWebhookConfig>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: NeonAuthWebhookConfig = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET /projects/{project_id}/branches/{branch_id}/auth/webhooks
+/// Get webhook configuration for Neon Auth
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_neon_auth_webhook_config_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_neon_auth_webhook_config_task()`.
+/// For the simplest API, use `get_neon_auth_webhook_config()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_neon_auth_webhook_config_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_neon_auth_webhook_config_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<NeonAuthWebhookConfig>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = get_neon_auth_webhook_config_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`get_neon_auth_webhook_config`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetNeonAuthWebhookConfigArgs {
+    /// Path parameter: project_id
+    pub project_id: String,
+    /// Path parameter: branch_id
+    pub branch_id: String,
+}
+
+/// GET /projects/{project_id}/branches/{branch_id}/auth/webhooks
+/// Get webhook configuration for Neon Auth
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `get_neon_auth_webhook_config_builder()` + `get_neon_auth_webhook_config_execute()`.
+/// For task-level control, use `get_neon_auth_webhook_config_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn get_neon_auth_webhook_config(
+    client: &SimpleHttpClient,
+    args: &GetNeonAuthWebhookConfigArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<NeonAuthWebhookConfig>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = get_neon_auth_webhook_config_builder(client, &args.project_id, &args.branch_id)?;
+    get_neon_auth_webhook_config_execute(builder)
+}
+
+/// PUT /projects/{project_id}/branches/{branch_id}/auth/webhooks
+/// Update webhook configuration for Neon Auth
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `update_neon_auth_webhook_config_execute()` to send, or `update_neon_auth_webhook_config` for simplest API.
+
+pub fn update_neon_auth_webhook_config_builder<R>(
+    client: &SimpleHttpClient<R>,
+    project_id: &String,
+    branch_id: &String,
+    body: &NeonAuthWebhookConfig,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
+    // Build URL
+    let endpoint_url = format!(
+        "https://console.neon.tech/api/v2/projects/{}/branches/{}/auth/webhooks",
+        project_id, branch_id,
+    );
+
+    // Build request
+    let builder = client
+        .put(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder
+        .body_json(body)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// PUT /projects/{project_id}/branches/{branch_id}/auth/webhooks
+/// Update webhook configuration for Neon Auth
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `update_neon_auth_webhook_config_execute()` or `update_neon_auth_webhook_config`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `update_neon_auth_webhook_config_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn update_neon_auth_webhook_config_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<NeonAuthWebhookConfig>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: NeonAuthWebhookConfig = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT /projects/{project_id}/branches/{branch_id}/auth/webhooks
+/// Update webhook configuration for Neon Auth
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `update_neon_auth_webhook_config_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `update_neon_auth_webhook_config_task()`.
+/// For the simplest API, use `update_neon_auth_webhook_config()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `update_neon_auth_webhook_config_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn update_neon_auth_webhook_config_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<NeonAuthWebhookConfig>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = update_neon_auth_webhook_config_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`update_neon_auth_webhook_config`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct UpdateNeonAuthWebhookConfigArgs {
+    /// Path parameter: project_id
+    pub project_id: String,
+    /// Path parameter: branch_id
+    pub branch_id: String,
+    /// Request body.
+    pub body: NeonAuthWebhookConfig,
+}
+
+/// PUT /projects/{project_id}/branches/{branch_id}/auth/webhooks
+/// Update webhook configuration for Neon Auth
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `update_neon_auth_webhook_config_builder()` + `update_neon_auth_webhook_config_execute()`.
+/// For task-level control, use `update_neon_auth_webhook_config_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn update_neon_auth_webhook_config(
+    client: &SimpleHttpClient,
+    args: &UpdateNeonAuthWebhookConfigArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<NeonAuthWebhookConfig>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = update_neon_auth_webhook_config_builder(
+        client,
+        &args.project_id,
+        &args.branch_id,
+        &args.body,
+    )?;
+    update_neon_auth_webhook_config_execute(builder)
+}
+
+/// GET /projects/{project_id}/branches/{branch_id}/backup_schedule
+/// View backup schedule
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `get_snapshot_schedule_execute()` to send, or `get_snapshot_schedule` for simplest API.
+
+pub fn get_snapshot_schedule_builder<R>(
+    client: &SimpleHttpClient<R>,
+    project_id: &String,
+    branch_id: &String,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
+    // Build URL
+    let endpoint_url = format!(
+        "https://console.neon.tech/api/v2/projects/{}/branches/{}/backup_schedule",
+        project_id, branch_id,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET /projects/{project_id}/branches/{branch_id}/backup_schedule
+/// View backup schedule
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_snapshot_schedule_execute()` or `get_snapshot_schedule`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_snapshot_schedule_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn get_snapshot_schedule_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: (),
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET /projects/{project_id}/branches/{branch_id}/backup_schedule
+/// View backup schedule
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_snapshot_schedule_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_snapshot_schedule_task()`.
+/// For the simplest API, use `get_snapshot_schedule()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_snapshot_schedule_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_snapshot_schedule_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = get_snapshot_schedule_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`get_snapshot_schedule`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetSnapshotScheduleArgs {
+    /// Path parameter: project_id
+    pub project_id: String,
+    /// Path parameter: branch_id
+    pub branch_id: String,
+}
+
+/// GET /projects/{project_id}/branches/{branch_id}/backup_schedule
+/// View backup schedule
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `get_snapshot_schedule_builder()` + `get_snapshot_schedule_execute()`.
+/// For task-level control, use `get_snapshot_schedule_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn get_snapshot_schedule(
+    client: &SimpleHttpClient,
+    args: &GetSnapshotScheduleArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = get_snapshot_schedule_builder(client, &args.project_id, &args.branch_id)?;
+    get_snapshot_schedule_execute(builder)
+}
+
+/// PUT /projects/{project_id}/branches/{branch_id}/backup_schedule
+/// Update backup schedule
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `set_snapshot_schedule_execute()` to send, or `set_snapshot_schedule` for simplest API.
+
+pub fn set_snapshot_schedule_builder<R>(
+    client: &SimpleHttpClient<R>,
+    project_id: &String,
+    branch_id: &String,
+    body: &BackupSchedule,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
+    // Build URL
+    let endpoint_url = format!(
+        "https://console.neon.tech/api/v2/projects/{}/branches/{}/backup_schedule",
+        project_id, branch_id,
+    );
+
+    // Build request
+    let builder = client
+        .put(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder
+        .body_json(body)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// PUT /projects/{project_id}/branches/{branch_id}/backup_schedule
+/// Update backup schedule
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `set_snapshot_schedule_execute()` or `set_snapshot_schedule`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `set_snapshot_schedule_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn set_snapshot_schedule_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: (),
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT /projects/{project_id}/branches/{branch_id}/backup_schedule
+/// Update backup schedule
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `set_snapshot_schedule_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `set_snapshot_schedule_task()`.
+/// For the simplest API, use `set_snapshot_schedule()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `set_snapshot_schedule_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn set_snapshot_schedule_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = set_snapshot_schedule_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`set_snapshot_schedule`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SetSnapshotScheduleArgs {
+    /// Path parameter: project_id
+    pub project_id: String,
+    /// Path parameter: branch_id
+    pub branch_id: String,
+    /// Request body.
+    pub body: BackupSchedule,
+}
+
+/// PUT /projects/{project_id}/branches/{branch_id}/backup_schedule
+/// Update backup schedule
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `set_snapshot_schedule_builder()` + `set_snapshot_schedule_execute()`.
+/// For task-level control, use `set_snapshot_schedule_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn set_snapshot_schedule(
+    client: &SimpleHttpClient,
+    args: &SetSnapshotScheduleArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        set_snapshot_schedule_builder(client, &args.project_id, &args.branch_id, &args.body)?;
+    set_snapshot_schedule_execute(builder)
 }
 
 /// GET /projects/{project_id}/branches/{branch_id}/compare_schema
 /// Compare database schema
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `get_projects_project_id_branches_branch_id_compare_schema_execute()` to send, or `get_projects_project_id_branches_branch_id_compare_schema` for simplest API.
+/// Use `get_project_branch_schema_comparison_execute()` to send, or `get_project_branch_schema_comparison` for simplest API.
 
-pub fn get_projects_project_id_branches_branch_id_compare_schema_builder(
-    client: &SimpleHttpClient,
+pub fn get_project_branch_schema_comparison_builder<R>(
+    client: &SimpleHttpClient<R>,
     project_id: &String,
     branch_id: &String,
-    base_branch_id: &Option<String>,
-    db_name: &Option<String>,
-    lsn: &Option<String>,
-    timestamp: &Option<String>,
-    base_lsn: &Option<String>,
-    base_timestamp: &Option<String>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    base_branch_id: &Option<Option<String>>,
+    db_name: &Option<Option<String>>,
+    lsn: &Option<Option<String>>,
+    timestamp: &Option<Option<String>>,
+    base_lsn: &Option<Option<String>>,
+    base_timestamp: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://console.neon.tech/api/v2/projects/{}/branches/{}/compare_schema",
@@ -3209,17 +14111,17 @@ pub fn get_projects_project_id_branches_branch_id_compare_schema_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `get_projects_project_id_branches_branch_id_compare_schema_execute()` or `get_projects_project_id_branches_branch_id_compare_schema`.
+/// For direct execution, use `get_project_branch_schema_comparison_execute()` or `get_project_branch_schema_comparison`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `get_projects_project_id_branches_branch_id_compare_schema_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_project_branch_schema_comparison_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_projects_project_id_branches_branch_id_compare_schema_task(
+pub fn get_project_branch_schema_comparison_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -3278,21 +14180,21 @@ pub fn get_projects_project_id_branches_branch_id_compare_schema_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `get_projects_project_id_branches_branch_id_compare_schema_builder()` to create the builder,
+/// For full customization, use `get_project_branch_schema_comparison_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `get_projects_project_id_branches_branch_id_compare_schema_task()`.
-/// For the simplest API, use `get_projects_project_id_branches_branch_id_compare_schema()`.
+/// For task-level control, use `get_project_branch_schema_comparison_task()`.
+/// For the simplest API, use `get_project_branch_schema_comparison()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `get_projects_project_id_branches_branch_id_compare_schema_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_project_branch_schema_comparison_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn get_projects_project_id_branches_branch_id_compare_schema_execute(
+pub fn get_project_branch_schema_comparison_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<
@@ -3302,45 +14204,45 @@ pub fn get_projects_project_id_branches_branch_id_compare_schema_execute(
         + 'static,
     ApiError,
 > {
-    let task = get_projects_project_id_branches_branch_id_compare_schema_task(builder)?;
+    let task = get_project_branch_schema_comparison_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`get_projects_project_id_branches_branch_id_compare_schema`].
+/// Arguments for [`get_project_branch_schema_comparison`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct GetProjectsProjectIdBranchesBranchIdCompareSchemaArgs {
+pub struct GetProjectBranchSchemaComparisonArgs {
     /// Path parameter: project_id
     pub project_id: String,
     /// Path parameter: branch_id
     pub branch_id: String,
     /// Query parameter: base_branch_id
-    pub base_branch_id: Option<String>,
+    pub base_branch_id: Option<Option<String>>,
     /// Query parameter: db_name
-    pub db_name: Option<String>,
+    pub db_name: Option<Option<String>>,
     /// Query parameter: lsn
-    pub lsn: Option<String>,
+    pub lsn: Option<Option<String>>,
     /// Query parameter: timestamp
-    pub timestamp: Option<String>,
+    pub timestamp: Option<Option<String>>,
     /// Query parameter: base_lsn
-    pub base_lsn: Option<String>,
+    pub base_lsn: Option<Option<String>>,
     /// Query parameter: base_timestamp
-    pub base_timestamp: Option<String>,
+    pub base_timestamp: Option<Option<String>>,
 }
 
 /// GET /projects/{project_id}/branches/{branch_id}/compare_schema
 /// Compare database schema
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `get_projects_project_id_branches_branch_id_compare_schema_builder()` + `get_projects_project_id_branches_branch_id_compare_schema_execute()`.
-/// For task-level control, use `get_projects_project_id_branches_branch_id_compare_schema_task()`.
+/// For customization, use `get_project_branch_schema_comparison_builder()` + `get_project_branch_schema_comparison_execute()`.
+/// For task-level control, use `get_project_branch_schema_comparison_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_projects_project_id_branches_branch_id_compare_schema(
+pub fn get_project_branch_schema_comparison(
     client: &SimpleHttpClient,
-    args: &GetProjectsProjectIdBranchesBranchIdCompareSchemaArgs,
+    args: &GetProjectBranchSchemaComparisonArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<BranchSchemaCompareResponse>, ApiError>,
@@ -3349,7 +14251,7 @@ pub fn get_projects_project_id_branches_branch_id_compare_schema(
         + 'static,
     ApiError,
 > {
-    let builder = get_projects_project_id_branches_branch_id_compare_schema_builder(
+    let builder = get_project_branch_schema_comparison_builder(
         client,
         &args.project_id,
         &args.branch_id,
@@ -3360,39 +14262,40 @@ pub fn get_projects_project_id_branches_branch_id_compare_schema(
         &args.base_lsn,
         &args.base_timestamp,
     )?;
-    get_projects_project_id_branches_branch_id_compare_schema_execute(builder)
+    get_project_branch_schema_comparison_execute(builder)
 }
 
-/// POST /projects/{project_id}/branches/{branch_id}/restore
-/// Restore branch
+/// GET /projects/{project_id}/branches/{branch_id}/data-api/{database_name}
+/// Get Neon Data API
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `post_projects_project_id_branches_branch_id_restore_execute()` to send, or `post_projects_project_id_branches_branch_id_restore` for simplest API.
+/// Use `get_project_branch_data_api_execute()` to send, or `get_project_branch_data_api` for simplest API.
 
-pub fn post_projects_project_id_branches_branch_id_restore_builder(
-    client: &SimpleHttpClient,
+pub fn get_project_branch_data_api_builder<R>(
+    client: &SimpleHttpClient<R>,
     project_id: &String,
     branch_id: &String,
-    body: &serde_json::Value,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    database_name: &String,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
-        "https://console.neon.tech/api/v2/projects/{}/branches/{}/restore",
-        project_id, branch_id,
+        "https://console.neon.tech/api/v2/projects/{}/branches/{}/data-api/{}",
+        project_id, branch_id, database_name,
     );
 
     // Build request
     let builder = client
-        .post(&endpoint_url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// POST /projects/{project_id}/branches/{branch_id}/restore
-/// Restore branch
+/// GET /projects/{project_id}/branches/{branch_id}/data-api/{database_name}
+/// Get Neon Data API
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -3402,21 +14305,21 @@ pub fn post_projects_project_id_branches_branch_id_restore_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `post_projects_project_id_branches_branch_id_restore_execute()` or `post_projects_project_id_branches_branch_id_restore`.
+/// For direct execution, use `get_project_branch_data_api_execute()` or `get_project_branch_data_api`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `post_projects_project_id_branches_branch_id_restore_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_project_branch_data_api_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_projects_project_id_branches_branch_id_restore_task(
+pub fn get_project_branch_data_api_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            Ready = Result<ApiResponse<serde_json::Value>, ApiError>,
+            Ready = Result<ApiResponse<DataAPIReponse>, ApiError>,
             Pending = ApiPending,
             Spawner = BoxedSendExecutionAction,
         > + Send
@@ -3451,7 +14354,2270 @@ pub fn post_projects_project_id_branches_branch_id_restore_task(
                 }
 
                 let body = body_reader::collect_string(stream);
-                let parsed: serde_json::Value = serde_json::from_str(&body)
+                let parsed: DataAPIReponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET /projects/{project_id}/branches/{branch_id}/data-api/{database_name}
+/// Get Neon Data API
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_project_branch_data_api_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_project_branch_data_api_task()`.
+/// For the simplest API, use `get_project_branch_data_api()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_project_branch_data_api_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_project_branch_data_api_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<DataAPIReponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = get_project_branch_data_api_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`get_project_branch_data_api`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetProjectBranchDataApiArgs {
+    /// Path parameter: project_id
+    pub project_id: String,
+    /// Path parameter: branch_id
+    pub branch_id: String,
+    /// Path parameter: database_name
+    pub database_name: String,
+}
+
+/// GET /projects/{project_id}/branches/{branch_id}/data-api/{database_name}
+/// Get Neon Data API
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `get_project_branch_data_api_builder()` + `get_project_branch_data_api_execute()`.
+/// For task-level control, use `get_project_branch_data_api_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn get_project_branch_data_api(
+    client: &SimpleHttpClient,
+    args: &GetProjectBranchDataApiArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<DataAPIReponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = get_project_branch_data_api_builder(
+        client,
+        &args.project_id,
+        &args.branch_id,
+        &args.database_name,
+    )?;
+    get_project_branch_data_api_execute(builder)
+}
+
+/// POST /projects/{project_id}/branches/{branch_id}/data-api/{database_name}
+/// Create Neon Data API
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `create_project_branch_data_api_execute()` to send, or `create_project_branch_data_api` for simplest API.
+
+pub fn create_project_branch_data_api_builder<R>(
+    client: &SimpleHttpClient<R>,
+    project_id: &String,
+    branch_id: &String,
+    database_name: &String,
+    body: &DataAPICreateRequest,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
+    // Build URL
+    let endpoint_url = format!(
+        "https://console.neon.tech/api/v2/projects/{}/branches/{}/data-api/{}",
+        project_id, branch_id, database_name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder
+        .body_json(body)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// POST /projects/{project_id}/branches/{branch_id}/data-api/{database_name}
+/// Create Neon Data API
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `create_project_branch_data_api_execute()` or `create_project_branch_data_api`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `create_project_branch_data_api_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn create_project_branch_data_api_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<DataAPICreateResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: DataAPICreateResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST /projects/{project_id}/branches/{branch_id}/data-api/{database_name}
+/// Create Neon Data API
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `create_project_branch_data_api_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `create_project_branch_data_api_task()`.
+/// For the simplest API, use `create_project_branch_data_api()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `create_project_branch_data_api_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn create_project_branch_data_api_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<DataAPICreateResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = create_project_branch_data_api_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`create_project_branch_data_api`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CreateProjectBranchDataApiArgs {
+    /// Path parameter: project_id
+    pub project_id: String,
+    /// Path parameter: branch_id
+    pub branch_id: String,
+    /// Path parameter: database_name
+    pub database_name: String,
+    /// Request body.
+    pub body: DataAPICreateRequest,
+}
+
+/// POST /projects/{project_id}/branches/{branch_id}/data-api/{database_name}
+/// Create Neon Data API
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `create_project_branch_data_api_builder()` + `create_project_branch_data_api_execute()`.
+/// For task-level control, use `create_project_branch_data_api_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn create_project_branch_data_api(
+    client: &SimpleHttpClient,
+    args: &CreateProjectBranchDataApiArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<DataAPICreateResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = create_project_branch_data_api_builder(
+        client,
+        &args.project_id,
+        &args.branch_id,
+        &args.database_name,
+        &args.body,
+    )?;
+    create_project_branch_data_api_execute(builder)
+}
+
+/// PATCH /projects/{project_id}/branches/{branch_id}/data-api/{database_name}
+/// Update Neon Data API
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `update_project_branch_data_api_execute()` to send, or `update_project_branch_data_api` for simplest API.
+
+pub fn update_project_branch_data_api_builder<R>(
+    client: &SimpleHttpClient<R>,
+    project_id: &String,
+    branch_id: &String,
+    database_name: &String,
+    body: &DataAPIUpdateRequest,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
+    // Build URL
+    let endpoint_url = format!(
+        "https://console.neon.tech/api/v2/projects/{}/branches/{}/data-api/{}",
+        project_id, branch_id, database_name,
+    );
+
+    // Build request
+    let builder = client
+        .patch(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder
+        .body_json(body)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// PATCH /projects/{project_id}/branches/{branch_id}/data-api/{database_name}
+/// Update Neon Data API
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `update_project_branch_data_api_execute()` or `update_project_branch_data_api`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `update_project_branch_data_api_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn update_project_branch_data_api_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<EmptyResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: EmptyResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH /projects/{project_id}/branches/{branch_id}/data-api/{database_name}
+/// Update Neon Data API
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `update_project_branch_data_api_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `update_project_branch_data_api_task()`.
+/// For the simplest API, use `update_project_branch_data_api()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `update_project_branch_data_api_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn update_project_branch_data_api_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<EmptyResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = update_project_branch_data_api_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`update_project_branch_data_api`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct UpdateProjectBranchDataApiArgs {
+    /// Path parameter: project_id
+    pub project_id: String,
+    /// Path parameter: branch_id
+    pub branch_id: String,
+    /// Path parameter: database_name
+    pub database_name: String,
+    /// Request body.
+    pub body: DataAPIUpdateRequest,
+}
+
+/// PATCH /projects/{project_id}/branches/{branch_id}/data-api/{database_name}
+/// Update Neon Data API
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `update_project_branch_data_api_builder()` + `update_project_branch_data_api_execute()`.
+/// For task-level control, use `update_project_branch_data_api_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn update_project_branch_data_api(
+    client: &SimpleHttpClient,
+    args: &UpdateProjectBranchDataApiArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<EmptyResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = update_project_branch_data_api_builder(
+        client,
+        &args.project_id,
+        &args.branch_id,
+        &args.database_name,
+        &args.body,
+    )?;
+    update_project_branch_data_api_execute(builder)
+}
+
+/// DELETE /projects/{project_id}/branches/{branch_id}/data-api/{database_name}
+/// Delete Neon Data API
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `delete_project_branch_data_api_execute()` to send, or `delete_project_branch_data_api` for simplest API.
+
+pub fn delete_project_branch_data_api_builder<R>(
+    client: &SimpleHttpClient<R>,
+    project_id: &String,
+    branch_id: &String,
+    database_name: &String,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
+    // Build URL
+    let endpoint_url = format!(
+        "https://console.neon.tech/api/v2/projects/{}/branches/{}/data-api/{}",
+        project_id, branch_id, database_name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE /projects/{project_id}/branches/{branch_id}/data-api/{database_name}
+/// Delete Neon Data API
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `delete_project_branch_data_api_execute()` or `delete_project_branch_data_api`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_project_branch_data_api_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn delete_project_branch_data_api_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<EmptyResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: EmptyResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE /projects/{project_id}/branches/{branch_id}/data-api/{database_name}
+/// Delete Neon Data API
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `delete_project_branch_data_api_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `delete_project_branch_data_api_task()`.
+/// For the simplest API, use `delete_project_branch_data_api()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_project_branch_data_api_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn delete_project_branch_data_api_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<EmptyResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = delete_project_branch_data_api_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`delete_project_branch_data_api`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DeleteProjectBranchDataApiArgs {
+    /// Path parameter: project_id
+    pub project_id: String,
+    /// Path parameter: branch_id
+    pub branch_id: String,
+    /// Path parameter: database_name
+    pub database_name: String,
+}
+
+/// DELETE /projects/{project_id}/branches/{branch_id}/data-api/{database_name}
+/// Delete Neon Data API
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `delete_project_branch_data_api_builder()` + `delete_project_branch_data_api_execute()`.
+/// For task-level control, use `delete_project_branch_data_api_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn delete_project_branch_data_api(
+    client: &SimpleHttpClient,
+    args: &DeleteProjectBranchDataApiArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<EmptyResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = delete_project_branch_data_api_builder(
+        client,
+        &args.project_id,
+        &args.branch_id,
+        &args.database_name,
+    )?;
+    delete_project_branch_data_api_execute(builder)
+}
+
+/// GET /projects/{project_id}/branches/{branch_id}/databases
+/// List databases
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `list_project_branch_databases_execute()` to send, or `list_project_branch_databases` for simplest API.
+
+pub fn list_project_branch_databases_builder<R>(
+    client: &SimpleHttpClient<R>,
+    project_id: &String,
+    branch_id: &String,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
+    // Build URL
+    let endpoint_url = format!(
+        "https://console.neon.tech/api/v2/projects/{}/branches/{}/databases",
+        project_id, branch_id,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET /projects/{project_id}/branches/{branch_id}/databases
+/// List databases
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `list_project_branch_databases_execute()` or `list_project_branch_databases`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `list_project_branch_databases_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn list_project_branch_databases_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<DatabasesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: DatabasesResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET /projects/{project_id}/branches/{branch_id}/databases
+/// List databases
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `list_project_branch_databases_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `list_project_branch_databases_task()`.
+/// For the simplest API, use `list_project_branch_databases()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `list_project_branch_databases_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn list_project_branch_databases_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<DatabasesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = list_project_branch_databases_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`list_project_branch_databases`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ListProjectBranchDatabasesArgs {
+    /// Path parameter: project_id
+    pub project_id: String,
+    /// Path parameter: branch_id
+    pub branch_id: String,
+}
+
+/// GET /projects/{project_id}/branches/{branch_id}/databases
+/// List databases
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `list_project_branch_databases_builder()` + `list_project_branch_databases_execute()`.
+/// For task-level control, use `list_project_branch_databases_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn list_project_branch_databases(
+    client: &SimpleHttpClient,
+    args: &ListProjectBranchDatabasesArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<DatabasesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = list_project_branch_databases_builder(client, &args.project_id, &args.branch_id)?;
+    list_project_branch_databases_execute(builder)
+}
+
+/// POST /projects/{project_id}/branches/{branch_id}/databases
+/// Create database
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `create_project_branch_database_execute()` to send, or `create_project_branch_database` for simplest API.
+
+pub fn create_project_branch_database_builder<R>(
+    client: &SimpleHttpClient<R>,
+    project_id: &String,
+    branch_id: &String,
+    body: &DatabaseCreateRequest,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
+    // Build URL
+    let endpoint_url = format!(
+        "https://console.neon.tech/api/v2/projects/{}/branches/{}/databases",
+        project_id, branch_id,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder
+        .body_json(body)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// POST /projects/{project_id}/branches/{branch_id}/databases
+/// Create database
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `create_project_branch_database_execute()` or `create_project_branch_database`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `create_project_branch_database_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn create_project_branch_database_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<DatabaseOperations>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: DatabaseOperations = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST /projects/{project_id}/branches/{branch_id}/databases
+/// Create database
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `create_project_branch_database_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `create_project_branch_database_task()`.
+/// For the simplest API, use `create_project_branch_database()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `create_project_branch_database_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn create_project_branch_database_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<DatabaseOperations>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = create_project_branch_database_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`create_project_branch_database`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CreateProjectBranchDatabaseArgs {
+    /// Path parameter: project_id
+    pub project_id: String,
+    /// Path parameter: branch_id
+    pub branch_id: String,
+    /// Request body.
+    pub body: DatabaseCreateRequest,
+}
+
+/// POST /projects/{project_id}/branches/{branch_id}/databases
+/// Create database
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `create_project_branch_database_builder()` + `create_project_branch_database_execute()`.
+/// For task-level control, use `create_project_branch_database_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn create_project_branch_database(
+    client: &SimpleHttpClient,
+    args: &CreateProjectBranchDatabaseArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<DatabaseOperations>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = create_project_branch_database_builder(
+        client,
+        &args.project_id,
+        &args.branch_id,
+        &args.body,
+    )?;
+    create_project_branch_database_execute(builder)
+}
+
+/// GET /projects/{project_id}/branches/{branch_id}/databases/{database_name}
+/// Retrieve database details
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `get_project_branch_database_execute()` to send, or `get_project_branch_database` for simplest API.
+
+pub fn get_project_branch_database_builder<R>(
+    client: &SimpleHttpClient<R>,
+    project_id: &String,
+    branch_id: &String,
+    database_name: &String,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
+    // Build URL
+    let endpoint_url = format!(
+        "https://console.neon.tech/api/v2/projects/{}/branches/{}/databases/{}",
+        project_id, branch_id, database_name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET /projects/{project_id}/branches/{branch_id}/databases/{database_name}
+/// Retrieve database details
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_project_branch_database_execute()` or `get_project_branch_database`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_project_branch_database_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn get_project_branch_database_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<DatabaseResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: DatabaseResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET /projects/{project_id}/branches/{branch_id}/databases/{database_name}
+/// Retrieve database details
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_project_branch_database_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_project_branch_database_task()`.
+/// For the simplest API, use `get_project_branch_database()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_project_branch_database_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_project_branch_database_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<DatabaseResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = get_project_branch_database_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`get_project_branch_database`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetProjectBranchDatabaseArgs {
+    /// Path parameter: project_id
+    pub project_id: String,
+    /// Path parameter: branch_id
+    pub branch_id: String,
+    /// Path parameter: database_name
+    pub database_name: String,
+}
+
+/// GET /projects/{project_id}/branches/{branch_id}/databases/{database_name}
+/// Retrieve database details
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `get_project_branch_database_builder()` + `get_project_branch_database_execute()`.
+/// For task-level control, use `get_project_branch_database_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn get_project_branch_database(
+    client: &SimpleHttpClient,
+    args: &GetProjectBranchDatabaseArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<DatabaseResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = get_project_branch_database_builder(
+        client,
+        &args.project_id,
+        &args.branch_id,
+        &args.database_name,
+    )?;
+    get_project_branch_database_execute(builder)
+}
+
+/// PATCH /projects/{project_id}/branches/{branch_id}/databases/{database_name}
+/// Update database
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `update_project_branch_database_execute()` to send, or `update_project_branch_database` for simplest API.
+
+pub fn update_project_branch_database_builder<R>(
+    client: &SimpleHttpClient<R>,
+    project_id: &String,
+    branch_id: &String,
+    database_name: &String,
+    body: &DatabaseUpdateRequest,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
+    // Build URL
+    let endpoint_url = format!(
+        "https://console.neon.tech/api/v2/projects/{}/branches/{}/databases/{}",
+        project_id, branch_id, database_name,
+    );
+
+    // Build request
+    let builder = client
+        .patch(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder
+        .body_json(body)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// PATCH /projects/{project_id}/branches/{branch_id}/databases/{database_name}
+/// Update database
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `update_project_branch_database_execute()` or `update_project_branch_database`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `update_project_branch_database_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn update_project_branch_database_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<DatabaseOperations>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: DatabaseOperations = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH /projects/{project_id}/branches/{branch_id}/databases/{database_name}
+/// Update database
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `update_project_branch_database_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `update_project_branch_database_task()`.
+/// For the simplest API, use `update_project_branch_database()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `update_project_branch_database_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn update_project_branch_database_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<DatabaseOperations>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = update_project_branch_database_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`update_project_branch_database`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct UpdateProjectBranchDatabaseArgs {
+    /// Path parameter: project_id
+    pub project_id: String,
+    /// Path parameter: branch_id
+    pub branch_id: String,
+    /// Path parameter: database_name
+    pub database_name: String,
+    /// Request body.
+    pub body: DatabaseUpdateRequest,
+}
+
+/// PATCH /projects/{project_id}/branches/{branch_id}/databases/{database_name}
+/// Update database
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `update_project_branch_database_builder()` + `update_project_branch_database_execute()`.
+/// For task-level control, use `update_project_branch_database_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn update_project_branch_database(
+    client: &SimpleHttpClient,
+    args: &UpdateProjectBranchDatabaseArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<DatabaseOperations>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = update_project_branch_database_builder(
+        client,
+        &args.project_id,
+        &args.branch_id,
+        &args.database_name,
+        &args.body,
+    )?;
+    update_project_branch_database_execute(builder)
+}
+
+/// DELETE /projects/{project_id}/branches/{branch_id}/databases/{database_name}
+/// Delete database
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `delete_project_branch_database_execute()` to send, or `delete_project_branch_database` for simplest API.
+
+pub fn delete_project_branch_database_builder<R>(
+    client: &SimpleHttpClient<R>,
+    project_id: &String,
+    branch_id: &String,
+    database_name: &String,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
+    // Build URL
+    let endpoint_url = format!(
+        "https://console.neon.tech/api/v2/projects/{}/branches/{}/databases/{}",
+        project_id, branch_id, database_name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE /projects/{project_id}/branches/{branch_id}/databases/{database_name}
+/// Delete database
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `delete_project_branch_database_execute()` or `delete_project_branch_database`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_project_branch_database_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn delete_project_branch_database_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<DatabaseOperations>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: DatabaseOperations = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE /projects/{project_id}/branches/{branch_id}/databases/{database_name}
+/// Delete database
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `delete_project_branch_database_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `delete_project_branch_database_task()`.
+/// For the simplest API, use `delete_project_branch_database()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_project_branch_database_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn delete_project_branch_database_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<DatabaseOperations>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = delete_project_branch_database_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`delete_project_branch_database`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DeleteProjectBranchDatabaseArgs {
+    /// Path parameter: project_id
+    pub project_id: String,
+    /// Path parameter: branch_id
+    pub branch_id: String,
+    /// Path parameter: database_name
+    pub database_name: String,
+}
+
+/// DELETE /projects/{project_id}/branches/{branch_id}/databases/{database_name}
+/// Delete database
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `delete_project_branch_database_builder()` + `delete_project_branch_database_execute()`.
+/// For task-level control, use `delete_project_branch_database_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn delete_project_branch_database(
+    client: &SimpleHttpClient,
+    args: &DeleteProjectBranchDatabaseArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<DatabaseOperations>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = delete_project_branch_database_builder(
+        client,
+        &args.project_id,
+        &args.branch_id,
+        &args.database_name,
+    )?;
+    delete_project_branch_database_execute(builder)
+}
+
+/// GET /projects/{project_id}/branches/{branch_id}/endpoints
+/// List branch endpoints
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `list_project_branch_endpoints_execute()` to send, or `list_project_branch_endpoints` for simplest API.
+
+pub fn list_project_branch_endpoints_builder<R>(
+    client: &SimpleHttpClient<R>,
+    project_id: &String,
+    branch_id: &String,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
+    // Build URL
+    let endpoint_url = format!(
+        "https://console.neon.tech/api/v2/projects/{}/branches/{}/endpoints",
+        project_id, branch_id,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET /projects/{project_id}/branches/{branch_id}/endpoints
+/// List branch endpoints
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `list_project_branch_endpoints_execute()` or `list_project_branch_endpoints`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `list_project_branch_endpoints_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn list_project_branch_endpoints_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<EndpointsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: EndpointsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET /projects/{project_id}/branches/{branch_id}/endpoints
+/// List branch endpoints
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `list_project_branch_endpoints_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `list_project_branch_endpoints_task()`.
+/// For the simplest API, use `list_project_branch_endpoints()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `list_project_branch_endpoints_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn list_project_branch_endpoints_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<EndpointsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = list_project_branch_endpoints_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`list_project_branch_endpoints`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ListProjectBranchEndpointsArgs {
+    /// Path parameter: project_id
+    pub project_id: String,
+    /// Path parameter: branch_id
+    pub branch_id: String,
+}
+
+/// GET /projects/{project_id}/branches/{branch_id}/endpoints
+/// List branch endpoints
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `list_project_branch_endpoints_builder()` + `list_project_branch_endpoints_execute()`.
+/// For task-level control, use `list_project_branch_endpoints_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn list_project_branch_endpoints(
+    client: &SimpleHttpClient,
+    args: &ListProjectBranchEndpointsArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<EndpointsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = list_project_branch_endpoints_builder(client, &args.project_id, &args.branch_id)?;
+    list_project_branch_endpoints_execute(builder)
+}
+
+/// POST /projects/{project_id}/branches/{branch_id}/finalize_restore
+/// Finalize restore
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `finalize_restore_branch_execute()` to send, or `finalize_restore_branch` for simplest API.
+
+pub fn finalize_restore_branch_builder<R>(
+    client: &SimpleHttpClient<R>,
+    project_id: &String,
+    branch_id: &String,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
+    // Build URL
+    let endpoint_url = format!(
+        "https://console.neon.tech/api/v2/projects/{}/branches/{}/finalize_restore",
+        project_id, branch_id,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST /projects/{project_id}/branches/{branch_id}/finalize_restore
+/// Finalize restore
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `finalize_restore_branch_execute()` or `finalize_restore_branch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `finalize_restore_branch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn finalize_restore_branch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<OperationsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: OperationsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST /projects/{project_id}/branches/{branch_id}/finalize_restore
+/// Finalize restore
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `finalize_restore_branch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `finalize_restore_branch_task()`.
+/// For the simplest API, use `finalize_restore_branch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `finalize_restore_branch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn finalize_restore_branch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<OperationsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = finalize_restore_branch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`finalize_restore_branch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FinalizeRestoreBranchArgs {
+    /// Path parameter: project_id
+    pub project_id: String,
+    /// Path parameter: branch_id
+    pub branch_id: String,
+}
+
+/// POST /projects/{project_id}/branches/{branch_id}/finalize_restore
+/// Finalize restore
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `finalize_restore_branch_builder()` + `finalize_restore_branch_execute()`.
+/// For task-level control, use `finalize_restore_branch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn finalize_restore_branch(
+    client: &SimpleHttpClient,
+    args: &FinalizeRestoreBranchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<OperationsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = finalize_restore_branch_builder(client, &args.project_id, &args.branch_id)?;
+    finalize_restore_branch_execute(builder)
+}
+
+/// GET /projects/{project_id}/branches/{branch_id}/masking_rules
+/// Get masking rules
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `get_masking_rules_execute()` to send, or `get_masking_rules` for simplest API.
+
+pub fn get_masking_rules_builder<R>(
+    client: &SimpleHttpClient<R>,
+    project_id: &String,
+    branch_id: &String,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
+    // Build URL
+    let endpoint_url = format!(
+        "https://console.neon.tech/api/v2/projects/{}/branches/{}/masking_rules",
+        project_id, branch_id,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET /projects/{project_id}/branches/{branch_id}/masking_rules
+/// Get masking rules
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_masking_rules_execute()` or `get_masking_rules`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_masking_rules_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn get_masking_rules_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<MaskingRulesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: MaskingRulesResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET /projects/{project_id}/branches/{branch_id}/masking_rules
+/// Get masking rules
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_masking_rules_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_masking_rules_task()`.
+/// For the simplest API, use `get_masking_rules()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_masking_rules_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_masking_rules_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<MaskingRulesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = get_masking_rules_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`get_masking_rules`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetMaskingRulesArgs {
+    /// Path parameter: project_id
+    pub project_id: String,
+    /// Path parameter: branch_id
+    pub branch_id: String,
+}
+
+/// GET /projects/{project_id}/branches/{branch_id}/masking_rules
+/// Get masking rules
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `get_masking_rules_builder()` + `get_masking_rules_execute()`.
+/// For task-level control, use `get_masking_rules_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn get_masking_rules(
+    client: &SimpleHttpClient,
+    args: &GetMaskingRulesArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<MaskingRulesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = get_masking_rules_builder(client, &args.project_id, &args.branch_id)?;
+    get_masking_rules_execute(builder)
+}
+
+/// PATCH /projects/{project_id}/branches/{branch_id}/masking_rules
+/// Update masking rules
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `update_masking_rules_execute()` to send, or `update_masking_rules` for simplest API.
+
+pub fn update_masking_rules_builder<R>(
+    client: &SimpleHttpClient<R>,
+    project_id: &String,
+    branch_id: &String,
+    body: &MaskingRulesUpdateRequest,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
+    // Build URL
+    let endpoint_url = format!(
+        "https://console.neon.tech/api/v2/projects/{}/branches/{}/masking_rules",
+        project_id, branch_id,
+    );
+
+    // Build request
+    let builder = client
+        .patch(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder
+        .body_json(body)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// PATCH /projects/{project_id}/branches/{branch_id}/masking_rules
+/// Update masking rules
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `update_masking_rules_execute()` or `update_masking_rules`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `update_masking_rules_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn update_masking_rules_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<MaskingRulesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: MaskingRulesResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH /projects/{project_id}/branches/{branch_id}/masking_rules
+/// Update masking rules
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `update_masking_rules_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `update_masking_rules_task()`.
+/// For the simplest API, use `update_masking_rules()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `update_masking_rules_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn update_masking_rules_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<MaskingRulesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = update_masking_rules_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`update_masking_rules`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct UpdateMaskingRulesArgs {
+    /// Path parameter: project_id
+    pub project_id: String,
+    /// Path parameter: branch_id
+    pub branch_id: String,
+    /// Request body.
+    pub body: MaskingRulesUpdateRequest,
+}
+
+/// PATCH /projects/{project_id}/branches/{branch_id}/masking_rules
+/// Update masking rules
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `update_masking_rules_builder()` + `update_masking_rules_execute()`.
+/// For task-level control, use `update_masking_rules_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn update_masking_rules(
+    client: &SimpleHttpClient,
+    args: &UpdateMaskingRulesArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<MaskingRulesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        update_masking_rules_builder(client, &args.project_id, &args.branch_id, &args.body)?;
+    update_masking_rules_execute(builder)
+}
+
+/// POST /projects/{project_id}/branches/{branch_id}/restore
+/// Restore branch
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `restore_project_branch_execute()` to send, or `restore_project_branch` for simplest API.
+
+pub fn restore_project_branch_builder<R>(
+    client: &SimpleHttpClient<R>,
+    project_id: &String,
+    branch_id: &String,
+    body: &BranchRestoreRequest,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
+    // Build URL
+    let endpoint_url = format!(
+        "https://console.neon.tech/api/v2/projects/{}/branches/{}/restore",
+        project_id, branch_id,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder
+        .body_json(body)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// POST /projects/{project_id}/branches/{branch_id}/restore
+/// Restore branch
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `restore_project_branch_execute()` or `restore_project_branch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `restore_project_branch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn restore_project_branch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<BranchOperations>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: BranchOperations = serde_json::from_str(&body)
                     .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
 
                 Ok(ApiResponse {
@@ -3471,87 +16637,1126 @@ pub fn post_projects_project_id_branches_branch_id_restore_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `post_projects_project_id_branches_branch_id_restore_builder()` to create the builder,
+/// For full customization, use `restore_project_branch_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `post_projects_project_id_branches_branch_id_restore_task()`.
-/// For the simplest API, use `post_projects_project_id_branches_branch_id_restore()`.
+/// For task-level control, use `restore_project_branch_task()`.
+/// For the simplest API, use `restore_project_branch()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `post_projects_project_id_branches_branch_id_restore_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `restore_project_branch_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn post_projects_project_id_branches_branch_id_restore_execute(
+pub fn restore_project_branch_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<serde_json::Value>, ApiError>, P = ApiPending>
+    impl StreamIterator<D = Result<ApiResponse<BranchOperations>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let task = post_projects_project_id_branches_branch_id_restore_task(builder)?;
+    let task = restore_project_branch_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`post_projects_project_id_branches_branch_id_restore`].
+/// Arguments for [`restore_project_branch`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct PostProjectsProjectIdBranchesBranchIdRestoreArgs {
+pub struct RestoreProjectBranchArgs {
     /// Path parameter: project_id
     pub project_id: String,
     /// Path parameter: branch_id
     pub branch_id: String,
     /// Request body.
-    pub body: serde_json::Value,
+    pub body: BranchRestoreRequest,
 }
 
 /// POST /projects/{project_id}/branches/{branch_id}/restore
 /// Restore branch
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `post_projects_project_id_branches_branch_id_restore_builder()` + `post_projects_project_id_branches_branch_id_restore_execute()`.
-/// For task-level control, use `post_projects_project_id_branches_branch_id_restore_task()`.
+/// For customization, use `restore_project_branch_builder()` + `restore_project_branch_execute()`.
+/// For task-level control, use `restore_project_branch_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_projects_project_id_branches_branch_id_restore(
+pub fn restore_project_branch(
     client: &SimpleHttpClient,
-    args: &PostProjectsProjectIdBranchesBranchIdRestoreArgs,
+    args: &RestoreProjectBranchArgs,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<serde_json::Value>, ApiError>, P = ApiPending>
+    impl StreamIterator<D = Result<ApiResponse<BranchOperations>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = post_projects_project_id_branches_branch_id_restore_builder(
+    let builder =
+        restore_project_branch_builder(client, &args.project_id, &args.branch_id, &args.body)?;
+    restore_project_branch_execute(builder)
+}
+
+/// GET /projects/{project_id}/branches/{branch_id}/roles
+/// List roles
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `list_project_branch_roles_execute()` to send, or `list_project_branch_roles` for simplest API.
+
+pub fn list_project_branch_roles_builder<R>(
+    client: &SimpleHttpClient<R>,
+    project_id: &String,
+    branch_id: &String,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
+    // Build URL
+    let endpoint_url = format!(
+        "https://console.neon.tech/api/v2/projects/{}/branches/{}/roles",
+        project_id, branch_id,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET /projects/{project_id}/branches/{branch_id}/roles
+/// List roles
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `list_project_branch_roles_execute()` or `list_project_branch_roles`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `list_project_branch_roles_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn list_project_branch_roles_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<RolesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: RolesResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET /projects/{project_id}/branches/{branch_id}/roles
+/// List roles
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `list_project_branch_roles_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `list_project_branch_roles_task()`.
+/// For the simplest API, use `list_project_branch_roles()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `list_project_branch_roles_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn list_project_branch_roles_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<RolesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = list_project_branch_roles_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`list_project_branch_roles`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ListProjectBranchRolesArgs {
+    /// Path parameter: project_id
+    pub project_id: String,
+    /// Path parameter: branch_id
+    pub branch_id: String,
+}
+
+/// GET /projects/{project_id}/branches/{branch_id}/roles
+/// List roles
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `list_project_branch_roles_builder()` + `list_project_branch_roles_execute()`.
+/// For task-level control, use `list_project_branch_roles_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn list_project_branch_roles(
+    client: &SimpleHttpClient,
+    args: &ListProjectBranchRolesArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<RolesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = list_project_branch_roles_builder(client, &args.project_id, &args.branch_id)?;
+    list_project_branch_roles_execute(builder)
+}
+
+/// POST /projects/{project_id}/branches/{branch_id}/roles
+/// Create role
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `create_project_branch_role_execute()` to send, or `create_project_branch_role` for simplest API.
+
+pub fn create_project_branch_role_builder<R>(
+    client: &SimpleHttpClient<R>,
+    project_id: &String,
+    branch_id: &String,
+    body: &RoleCreateRequest,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
+    // Build URL
+    let endpoint_url = format!(
+        "https://console.neon.tech/api/v2/projects/{}/branches/{}/roles",
+        project_id, branch_id,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder
+        .body_json(body)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// POST /projects/{project_id}/branches/{branch_id}/roles
+/// Create role
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `create_project_branch_role_execute()` or `create_project_branch_role`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `create_project_branch_role_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn create_project_branch_role_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<RoleOperations>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: RoleOperations = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST /projects/{project_id}/branches/{branch_id}/roles
+/// Create role
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `create_project_branch_role_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `create_project_branch_role_task()`.
+/// For the simplest API, use `create_project_branch_role()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `create_project_branch_role_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn create_project_branch_role_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<RoleOperations>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = create_project_branch_role_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`create_project_branch_role`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CreateProjectBranchRoleArgs {
+    /// Path parameter: project_id
+    pub project_id: String,
+    /// Path parameter: branch_id
+    pub branch_id: String,
+    /// Request body.
+    pub body: RoleCreateRequest,
+}
+
+/// POST /projects/{project_id}/branches/{branch_id}/roles
+/// Create role
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `create_project_branch_role_builder()` + `create_project_branch_role_execute()`.
+/// For task-level control, use `create_project_branch_role_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn create_project_branch_role(
+    client: &SimpleHttpClient,
+    args: &CreateProjectBranchRoleArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<RoleOperations>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        create_project_branch_role_builder(client, &args.project_id, &args.branch_id, &args.body)?;
+    create_project_branch_role_execute(builder)
+}
+
+/// GET /projects/{project_id}/branches/{branch_id}/roles/{role_name}
+/// Retrieve role details
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `get_project_branch_role_execute()` to send, or `get_project_branch_role` for simplest API.
+
+pub fn get_project_branch_role_builder<R>(
+    client: &SimpleHttpClient<R>,
+    project_id: &String,
+    branch_id: &String,
+    role_name: &String,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
+    // Build URL
+    let endpoint_url = format!(
+        "https://console.neon.tech/api/v2/projects/{}/branches/{}/roles/{}",
+        project_id, branch_id, role_name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET /projects/{project_id}/branches/{branch_id}/roles/{role_name}
+/// Retrieve role details
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_project_branch_role_execute()` or `get_project_branch_role`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_project_branch_role_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn get_project_branch_role_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<RoleResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: RoleResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET /projects/{project_id}/branches/{branch_id}/roles/{role_name}
+/// Retrieve role details
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_project_branch_role_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_project_branch_role_task()`.
+/// For the simplest API, use `get_project_branch_role()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_project_branch_role_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_project_branch_role_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<RoleResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = get_project_branch_role_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`get_project_branch_role`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetProjectBranchRoleArgs {
+    /// Path parameter: project_id
+    pub project_id: String,
+    /// Path parameter: branch_id
+    pub branch_id: String,
+    /// Path parameter: role_name
+    pub role_name: String,
+}
+
+/// GET /projects/{project_id}/branches/{branch_id}/roles/{role_name}
+/// Retrieve role details
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `get_project_branch_role_builder()` + `get_project_branch_role_execute()`.
+/// For task-level control, use `get_project_branch_role_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn get_project_branch_role(
+    client: &SimpleHttpClient,
+    args: &GetProjectBranchRoleArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<RoleResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = get_project_branch_role_builder(
         client,
         &args.project_id,
         &args.branch_id,
-        &args.body,
+        &args.role_name,
     )?;
-    post_projects_project_id_branches_branch_id_restore_execute(builder)
+    get_project_branch_role_execute(builder)
+}
+
+/// DELETE /projects/{project_id}/branches/{branch_id}/roles/{role_name}
+/// Delete role
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `delete_project_branch_role_execute()` to send, or `delete_project_branch_role` for simplest API.
+
+pub fn delete_project_branch_role_builder<R>(
+    client: &SimpleHttpClient<R>,
+    project_id: &String,
+    branch_id: &String,
+    role_name: &String,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
+    // Build URL
+    let endpoint_url = format!(
+        "https://console.neon.tech/api/v2/projects/{}/branches/{}/roles/{}",
+        project_id, branch_id, role_name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE /projects/{project_id}/branches/{branch_id}/roles/{role_name}
+/// Delete role
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `delete_project_branch_role_execute()` or `delete_project_branch_role`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_project_branch_role_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn delete_project_branch_role_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<RoleOperations>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: RoleOperations = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE /projects/{project_id}/branches/{branch_id}/roles/{role_name}
+/// Delete role
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `delete_project_branch_role_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `delete_project_branch_role_task()`.
+/// For the simplest API, use `delete_project_branch_role()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_project_branch_role_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn delete_project_branch_role_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<RoleOperations>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = delete_project_branch_role_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`delete_project_branch_role`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DeleteProjectBranchRoleArgs {
+    /// Path parameter: project_id
+    pub project_id: String,
+    /// Path parameter: branch_id
+    pub branch_id: String,
+    /// Path parameter: role_name
+    pub role_name: String,
+}
+
+/// DELETE /projects/{project_id}/branches/{branch_id}/roles/{role_name}
+/// Delete role
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `delete_project_branch_role_builder()` + `delete_project_branch_role_execute()`.
+/// For task-level control, use `delete_project_branch_role_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn delete_project_branch_role(
+    client: &SimpleHttpClient,
+    args: &DeleteProjectBranchRoleArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<RoleOperations>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = delete_project_branch_role_builder(
+        client,
+        &args.project_id,
+        &args.branch_id,
+        &args.role_name,
+    )?;
+    delete_project_branch_role_execute(builder)
+}
+
+/// POST /projects/{project_id}/branches/{branch_id}/roles/{role_name}/reset_password
+/// Reset role password
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `reset_project_branch_role_password_execute()` to send, or `reset_project_branch_role_password` for simplest API.
+
+pub fn reset_project_branch_role_password_builder<R>(
+    client: &SimpleHttpClient<R>,
+    project_id: &String,
+    branch_id: &String,
+    role_name: &String,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
+    // Build URL
+    let endpoint_url = format!(
+        "https://console.neon.tech/api/v2/projects/{}/branches/{}/roles/{}/reset_password",
+        project_id, branch_id, role_name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST /projects/{project_id}/branches/{branch_id}/roles/{role_name}/reset_password
+/// Reset role password
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `reset_project_branch_role_password_execute()` or `reset_project_branch_role_password`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `reset_project_branch_role_password_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn reset_project_branch_role_password_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<RoleOperations>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: RoleOperations = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST /projects/{project_id}/branches/{branch_id}/roles/{role_name}/reset_password
+/// Reset role password
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `reset_project_branch_role_password_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `reset_project_branch_role_password_task()`.
+/// For the simplest API, use `reset_project_branch_role_password()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `reset_project_branch_role_password_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn reset_project_branch_role_password_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<RoleOperations>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = reset_project_branch_role_password_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`reset_project_branch_role_password`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ResetProjectBranchRolePasswordArgs {
+    /// Path parameter: project_id
+    pub project_id: String,
+    /// Path parameter: branch_id
+    pub branch_id: String,
+    /// Path parameter: role_name
+    pub role_name: String,
+}
+
+/// POST /projects/{project_id}/branches/{branch_id}/roles/{role_name}/reset_password
+/// Reset role password
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `reset_project_branch_role_password_builder()` + `reset_project_branch_role_password_execute()`.
+/// For task-level control, use `reset_project_branch_role_password_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn reset_project_branch_role_password(
+    client: &SimpleHttpClient,
+    args: &ResetProjectBranchRolePasswordArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<RoleOperations>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = reset_project_branch_role_password_builder(
+        client,
+        &args.project_id,
+        &args.branch_id,
+        &args.role_name,
+    )?;
+    reset_project_branch_role_password_execute(builder)
+}
+
+/// GET /projects/{project_id}/branches/{branch_id}/roles/{role_name}/reveal_password
+/// Retrieve role password
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `get_project_branch_role_password_execute()` to send, or `get_project_branch_role_password` for simplest API.
+
+pub fn get_project_branch_role_password_builder<R>(
+    client: &SimpleHttpClient<R>,
+    project_id: &String,
+    branch_id: &String,
+    role_name: &String,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
+    // Build URL
+    let endpoint_url = format!(
+        "https://console.neon.tech/api/v2/projects/{}/branches/{}/roles/{}/reveal_password",
+        project_id, branch_id, role_name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET /projects/{project_id}/branches/{branch_id}/roles/{role_name}/reveal_password
+/// Retrieve role password
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_project_branch_role_password_execute()` or `get_project_branch_role_password`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_project_branch_role_password_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn get_project_branch_role_password_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<RolePasswordResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: RolePasswordResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET /projects/{project_id}/branches/{branch_id}/roles/{role_name}/reveal_password
+/// Retrieve role password
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_project_branch_role_password_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_project_branch_role_password_task()`.
+/// For the simplest API, use `get_project_branch_role_password()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_project_branch_role_password_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_project_branch_role_password_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<RolePasswordResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = get_project_branch_role_password_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`get_project_branch_role_password`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetProjectBranchRolePasswordArgs {
+    /// Path parameter: project_id
+    pub project_id: String,
+    /// Path parameter: branch_id
+    pub branch_id: String,
+    /// Path parameter: role_name
+    pub role_name: String,
+}
+
+/// GET /projects/{project_id}/branches/{branch_id}/roles/{role_name}/reveal_password
+/// Retrieve role password
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `get_project_branch_role_password_builder()` + `get_project_branch_role_password_execute()`.
+/// For task-level control, use `get_project_branch_role_password_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn get_project_branch_role_password(
+    client: &SimpleHttpClient,
+    args: &GetProjectBranchRolePasswordArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<RolePasswordResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = get_project_branch_role_password_builder(
+        client,
+        &args.project_id,
+        &args.branch_id,
+        &args.role_name,
+    )?;
+    get_project_branch_role_password_execute(builder)
 }
 
 /// GET /projects/{project_id}/branches/{branch_id}/schema
 /// Retrieve database schema
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `get_projects_project_id_branches_branch_id_schema_execute()` to send, or `get_projects_project_id_branches_branch_id_schema` for simplest API.
+/// Use `get_project_branch_schema_execute()` to send, or `get_project_branch_schema` for simplest API.
 
-pub fn get_projects_project_id_branches_branch_id_schema_builder(
-    client: &SimpleHttpClient,
+pub fn get_project_branch_schema_builder<R>(
+    client: &SimpleHttpClient<R>,
     project_id: &String,
     branch_id: &String,
-    db_name: &Option<String>,
-    lsn: &Option<String>,
-    timestamp: &Option<String>,
-    format: &Option<String>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    db_name: &Option<Option<String>>,
+    lsn: &Option<Option<String>>,
+    timestamp: &Option<Option<String>>,
+    format: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://console.neon.tech/api/v2/projects/{}/branches/{}/schema",
@@ -3597,17 +17802,17 @@ pub fn get_projects_project_id_branches_branch_id_schema_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `get_projects_project_id_branches_branch_id_schema_execute()` or `get_projects_project_id_branches_branch_id_schema`.
+/// For direct execution, use `get_project_branch_schema_execute()` or `get_project_branch_schema`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `get_projects_project_id_branches_branch_id_schema_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_project_branch_schema_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_projects_project_id_branches_branch_id_schema_task(
+pub fn get_project_branch_schema_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -3666,21 +17871,21 @@ pub fn get_projects_project_id_branches_branch_id_schema_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `get_projects_project_id_branches_branch_id_schema_builder()` to create the builder,
+/// For full customization, use `get_project_branch_schema_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `get_projects_project_id_branches_branch_id_schema_task()`.
-/// For the simplest API, use `get_projects_project_id_branches_branch_id_schema()`.
+/// For task-level control, use `get_project_branch_schema_task()`.
+/// For the simplest API, use `get_project_branch_schema()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `get_projects_project_id_branches_branch_id_schema_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_project_branch_schema_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn get_projects_project_id_branches_branch_id_schema_execute(
+pub fn get_project_branch_schema_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<BranchSchemaResponse>, ApiError>, P = ApiPending>
@@ -3688,48 +17893,48 @@ pub fn get_projects_project_id_branches_branch_id_schema_execute(
         + 'static,
     ApiError,
 > {
-    let task = get_projects_project_id_branches_branch_id_schema_task(builder)?;
+    let task = get_project_branch_schema_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`get_projects_project_id_branches_branch_id_schema`].
+/// Arguments for [`get_project_branch_schema`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct GetProjectsProjectIdBranchesBranchIdSchemaArgs {
+pub struct GetProjectBranchSchemaArgs {
     /// Path parameter: project_id
     pub project_id: String,
     /// Path parameter: branch_id
     pub branch_id: String,
     /// Query parameter: db_name
-    pub db_name: Option<String>,
+    pub db_name: Option<Option<String>>,
     /// Query parameter: lsn
-    pub lsn: Option<String>,
+    pub lsn: Option<Option<String>>,
     /// Query parameter: timestamp
-    pub timestamp: Option<String>,
+    pub timestamp: Option<Option<String>>,
     /// Query parameter: format
-    pub format: Option<String>,
+    pub format: Option<Option<String>>,
 }
 
 /// GET /projects/{project_id}/branches/{branch_id}/schema
 /// Retrieve database schema
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `get_projects_project_id_branches_branch_id_schema_builder()` + `get_projects_project_id_branches_branch_id_schema_execute()`.
-/// For task-level control, use `get_projects_project_id_branches_branch_id_schema_task()`.
+/// For customization, use `get_project_branch_schema_builder()` + `get_project_branch_schema_execute()`.
+/// For task-level control, use `get_project_branch_schema_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_projects_project_id_branches_branch_id_schema(
+pub fn get_project_branch_schema(
     client: &SimpleHttpClient,
-    args: &GetProjectsProjectIdBranchesBranchIdSchemaArgs,
+    args: &GetProjectBranchSchemaArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<BranchSchemaResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = get_projects_project_id_branches_branch_id_schema_builder(
+    let builder = get_project_branch_schema_builder(
         client,
         &args.project_id,
         &args.branch_id,
@@ -3738,24 +17943,394 @@ pub fn get_projects_project_id_branches_branch_id_schema(
         &args.timestamp,
         &args.format,
     )?;
-    get_projects_project_id_branches_branch_id_schema_execute(builder)
+    get_project_branch_schema_execute(builder)
+}
+
+/// POST /projects/{project_id}/branches/{branch_id}/set_as_default
+/// Set branch as default
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `set_default_project_branch_execute()` to send, or `set_default_project_branch` for simplest API.
+
+pub fn set_default_project_branch_builder<R>(
+    client: &SimpleHttpClient<R>,
+    project_id: &String,
+    branch_id: &String,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
+    // Build URL
+    let endpoint_url = format!(
+        "https://console.neon.tech/api/v2/projects/{}/branches/{}/set_as_default",
+        project_id, branch_id,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST /projects/{project_id}/branches/{branch_id}/set_as_default
+/// Set branch as default
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `set_default_project_branch_execute()` or `set_default_project_branch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `set_default_project_branch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn set_default_project_branch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<BranchOperations>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: BranchOperations = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST /projects/{project_id}/branches/{branch_id}/set_as_default
+/// Set branch as default
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `set_default_project_branch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `set_default_project_branch_task()`.
+/// For the simplest API, use `set_default_project_branch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `set_default_project_branch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn set_default_project_branch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<BranchOperations>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = set_default_project_branch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`set_default_project_branch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SetDefaultProjectBranchArgs {
+    /// Path parameter: project_id
+    pub project_id: String,
+    /// Path parameter: branch_id
+    pub branch_id: String,
+}
+
+/// POST /projects/{project_id}/branches/{branch_id}/set_as_default
+/// Set branch as default
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `set_default_project_branch_builder()` + `set_default_project_branch_execute()`.
+/// For task-level control, use `set_default_project_branch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn set_default_project_branch(
+    client: &SimpleHttpClient,
+    args: &SetDefaultProjectBranchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<BranchOperations>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = set_default_project_branch_builder(client, &args.project_id, &args.branch_id)?;
+    set_default_project_branch_execute(builder)
+}
+
+/// POST /projects/{project_id}/branches/{branch_id}/snapshot
+/// Create snapshot
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `create_snapshot_execute()` to send, or `create_snapshot` for simplest API.
+
+pub fn create_snapshot_builder<R>(
+    client: &SimpleHttpClient<R>,
+    project_id: &String,
+    branch_id: &String,
+    lsn: &Option<Option<String>>,
+    timestamp: &Option<Option<String>>,
+    name: &Option<Option<String>>,
+    expires_at: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
+    // Build URL
+    let endpoint_url = format!(
+        "https://console.neon.tech/api/v2/projects/{}/branches/{}/snapshot",
+        project_id, branch_id,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = lsn.as_ref() {
+        query_parts.push(format!("lsn={}", val));
+    }
+    if let Some(val) = timestamp.as_ref() {
+        query_parts.push(format!("timestamp={}", val));
+    }
+    if let Some(val) = name.as_ref() {
+        query_parts.push(format!("name={}", val));
+    }
+    if let Some(val) = expires_at.as_ref() {
+        query_parts.push(format!("expires_at={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST /projects/{project_id}/branches/{branch_id}/snapshot
+/// Create snapshot
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `create_snapshot_execute()` or `create_snapshot`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `create_snapshot_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn create_snapshot_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: (),
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST /projects/{project_id}/branches/{branch_id}/snapshot
+/// Create snapshot
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `create_snapshot_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `create_snapshot_task()`.
+/// For the simplest API, use `create_snapshot()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `create_snapshot_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn create_snapshot_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = create_snapshot_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`create_snapshot`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CreateSnapshotArgs {
+    /// Path parameter: project_id
+    pub project_id: String,
+    /// Path parameter: branch_id
+    pub branch_id: String,
+    /// Query parameter: lsn
+    pub lsn: Option<Option<String>>,
+    /// Query parameter: timestamp
+    pub timestamp: Option<Option<String>>,
+    /// Query parameter: name
+    pub name: Option<Option<String>>,
+    /// Query parameter: expires_at
+    pub expires_at: Option<Option<String>>,
+}
+
+/// POST /projects/{project_id}/branches/{branch_id}/snapshot
+/// Create snapshot
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `create_snapshot_builder()` + `create_snapshot_execute()`.
+/// For task-level control, use `create_snapshot_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn create_snapshot(
+    client: &SimpleHttpClient,
+    args: &CreateSnapshotArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = create_snapshot_builder(
+        client,
+        &args.project_id,
+        &args.branch_id,
+        &args.lsn,
+        &args.timestamp,
+        &args.name,
+        &args.expires_at,
+    )?;
+    create_snapshot_execute(builder)
 }
 
 /// GET /projects/{project_id}/connection_uri
 /// Retrieve connection URI
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `get_projects_project_id_connection_uri_execute()` to send, or `get_projects_project_id_connection_uri` for simplest API.
+/// Use `get_connection_uri_execute()` to send, or `get_connection_uri` for simplest API.
 
-pub fn get_projects_project_id_connection_uri_builder(
-    client: &SimpleHttpClient,
+pub fn get_connection_uri_builder<R>(
+    client: &SimpleHttpClient<R>,
     project_id: &String,
-    branch_id: &Option<String>,
-    endpoint_id: &Option<String>,
-    database_name: &Option<String>,
-    role_name: &Option<String>,
-    pooled: &Option<bool>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    branch_id: &Option<Option<String>>,
+    endpoint_id: &Option<Option<String>>,
+    database_name: &Option<Option<String>>,
+    role_name: &Option<Option<String>>,
+    pooled: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://console.neon.tech/api/v2/projects/{}/connection_uri",
@@ -3804,17 +18379,17 @@ pub fn get_projects_project_id_connection_uri_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `get_projects_project_id_connection_uri_execute()` or `get_projects_project_id_connection_uri`.
+/// For direct execution, use `get_connection_uri_execute()` or `get_connection_uri`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `get_projects_project_id_connection_uri_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_connection_uri_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_projects_project_id_connection_uri_task(
+pub fn get_connection_uri_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -3873,21 +18448,21 @@ pub fn get_projects_project_id_connection_uri_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `get_projects_project_id_connection_uri_builder()` to create the builder,
+/// For full customization, use `get_connection_uri_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `get_projects_project_id_connection_uri_task()`.
-/// For the simplest API, use `get_projects_project_id_connection_uri()`.
+/// For task-level control, use `get_connection_uri_task()`.
+/// For the simplest API, use `get_connection_uri()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `get_projects_project_id_connection_uri_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_connection_uri_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn get_projects_project_id_connection_uri_execute(
+pub fn get_connection_uri_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ConnectionURIResponse>, ApiError>, P = ApiPending>
@@ -3895,48 +18470,48 @@ pub fn get_projects_project_id_connection_uri_execute(
         + 'static,
     ApiError,
 > {
-    let task = get_projects_project_id_connection_uri_task(builder)?;
+    let task = get_connection_uri_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`get_projects_project_id_connection_uri`].
+/// Arguments for [`get_connection_uri`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct GetProjectsProjectIdConnectionUriArgs {
+pub struct GetConnectionUriArgs {
     /// Path parameter: project_id
     pub project_id: String,
     /// Query parameter: branch_id
-    pub branch_id: Option<String>,
+    pub branch_id: Option<Option<String>>,
     /// Query parameter: endpoint_id
-    pub endpoint_id: Option<String>,
+    pub endpoint_id: Option<Option<String>>,
     /// Query parameter: database_name
-    pub database_name: Option<String>,
+    pub database_name: Option<Option<String>>,
     /// Query parameter: role_name
-    pub role_name: Option<String>,
+    pub role_name: Option<Option<String>>,
     /// Query parameter: pooled
-    pub pooled: Option<bool>,
+    pub pooled: Option<Option<String>>,
 }
 
 /// GET /projects/{project_id}/connection_uri
 /// Retrieve connection URI
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `get_projects_project_id_connection_uri_builder()` + `get_projects_project_id_connection_uri_execute()`.
-/// For task-level control, use `get_projects_project_id_connection_uri_task()`.
+/// For customization, use `get_connection_uri_builder()` + `get_connection_uri_execute()`.
+/// For task-level control, use `get_connection_uri_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_projects_project_id_connection_uri(
+pub fn get_connection_uri(
     client: &SimpleHttpClient,
-    args: &GetProjectsProjectIdConnectionUriArgs,
+    args: &GetConnectionUriArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ConnectionURIResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = get_projects_project_id_connection_uri_builder(
+    let builder = get_connection_uri_builder(
         client,
         &args.project_id,
         &args.branch_id,
@@ -3945,36 +18520,38 @@ pub fn get_projects_project_id_connection_uri(
         &args.role_name,
         &args.pooled,
     )?;
-    get_projects_project_id_connection_uri_execute(builder)
+    get_connection_uri_execute(builder)
 }
 
-/// POST /projects/{project_id}/endpoints/{endpoint_id}/start
-/// Start compute endpoint
+/// GET /projects/{project_id}/endpoints
+/// List compute endpoints
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `post_projects_project_id_endpoints_endpoint_id_start_execute()` to send, or `post_projects_project_id_endpoints_endpoint_id_start` for simplest API.
+/// Use `list_project_endpoints_execute()` to send, or `list_project_endpoints` for simplest API.
 
-pub fn post_projects_project_id_endpoints_endpoint_id_start_builder(
-    client: &SimpleHttpClient,
+pub fn list_project_endpoints_builder<R>(
+    client: &SimpleHttpClient<R>,
     project_id: &String,
-    endpoint_id: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
-        "https://console.neon.tech/api/v2/projects/{}/endpoints/{}/start",
-        project_id, endpoint_id,
+        "https://console.neon.tech/api/v2/projects/{}/endpoints",
+        project_id,
     );
 
     // Build request
     let builder = client
-        .post(&endpoint_url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// POST /projects/{project_id}/endpoints/{endpoint_id}/start
-/// Start compute endpoint
+/// GET /projects/{project_id}/endpoints
+/// List compute endpoints
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -3984,21 +18561,21 @@ pub fn post_projects_project_id_endpoints_endpoint_id_start_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `post_projects_project_id_endpoints_endpoint_id_start_execute()` or `post_projects_project_id_endpoints_endpoint_id_start`.
+/// For direct execution, use `list_project_endpoints_execute()` or `list_project_endpoints`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `post_projects_project_id_endpoints_endpoint_id_start_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `list_project_endpoints_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_projects_project_id_endpoints_endpoint_id_start_task(
+pub fn list_project_endpoints_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            Ready = Result<ApiResponse<serde_json::Value>, ApiError>,
+            Ready = Result<ApiResponse<EndpointsResponse>, ApiError>,
             Pending = ApiPending,
             Spawner = BoxedSendExecutionAction,
         > + Send
@@ -4033,7 +18610,1015 @@ pub fn post_projects_project_id_endpoints_endpoint_id_start_task(
                 }
 
                 let body = body_reader::collect_string(stream);
-                let parsed: serde_json::Value = serde_json::from_str(&body)
+                let parsed: EndpointsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET /projects/{project_id}/endpoints
+/// List compute endpoints
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `list_project_endpoints_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `list_project_endpoints_task()`.
+/// For the simplest API, use `list_project_endpoints()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `list_project_endpoints_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn list_project_endpoints_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<EndpointsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = list_project_endpoints_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`list_project_endpoints`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ListProjectEndpointsArgs {
+    /// Path parameter: project_id
+    pub project_id: String,
+}
+
+/// GET /projects/{project_id}/endpoints
+/// List compute endpoints
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `list_project_endpoints_builder()` + `list_project_endpoints_execute()`.
+/// For task-level control, use `list_project_endpoints_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn list_project_endpoints(
+    client: &SimpleHttpClient,
+    args: &ListProjectEndpointsArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<EndpointsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = list_project_endpoints_builder(client, &args.project_id)?;
+    list_project_endpoints_execute(builder)
+}
+
+/// POST /projects/{project_id}/endpoints
+/// Create compute endpoint
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `create_project_endpoint_execute()` to send, or `create_project_endpoint` for simplest API.
+
+pub fn create_project_endpoint_builder<R>(
+    client: &SimpleHttpClient<R>,
+    project_id: &String,
+    body: &EndpointCreateRequest,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
+    // Build URL
+    let endpoint_url = format!(
+        "https://console.neon.tech/api/v2/projects/{}/endpoints",
+        project_id,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder
+        .body_json(body)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// POST /projects/{project_id}/endpoints
+/// Create compute endpoint
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `create_project_endpoint_execute()` or `create_project_endpoint`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `create_project_endpoint_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn create_project_endpoint_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<EndpointOperations>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: EndpointOperations = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST /projects/{project_id}/endpoints
+/// Create compute endpoint
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `create_project_endpoint_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `create_project_endpoint_task()`.
+/// For the simplest API, use `create_project_endpoint()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `create_project_endpoint_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn create_project_endpoint_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<EndpointOperations>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = create_project_endpoint_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`create_project_endpoint`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CreateProjectEndpointArgs {
+    /// Path parameter: project_id
+    pub project_id: String,
+    /// Request body.
+    pub body: EndpointCreateRequest,
+}
+
+/// POST /projects/{project_id}/endpoints
+/// Create compute endpoint
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `create_project_endpoint_builder()` + `create_project_endpoint_execute()`.
+/// For task-level control, use `create_project_endpoint_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn create_project_endpoint(
+    client: &SimpleHttpClient,
+    args: &CreateProjectEndpointArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<EndpointOperations>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = create_project_endpoint_builder(client, &args.project_id, &args.body)?;
+    create_project_endpoint_execute(builder)
+}
+
+/// GET /projects/{project_id}/endpoints/{endpoint_id}
+/// Retrieve compute endpoint details
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `get_project_endpoint_execute()` to send, or `get_project_endpoint` for simplest API.
+
+pub fn get_project_endpoint_builder<R>(
+    client: &SimpleHttpClient<R>,
+    project_id: &String,
+    endpoint_id: &String,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
+    // Build URL
+    let endpoint_url = format!(
+        "https://console.neon.tech/api/v2/projects/{}/endpoints/{}",
+        project_id, endpoint_id,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET /projects/{project_id}/endpoints/{endpoint_id}
+/// Retrieve compute endpoint details
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_project_endpoint_execute()` or `get_project_endpoint`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_project_endpoint_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn get_project_endpoint_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<EndpointResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: EndpointResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET /projects/{project_id}/endpoints/{endpoint_id}
+/// Retrieve compute endpoint details
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_project_endpoint_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_project_endpoint_task()`.
+/// For the simplest API, use `get_project_endpoint()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_project_endpoint_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_project_endpoint_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<EndpointResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = get_project_endpoint_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`get_project_endpoint`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetProjectEndpointArgs {
+    /// Path parameter: project_id
+    pub project_id: String,
+    /// Path parameter: endpoint_id
+    pub endpoint_id: String,
+}
+
+/// GET /projects/{project_id}/endpoints/{endpoint_id}
+/// Retrieve compute endpoint details
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `get_project_endpoint_builder()` + `get_project_endpoint_execute()`.
+/// For task-level control, use `get_project_endpoint_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn get_project_endpoint(
+    client: &SimpleHttpClient,
+    args: &GetProjectEndpointArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<EndpointResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = get_project_endpoint_builder(client, &args.project_id, &args.endpoint_id)?;
+    get_project_endpoint_execute(builder)
+}
+
+/// PATCH /projects/{project_id}/endpoints/{endpoint_id}
+/// Update compute endpoint
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `update_project_endpoint_execute()` to send, or `update_project_endpoint` for simplest API.
+
+pub fn update_project_endpoint_builder<R>(
+    client: &SimpleHttpClient<R>,
+    project_id: &String,
+    endpoint_id: &String,
+    body: &EndpointUpdateRequest,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
+    // Build URL
+    let endpoint_url = format!(
+        "https://console.neon.tech/api/v2/projects/{}/endpoints/{}",
+        project_id, endpoint_id,
+    );
+
+    // Build request
+    let builder = client
+        .patch(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder
+        .body_json(body)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// PATCH /projects/{project_id}/endpoints/{endpoint_id}
+/// Update compute endpoint
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `update_project_endpoint_execute()` or `update_project_endpoint`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `update_project_endpoint_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn update_project_endpoint_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<EndpointOperations>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: EndpointOperations = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH /projects/{project_id}/endpoints/{endpoint_id}
+/// Update compute endpoint
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `update_project_endpoint_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `update_project_endpoint_task()`.
+/// For the simplest API, use `update_project_endpoint()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `update_project_endpoint_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn update_project_endpoint_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<EndpointOperations>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = update_project_endpoint_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`update_project_endpoint`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct UpdateProjectEndpointArgs {
+    /// Path parameter: project_id
+    pub project_id: String,
+    /// Path parameter: endpoint_id
+    pub endpoint_id: String,
+    /// Request body.
+    pub body: EndpointUpdateRequest,
+}
+
+/// PATCH /projects/{project_id}/endpoints/{endpoint_id}
+/// Update compute endpoint
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `update_project_endpoint_builder()` + `update_project_endpoint_execute()`.
+/// For task-level control, use `update_project_endpoint_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn update_project_endpoint(
+    client: &SimpleHttpClient,
+    args: &UpdateProjectEndpointArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<EndpointOperations>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        update_project_endpoint_builder(client, &args.project_id, &args.endpoint_id, &args.body)?;
+    update_project_endpoint_execute(builder)
+}
+
+/// DELETE /projects/{project_id}/endpoints/{endpoint_id}
+/// Delete compute endpoint
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `delete_project_endpoint_execute()` to send, or `delete_project_endpoint` for simplest API.
+
+pub fn delete_project_endpoint_builder<R>(
+    client: &SimpleHttpClient<R>,
+    project_id: &String,
+    endpoint_id: &String,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
+    // Build URL
+    let endpoint_url = format!(
+        "https://console.neon.tech/api/v2/projects/{}/endpoints/{}",
+        project_id, endpoint_id,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE /projects/{project_id}/endpoints/{endpoint_id}
+/// Delete compute endpoint
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `delete_project_endpoint_execute()` or `delete_project_endpoint`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_project_endpoint_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn delete_project_endpoint_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<EndpointOperations>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: EndpointOperations = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE /projects/{project_id}/endpoints/{endpoint_id}
+/// Delete compute endpoint
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `delete_project_endpoint_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `delete_project_endpoint_task()`.
+/// For the simplest API, use `delete_project_endpoint()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_project_endpoint_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn delete_project_endpoint_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<EndpointOperations>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = delete_project_endpoint_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`delete_project_endpoint`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DeleteProjectEndpointArgs {
+    /// Path parameter: project_id
+    pub project_id: String,
+    /// Path parameter: endpoint_id
+    pub endpoint_id: String,
+}
+
+/// DELETE /projects/{project_id}/endpoints/{endpoint_id}
+/// Delete compute endpoint
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `delete_project_endpoint_builder()` + `delete_project_endpoint_execute()`.
+/// For task-level control, use `delete_project_endpoint_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn delete_project_endpoint(
+    client: &SimpleHttpClient,
+    args: &DeleteProjectEndpointArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<EndpointOperations>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = delete_project_endpoint_builder(client, &args.project_id, &args.endpoint_id)?;
+    delete_project_endpoint_execute(builder)
+}
+
+/// POST /projects/{project_id}/endpoints/{endpoint_id}/restart
+/// Restart compute endpoint
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `restart_project_endpoint_execute()` to send, or `restart_project_endpoint` for simplest API.
+
+pub fn restart_project_endpoint_builder<R>(
+    client: &SimpleHttpClient<R>,
+    project_id: &String,
+    endpoint_id: &String,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
+    // Build URL
+    let endpoint_url = format!(
+        "https://console.neon.tech/api/v2/projects/{}/endpoints/{}/restart",
+        project_id, endpoint_id,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST /projects/{project_id}/endpoints/{endpoint_id}/restart
+/// Restart compute endpoint
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `restart_project_endpoint_execute()` or `restart_project_endpoint`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `restart_project_endpoint_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn restart_project_endpoint_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<EndpointOperations>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: EndpointOperations = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST /projects/{project_id}/endpoints/{endpoint_id}/restart
+/// Restart compute endpoint
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `restart_project_endpoint_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `restart_project_endpoint_task()`.
+/// For the simplest API, use `restart_project_endpoint()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `restart_project_endpoint_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn restart_project_endpoint_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<EndpointOperations>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = restart_project_endpoint_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`restart_project_endpoint`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RestartProjectEndpointArgs {
+    /// Path parameter: project_id
+    pub project_id: String,
+    /// Path parameter: endpoint_id
+    pub endpoint_id: String,
+}
+
+/// POST /projects/{project_id}/endpoints/{endpoint_id}/restart
+/// Restart compute endpoint
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `restart_project_endpoint_builder()` + `restart_project_endpoint_execute()`.
+/// For task-level control, use `restart_project_endpoint_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn restart_project_endpoint(
+    client: &SimpleHttpClient,
+    args: &RestartProjectEndpointArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<EndpointOperations>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = restart_project_endpoint_builder(client, &args.project_id, &args.endpoint_id)?;
+    restart_project_endpoint_execute(builder)
+}
+
+/// POST /projects/{project_id}/endpoints/{endpoint_id}/start
+/// Start compute endpoint
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `start_project_endpoint_execute()` to send, or `start_project_endpoint` for simplest API.
+
+pub fn start_project_endpoint_builder<R>(
+    client: &SimpleHttpClient<R>,
+    project_id: &String,
+    endpoint_id: &String,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
+    // Build URL
+    let endpoint_url = format!(
+        "https://console.neon.tech/api/v2/projects/{}/endpoints/{}/start",
+        project_id, endpoint_id,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST /projects/{project_id}/endpoints/{endpoint_id}/start
+/// Start compute endpoint
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `start_project_endpoint_execute()` or `start_project_endpoint`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `start_project_endpoint_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn start_project_endpoint_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<EndpointOperations>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: EndpointOperations = serde_json::from_str(&body)
                     .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
 
                 Ok(ApiResponse {
@@ -4053,35 +19638,35 @@ pub fn post_projects_project_id_endpoints_endpoint_id_start_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `post_projects_project_id_endpoints_endpoint_id_start_builder()` to create the builder,
+/// For full customization, use `start_project_endpoint_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `post_projects_project_id_endpoints_endpoint_id_start_task()`.
-/// For the simplest API, use `post_projects_project_id_endpoints_endpoint_id_start()`.
+/// For task-level control, use `start_project_endpoint_task()`.
+/// For the simplest API, use `start_project_endpoint()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `post_projects_project_id_endpoints_endpoint_id_start_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `start_project_endpoint_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn post_projects_project_id_endpoints_endpoint_id_start_execute(
+pub fn start_project_endpoint_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<serde_json::Value>, ApiError>, P = ApiPending>
+    impl StreamIterator<D = Result<ApiResponse<EndpointOperations>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let task = post_projects_project_id_endpoints_endpoint_id_start_task(builder)?;
+    let task = start_project_endpoint_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`post_projects_project_id_endpoints_endpoint_id_start`].
+/// Arguments for [`start_project_endpoint`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct PostProjectsProjectIdEndpointsEndpointIdStartArgs {
+pub struct StartProjectEndpointArgs {
     /// Path parameter: project_id
     pub project_id: String,
     /// Path parameter: endpoint_id
@@ -4092,42 +19677,704 @@ pub struct PostProjectsProjectIdEndpointsEndpointIdStartArgs {
 /// Start compute endpoint
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `post_projects_project_id_endpoints_endpoint_id_start_builder()` + `post_projects_project_id_endpoints_endpoint_id_start_execute()`.
-/// For task-level control, use `post_projects_project_id_endpoints_endpoint_id_start_task()`.
+/// For customization, use `start_project_endpoint_builder()` + `start_project_endpoint_execute()`.
+/// For task-level control, use `start_project_endpoint_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_projects_project_id_endpoints_endpoint_id_start(
+pub fn start_project_endpoint(
     client: &SimpleHttpClient,
-    args: &PostProjectsProjectIdEndpointsEndpointIdStartArgs,
+    args: &StartProjectEndpointArgs,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<serde_json::Value>, ApiError>, P = ApiPending>
+    impl StreamIterator<D = Result<ApiResponse<EndpointOperations>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = post_projects_project_id_endpoints_endpoint_id_start_builder(
-        client,
-        &args.project_id,
-        &args.endpoint_id,
-    )?;
-    post_projects_project_id_endpoints_endpoint_id_start_execute(builder)
+    let builder = start_project_endpoint_builder(client, &args.project_id, &args.endpoint_id)?;
+    start_project_endpoint_execute(builder)
+}
+
+/// POST /projects/{project_id}/endpoints/{endpoint_id}/suspend
+/// Suspend compute endpoint
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `suspend_project_endpoint_execute()` to send, or `suspend_project_endpoint` for simplest API.
+
+pub fn suspend_project_endpoint_builder<R>(
+    client: &SimpleHttpClient<R>,
+    project_id: &String,
+    endpoint_id: &String,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
+    // Build URL
+    let endpoint_url = format!(
+        "https://console.neon.tech/api/v2/projects/{}/endpoints/{}/suspend",
+        project_id, endpoint_id,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST /projects/{project_id}/endpoints/{endpoint_id}/suspend
+/// Suspend compute endpoint
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `suspend_project_endpoint_execute()` or `suspend_project_endpoint`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `suspend_project_endpoint_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn suspend_project_endpoint_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<EndpointOperations>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: EndpointOperations = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST /projects/{project_id}/endpoints/{endpoint_id}/suspend
+/// Suspend compute endpoint
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `suspend_project_endpoint_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `suspend_project_endpoint_task()`.
+/// For the simplest API, use `suspend_project_endpoint()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `suspend_project_endpoint_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn suspend_project_endpoint_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<EndpointOperations>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = suspend_project_endpoint_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`suspend_project_endpoint`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SuspendProjectEndpointArgs {
+    /// Path parameter: project_id
+    pub project_id: String,
+    /// Path parameter: endpoint_id
+    pub endpoint_id: String,
+}
+
+/// POST /projects/{project_id}/endpoints/{endpoint_id}/suspend
+/// Suspend compute endpoint
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `suspend_project_endpoint_builder()` + `suspend_project_endpoint_execute()`.
+/// For task-level control, use `suspend_project_endpoint_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn suspend_project_endpoint(
+    client: &SimpleHttpClient,
+    args: &SuspendProjectEndpointArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<EndpointOperations>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = suspend_project_endpoint_builder(client, &args.project_id, &args.endpoint_id)?;
+    suspend_project_endpoint_execute(builder)
+}
+
+/// GET /projects/{project_id}/jwks
+/// List JWKS URLs
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `get_project_jwks_execute()` to send, or `get_project_jwks` for simplest API.
+
+pub fn get_project_jwks_builder<R>(
+    client: &SimpleHttpClient<R>,
+    project_id: &String,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
+    // Build URL
+    let endpoint_url = format!(
+        "https://console.neon.tech/api/v2/projects/{}/jwks",
+        project_id,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET /projects/{project_id}/jwks
+/// List JWKS URLs
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_project_jwks_execute()` or `get_project_jwks`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_project_jwks_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn get_project_jwks_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ProjectJWKSResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ProjectJWKSResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET /projects/{project_id}/jwks
+/// List JWKS URLs
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_project_jwks_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_project_jwks_task()`.
+/// For the simplest API, use `get_project_jwks()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_project_jwks_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_project_jwks_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ProjectJWKSResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = get_project_jwks_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`get_project_jwks`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetProjectJwksArgs {
+    /// Path parameter: project_id
+    pub project_id: String,
+}
+
+/// GET /projects/{project_id}/jwks
+/// List JWKS URLs
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `get_project_jwks_builder()` + `get_project_jwks_execute()`.
+/// For task-level control, use `get_project_jwks_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn get_project_jwks(
+    client: &SimpleHttpClient,
+    args: &GetProjectJwksArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ProjectJWKSResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = get_project_jwks_builder(client, &args.project_id)?;
+    get_project_jwks_execute(builder)
+}
+
+/// POST /projects/{project_id}/jwks
+/// Add JWKS URL
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `add_project_jwks_execute()` to send, or `add_project_jwks` for simplest API.
+
+pub fn add_project_jwks_builder<R>(
+    client: &SimpleHttpClient<R>,
+    project_id: &String,
+    body: &AddProjectJWKSRequest,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
+    // Build URL
+    let endpoint_url = format!(
+        "https://console.neon.tech/api/v2/projects/{}/jwks",
+        project_id,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder
+        .body_json(body)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// POST /projects/{project_id}/jwks
+/// Add JWKS URL
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `add_project_jwks_execute()` or `add_project_jwks`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `add_project_jwks_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn add_project_jwks_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<JWKSCreationOperation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: JWKSCreationOperation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST /projects/{project_id}/jwks
+/// Add JWKS URL
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `add_project_jwks_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `add_project_jwks_task()`.
+/// For the simplest API, use `add_project_jwks()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `add_project_jwks_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn add_project_jwks_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<JWKSCreationOperation>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = add_project_jwks_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`add_project_jwks`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AddProjectJwksArgs {
+    /// Path parameter: project_id
+    pub project_id: String,
+    /// Request body.
+    pub body: AddProjectJWKSRequest,
+}
+
+/// POST /projects/{project_id}/jwks
+/// Add JWKS URL
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `add_project_jwks_builder()` + `add_project_jwks_execute()`.
+/// For task-level control, use `add_project_jwks_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn add_project_jwks(
+    client: &SimpleHttpClient,
+    args: &AddProjectJwksArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<JWKSCreationOperation>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = add_project_jwks_builder(client, &args.project_id, &args.body)?;
+    add_project_jwks_execute(builder)
+}
+
+/// DELETE /projects/{project_id}/jwks/{jwks_id}
+/// Delete JWKS URL
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `delete_project_jwks_execute()` to send, or `delete_project_jwks` for simplest API.
+
+pub fn delete_project_jwks_builder<R>(
+    client: &SimpleHttpClient<R>,
+    project_id: &String,
+    jwks_id: &String,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
+    // Build URL
+    let endpoint_url = format!(
+        "https://console.neon.tech/api/v2/projects/{}/jwks/{}",
+        project_id, jwks_id,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE /projects/{project_id}/jwks/{jwks_id}
+/// Delete JWKS URL
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `delete_project_jwks_execute()` or `delete_project_jwks`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_project_jwks_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn delete_project_jwks_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<JWKS>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: JWKS = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE /projects/{project_id}/jwks/{jwks_id}
+/// Delete JWKS URL
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `delete_project_jwks_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `delete_project_jwks_task()`.
+/// For the simplest API, use `delete_project_jwks()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_project_jwks_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn delete_project_jwks_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<JWKS>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = delete_project_jwks_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`delete_project_jwks`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DeleteProjectJwksArgs {
+    /// Path parameter: project_id
+    pub project_id: String,
+    /// Path parameter: jwks_id
+    pub jwks_id: String,
+}
+
+/// DELETE /projects/{project_id}/jwks/{jwks_id}
+/// Delete JWKS URL
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `delete_project_jwks_builder()` + `delete_project_jwks_execute()`.
+/// For task-level control, use `delete_project_jwks_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn delete_project_jwks(
+    client: &SimpleHttpClient,
+    args: &DeleteProjectJwksArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<JWKS>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = delete_project_jwks_builder(client, &args.project_id, &args.jwks_id)?;
+    delete_project_jwks_execute(builder)
 }
 
 /// GET /projects/{project_id}/operations
 /// List operations
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `get_projects_project_id_operations_execute()` to send, or `get_projects_project_id_operations` for simplest API.
+/// Use `list_project_operations_execute()` to send, or `list_project_operations` for simplest API.
 
-pub fn get_projects_project_id_operations_builder(
-    client: &SimpleHttpClient,
+pub fn list_project_operations_builder<R>(
+    client: &SimpleHttpClient<R>,
     project_id: &String,
-    cursor: &Option<String>,
-    limit: &Option<i32>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    cursor: &Option<Option<String>>,
+    limit: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://console.neon.tech/api/v2/projects/{}/operations",
@@ -4167,17 +20414,17 @@ pub fn get_projects_project_id_operations_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `get_projects_project_id_operations_execute()` or `get_projects_project_id_operations`.
+/// For direct execution, use `list_project_operations_execute()` or `list_project_operations`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `get_projects_project_id_operations_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `list_project_operations_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_projects_project_id_operations_task(
+pub fn list_project_operations_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -4233,78 +20480,2561 @@ pub fn get_projects_project_id_operations_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `get_projects_project_id_operations_builder()` to create the builder,
+/// For full customization, use `list_project_operations_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `get_projects_project_id_operations_task()`.
-/// For the simplest API, use `get_projects_project_id_operations()`.
+/// For task-level control, use `list_project_operations_task()`.
+/// For the simplest API, use `list_project_operations()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `get_projects_project_id_operations_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `list_project_operations_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn get_projects_project_id_operations_execute(
+pub fn list_project_operations_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let task = get_projects_project_id_operations_task(builder)?;
+    let task = list_project_operations_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`get_projects_project_id_operations`].
+/// Arguments for [`list_project_operations`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct GetProjectsProjectIdOperationsArgs {
+pub struct ListProjectOperationsArgs {
     /// Path parameter: project_id
     pub project_id: String,
     /// Query parameter: cursor
-    pub cursor: Option<String>,
+    pub cursor: Option<Option<String>>,
     /// Query parameter: limit
-    pub limit: Option<i32>,
+    pub limit: Option<Option<String>>,
 }
 
 /// GET /projects/{project_id}/operations
 /// List operations
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `get_projects_project_id_operations_builder()` + `get_projects_project_id_operations_execute()`.
-/// For task-level control, use `get_projects_project_id_operations_task()`.
+/// For customization, use `list_project_operations_builder()` + `list_project_operations_execute()`.
+/// For task-level control, use `list_project_operations_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_projects_project_id_operations(
+pub fn list_project_operations(
     client: &SimpleHttpClient,
-    args: &GetProjectsProjectIdOperationsArgs,
+    args: &ListProjectOperationsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = get_projects_project_id_operations_builder(
+    let builder =
+        list_project_operations_builder(client, &args.project_id, &args.cursor, &args.limit)?;
+    list_project_operations_execute(builder)
+}
+
+/// GET /projects/{project_id}/operations/{operation_id}
+/// Retrieve operation details
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `get_project_operation_execute()` to send, or `get_project_operation` for simplest API.
+
+pub fn get_project_operation_builder<R>(
+    client: &SimpleHttpClient<R>,
+    project_id: &String,
+    operation_id: &String,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
+    // Build URL
+    let endpoint_url = format!(
+        "https://console.neon.tech/api/v2/projects/{}/operations/{}",
+        project_id, operation_id,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET /projects/{project_id}/operations/{operation_id}
+/// Retrieve operation details
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_project_operation_execute()` or `get_project_operation`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_project_operation_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn get_project_operation_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<OperationResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: OperationResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET /projects/{project_id}/operations/{operation_id}
+/// Retrieve operation details
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_project_operation_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_project_operation_task()`.
+/// For the simplest API, use `get_project_operation()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_project_operation_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_project_operation_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<OperationResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = get_project_operation_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`get_project_operation`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetProjectOperationArgs {
+    /// Path parameter: project_id
+    pub project_id: String,
+    /// Path parameter: operation_id
+    pub operation_id: String,
+}
+
+/// GET /projects/{project_id}/operations/{operation_id}
+/// Retrieve operation details
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `get_project_operation_builder()` + `get_project_operation_execute()`.
+/// For task-level control, use `get_project_operation_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn get_project_operation(
+    client: &SimpleHttpClient,
+    args: &GetProjectOperationArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<OperationResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = get_project_operation_builder(client, &args.project_id, &args.operation_id)?;
+    get_project_operation_execute(builder)
+}
+
+/// GET /projects/{project_id}/permissions
+/// List project access
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `list_project_permissions_execute()` to send, or `list_project_permissions` for simplest API.
+
+pub fn list_project_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
+    project_id: &String,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
+    // Build URL
+    let endpoint_url = format!(
+        "https://console.neon.tech/api/v2/projects/{}/permissions",
+        project_id,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET /projects/{project_id}/permissions
+/// List project access
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `list_project_permissions_execute()` or `list_project_permissions`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `list_project_permissions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn list_project_permissions_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ProjectPermissions>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ProjectPermissions = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET /projects/{project_id}/permissions
+/// List project access
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `list_project_permissions_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `list_project_permissions_task()`.
+/// For the simplest API, use `list_project_permissions()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `list_project_permissions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn list_project_permissions_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ProjectPermissions>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = list_project_permissions_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`list_project_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ListProjectPermissionsArgs {
+    /// Path parameter: project_id
+    pub project_id: String,
+}
+
+/// GET /projects/{project_id}/permissions
+/// List project access
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `list_project_permissions_builder()` + `list_project_permissions_execute()`.
+/// For task-level control, use `list_project_permissions_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn list_project_permissions(
+    client: &SimpleHttpClient,
+    args: &ListProjectPermissionsArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ProjectPermissions>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = list_project_permissions_builder(client, &args.project_id)?;
+    list_project_permissions_execute(builder)
+}
+
+/// POST /projects/{project_id}/permissions
+/// Grant project access
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `grant_permission_to_project_execute()` to send, or `grant_permission_to_project` for simplest API.
+
+pub fn grant_permission_to_project_builder<R>(
+    client: &SimpleHttpClient<R>,
+    project_id: &String,
+    body: &GrantPermissionToProjectRequest,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
+    // Build URL
+    let endpoint_url = format!(
+        "https://console.neon.tech/api/v2/projects/{}/permissions",
+        project_id,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder
+        .body_json(body)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// POST /projects/{project_id}/permissions
+/// Grant project access
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `grant_permission_to_project_execute()` or `grant_permission_to_project`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `grant_permission_to_project_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn grant_permission_to_project_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ProjectPermission>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ProjectPermission = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST /projects/{project_id}/permissions
+/// Grant project access
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `grant_permission_to_project_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `grant_permission_to_project_task()`.
+/// For the simplest API, use `grant_permission_to_project()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `grant_permission_to_project_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn grant_permission_to_project_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ProjectPermission>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = grant_permission_to_project_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`grant_permission_to_project`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GrantPermissionToProjectArgs {
+    /// Path parameter: project_id
+    pub project_id: String,
+    /// Request body.
+    pub body: GrantPermissionToProjectRequest,
+}
+
+/// POST /projects/{project_id}/permissions
+/// Grant project access
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `grant_permission_to_project_builder()` + `grant_permission_to_project_execute()`.
+/// For task-level control, use `grant_permission_to_project_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn grant_permission_to_project(
+    client: &SimpleHttpClient,
+    args: &GrantPermissionToProjectArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ProjectPermission>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = grant_permission_to_project_builder(client, &args.project_id, &args.body)?;
+    grant_permission_to_project_execute(builder)
+}
+
+/// DELETE /projects/{project_id}/permissions/{permission_id}
+/// Revoke project access
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `revoke_permission_from_project_execute()` to send, or `revoke_permission_from_project` for simplest API.
+
+pub fn revoke_permission_from_project_builder<R>(
+    client: &SimpleHttpClient<R>,
+    project_id: &String,
+    permission_id: &String,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
+    // Build URL
+    let endpoint_url = format!(
+        "https://console.neon.tech/api/v2/projects/{}/permissions/{}",
+        project_id, permission_id,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE /projects/{project_id}/permissions/{permission_id}
+/// Revoke project access
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `revoke_permission_from_project_execute()` or `revoke_permission_from_project`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `revoke_permission_from_project_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn revoke_permission_from_project_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ProjectPermission>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ProjectPermission = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE /projects/{project_id}/permissions/{permission_id}
+/// Revoke project access
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `revoke_permission_from_project_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `revoke_permission_from_project_task()`.
+/// For the simplest API, use `revoke_permission_from_project()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `revoke_permission_from_project_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn revoke_permission_from_project_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ProjectPermission>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = revoke_permission_from_project_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`revoke_permission_from_project`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RevokePermissionFromProjectArgs {
+    /// Path parameter: project_id
+    pub project_id: String,
+    /// Path parameter: permission_id
+    pub permission_id: String,
+}
+
+/// DELETE /projects/{project_id}/permissions/{permission_id}
+/// Revoke project access
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `revoke_permission_from_project_builder()` + `revoke_permission_from_project_execute()`.
+/// For task-level control, use `revoke_permission_from_project_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn revoke_permission_from_project(
+    client: &SimpleHttpClient,
+    args: &RevokePermissionFromProjectArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ProjectPermission>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        revoke_permission_from_project_builder(client, &args.project_id, &args.permission_id)?;
+    revoke_permission_from_project_execute(builder)
+}
+
+/// POST /projects/{project_id}/recover
+/// Recover a deleted project
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `recover_project_execute()` to send, or `recover_project` for simplest API.
+
+pub fn recover_project_builder<R>(
+    client: &SimpleHttpClient<R>,
+    project_id: &String,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
+    // Build URL
+    let endpoint_url = format!(
+        "https://console.neon.tech/api/v2/projects/{}/recover",
+        project_id,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST /projects/{project_id}/recover
+/// Recover a deleted project
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `recover_project_execute()` or `recover_project`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `recover_project_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn recover_project_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ProjectRecoverResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ProjectRecoverResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST /projects/{project_id}/recover
+/// Recover a deleted project
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `recover_project_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `recover_project_task()`.
+/// For the simplest API, use `recover_project()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `recover_project_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn recover_project_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ProjectRecoverResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = recover_project_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`recover_project`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RecoverProjectArgs {
+    /// Path parameter: project_id
+    pub project_id: String,
+}
+
+/// POST /projects/{project_id}/recover
+/// Recover a deleted project
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `recover_project_builder()` + `recover_project_execute()`.
+/// For task-level control, use `recover_project_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn recover_project(
+    client: &SimpleHttpClient,
+    args: &RecoverProjectArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ProjectRecoverResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = recover_project_builder(client, &args.project_id)?;
+    recover_project_execute(builder)
+}
+
+/// POST /projects/{project_id}/restore
+/// Restore a deleted project
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `restore_project_execute()` to send, or `restore_project` for simplest API.
+
+pub fn restore_project_builder<R>(
+    client: &SimpleHttpClient<R>,
+    project_id: &String,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
+    // Build URL
+    let endpoint_url = format!(
+        "https://console.neon.tech/api/v2/projects/{}/restore",
+        project_id,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST /projects/{project_id}/restore
+/// Restore a deleted project
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `restore_project_execute()` or `restore_project`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `restore_project_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn restore_project_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ProjectRecoverResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ProjectRecoverResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST /projects/{project_id}/restore
+/// Restore a deleted project
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `restore_project_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `restore_project_task()`.
+/// For the simplest API, use `restore_project()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `restore_project_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn restore_project_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ProjectRecoverResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = restore_project_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`restore_project`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RestoreProjectArgs {
+    /// Path parameter: project_id
+    pub project_id: String,
+}
+
+/// POST /projects/{project_id}/restore
+/// Restore a deleted project
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `restore_project_builder()` + `restore_project_execute()`.
+/// For task-level control, use `restore_project_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn restore_project(
+    client: &SimpleHttpClient,
+    args: &RestoreProjectArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ProjectRecoverResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = restore_project_builder(client, &args.project_id)?;
+    restore_project_execute(builder)
+}
+
+/// GET /projects/{project_id}/snapshots
+/// List project snapshots
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `list_snapshots_execute()` to send, or `list_snapshots` for simplest API.
+
+pub fn list_snapshots_builder<R>(
+    client: &SimpleHttpClient<R>,
+    project_id: &String,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
+    // Build URL
+    let endpoint_url = format!(
+        "https://console.neon.tech/api/v2/projects/{}/snapshots",
+        project_id,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET /projects/{project_id}/snapshots
+/// List project snapshots
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `list_snapshots_execute()` or `list_snapshots`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `list_snapshots_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn list_snapshots_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: (),
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET /projects/{project_id}/snapshots
+/// List project snapshots
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `list_snapshots_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `list_snapshots_task()`.
+/// For the simplest API, use `list_snapshots()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `list_snapshots_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn list_snapshots_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = list_snapshots_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`list_snapshots`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ListSnapshotsArgs {
+    /// Path parameter: project_id
+    pub project_id: String,
+}
+
+/// GET /projects/{project_id}/snapshots
+/// List project snapshots
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `list_snapshots_builder()` + `list_snapshots_execute()`.
+/// For task-level control, use `list_snapshots_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn list_snapshots(
+    client: &SimpleHttpClient,
+    args: &ListSnapshotsArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = list_snapshots_builder(client, &args.project_id)?;
+    list_snapshots_execute(builder)
+}
+
+/// PATCH /projects/{project_id}/snapshots/{snapshot_id}
+/// Update snapshot
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `update_snapshot_execute()` to send, or `update_snapshot` for simplest API.
+
+pub fn update_snapshot_builder<R>(
+    client: &SimpleHttpClient<R>,
+    project_id: &String,
+    snapshot_id: &String,
+    body: &SnapshotUpdateRequest,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
+    // Build URL
+    let endpoint_url = format!(
+        "https://console.neon.tech/api/v2/projects/{}/snapshots/{}",
+        project_id, snapshot_id,
+    );
+
+    // Build request
+    let builder = client
+        .patch(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder
+        .body_json(body)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// PATCH /projects/{project_id}/snapshots/{snapshot_id}
+/// Update snapshot
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `update_snapshot_execute()` or `update_snapshot`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `update_snapshot_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn update_snapshot_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: (),
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH /projects/{project_id}/snapshots/{snapshot_id}
+/// Update snapshot
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `update_snapshot_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `update_snapshot_task()`.
+/// For the simplest API, use `update_snapshot()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `update_snapshot_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn update_snapshot_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = update_snapshot_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`update_snapshot`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct UpdateSnapshotArgs {
+    /// Path parameter: project_id
+    pub project_id: String,
+    /// Path parameter: snapshot_id
+    pub snapshot_id: String,
+    /// Request body.
+    pub body: SnapshotUpdateRequest,
+}
+
+/// PATCH /projects/{project_id}/snapshots/{snapshot_id}
+/// Update snapshot
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `update_snapshot_builder()` + `update_snapshot_execute()`.
+/// For task-level control, use `update_snapshot_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn update_snapshot(
+    client: &SimpleHttpClient,
+    args: &UpdateSnapshotArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = update_snapshot_builder(client, &args.project_id, &args.snapshot_id, &args.body)?;
+    update_snapshot_execute(builder)
+}
+
+/// DELETE /projects/{project_id}/snapshots/{snapshot_id}
+/// Delete snapshot
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `delete_snapshot_execute()` to send, or `delete_snapshot` for simplest API.
+
+pub fn delete_snapshot_builder<R>(
+    client: &SimpleHttpClient<R>,
+    project_id: &String,
+    snapshot_id: &String,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
+    // Build URL
+    let endpoint_url = format!(
+        "https://console.neon.tech/api/v2/projects/{}/snapshots/{}",
+        project_id, snapshot_id,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE /projects/{project_id}/snapshots/{snapshot_id}
+/// Delete snapshot
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `delete_snapshot_execute()` or `delete_snapshot`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_snapshot_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn delete_snapshot_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<OperationsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: OperationsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE /projects/{project_id}/snapshots/{snapshot_id}
+/// Delete snapshot
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `delete_snapshot_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `delete_snapshot_task()`.
+/// For the simplest API, use `delete_snapshot()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_snapshot_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn delete_snapshot_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<OperationsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = delete_snapshot_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`delete_snapshot`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DeleteSnapshotArgs {
+    /// Path parameter: project_id
+    pub project_id: String,
+    /// Path parameter: snapshot_id
+    pub snapshot_id: String,
+}
+
+/// DELETE /projects/{project_id}/snapshots/{snapshot_id}
+/// Delete snapshot
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `delete_snapshot_builder()` + `delete_snapshot_execute()`.
+/// For task-level control, use `delete_snapshot_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn delete_snapshot(
+    client: &SimpleHttpClient,
+    args: &DeleteSnapshotArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<OperationsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = delete_snapshot_builder(client, &args.project_id, &args.snapshot_id)?;
+    delete_snapshot_execute(builder)
+}
+
+/// POST /projects/{project_id}/snapshots/{snapshot_id}/restore
+/// Restore snapshot
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `restore_snapshot_execute()` to send, or `restore_snapshot` for simplest API.
+
+pub fn restore_snapshot_builder<R>(
+    client: &SimpleHttpClient<R>,
+    project_id: &String,
+    snapshot_id: &String,
+    name: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
+    // Build URL
+    let endpoint_url = format!(
+        "https://console.neon.tech/api/v2/projects/{}/snapshots/{}/restore",
+        project_id, snapshot_id,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = name.as_ref() {
+        query_parts.push(format!("name={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST /projects/{project_id}/snapshots/{snapshot_id}/restore
+/// Restore snapshot
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `restore_snapshot_execute()` or `restore_snapshot`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `restore_snapshot_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn restore_snapshot_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: (),
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST /projects/{project_id}/snapshots/{snapshot_id}/restore
+/// Restore snapshot
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `restore_snapshot_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `restore_snapshot_task()`.
+/// For the simplest API, use `restore_snapshot()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `restore_snapshot_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn restore_snapshot_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = restore_snapshot_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`restore_snapshot`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RestoreSnapshotArgs {
+    /// Path parameter: project_id
+    pub project_id: String,
+    /// Path parameter: snapshot_id
+    pub snapshot_id: String,
+    /// Query parameter: name
+    pub name: Option<Option<String>>,
+}
+
+/// POST /projects/{project_id}/snapshots/{snapshot_id}/restore
+/// Restore snapshot
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `restore_snapshot_builder()` + `restore_snapshot_execute()`.
+/// For task-level control, use `restore_snapshot_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn restore_snapshot(
+    client: &SimpleHttpClient,
+    args: &RestoreSnapshotArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        restore_snapshot_builder(client, &args.project_id, &args.snapshot_id, &args.name)?;
+    restore_snapshot_execute(builder)
+}
+
+/// POST /projects/{project_id}/transfer_requests
+/// Create a project transfer request
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `create_project_transfer_request_execute()` to send, or `create_project_transfer_request` for simplest API.
+
+pub fn create_project_transfer_request_builder<R>(
+    client: &SimpleHttpClient<R>,
+    project_id: &String,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
+    // Build URL
+    let endpoint_url = format!(
+        "https://console.neon.tech/api/v2/projects/{}/transfer_requests",
+        project_id,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST /projects/{project_id}/transfer_requests
+/// Create a project transfer request
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `create_project_transfer_request_execute()` or `create_project_transfer_request`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `create_project_transfer_request_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn create_project_transfer_request_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ProjectTransferRequestResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ProjectTransferRequestResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST /projects/{project_id}/transfer_requests
+/// Create a project transfer request
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `create_project_transfer_request_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `create_project_transfer_request_task()`.
+/// For the simplest API, use `create_project_transfer_request()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `create_project_transfer_request_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn create_project_transfer_request_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ProjectTransferRequestResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = create_project_transfer_request_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`create_project_transfer_request`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CreateProjectTransferRequestArgs {
+    /// Path parameter: project_id
+    pub project_id: String,
+}
+
+/// POST /projects/{project_id}/transfer_requests
+/// Create a project transfer request
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `create_project_transfer_request_builder()` + `create_project_transfer_request_execute()`.
+/// For task-level control, use `create_project_transfer_request_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn create_project_transfer_request(
+    client: &SimpleHttpClient,
+    args: &CreateProjectTransferRequestArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ProjectTransferRequestResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = create_project_transfer_request_builder(client, &args.project_id)?;
+    create_project_transfer_request_execute(builder)
+}
+
+/// PUT /projects/{project_id}/transfer_requests/{request_id}
+/// Accept a project transfer request
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `accept_project_transfer_request_execute()` to send, or `accept_project_transfer_request` for simplest API.
+
+pub fn accept_project_transfer_request_builder<R>(
+    client: &SimpleHttpClient<R>,
+    project_id: &String,
+    request_id: &String,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
+    // Build URL
+    let endpoint_url = format!(
+        "https://console.neon.tech/api/v2/projects/{}/transfer_requests/{}",
+        project_id, request_id,
+    );
+
+    // Build request
+    let builder = client
+        .put(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PUT /projects/{project_id}/transfer_requests/{request_id}
+/// Accept a project transfer request
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `accept_project_transfer_request_execute()` or `accept_project_transfer_request`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `accept_project_transfer_request_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn accept_project_transfer_request_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: (),
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT /projects/{project_id}/transfer_requests/{request_id}
+/// Accept a project transfer request
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `accept_project_transfer_request_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `accept_project_transfer_request_task()`.
+/// For the simplest API, use `accept_project_transfer_request()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `accept_project_transfer_request_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn accept_project_transfer_request_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = accept_project_transfer_request_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`accept_project_transfer_request`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AcceptProjectTransferRequestArgs {
+    /// Path parameter: project_id
+    pub project_id: String,
+    /// Path parameter: request_id
+    pub request_id: String,
+}
+
+/// PUT /projects/{project_id}/transfer_requests/{request_id}
+/// Accept a project transfer request
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `accept_project_transfer_request_builder()` + `accept_project_transfer_request_execute()`.
+/// For task-level control, use `accept_project_transfer_request_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn accept_project_transfer_request(
+    client: &SimpleHttpClient,
+    args: &AcceptProjectTransferRequestArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        accept_project_transfer_request_builder(client, &args.project_id, &args.request_id)?;
+    accept_project_transfer_request_execute(builder)
+}
+
+/// GET /projects/{project_id}/vpc_endpoints
+/// List VPC endpoint restrictions
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `list_project_vpcendpoints_execute()` to send, or `list_project_vpcendpoints` for simplest API.
+
+pub fn list_project_vpcendpoints_builder<R>(
+    client: &SimpleHttpClient<R>,
+    project_id: &String,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
+    // Build URL
+    let endpoint_url = format!(
+        "https://console.neon.tech/api/v2/projects/{}/vpc_endpoints",
+        project_id,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET /projects/{project_id}/vpc_endpoints
+/// List VPC endpoint restrictions
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `list_project_vpcendpoints_execute()` or `list_project_vpcendpoints`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `list_project_vpcendpoints_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn list_project_vpcendpoints_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<VPCEndpointsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: VPCEndpointsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET /projects/{project_id}/vpc_endpoints
+/// List VPC endpoint restrictions
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `list_project_vpcendpoints_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `list_project_vpcendpoints_task()`.
+/// For the simplest API, use `list_project_vpcendpoints()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `list_project_vpcendpoints_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn list_project_vpcendpoints_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<VPCEndpointsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = list_project_vpcendpoints_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`list_project_vpcendpoints`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ListProjectVpcendpointsArgs {
+    /// Path parameter: project_id
+    pub project_id: String,
+}
+
+/// GET /projects/{project_id}/vpc_endpoints
+/// List VPC endpoint restrictions
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `list_project_vpcendpoints_builder()` + `list_project_vpcendpoints_execute()`.
+/// For task-level control, use `list_project_vpcendpoints_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn list_project_vpcendpoints(
+    client: &SimpleHttpClient,
+    args: &ListProjectVpcendpointsArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<VPCEndpointsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = list_project_vpcendpoints_builder(client, &args.project_id)?;
+    list_project_vpcendpoints_execute(builder)
+}
+
+/// POST /projects/{project_id}/vpc_endpoints/{vpc_endpoint_id}
+/// Set VPC endpoint restriction
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `assign_project_vpcendpoint_execute()` to send, or `assign_project_vpcendpoint` for simplest API.
+
+pub fn assign_project_vpcendpoint_builder<R>(
+    client: &SimpleHttpClient<R>,
+    project_id: &String,
+    vpc_endpoint_id: &String,
+    body: &VPCEndpointAssignment,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
+    // Build URL
+    let endpoint_url = format!(
+        "https://console.neon.tech/api/v2/projects/{}/vpc_endpoints/{}",
+        project_id, vpc_endpoint_id,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder
+        .body_json(body)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// POST /projects/{project_id}/vpc_endpoints/{vpc_endpoint_id}
+/// Set VPC endpoint restriction
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `assign_project_vpcendpoint_execute()` or `assign_project_vpcendpoint`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `assign_project_vpcendpoint_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn assign_project_vpcendpoint_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: (),
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST /projects/{project_id}/vpc_endpoints/{vpc_endpoint_id}
+/// Set VPC endpoint restriction
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `assign_project_vpcendpoint_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `assign_project_vpcendpoint_task()`.
+/// For the simplest API, use `assign_project_vpcendpoint()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `assign_project_vpcendpoint_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn assign_project_vpcendpoint_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = assign_project_vpcendpoint_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`assign_project_vpcendpoint`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AssignProjectVpcendpointArgs {
+    /// Path parameter: project_id
+    pub project_id: String,
+    /// Path parameter: vpc_endpoint_id
+    pub vpc_endpoint_id: String,
+    /// Request body.
+    pub body: VPCEndpointAssignment,
+}
+
+/// POST /projects/{project_id}/vpc_endpoints/{vpc_endpoint_id}
+/// Set VPC endpoint restriction
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `assign_project_vpcendpoint_builder()` + `assign_project_vpcendpoint_execute()`.
+/// For task-level control, use `assign_project_vpcendpoint_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn assign_project_vpcendpoint(
+    client: &SimpleHttpClient,
+    args: &AssignProjectVpcendpointArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = assign_project_vpcendpoint_builder(
         client,
         &args.project_id,
-        &args.cursor,
-        &args.limit,
+        &args.vpc_endpoint_id,
+        &args.body,
     )?;
-    get_projects_project_id_operations_execute(builder)
+    assign_project_vpcendpoint_execute(builder)
+}
+
+/// DELETE /projects/{project_id}/vpc_endpoints/{vpc_endpoint_id}
+/// Delete VPC endpoint restriction
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `delete_project_vpcendpoint_execute()` to send, or `delete_project_vpcendpoint` for simplest API.
+
+pub fn delete_project_vpcendpoint_builder<R>(
+    client: &SimpleHttpClient<R>,
+    project_id: &String,
+    vpc_endpoint_id: &String,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
+    // Build URL
+    let endpoint_url = format!(
+        "https://console.neon.tech/api/v2/projects/{}/vpc_endpoints/{}",
+        project_id, vpc_endpoint_id,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE /projects/{project_id}/vpc_endpoints/{vpc_endpoint_id}
+/// Delete VPC endpoint restriction
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `delete_project_vpcendpoint_execute()` or `delete_project_vpcendpoint`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_project_vpcendpoint_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn delete_project_vpcendpoint_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: (),
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE /projects/{project_id}/vpc_endpoints/{vpc_endpoint_id}
+/// Delete VPC endpoint restriction
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `delete_project_vpcendpoint_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `delete_project_vpcendpoint_task()`.
+/// For the simplest API, use `delete_project_vpcendpoint()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_project_vpcendpoint_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn delete_project_vpcendpoint_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = delete_project_vpcendpoint_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`delete_project_vpcendpoint`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DeleteProjectVpcendpointArgs {
+    /// Path parameter: project_id
+    pub project_id: String,
+    /// Path parameter: vpc_endpoint_id
+    pub vpc_endpoint_id: String,
+}
+
+/// DELETE /projects/{project_id}/vpc_endpoints/{vpc_endpoint_id}
+/// Delete VPC endpoint restriction
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `delete_project_vpcendpoint_builder()` + `delete_project_vpcendpoint_execute()`.
+/// For task-level control, use `delete_project_vpcendpoint_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn delete_project_vpcendpoint(
+    client: &SimpleHttpClient,
+    args: &DeleteProjectVpcendpointArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        delete_project_vpcendpoint_builder(client, &args.project_id, &args.vpc_endpoint_id)?;
+    delete_project_vpcendpoint_execute(builder)
 }
 
 /// GET /regions
 /// List supported regions
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `get_regions_execute()` to send, or `get_regions` for simplest API.
+/// Use `get_active_regions_execute()` to send, or `get_active_regions` for simplest API.
 
-pub fn get_regions_builder(
-    client: &SimpleHttpClient,
-    org_id: &Option<String>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn get_active_regions_builder<R>(
+    client: &SimpleHttpClient<R>,
+    org_id: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://console.neon.tech/api/v2/regions",);
 
@@ -4338,17 +23068,17 @@ pub fn get_regions_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `get_regions_execute()` or `get_regions`.
+/// For direct execution, use `get_active_regions_execute()` or `get_active_regions`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `get_regions_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_active_regions_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_regions_task(
+pub fn get_active_regions_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -4407,21 +23137,21 @@ pub fn get_regions_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `get_regions_builder()` to create the builder,
+/// For full customization, use `get_active_regions_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `get_regions_task()`.
-/// For the simplest API, use `get_regions()`.
+/// For task-level control, use `get_active_regions_task()`.
+/// For the simplest API, use `get_active_regions()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `get_regions_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_active_regions_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn get_regions_execute(
+pub fn get_active_regions_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ActiveRegionsResponse>, ApiError>, P = ApiPending>
@@ -4429,50 +23159,53 @@ pub fn get_regions_execute(
         + 'static,
     ApiError,
 > {
-    let task = get_regions_task(builder)?;
+    let task = get_active_regions_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`get_regions`].
+/// Arguments for [`get_active_regions`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct GetRegionsArgs {
+pub struct GetActiveRegionsArgs {
     /// Query parameter: org_id
-    pub org_id: Option<String>,
+    pub org_id: Option<Option<String>>,
 }
 
 /// GET /regions
 /// List supported regions
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `get_regions_builder()` + `get_regions_execute()`.
-/// For task-level control, use `get_regions_task()`.
+/// For customization, use `get_active_regions_builder()` + `get_active_regions_execute()`.
+/// For task-level control, use `get_active_regions_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_regions(
+pub fn get_active_regions(
     client: &SimpleHttpClient,
-    args: &GetRegionsArgs,
+    args: &GetActiveRegionsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ActiveRegionsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = get_regions_builder(client, &args.org_id)?;
-    get_regions_execute(builder)
+    let builder = get_active_regions_builder(client, &args.org_id)?;
+    get_active_regions_execute(builder)
 }
 
 /// GET /users/me
 /// Retrieve current user details
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `get_users_me_execute()` to send, or `get_users_me` for simplest API.
+/// Use `get_current_user_info_execute()` to send, or `get_current_user_info` for simplest API.
 
-pub fn get_users_me_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn get_current_user_info_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://console.neon.tech/api/v2/users/me",);
 
@@ -4495,17 +23228,17 @@ pub fn get_users_me_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `get_users_me_execute()` or `get_users_me`.
+/// For direct execution, use `get_current_user_info_execute()` or `get_current_user_info`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `get_users_me_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_current_user_info_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_users_me_task(
+pub fn get_current_user_info_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -4564,21 +23297,21 @@ pub fn get_users_me_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `get_users_me_builder()` to create the builder,
+/// For full customization, use `get_current_user_info_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `get_users_me_task()`.
-/// For the simplest API, use `get_users_me()`.
+/// For task-level control, use `get_current_user_info_task()`.
+/// For the simplest API, use `get_current_user_info()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `get_users_me_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_current_user_info_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn get_users_me_execute(
+pub fn get_current_user_info_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CurrentUserInfoResponse>, ApiError>, P = ApiPending>
@@ -4586,7 +23319,7 @@ pub fn get_users_me_execute(
         + 'static,
     ApiError,
 > {
-    let task = get_users_me_task(builder)?;
+    let task = get_current_user_info_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -4594,14 +23327,14 @@ pub fn get_users_me_execute(
 /// Retrieve current user details
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `get_users_me_builder()` + `get_users_me_execute()`.
-/// For task-level control, use `get_users_me_task()`.
+/// For customization, use `get_current_user_info_builder()` + `get_current_user_info_execute()`.
+/// For task-level control, use `get_current_user_info_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_users_me(
+pub fn get_current_user_info(
     client: &SimpleHttpClient,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CurrentUserInfoResponse>, ApiError>, P = ApiPending>
@@ -4609,19 +23342,22 @@ pub fn get_users_me(
         + 'static,
     ApiError,
 > {
-    let builder = get_users_me_builder(client)?;
-    get_users_me_execute(builder)
+    let builder = get_current_user_info_builder(client)?;
+    get_current_user_info_execute(builder)
 }
 
 /// GET /users/me/organizations
 /// Retrieve current user organizations list
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `get_users_me_organizations_execute()` to send, or `get_users_me_organizations` for simplest API.
+/// Use `get_current_user_organizations_execute()` to send, or `get_current_user_organizations` for simplest API.
 
-pub fn get_users_me_organizations_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn get_current_user_organizations_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://console.neon.tech/api/v2/users/me/organizations",);
 
@@ -4644,17 +23380,17 @@ pub fn get_users_me_organizations_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `get_users_me_organizations_execute()` or `get_users_me_organizations`.
+/// For direct execution, use `get_current_user_organizations_execute()` or `get_current_user_organizations`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `get_users_me_organizations_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_current_user_organizations_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_users_me_organizations_task(
+pub fn get_current_user_organizations_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -4713,21 +23449,21 @@ pub fn get_users_me_organizations_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `get_users_me_organizations_builder()` to create the builder,
+/// For full customization, use `get_current_user_organizations_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `get_users_me_organizations_task()`.
-/// For the simplest API, use `get_users_me_organizations()`.
+/// For task-level control, use `get_current_user_organizations_task()`.
+/// For the simplest API, use `get_current_user_organizations()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `get_users_me_organizations_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_current_user_organizations_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn get_users_me_organizations_execute(
+pub fn get_current_user_organizations_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<OrganizationsResponse>, ApiError>, P = ApiPending>
@@ -4735,7 +23471,7 @@ pub fn get_users_me_organizations_execute(
         + 'static,
     ApiError,
 > {
-    let task = get_users_me_organizations_task(builder)?;
+    let task = get_current_user_organizations_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -4743,14 +23479,14 @@ pub fn get_users_me_organizations_execute(
 /// Retrieve current user organizations list
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `get_users_me_organizations_builder()` + `get_users_me_organizations_execute()`.
-/// For task-level control, use `get_users_me_organizations_task()`.
+/// For customization, use `get_current_user_organizations_builder()` + `get_current_user_organizations_execute()`.
+/// For task-level control, use `get_current_user_organizations_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_users_me_organizations(
+pub fn get_current_user_organizations(
     client: &SimpleHttpClient,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<OrganizationsResponse>, ApiError>, P = ApiPending>
@@ -4758,20 +23494,23 @@ pub fn get_users_me_organizations(
         + 'static,
     ApiError,
 > {
-    let builder = get_users_me_organizations_builder(client)?;
-    get_users_me_organizations_execute(builder)
+    let builder = get_current_user_organizations_builder(client)?;
+    get_current_user_organizations_execute(builder)
 }
 
 /// POST /users/me/projects/transfer
 /// Transfer projects from personal account to organization
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `post_users_me_projects_transfer_execute()` to send, or `post_users_me_projects_transfer` for simplest API.
+/// Use `transfer_projects_from_user_to_org_execute()` to send, or `transfer_projects_from_user_to_org` for simplest API.
 
-pub fn post_users_me_projects_transfer_builder(
-    client: &SimpleHttpClient,
-    body: &serde_json::Value,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn transfer_projects_from_user_to_org_builder<R>(
+    client: &SimpleHttpClient<R>,
+    body: &TransferProjectsToOrganizationRequest,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://console.neon.tech/api/v2/users/me/projects/transfer",);
 
@@ -4796,17 +23535,17 @@ pub fn post_users_me_projects_transfer_builder(
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `post_users_me_projects_transfer_execute()` or `post_users_me_projects_transfer`.
+/// For direct execution, use `transfer_projects_from_user_to_org_execute()` or `transfer_projects_from_user_to_org`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `post_users_me_projects_transfer_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `transfer_projects_from_user_to_org_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_users_me_projects_transfer_task(
+pub fn transfer_projects_from_user_to_org_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -4865,21 +23604,21 @@ pub fn post_users_me_projects_transfer_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `post_users_me_projects_transfer_builder()` to create the builder,
+/// For full customization, use `transfer_projects_from_user_to_org_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `post_users_me_projects_transfer_task()`.
-/// For the simplest API, use `post_users_me_projects_transfer()`.
+/// For task-level control, use `transfer_projects_from_user_to_org_task()`.
+/// For the simplest API, use `transfer_projects_from_user_to_org()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `post_users_me_projects_transfer_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `transfer_projects_from_user_to_org_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn post_users_me_projects_transfer_execute(
+pub fn transfer_projects_from_user_to_org_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<EmptyResponse>, ApiError>, P = ApiPending>
@@ -4887,37 +23626,2675 @@ pub fn post_users_me_projects_transfer_execute(
         + 'static,
     ApiError,
 > {
-    let task = post_users_me_projects_transfer_task(builder)?;
+    let task = transfer_projects_from_user_to_org_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`post_users_me_projects_transfer`].
+/// Arguments for [`transfer_projects_from_user_to_org`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct PostUsersMeProjectsTransferArgs {
+pub struct TransferProjectsFromUserToOrgArgs {
     /// Request body.
-    pub body: serde_json::Value,
+    pub body: TransferProjectsToOrganizationRequest,
 }
 
 /// POST /users/me/projects/transfer
 /// Transfer projects from personal account to organization
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `post_users_me_projects_transfer_builder()` + `post_users_me_projects_transfer_execute()`.
-/// For task-level control, use `post_users_me_projects_transfer_task()`.
+/// For customization, use `transfer_projects_from_user_to_org_builder()` + `transfer_projects_from_user_to_org_execute()`.
+/// For task-level control, use `transfer_projects_from_user_to_org_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_users_me_projects_transfer(
+pub fn transfer_projects_from_user_to_org(
     client: &SimpleHttpClient,
-    args: &PostUsersMeProjectsTransferArgs,
+    args: &TransferProjectsFromUserToOrgArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<EmptyResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = post_users_me_projects_transfer_builder(client, &args.body)?;
-    post_users_me_projects_transfer_execute(builder)
+    let builder = transfer_projects_from_user_to_org_builder(client, &args.body)?;
+    transfer_projects_from_user_to_org_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for serde_json::Value
+// =============================================================================
+
+/// ResourceIdentifier implementation for serde_json::Value with ListApiKeysArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ListApiKeysArgs> for serde_json::Value {
+    fn generate_resource_id(&self, input: &ListApiKeysArgs) -> String {
+        "neon::serde_json::Value".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "neon::serde_json::Value"
+    }
+
+    fn provider(&self) -> &'static str {
+        "neon"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ApiKeyCreateResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ApiKeyCreateResponse with CreateApiKeyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CreateApiKeyArgs> for ApiKeyCreateResponse {
+    fn generate_resource_id(&self, input: &CreateApiKeyArgs) -> String {
+        "neon::ApiKeyCreateResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "neon::ApiKeyCreateResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "neon"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ApiKeyRevokeResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ApiKeyRevokeResponse with RevokeApiKeyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RevokeApiKeyArgs> for ApiKeyRevokeResponse {
+    fn generate_resource_id(&self, input: &RevokeApiKeyArgs) -> String {
+        format!("neon::ApiKeyRevokeResponse/{}", input.key_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "neon::ApiKeyRevokeResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "neon"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for AuthDetailsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for AuthDetailsResponse with GetAuthDetailsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GetAuthDetailsArgs> for AuthDetailsResponse {
+    fn generate_resource_id(&self, input: &GetAuthDetailsArgs) -> String {
+        "neon::AuthDetailsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "neon::AuthDetailsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "neon"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ConsumptionHistoryPerAccountResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ConsumptionHistoryPerAccountResponse with GetConsumptionHistoryPerAccountArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GetConsumptionHistoryPerAccountArgs>
+    for ConsumptionHistoryPerAccountResponse
+{
+    fn generate_resource_id(&self, input: &GetConsumptionHistoryPerAccountArgs) -> String {
+        "neon::ConsumptionHistoryPerAccountResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "neon::ConsumptionHistoryPerAccountResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "neon"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Organization
+// =============================================================================
+
+/// ResourceIdentifier implementation for Organization with GetOrganizationArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GetOrganizationArgs> for Organization {
+    fn generate_resource_id(&self, input: &GetOrganizationArgs) -> String {
+        format!("neon::Organization/{}", input.org_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "neon::Organization"
+    }
+
+    fn provider(&self) -> &'static str {
+        "neon"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for serde_json::Value
+// =============================================================================
+
+/// ResourceIdentifier implementation for serde_json::Value with ListOrgApiKeysArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ListOrgApiKeysArgs> for serde_json::Value {
+    fn generate_resource_id(&self, input: &ListOrgApiKeysArgs) -> String {
+        format!("neon::serde_json::Value/{}", input.org_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "neon::serde_json::Value"
+    }
+
+    fn provider(&self) -> &'static str {
+        "neon"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for OrgApiKeyCreateResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for OrgApiKeyCreateResponse with CreateOrgApiKeyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CreateOrgApiKeyArgs> for OrgApiKeyCreateResponse {
+    fn generate_resource_id(&self, input: &CreateOrgApiKeyArgs) -> String {
+        format!("neon::OrgApiKeyCreateResponse/{}", input.org_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "neon::OrgApiKeyCreateResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "neon"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for OrgApiKeyRevokeResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for OrgApiKeyRevokeResponse with RevokeOrgApiKeyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RevokeOrgApiKeyArgs> for OrgApiKeyRevokeResponse {
+    fn generate_resource_id(&self, input: &RevokeOrgApiKeyArgs) -> String {
+        format!("neon::OrgApiKeyRevokeResponse/{}", input.key_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "neon::OrgApiKeyRevokeResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "neon"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for OrganizationInvitationsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for OrganizationInvitationsResponse with GetOrganizationInvitationsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GetOrganizationInvitationsArgs> for OrganizationInvitationsResponse {
+    fn generate_resource_id(&self, input: &GetOrganizationInvitationsArgs) -> String {
+        format!("neon::OrganizationInvitationsResponse/{}", input.org_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "neon::OrganizationInvitationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "neon"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for OrganizationInvitationsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for OrganizationInvitationsResponse with CreateOrganizationInvitationsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CreateOrganizationInvitationsArgs> for OrganizationInvitationsResponse {
+    fn generate_resource_id(&self, input: &CreateOrganizationInvitationsArgs) -> String {
+        format!("neon::OrganizationInvitationsResponse/{}", input.org_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "neon::OrganizationInvitationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "neon"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Member
+// =============================================================================
+
+/// ResourceIdentifier implementation for Member with GetOrganizationMemberArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GetOrganizationMemberArgs> for Member {
+    fn generate_resource_id(&self, input: &GetOrganizationMemberArgs) -> String {
+        format!("neon::Member/{}/{}", input.org_id, input.member_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "neon::Member"
+    }
+
+    fn provider(&self) -> &'static str {
+        "neon"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Member
+// =============================================================================
+
+/// ResourceIdentifier implementation for Member with UpdateOrganizationMemberArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<UpdateOrganizationMemberArgs> for Member {
+    fn generate_resource_id(&self, input: &UpdateOrganizationMemberArgs) -> String {
+        format!("neon::Member/{}/{}", input.org_id, input.member_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "neon::Member"
+    }
+
+    fn provider(&self) -> &'static str {
+        "neon"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for EmptyResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for EmptyResponse with RemoveOrganizationMemberArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RemoveOrganizationMemberArgs> for EmptyResponse {
+    fn generate_resource_id(&self, input: &RemoveOrganizationMemberArgs) -> String {
+        format!("neon::EmptyResponse/{}/{}", input.org_id, input.member_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "neon::EmptyResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "neon"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for VPCEndpointsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for VPCEndpointsResponse with ListOrganizationVpcendpointsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ListOrganizationVpcendpointsArgs> for VPCEndpointsResponse {
+    fn generate_resource_id(&self, input: &ListOrganizationVpcendpointsArgs) -> String {
+        format!(
+            "neon::VPCEndpointsResponse/{}/{}",
+            input.org_id, input.region_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "neon::VPCEndpointsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "neon"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for VPCEndpointDetails
+// =============================================================================
+
+/// ResourceIdentifier implementation for VPCEndpointDetails with GetOrganizationVpcendpointDetailsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GetOrganizationVpcendpointDetailsArgs> for VPCEndpointDetails {
+    fn generate_resource_id(&self, input: &GetOrganizationVpcendpointDetailsArgs) -> String {
+        format!(
+            "neon::VPCEndpointDetails/{}/{}/{}",
+            input.org_id, input.region_id, input.vpc_endpoint_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "neon::VPCEndpointDetails"
+    }
+
+    fn provider(&self) -> &'static str {
+        "neon"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for VPCEndpointsWithRegionResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for VPCEndpointsWithRegionResponse with ListOrganizationVpcendpointsAllRegionsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ListOrganizationVpcendpointsAllRegionsArgs>
+    for VPCEndpointsWithRegionResponse
+{
+    fn generate_resource_id(&self, input: &ListOrganizationVpcendpointsAllRegionsArgs) -> String {
+        format!("neon::VPCEndpointsWithRegionResponse/{}", input.org_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "neon::VPCEndpointsWithRegionResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "neon"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for EmptyResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for EmptyResponse with TransferProjectsFromOrgToOrgArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TransferProjectsFromOrgToOrgArgs> for EmptyResponse {
+    fn generate_resource_id(&self, input: &TransferProjectsFromOrgToOrgArgs) -> String {
+        format!("neon::EmptyResponse/{}", input.source_org_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "neon::EmptyResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "neon"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for NeonAuthCreateIntegrationResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for NeonAuthCreateIntegrationResponse with CreateNeonAuthIntegrationArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CreateNeonAuthIntegrationArgs> for NeonAuthCreateIntegrationResponse {
+    fn generate_resource_id(&self, input: &CreateNeonAuthIntegrationArgs) -> String {
+        "neon::NeonAuthCreateIntegrationResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "neon::NeonAuthCreateIntegrationResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "neon"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for NeonAuthCreateIntegrationResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for NeonAuthCreateIntegrationResponse with CreateNeonAuthProviderSdkkeysArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CreateNeonAuthProviderSdkkeysArgs> for NeonAuthCreateIntegrationResponse {
+    fn generate_resource_id(&self, input: &CreateNeonAuthProviderSdkkeysArgs) -> String {
+        "neon::NeonAuthCreateIntegrationResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "neon::NeonAuthCreateIntegrationResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "neon"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for NeonAuthTransferAuthProviderProjectResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for NeonAuthTransferAuthProviderProjectResponse with TransferNeonAuthProviderProjectArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TransferNeonAuthProviderProjectArgs>
+    for NeonAuthTransferAuthProviderProjectResponse
+{
+    fn generate_resource_id(&self, input: &TransferNeonAuthProviderProjectArgs) -> String {
+        "neon::NeonAuthTransferAuthProviderProjectResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "neon::NeonAuthTransferAuthProviderProjectResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "neon"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for NeonAuthCreateNewUserResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for NeonAuthCreateNewUserResponse with CreateNeonAuthNewUserArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CreateNeonAuthNewUserArgs> for NeonAuthCreateNewUserResponse {
+    fn generate_resource_id(&self, input: &CreateNeonAuthNewUserArgs) -> String {
+        "neon::NeonAuthCreateNewUserResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "neon::NeonAuthCreateNewUserResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "neon"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ProjectResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ProjectResponse with GetProjectArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GetProjectArgs> for ProjectResponse {
+    fn generate_resource_id(&self, input: &GetProjectArgs) -> String {
+        format!("neon::ProjectResponse/{}", input.project_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "neon::ProjectResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "neon"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ProjectResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ProjectResponse with DeleteProjectArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DeleteProjectArgs> for ProjectResponse {
+    fn generate_resource_id(&self, input: &DeleteProjectArgs) -> String {
+        format!("neon::ProjectResponse/{}", input.project_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "neon::ProjectResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "neon"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for NeonAuthRedirectURIWhitelistResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for NeonAuthRedirectURIWhitelistResponse with ListNeonAuthRedirectUriwhitelistDomainsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ListNeonAuthRedirectUriwhitelistDomainsArgs>
+    for NeonAuthRedirectURIWhitelistResponse
+{
+    fn generate_resource_id(&self, input: &ListNeonAuthRedirectUriwhitelistDomainsArgs) -> String {
+        format!(
+            "neon::NeonAuthRedirectURIWhitelistResponse/{}",
+            input.project_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "neon::NeonAuthRedirectURIWhitelistResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "neon"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for NeonAuthEmailServerConfig
+// =============================================================================
+
+/// ResourceIdentifier implementation for NeonAuthEmailServerConfig with GetNeonAuthEmailServerArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GetNeonAuthEmailServerArgs> for NeonAuthEmailServerConfig {
+    fn generate_resource_id(&self, input: &GetNeonAuthEmailServerArgs) -> String {
+        format!("neon::NeonAuthEmailServerConfig/{}", input.project_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "neon::NeonAuthEmailServerConfig"
+    }
+
+    fn provider(&self) -> &'static str {
+        "neon"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for NeonAuthEmailServerConfig
+// =============================================================================
+
+/// ResourceIdentifier implementation for NeonAuthEmailServerConfig with UpdateNeonAuthEmailServerArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<UpdateNeonAuthEmailServerArgs> for NeonAuthEmailServerConfig {
+    fn generate_resource_id(&self, input: &UpdateNeonAuthEmailServerArgs) -> String {
+        format!("neon::NeonAuthEmailServerConfig/{}", input.project_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "neon::NeonAuthEmailServerConfig"
+    }
+
+    fn provider(&self) -> &'static str {
+        "neon"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListNeonAuthIntegrationsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListNeonAuthIntegrationsResponse with ListNeonAuthIntegrationsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ListNeonAuthIntegrationsArgs> for ListNeonAuthIntegrationsResponse {
+    fn generate_resource_id(&self, input: &ListNeonAuthIntegrationsArgs) -> String {
+        format!(
+            "neon::ListNeonAuthIntegrationsResponse/{}",
+            input.project_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "neon::ListNeonAuthIntegrationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "neon"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListNeonAuthOauthProvidersResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListNeonAuthOauthProvidersResponse with ListNeonAuthOauthProvidersArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ListNeonAuthOauthProvidersArgs> for ListNeonAuthOauthProvidersResponse {
+    fn generate_resource_id(&self, input: &ListNeonAuthOauthProvidersArgs) -> String {
+        format!(
+            "neon::ListNeonAuthOauthProvidersResponse/{}",
+            input.project_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "neon::ListNeonAuthOauthProvidersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "neon"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for NeonAuthOauthProvider
+// =============================================================================
+
+/// ResourceIdentifier implementation for NeonAuthOauthProvider with AddNeonAuthOauthProviderArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AddNeonAuthOauthProviderArgs> for NeonAuthOauthProvider {
+    fn generate_resource_id(&self, input: &AddNeonAuthOauthProviderArgs) -> String {
+        format!("neon::NeonAuthOauthProvider/{}", input.project_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "neon::NeonAuthOauthProvider"
+    }
+
+    fn provider(&self) -> &'static str {
+        "neon"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for NeonAuthOauthProvider
+// =============================================================================
+
+/// ResourceIdentifier implementation for NeonAuthOauthProvider with UpdateNeonAuthOauthProviderArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<UpdateNeonAuthOauthProviderArgs> for NeonAuthOauthProvider {
+    fn generate_resource_id(&self, input: &UpdateNeonAuthOauthProviderArgs) -> String {
+        format!(
+            "neon::NeonAuthOauthProvider/{}/{}",
+            input.project_id, input.oauth_provider_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "neon::NeonAuthOauthProvider"
+    }
+
+    fn provider(&self) -> &'static str {
+        "neon"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ()
+// =============================================================================
+
+/// ResourceIdentifier implementation for () with DeleteNeonAuthUserArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DeleteNeonAuthUserArgs> for () {
+    fn generate_resource_id(&self, input: &DeleteNeonAuthUserArgs) -> String {
+        format!("neon::()/{}/{}", input.project_id, input.auth_user_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "neon::()"
+    }
+
+    fn provider(&self) -> &'static str {
+        "neon"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for AvailablePreloadLibraries
+// =============================================================================
+
+/// ResourceIdentifier implementation for AvailablePreloadLibraries with GetAvailablePreloadLibrariesArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GetAvailablePreloadLibrariesArgs> for AvailablePreloadLibraries {
+    fn generate_resource_id(&self, input: &GetAvailablePreloadLibrariesArgs) -> String {
+        format!("neon::AvailablePreloadLibraries/{}", input.project_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "neon::AvailablePreloadLibraries"
+    }
+
+    fn provider(&self) -> &'static str {
+        "neon"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for BranchOperations
+// =============================================================================
+
+/// ResourceIdentifier implementation for BranchOperations with UpdateProjectBranchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<UpdateProjectBranchArgs> for BranchOperations {
+    fn generate_resource_id(&self, input: &UpdateProjectBranchArgs) -> String {
+        format!(
+            "neon::BranchOperations/{}/{}",
+            input.project_id, input.branch_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "neon::BranchOperations"
+    }
+
+    fn provider(&self) -> &'static str {
+        "neon"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for BranchOperations
+// =============================================================================
+
+/// ResourceIdentifier implementation for BranchOperations with DeleteProjectBranchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DeleteProjectBranchArgs> for BranchOperations {
+    fn generate_resource_id(&self, input: &DeleteProjectBranchArgs) -> String {
+        format!(
+            "neon::BranchOperations/{}/{}",
+            input.project_id, input.branch_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "neon::BranchOperations"
+    }
+
+    fn provider(&self) -> &'static str {
+        "neon"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for AnonymizedBranchStatusResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for AnonymizedBranchStatusResponse with StartAnonymizationArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StartAnonymizationArgs> for AnonymizedBranchStatusResponse {
+    fn generate_resource_id(&self, input: &StartAnonymizationArgs) -> String {
+        format!(
+            "neon::AnonymizedBranchStatusResponse/{}/{}",
+            input.project_id, input.branch_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "neon::AnonymizedBranchStatusResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "neon"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for AnonymizedBranchStatusResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for AnonymizedBranchStatusResponse with GetAnonymizedBranchStatusArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GetAnonymizedBranchStatusArgs> for AnonymizedBranchStatusResponse {
+    fn generate_resource_id(&self, input: &GetAnonymizedBranchStatusArgs) -> String {
+        format!(
+            "neon::AnonymizedBranchStatusResponse/{}/{}",
+            input.project_id, input.branch_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "neon::AnonymizedBranchStatusResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "neon"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for NeonAuthIntegration
+// =============================================================================
+
+/// ResourceIdentifier implementation for NeonAuthIntegration with GetNeonAuthArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GetNeonAuthArgs> for NeonAuthIntegration {
+    fn generate_resource_id(&self, input: &GetNeonAuthArgs) -> String {
+        format!(
+            "neon::NeonAuthIntegration/{}/{}",
+            input.project_id, input.branch_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "neon::NeonAuthIntegration"
+    }
+
+    fn provider(&self) -> &'static str {
+        "neon"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for NeonAuthCreateIntegrationResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for NeonAuthCreateIntegrationResponse with CreateNeonAuthArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CreateNeonAuthArgs> for NeonAuthCreateIntegrationResponse {
+    fn generate_resource_id(&self, input: &CreateNeonAuthArgs) -> String {
+        format!(
+            "neon::NeonAuthCreateIntegrationResponse/{}/{}",
+            input.project_id, input.branch_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "neon::NeonAuthCreateIntegrationResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "neon"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for NeonAuthAllowLocalhostResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for NeonAuthAllowLocalhostResponse with GetNeonAuthAllowLocalhostArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GetNeonAuthAllowLocalhostArgs> for NeonAuthAllowLocalhostResponse {
+    fn generate_resource_id(&self, input: &GetNeonAuthAllowLocalhostArgs) -> String {
+        format!(
+            "neon::NeonAuthAllowLocalhostResponse/{}/{}",
+            input.project_id, input.branch_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "neon::NeonAuthAllowLocalhostResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "neon"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for NeonAuthAllowLocalhostResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for NeonAuthAllowLocalhostResponse with UpdateNeonAuthAllowLocalhostArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<UpdateNeonAuthAllowLocalhostArgs> for NeonAuthAllowLocalhostResponse {
+    fn generate_resource_id(&self, input: &UpdateNeonAuthAllowLocalhostArgs) -> String {
+        format!(
+            "neon::NeonAuthAllowLocalhostResponse/{}/{}",
+            input.project_id, input.branch_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "neon::NeonAuthAllowLocalhostResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "neon"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for NeonAuthRedirectURIWhitelistResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for NeonAuthRedirectURIWhitelistResponse with ListBranchNeonAuthTrustedDomainsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ListBranchNeonAuthTrustedDomainsArgs>
+    for NeonAuthRedirectURIWhitelistResponse
+{
+    fn generate_resource_id(&self, input: &ListBranchNeonAuthTrustedDomainsArgs) -> String {
+        format!(
+            "neon::NeonAuthRedirectURIWhitelistResponse/{}/{}",
+            input.project_id, input.branch_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "neon::NeonAuthRedirectURIWhitelistResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "neon"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for NeonAuthEmailAndPasswordConfig
+// =============================================================================
+
+/// ResourceIdentifier implementation for NeonAuthEmailAndPasswordConfig with GetNeonAuthEmailAndPasswordConfigArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GetNeonAuthEmailAndPasswordConfigArgs> for NeonAuthEmailAndPasswordConfig {
+    fn generate_resource_id(&self, input: &GetNeonAuthEmailAndPasswordConfigArgs) -> String {
+        format!(
+            "neon::NeonAuthEmailAndPasswordConfig/{}/{}",
+            input.project_id, input.branch_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "neon::NeonAuthEmailAndPasswordConfig"
+    }
+
+    fn provider(&self) -> &'static str {
+        "neon"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for NeonAuthEmailAndPasswordConfig
+// =============================================================================
+
+/// ResourceIdentifier implementation for NeonAuthEmailAndPasswordConfig with UpdateNeonAuthEmailAndPasswordConfigArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<UpdateNeonAuthEmailAndPasswordConfigArgs>
+    for NeonAuthEmailAndPasswordConfig
+{
+    fn generate_resource_id(&self, input: &UpdateNeonAuthEmailAndPasswordConfigArgs) -> String {
+        format!(
+            "neon::NeonAuthEmailAndPasswordConfig/{}/{}",
+            input.project_id, input.branch_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "neon::NeonAuthEmailAndPasswordConfig"
+    }
+
+    fn provider(&self) -> &'static str {
+        "neon"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for NeonAuthEmailServerConfig
+// =============================================================================
+
+/// ResourceIdentifier implementation for NeonAuthEmailServerConfig with GetNeonAuthEmailProviderArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GetNeonAuthEmailProviderArgs> for NeonAuthEmailServerConfig {
+    fn generate_resource_id(&self, input: &GetNeonAuthEmailProviderArgs) -> String {
+        format!(
+            "neon::NeonAuthEmailServerConfig/{}/{}",
+            input.project_id, input.branch_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "neon::NeonAuthEmailServerConfig"
+    }
+
+    fn provider(&self) -> &'static str {
+        "neon"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for NeonAuthEmailServerConfig
+// =============================================================================
+
+/// ResourceIdentifier implementation for NeonAuthEmailServerConfig with UpdateNeonAuthEmailProviderArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<UpdateNeonAuthEmailProviderArgs> for NeonAuthEmailServerConfig {
+    fn generate_resource_id(&self, input: &UpdateNeonAuthEmailProviderArgs) -> String {
+        format!(
+            "neon::NeonAuthEmailServerConfig/{}/{}",
+            input.project_id, input.branch_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "neon::NeonAuthEmailServerConfig"
+    }
+
+    fn provider(&self) -> &'static str {
+        "neon"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListNeonAuthOauthProvidersResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListNeonAuthOauthProvidersResponse with ListBranchNeonAuthOauthProvidersArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ListBranchNeonAuthOauthProvidersArgs>
+    for ListNeonAuthOauthProvidersResponse
+{
+    fn generate_resource_id(&self, input: &ListBranchNeonAuthOauthProvidersArgs) -> String {
+        format!(
+            "neon::ListNeonAuthOauthProvidersResponse/{}/{}",
+            input.project_id, input.branch_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "neon::ListNeonAuthOauthProvidersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "neon"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for NeonAuthOauthProvider
+// =============================================================================
+
+/// ResourceIdentifier implementation for NeonAuthOauthProvider with AddBranchNeonAuthOauthProviderArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AddBranchNeonAuthOauthProviderArgs> for NeonAuthOauthProvider {
+    fn generate_resource_id(&self, input: &AddBranchNeonAuthOauthProviderArgs) -> String {
+        format!(
+            "neon::NeonAuthOauthProvider/{}/{}",
+            input.project_id, input.branch_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "neon::NeonAuthOauthProvider"
+    }
+
+    fn provider(&self) -> &'static str {
+        "neon"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for NeonAuthOauthProvider
+// =============================================================================
+
+/// ResourceIdentifier implementation for NeonAuthOauthProvider with UpdateBranchNeonAuthOauthProviderArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<UpdateBranchNeonAuthOauthProviderArgs> for NeonAuthOauthProvider {
+    fn generate_resource_id(&self, input: &UpdateBranchNeonAuthOauthProviderArgs) -> String {
+        format!(
+            "neon::NeonAuthOauthProvider/{}/{}/{}",
+            input.project_id, input.branch_id, input.oauth_provider_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "neon::NeonAuthOauthProvider"
+    }
+
+    fn provider(&self) -> &'static str {
+        "neon"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for NeonAuthPluginConfigs
+// =============================================================================
+
+/// ResourceIdentifier implementation for NeonAuthPluginConfigs with GetNeonAuthPluginConfigsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GetNeonAuthPluginConfigsArgs> for NeonAuthPluginConfigs {
+    fn generate_resource_id(&self, input: &GetNeonAuthPluginConfigsArgs) -> String {
+        format!(
+            "neon::NeonAuthPluginConfigs/{}/{}",
+            input.project_id, input.branch_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "neon::NeonAuthPluginConfigs"
+    }
+
+    fn provider(&self) -> &'static str {
+        "neon"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for NeonAuthOrganizationConfig
+// =============================================================================
+
+/// ResourceIdentifier implementation for NeonAuthOrganizationConfig with UpdateNeonAuthOrganizationPluginArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<UpdateNeonAuthOrganizationPluginArgs> for NeonAuthOrganizationConfig {
+    fn generate_resource_id(&self, input: &UpdateNeonAuthOrganizationPluginArgs) -> String {
+        format!(
+            "neon::NeonAuthOrganizationConfig/{}/{}",
+            input.project_id, input.branch_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "neon::NeonAuthOrganizationConfig"
+    }
+
+    fn provider(&self) -> &'static str {
+        "neon"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SendNeonAuthTestEmailResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for SendNeonAuthTestEmailResponse with SendNeonAuthTestEmailArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SendNeonAuthTestEmailArgs> for SendNeonAuthTestEmailResponse {
+    fn generate_resource_id(&self, input: &SendNeonAuthTestEmailArgs) -> String {
+        format!(
+            "neon::SendNeonAuthTestEmailResponse/{}/{}",
+            input.project_id, input.branch_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "neon::SendNeonAuthTestEmailResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "neon"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for NeonAuthCreateNewUserResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for NeonAuthCreateNewUserResponse with CreateBranchNeonAuthNewUserArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CreateBranchNeonAuthNewUserArgs> for NeonAuthCreateNewUserResponse {
+    fn generate_resource_id(&self, input: &CreateBranchNeonAuthNewUserArgs) -> String {
+        format!(
+            "neon::NeonAuthCreateNewUserResponse/{}/{}",
+            input.project_id, input.branch_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "neon::NeonAuthCreateNewUserResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "neon"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ()
+// =============================================================================
+
+/// ResourceIdentifier implementation for () with DeleteBranchNeonAuthUserArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DeleteBranchNeonAuthUserArgs> for () {
+    fn generate_resource_id(&self, input: &DeleteBranchNeonAuthUserArgs) -> String {
+        format!(
+            "neon::()/{}/{}/{}",
+            input.project_id, input.branch_id, input.auth_user_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "neon::()"
+    }
+
+    fn provider(&self) -> &'static str {
+        "neon"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for UpdateNeonAuthUserRoleResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for UpdateNeonAuthUserRoleResponse with UpdateNeonAuthUserRoleArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<UpdateNeonAuthUserRoleArgs> for UpdateNeonAuthUserRoleResponse {
+    fn generate_resource_id(&self, input: &UpdateNeonAuthUserRoleArgs) -> String {
+        format!(
+            "neon::UpdateNeonAuthUserRoleResponse/{}/{}/{}",
+            input.project_id, input.branch_id, input.auth_user_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "neon::UpdateNeonAuthUserRoleResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "neon"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for NeonAuthWebhookConfig
+// =============================================================================
+
+/// ResourceIdentifier implementation for NeonAuthWebhookConfig with GetNeonAuthWebhookConfigArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GetNeonAuthWebhookConfigArgs> for NeonAuthWebhookConfig {
+    fn generate_resource_id(&self, input: &GetNeonAuthWebhookConfigArgs) -> String {
+        format!(
+            "neon::NeonAuthWebhookConfig/{}/{}",
+            input.project_id, input.branch_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "neon::NeonAuthWebhookConfig"
+    }
+
+    fn provider(&self) -> &'static str {
+        "neon"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for NeonAuthWebhookConfig
+// =============================================================================
+
+/// ResourceIdentifier implementation for NeonAuthWebhookConfig with UpdateNeonAuthWebhookConfigArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<UpdateNeonAuthWebhookConfigArgs> for NeonAuthWebhookConfig {
+    fn generate_resource_id(&self, input: &UpdateNeonAuthWebhookConfigArgs) -> String {
+        format!(
+            "neon::NeonAuthWebhookConfig/{}/{}",
+            input.project_id, input.branch_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "neon::NeonAuthWebhookConfig"
+    }
+
+    fn provider(&self) -> &'static str {
+        "neon"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for BranchSchemaCompareResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for BranchSchemaCompareResponse with GetProjectBranchSchemaComparisonArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GetProjectBranchSchemaComparisonArgs> for BranchSchemaCompareResponse {
+    fn generate_resource_id(&self, input: &GetProjectBranchSchemaComparisonArgs) -> String {
+        format!(
+            "neon::BranchSchemaCompareResponse/{}/{}",
+            input.project_id, input.branch_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "neon::BranchSchemaCompareResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "neon"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for DataAPIReponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for DataAPIReponse with GetProjectBranchDataApiArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GetProjectBranchDataApiArgs> for DataAPIReponse {
+    fn generate_resource_id(&self, input: &GetProjectBranchDataApiArgs) -> String {
+        format!(
+            "neon::DataAPIReponse/{}/{}/{}",
+            input.project_id, input.branch_id, input.database_name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "neon::DataAPIReponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "neon"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for DataAPICreateResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for DataAPICreateResponse with CreateProjectBranchDataApiArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CreateProjectBranchDataApiArgs> for DataAPICreateResponse {
+    fn generate_resource_id(&self, input: &CreateProjectBranchDataApiArgs) -> String {
+        format!(
+            "neon::DataAPICreateResponse/{}/{}/{}",
+            input.project_id, input.branch_id, input.database_name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "neon::DataAPICreateResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "neon"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for EmptyResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for EmptyResponse with UpdateProjectBranchDataApiArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<UpdateProjectBranchDataApiArgs> for EmptyResponse {
+    fn generate_resource_id(&self, input: &UpdateProjectBranchDataApiArgs) -> String {
+        format!(
+            "neon::EmptyResponse/{}/{}/{}",
+            input.project_id, input.branch_id, input.database_name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "neon::EmptyResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "neon"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for EmptyResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for EmptyResponse with DeleteProjectBranchDataApiArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DeleteProjectBranchDataApiArgs> for EmptyResponse {
+    fn generate_resource_id(&self, input: &DeleteProjectBranchDataApiArgs) -> String {
+        format!(
+            "neon::EmptyResponse/{}/{}/{}",
+            input.project_id, input.branch_id, input.database_name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "neon::EmptyResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "neon"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for DatabasesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for DatabasesResponse with ListProjectBranchDatabasesArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ListProjectBranchDatabasesArgs> for DatabasesResponse {
+    fn generate_resource_id(&self, input: &ListProjectBranchDatabasesArgs) -> String {
+        format!(
+            "neon::DatabasesResponse/{}/{}",
+            input.project_id, input.branch_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "neon::DatabasesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "neon"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for DatabaseOperations
+// =============================================================================
+
+/// ResourceIdentifier implementation for DatabaseOperations with CreateProjectBranchDatabaseArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CreateProjectBranchDatabaseArgs> for DatabaseOperations {
+    fn generate_resource_id(&self, input: &CreateProjectBranchDatabaseArgs) -> String {
+        format!(
+            "neon::DatabaseOperations/{}/{}",
+            input.project_id, input.branch_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "neon::DatabaseOperations"
+    }
+
+    fn provider(&self) -> &'static str {
+        "neon"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for DatabaseResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for DatabaseResponse with GetProjectBranchDatabaseArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GetProjectBranchDatabaseArgs> for DatabaseResponse {
+    fn generate_resource_id(&self, input: &GetProjectBranchDatabaseArgs) -> String {
+        format!(
+            "neon::DatabaseResponse/{}/{}/{}",
+            input.project_id, input.branch_id, input.database_name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "neon::DatabaseResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "neon"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for DatabaseOperations
+// =============================================================================
+
+/// ResourceIdentifier implementation for DatabaseOperations with UpdateProjectBranchDatabaseArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<UpdateProjectBranchDatabaseArgs> for DatabaseOperations {
+    fn generate_resource_id(&self, input: &UpdateProjectBranchDatabaseArgs) -> String {
+        format!(
+            "neon::DatabaseOperations/{}/{}/{}",
+            input.project_id, input.branch_id, input.database_name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "neon::DatabaseOperations"
+    }
+
+    fn provider(&self) -> &'static str {
+        "neon"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for DatabaseOperations
+// =============================================================================
+
+/// ResourceIdentifier implementation for DatabaseOperations with DeleteProjectBranchDatabaseArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DeleteProjectBranchDatabaseArgs> for DatabaseOperations {
+    fn generate_resource_id(&self, input: &DeleteProjectBranchDatabaseArgs) -> String {
+        format!(
+            "neon::DatabaseOperations/{}/{}/{}",
+            input.project_id, input.branch_id, input.database_name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "neon::DatabaseOperations"
+    }
+
+    fn provider(&self) -> &'static str {
+        "neon"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for EndpointsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for EndpointsResponse with ListProjectBranchEndpointsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ListProjectBranchEndpointsArgs> for EndpointsResponse {
+    fn generate_resource_id(&self, input: &ListProjectBranchEndpointsArgs) -> String {
+        format!(
+            "neon::EndpointsResponse/{}/{}",
+            input.project_id, input.branch_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "neon::EndpointsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "neon"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for OperationsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for OperationsResponse with FinalizeRestoreBranchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FinalizeRestoreBranchArgs> for OperationsResponse {
+    fn generate_resource_id(&self, input: &FinalizeRestoreBranchArgs) -> String {
+        format!(
+            "neon::OperationsResponse/{}/{}",
+            input.project_id, input.branch_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "neon::OperationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "neon"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for MaskingRulesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for MaskingRulesResponse with GetMaskingRulesArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GetMaskingRulesArgs> for MaskingRulesResponse {
+    fn generate_resource_id(&self, input: &GetMaskingRulesArgs) -> String {
+        format!(
+            "neon::MaskingRulesResponse/{}/{}",
+            input.project_id, input.branch_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "neon::MaskingRulesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "neon"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for MaskingRulesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for MaskingRulesResponse with UpdateMaskingRulesArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<UpdateMaskingRulesArgs> for MaskingRulesResponse {
+    fn generate_resource_id(&self, input: &UpdateMaskingRulesArgs) -> String {
+        format!(
+            "neon::MaskingRulesResponse/{}/{}",
+            input.project_id, input.branch_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "neon::MaskingRulesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "neon"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for BranchOperations
+// =============================================================================
+
+/// ResourceIdentifier implementation for BranchOperations with RestoreProjectBranchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RestoreProjectBranchArgs> for BranchOperations {
+    fn generate_resource_id(&self, input: &RestoreProjectBranchArgs) -> String {
+        format!(
+            "neon::BranchOperations/{}/{}",
+            input.project_id, input.branch_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "neon::BranchOperations"
+    }
+
+    fn provider(&self) -> &'static str {
+        "neon"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for RolesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for RolesResponse with ListProjectBranchRolesArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ListProjectBranchRolesArgs> for RolesResponse {
+    fn generate_resource_id(&self, input: &ListProjectBranchRolesArgs) -> String {
+        format!(
+            "neon::RolesResponse/{}/{}",
+            input.project_id, input.branch_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "neon::RolesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "neon"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for RoleOperations
+// =============================================================================
+
+/// ResourceIdentifier implementation for RoleOperations with CreateProjectBranchRoleArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CreateProjectBranchRoleArgs> for RoleOperations {
+    fn generate_resource_id(&self, input: &CreateProjectBranchRoleArgs) -> String {
+        format!(
+            "neon::RoleOperations/{}/{}",
+            input.project_id, input.branch_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "neon::RoleOperations"
+    }
+
+    fn provider(&self) -> &'static str {
+        "neon"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for RoleResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for RoleResponse with GetProjectBranchRoleArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GetProjectBranchRoleArgs> for RoleResponse {
+    fn generate_resource_id(&self, input: &GetProjectBranchRoleArgs) -> String {
+        format!(
+            "neon::RoleResponse/{}/{}/{}",
+            input.project_id, input.branch_id, input.role_name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "neon::RoleResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "neon"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for RoleOperations
+// =============================================================================
+
+/// ResourceIdentifier implementation for RoleOperations with DeleteProjectBranchRoleArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DeleteProjectBranchRoleArgs> for RoleOperations {
+    fn generate_resource_id(&self, input: &DeleteProjectBranchRoleArgs) -> String {
+        format!(
+            "neon::RoleOperations/{}/{}/{}",
+            input.project_id, input.branch_id, input.role_name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "neon::RoleOperations"
+    }
+
+    fn provider(&self) -> &'static str {
+        "neon"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for RoleOperations
+// =============================================================================
+
+/// ResourceIdentifier implementation for RoleOperations with ResetProjectBranchRolePasswordArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ResetProjectBranchRolePasswordArgs> for RoleOperations {
+    fn generate_resource_id(&self, input: &ResetProjectBranchRolePasswordArgs) -> String {
+        format!(
+            "neon::RoleOperations/{}/{}/{}",
+            input.project_id, input.branch_id, input.role_name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "neon::RoleOperations"
+    }
+
+    fn provider(&self) -> &'static str {
+        "neon"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for RolePasswordResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for RolePasswordResponse with GetProjectBranchRolePasswordArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GetProjectBranchRolePasswordArgs> for RolePasswordResponse {
+    fn generate_resource_id(&self, input: &GetProjectBranchRolePasswordArgs) -> String {
+        format!(
+            "neon::RolePasswordResponse/{}/{}/{}",
+            input.project_id, input.branch_id, input.role_name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "neon::RolePasswordResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "neon"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for BranchSchemaResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for BranchSchemaResponse with GetProjectBranchSchemaArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GetProjectBranchSchemaArgs> for BranchSchemaResponse {
+    fn generate_resource_id(&self, input: &GetProjectBranchSchemaArgs) -> String {
+        format!(
+            "neon::BranchSchemaResponse/{}/{}",
+            input.project_id, input.branch_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "neon::BranchSchemaResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "neon"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for BranchOperations
+// =============================================================================
+
+/// ResourceIdentifier implementation for BranchOperations with SetDefaultProjectBranchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SetDefaultProjectBranchArgs> for BranchOperations {
+    fn generate_resource_id(&self, input: &SetDefaultProjectBranchArgs) -> String {
+        format!(
+            "neon::BranchOperations/{}/{}",
+            input.project_id, input.branch_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "neon::BranchOperations"
+    }
+
+    fn provider(&self) -> &'static str {
+        "neon"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ConnectionURIResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ConnectionURIResponse with GetConnectionUriArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GetConnectionUriArgs> for ConnectionURIResponse {
+    fn generate_resource_id(&self, input: &GetConnectionUriArgs) -> String {
+        format!("neon::ConnectionURIResponse/{}", input.project_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "neon::ConnectionURIResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "neon"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for EndpointsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for EndpointsResponse with ListProjectEndpointsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ListProjectEndpointsArgs> for EndpointsResponse {
+    fn generate_resource_id(&self, input: &ListProjectEndpointsArgs) -> String {
+        format!("neon::EndpointsResponse/{}", input.project_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "neon::EndpointsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "neon"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for EndpointOperations
+// =============================================================================
+
+/// ResourceIdentifier implementation for EndpointOperations with CreateProjectEndpointArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CreateProjectEndpointArgs> for EndpointOperations {
+    fn generate_resource_id(&self, input: &CreateProjectEndpointArgs) -> String {
+        format!("neon::EndpointOperations/{}", input.project_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "neon::EndpointOperations"
+    }
+
+    fn provider(&self) -> &'static str {
+        "neon"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for EndpointResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for EndpointResponse with GetProjectEndpointArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GetProjectEndpointArgs> for EndpointResponse {
+    fn generate_resource_id(&self, input: &GetProjectEndpointArgs) -> String {
+        format!(
+            "neon::EndpointResponse/{}/{}",
+            input.project_id, input.endpoint_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "neon::EndpointResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "neon"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for EndpointOperations
+// =============================================================================
+
+/// ResourceIdentifier implementation for EndpointOperations with UpdateProjectEndpointArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<UpdateProjectEndpointArgs> for EndpointOperations {
+    fn generate_resource_id(&self, input: &UpdateProjectEndpointArgs) -> String {
+        format!(
+            "neon::EndpointOperations/{}/{}",
+            input.project_id, input.endpoint_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "neon::EndpointOperations"
+    }
+
+    fn provider(&self) -> &'static str {
+        "neon"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for EndpointOperations
+// =============================================================================
+
+/// ResourceIdentifier implementation for EndpointOperations with DeleteProjectEndpointArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DeleteProjectEndpointArgs> for EndpointOperations {
+    fn generate_resource_id(&self, input: &DeleteProjectEndpointArgs) -> String {
+        format!(
+            "neon::EndpointOperations/{}/{}",
+            input.project_id, input.endpoint_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "neon::EndpointOperations"
+    }
+
+    fn provider(&self) -> &'static str {
+        "neon"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for EndpointOperations
+// =============================================================================
+
+/// ResourceIdentifier implementation for EndpointOperations with RestartProjectEndpointArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RestartProjectEndpointArgs> for EndpointOperations {
+    fn generate_resource_id(&self, input: &RestartProjectEndpointArgs) -> String {
+        format!(
+            "neon::EndpointOperations/{}/{}",
+            input.project_id, input.endpoint_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "neon::EndpointOperations"
+    }
+
+    fn provider(&self) -> &'static str {
+        "neon"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for EndpointOperations
+// =============================================================================
+
+/// ResourceIdentifier implementation for EndpointOperations with StartProjectEndpointArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StartProjectEndpointArgs> for EndpointOperations {
+    fn generate_resource_id(&self, input: &StartProjectEndpointArgs) -> String {
+        format!(
+            "neon::EndpointOperations/{}/{}",
+            input.project_id, input.endpoint_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "neon::EndpointOperations"
+    }
+
+    fn provider(&self) -> &'static str {
+        "neon"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for EndpointOperations
+// =============================================================================
+
+/// ResourceIdentifier implementation for EndpointOperations with SuspendProjectEndpointArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SuspendProjectEndpointArgs> for EndpointOperations {
+    fn generate_resource_id(&self, input: &SuspendProjectEndpointArgs) -> String {
+        format!(
+            "neon::EndpointOperations/{}/{}",
+            input.project_id, input.endpoint_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "neon::EndpointOperations"
+    }
+
+    fn provider(&self) -> &'static str {
+        "neon"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ProjectJWKSResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ProjectJWKSResponse with GetProjectJwksArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GetProjectJwksArgs> for ProjectJWKSResponse {
+    fn generate_resource_id(&self, input: &GetProjectJwksArgs) -> String {
+        format!("neon::ProjectJWKSResponse/{}", input.project_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "neon::ProjectJWKSResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "neon"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for JWKSCreationOperation
+// =============================================================================
+
+/// ResourceIdentifier implementation for JWKSCreationOperation with AddProjectJwksArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AddProjectJwksArgs> for JWKSCreationOperation {
+    fn generate_resource_id(&self, input: &AddProjectJwksArgs) -> String {
+        format!("neon::JWKSCreationOperation/{}", input.project_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "neon::JWKSCreationOperation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "neon"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for JWKS
+// =============================================================================
+
+/// ResourceIdentifier implementation for JWKS with DeleteProjectJwksArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DeleteProjectJwksArgs> for JWKS {
+    fn generate_resource_id(&self, input: &DeleteProjectJwksArgs) -> String {
+        format!("neon::JWKS/{}/{}", input.project_id, input.jwks_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "neon::JWKS"
+    }
+
+    fn provider(&self) -> &'static str {
+        "neon"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for OperationResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for OperationResponse with GetProjectOperationArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GetProjectOperationArgs> for OperationResponse {
+    fn generate_resource_id(&self, input: &GetProjectOperationArgs) -> String {
+        format!(
+            "neon::OperationResponse/{}/{}",
+            input.project_id, input.operation_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "neon::OperationResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "neon"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ProjectPermissions
+// =============================================================================
+
+/// ResourceIdentifier implementation for ProjectPermissions with ListProjectPermissionsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ListProjectPermissionsArgs> for ProjectPermissions {
+    fn generate_resource_id(&self, input: &ListProjectPermissionsArgs) -> String {
+        format!("neon::ProjectPermissions/{}", input.project_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "neon::ProjectPermissions"
+    }
+
+    fn provider(&self) -> &'static str {
+        "neon"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ProjectPermission
+// =============================================================================
+
+/// ResourceIdentifier implementation for ProjectPermission with GrantPermissionToProjectArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GrantPermissionToProjectArgs> for ProjectPermission {
+    fn generate_resource_id(&self, input: &GrantPermissionToProjectArgs) -> String {
+        format!("neon::ProjectPermission/{}", input.project_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "neon::ProjectPermission"
+    }
+
+    fn provider(&self) -> &'static str {
+        "neon"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ProjectPermission
+// =============================================================================
+
+/// ResourceIdentifier implementation for ProjectPermission with RevokePermissionFromProjectArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RevokePermissionFromProjectArgs> for ProjectPermission {
+    fn generate_resource_id(&self, input: &RevokePermissionFromProjectArgs) -> String {
+        format!(
+            "neon::ProjectPermission/{}/{}",
+            input.project_id, input.permission_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "neon::ProjectPermission"
+    }
+
+    fn provider(&self) -> &'static str {
+        "neon"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ProjectRecoverResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ProjectRecoverResponse with RecoverProjectArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RecoverProjectArgs> for ProjectRecoverResponse {
+    fn generate_resource_id(&self, input: &RecoverProjectArgs) -> String {
+        format!("neon::ProjectRecoverResponse/{}", input.project_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "neon::ProjectRecoverResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "neon"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ProjectRecoverResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ProjectRecoverResponse with RestoreProjectArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RestoreProjectArgs> for ProjectRecoverResponse {
+    fn generate_resource_id(&self, input: &RestoreProjectArgs) -> String {
+        format!("neon::ProjectRecoverResponse/{}", input.project_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "neon::ProjectRecoverResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "neon"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for OperationsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for OperationsResponse with DeleteSnapshotArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DeleteSnapshotArgs> for OperationsResponse {
+    fn generate_resource_id(&self, input: &DeleteSnapshotArgs) -> String {
+        format!(
+            "neon::OperationsResponse/{}/{}",
+            input.project_id, input.snapshot_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "neon::OperationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "neon"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ProjectTransferRequestResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ProjectTransferRequestResponse with CreateProjectTransferRequestArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CreateProjectTransferRequestArgs> for ProjectTransferRequestResponse {
+    fn generate_resource_id(&self, input: &CreateProjectTransferRequestArgs) -> String {
+        format!("neon::ProjectTransferRequestResponse/{}", input.project_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "neon::ProjectTransferRequestResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "neon"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ()
+// =============================================================================
+
+/// ResourceIdentifier implementation for () with AcceptProjectTransferRequestArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AcceptProjectTransferRequestArgs> for () {
+    fn generate_resource_id(&self, input: &AcceptProjectTransferRequestArgs) -> String {
+        format!("neon::()/{}/{}", input.project_id, input.request_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "neon::()"
+    }
+
+    fn provider(&self) -> &'static str {
+        "neon"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for VPCEndpointsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for VPCEndpointsResponse with ListProjectVpcendpointsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ListProjectVpcendpointsArgs> for VPCEndpointsResponse {
+    fn generate_resource_id(&self, input: &ListProjectVpcendpointsArgs) -> String {
+        format!("neon::VPCEndpointsResponse/{}", input.project_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "neon::VPCEndpointsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "neon"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ActiveRegionsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ActiveRegionsResponse with GetActiveRegionsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GetActiveRegionsArgs> for ActiveRegionsResponse {
+    fn generate_resource_id(&self, input: &GetActiveRegionsArgs) -> String {
+        "neon::ActiveRegionsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "neon::ActiveRegionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "neon"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for CurrentUserInfoResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for CurrentUserInfoResponse with GetCurrentUserInfoArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GetCurrentUserInfoArgs> for CurrentUserInfoResponse {
+    fn generate_resource_id(&self, input: &GetCurrentUserInfoArgs) -> String {
+        "neon::CurrentUserInfoResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "neon::CurrentUserInfoResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "neon"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for OrganizationsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for OrganizationsResponse with GetCurrentUserOrganizationsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GetCurrentUserOrganizationsArgs> for OrganizationsResponse {
+    fn generate_resource_id(&self, input: &GetCurrentUserOrganizationsArgs) -> String {
+        "neon::OrganizationsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "neon::OrganizationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "neon"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for EmptyResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for EmptyResponse with TransferProjectsFromUserToOrgArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TransferProjectsFromUserToOrgArgs> for EmptyResponse {
+    fn generate_resource_id(&self, input: &TransferProjectsFromUserToOrgArgs) -> String {
+        "neon::EmptyResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "neon::EmptyResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "neon"
+    }
 }

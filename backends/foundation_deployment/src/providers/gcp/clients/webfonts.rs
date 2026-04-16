@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,14 +27,17 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `webfonts_webfonts_list_execute()` to send, or `webfonts_webfonts_list` for simplest API.
 
-pub fn webfonts_webfonts_list_builder(
-    client: &SimpleHttpClient,
+pub fn webfonts_webfonts_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     capability: &Option<Option<String>>,
     category: &Option<Option<String>>,
     family: &Option<Option<String>>,
     sort: &Option<Option<String>>,
     subset: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://webfonts.googleapis.com/v1/webfonts",);
 

@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `forms_forms_batch_update_execute()` to send, or `forms_forms_batch_update` for simplest API.
 
-pub fn forms_forms_batch_update_builder(
-    client: &SimpleHttpClient,
+pub fn forms_forms_batch_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     formId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://forms.googleapis.com/v1/forms/{}:batchUpdate",
@@ -187,10 +191,13 @@ pub fn forms_forms_batch_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `forms_forms_create_execute()` to send, or `forms_forms_create` for simplest API.
 
-pub fn forms_forms_create_builder(
-    client: &SimpleHttpClient,
+pub fn forms_forms_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     unpublished: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://forms.googleapis.com/v1/forms",);
 
@@ -352,10 +359,13 @@ pub fn forms_forms_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `forms_forms_get_execute()` to send, or `forms_forms_get` for simplest API.
 
-pub fn forms_forms_get_builder(
-    client: &SimpleHttpClient,
+pub fn forms_forms_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     formId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://forms.googleapis.com/v1/forms/{}", formId,);
 
@@ -506,10 +516,13 @@ pub fn forms_forms_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `forms_forms_set_publish_settings_execute()` to send, or `forms_forms_set_publish_settings` for simplest API.
 
-pub fn forms_forms_set_publish_settings_builder(
-    client: &SimpleHttpClient,
+pub fn forms_forms_set_publish_settings_builder<R>(
+    client: &SimpleHttpClient<R>,
     formId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://forms.googleapis.com/v1/forms/{}:setPublishSettings",
@@ -671,11 +684,14 @@ pub fn forms_forms_set_publish_settings(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `forms_forms_responses_get_execute()` to send, or `forms_forms_responses_get` for simplest API.
 
-pub fn forms_forms_responses_get_builder(
-    client: &SimpleHttpClient,
+pub fn forms_forms_responses_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     formId: &String,
     responseId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://forms.googleapis.com/v1/forms/{}/responses/{}",
@@ -835,13 +851,16 @@ pub fn forms_forms_responses_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `forms_forms_responses_list_execute()` to send, or `forms_forms_responses_list` for simplest API.
 
-pub fn forms_forms_responses_list_builder(
-    client: &SimpleHttpClient,
+pub fn forms_forms_responses_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     formId: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://forms.googleapis.com/v1/forms/{}/responses", formId,);
 
@@ -1025,10 +1044,13 @@ pub fn forms_forms_responses_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `forms_forms_watches_create_execute()` to send, or `forms_forms_watches_create` for simplest API.
 
-pub fn forms_forms_watches_create_builder(
-    client: &SimpleHttpClient,
+pub fn forms_forms_watches_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     formId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://forms.googleapis.com/v1/forms/{}/watches", formId,);
 
@@ -1179,11 +1201,14 @@ pub fn forms_forms_watches_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `forms_forms_watches_delete_execute()` to send, or `forms_forms_watches_delete` for simplest API.
 
-pub fn forms_forms_watches_delete_builder(
-    client: &SimpleHttpClient,
+pub fn forms_forms_watches_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     formId: &String,
     watchId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://forms.googleapis.com/v1/forms/{}/watches/{}",
@@ -1339,10 +1364,13 @@ pub fn forms_forms_watches_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `forms_forms_watches_list_execute()` to send, or `forms_forms_watches_list` for simplest API.
 
-pub fn forms_forms_watches_list_builder(
-    client: &SimpleHttpClient,
+pub fn forms_forms_watches_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     formId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://forms.googleapis.com/v1/forms/{}/watches", formId,);
 
@@ -1497,11 +1525,14 @@ pub fn forms_forms_watches_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `forms_forms_watches_renew_execute()` to send, or `forms_forms_watches_renew` for simplest API.
 
-pub fn forms_forms_watches_renew_builder(
-    client: &SimpleHttpClient,
+pub fn forms_forms_watches_renew_builder<R>(
+    client: &SimpleHttpClient<R>,
     formId: &String,
     watchId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://forms.googleapis.com/v1/forms/{}/watches/{}:renew",

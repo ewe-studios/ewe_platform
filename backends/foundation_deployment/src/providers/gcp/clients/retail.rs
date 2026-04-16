@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,8 +27,8 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `retail_projects_locations_catalogs_complete_query_execute()` to send, or `retail_projects_locations_catalogs_complete_query` for simplest API.
 
-pub fn retail_projects_locations_catalogs_complete_query_builder(
-    client: &SimpleHttpClient,
+pub fn retail_projects_locations_catalogs_complete_query_builder<R>(
+    client: &SimpleHttpClient<R>,
     catalog: &String,
     dataset: &Option<Option<String>>,
     deviceType: &Option<Option<String>>,
@@ -37,7 +38,10 @@ pub fn retail_projects_locations_catalogs_complete_query_builder(
     maxSuggestions: &Option<Option<String>>,
     query: &Option<Option<String>>,
     visitorId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://retail.googleapis.com/v2/projects/{}/locations/{locationsId}/catalogs/{catalogsId}:completeQuery",
@@ -258,10 +262,13 @@ pub fn retail_projects_locations_catalogs_complete_query(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `retail_projects_locations_catalogs_export_analytics_metrics_execute()` to send, or `retail_projects_locations_catalogs_export_analytics_metrics` for simplest API.
 
-pub fn retail_projects_locations_catalogs_export_analytics_metrics_builder(
-    client: &SimpleHttpClient,
+pub fn retail_projects_locations_catalogs_export_analytics_metrics_builder<R>(
+    client: &SimpleHttpClient<R>,
     catalog: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://retail.googleapis.com/v2/projects/{}/locations/{locationsId}/catalogs/{catalogsId}:exportAnalyticsMetrics",
@@ -424,10 +431,13 @@ pub fn retail_projects_locations_catalogs_export_analytics_metrics(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `retail_projects_locations_catalogs_get_attributes_config_execute()` to send, or `retail_projects_locations_catalogs_get_attributes_config` for simplest API.
 
-pub fn retail_projects_locations_catalogs_get_attributes_config_builder(
-    client: &SimpleHttpClient,
+pub fn retail_projects_locations_catalogs_get_attributes_config_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://retail.googleapis.com/v2/projects/{}/locations/{locationsId}/catalogs/{catalogsId}/attributesConfig",
@@ -590,10 +600,13 @@ pub fn retail_projects_locations_catalogs_get_attributes_config(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `retail_projects_locations_catalogs_get_completion_config_execute()` to send, or `retail_projects_locations_catalogs_get_completion_config` for simplest API.
 
-pub fn retail_projects_locations_catalogs_get_completion_config_builder(
-    client: &SimpleHttpClient,
+pub fn retail_projects_locations_catalogs_get_completion_config_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://retail.googleapis.com/v2/projects/{}/locations/{locationsId}/catalogs/{catalogsId}/completionConfig",
@@ -756,10 +769,15 @@ pub fn retail_projects_locations_catalogs_get_completion_config(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `retail_projects_locations_catalogs_get_conversational_search_customization_config_execute()` to send, or `retail_projects_locations_catalogs_get_conversational_search_customization_config` for simplest API.
 
-pub fn retail_projects_locations_catalogs_get_conversational_search_customization_config_builder(
-    client: &SimpleHttpClient,
+pub fn retail_projects_locations_catalogs_get_conversational_search_customization_config_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://retail.googleapis.com/v2/projects/{}/locations/{locationsId}/catalogs/{catalogsId}/conversationalSearchCustomizationConfig",
@@ -939,10 +957,13 @@ pub fn retail_projects_locations_catalogs_get_conversational_search_customizatio
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `retail_projects_locations_catalogs_get_default_branch_execute()` to send, or `retail_projects_locations_catalogs_get_default_branch` for simplest API.
 
-pub fn retail_projects_locations_catalogs_get_default_branch_builder(
-    client: &SimpleHttpClient,
+pub fn retail_projects_locations_catalogs_get_default_branch_builder<R>(
+    client: &SimpleHttpClient<R>,
     catalog: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://retail.googleapis.com/v2/projects/{}/locations/{locationsId}/catalogs/{catalogsId}:getDefaultBranch",
@@ -1106,10 +1127,13 @@ pub fn retail_projects_locations_catalogs_get_default_branch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `retail_projects_locations_catalogs_get_generative_question_feature_execute()` to send, or `retail_projects_locations_catalogs_get_generative_question_feature` for simplest API.
 
-pub fn retail_projects_locations_catalogs_get_generative_question_feature_builder(
-    client: &SimpleHttpClient,
+pub fn retail_projects_locations_catalogs_get_generative_question_feature_builder<R>(
+    client: &SimpleHttpClient<R>,
     catalog: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://retail.googleapis.com/v2/projects/{}/locations/{locationsId}/catalogs/{catalogsId}/generativeQuestionFeature",
@@ -1278,12 +1302,15 @@ pub fn retail_projects_locations_catalogs_get_generative_question_feature(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `retail_projects_locations_catalogs_list_execute()` to send, or `retail_projects_locations_catalogs_list` for simplest API.
 
-pub fn retail_projects_locations_catalogs_list_builder(
-    client: &SimpleHttpClient,
+pub fn retail_projects_locations_catalogs_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://retail.googleapis.com/v2/projects/{}/locations/{locationsId}/catalogs",
@@ -1469,11 +1496,14 @@ pub fn retail_projects_locations_catalogs_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `retail_projects_locations_catalogs_patch_execute()` to send, or `retail_projects_locations_catalogs_patch` for simplest API.
 
-pub fn retail_projects_locations_catalogs_patch_builder(
-    client: &SimpleHttpClient,
+pub fn retail_projects_locations_catalogs_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://retail.googleapis.com/v2/projects/{}/locations/{locationsId}/catalogs/{catalogsId}",
@@ -1649,10 +1679,13 @@ pub fn retail_projects_locations_catalogs_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `retail_projects_locations_catalogs_set_default_branch_execute()` to send, or `retail_projects_locations_catalogs_set_default_branch` for simplest API.
 
-pub fn retail_projects_locations_catalogs_set_default_branch_builder(
-    client: &SimpleHttpClient,
+pub fn retail_projects_locations_catalogs_set_default_branch_builder<R>(
+    client: &SimpleHttpClient<R>,
     catalog: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://retail.googleapis.com/v2/projects/{}/locations/{locationsId}/catalogs/{catalogsId}:setDefaultBranch",
@@ -1811,11 +1844,14 @@ pub fn retail_projects_locations_catalogs_set_default_branch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `retail_projects_locations_catalogs_update_attributes_config_execute()` to send, or `retail_projects_locations_catalogs_update_attributes_config` for simplest API.
 
-pub fn retail_projects_locations_catalogs_update_attributes_config_builder(
-    client: &SimpleHttpClient,
+pub fn retail_projects_locations_catalogs_update_attributes_config_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://retail.googleapis.com/v2/projects/{}/locations/{locationsId}/catalogs/{catalogsId}/attributesConfig",
@@ -1994,11 +2030,14 @@ pub fn retail_projects_locations_catalogs_update_attributes_config(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `retail_projects_locations_catalogs_update_completion_config_execute()` to send, or `retail_projects_locations_catalogs_update_completion_config` for simplest API.
 
-pub fn retail_projects_locations_catalogs_update_completion_config_builder(
-    client: &SimpleHttpClient,
+pub fn retail_projects_locations_catalogs_update_completion_config_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://retail.googleapis.com/v2/projects/{}/locations/{locationsId}/catalogs/{catalogsId}/completionConfig",
@@ -2177,11 +2216,16 @@ pub fn retail_projects_locations_catalogs_update_completion_config(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `retail_projects_locations_catalogs_update_conversational_search_customization_config_execute()` to send, or `retail_projects_locations_catalogs_update_conversational_search_customization_config` for simplest API.
 
-pub fn retail_projects_locations_catalogs_update_conversational_search_customization_config_builder(
-    client: &SimpleHttpClient,
+pub fn retail_projects_locations_catalogs_update_conversational_search_customization_config_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     catalog: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://retail.googleapis.com/v2/projects/{}/locations/{locationsId}/catalogs/{catalogsId}/conversationalSearchCustomizationConfig",
@@ -2371,11 +2415,14 @@ pub fn retail_projects_locations_catalogs_update_conversational_search_customiza
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `retail_projects_locations_catalogs_update_generative_question_execute()` to send, or `retail_projects_locations_catalogs_update_generative_question` for simplest API.
 
-pub fn retail_projects_locations_catalogs_update_generative_question_builder(
-    client: &SimpleHttpClient,
+pub fn retail_projects_locations_catalogs_update_generative_question_builder<R>(
+    client: &SimpleHttpClient<R>,
     catalog: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://retail.googleapis.com/v2/projects/{}/locations/{locationsId}/catalogs/{catalogsId}/generativeQuestion",
@@ -2555,11 +2602,14 @@ pub fn retail_projects_locations_catalogs_update_generative_question(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `retail_projects_locations_catalogs_update_generative_question_feature_execute()` to send, or `retail_projects_locations_catalogs_update_generative_question_feature` for simplest API.
 
-pub fn retail_projects_locations_catalogs_update_generative_question_feature_builder(
-    client: &SimpleHttpClient,
+pub fn retail_projects_locations_catalogs_update_generative_question_feature_builder<R>(
+    client: &SimpleHttpClient<R>,
     catalog: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://retail.googleapis.com/v2/projects/{}/locations/{locationsId}/catalogs/{catalogsId}/generativeQuestionFeature",
@@ -2742,10 +2792,13 @@ pub fn retail_projects_locations_catalogs_update_generative_question_feature(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `retail_projects_locations_catalogs_attributes_config_add_catalog_attribute_execute()` to send, or `retail_projects_locations_catalogs_attributes_config_add_catalog_attribute` for simplest API.
 
-pub fn retail_projects_locations_catalogs_attributes_config_add_catalog_attribute_builder(
-    client: &SimpleHttpClient,
+pub fn retail_projects_locations_catalogs_attributes_config_add_catalog_attribute_builder<R>(
+    client: &SimpleHttpClient<R>,
     attributesConfig: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://retail.googleapis.com/v2/projects/{}/locations/{locationsId}/catalogs/{catalogsId}/attributesConfig:addCatalogAttribute",
@@ -2912,10 +2965,13 @@ pub fn retail_projects_locations_catalogs_attributes_config_add_catalog_attribut
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `retail_projects_locations_catalogs_attributes_config_remove_catalog_attribute_execute()` to send, or `retail_projects_locations_catalogs_attributes_config_remove_catalog_attribute` for simplest API.
 
-pub fn retail_projects_locations_catalogs_attributes_config_remove_catalog_attribute_builder(
-    client: &SimpleHttpClient,
+pub fn retail_projects_locations_catalogs_attributes_config_remove_catalog_attribute_builder<R>(
+    client: &SimpleHttpClient<R>,
     attributesConfig: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://retail.googleapis.com/v2/projects/{}/locations/{locationsId}/catalogs/{catalogsId}/attributesConfig:removeCatalogAttribute",
@@ -3083,10 +3139,13 @@ pub fn retail_projects_locations_catalogs_attributes_config_remove_catalog_attri
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `retail_projects_locations_catalogs_attributes_config_replace_catalog_attribute_execute()` to send, or `retail_projects_locations_catalogs_attributes_config_replace_catalog_attribute` for simplest API.
 
-pub fn retail_projects_locations_catalogs_attributes_config_replace_catalog_attribute_builder(
-    client: &SimpleHttpClient,
+pub fn retail_projects_locations_catalogs_attributes_config_replace_catalog_attribute_builder<R>(
+    client: &SimpleHttpClient<R>,
     attributesConfig: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://retail.googleapis.com/v2/projects/{}/locations/{locationsId}/catalogs/{catalogsId}/attributesConfig:replaceCatalogAttribute",
@@ -3254,10 +3313,13 @@ pub fn retail_projects_locations_catalogs_attributes_config_replace_catalog_attr
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `retail_projects_locations_catalogs_branches_operations_get_execute()` to send, or `retail_projects_locations_catalogs_branches_operations_get` for simplest API.
 
-pub fn retail_projects_locations_catalogs_branches_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn retail_projects_locations_catalogs_branches_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://retail.googleapis.com/v2/projects/{}/locations/{locationsId}/catalogs/{catalogsId}/branches/{branchesId}/operations/{operationsId}",
@@ -3420,10 +3482,13 @@ pub fn retail_projects_locations_catalogs_branches_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `retail_projects_locations_catalogs_branches_products_add_fulfillment_places_execute()` to send, or `retail_projects_locations_catalogs_branches_products_add_fulfillment_places` for simplest API.
 
-pub fn retail_projects_locations_catalogs_branches_products_add_fulfillment_places_builder(
-    client: &SimpleHttpClient,
+pub fn retail_projects_locations_catalogs_branches_products_add_fulfillment_places_builder<R>(
+    client: &SimpleHttpClient<R>,
     product: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://retail.googleapis.com/v2/projects/{}/locations/{locationsId}/catalogs/{catalogsId}/branches/{branchesId}/products/{productsId}:addFulfillmentPlaces",
@@ -3590,10 +3655,13 @@ pub fn retail_projects_locations_catalogs_branches_products_add_fulfillment_plac
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `retail_projects_locations_catalogs_branches_products_add_local_inventories_execute()` to send, or `retail_projects_locations_catalogs_branches_products_add_local_inventories` for simplest API.
 
-pub fn retail_projects_locations_catalogs_branches_products_add_local_inventories_builder(
-    client: &SimpleHttpClient,
+pub fn retail_projects_locations_catalogs_branches_products_add_local_inventories_builder<R>(
+    client: &SimpleHttpClient<R>,
     product: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://retail.googleapis.com/v2/projects/{}/locations/{locationsId}/catalogs/{catalogsId}/branches/{branchesId}/products/{productsId}:addLocalInventories",
@@ -3760,11 +3828,14 @@ pub fn retail_projects_locations_catalogs_branches_products_add_local_inventorie
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `retail_projects_locations_catalogs_branches_products_create_execute()` to send, or `retail_projects_locations_catalogs_branches_products_create` for simplest API.
 
-pub fn retail_projects_locations_catalogs_branches_products_create_builder(
-    client: &SimpleHttpClient,
+pub fn retail_projects_locations_catalogs_branches_products_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     productId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://retail.googleapis.com/v2/projects/{}/locations/{locationsId}/catalogs/{catalogsId}/branches/{branchesId}/products",
@@ -3943,10 +4014,13 @@ pub fn retail_projects_locations_catalogs_branches_products_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `retail_projects_locations_catalogs_branches_products_delete_execute()` to send, or `retail_projects_locations_catalogs_branches_products_delete` for simplest API.
 
-pub fn retail_projects_locations_catalogs_branches_products_delete_builder(
-    client: &SimpleHttpClient,
+pub fn retail_projects_locations_catalogs_branches_products_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://retail.googleapis.com/v2/projects/{}/locations/{locationsId}/catalogs/{catalogsId}/branches/{branchesId}/products/{productsId}",
@@ -4105,10 +4179,13 @@ pub fn retail_projects_locations_catalogs_branches_products_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `retail_projects_locations_catalogs_branches_products_get_execute()` to send, or `retail_projects_locations_catalogs_branches_products_get` for simplest API.
 
-pub fn retail_projects_locations_catalogs_branches_products_get_builder(
-    client: &SimpleHttpClient,
+pub fn retail_projects_locations_catalogs_branches_products_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://retail.googleapis.com/v2/projects/{}/locations/{locationsId}/catalogs/{catalogsId}/branches/{branchesId}/products/{productsId}",
@@ -4271,10 +4348,13 @@ pub fn retail_projects_locations_catalogs_branches_products_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `retail_projects_locations_catalogs_branches_products_import_execute()` to send, or `retail_projects_locations_catalogs_branches_products_import` for simplest API.
 
-pub fn retail_projects_locations_catalogs_branches_products_import_builder(
-    client: &SimpleHttpClient,
+pub fn retail_projects_locations_catalogs_branches_products_import_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://retail.googleapis.com/v2/projects/{}/locations/{locationsId}/catalogs/{catalogsId}/branches/{branchesId}/products:import",
@@ -4437,14 +4517,17 @@ pub fn retail_projects_locations_catalogs_branches_products_import(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `retail_projects_locations_catalogs_branches_products_list_execute()` to send, or `retail_projects_locations_catalogs_branches_products_list` for simplest API.
 
-pub fn retail_projects_locations_catalogs_branches_products_list_builder(
-    client: &SimpleHttpClient,
+pub fn retail_projects_locations_catalogs_branches_products_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     readMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://retail.googleapis.com/v2/projects/{}/locations/{locationsId}/catalogs/{catalogsId}/branches/{branchesId}/products",
@@ -4642,12 +4725,15 @@ pub fn retail_projects_locations_catalogs_branches_products_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `retail_projects_locations_catalogs_branches_products_patch_execute()` to send, or `retail_projects_locations_catalogs_branches_products_patch` for simplest API.
 
-pub fn retail_projects_locations_catalogs_branches_products_patch_builder(
-    client: &SimpleHttpClient,
+pub fn retail_projects_locations_catalogs_branches_products_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     allowMissing: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://retail.googleapis.com/v2/projects/{}/locations/{locationsId}/catalogs/{catalogsId}/branches/{branchesId}/products/{productsId}",
@@ -4832,10 +4918,13 @@ pub fn retail_projects_locations_catalogs_branches_products_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `retail_projects_locations_catalogs_branches_products_purge_execute()` to send, or `retail_projects_locations_catalogs_branches_products_purge` for simplest API.
 
-pub fn retail_projects_locations_catalogs_branches_products_purge_builder(
-    client: &SimpleHttpClient,
+pub fn retail_projects_locations_catalogs_branches_products_purge_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://retail.googleapis.com/v2/projects/{}/locations/{locationsId}/catalogs/{catalogsId}/branches/{branchesId}/products:purge",
@@ -4998,10 +5087,13 @@ pub fn retail_projects_locations_catalogs_branches_products_purge(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `retail_projects_locations_catalogs_branches_products_remove_fulfillment_places_execute()` to send, or `retail_projects_locations_catalogs_branches_products_remove_fulfillment_places` for simplest API.
 
-pub fn retail_projects_locations_catalogs_branches_products_remove_fulfillment_places_builder(
-    client: &SimpleHttpClient,
+pub fn retail_projects_locations_catalogs_branches_products_remove_fulfillment_places_builder<R>(
+    client: &SimpleHttpClient<R>,
     product: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://retail.googleapis.com/v2/projects/{}/locations/{locationsId}/catalogs/{catalogsId}/branches/{branchesId}/products/{productsId}:removeFulfillmentPlaces",
@@ -5169,10 +5261,13 @@ pub fn retail_projects_locations_catalogs_branches_products_remove_fulfillment_p
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `retail_projects_locations_catalogs_branches_products_remove_local_inventories_execute()` to send, or `retail_projects_locations_catalogs_branches_products_remove_local_inventories` for simplest API.
 
-pub fn retail_projects_locations_catalogs_branches_products_remove_local_inventories_builder(
-    client: &SimpleHttpClient,
+pub fn retail_projects_locations_catalogs_branches_products_remove_local_inventories_builder<R>(
+    client: &SimpleHttpClient<R>,
     product: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://retail.googleapis.com/v2/projects/{}/locations/{locationsId}/catalogs/{catalogsId}/branches/{branchesId}/products/{productsId}:removeLocalInventories",
@@ -5340,10 +5435,13 @@ pub fn retail_projects_locations_catalogs_branches_products_remove_local_invento
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `retail_projects_locations_catalogs_branches_products_set_inventory_execute()` to send, or `retail_projects_locations_catalogs_branches_products_set_inventory` for simplest API.
 
-pub fn retail_projects_locations_catalogs_branches_products_set_inventory_builder(
-    client: &SimpleHttpClient,
+pub fn retail_projects_locations_catalogs_branches_products_set_inventory_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://retail.googleapis.com/v2/projects/{}/locations/{locationsId}/catalogs/{catalogsId}/branches/{branchesId}/products/{productsId}:setInventory",
@@ -5507,10 +5605,13 @@ pub fn retail_projects_locations_catalogs_branches_products_set_inventory(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `retail_projects_locations_catalogs_completion_data_import_execute()` to send, or `retail_projects_locations_catalogs_completion_data_import` for simplest API.
 
-pub fn retail_projects_locations_catalogs_completion_data_import_builder(
-    client: &SimpleHttpClient,
+pub fn retail_projects_locations_catalogs_completion_data_import_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://retail.googleapis.com/v2/projects/{}/locations/{locationsId}/catalogs/{catalogsId}/completionData:import",
@@ -5673,11 +5774,14 @@ pub fn retail_projects_locations_catalogs_completion_data_import(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `retail_projects_locations_catalogs_controls_create_execute()` to send, or `retail_projects_locations_catalogs_controls_create` for simplest API.
 
-pub fn retail_projects_locations_catalogs_controls_create_builder(
-    client: &SimpleHttpClient,
+pub fn retail_projects_locations_catalogs_controls_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     controlId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://retail.googleapis.com/v2/projects/{}/locations/{locationsId}/catalogs/{catalogsId}/controls",
@@ -5856,10 +5960,13 @@ pub fn retail_projects_locations_catalogs_controls_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `retail_projects_locations_catalogs_controls_delete_execute()` to send, or `retail_projects_locations_catalogs_controls_delete` for simplest API.
 
-pub fn retail_projects_locations_catalogs_controls_delete_builder(
-    client: &SimpleHttpClient,
+pub fn retail_projects_locations_catalogs_controls_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://retail.googleapis.com/v2/projects/{}/locations/{locationsId}/catalogs/{catalogsId}/controls/{controlsId}",
@@ -6017,10 +6124,13 @@ pub fn retail_projects_locations_catalogs_controls_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `retail_projects_locations_catalogs_controls_get_execute()` to send, or `retail_projects_locations_catalogs_controls_get` for simplest API.
 
-pub fn retail_projects_locations_catalogs_controls_get_builder(
-    client: &SimpleHttpClient,
+pub fn retail_projects_locations_catalogs_controls_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://retail.googleapis.com/v2/projects/{}/locations/{locationsId}/catalogs/{catalogsId}/controls/{controlsId}",
@@ -6182,13 +6292,16 @@ pub fn retail_projects_locations_catalogs_controls_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `retail_projects_locations_catalogs_controls_list_execute()` to send, or `retail_projects_locations_catalogs_controls_list` for simplest API.
 
-pub fn retail_projects_locations_catalogs_controls_list_builder(
-    client: &SimpleHttpClient,
+pub fn retail_projects_locations_catalogs_controls_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://retail.googleapis.com/v2/projects/{}/locations/{locationsId}/catalogs/{catalogsId}/controls",
@@ -6380,11 +6493,14 @@ pub fn retail_projects_locations_catalogs_controls_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `retail_projects_locations_catalogs_controls_patch_execute()` to send, or `retail_projects_locations_catalogs_controls_patch` for simplest API.
 
-pub fn retail_projects_locations_catalogs_controls_patch_builder(
-    client: &SimpleHttpClient,
+pub fn retail_projects_locations_catalogs_controls_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://retail.googleapis.com/v2/projects/{}/locations/{locationsId}/catalogs/{catalogsId}/controls/{controlsId}",
@@ -6563,10 +6679,13 @@ pub fn retail_projects_locations_catalogs_controls_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `retail_projects_locations_catalogs_generative_question_batch_update_execute()` to send, or `retail_projects_locations_catalogs_generative_question_batch_update` for simplest API.
 
-pub fn retail_projects_locations_catalogs_generative_question_batch_update_builder(
-    client: &SimpleHttpClient,
+pub fn retail_projects_locations_catalogs_generative_question_batch_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://retail.googleapis.com/v2/projects/{}/locations/{locationsId}/catalogs/{catalogsId}/generativeQuestion:batchUpdate",
@@ -6741,10 +6860,13 @@ pub fn retail_projects_locations_catalogs_generative_question_batch_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `retail_projects_locations_catalogs_generative_questions_list_execute()` to send, or `retail_projects_locations_catalogs_generative_questions_list` for simplest API.
 
-pub fn retail_projects_locations_catalogs_generative_questions_list_builder(
-    client: &SimpleHttpClient,
+pub fn retail_projects_locations_catalogs_generative_questions_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://retail.googleapis.com/v2/projects/{}/locations/{locationsId}/catalogs/{catalogsId}/generativeQuestions",
@@ -6917,11 +7039,14 @@ pub fn retail_projects_locations_catalogs_generative_questions_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `retail_projects_locations_catalogs_models_create_execute()` to send, or `retail_projects_locations_catalogs_models_create` for simplest API.
 
-pub fn retail_projects_locations_catalogs_models_create_builder(
-    client: &SimpleHttpClient,
+pub fn retail_projects_locations_catalogs_models_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     dryRun: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://retail.googleapis.com/v2/projects/{}/locations/{locationsId}/catalogs/{catalogsId}/models",
@@ -7100,10 +7225,13 @@ pub fn retail_projects_locations_catalogs_models_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `retail_projects_locations_catalogs_models_delete_execute()` to send, or `retail_projects_locations_catalogs_models_delete` for simplest API.
 
-pub fn retail_projects_locations_catalogs_models_delete_builder(
-    client: &SimpleHttpClient,
+pub fn retail_projects_locations_catalogs_models_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://retail.googleapis.com/v2/projects/{}/locations/{locationsId}/catalogs/{catalogsId}/models/{modelsId}",
@@ -7261,10 +7389,13 @@ pub fn retail_projects_locations_catalogs_models_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `retail_projects_locations_catalogs_models_get_execute()` to send, or `retail_projects_locations_catalogs_models_get` for simplest API.
 
-pub fn retail_projects_locations_catalogs_models_get_builder(
-    client: &SimpleHttpClient,
+pub fn retail_projects_locations_catalogs_models_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://retail.googleapis.com/v2/projects/{}/locations/{locationsId}/catalogs/{catalogsId}/models/{modelsId}",
@@ -7422,12 +7553,15 @@ pub fn retail_projects_locations_catalogs_models_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `retail_projects_locations_catalogs_models_list_execute()` to send, or `retail_projects_locations_catalogs_models_list` for simplest API.
 
-pub fn retail_projects_locations_catalogs_models_list_builder(
-    client: &SimpleHttpClient,
+pub fn retail_projects_locations_catalogs_models_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://retail.googleapis.com/v2/projects/{}/locations/{locationsId}/catalogs/{catalogsId}/models",
@@ -7612,11 +7746,14 @@ pub fn retail_projects_locations_catalogs_models_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `retail_projects_locations_catalogs_models_patch_execute()` to send, or `retail_projects_locations_catalogs_models_patch` for simplest API.
 
-pub fn retail_projects_locations_catalogs_models_patch_builder(
-    client: &SimpleHttpClient,
+pub fn retail_projects_locations_catalogs_models_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://retail.googleapis.com/v2/projects/{}/locations/{locationsId}/catalogs/{catalogsId}/models/{modelsId}",
@@ -7791,10 +7928,13 @@ pub fn retail_projects_locations_catalogs_models_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `retail_projects_locations_catalogs_models_pause_execute()` to send, or `retail_projects_locations_catalogs_models_pause` for simplest API.
 
-pub fn retail_projects_locations_catalogs_models_pause_builder(
-    client: &SimpleHttpClient,
+pub fn retail_projects_locations_catalogs_models_pause_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://retail.googleapis.com/v2/projects/{}/locations/{locationsId}/catalogs/{catalogsId}/models/{modelsId}:pause",
@@ -7952,10 +8092,13 @@ pub fn retail_projects_locations_catalogs_models_pause(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `retail_projects_locations_catalogs_models_resume_execute()` to send, or `retail_projects_locations_catalogs_models_resume` for simplest API.
 
-pub fn retail_projects_locations_catalogs_models_resume_builder(
-    client: &SimpleHttpClient,
+pub fn retail_projects_locations_catalogs_models_resume_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://retail.googleapis.com/v2/projects/{}/locations/{locationsId}/catalogs/{catalogsId}/models/{modelsId}:resume",
@@ -8113,10 +8256,13 @@ pub fn retail_projects_locations_catalogs_models_resume(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `retail_projects_locations_catalogs_models_tune_execute()` to send, or `retail_projects_locations_catalogs_models_tune` for simplest API.
 
-pub fn retail_projects_locations_catalogs_models_tune_builder(
-    client: &SimpleHttpClient,
+pub fn retail_projects_locations_catalogs_models_tune_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://retail.googleapis.com/v2/projects/{}/locations/{locationsId}/catalogs/{catalogsId}/models/{modelsId}:tune",
@@ -8278,10 +8424,13 @@ pub fn retail_projects_locations_catalogs_models_tune(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `retail_projects_locations_catalogs_operations_get_execute()` to send, or `retail_projects_locations_catalogs_operations_get` for simplest API.
 
-pub fn retail_projects_locations_catalogs_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn retail_projects_locations_catalogs_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://retail.googleapis.com/v2/projects/{}/locations/{locationsId}/catalogs/{catalogsId}/operations/{operationsId}",
@@ -8443,14 +8592,17 @@ pub fn retail_projects_locations_catalogs_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `retail_projects_locations_catalogs_operations_list_execute()` to send, or `retail_projects_locations_catalogs_operations_list` for simplest API.
 
-pub fn retail_projects_locations_catalogs_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn retail_projects_locations_catalogs_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://retail.googleapis.com/v2/projects/{}/locations/{locationsId}/catalogs/{catalogsId}/operations",
@@ -8648,10 +8800,13 @@ pub fn retail_projects_locations_catalogs_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `retail_projects_locations_catalogs_placements_conversational_search_execute()` to send, or `retail_projects_locations_catalogs_placements_conversational_search` for simplest API.
 
-pub fn retail_projects_locations_catalogs_placements_conversational_search_builder(
-    client: &SimpleHttpClient,
+pub fn retail_projects_locations_catalogs_placements_conversational_search_builder<R>(
+    client: &SimpleHttpClient<R>,
     placement: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://retail.googleapis.com/v2/projects/{}/locations/{locationsId}/catalogs/{catalogsId}/placements/{placementsId}:conversationalSearch",
@@ -8817,10 +8972,13 @@ pub fn retail_projects_locations_catalogs_placements_conversational_search(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `retail_projects_locations_catalogs_placements_predict_execute()` to send, or `retail_projects_locations_catalogs_placements_predict` for simplest API.
 
-pub fn retail_projects_locations_catalogs_placements_predict_builder(
-    client: &SimpleHttpClient,
+pub fn retail_projects_locations_catalogs_placements_predict_builder<R>(
+    client: &SimpleHttpClient<R>,
     placement: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://retail.googleapis.com/v2/projects/{}/locations/{locationsId}/catalogs/{catalogsId}/placements/{placementsId}:predict",
@@ -8983,10 +9141,13 @@ pub fn retail_projects_locations_catalogs_placements_predict(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `retail_projects_locations_catalogs_placements_search_execute()` to send, or `retail_projects_locations_catalogs_placements_search` for simplest API.
 
-pub fn retail_projects_locations_catalogs_placements_search_builder(
-    client: &SimpleHttpClient,
+pub fn retail_projects_locations_catalogs_placements_search_builder<R>(
+    client: &SimpleHttpClient<R>,
     placement: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://retail.googleapis.com/v2/projects/{}/locations/{locationsId}/catalogs/{catalogsId}/placements/{placementsId}:search",
@@ -9149,10 +9310,13 @@ pub fn retail_projects_locations_catalogs_placements_search(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `retail_projects_locations_catalogs_serving_configs_add_control_execute()` to send, or `retail_projects_locations_catalogs_serving_configs_add_control` for simplest API.
 
-pub fn retail_projects_locations_catalogs_serving_configs_add_control_builder(
-    client: &SimpleHttpClient,
+pub fn retail_projects_locations_catalogs_serving_configs_add_control_builder<R>(
+    client: &SimpleHttpClient<R>,
     servingConfig: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://retail.googleapis.com/v2/projects/{}/locations/{locationsId}/catalogs/{catalogsId}/servingConfigs/{servingConfigsId}:addControl",
@@ -9317,10 +9481,13 @@ pub fn retail_projects_locations_catalogs_serving_configs_add_control(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `retail_projects_locations_catalogs_serving_configs_conversational_search_execute()` to send, or `retail_projects_locations_catalogs_serving_configs_conversational_search` for simplest API.
 
-pub fn retail_projects_locations_catalogs_serving_configs_conversational_search_builder(
-    client: &SimpleHttpClient,
+pub fn retail_projects_locations_catalogs_serving_configs_conversational_search_builder<R>(
+    client: &SimpleHttpClient<R>,
     placement: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://retail.googleapis.com/v2/projects/{}/locations/{locationsId}/catalogs/{catalogsId}/servingConfigs/{servingConfigsId}:conversationalSearch",
@@ -9487,11 +9654,14 @@ pub fn retail_projects_locations_catalogs_serving_configs_conversational_search(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `retail_projects_locations_catalogs_serving_configs_create_execute()` to send, or `retail_projects_locations_catalogs_serving_configs_create` for simplest API.
 
-pub fn retail_projects_locations_catalogs_serving_configs_create_builder(
-    client: &SimpleHttpClient,
+pub fn retail_projects_locations_catalogs_serving_configs_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     servingConfigId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://retail.googleapis.com/v2/projects/{}/locations/{locationsId}/catalogs/{catalogsId}/servingConfigs",
@@ -9670,10 +9840,13 @@ pub fn retail_projects_locations_catalogs_serving_configs_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `retail_projects_locations_catalogs_serving_configs_delete_execute()` to send, or `retail_projects_locations_catalogs_serving_configs_delete` for simplest API.
 
-pub fn retail_projects_locations_catalogs_serving_configs_delete_builder(
-    client: &SimpleHttpClient,
+pub fn retail_projects_locations_catalogs_serving_configs_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://retail.googleapis.com/v2/projects/{}/locations/{locationsId}/catalogs/{catalogsId}/servingConfigs/{servingConfigsId}",
@@ -9832,10 +10005,13 @@ pub fn retail_projects_locations_catalogs_serving_configs_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `retail_projects_locations_catalogs_serving_configs_get_execute()` to send, or `retail_projects_locations_catalogs_serving_configs_get` for simplest API.
 
-pub fn retail_projects_locations_catalogs_serving_configs_get_builder(
-    client: &SimpleHttpClient,
+pub fn retail_projects_locations_catalogs_serving_configs_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://retail.googleapis.com/v2/projects/{}/locations/{locationsId}/catalogs/{catalogsId}/servingConfigs/{servingConfigsId}",
@@ -9998,12 +10174,15 @@ pub fn retail_projects_locations_catalogs_serving_configs_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `retail_projects_locations_catalogs_serving_configs_list_execute()` to send, or `retail_projects_locations_catalogs_serving_configs_list` for simplest API.
 
-pub fn retail_projects_locations_catalogs_serving_configs_list_builder(
-    client: &SimpleHttpClient,
+pub fn retail_projects_locations_catalogs_serving_configs_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://retail.googleapis.com/v2/projects/{}/locations/{locationsId}/catalogs/{catalogsId}/servingConfigs",
@@ -10189,11 +10368,14 @@ pub fn retail_projects_locations_catalogs_serving_configs_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `retail_projects_locations_catalogs_serving_configs_patch_execute()` to send, or `retail_projects_locations_catalogs_serving_configs_patch` for simplest API.
 
-pub fn retail_projects_locations_catalogs_serving_configs_patch_builder(
-    client: &SimpleHttpClient,
+pub fn retail_projects_locations_catalogs_serving_configs_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://retail.googleapis.com/v2/projects/{}/locations/{locationsId}/catalogs/{catalogsId}/servingConfigs/{servingConfigsId}",
@@ -10372,10 +10554,13 @@ pub fn retail_projects_locations_catalogs_serving_configs_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `retail_projects_locations_catalogs_serving_configs_predict_execute()` to send, or `retail_projects_locations_catalogs_serving_configs_predict` for simplest API.
 
-pub fn retail_projects_locations_catalogs_serving_configs_predict_builder(
-    client: &SimpleHttpClient,
+pub fn retail_projects_locations_catalogs_serving_configs_predict_builder<R>(
+    client: &SimpleHttpClient<R>,
     placement: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://retail.googleapis.com/v2/projects/{}/locations/{locationsId}/catalogs/{catalogsId}/servingConfigs/{servingConfigsId}:predict",
@@ -10540,10 +10725,13 @@ pub fn retail_projects_locations_catalogs_serving_configs_predict(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `retail_projects_locations_catalogs_serving_configs_remove_control_execute()` to send, or `retail_projects_locations_catalogs_serving_configs_remove_control` for simplest API.
 
-pub fn retail_projects_locations_catalogs_serving_configs_remove_control_builder(
-    client: &SimpleHttpClient,
+pub fn retail_projects_locations_catalogs_serving_configs_remove_control_builder<R>(
+    client: &SimpleHttpClient<R>,
     servingConfig: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://retail.googleapis.com/v2/projects/{}/locations/{locationsId}/catalogs/{catalogsId}/servingConfigs/{servingConfigsId}:removeControl",
@@ -10708,10 +10896,13 @@ pub fn retail_projects_locations_catalogs_serving_configs_remove_control(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `retail_projects_locations_catalogs_serving_configs_search_execute()` to send, or `retail_projects_locations_catalogs_serving_configs_search` for simplest API.
 
-pub fn retail_projects_locations_catalogs_serving_configs_search_builder(
-    client: &SimpleHttpClient,
+pub fn retail_projects_locations_catalogs_serving_configs_search_builder<R>(
+    client: &SimpleHttpClient<R>,
     placement: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://retail.googleapis.com/v2/projects/{}/locations/{locationsId}/catalogs/{catalogsId}/servingConfigs/{servingConfigsId}:search",
@@ -10874,10 +11065,13 @@ pub fn retail_projects_locations_catalogs_serving_configs_search(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `retail_projects_locations_catalogs_user_events_collect_execute()` to send, or `retail_projects_locations_catalogs_user_events_collect` for simplest API.
 
-pub fn retail_projects_locations_catalogs_user_events_collect_builder(
-    client: &SimpleHttpClient,
+pub fn retail_projects_locations_catalogs_user_events_collect_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://retail.googleapis.com/v2/projects/{}/locations/{locationsId}/catalogs/{catalogsId}/userEvents:collect",
@@ -11036,10 +11230,13 @@ pub fn retail_projects_locations_catalogs_user_events_collect(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `retail_projects_locations_catalogs_user_events_import_execute()` to send, or `retail_projects_locations_catalogs_user_events_import` for simplest API.
 
-pub fn retail_projects_locations_catalogs_user_events_import_builder(
-    client: &SimpleHttpClient,
+pub fn retail_projects_locations_catalogs_user_events_import_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://retail.googleapis.com/v2/projects/{}/locations/{locationsId}/catalogs/{catalogsId}/userEvents:import",
@@ -11202,10 +11399,13 @@ pub fn retail_projects_locations_catalogs_user_events_import(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `retail_projects_locations_catalogs_user_events_purge_execute()` to send, or `retail_projects_locations_catalogs_user_events_purge` for simplest API.
 
-pub fn retail_projects_locations_catalogs_user_events_purge_builder(
-    client: &SimpleHttpClient,
+pub fn retail_projects_locations_catalogs_user_events_purge_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://retail.googleapis.com/v2/projects/{}/locations/{locationsId}/catalogs/{catalogsId}/userEvents:purge",
@@ -11368,10 +11568,13 @@ pub fn retail_projects_locations_catalogs_user_events_purge(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `retail_projects_locations_catalogs_user_events_rejoin_execute()` to send, or `retail_projects_locations_catalogs_user_events_rejoin` for simplest API.
 
-pub fn retail_projects_locations_catalogs_user_events_rejoin_builder(
-    client: &SimpleHttpClient,
+pub fn retail_projects_locations_catalogs_user_events_rejoin_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://retail.googleapis.com/v2/projects/{}/locations/{locationsId}/catalogs/{catalogsId}/userEvents:rejoin",
@@ -11534,11 +11737,14 @@ pub fn retail_projects_locations_catalogs_user_events_rejoin(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `retail_projects_locations_catalogs_user_events_write_execute()` to send, or `retail_projects_locations_catalogs_user_events_write` for simplest API.
 
-pub fn retail_projects_locations_catalogs_user_events_write_builder(
-    client: &SimpleHttpClient,
+pub fn retail_projects_locations_catalogs_user_events_write_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     writeAsync: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://retail.googleapis.com/v2/projects/{}/locations/{locationsId}/catalogs/{catalogsId}/userEvents:write",
@@ -11717,10 +11923,13 @@ pub fn retail_projects_locations_catalogs_user_events_write(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `retail_projects_locations_operations_get_execute()` to send, or `retail_projects_locations_operations_get` for simplest API.
 
-pub fn retail_projects_locations_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn retail_projects_locations_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://retail.googleapis.com/v2/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -11882,14 +12091,17 @@ pub fn retail_projects_locations_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `retail_projects_locations_operations_list_execute()` to send, or `retail_projects_locations_operations_list` for simplest API.
 
-pub fn retail_projects_locations_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn retail_projects_locations_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://retail.googleapis.com/v2/projects/{}/locations/{locationsId}/operations",
@@ -12087,10 +12299,13 @@ pub fn retail_projects_locations_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `retail_projects_operations_get_execute()` to send, or `retail_projects_operations_get` for simplest API.
 
-pub fn retail_projects_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn retail_projects_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://retail.googleapis.com/v2/projects/{}/operations/{operationsId}",
@@ -12252,14 +12467,17 @@ pub fn retail_projects_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `retail_projects_operations_list_execute()` to send, or `retail_projects_operations_list` for simplest API.
 
-pub fn retail_projects_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn retail_projects_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://retail.googleapis.com/v2/projects/{}/operations",

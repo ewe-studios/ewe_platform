@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `clouderrorreporting_projects_delete_events_execute()` to send, or `clouderrorreporting_projects_delete_events` for simplest API.
 
-pub fn clouderrorreporting_projects_delete_events_builder(
-    client: &SimpleHttpClient,
+pub fn clouderrorreporting_projects_delete_events_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectName: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://clouderrorreporting.googleapis.com/v1beta1/projects/{}/events",
@@ -187,8 +191,8 @@ pub fn clouderrorreporting_projects_delete_events(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `clouderrorreporting_projects_events_list_execute()` to send, or `clouderrorreporting_projects_events_list` for simplest API.
 
-pub fn clouderrorreporting_projects_events_list_builder(
-    client: &SimpleHttpClient,
+pub fn clouderrorreporting_projects_events_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectName: &String,
     groupId: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
@@ -197,7 +201,10 @@ pub fn clouderrorreporting_projects_events_list_builder(
     serviceFilter_service: &Option<Option<String>>,
     serviceFilter_version: &Option<Option<String>>,
     timeRange_period: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://clouderrorreporting.googleapis.com/v1beta1/projects/{}/events",
@@ -408,10 +415,13 @@ pub fn clouderrorreporting_projects_events_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `clouderrorreporting_projects_events_report_execute()` to send, or `clouderrorreporting_projects_events_report` for simplest API.
 
-pub fn clouderrorreporting_projects_events_report_builder(
-    client: &SimpleHttpClient,
+pub fn clouderrorreporting_projects_events_report_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectName: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://clouderrorreporting.googleapis.com/v1beta1/projects/{}/events:report",
@@ -569,8 +579,8 @@ pub fn clouderrorreporting_projects_events_report(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `clouderrorreporting_projects_group_stats_list_execute()` to send, or `clouderrorreporting_projects_group_stats_list` for simplest API.
 
-pub fn clouderrorreporting_projects_group_stats_list_builder(
-    client: &SimpleHttpClient,
+pub fn clouderrorreporting_projects_group_stats_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectName: &String,
     alignment: &Option<Option<String>>,
     alignmentTime: &Option<Option<String>>,
@@ -583,7 +593,10 @@ pub fn clouderrorreporting_projects_group_stats_list_builder(
     serviceFilter_version: &Option<Option<String>>,
     timeRange_period: &Option<Option<String>>,
     timedCountDuration: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://clouderrorreporting.googleapis.com/v1beta1/projects/{}/groupStats",
@@ -818,10 +831,13 @@ pub fn clouderrorreporting_projects_group_stats_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `clouderrorreporting_projects_groups_get_execute()` to send, or `clouderrorreporting_projects_groups_get` for simplest API.
 
-pub fn clouderrorreporting_projects_groups_get_builder(
-    client: &SimpleHttpClient,
+pub fn clouderrorreporting_projects_groups_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     groupName: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://clouderrorreporting.googleapis.com/v1beta1/projects/{}/groups/{groupsId}",
@@ -975,10 +991,13 @@ pub fn clouderrorreporting_projects_groups_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `clouderrorreporting_projects_groups_update_execute()` to send, or `clouderrorreporting_projects_groups_update` for simplest API.
 
-pub fn clouderrorreporting_projects_groups_update_builder(
-    client: &SimpleHttpClient,
+pub fn clouderrorreporting_projects_groups_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://clouderrorreporting.googleapis.com/v1beta1/projects/{}/groups/{groupsId}",
@@ -1132,10 +1151,13 @@ pub fn clouderrorreporting_projects_groups_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `clouderrorreporting_projects_locations_delete_events_execute()` to send, or `clouderrorreporting_projects_locations_delete_events` for simplest API.
 
-pub fn clouderrorreporting_projects_locations_delete_events_builder(
-    client: &SimpleHttpClient,
+pub fn clouderrorreporting_projects_locations_delete_events_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectName: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://clouderrorreporting.googleapis.com/v1beta1/projects/{}/locations/{locationsId}/events",
@@ -1294,8 +1316,8 @@ pub fn clouderrorreporting_projects_locations_delete_events(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `clouderrorreporting_projects_locations_events_list_execute()` to send, or `clouderrorreporting_projects_locations_events_list` for simplest API.
 
-pub fn clouderrorreporting_projects_locations_events_list_builder(
-    client: &SimpleHttpClient,
+pub fn clouderrorreporting_projects_locations_events_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectName: &String,
     groupId: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
@@ -1304,7 +1326,10 @@ pub fn clouderrorreporting_projects_locations_events_list_builder(
     serviceFilter_service: &Option<Option<String>>,
     serviceFilter_version: &Option<Option<String>>,
     timeRange_period: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://clouderrorreporting.googleapis.com/v1beta1/projects/{}/locations/{locationsId}/events",
@@ -1515,8 +1540,8 @@ pub fn clouderrorreporting_projects_locations_events_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `clouderrorreporting_projects_locations_group_stats_list_execute()` to send, or `clouderrorreporting_projects_locations_group_stats_list` for simplest API.
 
-pub fn clouderrorreporting_projects_locations_group_stats_list_builder(
-    client: &SimpleHttpClient,
+pub fn clouderrorreporting_projects_locations_group_stats_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectName: &String,
     alignment: &Option<Option<String>>,
     alignmentTime: &Option<Option<String>>,
@@ -1529,7 +1554,10 @@ pub fn clouderrorreporting_projects_locations_group_stats_list_builder(
     serviceFilter_version: &Option<Option<String>>,
     timeRange_period: &Option<Option<String>>,
     timedCountDuration: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://clouderrorreporting.googleapis.com/v1beta1/projects/{}/locations/{locationsId}/groupStats",
@@ -1764,10 +1792,13 @@ pub fn clouderrorreporting_projects_locations_group_stats_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `clouderrorreporting_projects_locations_groups_get_execute()` to send, or `clouderrorreporting_projects_locations_groups_get` for simplest API.
 
-pub fn clouderrorreporting_projects_locations_groups_get_builder(
-    client: &SimpleHttpClient,
+pub fn clouderrorreporting_projects_locations_groups_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     groupName: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://clouderrorreporting.googleapis.com/v1beta1/projects/{}/locations/{locationsId}/groups/{groupsId}",
@@ -1922,10 +1953,13 @@ pub fn clouderrorreporting_projects_locations_groups_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `clouderrorreporting_projects_locations_groups_update_execute()` to send, or `clouderrorreporting_projects_locations_groups_update` for simplest API.
 
-pub fn clouderrorreporting_projects_locations_groups_update_builder(
-    client: &SimpleHttpClient,
+pub fn clouderrorreporting_projects_locations_groups_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://clouderrorreporting.googleapis.com/v1beta1/projects/{}/locations/{locationsId}/groups/{groupsId}",

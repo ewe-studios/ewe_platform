@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `servicedirectory_projects_locations_get_execute()` to send, or `servicedirectory_projects_locations_get` for simplest API.
 
-pub fn servicedirectory_projects_locations_get_builder(
-    client: &SimpleHttpClient,
+pub fn servicedirectory_projects_locations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://servicedirectory.googleapis.com/v1/projects/{}/locations/{locationsId}",
@@ -183,14 +187,17 @@ pub fn servicedirectory_projects_locations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `servicedirectory_projects_locations_list_execute()` to send, or `servicedirectory_projects_locations_list` for simplest API.
 
-pub fn servicedirectory_projects_locations_list_builder(
-    client: &SimpleHttpClient,
+pub fn servicedirectory_projects_locations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     extraLocationTypes: &Option<Option<String>>,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://servicedirectory.googleapis.com/v1/projects/{}/locations",
@@ -383,11 +390,14 @@ pub fn servicedirectory_projects_locations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `servicedirectory_projects_locations_namespaces_create_execute()` to send, or `servicedirectory_projects_locations_namespaces_create` for simplest API.
 
-pub fn servicedirectory_projects_locations_namespaces_create_builder(
-    client: &SimpleHttpClient,
+pub fn servicedirectory_projects_locations_namespaces_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     namespaceId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://servicedirectory.googleapis.com/v1/projects/{}/locations/{locationsId}/namespaces",
@@ -558,10 +568,13 @@ pub fn servicedirectory_projects_locations_namespaces_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `servicedirectory_projects_locations_namespaces_delete_execute()` to send, or `servicedirectory_projects_locations_namespaces_delete` for simplest API.
 
-pub fn servicedirectory_projects_locations_namespaces_delete_builder(
-    client: &SimpleHttpClient,
+pub fn servicedirectory_projects_locations_namespaces_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://servicedirectory.googleapis.com/v1/projects/{}/locations/{locationsId}/namespaces/{namespacesId}",
@@ -716,10 +729,13 @@ pub fn servicedirectory_projects_locations_namespaces_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `servicedirectory_projects_locations_namespaces_get_execute()` to send, or `servicedirectory_projects_locations_namespaces_get` for simplest API.
 
-pub fn servicedirectory_projects_locations_namespaces_get_builder(
-    client: &SimpleHttpClient,
+pub fn servicedirectory_projects_locations_namespaces_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://servicedirectory.googleapis.com/v1/projects/{}/locations/{locationsId}/namespaces/{namespacesId}",
@@ -873,10 +889,13 @@ pub fn servicedirectory_projects_locations_namespaces_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `servicedirectory_projects_locations_namespaces_get_iam_policy_execute()` to send, or `servicedirectory_projects_locations_namespaces_get_iam_policy` for simplest API.
 
-pub fn servicedirectory_projects_locations_namespaces_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn servicedirectory_projects_locations_namespaces_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://servicedirectory.googleapis.com/v1/projects/{}/locations/{locationsId}/namespaces/{namespacesId}:getIamPolicy",
@@ -1033,14 +1052,17 @@ pub fn servicedirectory_projects_locations_namespaces_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `servicedirectory_projects_locations_namespaces_list_execute()` to send, or `servicedirectory_projects_locations_namespaces_list` for simplest API.
 
-pub fn servicedirectory_projects_locations_namespaces_list_builder(
-    client: &SimpleHttpClient,
+pub fn servicedirectory_projects_locations_namespaces_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://servicedirectory.googleapis.com/v1/projects/{}/locations/{locationsId}/namespaces",
@@ -1233,11 +1255,14 @@ pub fn servicedirectory_projects_locations_namespaces_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `servicedirectory_projects_locations_namespaces_patch_execute()` to send, or `servicedirectory_projects_locations_namespaces_patch` for simplest API.
 
-pub fn servicedirectory_projects_locations_namespaces_patch_builder(
-    client: &SimpleHttpClient,
+pub fn servicedirectory_projects_locations_namespaces_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://servicedirectory.googleapis.com/v1/projects/{}/locations/{locationsId}/namespaces/{namespacesId}",
@@ -1408,10 +1433,13 @@ pub fn servicedirectory_projects_locations_namespaces_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `servicedirectory_projects_locations_namespaces_set_iam_policy_execute()` to send, or `servicedirectory_projects_locations_namespaces_set_iam_policy` for simplest API.
 
-pub fn servicedirectory_projects_locations_namespaces_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn servicedirectory_projects_locations_namespaces_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://servicedirectory.googleapis.com/v1/projects/{}/locations/{locationsId}/namespaces/{namespacesId}:setIamPolicy",
@@ -1568,10 +1596,13 @@ pub fn servicedirectory_projects_locations_namespaces_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `servicedirectory_projects_locations_namespaces_test_iam_permissions_execute()` to send, or `servicedirectory_projects_locations_namespaces_test_iam_permissions` for simplest API.
 
-pub fn servicedirectory_projects_locations_namespaces_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn servicedirectory_projects_locations_namespaces_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://servicedirectory.googleapis.com/v1/projects/{}/locations/{locationsId}/namespaces/{namespacesId}:testIamPermissions",
@@ -1736,11 +1767,14 @@ pub fn servicedirectory_projects_locations_namespaces_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `servicedirectory_projects_locations_namespaces_services_create_execute()` to send, or `servicedirectory_projects_locations_namespaces_services_create` for simplest API.
 
-pub fn servicedirectory_projects_locations_namespaces_services_create_builder(
-    client: &SimpleHttpClient,
+pub fn servicedirectory_projects_locations_namespaces_services_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     serviceId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://servicedirectory.googleapis.com/v1/projects/{}/locations/{locationsId}/namespaces/{namespacesId}/services",
@@ -1911,10 +1945,13 @@ pub fn servicedirectory_projects_locations_namespaces_services_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `servicedirectory_projects_locations_namespaces_services_delete_execute()` to send, or `servicedirectory_projects_locations_namespaces_services_delete` for simplest API.
 
-pub fn servicedirectory_projects_locations_namespaces_services_delete_builder(
-    client: &SimpleHttpClient,
+pub fn servicedirectory_projects_locations_namespaces_services_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://servicedirectory.googleapis.com/v1/projects/{}/locations/{locationsId}/namespaces/{namespacesId}/services/{servicesId}",
@@ -2069,10 +2106,13 @@ pub fn servicedirectory_projects_locations_namespaces_services_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `servicedirectory_projects_locations_namespaces_services_get_execute()` to send, or `servicedirectory_projects_locations_namespaces_services_get` for simplest API.
 
-pub fn servicedirectory_projects_locations_namespaces_services_get_builder(
-    client: &SimpleHttpClient,
+pub fn servicedirectory_projects_locations_namespaces_services_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://servicedirectory.googleapis.com/v1/projects/{}/locations/{locationsId}/namespaces/{namespacesId}/services/{servicesId}",
@@ -2227,10 +2267,13 @@ pub fn servicedirectory_projects_locations_namespaces_services_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `servicedirectory_projects_locations_namespaces_services_get_iam_policy_execute()` to send, or `servicedirectory_projects_locations_namespaces_services_get_iam_policy` for simplest API.
 
-pub fn servicedirectory_projects_locations_namespaces_services_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn servicedirectory_projects_locations_namespaces_services_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://servicedirectory.googleapis.com/v1/projects/{}/locations/{locationsId}/namespaces/{namespacesId}/services/{servicesId}:getIamPolicy",
@@ -2388,14 +2431,17 @@ pub fn servicedirectory_projects_locations_namespaces_services_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `servicedirectory_projects_locations_namespaces_services_list_execute()` to send, or `servicedirectory_projects_locations_namespaces_services_list` for simplest API.
 
-pub fn servicedirectory_projects_locations_namespaces_services_list_builder(
-    client: &SimpleHttpClient,
+pub fn servicedirectory_projects_locations_namespaces_services_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://servicedirectory.googleapis.com/v1/projects/{}/locations/{locationsId}/namespaces/{namespacesId}/services",
@@ -2588,11 +2634,14 @@ pub fn servicedirectory_projects_locations_namespaces_services_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `servicedirectory_projects_locations_namespaces_services_patch_execute()` to send, or `servicedirectory_projects_locations_namespaces_services_patch` for simplest API.
 
-pub fn servicedirectory_projects_locations_namespaces_services_patch_builder(
-    client: &SimpleHttpClient,
+pub fn servicedirectory_projects_locations_namespaces_services_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://servicedirectory.googleapis.com/v1/projects/{}/locations/{locationsId}/namespaces/{namespacesId}/services/{servicesId}",
@@ -2763,10 +2812,13 @@ pub fn servicedirectory_projects_locations_namespaces_services_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `servicedirectory_projects_locations_namespaces_services_resolve_execute()` to send, or `servicedirectory_projects_locations_namespaces_services_resolve` for simplest API.
 
-pub fn servicedirectory_projects_locations_namespaces_services_resolve_builder(
-    client: &SimpleHttpClient,
+pub fn servicedirectory_projects_locations_namespaces_services_resolve_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://servicedirectory.googleapis.com/v1/projects/{}/locations/{locationsId}/namespaces/{namespacesId}/services/{servicesId}:resolve",
@@ -2926,10 +2978,13 @@ pub fn servicedirectory_projects_locations_namespaces_services_resolve(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `servicedirectory_projects_locations_namespaces_services_set_iam_policy_execute()` to send, or `servicedirectory_projects_locations_namespaces_services_set_iam_policy` for simplest API.
 
-pub fn servicedirectory_projects_locations_namespaces_services_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn servicedirectory_projects_locations_namespaces_services_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://servicedirectory.googleapis.com/v1/projects/{}/locations/{locationsId}/namespaces/{namespacesId}/services/{servicesId}:setIamPolicy",
@@ -3087,10 +3142,13 @@ pub fn servicedirectory_projects_locations_namespaces_services_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `servicedirectory_projects_locations_namespaces_services_test_iam_permissions_execute()` to send, or `servicedirectory_projects_locations_namespaces_services_test_iam_permissions` for simplest API.
 
-pub fn servicedirectory_projects_locations_namespaces_services_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn servicedirectory_projects_locations_namespaces_services_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://servicedirectory.googleapis.com/v1/projects/{}/locations/{locationsId}/namespaces/{namespacesId}/services/{servicesId}:testIamPermissions",
@@ -3257,11 +3315,14 @@ pub fn servicedirectory_projects_locations_namespaces_services_test_iam_permissi
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `servicedirectory_projects_locations_namespaces_services_endpoints_create_execute()` to send, or `servicedirectory_projects_locations_namespaces_services_endpoints_create` for simplest API.
 
-pub fn servicedirectory_projects_locations_namespaces_services_endpoints_create_builder(
-    client: &SimpleHttpClient,
+pub fn servicedirectory_projects_locations_namespaces_services_endpoints_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     endpointId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://servicedirectory.googleapis.com/v1/projects/{}/locations/{locationsId}/namespaces/{namespacesId}/services/{servicesId}/endpoints",
@@ -3433,10 +3494,13 @@ pub fn servicedirectory_projects_locations_namespaces_services_endpoints_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `servicedirectory_projects_locations_namespaces_services_endpoints_delete_execute()` to send, or `servicedirectory_projects_locations_namespaces_services_endpoints_delete` for simplest API.
 
-pub fn servicedirectory_projects_locations_namespaces_services_endpoints_delete_builder(
-    client: &SimpleHttpClient,
+pub fn servicedirectory_projects_locations_namespaces_services_endpoints_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://servicedirectory.googleapis.com/v1/projects/{}/locations/{locationsId}/namespaces/{namespacesId}/services/{servicesId}/endpoints/{endpointsId}",
@@ -3593,10 +3657,13 @@ pub fn servicedirectory_projects_locations_namespaces_services_endpoints_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `servicedirectory_projects_locations_namespaces_services_endpoints_get_execute()` to send, or `servicedirectory_projects_locations_namespaces_services_endpoints_get` for simplest API.
 
-pub fn servicedirectory_projects_locations_namespaces_services_endpoints_get_builder(
-    client: &SimpleHttpClient,
+pub fn servicedirectory_projects_locations_namespaces_services_endpoints_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://servicedirectory.googleapis.com/v1/projects/{}/locations/{locationsId}/namespaces/{namespacesId}/services/{servicesId}/endpoints/{endpointsId}",
@@ -3752,14 +3819,17 @@ pub fn servicedirectory_projects_locations_namespaces_services_endpoints_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `servicedirectory_projects_locations_namespaces_services_endpoints_list_execute()` to send, or `servicedirectory_projects_locations_namespaces_services_endpoints_list` for simplest API.
 
-pub fn servicedirectory_projects_locations_namespaces_services_endpoints_list_builder(
-    client: &SimpleHttpClient,
+pub fn servicedirectory_projects_locations_namespaces_services_endpoints_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://servicedirectory.googleapis.com/v1/projects/{}/locations/{locationsId}/namespaces/{namespacesId}/services/{servicesId}/endpoints",
@@ -3953,11 +4023,14 @@ pub fn servicedirectory_projects_locations_namespaces_services_endpoints_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `servicedirectory_projects_locations_namespaces_services_endpoints_patch_execute()` to send, or `servicedirectory_projects_locations_namespaces_services_endpoints_patch` for simplest API.
 
-pub fn servicedirectory_projects_locations_namespaces_services_endpoints_patch_builder(
-    client: &SimpleHttpClient,
+pub fn servicedirectory_projects_locations_namespaces_services_endpoints_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://servicedirectory.googleapis.com/v1/projects/{}/locations/{locationsId}/namespaces/{namespacesId}/services/{servicesId}/endpoints/{endpointsId}",

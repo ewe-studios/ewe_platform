@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `jobs_projects_operations_get_execute()` to send, or `jobs_projects_operations_get` for simplest API.
 
-pub fn jobs_projects_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn jobs_projects_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://jobs.googleapis.com/v4/projects/{}/operations/{operationsId}",
@@ -183,8 +187,8 @@ pub fn jobs_projects_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `jobs_projects_tenants_complete_query_execute()` to send, or `jobs_projects_tenants_complete_query` for simplest API.
 
-pub fn jobs_projects_tenants_complete_query_builder(
-    client: &SimpleHttpClient,
+pub fn jobs_projects_tenants_complete_query_builder<R>(
+    client: &SimpleHttpClient<R>,
     tenant: &String,
     company: &Option<Option<String>>,
     languageCodes: &Option<Option<String>>,
@@ -192,7 +196,10 @@ pub fn jobs_projects_tenants_complete_query_builder(
     query: &Option<Option<String>>,
     scope: &Option<Option<String>>,
     type_rs: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://jobs.googleapis.com/v4/projects/{}/tenants/{tenantsId}:completeQuery",
@@ -397,10 +404,13 @@ pub fn jobs_projects_tenants_complete_query(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `jobs_projects_tenants_create_execute()` to send, or `jobs_projects_tenants_create` for simplest API.
 
-pub fn jobs_projects_tenants_create_builder(
-    client: &SimpleHttpClient,
+pub fn jobs_projects_tenants_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://jobs.googleapis.com/v4/projects/{}/tenants", parent,);
 
@@ -551,10 +561,13 @@ pub fn jobs_projects_tenants_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `jobs_projects_tenants_delete_execute()` to send, or `jobs_projects_tenants_delete` for simplest API.
 
-pub fn jobs_projects_tenants_delete_builder(
-    client: &SimpleHttpClient,
+pub fn jobs_projects_tenants_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://jobs.googleapis.com/v4/projects/{}/tenants/{tenantsId}",
@@ -708,10 +721,13 @@ pub fn jobs_projects_tenants_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `jobs_projects_tenants_get_execute()` to send, or `jobs_projects_tenants_get` for simplest API.
 
-pub fn jobs_projects_tenants_get_builder(
-    client: &SimpleHttpClient,
+pub fn jobs_projects_tenants_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://jobs.googleapis.com/v4/projects/{}/tenants/{tenantsId}",
@@ -865,12 +881,15 @@ pub fn jobs_projects_tenants_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `jobs_projects_tenants_list_execute()` to send, or `jobs_projects_tenants_list` for simplest API.
 
-pub fn jobs_projects_tenants_list_builder(
-    client: &SimpleHttpClient,
+pub fn jobs_projects_tenants_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://jobs.googleapis.com/v4/projects/{}/tenants", parent,);
 
@@ -1044,11 +1063,14 @@ pub fn jobs_projects_tenants_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `jobs_projects_tenants_patch_execute()` to send, or `jobs_projects_tenants_patch` for simplest API.
 
-pub fn jobs_projects_tenants_patch_builder(
-    client: &SimpleHttpClient,
+pub fn jobs_projects_tenants_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://jobs.googleapis.com/v4/projects/{}/tenants/{tenantsId}",
@@ -1215,10 +1237,13 @@ pub fn jobs_projects_tenants_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `jobs_projects_tenants_client_events_create_execute()` to send, or `jobs_projects_tenants_client_events_create` for simplest API.
 
-pub fn jobs_projects_tenants_client_events_create_builder(
-    client: &SimpleHttpClient,
+pub fn jobs_projects_tenants_client_events_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://jobs.googleapis.com/v4/projects/{}/tenants/{tenantsId}/clientEvents",
@@ -1372,10 +1397,13 @@ pub fn jobs_projects_tenants_client_events_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `jobs_projects_tenants_companies_create_execute()` to send, or `jobs_projects_tenants_companies_create` for simplest API.
 
-pub fn jobs_projects_tenants_companies_create_builder(
-    client: &SimpleHttpClient,
+pub fn jobs_projects_tenants_companies_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://jobs.googleapis.com/v4/projects/{}/tenants/{tenantsId}/companies",
@@ -1529,10 +1557,13 @@ pub fn jobs_projects_tenants_companies_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `jobs_projects_tenants_companies_delete_execute()` to send, or `jobs_projects_tenants_companies_delete` for simplest API.
 
-pub fn jobs_projects_tenants_companies_delete_builder(
-    client: &SimpleHttpClient,
+pub fn jobs_projects_tenants_companies_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://jobs.googleapis.com/v4/projects/{}/tenants/{tenantsId}/companies/{companiesId}",
@@ -1686,10 +1717,13 @@ pub fn jobs_projects_tenants_companies_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `jobs_projects_tenants_companies_get_execute()` to send, or `jobs_projects_tenants_companies_get` for simplest API.
 
-pub fn jobs_projects_tenants_companies_get_builder(
-    client: &SimpleHttpClient,
+pub fn jobs_projects_tenants_companies_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://jobs.googleapis.com/v4/projects/{}/tenants/{tenantsId}/companies/{companiesId}",
@@ -1843,13 +1877,16 @@ pub fn jobs_projects_tenants_companies_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `jobs_projects_tenants_companies_list_execute()` to send, or `jobs_projects_tenants_companies_list` for simplest API.
 
-pub fn jobs_projects_tenants_companies_list_builder(
-    client: &SimpleHttpClient,
+pub fn jobs_projects_tenants_companies_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     requireOpenJobs: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://jobs.googleapis.com/v4/projects/{}/tenants/{tenantsId}/companies",
@@ -2036,11 +2073,14 @@ pub fn jobs_projects_tenants_companies_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `jobs_projects_tenants_companies_patch_execute()` to send, or `jobs_projects_tenants_companies_patch` for simplest API.
 
-pub fn jobs_projects_tenants_companies_patch_builder(
-    client: &SimpleHttpClient,
+pub fn jobs_projects_tenants_companies_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://jobs.googleapis.com/v4/projects/{}/tenants/{tenantsId}/companies/{companiesId}",
@@ -2208,10 +2248,13 @@ pub fn jobs_projects_tenants_companies_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `jobs_projects_tenants_jobs_batch_create_execute()` to send, or `jobs_projects_tenants_jobs_batch_create` for simplest API.
 
-pub fn jobs_projects_tenants_jobs_batch_create_builder(
-    client: &SimpleHttpClient,
+pub fn jobs_projects_tenants_jobs_batch_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://jobs.googleapis.com/v4/projects/{}/tenants/{tenantsId}/jobs:batchCreate",
@@ -2365,10 +2408,13 @@ pub fn jobs_projects_tenants_jobs_batch_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `jobs_projects_tenants_jobs_batch_delete_execute()` to send, or `jobs_projects_tenants_jobs_batch_delete` for simplest API.
 
-pub fn jobs_projects_tenants_jobs_batch_delete_builder(
-    client: &SimpleHttpClient,
+pub fn jobs_projects_tenants_jobs_batch_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://jobs.googleapis.com/v4/projects/{}/tenants/{tenantsId}/jobs:batchDelete",
@@ -2522,10 +2568,13 @@ pub fn jobs_projects_tenants_jobs_batch_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `jobs_projects_tenants_jobs_batch_update_execute()` to send, or `jobs_projects_tenants_jobs_batch_update` for simplest API.
 
-pub fn jobs_projects_tenants_jobs_batch_update_builder(
-    client: &SimpleHttpClient,
+pub fn jobs_projects_tenants_jobs_batch_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://jobs.googleapis.com/v4/projects/{}/tenants/{tenantsId}/jobs:batchUpdate",
@@ -2679,10 +2728,13 @@ pub fn jobs_projects_tenants_jobs_batch_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `jobs_projects_tenants_jobs_create_execute()` to send, or `jobs_projects_tenants_jobs_create` for simplest API.
 
-pub fn jobs_projects_tenants_jobs_create_builder(
-    client: &SimpleHttpClient,
+pub fn jobs_projects_tenants_jobs_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://jobs.googleapis.com/v4/projects/{}/tenants/{tenantsId}/jobs",
@@ -2836,10 +2888,13 @@ pub fn jobs_projects_tenants_jobs_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `jobs_projects_tenants_jobs_delete_execute()` to send, or `jobs_projects_tenants_jobs_delete` for simplest API.
 
-pub fn jobs_projects_tenants_jobs_delete_builder(
-    client: &SimpleHttpClient,
+pub fn jobs_projects_tenants_jobs_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://jobs.googleapis.com/v4/projects/{}/tenants/{tenantsId}/jobs/{jobsId}",
@@ -2993,10 +3048,13 @@ pub fn jobs_projects_tenants_jobs_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `jobs_projects_tenants_jobs_get_execute()` to send, or `jobs_projects_tenants_jobs_get` for simplest API.
 
-pub fn jobs_projects_tenants_jobs_get_builder(
-    client: &SimpleHttpClient,
+pub fn jobs_projects_tenants_jobs_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://jobs.googleapis.com/v4/projects/{}/tenants/{tenantsId}/jobs/{jobsId}",
@@ -3150,14 +3208,17 @@ pub fn jobs_projects_tenants_jobs_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `jobs_projects_tenants_jobs_list_execute()` to send, or `jobs_projects_tenants_jobs_list` for simplest API.
 
-pub fn jobs_projects_tenants_jobs_list_builder(
-    client: &SimpleHttpClient,
+pub fn jobs_projects_tenants_jobs_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     jobView: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://jobs.googleapis.com/v4/projects/{}/tenants/{tenantsId}/jobs",
@@ -3350,11 +3411,14 @@ pub fn jobs_projects_tenants_jobs_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `jobs_projects_tenants_jobs_patch_execute()` to send, or `jobs_projects_tenants_jobs_patch` for simplest API.
 
-pub fn jobs_projects_tenants_jobs_patch_builder(
-    client: &SimpleHttpClient,
+pub fn jobs_projects_tenants_jobs_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://jobs.googleapis.com/v4/projects/{}/tenants/{tenantsId}/jobs/{jobsId}",
@@ -3521,10 +3585,13 @@ pub fn jobs_projects_tenants_jobs_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `jobs_projects_tenants_jobs_search_execute()` to send, or `jobs_projects_tenants_jobs_search` for simplest API.
 
-pub fn jobs_projects_tenants_jobs_search_builder(
-    client: &SimpleHttpClient,
+pub fn jobs_projects_tenants_jobs_search_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://jobs.googleapis.com/v4/projects/{}/tenants/{tenantsId}/jobs:search",
@@ -3682,10 +3749,13 @@ pub fn jobs_projects_tenants_jobs_search(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `jobs_projects_tenants_jobs_search_for_alert_execute()` to send, or `jobs_projects_tenants_jobs_search_for_alert` for simplest API.
 
-pub fn jobs_projects_tenants_jobs_search_for_alert_builder(
-    client: &SimpleHttpClient,
+pub fn jobs_projects_tenants_jobs_search_for_alert_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://jobs.googleapis.com/v4/projects/{}/tenants/{tenantsId}/jobs:searchForAlert",

@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `libraryagent_shelves_get_execute()` to send, or `libraryagent_shelves_get` for simplest API.
 
-pub fn libraryagent_shelves_get_builder(
-    client: &SimpleHttpClient,
+pub fn libraryagent_shelves_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://libraryagent.googleapis.com/v1/shelves/{}", name,);
 
@@ -188,11 +192,14 @@ pub fn libraryagent_shelves_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `libraryagent_shelves_list_execute()` to send, or `libraryagent_shelves_list` for simplest API.
 
-pub fn libraryagent_shelves_list_builder(
-    client: &SimpleHttpClient,
+pub fn libraryagent_shelves_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://libraryagent.googleapis.com/v1/shelves",);
 
@@ -368,10 +375,13 @@ pub fn libraryagent_shelves_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `libraryagent_shelves_books_borrow_execute()` to send, or `libraryagent_shelves_books_borrow` for simplest API.
 
-pub fn libraryagent_shelves_books_borrow_builder(
-    client: &SimpleHttpClient,
+pub fn libraryagent_shelves_books_borrow_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://libraryagent.googleapis.com/v1/shelves/{}/books/{booksId}:borrow",
@@ -533,10 +543,13 @@ pub fn libraryagent_shelves_books_borrow(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `libraryagent_shelves_books_get_execute()` to send, or `libraryagent_shelves_books_get` for simplest API.
 
-pub fn libraryagent_shelves_books_get_builder(
-    client: &SimpleHttpClient,
+pub fn libraryagent_shelves_books_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://libraryagent.googleapis.com/v1/shelves/{}/books/{booksId}",
@@ -698,12 +711,15 @@ pub fn libraryagent_shelves_books_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `libraryagent_shelves_books_list_execute()` to send, or `libraryagent_shelves_books_list` for simplest API.
 
-pub fn libraryagent_shelves_books_list_builder(
-    client: &SimpleHttpClient,
+pub fn libraryagent_shelves_books_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://libraryagent.googleapis.com/v1/shelves/{}/books",
@@ -889,10 +905,13 @@ pub fn libraryagent_shelves_books_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `libraryagent_shelves_books_return_execute()` to send, or `libraryagent_shelves_books_return` for simplest API.
 
-pub fn libraryagent_shelves_books_return_builder(
-    client: &SimpleHttpClient,
+pub fn libraryagent_shelves_books_return_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://libraryagent.googleapis.com/v1/shelves/{}/books/{booksId}:return",

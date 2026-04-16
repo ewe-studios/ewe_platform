@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_get_execute()` to send, or `dialogflow_projects_locations_get` for simplest API.
 
-pub fn dialogflow_projects_locations_get_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}",
@@ -191,14 +195,17 @@ pub fn dialogflow_projects_locations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_list_execute()` to send, or `dialogflow_projects_locations_list` for simplest API.
 
-pub fn dialogflow_projects_locations_list_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     extraLocationTypes: &Option<Option<String>>,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations",
@@ -395,10 +402,13 @@ pub fn dialogflow_projects_locations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_create_execute()` to send, or `dialogflow_projects_locations_agents_create` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_create_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents",
@@ -560,10 +570,13 @@ pub fn dialogflow_projects_locations_agents_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_delete_execute()` to send, or `dialogflow_projects_locations_agents_delete` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_delete_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}",
@@ -721,10 +734,13 @@ pub fn dialogflow_projects_locations_agents_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_export_execute()` to send, or `dialogflow_projects_locations_agents_export` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_export_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_export_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}:export",
@@ -886,10 +902,13 @@ pub fn dialogflow_projects_locations_agents_export(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_get_execute()` to send, or `dialogflow_projects_locations_agents_get` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_get_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}",
@@ -1051,11 +1070,14 @@ pub fn dialogflow_projects_locations_agents_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_get_generative_settings_execute()` to send, or `dialogflow_projects_locations_agents_get_generative_settings` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_get_generative_settings_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_get_generative_settings_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     languageCode: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/generativeSettings",
@@ -1235,11 +1257,14 @@ pub fn dialogflow_projects_locations_agents_get_generative_settings(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_get_validation_result_execute()` to send, or `dialogflow_projects_locations_agents_get_validation_result` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_get_validation_result_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_get_validation_result_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     languageCode: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/validationResult",
@@ -1419,12 +1444,15 @@ pub fn dialogflow_projects_locations_agents_get_validation_result(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_list_execute()` to send, or `dialogflow_projects_locations_agents_list` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_list_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents",
@@ -1610,11 +1638,14 @@ pub fn dialogflow_projects_locations_agents_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_patch_execute()` to send, or `dialogflow_projects_locations_agents_patch` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_patch_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}",
@@ -1790,10 +1821,13 @@ pub fn dialogflow_projects_locations_agents_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_restore_execute()` to send, or `dialogflow_projects_locations_agents_restore` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_restore_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_restore_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}:restore",
@@ -1955,11 +1989,14 @@ pub fn dialogflow_projects_locations_agents_restore(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_update_generative_settings_execute()` to send, or `dialogflow_projects_locations_agents_update_generative_settings` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_update_generative_settings_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_update_generative_settings_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/generativeSettings",
@@ -2139,10 +2176,13 @@ pub fn dialogflow_projects_locations_agents_update_generative_settings(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_validate_execute()` to send, or `dialogflow_projects_locations_agents_validate` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_validate_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_validate_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}:validate",
@@ -2305,10 +2345,13 @@ pub fn dialogflow_projects_locations_agents_validate(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_changelogs_get_execute()` to send, or `dialogflow_projects_locations_agents_changelogs_get` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_changelogs_get_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_changelogs_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/changelogs/{changelogsId}",
@@ -2470,13 +2513,16 @@ pub fn dialogflow_projects_locations_agents_changelogs_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_changelogs_list_execute()` to send, or `dialogflow_projects_locations_agents_changelogs_list` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_changelogs_list_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_changelogs_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/changelogs",
@@ -2668,11 +2714,14 @@ pub fn dialogflow_projects_locations_agents_changelogs_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_entity_types_create_execute()` to send, or `dialogflow_projects_locations_agents_entity_types_create` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_entity_types_create_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_entity_types_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     languageCode: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/entityTypes",
@@ -2851,11 +2900,14 @@ pub fn dialogflow_projects_locations_agents_entity_types_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_entity_types_delete_execute()` to send, or `dialogflow_projects_locations_agents_entity_types_delete` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_entity_types_delete_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_entity_types_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     force: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/entityTypes/{entityTypesId}",
@@ -3030,10 +3082,13 @@ pub fn dialogflow_projects_locations_agents_entity_types_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_entity_types_export_execute()` to send, or `dialogflow_projects_locations_agents_entity_types_export` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_entity_types_export_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_entity_types_export_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/entityTypes:export",
@@ -3196,11 +3251,14 @@ pub fn dialogflow_projects_locations_agents_entity_types_export(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_entity_types_get_execute()` to send, or `dialogflow_projects_locations_agents_entity_types_get` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_entity_types_get_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_entity_types_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     languageCode: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/entityTypes/{entityTypesId}",
@@ -3379,10 +3437,13 @@ pub fn dialogflow_projects_locations_agents_entity_types_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_entity_types_import_execute()` to send, or `dialogflow_projects_locations_agents_entity_types_import` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_entity_types_import_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_entity_types_import_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/entityTypes:import",
@@ -3545,13 +3606,16 @@ pub fn dialogflow_projects_locations_agents_entity_types_import(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_entity_types_list_execute()` to send, or `dialogflow_projects_locations_agents_entity_types_list` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_entity_types_list_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_entity_types_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     languageCode: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/entityTypes",
@@ -3743,12 +3807,15 @@ pub fn dialogflow_projects_locations_agents_entity_types_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_entity_types_patch_execute()` to send, or `dialogflow_projects_locations_agents_entity_types_patch` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_entity_types_patch_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_entity_types_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     languageCode: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/entityTypes/{entityTypesId}",
@@ -3933,10 +4000,13 @@ pub fn dialogflow_projects_locations_agents_entity_types_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_environments_create_execute()` to send, or `dialogflow_projects_locations_agents_environments_create` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_environments_create_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_environments_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/environments",
@@ -4099,10 +4169,13 @@ pub fn dialogflow_projects_locations_agents_environments_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_environments_delete_execute()` to send, or `dialogflow_projects_locations_agents_environments_delete` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_environments_delete_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_environments_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/environments/{environmentsId}",
@@ -4261,10 +4334,13 @@ pub fn dialogflow_projects_locations_agents_environments_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_environments_deploy_flow_execute()` to send, or `dialogflow_projects_locations_agents_environments_deploy_flow` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_environments_deploy_flow_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_environments_deploy_flow_builder<R>(
+    client: &SimpleHttpClient<R>,
     environment: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/environments/{environmentsId}:deployFlow",
@@ -4429,10 +4505,13 @@ pub fn dialogflow_projects_locations_agents_environments_deploy_flow(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_environments_get_execute()` to send, or `dialogflow_projects_locations_agents_environments_get` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_environments_get_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_environments_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/environments/{environmentsId}",
@@ -4595,12 +4674,15 @@ pub fn dialogflow_projects_locations_agents_environments_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_environments_list_execute()` to send, or `dialogflow_projects_locations_agents_environments_list` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_environments_list_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_environments_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/environments",
@@ -4789,12 +4871,15 @@ pub fn dialogflow_projects_locations_agents_environments_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_environments_lookup_environment_history_execute()` to send, or `dialogflow_projects_locations_agents_environments_lookup_environment_history` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_environments_lookup_environment_history_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_environments_lookup_environment_history_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/environments/{environmentsId}:lookupEnvironmentHistory",
@@ -4991,11 +5076,14 @@ pub fn dialogflow_projects_locations_agents_environments_lookup_environment_hist
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_environments_patch_execute()` to send, or `dialogflow_projects_locations_agents_environments_patch` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_environments_patch_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_environments_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/environments/{environmentsId}",
@@ -5174,10 +5262,13 @@ pub fn dialogflow_projects_locations_agents_environments_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_environments_run_continuous_test_execute()` to send, or `dialogflow_projects_locations_agents_environments_run_continuous_test` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_environments_run_continuous_test_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_environments_run_continuous_test_builder<R>(
+    client: &SimpleHttpClient<R>,
     environment: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/environments/{environmentsId}:runContinuousTest",
@@ -5342,12 +5433,15 @@ pub fn dialogflow_projects_locations_agents_environments_run_continuous_test(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_environments_continuous_test_results_list_execute()` to send, or `dialogflow_projects_locations_agents_environments_continuous_test_results_list` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_environments_continuous_test_results_list_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_environments_continuous_test_results_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/environments/{environmentsId}/continuousTestResults",
@@ -5545,10 +5639,13 @@ pub fn dialogflow_projects_locations_agents_environments_continuous_test_results
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_environments_deployments_get_execute()` to send, or `dialogflow_projects_locations_agents_environments_deployments_get` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_environments_deployments_get_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_environments_deployments_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/environments/{environmentsId}/deployments/{deploymentsId}",
@@ -5712,12 +5809,15 @@ pub fn dialogflow_projects_locations_agents_environments_deployments_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_environments_deployments_list_execute()` to send, or `dialogflow_projects_locations_agents_environments_deployments_list` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_environments_deployments_list_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_environments_deployments_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/environments/{environmentsId}/deployments",
@@ -5903,10 +6003,13 @@ pub fn dialogflow_projects_locations_agents_environments_deployments_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_environments_experiments_create_execute()` to send, or `dialogflow_projects_locations_agents_environments_experiments_create` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_environments_experiments_create_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_environments_experiments_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/environments/{environmentsId}/experiments",
@@ -6071,10 +6174,13 @@ pub fn dialogflow_projects_locations_agents_environments_experiments_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_environments_experiments_delete_execute()` to send, or `dialogflow_projects_locations_agents_environments_experiments_delete` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_environments_experiments_delete_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_environments_experiments_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/environments/{environmentsId}/experiments/{experimentsId}",
@@ -6234,10 +6340,13 @@ pub fn dialogflow_projects_locations_agents_environments_experiments_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_environments_experiments_get_execute()` to send, or `dialogflow_projects_locations_agents_environments_experiments_get` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_environments_experiments_get_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_environments_experiments_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/environments/{environmentsId}/experiments/{experimentsId}",
@@ -6401,12 +6510,15 @@ pub fn dialogflow_projects_locations_agents_environments_experiments_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_environments_experiments_list_execute()` to send, or `dialogflow_projects_locations_agents_environments_experiments_list` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_environments_experiments_list_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_environments_experiments_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/environments/{environmentsId}/experiments",
@@ -6592,11 +6704,14 @@ pub fn dialogflow_projects_locations_agents_environments_experiments_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_environments_experiments_patch_execute()` to send, or `dialogflow_projects_locations_agents_environments_experiments_patch` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_environments_experiments_patch_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_environments_experiments_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/environments/{environmentsId}/experiments/{experimentsId}",
@@ -6775,10 +6890,13 @@ pub fn dialogflow_projects_locations_agents_environments_experiments_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_environments_experiments_start_execute()` to send, or `dialogflow_projects_locations_agents_environments_experiments_start` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_environments_experiments_start_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_environments_experiments_start_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/environments/{environmentsId}/experiments/{experimentsId}:start",
@@ -6942,10 +7060,13 @@ pub fn dialogflow_projects_locations_agents_environments_experiments_start(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_environments_experiments_stop_execute()` to send, or `dialogflow_projects_locations_agents_environments_experiments_stop` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_environments_experiments_stop_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_environments_experiments_stop_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/environments/{environmentsId}/experiments/{experimentsId}:stop",
@@ -7109,10 +7230,13 @@ pub fn dialogflow_projects_locations_agents_environments_experiments_stop(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_environments_sessions_detect_intent_execute()` to send, or `dialogflow_projects_locations_agents_environments_sessions_detect_intent` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_environments_sessions_detect_intent_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_environments_sessions_detect_intent_builder<R>(
+    client: &SimpleHttpClient<R>,
     session: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/environments/{environmentsId}/sessions/{sessionsId}:detectIntent",
@@ -7279,10 +7403,13 @@ pub fn dialogflow_projects_locations_agents_environments_sessions_detect_intent(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_environments_sessions_fulfill_intent_execute()` to send, or `dialogflow_projects_locations_agents_environments_sessions_fulfill_intent` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_environments_sessions_fulfill_intent_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_environments_sessions_fulfill_intent_builder<R>(
+    client: &SimpleHttpClient<R>,
     session: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/environments/{environmentsId}/sessions/{sessionsId}:fulfillIntent",
@@ -7450,10 +7577,13 @@ pub fn dialogflow_projects_locations_agents_environments_sessions_fulfill_intent
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_environments_sessions_match_intent_execute()` to send, or `dialogflow_projects_locations_agents_environments_sessions_match_intent` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_environments_sessions_match_intent_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_environments_sessions_match_intent_builder<R>(
+    client: &SimpleHttpClient<R>,
     session: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/environments/{environmentsId}/sessions/{sessionsId}:matchIntent",
@@ -7620,10 +7750,15 @@ pub fn dialogflow_projects_locations_agents_environments_sessions_match_intent(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_environments_sessions_server_streaming_detect_intent_execute()` to send, or `dialogflow_projects_locations_agents_environments_sessions_server_streaming_detect_intent` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_environments_sessions_server_streaming_detect_intent_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_environments_sessions_server_streaming_detect_intent_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     session: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/environments/{environmentsId}/sessions/{sessionsId}:serverStreamingDetectIntent",
@@ -7786,10 +7921,13 @@ pub fn dialogflow_projects_locations_agents_environments_sessions_server_streami
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_environments_sessions_entity_types_create_execute()` to send, or `dialogflow_projects_locations_agents_environments_sessions_entity_types_create` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_environments_sessions_entity_types_create_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_environments_sessions_entity_types_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/environments/{environmentsId}/sessions/{sessionsId}/entityTypes",
@@ -7958,10 +8096,13 @@ pub fn dialogflow_projects_locations_agents_environments_sessions_entity_types_c
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_environments_sessions_entity_types_delete_execute()` to send, or `dialogflow_projects_locations_agents_environments_sessions_entity_types_delete` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_environments_sessions_entity_types_delete_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_environments_sessions_entity_types_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/environments/{environmentsId}/sessions/{sessionsId}/entityTypes/{entityTypesId}",
@@ -8124,10 +8265,13 @@ pub fn dialogflow_projects_locations_agents_environments_sessions_entity_types_d
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_environments_sessions_entity_types_get_execute()` to send, or `dialogflow_projects_locations_agents_environments_sessions_entity_types_get` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_environments_sessions_entity_types_get_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_environments_sessions_entity_types_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/environments/{environmentsId}/sessions/{sessionsId}/entityTypes/{entityTypesId}",
@@ -8294,12 +8438,15 @@ pub fn dialogflow_projects_locations_agents_environments_sessions_entity_types_g
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_environments_sessions_entity_types_list_execute()` to send, or `dialogflow_projects_locations_agents_environments_sessions_entity_types_list` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_environments_sessions_entity_types_list_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_environments_sessions_entity_types_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/environments/{environmentsId}/sessions/{sessionsId}/entityTypes",
@@ -8496,11 +8643,14 @@ pub fn dialogflow_projects_locations_agents_environments_sessions_entity_types_l
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_environments_sessions_entity_types_patch_execute()` to send, or `dialogflow_projects_locations_agents_environments_sessions_entity_types_patch` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_environments_sessions_entity_types_patch_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_environments_sessions_entity_types_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/environments/{environmentsId}/sessions/{sessionsId}/entityTypes/{entityTypesId}",
@@ -8683,11 +8833,14 @@ pub fn dialogflow_projects_locations_agents_environments_sessions_entity_types_p
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_flows_create_execute()` to send, or `dialogflow_projects_locations_agents_flows_create` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_flows_create_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_flows_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     languageCode: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/flows",
@@ -8866,11 +9019,14 @@ pub fn dialogflow_projects_locations_agents_flows_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_flows_delete_execute()` to send, or `dialogflow_projects_locations_agents_flows_delete` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_flows_delete_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_flows_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     force: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/flows/{flowsId}",
@@ -9042,10 +9198,13 @@ pub fn dialogflow_projects_locations_agents_flows_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_flows_export_execute()` to send, or `dialogflow_projects_locations_agents_flows_export` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_flows_export_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_flows_export_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/flows/{flowsId}:export",
@@ -9207,11 +9366,14 @@ pub fn dialogflow_projects_locations_agents_flows_export(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_flows_get_execute()` to send, or `dialogflow_projects_locations_agents_flows_get` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_flows_get_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_flows_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     languageCode: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/flows/{flowsId}",
@@ -9390,11 +9552,14 @@ pub fn dialogflow_projects_locations_agents_flows_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_flows_get_validation_result_execute()` to send, or `dialogflow_projects_locations_agents_flows_get_validation_result` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_flows_get_validation_result_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_flows_get_validation_result_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     languageCode: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/flows/{flowsId}/validationResult",
@@ -9574,10 +9739,13 @@ pub fn dialogflow_projects_locations_agents_flows_get_validation_result(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_flows_import_execute()` to send, or `dialogflow_projects_locations_agents_flows_import` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_flows_import_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_flows_import_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/flows:import",
@@ -9739,13 +9907,16 @@ pub fn dialogflow_projects_locations_agents_flows_import(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_flows_list_execute()` to send, or `dialogflow_projects_locations_agents_flows_list` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_flows_list_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_flows_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     languageCode: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/flows",
@@ -9937,12 +10108,15 @@ pub fn dialogflow_projects_locations_agents_flows_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_flows_patch_execute()` to send, or `dialogflow_projects_locations_agents_flows_patch` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_flows_patch_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_flows_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     languageCode: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/flows/{flowsId}",
@@ -10127,10 +10301,13 @@ pub fn dialogflow_projects_locations_agents_flows_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_flows_train_execute()` to send, or `dialogflow_projects_locations_agents_flows_train` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_flows_train_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_flows_train_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/flows/{flowsId}:train",
@@ -10292,10 +10469,13 @@ pub fn dialogflow_projects_locations_agents_flows_train(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_flows_validate_execute()` to send, or `dialogflow_projects_locations_agents_flows_validate` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_flows_validate_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_flows_validate_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/flows/{flowsId}:validate",
@@ -10458,11 +10638,14 @@ pub fn dialogflow_projects_locations_agents_flows_validate(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_flows_pages_create_execute()` to send, or `dialogflow_projects_locations_agents_flows_pages_create` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_flows_pages_create_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_flows_pages_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     languageCode: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/flows/{flowsId}/pages",
@@ -10641,11 +10824,14 @@ pub fn dialogflow_projects_locations_agents_flows_pages_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_flows_pages_delete_execute()` to send, or `dialogflow_projects_locations_agents_flows_pages_delete` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_flows_pages_delete_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_flows_pages_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     force: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/flows/{flowsId}/pages/{pagesId}",
@@ -10820,11 +11006,14 @@ pub fn dialogflow_projects_locations_agents_flows_pages_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_flows_pages_get_execute()` to send, or `dialogflow_projects_locations_agents_flows_pages_get` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_flows_pages_get_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_flows_pages_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     languageCode: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/flows/{flowsId}/pages/{pagesId}",
@@ -11003,13 +11192,16 @@ pub fn dialogflow_projects_locations_agents_flows_pages_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_flows_pages_list_execute()` to send, or `dialogflow_projects_locations_agents_flows_pages_list` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_flows_pages_list_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_flows_pages_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     languageCode: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/flows/{flowsId}/pages",
@@ -11201,12 +11393,15 @@ pub fn dialogflow_projects_locations_agents_flows_pages_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_flows_pages_patch_execute()` to send, or `dialogflow_projects_locations_agents_flows_pages_patch` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_flows_pages_patch_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_flows_pages_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     languageCode: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/flows/{flowsId}/pages/{pagesId}",
@@ -11391,11 +11586,14 @@ pub fn dialogflow_projects_locations_agents_flows_pages_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_flows_transition_route_groups_create_execute()` to send, or `dialogflow_projects_locations_agents_flows_transition_route_groups_create` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_flows_transition_route_groups_create_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_flows_transition_route_groups_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     languageCode: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/flows/{flowsId}/transitionRouteGroups",
@@ -11577,11 +11775,14 @@ pub fn dialogflow_projects_locations_agents_flows_transition_route_groups_create
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_flows_transition_route_groups_delete_execute()` to send, or `dialogflow_projects_locations_agents_flows_transition_route_groups_delete` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_flows_transition_route_groups_delete_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_flows_transition_route_groups_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     force: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/flows/{flowsId}/transitionRouteGroups/{transitionRouteGroupsId}",
@@ -11758,11 +11959,14 @@ pub fn dialogflow_projects_locations_agents_flows_transition_route_groups_delete
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_flows_transition_route_groups_get_execute()` to send, or `dialogflow_projects_locations_agents_flows_transition_route_groups_get` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_flows_transition_route_groups_get_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_flows_transition_route_groups_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     languageCode: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/flows/{flowsId}/transitionRouteGroups/{transitionRouteGroupsId}",
@@ -11943,13 +12147,16 @@ pub fn dialogflow_projects_locations_agents_flows_transition_route_groups_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_flows_transition_route_groups_list_execute()` to send, or `dialogflow_projects_locations_agents_flows_transition_route_groups_list` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_flows_transition_route_groups_list_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_flows_transition_route_groups_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     languageCode: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/flows/{flowsId}/transitionRouteGroups",
@@ -12151,12 +12358,15 @@ pub fn dialogflow_projects_locations_agents_flows_transition_route_groups_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_flows_transition_route_groups_patch_execute()` to send, or `dialogflow_projects_locations_agents_flows_transition_route_groups_patch` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_flows_transition_route_groups_patch_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_flows_transition_route_groups_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     languageCode: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/flows/{flowsId}/transitionRouteGroups/{transitionRouteGroupsId}",
@@ -12343,10 +12553,13 @@ pub fn dialogflow_projects_locations_agents_flows_transition_route_groups_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_flows_versions_compare_versions_execute()` to send, or `dialogflow_projects_locations_agents_flows_versions_compare_versions` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_flows_versions_compare_versions_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_flows_versions_compare_versions_builder<R>(
+    client: &SimpleHttpClient<R>,
     baseVersion: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/flows/{flowsId}/versions/{versionsId}:compareVersions",
@@ -12512,10 +12725,13 @@ pub fn dialogflow_projects_locations_agents_flows_versions_compare_versions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_flows_versions_create_execute()` to send, or `dialogflow_projects_locations_agents_flows_versions_create` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_flows_versions_create_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_flows_versions_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/flows/{flowsId}/versions",
@@ -12678,10 +12894,13 @@ pub fn dialogflow_projects_locations_agents_flows_versions_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_flows_versions_delete_execute()` to send, or `dialogflow_projects_locations_agents_flows_versions_delete` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_flows_versions_delete_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_flows_versions_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/flows/{flowsId}/versions/{versionsId}",
@@ -12840,10 +13059,13 @@ pub fn dialogflow_projects_locations_agents_flows_versions_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_flows_versions_get_execute()` to send, or `dialogflow_projects_locations_agents_flows_versions_get` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_flows_versions_get_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_flows_versions_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/flows/{flowsId}/versions/{versionsId}",
@@ -13006,12 +13228,15 @@ pub fn dialogflow_projects_locations_agents_flows_versions_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_flows_versions_list_execute()` to send, or `dialogflow_projects_locations_agents_flows_versions_list` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_flows_versions_list_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_flows_versions_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/flows/{flowsId}/versions",
@@ -13197,10 +13422,13 @@ pub fn dialogflow_projects_locations_agents_flows_versions_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_flows_versions_load_execute()` to send, or `dialogflow_projects_locations_agents_flows_versions_load` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_flows_versions_load_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_flows_versions_load_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/flows/{flowsId}/versions/{versionsId}:load",
@@ -13363,11 +13591,14 @@ pub fn dialogflow_projects_locations_agents_flows_versions_load(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_flows_versions_patch_execute()` to send, or `dialogflow_projects_locations_agents_flows_versions_patch` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_flows_versions_patch_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_flows_versions_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/flows/{flowsId}/versions/{versionsId}",
@@ -13546,11 +13777,14 @@ pub fn dialogflow_projects_locations_agents_flows_versions_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_generators_create_execute()` to send, or `dialogflow_projects_locations_agents_generators_create` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_generators_create_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_generators_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     languageCode: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/generators",
@@ -13729,11 +13963,14 @@ pub fn dialogflow_projects_locations_agents_generators_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_generators_delete_execute()` to send, or `dialogflow_projects_locations_agents_generators_delete` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_generators_delete_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_generators_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     force: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/generators/{generatorsId}",
@@ -13908,11 +14145,14 @@ pub fn dialogflow_projects_locations_agents_generators_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_generators_get_execute()` to send, or `dialogflow_projects_locations_agents_generators_get` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_generators_get_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_generators_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     languageCode: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/generators/{generatorsId}",
@@ -14091,13 +14331,16 @@ pub fn dialogflow_projects_locations_agents_generators_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_generators_list_execute()` to send, or `dialogflow_projects_locations_agents_generators_list` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_generators_list_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_generators_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     languageCode: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/generators",
@@ -14289,12 +14532,15 @@ pub fn dialogflow_projects_locations_agents_generators_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_generators_patch_execute()` to send, or `dialogflow_projects_locations_agents_generators_patch` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_generators_patch_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_generators_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     languageCode: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/generators/{generatorsId}",
@@ -14479,11 +14725,14 @@ pub fn dialogflow_projects_locations_agents_generators_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_intents_create_execute()` to send, or `dialogflow_projects_locations_agents_intents_create` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_intents_create_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_intents_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     languageCode: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/intents",
@@ -14662,10 +14911,13 @@ pub fn dialogflow_projects_locations_agents_intents_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_intents_delete_execute()` to send, or `dialogflow_projects_locations_agents_intents_delete` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_intents_delete_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_intents_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/intents/{intentsId}",
@@ -14823,10 +15075,13 @@ pub fn dialogflow_projects_locations_agents_intents_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_intents_export_execute()` to send, or `dialogflow_projects_locations_agents_intents_export` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_intents_export_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_intents_export_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/intents:export",
@@ -14989,11 +15244,14 @@ pub fn dialogflow_projects_locations_agents_intents_export(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_intents_get_execute()` to send, or `dialogflow_projects_locations_agents_intents_get` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_intents_get_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_intents_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     languageCode: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/intents/{intentsId}",
@@ -15172,10 +15430,13 @@ pub fn dialogflow_projects_locations_agents_intents_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_intents_import_execute()` to send, or `dialogflow_projects_locations_agents_intents_import` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_intents_import_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_intents_import_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/intents:import",
@@ -15338,14 +15599,17 @@ pub fn dialogflow_projects_locations_agents_intents_import(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_intents_list_execute()` to send, or `dialogflow_projects_locations_agents_intents_list` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_intents_list_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_intents_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     intentView: &Option<Option<String>>,
     languageCode: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/intents",
@@ -15543,12 +15807,15 @@ pub fn dialogflow_projects_locations_agents_intents_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_intents_patch_execute()` to send, or `dialogflow_projects_locations_agents_intents_patch` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_intents_patch_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_intents_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     languageCode: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/intents/{intentsId}",
@@ -15733,10 +16000,13 @@ pub fn dialogflow_projects_locations_agents_intents_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_playbooks_create_execute()` to send, or `dialogflow_projects_locations_agents_playbooks_create` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_playbooks_create_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_playbooks_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/playbooks",
@@ -15899,10 +16169,13 @@ pub fn dialogflow_projects_locations_agents_playbooks_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_playbooks_delete_execute()` to send, or `dialogflow_projects_locations_agents_playbooks_delete` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_playbooks_delete_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_playbooks_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/playbooks/{playbooksId}",
@@ -16061,10 +16334,13 @@ pub fn dialogflow_projects_locations_agents_playbooks_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_playbooks_export_execute()` to send, or `dialogflow_projects_locations_agents_playbooks_export` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_playbooks_export_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_playbooks_export_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/playbooks/{playbooksId}:export",
@@ -16227,10 +16503,13 @@ pub fn dialogflow_projects_locations_agents_playbooks_export(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_playbooks_get_execute()` to send, or `dialogflow_projects_locations_agents_playbooks_get` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_playbooks_get_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_playbooks_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/playbooks/{playbooksId}",
@@ -16392,10 +16671,13 @@ pub fn dialogflow_projects_locations_agents_playbooks_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_playbooks_import_execute()` to send, or `dialogflow_projects_locations_agents_playbooks_import` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_playbooks_import_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_playbooks_import_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/playbooks:import",
@@ -16558,12 +16840,15 @@ pub fn dialogflow_projects_locations_agents_playbooks_import(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_playbooks_list_execute()` to send, or `dialogflow_projects_locations_agents_playbooks_list` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_playbooks_list_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_playbooks_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/playbooks",
@@ -16749,11 +17034,14 @@ pub fn dialogflow_projects_locations_agents_playbooks_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_playbooks_patch_execute()` to send, or `dialogflow_projects_locations_agents_playbooks_patch` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_playbooks_patch_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_playbooks_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/playbooks/{playbooksId}",
@@ -16932,10 +17220,13 @@ pub fn dialogflow_projects_locations_agents_playbooks_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_playbooks_examples_create_execute()` to send, or `dialogflow_projects_locations_agents_playbooks_examples_create` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_playbooks_examples_create_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_playbooks_examples_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/playbooks/{playbooksId}/examples",
@@ -17100,10 +17391,13 @@ pub fn dialogflow_projects_locations_agents_playbooks_examples_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_playbooks_examples_delete_execute()` to send, or `dialogflow_projects_locations_agents_playbooks_examples_delete` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_playbooks_examples_delete_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_playbooks_examples_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/playbooks/{playbooksId}/examples/{examplesId}",
@@ -17262,10 +17556,13 @@ pub fn dialogflow_projects_locations_agents_playbooks_examples_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_playbooks_examples_get_execute()` to send, or `dialogflow_projects_locations_agents_playbooks_examples_get` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_playbooks_examples_get_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_playbooks_examples_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/playbooks/{playbooksId}/examples/{examplesId}",
@@ -17428,13 +17725,16 @@ pub fn dialogflow_projects_locations_agents_playbooks_examples_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_playbooks_examples_list_execute()` to send, or `dialogflow_projects_locations_agents_playbooks_examples_list` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_playbooks_examples_list_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_playbooks_examples_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     languageCode: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/playbooks/{playbooksId}/examples",
@@ -17626,11 +17926,14 @@ pub fn dialogflow_projects_locations_agents_playbooks_examples_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_playbooks_examples_patch_execute()` to send, or `dialogflow_projects_locations_agents_playbooks_examples_patch` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_playbooks_examples_patch_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_playbooks_examples_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/playbooks/{playbooksId}/examples/{examplesId}",
@@ -17809,10 +18112,13 @@ pub fn dialogflow_projects_locations_agents_playbooks_examples_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_playbooks_versions_create_execute()` to send, or `dialogflow_projects_locations_agents_playbooks_versions_create` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_playbooks_versions_create_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_playbooks_versions_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/playbooks/{playbooksId}/versions",
@@ -17977,10 +18283,13 @@ pub fn dialogflow_projects_locations_agents_playbooks_versions_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_playbooks_versions_delete_execute()` to send, or `dialogflow_projects_locations_agents_playbooks_versions_delete` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_playbooks_versions_delete_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_playbooks_versions_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/playbooks/{playbooksId}/versions/{versionsId}",
@@ -18139,10 +18448,13 @@ pub fn dialogflow_projects_locations_agents_playbooks_versions_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_playbooks_versions_get_execute()` to send, or `dialogflow_projects_locations_agents_playbooks_versions_get` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_playbooks_versions_get_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_playbooks_versions_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/playbooks/{playbooksId}/versions/{versionsId}",
@@ -18305,12 +18617,15 @@ pub fn dialogflow_projects_locations_agents_playbooks_versions_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_playbooks_versions_list_execute()` to send, or `dialogflow_projects_locations_agents_playbooks_versions_list` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_playbooks_versions_list_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_playbooks_versions_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/playbooks/{playbooksId}/versions",
@@ -18505,10 +18820,13 @@ pub fn dialogflow_projects_locations_agents_playbooks_versions_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_playbooks_versions_restore_execute()` to send, or `dialogflow_projects_locations_agents_playbooks_versions_restore` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_playbooks_versions_restore_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_playbooks_versions_restore_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/playbooks/{playbooksId}/versions/{versionsId}:restore",
@@ -18682,10 +19000,13 @@ pub fn dialogflow_projects_locations_agents_playbooks_versions_restore(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_sessions_detect_intent_execute()` to send, or `dialogflow_projects_locations_agents_sessions_detect_intent` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_sessions_detect_intent_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_sessions_detect_intent_builder<R>(
+    client: &SimpleHttpClient<R>,
     session: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/sessions/{sessionsId}:detectIntent",
@@ -18849,10 +19170,13 @@ pub fn dialogflow_projects_locations_agents_sessions_detect_intent(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_sessions_fulfill_intent_execute()` to send, or `dialogflow_projects_locations_agents_sessions_fulfill_intent` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_sessions_fulfill_intent_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_sessions_fulfill_intent_builder<R>(
+    client: &SimpleHttpClient<R>,
     session: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/sessions/{sessionsId}:fulfillIntent",
@@ -19018,10 +19342,13 @@ pub fn dialogflow_projects_locations_agents_sessions_fulfill_intent(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_sessions_match_intent_execute()` to send, or `dialogflow_projects_locations_agents_sessions_match_intent` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_sessions_match_intent_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_sessions_match_intent_builder<R>(
+    client: &SimpleHttpClient<R>,
     session: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/sessions/{sessionsId}:matchIntent",
@@ -19185,10 +19512,13 @@ pub fn dialogflow_projects_locations_agents_sessions_match_intent(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_sessions_server_streaming_detect_intent_execute()` to send, or `dialogflow_projects_locations_agents_sessions_server_streaming_detect_intent` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_sessions_server_streaming_detect_intent_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_sessions_server_streaming_detect_intent_builder<R>(
+    client: &SimpleHttpClient<R>,
     session: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/sessions/{sessionsId}:serverStreamingDetectIntent",
@@ -19356,10 +19686,13 @@ pub fn dialogflow_projects_locations_agents_sessions_server_streaming_detect_int
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_sessions_submit_answer_feedback_execute()` to send, or `dialogflow_projects_locations_agents_sessions_submit_answer_feedback` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_sessions_submit_answer_feedback_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_sessions_submit_answer_feedback_builder<R>(
+    client: &SimpleHttpClient<R>,
     session: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/sessions/{sessionsId}:submitAnswerFeedback",
@@ -19525,10 +19858,13 @@ pub fn dialogflow_projects_locations_agents_sessions_submit_answer_feedback(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_sessions_entity_types_create_execute()` to send, or `dialogflow_projects_locations_agents_sessions_entity_types_create` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_sessions_entity_types_create_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_sessions_entity_types_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/sessions/{sessionsId}/entityTypes",
@@ -19694,10 +20030,13 @@ pub fn dialogflow_projects_locations_agents_sessions_entity_types_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_sessions_entity_types_delete_execute()` to send, or `dialogflow_projects_locations_agents_sessions_entity_types_delete` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_sessions_entity_types_delete_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_sessions_entity_types_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/sessions/{sessionsId}/entityTypes/{entityTypesId}",
@@ -19857,10 +20196,13 @@ pub fn dialogflow_projects_locations_agents_sessions_entity_types_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_sessions_entity_types_get_execute()` to send, or `dialogflow_projects_locations_agents_sessions_entity_types_get` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_sessions_entity_types_get_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_sessions_entity_types_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/sessions/{sessionsId}/entityTypes/{entityTypesId}",
@@ -20024,12 +20366,15 @@ pub fn dialogflow_projects_locations_agents_sessions_entity_types_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_sessions_entity_types_list_execute()` to send, or `dialogflow_projects_locations_agents_sessions_entity_types_list` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_sessions_entity_types_list_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_sessions_entity_types_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/sessions/{sessionsId}/entityTypes",
@@ -20224,11 +20569,14 @@ pub fn dialogflow_projects_locations_agents_sessions_entity_types_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_sessions_entity_types_patch_execute()` to send, or `dialogflow_projects_locations_agents_sessions_entity_types_patch` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_sessions_entity_types_patch_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_sessions_entity_types_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/sessions/{sessionsId}/entityTypes/{entityTypesId}",
@@ -20408,10 +20756,13 @@ pub fn dialogflow_projects_locations_agents_sessions_entity_types_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_test_cases_batch_delete_execute()` to send, or `dialogflow_projects_locations_agents_test_cases_batch_delete` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_test_cases_batch_delete_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_test_cases_batch_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/testCases:batchDelete",
@@ -20570,10 +20921,13 @@ pub fn dialogflow_projects_locations_agents_test_cases_batch_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_test_cases_batch_run_execute()` to send, or `dialogflow_projects_locations_agents_test_cases_batch_run` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_test_cases_batch_run_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_test_cases_batch_run_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/testCases:batchRun",
@@ -20736,11 +21090,14 @@ pub fn dialogflow_projects_locations_agents_test_cases_batch_run(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_test_cases_calculate_coverage_execute()` to send, or `dialogflow_projects_locations_agents_test_cases_calculate_coverage` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_test_cases_calculate_coverage_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_test_cases_calculate_coverage_builder<R>(
+    client: &SimpleHttpClient<R>,
     agent: &String,
     type_rs: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/testCases:calculateCoverage",
@@ -20923,10 +21280,13 @@ pub fn dialogflow_projects_locations_agents_test_cases_calculate_coverage(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_test_cases_create_execute()` to send, or `dialogflow_projects_locations_agents_test_cases_create` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_test_cases_create_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_test_cases_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/testCases",
@@ -21089,10 +21449,13 @@ pub fn dialogflow_projects_locations_agents_test_cases_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_test_cases_export_execute()` to send, or `dialogflow_projects_locations_agents_test_cases_export` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_test_cases_export_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_test_cases_export_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/testCases:export",
@@ -21255,10 +21618,13 @@ pub fn dialogflow_projects_locations_agents_test_cases_export(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_test_cases_get_execute()` to send, or `dialogflow_projects_locations_agents_test_cases_get` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_test_cases_get_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_test_cases_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/testCases/{testCasesId}",
@@ -21420,10 +21786,13 @@ pub fn dialogflow_projects_locations_agents_test_cases_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_test_cases_import_execute()` to send, or `dialogflow_projects_locations_agents_test_cases_import` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_test_cases_import_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_test_cases_import_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/testCases:import",
@@ -21586,13 +21955,16 @@ pub fn dialogflow_projects_locations_agents_test_cases_import(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_test_cases_list_execute()` to send, or `dialogflow_projects_locations_agents_test_cases_list` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_test_cases_list_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_test_cases_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/testCases",
@@ -21784,11 +22156,14 @@ pub fn dialogflow_projects_locations_agents_test_cases_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_test_cases_patch_execute()` to send, or `dialogflow_projects_locations_agents_test_cases_patch` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_test_cases_patch_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_test_cases_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/testCases/{testCasesId}",
@@ -21967,10 +22342,13 @@ pub fn dialogflow_projects_locations_agents_test_cases_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_test_cases_run_execute()` to send, or `dialogflow_projects_locations_agents_test_cases_run` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_test_cases_run_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_test_cases_run_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/testCases/{testCasesId}:run",
@@ -22132,10 +22510,13 @@ pub fn dialogflow_projects_locations_agents_test_cases_run(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_test_cases_results_get_execute()` to send, or `dialogflow_projects_locations_agents_test_cases_results_get` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_test_cases_results_get_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_test_cases_results_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/testCases/{testCasesId}/results/{resultsId}",
@@ -22299,13 +22680,16 @@ pub fn dialogflow_projects_locations_agents_test_cases_results_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_test_cases_results_list_execute()` to send, or `dialogflow_projects_locations_agents_test_cases_results_list` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_test_cases_results_list_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_test_cases_results_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/testCases/{testCasesId}/results",
@@ -22500,10 +22884,13 @@ pub fn dialogflow_projects_locations_agents_test_cases_results_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_tools_create_execute()` to send, or `dialogflow_projects_locations_agents_tools_create` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_tools_create_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_tools_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/tools",
@@ -22665,11 +23052,14 @@ pub fn dialogflow_projects_locations_agents_tools_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_tools_delete_execute()` to send, or `dialogflow_projects_locations_agents_tools_delete` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_tools_delete_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_tools_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     force: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/tools/{toolsId}",
@@ -22841,10 +23231,13 @@ pub fn dialogflow_projects_locations_agents_tools_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_tools_get_execute()` to send, or `dialogflow_projects_locations_agents_tools_get` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_tools_get_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_tools_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/tools/{toolsId}",
@@ -23006,12 +23399,15 @@ pub fn dialogflow_projects_locations_agents_tools_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_tools_list_execute()` to send, or `dialogflow_projects_locations_agents_tools_list` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_tools_list_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_tools_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/tools",
@@ -23197,11 +23593,14 @@ pub fn dialogflow_projects_locations_agents_tools_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_tools_patch_execute()` to send, or `dialogflow_projects_locations_agents_tools_patch` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_tools_patch_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_tools_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/tools/{toolsId}",
@@ -23380,10 +23779,13 @@ pub fn dialogflow_projects_locations_agents_tools_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_tools_versions_create_execute()` to send, or `dialogflow_projects_locations_agents_tools_versions_create` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_tools_versions_create_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_tools_versions_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/tools/{toolsId}/versions",
@@ -23546,11 +23948,14 @@ pub fn dialogflow_projects_locations_agents_tools_versions_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_tools_versions_delete_execute()` to send, or `dialogflow_projects_locations_agents_tools_versions_delete` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_tools_versions_delete_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_tools_versions_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     force: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/tools/{toolsId}/versions/{versionsId}",
@@ -23725,10 +24130,13 @@ pub fn dialogflow_projects_locations_agents_tools_versions_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_tools_versions_get_execute()` to send, or `dialogflow_projects_locations_agents_tools_versions_get` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_tools_versions_get_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_tools_versions_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/tools/{toolsId}/versions/{versionsId}",
@@ -23891,12 +24299,15 @@ pub fn dialogflow_projects_locations_agents_tools_versions_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_tools_versions_list_execute()` to send, or `dialogflow_projects_locations_agents_tools_versions_list` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_tools_versions_list_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_tools_versions_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/tools/{toolsId}/versions",
@@ -24085,10 +24496,13 @@ pub fn dialogflow_projects_locations_agents_tools_versions_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_tools_versions_restore_execute()` to send, or `dialogflow_projects_locations_agents_tools_versions_restore` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_tools_versions_restore_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_tools_versions_restore_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/tools/{toolsId}/versions/{versionsId}:restore",
@@ -24255,11 +24669,14 @@ pub fn dialogflow_projects_locations_agents_tools_versions_restore(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_transition_route_groups_create_execute()` to send, or `dialogflow_projects_locations_agents_transition_route_groups_create` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_transition_route_groups_create_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_transition_route_groups_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     languageCode: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/transitionRouteGroups",
@@ -24439,11 +24856,14 @@ pub fn dialogflow_projects_locations_agents_transition_route_groups_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_transition_route_groups_delete_execute()` to send, or `dialogflow_projects_locations_agents_transition_route_groups_delete` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_transition_route_groups_delete_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_transition_route_groups_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     force: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/transitionRouteGroups/{transitionRouteGroupsId}",
@@ -24618,11 +25038,14 @@ pub fn dialogflow_projects_locations_agents_transition_route_groups_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_transition_route_groups_get_execute()` to send, or `dialogflow_projects_locations_agents_transition_route_groups_get` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_transition_route_groups_get_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_transition_route_groups_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     languageCode: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/transitionRouteGroups/{transitionRouteGroupsId}",
@@ -24802,13 +25225,16 @@ pub fn dialogflow_projects_locations_agents_transition_route_groups_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_transition_route_groups_list_execute()` to send, or `dialogflow_projects_locations_agents_transition_route_groups_list` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_transition_route_groups_list_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_transition_route_groups_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     languageCode: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/transitionRouteGroups",
@@ -25009,12 +25435,15 @@ pub fn dialogflow_projects_locations_agents_transition_route_groups_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_transition_route_groups_patch_execute()` to send, or `dialogflow_projects_locations_agents_transition_route_groups_patch` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_transition_route_groups_patch_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_transition_route_groups_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     languageCode: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/transitionRouteGroups/{transitionRouteGroupsId}",
@@ -25200,10 +25629,13 @@ pub fn dialogflow_projects_locations_agents_transition_route_groups_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_webhooks_create_execute()` to send, or `dialogflow_projects_locations_agents_webhooks_create` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_webhooks_create_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_webhooks_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/webhooks",
@@ -25366,11 +25798,14 @@ pub fn dialogflow_projects_locations_agents_webhooks_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_webhooks_delete_execute()` to send, or `dialogflow_projects_locations_agents_webhooks_delete` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_webhooks_delete_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_webhooks_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     force: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/webhooks/{webhooksId}",
@@ -25545,10 +25980,13 @@ pub fn dialogflow_projects_locations_agents_webhooks_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_webhooks_get_execute()` to send, or `dialogflow_projects_locations_agents_webhooks_get` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_webhooks_get_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_webhooks_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/webhooks/{webhooksId}",
@@ -25710,12 +26148,15 @@ pub fn dialogflow_projects_locations_agents_webhooks_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_webhooks_list_execute()` to send, or `dialogflow_projects_locations_agents_webhooks_list` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_webhooks_list_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_webhooks_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/webhooks",
@@ -25901,11 +26342,14 @@ pub fn dialogflow_projects_locations_agents_webhooks_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_agents_webhooks_patch_execute()` to send, or `dialogflow_projects_locations_agents_webhooks_patch` for simplest API.
 
-pub fn dialogflow_projects_locations_agents_webhooks_patch_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_agents_webhooks_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/agents/{agentsId}/webhooks/{webhooksId}",
@@ -26084,10 +26528,13 @@ pub fn dialogflow_projects_locations_agents_webhooks_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_operations_cancel_execute()` to send, or `dialogflow_projects_locations_operations_cancel` for simplest API.
 
-pub fn dialogflow_projects_locations_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/operations/{operationsId}:cancel",
@@ -26245,10 +26692,13 @@ pub fn dialogflow_projects_locations_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_operations_get_execute()` to send, or `dialogflow_projects_locations_operations_get` for simplest API.
 
-pub fn dialogflow_projects_locations_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -26410,14 +26860,17 @@ pub fn dialogflow_projects_locations_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_operations_list_execute()` to send, or `dialogflow_projects_locations_operations_list` for simplest API.
 
-pub fn dialogflow_projects_locations_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/operations",
@@ -26615,10 +27068,13 @@ pub fn dialogflow_projects_locations_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_security_settings_create_execute()` to send, or `dialogflow_projects_locations_security_settings_create` for simplest API.
 
-pub fn dialogflow_projects_locations_security_settings_create_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_security_settings_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/securitySettings",
@@ -26781,10 +27237,13 @@ pub fn dialogflow_projects_locations_security_settings_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_security_settings_delete_execute()` to send, or `dialogflow_projects_locations_security_settings_delete` for simplest API.
 
-pub fn dialogflow_projects_locations_security_settings_delete_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_security_settings_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/securitySettings/{securitySettingsId}",
@@ -26943,10 +27402,13 @@ pub fn dialogflow_projects_locations_security_settings_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_security_settings_get_execute()` to send, or `dialogflow_projects_locations_security_settings_get` for simplest API.
 
-pub fn dialogflow_projects_locations_security_settings_get_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_security_settings_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/securitySettings/{securitySettingsId}",
@@ -27108,12 +27570,15 @@ pub fn dialogflow_projects_locations_security_settings_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_security_settings_list_execute()` to send, or `dialogflow_projects_locations_security_settings_list` for simplest API.
 
-pub fn dialogflow_projects_locations_security_settings_list_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_security_settings_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/securitySettings",
@@ -27308,11 +27773,14 @@ pub fn dialogflow_projects_locations_security_settings_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_locations_security_settings_patch_execute()` to send, or `dialogflow_projects_locations_security_settings_patch` for simplest API.
 
-pub fn dialogflow_projects_locations_security_settings_patch_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_locations_security_settings_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/locations/{locationsId}/securitySettings/{securitySettingsId}",
@@ -27491,10 +27959,13 @@ pub fn dialogflow_projects_locations_security_settings_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_operations_cancel_execute()` to send, or `dialogflow_projects_operations_cancel` for simplest API.
 
-pub fn dialogflow_projects_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/operations/{operationsId}:cancel",
@@ -27652,10 +28123,13 @@ pub fn dialogflow_projects_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_operations_get_execute()` to send, or `dialogflow_projects_operations_get` for simplest API.
 
-pub fn dialogflow_projects_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/operations/{operationsId}",
@@ -27817,14 +28291,17 @@ pub fn dialogflow_projects_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dialogflow_projects_operations_list_execute()` to send, or `dialogflow_projects_operations_list` for simplest API.
 
-pub fn dialogflow_projects_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn dialogflow_projects_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dialogflow.googleapis.com/v3/projects/{}/operations",

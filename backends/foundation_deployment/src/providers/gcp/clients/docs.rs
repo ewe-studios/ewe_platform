@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `docs_documents_batch_update_execute()` to send, or `docs_documents_batch_update` for simplest API.
 
-pub fn docs_documents_batch_update_builder(
-    client: &SimpleHttpClient,
+pub fn docs_documents_batch_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     documentId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://docs.googleapis.com/v1/documents/{}:batchUpdate",
@@ -191,9 +195,12 @@ pub fn docs_documents_batch_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `docs_documents_create_execute()` to send, or `docs_documents_create` for simplest API.
 
-pub fn docs_documents_create_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn docs_documents_create_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://docs.googleapis.com/v1/documents",);
 
@@ -336,12 +343,15 @@ pub fn docs_documents_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `docs_documents_get_execute()` to send, or `docs_documents_get` for simplest API.
 
-pub fn docs_documents_get_builder(
-    client: &SimpleHttpClient,
+pub fn docs_documents_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     documentId: &String,
     includeTabsContent: &Option<Option<String>>,
     suggestionsViewMode: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://docs.googleapis.com/v1/documents/{}", documentId,);
 

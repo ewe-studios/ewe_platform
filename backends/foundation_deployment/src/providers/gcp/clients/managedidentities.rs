@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedidentities_projects_locations_get_execute()` to send, or `managedidentities_projects_locations_get` for simplest API.
 
-pub fn managedidentities_projects_locations_get_builder(
-    client: &SimpleHttpClient,
+pub fn managedidentities_projects_locations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedidentities.googleapis.com/v1/projects/{}/locations/{locationsId}",
@@ -183,14 +187,17 @@ pub fn managedidentities_projects_locations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedidentities_projects_locations_list_execute()` to send, or `managedidentities_projects_locations_list` for simplest API.
 
-pub fn managedidentities_projects_locations_list_builder(
-    client: &SimpleHttpClient,
+pub fn managedidentities_projects_locations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     extraLocationTypes: &Option<Option<String>>,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedidentities.googleapis.com/v1/projects/{}/locations",
@@ -383,10 +390,13 @@ pub fn managedidentities_projects_locations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedidentities_projects_locations_global_domains_attach_trust_execute()` to send, or `managedidentities_projects_locations_global_domains_attach_trust` for simplest API.
 
-pub fn managedidentities_projects_locations_global_domains_attach_trust_builder(
-    client: &SimpleHttpClient,
+pub fn managedidentities_projects_locations_global_domains_attach_trust_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedidentities.googleapis.com/v1/projects/{}/locations/global/domains/{domainsId}:attachTrust",
@@ -542,10 +552,13 @@ pub fn managedidentities_projects_locations_global_domains_attach_trust(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedidentities_projects_locations_global_domains_check_migration_permission_execute()` to send, or `managedidentities_projects_locations_global_domains_check_migration_permission` for simplest API.
 
-pub fn managedidentities_projects_locations_global_domains_check_migration_permission_builder(
-    client: &SimpleHttpClient,
+pub fn managedidentities_projects_locations_global_domains_check_migration_permission_builder<R>(
+    client: &SimpleHttpClient<R>,
     domain: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedidentities.googleapis.com/v1/projects/{}/locations/global/domains/{domainsId}:checkMigrationPermission",
@@ -713,11 +726,14 @@ pub fn managedidentities_projects_locations_global_domains_check_migration_permi
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedidentities_projects_locations_global_domains_create_execute()` to send, or `managedidentities_projects_locations_global_domains_create` for simplest API.
 
-pub fn managedidentities_projects_locations_global_domains_create_builder(
-    client: &SimpleHttpClient,
+pub fn managedidentities_projects_locations_global_domains_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     domainName: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedidentities.googleapis.com/v1/projects/{}/locations/global/domains",
@@ -888,10 +904,13 @@ pub fn managedidentities_projects_locations_global_domains_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedidentities_projects_locations_global_domains_delete_execute()` to send, or `managedidentities_projects_locations_global_domains_delete` for simplest API.
 
-pub fn managedidentities_projects_locations_global_domains_delete_builder(
-    client: &SimpleHttpClient,
+pub fn managedidentities_projects_locations_global_domains_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedidentities.googleapis.com/v1/projects/{}/locations/global/domains/{domainsId}",
@@ -1046,10 +1065,13 @@ pub fn managedidentities_projects_locations_global_domains_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedidentities_projects_locations_global_domains_detach_trust_execute()` to send, or `managedidentities_projects_locations_global_domains_detach_trust` for simplest API.
 
-pub fn managedidentities_projects_locations_global_domains_detach_trust_builder(
-    client: &SimpleHttpClient,
+pub fn managedidentities_projects_locations_global_domains_detach_trust_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedidentities.googleapis.com/v1/projects/{}/locations/global/domains/{domainsId}:detachTrust",
@@ -1205,10 +1227,13 @@ pub fn managedidentities_projects_locations_global_domains_detach_trust(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedidentities_projects_locations_global_domains_disable_migration_execute()` to send, or `managedidentities_projects_locations_global_domains_disable_migration` for simplest API.
 
-pub fn managedidentities_projects_locations_global_domains_disable_migration_builder(
-    client: &SimpleHttpClient,
+pub fn managedidentities_projects_locations_global_domains_disable_migration_builder<R>(
+    client: &SimpleHttpClient<R>,
     domain: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedidentities.googleapis.com/v1/projects/{}/locations/global/domains/{domainsId}:disableMigration",
@@ -1365,10 +1390,13 @@ pub fn managedidentities_projects_locations_global_domains_disable_migration(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedidentities_projects_locations_global_domains_domain_join_machine_execute()` to send, or `managedidentities_projects_locations_global_domains_domain_join_machine` for simplest API.
 
-pub fn managedidentities_projects_locations_global_domains_domain_join_machine_builder(
-    client: &SimpleHttpClient,
+pub fn managedidentities_projects_locations_global_domains_domain_join_machine_builder<R>(
+    client: &SimpleHttpClient<R>,
     domain: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedidentities.googleapis.com/v1/projects/{}/locations/global/domains/{domainsId}:domainJoinMachine",
@@ -1530,10 +1558,13 @@ pub fn managedidentities_projects_locations_global_domains_domain_join_machine(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedidentities_projects_locations_global_domains_enable_migration_execute()` to send, or `managedidentities_projects_locations_global_domains_enable_migration` for simplest API.
 
-pub fn managedidentities_projects_locations_global_domains_enable_migration_builder(
-    client: &SimpleHttpClient,
+pub fn managedidentities_projects_locations_global_domains_enable_migration_builder<R>(
+    client: &SimpleHttpClient<R>,
     domain: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedidentities.googleapis.com/v1/projects/{}/locations/global/domains/{domainsId}:enableMigration",
@@ -1690,10 +1721,13 @@ pub fn managedidentities_projects_locations_global_domains_enable_migration(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedidentities_projects_locations_global_domains_extend_schema_execute()` to send, or `managedidentities_projects_locations_global_domains_extend_schema` for simplest API.
 
-pub fn managedidentities_projects_locations_global_domains_extend_schema_builder(
-    client: &SimpleHttpClient,
+pub fn managedidentities_projects_locations_global_domains_extend_schema_builder<R>(
+    client: &SimpleHttpClient<R>,
     domain: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedidentities.googleapis.com/v1/projects/{}/locations/global/domains/{domainsId}:extendSchema",
@@ -1850,10 +1884,13 @@ pub fn managedidentities_projects_locations_global_domains_extend_schema(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedidentities_projects_locations_global_domains_get_execute()` to send, or `managedidentities_projects_locations_global_domains_get` for simplest API.
 
-pub fn managedidentities_projects_locations_global_domains_get_builder(
-    client: &SimpleHttpClient,
+pub fn managedidentities_projects_locations_global_domains_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedidentities.googleapis.com/v1/projects/{}/locations/global/domains/{domainsId}",
@@ -2008,11 +2045,14 @@ pub fn managedidentities_projects_locations_global_domains_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedidentities_projects_locations_global_domains_get_iam_policy_execute()` to send, or `managedidentities_projects_locations_global_domains_get_iam_policy` for simplest API.
 
-pub fn managedidentities_projects_locations_global_domains_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn managedidentities_projects_locations_global_domains_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedidentities.googleapis.com/v1/projects/{}/locations/global/domains/{domainsId}:getIamPolicy",
@@ -2183,10 +2223,13 @@ pub fn managedidentities_projects_locations_global_domains_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedidentities_projects_locations_global_domains_get_ldapssettings_execute()` to send, or `managedidentities_projects_locations_global_domains_get_ldapssettings` for simplest API.
 
-pub fn managedidentities_projects_locations_global_domains_get_ldapssettings_builder(
-    client: &SimpleHttpClient,
+pub fn managedidentities_projects_locations_global_domains_get_ldapssettings_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedidentities.googleapis.com/v1/projects/{}/locations/global/domains/{domainsId}/ldapssettings",
@@ -2346,14 +2389,17 @@ pub fn managedidentities_projects_locations_global_domains_get_ldapssettings(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedidentities_projects_locations_global_domains_list_execute()` to send, or `managedidentities_projects_locations_global_domains_list` for simplest API.
 
-pub fn managedidentities_projects_locations_global_domains_list_builder(
-    client: &SimpleHttpClient,
+pub fn managedidentities_projects_locations_global_domains_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedidentities.googleapis.com/v1/projects/{}/locations/global/domains",
@@ -2546,11 +2592,14 @@ pub fn managedidentities_projects_locations_global_domains_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedidentities_projects_locations_global_domains_patch_execute()` to send, or `managedidentities_projects_locations_global_domains_patch` for simplest API.
 
-pub fn managedidentities_projects_locations_global_domains_patch_builder(
-    client: &SimpleHttpClient,
+pub fn managedidentities_projects_locations_global_domains_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedidentities.googleapis.com/v1/projects/{}/locations/global/domains/{domainsId}",
@@ -2721,10 +2770,13 @@ pub fn managedidentities_projects_locations_global_domains_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedidentities_projects_locations_global_domains_reconfigure_trust_execute()` to send, or `managedidentities_projects_locations_global_domains_reconfigure_trust` for simplest API.
 
-pub fn managedidentities_projects_locations_global_domains_reconfigure_trust_builder(
-    client: &SimpleHttpClient,
+pub fn managedidentities_projects_locations_global_domains_reconfigure_trust_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedidentities.googleapis.com/v1/projects/{}/locations/global/domains/{domainsId}:reconfigureTrust",
@@ -2880,10 +2932,13 @@ pub fn managedidentities_projects_locations_global_domains_reconfigure_trust(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedidentities_projects_locations_global_domains_reset_admin_password_execute()` to send, or `managedidentities_projects_locations_global_domains_reset_admin_password` for simplest API.
 
-pub fn managedidentities_projects_locations_global_domains_reset_admin_password_builder(
-    client: &SimpleHttpClient,
+pub fn managedidentities_projects_locations_global_domains_reset_admin_password_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedidentities.googleapis.com/v1/projects/{}/locations/global/domains/{domainsId}:resetAdminPassword",
@@ -3048,10 +3103,13 @@ pub fn managedidentities_projects_locations_global_domains_reset_admin_password(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedidentities_projects_locations_global_domains_restore_execute()` to send, or `managedidentities_projects_locations_global_domains_restore` for simplest API.
 
-pub fn managedidentities_projects_locations_global_domains_restore_builder(
-    client: &SimpleHttpClient,
+pub fn managedidentities_projects_locations_global_domains_restore_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedidentities.googleapis.com/v1/projects/{}/locations/global/domains/{domainsId}:restore",
@@ -3206,10 +3264,13 @@ pub fn managedidentities_projects_locations_global_domains_restore(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedidentities_projects_locations_global_domains_set_iam_policy_execute()` to send, or `managedidentities_projects_locations_global_domains_set_iam_policy` for simplest API.
 
-pub fn managedidentities_projects_locations_global_domains_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn managedidentities_projects_locations_global_domains_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedidentities.googleapis.com/v1/projects/{}/locations/global/domains/{domainsId}:setIamPolicy",
@@ -3366,10 +3427,13 @@ pub fn managedidentities_projects_locations_global_domains_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedidentities_projects_locations_global_domains_test_iam_permissions_execute()` to send, or `managedidentities_projects_locations_global_domains_test_iam_permissions` for simplest API.
 
-pub fn managedidentities_projects_locations_global_domains_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn managedidentities_projects_locations_global_domains_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedidentities.googleapis.com/v1/projects/{}/locations/global/domains/{domainsId}:testIamPermissions",
@@ -3535,11 +3599,14 @@ pub fn managedidentities_projects_locations_global_domains_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedidentities_projects_locations_global_domains_update_ldapssettings_execute()` to send, or `managedidentities_projects_locations_global_domains_update_ldapssettings` for simplest API.
 
-pub fn managedidentities_projects_locations_global_domains_update_ldapssettings_builder(
-    client: &SimpleHttpClient,
+pub fn managedidentities_projects_locations_global_domains_update_ldapssettings_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedidentities.googleapis.com/v1/projects/{}/locations/global/domains/{domainsId}/ldapssettings",
@@ -3711,10 +3778,13 @@ pub fn managedidentities_projects_locations_global_domains_update_ldapssettings(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedidentities_projects_locations_global_domains_validate_trust_execute()` to send, or `managedidentities_projects_locations_global_domains_validate_trust` for simplest API.
 
-pub fn managedidentities_projects_locations_global_domains_validate_trust_builder(
-    client: &SimpleHttpClient,
+pub fn managedidentities_projects_locations_global_domains_validate_trust_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedidentities.googleapis.com/v1/projects/{}/locations/global/domains/{domainsId}:validateTrust",
@@ -3870,11 +3940,14 @@ pub fn managedidentities_projects_locations_global_domains_validate_trust(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedidentities_projects_locations_global_domains_backups_create_execute()` to send, or `managedidentities_projects_locations_global_domains_backups_create` for simplest API.
 
-pub fn managedidentities_projects_locations_global_domains_backups_create_builder(
-    client: &SimpleHttpClient,
+pub fn managedidentities_projects_locations_global_domains_backups_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     backupId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedidentities.googleapis.com/v1/projects/{}/locations/global/domains/{domainsId}/backups",
@@ -4045,10 +4118,13 @@ pub fn managedidentities_projects_locations_global_domains_backups_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedidentities_projects_locations_global_domains_backups_delete_execute()` to send, or `managedidentities_projects_locations_global_domains_backups_delete` for simplest API.
 
-pub fn managedidentities_projects_locations_global_domains_backups_delete_builder(
-    client: &SimpleHttpClient,
+pub fn managedidentities_projects_locations_global_domains_backups_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedidentities.googleapis.com/v1/projects/{}/locations/global/domains/{domainsId}/backups/{backupsId}",
@@ -4204,10 +4280,13 @@ pub fn managedidentities_projects_locations_global_domains_backups_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedidentities_projects_locations_global_domains_backups_get_execute()` to send, or `managedidentities_projects_locations_global_domains_backups_get` for simplest API.
 
-pub fn managedidentities_projects_locations_global_domains_backups_get_builder(
-    client: &SimpleHttpClient,
+pub fn managedidentities_projects_locations_global_domains_backups_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedidentities.googleapis.com/v1/projects/{}/locations/global/domains/{domainsId}/backups/{backupsId}",
@@ -4363,11 +4442,14 @@ pub fn managedidentities_projects_locations_global_domains_backups_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedidentities_projects_locations_global_domains_backups_get_iam_policy_execute()` to send, or `managedidentities_projects_locations_global_domains_backups_get_iam_policy` for simplest API.
 
-pub fn managedidentities_projects_locations_global_domains_backups_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn managedidentities_projects_locations_global_domains_backups_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedidentities.googleapis.com/v1/projects/{}/locations/global/domains/{domainsId}/backups/{backupsId}:getIamPolicy",
@@ -4540,14 +4622,17 @@ pub fn managedidentities_projects_locations_global_domains_backups_get_iam_polic
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedidentities_projects_locations_global_domains_backups_list_execute()` to send, or `managedidentities_projects_locations_global_domains_backups_list` for simplest API.
 
-pub fn managedidentities_projects_locations_global_domains_backups_list_builder(
-    client: &SimpleHttpClient,
+pub fn managedidentities_projects_locations_global_domains_backups_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedidentities.googleapis.com/v1/projects/{}/locations/global/domains/{domainsId}/backups",
@@ -4740,11 +4825,14 @@ pub fn managedidentities_projects_locations_global_domains_backups_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedidentities_projects_locations_global_domains_backups_patch_execute()` to send, or `managedidentities_projects_locations_global_domains_backups_patch` for simplest API.
 
-pub fn managedidentities_projects_locations_global_domains_backups_patch_builder(
-    client: &SimpleHttpClient,
+pub fn managedidentities_projects_locations_global_domains_backups_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedidentities.googleapis.com/v1/projects/{}/locations/global/domains/{domainsId}/backups/{backupsId}",
@@ -4915,10 +5003,13 @@ pub fn managedidentities_projects_locations_global_domains_backups_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedidentities_projects_locations_global_domains_backups_set_iam_policy_execute()` to send, or `managedidentities_projects_locations_global_domains_backups_set_iam_policy` for simplest API.
 
-pub fn managedidentities_projects_locations_global_domains_backups_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn managedidentities_projects_locations_global_domains_backups_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedidentities.googleapis.com/v1/projects/{}/locations/global/domains/{domainsId}/backups/{backupsId}:setIamPolicy",
@@ -5077,10 +5168,13 @@ pub fn managedidentities_projects_locations_global_domains_backups_set_iam_polic
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedidentities_projects_locations_global_domains_backups_test_iam_permissions_execute()` to send, or `managedidentities_projects_locations_global_domains_backups_test_iam_permissions` for simplest API.
 
-pub fn managedidentities_projects_locations_global_domains_backups_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn managedidentities_projects_locations_global_domains_backups_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedidentities.googleapis.com/v1/projects/{}/locations/global/domains/{domainsId}/backups/{backupsId}:testIamPermissions",
@@ -5251,10 +5345,13 @@ pub fn managedidentities_projects_locations_global_domains_backups_test_iam_perm
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedidentities_projects_locations_global_domains_sql_integrations_get_execute()` to send, or `managedidentities_projects_locations_global_domains_sql_integrations_get` for simplest API.
 
-pub fn managedidentities_projects_locations_global_domains_sql_integrations_get_builder(
-    client: &SimpleHttpClient,
+pub fn managedidentities_projects_locations_global_domains_sql_integrations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedidentities.googleapis.com/v1/projects/{}/locations/global/domains/{domainsId}/sqlIntegrations/{sqlIntegrationsId}",
@@ -5415,14 +5512,17 @@ pub fn managedidentities_projects_locations_global_domains_sql_integrations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedidentities_projects_locations_global_domains_sql_integrations_list_execute()` to send, or `managedidentities_projects_locations_global_domains_sql_integrations_list` for simplest API.
 
-pub fn managedidentities_projects_locations_global_domains_sql_integrations_list_builder(
-    client: &SimpleHttpClient,
+pub fn managedidentities_projects_locations_global_domains_sql_integrations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedidentities.googleapis.com/v1/projects/{}/locations/global/domains/{domainsId}/sqlIntegrations",
@@ -5621,10 +5721,13 @@ pub fn managedidentities_projects_locations_global_domains_sql_integrations_list
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedidentities_projects_locations_global_operations_cancel_execute()` to send, or `managedidentities_projects_locations_global_operations_cancel` for simplest API.
 
-pub fn managedidentities_projects_locations_global_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn managedidentities_projects_locations_global_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedidentities.googleapis.com/v1/projects/{}/locations/global/operations/{operationsId}:cancel",
@@ -5779,10 +5882,13 @@ pub fn managedidentities_projects_locations_global_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedidentities_projects_locations_global_operations_delete_execute()` to send, or `managedidentities_projects_locations_global_operations_delete` for simplest API.
 
-pub fn managedidentities_projects_locations_global_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn managedidentities_projects_locations_global_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedidentities.googleapis.com/v1/projects/{}/locations/global/operations/{operationsId}",
@@ -5937,10 +6043,13 @@ pub fn managedidentities_projects_locations_global_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedidentities_projects_locations_global_operations_get_execute()` to send, or `managedidentities_projects_locations_global_operations_get` for simplest API.
 
-pub fn managedidentities_projects_locations_global_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn managedidentities_projects_locations_global_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedidentities.googleapis.com/v1/projects/{}/locations/global/operations/{operationsId}",
@@ -6095,14 +6204,17 @@ pub fn managedidentities_projects_locations_global_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedidentities_projects_locations_global_operations_list_execute()` to send, or `managedidentities_projects_locations_global_operations_list` for simplest API.
 
-pub fn managedidentities_projects_locations_global_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn managedidentities_projects_locations_global_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedidentities.googleapis.com/v1/projects/{}/locations/global/operations",
@@ -6295,11 +6407,14 @@ pub fn managedidentities_projects_locations_global_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedidentities_projects_locations_global_peerings_create_execute()` to send, or `managedidentities_projects_locations_global_peerings_create` for simplest API.
 
-pub fn managedidentities_projects_locations_global_peerings_create_builder(
-    client: &SimpleHttpClient,
+pub fn managedidentities_projects_locations_global_peerings_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     peeringId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedidentities.googleapis.com/v1/projects/{}/locations/global/peerings",
@@ -6470,10 +6585,13 @@ pub fn managedidentities_projects_locations_global_peerings_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedidentities_projects_locations_global_peerings_delete_execute()` to send, or `managedidentities_projects_locations_global_peerings_delete` for simplest API.
 
-pub fn managedidentities_projects_locations_global_peerings_delete_builder(
-    client: &SimpleHttpClient,
+pub fn managedidentities_projects_locations_global_peerings_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedidentities.googleapis.com/v1/projects/{}/locations/global/peerings/{peeringsId}",
@@ -6628,10 +6746,13 @@ pub fn managedidentities_projects_locations_global_peerings_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedidentities_projects_locations_global_peerings_get_execute()` to send, or `managedidentities_projects_locations_global_peerings_get` for simplest API.
 
-pub fn managedidentities_projects_locations_global_peerings_get_builder(
-    client: &SimpleHttpClient,
+pub fn managedidentities_projects_locations_global_peerings_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedidentities.googleapis.com/v1/projects/{}/locations/global/peerings/{peeringsId}",
@@ -6786,11 +6907,14 @@ pub fn managedidentities_projects_locations_global_peerings_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedidentities_projects_locations_global_peerings_get_iam_policy_execute()` to send, or `managedidentities_projects_locations_global_peerings_get_iam_policy` for simplest API.
 
-pub fn managedidentities_projects_locations_global_peerings_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn managedidentities_projects_locations_global_peerings_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedidentities.googleapis.com/v1/projects/{}/locations/global/peerings/{peeringsId}:getIamPolicy",
@@ -6961,14 +7085,17 @@ pub fn managedidentities_projects_locations_global_peerings_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedidentities_projects_locations_global_peerings_list_execute()` to send, or `managedidentities_projects_locations_global_peerings_list` for simplest API.
 
-pub fn managedidentities_projects_locations_global_peerings_list_builder(
-    client: &SimpleHttpClient,
+pub fn managedidentities_projects_locations_global_peerings_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedidentities.googleapis.com/v1/projects/{}/locations/global/peerings",
@@ -7161,11 +7288,14 @@ pub fn managedidentities_projects_locations_global_peerings_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedidentities_projects_locations_global_peerings_patch_execute()` to send, or `managedidentities_projects_locations_global_peerings_patch` for simplest API.
 
-pub fn managedidentities_projects_locations_global_peerings_patch_builder(
-    client: &SimpleHttpClient,
+pub fn managedidentities_projects_locations_global_peerings_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedidentities.googleapis.com/v1/projects/{}/locations/global/peerings/{peeringsId}",
@@ -7336,10 +7466,13 @@ pub fn managedidentities_projects_locations_global_peerings_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedidentities_projects_locations_global_peerings_set_iam_policy_execute()` to send, or `managedidentities_projects_locations_global_peerings_set_iam_policy` for simplest API.
 
-pub fn managedidentities_projects_locations_global_peerings_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn managedidentities_projects_locations_global_peerings_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedidentities.googleapis.com/v1/projects/{}/locations/global/peerings/{peeringsId}:setIamPolicy",
@@ -7496,10 +7629,13 @@ pub fn managedidentities_projects_locations_global_peerings_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `managedidentities_projects_locations_global_peerings_test_iam_permissions_execute()` to send, or `managedidentities_projects_locations_global_peerings_test_iam_permissions` for simplest API.
 
-pub fn managedidentities_projects_locations_global_peerings_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn managedidentities_projects_locations_global_peerings_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://managedidentities.googleapis.com/v1/projects/{}/locations/global/peerings/{peeringsId}:testIamPermissions",

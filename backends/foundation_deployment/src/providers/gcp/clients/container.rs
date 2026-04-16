@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,13 +27,16 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `container_projects_aggregated_usable_subnetworks_list_execute()` to send, or `container_projects_aggregated_usable_subnetworks_list` for simplest API.
 
-pub fn container_projects_aggregated_usable_subnetworks_list_builder(
-    client: &SimpleHttpClient,
+pub fn container_projects_aggregated_usable_subnetworks_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://container.googleapis.com/v1/projects/{}/aggregated/usableSubnetworks",
@@ -223,12 +227,15 @@ pub fn container_projects_aggregated_usable_subnetworks_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `container_projects_locations_get_server_config_execute()` to send, or `container_projects_locations_get_server_config` for simplest API.
 
-pub fn container_projects_locations_get_server_config_builder(
-    client: &SimpleHttpClient,
+pub fn container_projects_locations_get_server_config_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     projectId: &Option<Option<String>>,
     zone: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://container.googleapis.com/v1/projects/{}/locations/{locationsId}/serverConfig",
@@ -409,10 +416,13 @@ pub fn container_projects_locations_get_server_config(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `container_projects_locations_clusters_check_autopilot_compatibility_execute()` to send, or `container_projects_locations_clusters_check_autopilot_compatibility` for simplest API.
 
-pub fn container_projects_locations_clusters_check_autopilot_compatibility_builder(
-    client: &SimpleHttpClient,
+pub fn container_projects_locations_clusters_check_autopilot_compatibility_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://container.googleapis.com/v1/projects/{}/locations/{locationsId}/clusters/{clustersId}:checkAutopilotCompatibility",
@@ -576,10 +586,13 @@ pub fn container_projects_locations_clusters_check_autopilot_compatibility(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `container_projects_locations_clusters_complete_ip_rotation_execute()` to send, or `container_projects_locations_clusters_complete_ip_rotation` for simplest API.
 
-pub fn container_projects_locations_clusters_complete_ip_rotation_builder(
-    client: &SimpleHttpClient,
+pub fn container_projects_locations_clusters_complete_ip_rotation_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://container.googleapis.com/v1/projects/{}/locations/{locationsId}/clusters/{clustersId}:completeIpRotation",
@@ -734,10 +747,13 @@ pub fn container_projects_locations_clusters_complete_ip_rotation(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `container_projects_locations_clusters_create_execute()` to send, or `container_projects_locations_clusters_create` for simplest API.
 
-pub fn container_projects_locations_clusters_create_builder(
-    client: &SimpleHttpClient,
+pub fn container_projects_locations_clusters_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://container.googleapis.com/v1/projects/{}/locations/{locationsId}/clusters",
@@ -891,13 +907,16 @@ pub fn container_projects_locations_clusters_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `container_projects_locations_clusters_delete_execute()` to send, or `container_projects_locations_clusters_delete` for simplest API.
 
-pub fn container_projects_locations_clusters_delete_builder(
-    client: &SimpleHttpClient,
+pub fn container_projects_locations_clusters_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     clusterId: &Option<Option<String>>,
     projectId: &Option<Option<String>>,
     zone: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://container.googleapis.com/v1/projects/{}/locations/{locationsId}/clusters/{clustersId}",
@@ -1080,11 +1099,14 @@ pub fn container_projects_locations_clusters_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `container_projects_locations_clusters_fetch_cluster_upgrade_info_execute()` to send, or `container_projects_locations_clusters_fetch_cluster_upgrade_info` for simplest API.
 
-pub fn container_projects_locations_clusters_fetch_cluster_upgrade_info_builder(
-    client: &SimpleHttpClient,
+pub fn container_projects_locations_clusters_fetch_cluster_upgrade_info_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     version: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://container.googleapis.com/v1/projects/{}/locations/{locationsId}/clusters/{clustersId}:fetchClusterUpgradeInfo",
@@ -1259,13 +1281,16 @@ pub fn container_projects_locations_clusters_fetch_cluster_upgrade_info(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `container_projects_locations_clusters_get_execute()` to send, or `container_projects_locations_clusters_get` for simplest API.
 
-pub fn container_projects_locations_clusters_get_builder(
-    client: &SimpleHttpClient,
+pub fn container_projects_locations_clusters_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     clusterId: &Option<Option<String>>,
     projectId: &Option<Option<String>>,
     zone: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://container.googleapis.com/v1/projects/{}/locations/{locationsId}/clusters/{clustersId}",
@@ -1448,10 +1473,13 @@ pub fn container_projects_locations_clusters_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `container_projects_locations_clusters_get_jwks_execute()` to send, or `container_projects_locations_clusters_get_jwks` for simplest API.
 
-pub fn container_projects_locations_clusters_get_jwks_builder(
-    client: &SimpleHttpClient,
+pub fn container_projects_locations_clusters_get_jwks_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://container.googleapis.com/v1/projects/{}/locations/{locationsId}/clusters/{clustersId}/jwks",
@@ -1609,12 +1637,15 @@ pub fn container_projects_locations_clusters_get_jwks(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `container_projects_locations_clusters_list_execute()` to send, or `container_projects_locations_clusters_list` for simplest API.
 
-pub fn container_projects_locations_clusters_list_builder(
-    client: &SimpleHttpClient,
+pub fn container_projects_locations_clusters_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     projectId: &Option<Option<String>>,
     zone: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://container.googleapis.com/v1/projects/{}/locations/{locationsId}/clusters",
@@ -1795,10 +1826,13 @@ pub fn container_projects_locations_clusters_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `container_projects_locations_clusters_set_addons_execute()` to send, or `container_projects_locations_clusters_set_addons` for simplest API.
 
-pub fn container_projects_locations_clusters_set_addons_builder(
-    client: &SimpleHttpClient,
+pub fn container_projects_locations_clusters_set_addons_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://container.googleapis.com/v1/projects/{}/locations/{locationsId}/clusters/{clustersId}:setAddons",
@@ -1952,10 +1986,13 @@ pub fn container_projects_locations_clusters_set_addons(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `container_projects_locations_clusters_set_legacy_abac_execute()` to send, or `container_projects_locations_clusters_set_legacy_abac` for simplest API.
 
-pub fn container_projects_locations_clusters_set_legacy_abac_builder(
-    client: &SimpleHttpClient,
+pub fn container_projects_locations_clusters_set_legacy_abac_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://container.googleapis.com/v1/projects/{}/locations/{locationsId}/clusters/{clustersId}:setLegacyAbac",
@@ -2110,10 +2147,13 @@ pub fn container_projects_locations_clusters_set_legacy_abac(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `container_projects_locations_clusters_set_locations_execute()` to send, or `container_projects_locations_clusters_set_locations` for simplest API.
 
-pub fn container_projects_locations_clusters_set_locations_builder(
-    client: &SimpleHttpClient,
+pub fn container_projects_locations_clusters_set_locations_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://container.googleapis.com/v1/projects/{}/locations/{locationsId}/clusters/{clustersId}:setLocations",
@@ -2267,10 +2307,13 @@ pub fn container_projects_locations_clusters_set_locations(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `container_projects_locations_clusters_set_logging_execute()` to send, or `container_projects_locations_clusters_set_logging` for simplest API.
 
-pub fn container_projects_locations_clusters_set_logging_builder(
-    client: &SimpleHttpClient,
+pub fn container_projects_locations_clusters_set_logging_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://container.googleapis.com/v1/projects/{}/locations/{locationsId}/clusters/{clustersId}:setLogging",
@@ -2424,10 +2467,13 @@ pub fn container_projects_locations_clusters_set_logging(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `container_projects_locations_clusters_set_maintenance_policy_execute()` to send, or `container_projects_locations_clusters_set_maintenance_policy` for simplest API.
 
-pub fn container_projects_locations_clusters_set_maintenance_policy_builder(
-    client: &SimpleHttpClient,
+pub fn container_projects_locations_clusters_set_maintenance_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://container.googleapis.com/v1/projects/{}/locations/{locationsId}/clusters/{clustersId}:setMaintenancePolicy",
@@ -2582,10 +2628,13 @@ pub fn container_projects_locations_clusters_set_maintenance_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `container_projects_locations_clusters_set_master_auth_execute()` to send, or `container_projects_locations_clusters_set_master_auth` for simplest API.
 
-pub fn container_projects_locations_clusters_set_master_auth_builder(
-    client: &SimpleHttpClient,
+pub fn container_projects_locations_clusters_set_master_auth_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://container.googleapis.com/v1/projects/{}/locations/{locationsId}/clusters/{clustersId}:setMasterAuth",
@@ -2740,10 +2789,13 @@ pub fn container_projects_locations_clusters_set_master_auth(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `container_projects_locations_clusters_set_monitoring_execute()` to send, or `container_projects_locations_clusters_set_monitoring` for simplest API.
 
-pub fn container_projects_locations_clusters_set_monitoring_builder(
-    client: &SimpleHttpClient,
+pub fn container_projects_locations_clusters_set_monitoring_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://container.googleapis.com/v1/projects/{}/locations/{locationsId}/clusters/{clustersId}:setMonitoring",
@@ -2897,10 +2949,13 @@ pub fn container_projects_locations_clusters_set_monitoring(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `container_projects_locations_clusters_set_network_policy_execute()` to send, or `container_projects_locations_clusters_set_network_policy` for simplest API.
 
-pub fn container_projects_locations_clusters_set_network_policy_builder(
-    client: &SimpleHttpClient,
+pub fn container_projects_locations_clusters_set_network_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://container.googleapis.com/v1/projects/{}/locations/{locationsId}/clusters/{clustersId}:setNetworkPolicy",
@@ -3055,10 +3110,13 @@ pub fn container_projects_locations_clusters_set_network_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `container_projects_locations_clusters_set_resource_labels_execute()` to send, or `container_projects_locations_clusters_set_resource_labels` for simplest API.
 
-pub fn container_projects_locations_clusters_set_resource_labels_builder(
-    client: &SimpleHttpClient,
+pub fn container_projects_locations_clusters_set_resource_labels_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://container.googleapis.com/v1/projects/{}/locations/{locationsId}/clusters/{clustersId}:setResourceLabels",
@@ -3213,10 +3271,13 @@ pub fn container_projects_locations_clusters_set_resource_labels(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `container_projects_locations_clusters_start_ip_rotation_execute()` to send, or `container_projects_locations_clusters_start_ip_rotation` for simplest API.
 
-pub fn container_projects_locations_clusters_start_ip_rotation_builder(
-    client: &SimpleHttpClient,
+pub fn container_projects_locations_clusters_start_ip_rotation_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://container.googleapis.com/v1/projects/{}/locations/{locationsId}/clusters/{clustersId}:startIpRotation",
@@ -3371,10 +3432,13 @@ pub fn container_projects_locations_clusters_start_ip_rotation(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `container_projects_locations_clusters_update_execute()` to send, or `container_projects_locations_clusters_update` for simplest API.
 
-pub fn container_projects_locations_clusters_update_builder(
-    client: &SimpleHttpClient,
+pub fn container_projects_locations_clusters_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://container.googleapis.com/v1/projects/{}/locations/{locationsId}/clusters/{clustersId}",
@@ -3528,10 +3592,13 @@ pub fn container_projects_locations_clusters_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `container_projects_locations_clusters_update_master_execute()` to send, or `container_projects_locations_clusters_update_master` for simplest API.
 
-pub fn container_projects_locations_clusters_update_master_builder(
-    client: &SimpleHttpClient,
+pub fn container_projects_locations_clusters_update_master_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://container.googleapis.com/v1/projects/{}/locations/{locationsId}/clusters/{clustersId}:updateMaster",
@@ -3685,10 +3752,13 @@ pub fn container_projects_locations_clusters_update_master(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `container_projects_locations_clusters_node_pools_complete_upgrade_execute()` to send, or `container_projects_locations_clusters_node_pools_complete_upgrade` for simplest API.
 
-pub fn container_projects_locations_clusters_node_pools_complete_upgrade_builder(
-    client: &SimpleHttpClient,
+pub fn container_projects_locations_clusters_node_pools_complete_upgrade_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://container.googleapis.com/v1/projects/{}/locations/{locationsId}/clusters/{clustersId}/nodePools/{nodePoolsId}:completeUpgrade",
@@ -3844,10 +3914,13 @@ pub fn container_projects_locations_clusters_node_pools_complete_upgrade(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `container_projects_locations_clusters_node_pools_create_execute()` to send, or `container_projects_locations_clusters_node_pools_create` for simplest API.
 
-pub fn container_projects_locations_clusters_node_pools_create_builder(
-    client: &SimpleHttpClient,
+pub fn container_projects_locations_clusters_node_pools_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://container.googleapis.com/v1/projects/{}/locations/{locationsId}/clusters/{clustersId}/nodePools",
@@ -4002,14 +4075,17 @@ pub fn container_projects_locations_clusters_node_pools_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `container_projects_locations_clusters_node_pools_delete_execute()` to send, or `container_projects_locations_clusters_node_pools_delete` for simplest API.
 
-pub fn container_projects_locations_clusters_node_pools_delete_builder(
-    client: &SimpleHttpClient,
+pub fn container_projects_locations_clusters_node_pools_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     clusterId: &Option<Option<String>>,
     nodePoolId: &Option<Option<String>>,
     projectId: &Option<Option<String>>,
     zone: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://container.googleapis.com/v1/projects/{}/locations/{locationsId}/clusters/{clustersId}/nodePools/{nodePoolsId}",
@@ -4198,11 +4274,14 @@ pub fn container_projects_locations_clusters_node_pools_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `container_projects_locations_clusters_node_pools_fetch_node_pool_upgrade_info_execute()` to send, or `container_projects_locations_clusters_node_pools_fetch_node_pool_upgrade_info` for simplest API.
 
-pub fn container_projects_locations_clusters_node_pools_fetch_node_pool_upgrade_info_builder(
-    client: &SimpleHttpClient,
+pub fn container_projects_locations_clusters_node_pools_fetch_node_pool_upgrade_info_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     version: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://container.googleapis.com/v1/projects/{}/locations/{locationsId}/clusters/{clustersId}/nodePools/{nodePoolsId}:fetchNodePoolUpgradeInfo",
@@ -4380,14 +4459,17 @@ pub fn container_projects_locations_clusters_node_pools_fetch_node_pool_upgrade_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `container_projects_locations_clusters_node_pools_get_execute()` to send, or `container_projects_locations_clusters_node_pools_get` for simplest API.
 
-pub fn container_projects_locations_clusters_node_pools_get_builder(
-    client: &SimpleHttpClient,
+pub fn container_projects_locations_clusters_node_pools_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     clusterId: &Option<Option<String>>,
     nodePoolId: &Option<Option<String>>,
     projectId: &Option<Option<String>>,
     zone: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://container.googleapis.com/v1/projects/{}/locations/{locationsId}/clusters/{clustersId}/nodePools/{nodePoolsId}",
@@ -4576,13 +4658,16 @@ pub fn container_projects_locations_clusters_node_pools_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `container_projects_locations_clusters_node_pools_list_execute()` to send, or `container_projects_locations_clusters_node_pools_list` for simplest API.
 
-pub fn container_projects_locations_clusters_node_pools_list_builder(
-    client: &SimpleHttpClient,
+pub fn container_projects_locations_clusters_node_pools_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     clusterId: &Option<Option<String>>,
     projectId: &Option<Option<String>>,
     zone: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://container.googleapis.com/v1/projects/{}/locations/{locationsId}/clusters/{clustersId}/nodePools",
@@ -4769,10 +4854,13 @@ pub fn container_projects_locations_clusters_node_pools_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `container_projects_locations_clusters_node_pools_rollback_execute()` to send, or `container_projects_locations_clusters_node_pools_rollback` for simplest API.
 
-pub fn container_projects_locations_clusters_node_pools_rollback_builder(
-    client: &SimpleHttpClient,
+pub fn container_projects_locations_clusters_node_pools_rollback_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://container.googleapis.com/v1/projects/{}/locations/{locationsId}/clusters/{clustersId}/nodePools/{nodePoolsId}:rollback",
@@ -4927,10 +5015,13 @@ pub fn container_projects_locations_clusters_node_pools_rollback(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `container_projects_locations_clusters_node_pools_set_autoscaling_execute()` to send, or `container_projects_locations_clusters_node_pools_set_autoscaling` for simplest API.
 
-pub fn container_projects_locations_clusters_node_pools_set_autoscaling_builder(
-    client: &SimpleHttpClient,
+pub fn container_projects_locations_clusters_node_pools_set_autoscaling_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://container.googleapis.com/v1/projects/{}/locations/{locationsId}/clusters/{clustersId}/nodePools/{nodePoolsId}:setAutoscaling",
@@ -5086,10 +5177,13 @@ pub fn container_projects_locations_clusters_node_pools_set_autoscaling(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `container_projects_locations_clusters_node_pools_set_management_execute()` to send, or `container_projects_locations_clusters_node_pools_set_management` for simplest API.
 
-pub fn container_projects_locations_clusters_node_pools_set_management_builder(
-    client: &SimpleHttpClient,
+pub fn container_projects_locations_clusters_node_pools_set_management_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://container.googleapis.com/v1/projects/{}/locations/{locationsId}/clusters/{clustersId}/nodePools/{nodePoolsId}:setManagement",
@@ -5245,10 +5339,13 @@ pub fn container_projects_locations_clusters_node_pools_set_management(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `container_projects_locations_clusters_node_pools_set_size_execute()` to send, or `container_projects_locations_clusters_node_pools_set_size` for simplest API.
 
-pub fn container_projects_locations_clusters_node_pools_set_size_builder(
-    client: &SimpleHttpClient,
+pub fn container_projects_locations_clusters_node_pools_set_size_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://container.googleapis.com/v1/projects/{}/locations/{locationsId}/clusters/{clustersId}/nodePools/{nodePoolsId}:setSize",
@@ -5403,10 +5500,13 @@ pub fn container_projects_locations_clusters_node_pools_set_size(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `container_projects_locations_clusters_node_pools_update_execute()` to send, or `container_projects_locations_clusters_node_pools_update` for simplest API.
 
-pub fn container_projects_locations_clusters_node_pools_update_builder(
-    client: &SimpleHttpClient,
+pub fn container_projects_locations_clusters_node_pools_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://container.googleapis.com/v1/projects/{}/locations/{locationsId}/clusters/{clustersId}/nodePools/{nodePoolsId}",
@@ -5561,10 +5661,13 @@ pub fn container_projects_locations_clusters_node_pools_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `container_projects_locations_clusters_well_known_get_openid_configuration_execute()` to send, or `container_projects_locations_clusters_well_known_get_openid_configuration` for simplest API.
 
-pub fn container_projects_locations_clusters_well_known_get_openid_configuration_builder(
-    client: &SimpleHttpClient,
+pub fn container_projects_locations_clusters_well_known_get_openid_configuration_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://container.googleapis.com/v1/projects/{}/locations/{locationsId}/clusters/{clustersId}/.well-known/openid-configuration",
@@ -5727,10 +5830,13 @@ pub fn container_projects_locations_clusters_well_known_get_openid_configuration
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `container_projects_locations_operations_cancel_execute()` to send, or `container_projects_locations_operations_cancel` for simplest API.
 
-pub fn container_projects_locations_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn container_projects_locations_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://container.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}:cancel",
@@ -5884,13 +5990,16 @@ pub fn container_projects_locations_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `container_projects_locations_operations_get_execute()` to send, or `container_projects_locations_operations_get` for simplest API.
 
-pub fn container_projects_locations_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn container_projects_locations_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     operationId: &Option<Option<String>>,
     projectId: &Option<Option<String>>,
     zone: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://container.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -6073,12 +6182,15 @@ pub fn container_projects_locations_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `container_projects_locations_operations_list_execute()` to send, or `container_projects_locations_operations_list` for simplest API.
 
-pub fn container_projects_locations_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn container_projects_locations_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     projectId: &Option<Option<String>>,
     zone: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://container.googleapis.com/v1/projects/{}/locations/{locationsId}/operations",
@@ -6259,12 +6371,15 @@ pub fn container_projects_locations_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `container_projects_zones_get_serverconfig_execute()` to send, or `container_projects_zones_get_serverconfig` for simplest API.
 
-pub fn container_projects_zones_get_serverconfig_builder(
-    client: &SimpleHttpClient,
+pub fn container_projects_zones_get_serverconfig_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     zone: &String,
     name: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://container.googleapis.com/v1/projects/{}/zones/{}/serverconfig",
@@ -6442,12 +6557,15 @@ pub fn container_projects_zones_get_serverconfig(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `container_projects_zones_clusters_addons_execute()` to send, or `container_projects_zones_clusters_addons` for simplest API.
 
-pub fn container_projects_zones_clusters_addons_builder(
-    client: &SimpleHttpClient,
+pub fn container_projects_zones_clusters_addons_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     zone: &String,
     clusterId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://container.googleapis.com/v1/projects/{}/zones/{}/clusters/{}/addons",
@@ -6610,12 +6728,15 @@ pub fn container_projects_zones_clusters_addons(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `container_projects_zones_clusters_complete_ip_rotation_execute()` to send, or `container_projects_zones_clusters_complete_ip_rotation` for simplest API.
 
-pub fn container_projects_zones_clusters_complete_ip_rotation_builder(
-    client: &SimpleHttpClient,
+pub fn container_projects_zones_clusters_complete_ip_rotation_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     zone: &String,
     clusterId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://container.googleapis.com/v1/projects/{}/zones/{}/clusters/{}:completeIpRotation",
@@ -6778,11 +6899,14 @@ pub fn container_projects_zones_clusters_complete_ip_rotation(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `container_projects_zones_clusters_create_execute()` to send, or `container_projects_zones_clusters_create` for simplest API.
 
-pub fn container_projects_zones_clusters_create_builder(
-    client: &SimpleHttpClient,
+pub fn container_projects_zones_clusters_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     zone: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://container.googleapis.com/v1/projects/{}/zones/{}/clusters",
@@ -6939,13 +7063,16 @@ pub fn container_projects_zones_clusters_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `container_projects_zones_clusters_delete_execute()` to send, or `container_projects_zones_clusters_delete` for simplest API.
 
-pub fn container_projects_zones_clusters_delete_builder(
-    client: &SimpleHttpClient,
+pub fn container_projects_zones_clusters_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     zone: &String,
     clusterId: &String,
     name: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://container.googleapis.com/v1/projects/{}/zones/{}/clusters/{}",
@@ -7122,11 +7249,14 @@ pub fn container_projects_zones_clusters_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `container_projects_zones_clusters_fetch_cluster_upgrade_info_execute()` to send, or `container_projects_zones_clusters_fetch_cluster_upgrade_info` for simplest API.
 
-pub fn container_projects_zones_clusters_fetch_cluster_upgrade_info_builder(
-    client: &SimpleHttpClient,
+pub fn container_projects_zones_clusters_fetch_cluster_upgrade_info_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     version: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://container.googleapis.com/v1/projects/{}/zones/{zonesId}/clusters/{clustersId}:fetchClusterUpgradeInfo",
@@ -7301,13 +7431,16 @@ pub fn container_projects_zones_clusters_fetch_cluster_upgrade_info(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `container_projects_zones_clusters_get_execute()` to send, or `container_projects_zones_clusters_get` for simplest API.
 
-pub fn container_projects_zones_clusters_get_builder(
-    client: &SimpleHttpClient,
+pub fn container_projects_zones_clusters_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     zone: &String,
     clusterId: &String,
     name: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://container.googleapis.com/v1/projects/{}/zones/{}/clusters/{}",
@@ -7484,12 +7617,15 @@ pub fn container_projects_zones_clusters_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `container_projects_zones_clusters_legacy_abac_execute()` to send, or `container_projects_zones_clusters_legacy_abac` for simplest API.
 
-pub fn container_projects_zones_clusters_legacy_abac_builder(
-    client: &SimpleHttpClient,
+pub fn container_projects_zones_clusters_legacy_abac_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     zone: &String,
     clusterId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://container.googleapis.com/v1/projects/{}/zones/{}/clusters/{}/legacyAbac",
@@ -7652,12 +7788,15 @@ pub fn container_projects_zones_clusters_legacy_abac(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `container_projects_zones_clusters_list_execute()` to send, or `container_projects_zones_clusters_list` for simplest API.
 
-pub fn container_projects_zones_clusters_list_builder(
-    client: &SimpleHttpClient,
+pub fn container_projects_zones_clusters_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     zone: &String,
     parent: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://container.googleapis.com/v1/projects/{}/zones/{}/clusters",
@@ -7835,12 +7974,15 @@ pub fn container_projects_zones_clusters_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `container_projects_zones_clusters_locations_execute()` to send, or `container_projects_zones_clusters_locations` for simplest API.
 
-pub fn container_projects_zones_clusters_locations_builder(
-    client: &SimpleHttpClient,
+pub fn container_projects_zones_clusters_locations_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     zone: &String,
     clusterId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://container.googleapis.com/v1/projects/{}/zones/{}/clusters/{}/locations",
@@ -8003,12 +8145,15 @@ pub fn container_projects_zones_clusters_locations(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `container_projects_zones_clusters_logging_execute()` to send, or `container_projects_zones_clusters_logging` for simplest API.
 
-pub fn container_projects_zones_clusters_logging_builder(
-    client: &SimpleHttpClient,
+pub fn container_projects_zones_clusters_logging_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     zone: &String,
     clusterId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://container.googleapis.com/v1/projects/{}/zones/{}/clusters/{}/logging",
@@ -8171,12 +8316,15 @@ pub fn container_projects_zones_clusters_logging(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `container_projects_zones_clusters_master_execute()` to send, or `container_projects_zones_clusters_master` for simplest API.
 
-pub fn container_projects_zones_clusters_master_builder(
-    client: &SimpleHttpClient,
+pub fn container_projects_zones_clusters_master_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     zone: &String,
     clusterId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://container.googleapis.com/v1/projects/{}/zones/{}/clusters/{}/master",
@@ -8339,12 +8487,15 @@ pub fn container_projects_zones_clusters_master(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `container_projects_zones_clusters_monitoring_execute()` to send, or `container_projects_zones_clusters_monitoring` for simplest API.
 
-pub fn container_projects_zones_clusters_monitoring_builder(
-    client: &SimpleHttpClient,
+pub fn container_projects_zones_clusters_monitoring_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     zone: &String,
     clusterId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://container.googleapis.com/v1/projects/{}/zones/{}/clusters/{}/monitoring",
@@ -8507,12 +8658,15 @@ pub fn container_projects_zones_clusters_monitoring(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `container_projects_zones_clusters_resource_labels_execute()` to send, or `container_projects_zones_clusters_resource_labels` for simplest API.
 
-pub fn container_projects_zones_clusters_resource_labels_builder(
-    client: &SimpleHttpClient,
+pub fn container_projects_zones_clusters_resource_labels_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     zone: &String,
     clusterId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://container.googleapis.com/v1/projects/{}/zones/{}/clusters/{}/resourceLabels",
@@ -8675,12 +8829,15 @@ pub fn container_projects_zones_clusters_resource_labels(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `container_projects_zones_clusters_set_maintenance_policy_execute()` to send, or `container_projects_zones_clusters_set_maintenance_policy` for simplest API.
 
-pub fn container_projects_zones_clusters_set_maintenance_policy_builder(
-    client: &SimpleHttpClient,
+pub fn container_projects_zones_clusters_set_maintenance_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     zone: &String,
     clusterId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://container.googleapis.com/v1/projects/{}/zones/{}/clusters/{}:setMaintenancePolicy",
@@ -8843,12 +9000,15 @@ pub fn container_projects_zones_clusters_set_maintenance_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `container_projects_zones_clusters_set_master_auth_execute()` to send, or `container_projects_zones_clusters_set_master_auth` for simplest API.
 
-pub fn container_projects_zones_clusters_set_master_auth_builder(
-    client: &SimpleHttpClient,
+pub fn container_projects_zones_clusters_set_master_auth_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     zone: &String,
     clusterId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://container.googleapis.com/v1/projects/{}/zones/{}/clusters/{}:setMasterAuth",
@@ -9011,12 +9171,15 @@ pub fn container_projects_zones_clusters_set_master_auth(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `container_projects_zones_clusters_set_network_policy_execute()` to send, or `container_projects_zones_clusters_set_network_policy` for simplest API.
 
-pub fn container_projects_zones_clusters_set_network_policy_builder(
-    client: &SimpleHttpClient,
+pub fn container_projects_zones_clusters_set_network_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     zone: &String,
     clusterId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://container.googleapis.com/v1/projects/{}/zones/{}/clusters/{}:setNetworkPolicy",
@@ -9179,12 +9342,15 @@ pub fn container_projects_zones_clusters_set_network_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `container_projects_zones_clusters_start_ip_rotation_execute()` to send, or `container_projects_zones_clusters_start_ip_rotation` for simplest API.
 
-pub fn container_projects_zones_clusters_start_ip_rotation_builder(
-    client: &SimpleHttpClient,
+pub fn container_projects_zones_clusters_start_ip_rotation_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     zone: &String,
     clusterId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://container.googleapis.com/v1/projects/{}/zones/{}/clusters/{}:startIpRotation",
@@ -9347,12 +9513,15 @@ pub fn container_projects_zones_clusters_start_ip_rotation(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `container_projects_zones_clusters_update_execute()` to send, or `container_projects_zones_clusters_update` for simplest API.
 
-pub fn container_projects_zones_clusters_update_builder(
-    client: &SimpleHttpClient,
+pub fn container_projects_zones_clusters_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     zone: &String,
     clusterId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://container.googleapis.com/v1/projects/{}/zones/{}/clusters/{}",
@@ -9515,13 +9684,16 @@ pub fn container_projects_zones_clusters_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `container_projects_zones_clusters_node_pools_autoscaling_execute()` to send, or `container_projects_zones_clusters_node_pools_autoscaling` for simplest API.
 
-pub fn container_projects_zones_clusters_node_pools_autoscaling_builder(
-    client: &SimpleHttpClient,
+pub fn container_projects_zones_clusters_node_pools_autoscaling_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     zone: &String,
     clusterId: &String,
     nodePoolId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://container.googleapis.com/v1/projects/{}/zones/{}/clusters/{}/nodePools/{}/autoscaling",
@@ -9690,12 +9862,15 @@ pub fn container_projects_zones_clusters_node_pools_autoscaling(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `container_projects_zones_clusters_node_pools_create_execute()` to send, or `container_projects_zones_clusters_node_pools_create` for simplest API.
 
-pub fn container_projects_zones_clusters_node_pools_create_builder(
-    client: &SimpleHttpClient,
+pub fn container_projects_zones_clusters_node_pools_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     zone: &String,
     clusterId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://container.googleapis.com/v1/projects/{}/zones/{}/clusters/{}/nodePools",
@@ -9858,14 +10033,17 @@ pub fn container_projects_zones_clusters_node_pools_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `container_projects_zones_clusters_node_pools_delete_execute()` to send, or `container_projects_zones_clusters_node_pools_delete` for simplest API.
 
-pub fn container_projects_zones_clusters_node_pools_delete_builder(
-    client: &SimpleHttpClient,
+pub fn container_projects_zones_clusters_node_pools_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     zone: &String,
     clusterId: &String,
     nodePoolId: &String,
     name: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://container.googleapis.com/v1/projects/{}/zones/{}/clusters/{}/nodePools/{}",
@@ -10045,11 +10223,14 @@ pub fn container_projects_zones_clusters_node_pools_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `container_projects_zones_clusters_node_pools_fetch_node_pool_upgrade_info_execute()` to send, or `container_projects_zones_clusters_node_pools_fetch_node_pool_upgrade_info` for simplest API.
 
-pub fn container_projects_zones_clusters_node_pools_fetch_node_pool_upgrade_info_builder(
-    client: &SimpleHttpClient,
+pub fn container_projects_zones_clusters_node_pools_fetch_node_pool_upgrade_info_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     version: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://container.googleapis.com/v1/projects/{}/zones/{zonesId}/clusters/{clustersId}/nodePools/{nodePoolsId}:fetchNodePoolUpgradeInfo",
@@ -10226,14 +10407,17 @@ pub fn container_projects_zones_clusters_node_pools_fetch_node_pool_upgrade_info
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `container_projects_zones_clusters_node_pools_get_execute()` to send, or `container_projects_zones_clusters_node_pools_get` for simplest API.
 
-pub fn container_projects_zones_clusters_node_pools_get_builder(
-    client: &SimpleHttpClient,
+pub fn container_projects_zones_clusters_node_pools_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     zone: &String,
     clusterId: &String,
     nodePoolId: &String,
     name: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://container.googleapis.com/v1/projects/{}/zones/{}/clusters/{}/nodePools/{}",
@@ -10413,13 +10597,16 @@ pub fn container_projects_zones_clusters_node_pools_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `container_projects_zones_clusters_node_pools_list_execute()` to send, or `container_projects_zones_clusters_node_pools_list` for simplest API.
 
-pub fn container_projects_zones_clusters_node_pools_list_builder(
-    client: &SimpleHttpClient,
+pub fn container_projects_zones_clusters_node_pools_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     zone: &String,
     clusterId: &String,
     parent: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://container.googleapis.com/v1/projects/{}/zones/{}/clusters/{}/nodePools",
@@ -10600,13 +10787,16 @@ pub fn container_projects_zones_clusters_node_pools_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `container_projects_zones_clusters_node_pools_rollback_execute()` to send, or `container_projects_zones_clusters_node_pools_rollback` for simplest API.
 
-pub fn container_projects_zones_clusters_node_pools_rollback_builder(
-    client: &SimpleHttpClient,
+pub fn container_projects_zones_clusters_node_pools_rollback_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     zone: &String,
     clusterId: &String,
     nodePoolId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://container.googleapis.com/v1/projects/{}/zones/{}/clusters/{}/nodePools/{}:rollback",
@@ -10775,13 +10965,16 @@ pub fn container_projects_zones_clusters_node_pools_rollback(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `container_projects_zones_clusters_node_pools_set_management_execute()` to send, or `container_projects_zones_clusters_node_pools_set_management` for simplest API.
 
-pub fn container_projects_zones_clusters_node_pools_set_management_builder(
-    client: &SimpleHttpClient,
+pub fn container_projects_zones_clusters_node_pools_set_management_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     zone: &String,
     clusterId: &String,
     nodePoolId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://container.googleapis.com/v1/projects/{}/zones/{}/clusters/{}/nodePools/{}/setManagement",
@@ -10950,13 +11143,16 @@ pub fn container_projects_zones_clusters_node_pools_set_management(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `container_projects_zones_clusters_node_pools_set_size_execute()` to send, or `container_projects_zones_clusters_node_pools_set_size` for simplest API.
 
-pub fn container_projects_zones_clusters_node_pools_set_size_builder(
-    client: &SimpleHttpClient,
+pub fn container_projects_zones_clusters_node_pools_set_size_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     zone: &String,
     clusterId: &String,
     nodePoolId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://container.googleapis.com/v1/projects/{}/zones/{}/clusters/{}/nodePools/{}/setSize",
@@ -11122,13 +11318,16 @@ pub fn container_projects_zones_clusters_node_pools_set_size(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `container_projects_zones_clusters_node_pools_update_execute()` to send, or `container_projects_zones_clusters_node_pools_update` for simplest API.
 
-pub fn container_projects_zones_clusters_node_pools_update_builder(
-    client: &SimpleHttpClient,
+pub fn container_projects_zones_clusters_node_pools_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     zone: &String,
     clusterId: &String,
     nodePoolId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://container.googleapis.com/v1/projects/{}/zones/{}/clusters/{}/nodePools/{}/update",
@@ -11294,12 +11493,15 @@ pub fn container_projects_zones_clusters_node_pools_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `container_projects_zones_operations_cancel_execute()` to send, or `container_projects_zones_operations_cancel` for simplest API.
 
-pub fn container_projects_zones_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn container_projects_zones_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     zone: &String,
     operationId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://container.googleapis.com/v1/projects/{}/zones/{}/operations/{}:cancel",
@@ -11462,13 +11664,16 @@ pub fn container_projects_zones_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `container_projects_zones_operations_get_execute()` to send, or `container_projects_zones_operations_get` for simplest API.
 
-pub fn container_projects_zones_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn container_projects_zones_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     zone: &String,
     operationId: &String,
     name: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://container.googleapis.com/v1/projects/{}/zones/{}/operations/{}",
@@ -11645,12 +11850,15 @@ pub fn container_projects_zones_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `container_projects_zones_operations_list_execute()` to send, or `container_projects_zones_operations_list` for simplest API.
 
-pub fn container_projects_zones_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn container_projects_zones_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     zone: &String,
     parent: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://container.googleapis.com/v1/projects/{}/zones/{}/operations",

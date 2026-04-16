@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `sheets_spreadsheets_batch_update_execute()` to send, or `sheets_spreadsheets_batch_update` for simplest API.
 
-pub fn sheets_spreadsheets_batch_update_builder(
-    client: &SimpleHttpClient,
+pub fn sheets_spreadsheets_batch_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     spreadsheetId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://sheets.googleapis.com/v4/spreadsheets/{}:batchUpdate",
@@ -191,9 +195,12 @@ pub fn sheets_spreadsheets_batch_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `sheets_spreadsheets_create_execute()` to send, or `sheets_spreadsheets_create` for simplest API.
 
-pub fn sheets_spreadsheets_create_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn sheets_spreadsheets_create_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://sheets.googleapis.com/v4/spreadsheets",);
 
@@ -336,13 +343,16 @@ pub fn sheets_spreadsheets_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `sheets_spreadsheets_get_execute()` to send, or `sheets_spreadsheets_get` for simplest API.
 
-pub fn sheets_spreadsheets_get_builder(
-    client: &SimpleHttpClient,
+pub fn sheets_spreadsheets_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     spreadsheetId: &String,
     excludeTablesInBandedRanges: &Option<Option<String>>,
     includeGridData: &Option<Option<String>>,
     ranges: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://sheets.googleapis.com/v4/spreadsheets/{}",
@@ -525,10 +535,13 @@ pub fn sheets_spreadsheets_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `sheets_spreadsheets_get_by_data_filter_execute()` to send, or `sheets_spreadsheets_get_by_data_filter` for simplest API.
 
-pub fn sheets_spreadsheets_get_by_data_filter_builder(
-    client: &SimpleHttpClient,
+pub fn sheets_spreadsheets_get_by_data_filter_builder<R>(
+    client: &SimpleHttpClient<R>,
     spreadsheetId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://sheets.googleapis.com/v4/spreadsheets/{}:getByDataFilter",
@@ -682,11 +695,14 @@ pub fn sheets_spreadsheets_get_by_data_filter(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `sheets_spreadsheets_developer_metadata_get_execute()` to send, or `sheets_spreadsheets_developer_metadata_get` for simplest API.
 
-pub fn sheets_spreadsheets_developer_metadata_get_builder(
-    client: &SimpleHttpClient,
+pub fn sheets_spreadsheets_developer_metadata_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     spreadsheetId: &String,
     metadataId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://sheets.googleapis.com/v4/spreadsheets/{}/developerMetadata/{}",
@@ -850,10 +866,13 @@ pub fn sheets_spreadsheets_developer_metadata_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `sheets_spreadsheets_developer_metadata_search_execute()` to send, or `sheets_spreadsheets_developer_metadata_search` for simplest API.
 
-pub fn sheets_spreadsheets_developer_metadata_search_builder(
-    client: &SimpleHttpClient,
+pub fn sheets_spreadsheets_developer_metadata_search_builder<R>(
+    client: &SimpleHttpClient<R>,
     spreadsheetId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://sheets.googleapis.com/v4/spreadsheets/{}/developerMetadata:search",
@@ -1016,11 +1035,14 @@ pub fn sheets_spreadsheets_developer_metadata_search(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `sheets_spreadsheets_sheets_copy_to_execute()` to send, or `sheets_spreadsheets_sheets_copy_to` for simplest API.
 
-pub fn sheets_spreadsheets_sheets_copy_to_builder(
-    client: &SimpleHttpClient,
+pub fn sheets_spreadsheets_sheets_copy_to_builder<R>(
+    client: &SimpleHttpClient<R>,
     spreadsheetId: &String,
     sheetId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://sheets.googleapis.com/v4/spreadsheets/{}/sheets/{}:copyTo",
@@ -1181,8 +1203,8 @@ pub fn sheets_spreadsheets_sheets_copy_to(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `sheets_spreadsheets_values_append_execute()` to send, or `sheets_spreadsheets_values_append` for simplest API.
 
-pub fn sheets_spreadsheets_values_append_builder(
-    client: &SimpleHttpClient,
+pub fn sheets_spreadsheets_values_append_builder<R>(
+    client: &SimpleHttpClient<R>,
     spreadsheetId: &String,
     range: &String,
     includeValuesInResponse: &Option<Option<String>>,
@@ -1190,7 +1212,10 @@ pub fn sheets_spreadsheets_values_append_builder(
     responseDateTimeRenderOption: &Option<Option<String>>,
     responseValueRenderOption: &Option<Option<String>>,
     valueInputOption: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://sheets.googleapis.com/v4/spreadsheets/{}/values/{}:append",
@@ -1392,10 +1417,13 @@ pub fn sheets_spreadsheets_values_append(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `sheets_spreadsheets_values_batch_clear_execute()` to send, or `sheets_spreadsheets_values_batch_clear` for simplest API.
 
-pub fn sheets_spreadsheets_values_batch_clear_builder(
-    client: &SimpleHttpClient,
+pub fn sheets_spreadsheets_values_batch_clear_builder<R>(
+    client: &SimpleHttpClient<R>,
     spreadsheetId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://sheets.googleapis.com/v4/spreadsheets/{}/values:batchClear",
@@ -1553,10 +1581,13 @@ pub fn sheets_spreadsheets_values_batch_clear(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `sheets_spreadsheets_values_batch_clear_by_data_filter_execute()` to send, or `sheets_spreadsheets_values_batch_clear_by_data_filter` for simplest API.
 
-pub fn sheets_spreadsheets_values_batch_clear_by_data_filter_builder(
-    client: &SimpleHttpClient,
+pub fn sheets_spreadsheets_values_batch_clear_by_data_filter_builder<R>(
+    client: &SimpleHttpClient<R>,
     spreadsheetId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://sheets.googleapis.com/v4/spreadsheets/{}/values:batchClearByDataFilter",
@@ -1719,14 +1750,17 @@ pub fn sheets_spreadsheets_values_batch_clear_by_data_filter(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `sheets_spreadsheets_values_batch_get_execute()` to send, or `sheets_spreadsheets_values_batch_get` for simplest API.
 
-pub fn sheets_spreadsheets_values_batch_get_builder(
-    client: &SimpleHttpClient,
+pub fn sheets_spreadsheets_values_batch_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     spreadsheetId: &String,
     dateTimeRenderOption: &Option<Option<String>>,
     majorDimension: &Option<Option<String>>,
     ranges: &Option<Option<String>>,
     valueRenderOption: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://sheets.googleapis.com/v4/spreadsheets/{}/values:batchGet",
@@ -1919,10 +1953,13 @@ pub fn sheets_spreadsheets_values_batch_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `sheets_spreadsheets_values_batch_get_by_data_filter_execute()` to send, or `sheets_spreadsheets_values_batch_get_by_data_filter` for simplest API.
 
-pub fn sheets_spreadsheets_values_batch_get_by_data_filter_builder(
-    client: &SimpleHttpClient,
+pub fn sheets_spreadsheets_values_batch_get_by_data_filter_builder<R>(
+    client: &SimpleHttpClient<R>,
     spreadsheetId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://sheets.googleapis.com/v4/spreadsheets/{}/values:batchGetByDataFilter",
@@ -2085,10 +2122,13 @@ pub fn sheets_spreadsheets_values_batch_get_by_data_filter(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `sheets_spreadsheets_values_batch_update_execute()` to send, or `sheets_spreadsheets_values_batch_update` for simplest API.
 
-pub fn sheets_spreadsheets_values_batch_update_builder(
-    client: &SimpleHttpClient,
+pub fn sheets_spreadsheets_values_batch_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     spreadsheetId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://sheets.googleapis.com/v4/spreadsheets/{}/values:batchUpdate",
@@ -2246,10 +2286,13 @@ pub fn sheets_spreadsheets_values_batch_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `sheets_spreadsheets_values_batch_update_by_data_filter_execute()` to send, or `sheets_spreadsheets_values_batch_update_by_data_filter` for simplest API.
 
-pub fn sheets_spreadsheets_values_batch_update_by_data_filter_builder(
-    client: &SimpleHttpClient,
+pub fn sheets_spreadsheets_values_batch_update_by_data_filter_builder<R>(
+    client: &SimpleHttpClient<R>,
     spreadsheetId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://sheets.googleapis.com/v4/spreadsheets/{}/values:batchUpdateByDataFilter",
@@ -2414,11 +2457,14 @@ pub fn sheets_spreadsheets_values_batch_update_by_data_filter(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `sheets_spreadsheets_values_clear_execute()` to send, or `sheets_spreadsheets_values_clear` for simplest API.
 
-pub fn sheets_spreadsheets_values_clear_builder(
-    client: &SimpleHttpClient,
+pub fn sheets_spreadsheets_values_clear_builder<R>(
+    client: &SimpleHttpClient<R>,
     spreadsheetId: &String,
     range: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://sheets.googleapis.com/v4/spreadsheets/{}/values/{}:clear",
@@ -2579,14 +2625,17 @@ pub fn sheets_spreadsheets_values_clear(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `sheets_spreadsheets_values_get_execute()` to send, or `sheets_spreadsheets_values_get` for simplest API.
 
-pub fn sheets_spreadsheets_values_get_builder(
-    client: &SimpleHttpClient,
+pub fn sheets_spreadsheets_values_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     spreadsheetId: &String,
     range: &String,
     dateTimeRenderOption: &Option<Option<String>>,
     majorDimension: &Option<Option<String>>,
     valueRenderOption: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://sheets.googleapis.com/v4/spreadsheets/{}/values/{}",
@@ -2772,15 +2821,18 @@ pub fn sheets_spreadsheets_values_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `sheets_spreadsheets_values_update_execute()` to send, or `sheets_spreadsheets_values_update` for simplest API.
 
-pub fn sheets_spreadsheets_values_update_builder(
-    client: &SimpleHttpClient,
+pub fn sheets_spreadsheets_values_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     spreadsheetId: &String,
     range: &String,
     includeValuesInResponse: &Option<Option<String>>,
     responseDateTimeRenderOption: &Option<Option<String>>,
     responseValueRenderOption: &Option<Option<String>>,
     valueInputOption: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://sheets.googleapis.com/v4/spreadsheets/{}/values/{}",

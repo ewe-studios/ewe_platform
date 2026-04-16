@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -25,9 +26,12 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `oauth2_userinfo_get_execute()` to send, or `oauth2_userinfo_get` for simplest API.
 
-pub fn oauth2_userinfo_get_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn oauth2_userinfo_get_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://www.googleapis.com/oauth2/v2/userinfo",);
 
@@ -166,9 +170,12 @@ pub fn oauth2_userinfo_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `oauth2_userinfo_v2_me_get_execute()` to send, or `oauth2_userinfo_v2_me_get` for simplest API.
 
-pub fn oauth2_userinfo_v2_me_get_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn oauth2_userinfo_v2_me_get_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://www.googleapis.com/userinfo/v2/me",);
 

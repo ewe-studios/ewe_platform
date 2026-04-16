@@ -158,7 +158,7 @@ use crate::providers::gcp::clients::firestore::FirestoreProjectsLocationsGetArgs
 use crate::providers::gcp::clients::firestore::FirestoreProjectsLocationsListArgs;
 use crate::provider_client::{ProviderClient, ProviderError};
 use foundation_core::valtron::{execute, StreamIterator};
-use foundation_core::wire::simple_http::client::SimpleHttpClient;
+use foundation_core::wire::simple_http::client::{SimpleHttpClient, DnsResolver};
 use foundation_db::state::store_state_task::StoreStateIdentifierTask;
 use std::sync::Arc;
 
@@ -167,34 +167,44 @@ use std::sync::Arc;
 /// # Type Parameters
 ///
 /// * `S` - StateStore implementation (FileStateStore, SqliteStateStore, etc.)
+/// * `R` - DNS resolver type for HTTP client
 ///
 /// # Example
 ///
 /// ```rust
 /// let state_store = FileStateStore::new("/path", "my-project", "dev");
-/// let client = ProviderClient::new("my-project", "dev", state_store);
-/// let http_client = SimpleHttpClient::new(...);
-/// let provider = FirestoreProvider::new(client, http_client);
+/// let http_client = SimpleHttpClient::with_resolver(StaticSocketAddr::new(addr));
+/// let client = ProviderClient::new("my-project", "dev", state_store, http_client);
+/// let provider = FirestoreProvider::from_provider_client(client);
 /// ```
 #[derive(Clone)]
-pub struct FirestoreProvider<S>
+pub struct FirestoreProvider<S, R>
 where
     S: foundation_db::state::traits::StateStore + Send + Sync + 'static,
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + 'static,
 {
-    client: ProviderClient<S>,
-    http_client: Arc<SimpleHttpClient>,
+    client: ProviderClient<S, R>,
+    http_client: Arc<SimpleHttpClient<R>>,
 }
 
-impl<S> FirestoreProvider<S>
+impl<S, R> FirestoreProvider<S, R>
 where
     S: foundation_db::state::traits::StateStore + Send + Sync + 'static,
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + 'static,
 {
     /// Create new FirestoreProvider.
-    pub fn new(client: ProviderClient<S>, http_client: SimpleHttpClient) -> Self {
+    pub fn new(client: ProviderClient<S, R>, http_client: Arc<SimpleHttpClient<R>>) -> Self {
         Self {
             client,
-            http_client: Arc::new(http_client),
+            http_client,
         }
+    }
+
+    /// Create new FirestoreProvider from ProviderClient, extracting the HTTP client.
+    ///
+    /// This is a convenience method that calls `Self::new()` with `client.http_client()`.
+    pub fn from_provider_client(client: ProviderClient<S, R>) -> Self {
+        Self::new(client, client.http_client.clone())
     }
 
     /// Firestore projects databases bulk delete documents.
@@ -1308,7 +1318,7 @@ where
             &args.parent,
             &args.collectionId,
             &args.documentId,
-            &args.mask.fieldPaths,
+            &args.mask_fieldPaths,
         )
         .map_err(ProviderError::Api)?;
 
@@ -1352,8 +1362,8 @@ where
         let builder = firestore_projects_databases_documents_delete_builder(
             &self.http_client,
             &args.name,
-            &args.currentDocument.exists,
-            &args.currentDocument.updateTime,
+            &args.currentDocument_exists,
+            &args.currentDocument_updateTime,
         )
         .map_err(ProviderError::Api)?;
 
@@ -1440,7 +1450,7 @@ where
         let builder = firestore_projects_databases_documents_get_builder(
             &self.http_client,
             &args.name,
-            &args.mask.fieldPaths,
+            &args.mask_fieldPaths,
             &args.readTime,
             &args.transaction,
         )
@@ -1482,7 +1492,7 @@ where
             &self.http_client,
             &args.parent,
             &args.collectionId,
-            &args.mask.fieldPaths,
+            &args.mask_fieldPaths,
             &args.orderBy,
             &args.pageSize,
             &args.pageToken,
@@ -1566,7 +1576,7 @@ where
             &self.http_client,
             &args.parent,
             &args.collectionId,
-            &args.mask.fieldPaths,
+            &args.mask_fieldPaths,
             &args.orderBy,
             &args.pageSize,
             &args.pageToken,
@@ -1687,10 +1697,10 @@ where
         let builder = firestore_projects_databases_documents_patch_builder(
             &self.http_client,
             &args.name,
-            &args.currentDocument.exists,
-            &args.currentDocument.updateTime,
-            &args.mask.fieldPaths,
-            &args.updateMask.fieldPaths,
+            &args.currentDocument_exists,
+            &args.currentDocument_updateTime,
+            &args.mask_fieldPaths,
+            &args.updateMask_fieldPaths,
         )
         .map_err(ProviderError::Api)?;
 

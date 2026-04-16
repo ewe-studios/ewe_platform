@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,9 +27,12 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_hybrid_issuers_list_execute()` to send, or `apigee_hybrid_issuers_list` for simplest API.
 
-pub fn apigee_hybrid_issuers_list_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn apigee_hybrid_issuers_list_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://apigee.googleapis.com/v1/hybrid/issuers",);
 
@@ -180,10 +184,13 @@ pub fn apigee_hybrid_issuers_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_create_execute()` to send, or `apigee_organizations_create` for simplest API.
 
-pub fn apigee_organizations_create_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://apigee.googleapis.com/v1/organizations",);
 
@@ -353,11 +360,14 @@ pub fn apigee_organizations_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_delete_execute()` to send, or `apigee_organizations_delete` for simplest API.
 
-pub fn apigee_organizations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     retention: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://apigee.googleapis.com/v1/organizations/{}", name,);
 
@@ -529,10 +539,13 @@ pub fn apigee_organizations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_get_execute()` to send, or `apigee_organizations_get` for simplest API.
 
-pub fn apigee_organizations_get_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://apigee.googleapis.com/v1/organizations/{}", name,);
 
@@ -691,10 +704,13 @@ pub fn apigee_organizations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_get_control_plane_access_execute()` to send, or `apigee_organizations_get_control_plane_access` for simplest API.
 
-pub fn apigee_organizations_get_control_plane_access_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_get_control_plane_access_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/controlPlaneAccess",
@@ -856,11 +872,14 @@ pub fn apigee_organizations_get_control_plane_access(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_get_deployed_ingress_config_execute()` to send, or `apigee_organizations_get_deployed_ingress_config` for simplest API.
 
-pub fn apigee_organizations_get_deployed_ingress_config_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_get_deployed_ingress_config_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/deployedIngressConfig",
@@ -1036,10 +1055,13 @@ pub fn apigee_organizations_get_deployed_ingress_config(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_get_project_mapping_execute()` to send, or `apigee_organizations_get_project_mapping` for simplest API.
 
-pub fn apigee_organizations_get_project_mapping_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_get_project_mapping_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}:getProjectMapping",
@@ -1202,10 +1224,13 @@ pub fn apigee_organizations_get_project_mapping(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_get_runtime_config_execute()` to send, or `apigee_organizations_get_runtime_config` for simplest API.
 
-pub fn apigee_organizations_get_runtime_config_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_get_runtime_config_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/runtimeConfig",
@@ -1367,10 +1392,13 @@ pub fn apigee_organizations_get_runtime_config(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_get_security_settings_execute()` to send, or `apigee_organizations_get_security_settings` for simplest API.
 
-pub fn apigee_organizations_get_security_settings_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_get_security_settings_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/securitySettings",
@@ -1532,10 +1560,13 @@ pub fn apigee_organizations_get_security_settings(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_get_sync_authorization_execute()` to send, or `apigee_organizations_get_sync_authorization` for simplest API.
 
-pub fn apigee_organizations_get_sync_authorization_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_get_sync_authorization_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}:getSyncAuthorization",
@@ -1697,9 +1728,12 @@ pub fn apigee_organizations_get_sync_authorization(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_list_execute()` to send, or `apigee_organizations_list` for simplest API.
 
-pub fn apigee_organizations_list_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn apigee_organizations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://apigee.googleapis.com/v1/organizations",);
 
@@ -1851,10 +1885,13 @@ pub fn apigee_organizations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_set_addons_execute()` to send, or `apigee_organizations_set_addons` for simplest API.
 
-pub fn apigee_organizations_set_addons_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_set_addons_builder<R>(
+    client: &SimpleHttpClient<R>,
     org: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}:setAddons",
@@ -2016,10 +2053,13 @@ pub fn apigee_organizations_set_addons(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_set_sync_authorization_execute()` to send, or `apigee_organizations_set_sync_authorization` for simplest API.
 
-pub fn apigee_organizations_set_sync_authorization_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_set_sync_authorization_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}:setSyncAuthorization",
@@ -2181,10 +2221,13 @@ pub fn apigee_organizations_set_sync_authorization(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_update_execute()` to send, or `apigee_organizations_update` for simplest API.
 
-pub fn apigee_organizations_update_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://apigee.googleapis.com/v1/organizations/{}", name,);
 
@@ -2343,11 +2386,14 @@ pub fn apigee_organizations_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_update_control_plane_access_execute()` to send, or `apigee_organizations_update_control_plane_access` for simplest API.
 
-pub fn apigee_organizations_update_control_plane_access_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_update_control_plane_access_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/controlPlaneAccess",
@@ -2526,11 +2572,14 @@ pub fn apigee_organizations_update_control_plane_access(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_update_security_settings_execute()` to send, or `apigee_organizations_update_security_settings` for simplest API.
 
-pub fn apigee_organizations_update_security_settings_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_update_security_settings_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/securitySettings",
@@ -2709,10 +2758,13 @@ pub fn apigee_organizations_update_security_settings(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_analytics_datastores_create_execute()` to send, or `apigee_organizations_analytics_datastores_create` for simplest API.
 
-pub fn apigee_organizations_analytics_datastores_create_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_analytics_datastores_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/analytics/datastores",
@@ -2874,10 +2926,13 @@ pub fn apigee_organizations_analytics_datastores_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_analytics_datastores_delete_execute()` to send, or `apigee_organizations_analytics_datastores_delete` for simplest API.
 
-pub fn apigee_organizations_analytics_datastores_delete_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_analytics_datastores_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/analytics/datastores/{datastoresId}",
@@ -3035,10 +3090,13 @@ pub fn apigee_organizations_analytics_datastores_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_analytics_datastores_get_execute()` to send, or `apigee_organizations_analytics_datastores_get` for simplest API.
 
-pub fn apigee_organizations_analytics_datastores_get_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_analytics_datastores_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/analytics/datastores/{datastoresId}",
@@ -3200,11 +3258,14 @@ pub fn apigee_organizations_analytics_datastores_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_analytics_datastores_list_execute()` to send, or `apigee_organizations_analytics_datastores_list` for simplest API.
 
-pub fn apigee_organizations_analytics_datastores_list_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_analytics_datastores_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     targetType: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/analytics/datastores",
@@ -3383,10 +3444,13 @@ pub fn apigee_organizations_analytics_datastores_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_analytics_datastores_test_execute()` to send, or `apigee_organizations_analytics_datastores_test` for simplest API.
 
-pub fn apigee_organizations_analytics_datastores_test_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_analytics_datastores_test_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/analytics/datastores:test",
@@ -3548,10 +3612,13 @@ pub fn apigee_organizations_analytics_datastores_test(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_analytics_datastores_update_execute()` to send, or `apigee_organizations_analytics_datastores_update` for simplest API.
 
-pub fn apigee_organizations_analytics_datastores_update_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_analytics_datastores_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/analytics/datastores/{datastoresId}",
@@ -3713,11 +3780,14 @@ pub fn apigee_organizations_analytics_datastores_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_apim_service_extensions_create_execute()` to send, or `apigee_organizations_apim_service_extensions_create` for simplest API.
 
-pub fn apigee_organizations_apim_service_extensions_create_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_apim_service_extensions_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     apimServiceExtensionId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/apimServiceExtensions",
@@ -3896,10 +3966,13 @@ pub fn apigee_organizations_apim_service_extensions_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_apim_service_extensions_delete_execute()` to send, or `apigee_organizations_apim_service_extensions_delete` for simplest API.
 
-pub fn apigee_organizations_apim_service_extensions_delete_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_apim_service_extensions_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/apimServiceExtensions/{apimServiceExtensionsId}",
@@ -4061,10 +4134,13 @@ pub fn apigee_organizations_apim_service_extensions_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_apim_service_extensions_get_execute()` to send, or `apigee_organizations_apim_service_extensions_get` for simplest API.
 
-pub fn apigee_organizations_apim_service_extensions_get_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_apim_service_extensions_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/apimServiceExtensions/{apimServiceExtensionsId}",
@@ -4227,12 +4303,15 @@ pub fn apigee_organizations_apim_service_extensions_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_apim_service_extensions_list_execute()` to send, or `apigee_organizations_apim_service_extensions_list` for simplest API.
 
-pub fn apigee_organizations_apim_service_extensions_list_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_apim_service_extensions_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/apimServiceExtensions",
@@ -4421,12 +4500,15 @@ pub fn apigee_organizations_apim_service_extensions_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_apim_service_extensions_patch_execute()` to send, or `apigee_organizations_apim_service_extensions_patch` for simplest API.
 
-pub fn apigee_organizations_apim_service_extensions_patch_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_apim_service_extensions_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     allowMissing: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/apimServiceExtensions/{apimServiceExtensionsId}",
@@ -4611,10 +4693,13 @@ pub fn apigee_organizations_apim_service_extensions_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_apiproducts_attributes_execute()` to send, or `apigee_organizations_apiproducts_attributes` for simplest API.
 
-pub fn apigee_organizations_apiproducts_attributes_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_apiproducts_attributes_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/apiproducts/{apiproductsId}/attributes",
@@ -4776,10 +4861,13 @@ pub fn apigee_organizations_apiproducts_attributes(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_apiproducts_create_execute()` to send, or `apigee_organizations_apiproducts_create` for simplest API.
 
-pub fn apigee_organizations_apiproducts_create_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_apiproducts_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/apiproducts",
@@ -4941,10 +5029,13 @@ pub fn apigee_organizations_apiproducts_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_apiproducts_delete_execute()` to send, or `apigee_organizations_apiproducts_delete` for simplest API.
 
-pub fn apigee_organizations_apiproducts_delete_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_apiproducts_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/apiproducts/{apiproductsId}",
@@ -5106,10 +5197,13 @@ pub fn apigee_organizations_apiproducts_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_apiproducts_get_execute()` to send, or `apigee_organizations_apiproducts_get` for simplest API.
 
-pub fn apigee_organizations_apiproducts_get_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_apiproducts_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/apiproducts/{apiproductsId}",
@@ -5271,8 +5365,8 @@ pub fn apigee_organizations_apiproducts_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_apiproducts_list_execute()` to send, or `apigee_organizations_apiproducts_list` for simplest API.
 
-pub fn apigee_organizations_apiproducts_list_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_apiproducts_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     attributename: &Option<Option<String>>,
     attributevalue: &Option<Option<String>>,
@@ -5280,7 +5374,10 @@ pub fn apigee_organizations_apiproducts_list_builder(
     expand: &Option<Option<String>>,
     space: &Option<Option<String>>,
     startKey: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/apiproducts",
@@ -5490,10 +5587,13 @@ pub fn apigee_organizations_apiproducts_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_apiproducts_move_execute()` to send, or `apigee_organizations_apiproducts_move` for simplest API.
 
-pub fn apigee_organizations_apiproducts_move_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_apiproducts_move_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/apiproducts/{apiproductsId}:move",
@@ -5655,10 +5755,13 @@ pub fn apigee_organizations_apiproducts_move(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_apiproducts_update_execute()` to send, or `apigee_organizations_apiproducts_update` for simplest API.
 
-pub fn apigee_organizations_apiproducts_update_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_apiproducts_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/apiproducts/{apiproductsId}",
@@ -5820,10 +5923,13 @@ pub fn apigee_organizations_apiproducts_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_apiproducts_attributes_delete_execute()` to send, or `apigee_organizations_apiproducts_attributes_delete` for simplest API.
 
-pub fn apigee_organizations_apiproducts_attributes_delete_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_apiproducts_attributes_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/apiproducts/{apiproductsId}/attributes/{attributesId}",
@@ -5985,10 +6091,13 @@ pub fn apigee_organizations_apiproducts_attributes_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_apiproducts_attributes_get_execute()` to send, or `apigee_organizations_apiproducts_attributes_get` for simplest API.
 
-pub fn apigee_organizations_apiproducts_attributes_get_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_apiproducts_attributes_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/apiproducts/{apiproductsId}/attributes/{attributesId}",
@@ -6150,10 +6259,13 @@ pub fn apigee_organizations_apiproducts_attributes_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_apiproducts_attributes_list_execute()` to send, or `apigee_organizations_apiproducts_attributes_list` for simplest API.
 
-pub fn apigee_organizations_apiproducts_attributes_list_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_apiproducts_attributes_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/apiproducts/{apiproductsId}/attributes",
@@ -6315,10 +6427,13 @@ pub fn apigee_organizations_apiproducts_attributes_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_apiproducts_attributes_update_api_product_attribute_execute()` to send, or `apigee_organizations_apiproducts_attributes_update_api_product_attribute` for simplest API.
 
-pub fn apigee_organizations_apiproducts_attributes_update_api_product_attribute_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_apiproducts_attributes_update_api_product_attribute_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/apiproducts/{apiproductsId}/attributes/{attributesId}",
@@ -6483,10 +6598,13 @@ pub fn apigee_organizations_apiproducts_attributes_update_api_product_attribute(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_apiproducts_rateplans_create_execute()` to send, or `apigee_organizations_apiproducts_rateplans_create` for simplest API.
 
-pub fn apigee_organizations_apiproducts_rateplans_create_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_apiproducts_rateplans_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/apiproducts/{apiproductsId}/rateplans",
@@ -6648,10 +6766,13 @@ pub fn apigee_organizations_apiproducts_rateplans_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_apiproducts_rateplans_delete_execute()` to send, or `apigee_organizations_apiproducts_rateplans_delete` for simplest API.
 
-pub fn apigee_organizations_apiproducts_rateplans_delete_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_apiproducts_rateplans_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/apiproducts/{apiproductsId}/rateplans/{rateplansId}",
@@ -6813,10 +6934,13 @@ pub fn apigee_organizations_apiproducts_rateplans_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_apiproducts_rateplans_get_execute()` to send, or `apigee_organizations_apiproducts_rateplans_get` for simplest API.
 
-pub fn apigee_organizations_apiproducts_rateplans_get_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_apiproducts_rateplans_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/apiproducts/{apiproductsId}/rateplans/{rateplansId}",
@@ -6978,15 +7102,18 @@ pub fn apigee_organizations_apiproducts_rateplans_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_apiproducts_rateplans_list_execute()` to send, or `apigee_organizations_apiproducts_rateplans_list` for simplest API.
 
-pub fn apigee_organizations_apiproducts_rateplans_list_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_apiproducts_rateplans_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     count: &Option<Option<String>>,
     expand: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     startKey: &Option<Option<String>>,
     state: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/apiproducts/{apiproductsId}/rateplans",
@@ -7189,10 +7316,13 @@ pub fn apigee_organizations_apiproducts_rateplans_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_apiproducts_rateplans_update_execute()` to send, or `apigee_organizations_apiproducts_rateplans_update` for simplest API.
 
-pub fn apigee_organizations_apiproducts_rateplans_update_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_apiproducts_rateplans_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/apiproducts/{apiproductsId}/rateplans/{rateplansId}",
@@ -7354,14 +7484,17 @@ pub fn apigee_organizations_apiproducts_rateplans_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_apis_create_execute()` to send, or `apigee_organizations_apis_create` for simplest API.
 
-pub fn apigee_organizations_apis_create_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_apis_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     action: &Option<Option<String>>,
     name: &Option<Option<String>>,
     space: &Option<Option<String>>,
     validate: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/apis",
@@ -7558,10 +7691,13 @@ pub fn apigee_organizations_apis_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_apis_delete_execute()` to send, or `apigee_organizations_apis_delete` for simplest API.
 
-pub fn apigee_organizations_apis_delete_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_apis_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/apis/{apisId}",
@@ -7723,10 +7859,13 @@ pub fn apigee_organizations_apis_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_apis_get_execute()` to send, or `apigee_organizations_apis_get` for simplest API.
 
-pub fn apigee_organizations_apis_get_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_apis_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/apis/{apisId}",
@@ -7888,13 +8027,16 @@ pub fn apigee_organizations_apis_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_apis_list_execute()` to send, or `apigee_organizations_apis_list` for simplest API.
 
-pub fn apigee_organizations_apis_list_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_apis_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     includeMetaData: &Option<Option<String>>,
     includeRevisions: &Option<Option<String>>,
     space: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/apis",
@@ -8085,10 +8227,13 @@ pub fn apigee_organizations_apis_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_apis_move_execute()` to send, or `apigee_organizations_apis_move` for simplest API.
 
-pub fn apigee_organizations_apis_move_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_apis_move_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/apis/{apisId}:move",
@@ -8250,11 +8395,14 @@ pub fn apigee_organizations_apis_move(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_apis_patch_execute()` to send, or `apigee_organizations_apis_patch` for simplest API.
 
-pub fn apigee_organizations_apis_patch_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_apis_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/apis/{apisId}",
@@ -8429,12 +8577,15 @@ pub fn apigee_organizations_apis_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_apis_debugsessions_list_execute()` to send, or `apigee_organizations_apis_debugsessions_list` for simplest API.
 
-pub fn apigee_organizations_apis_debugsessions_list_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_apis_debugsessions_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/apis/{apisId}/debugsessions",
@@ -8620,10 +8771,13 @@ pub fn apigee_organizations_apis_debugsessions_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_apis_deployments_list_execute()` to send, or `apigee_organizations_apis_deployments_list` for simplest API.
 
-pub fn apigee_organizations_apis_deployments_list_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_apis_deployments_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/apis/{apisId}/deployments",
@@ -8786,10 +8940,13 @@ pub fn apigee_organizations_apis_deployments_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_apis_keyvaluemaps_create_execute()` to send, or `apigee_organizations_apis_keyvaluemaps_create` for simplest API.
 
-pub fn apigee_organizations_apis_keyvaluemaps_create_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_apis_keyvaluemaps_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/apis/{apisId}/keyvaluemaps",
@@ -8951,10 +9108,13 @@ pub fn apigee_organizations_apis_keyvaluemaps_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_apis_keyvaluemaps_delete_execute()` to send, or `apigee_organizations_apis_keyvaluemaps_delete` for simplest API.
 
-pub fn apigee_organizations_apis_keyvaluemaps_delete_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_apis_keyvaluemaps_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/apis/{apisId}/keyvaluemaps/{keyvaluemapsId}",
@@ -9116,10 +9276,13 @@ pub fn apigee_organizations_apis_keyvaluemaps_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_apis_keyvaluemaps_get_execute()` to send, or `apigee_organizations_apis_keyvaluemaps_get` for simplest API.
 
-pub fn apigee_organizations_apis_keyvaluemaps_get_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_apis_keyvaluemaps_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/apis/{apisId}/keyvaluemaps/{keyvaluemapsId}",
@@ -9281,10 +9444,13 @@ pub fn apigee_organizations_apis_keyvaluemaps_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_apis_keyvaluemaps_update_execute()` to send, or `apigee_organizations_apis_keyvaluemaps_update` for simplest API.
 
-pub fn apigee_organizations_apis_keyvaluemaps_update_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_apis_keyvaluemaps_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/apis/{apisId}/keyvaluemaps/{keyvaluemapsId}",
@@ -9446,10 +9612,13 @@ pub fn apigee_organizations_apis_keyvaluemaps_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_apis_keyvaluemaps_entries_create_execute()` to send, or `apigee_organizations_apis_keyvaluemaps_entries_create` for simplest API.
 
-pub fn apigee_organizations_apis_keyvaluemaps_entries_create_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_apis_keyvaluemaps_entries_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/apis/{apisId}/keyvaluemaps/{keyvaluemapsId}/entries",
@@ -9612,10 +9781,13 @@ pub fn apigee_organizations_apis_keyvaluemaps_entries_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_apis_keyvaluemaps_entries_delete_execute()` to send, or `apigee_organizations_apis_keyvaluemaps_entries_delete` for simplest API.
 
-pub fn apigee_organizations_apis_keyvaluemaps_entries_delete_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_apis_keyvaluemaps_entries_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/apis/{apisId}/keyvaluemaps/{keyvaluemapsId}/entries/{entriesId}",
@@ -9778,10 +9950,13 @@ pub fn apigee_organizations_apis_keyvaluemaps_entries_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_apis_keyvaluemaps_entries_get_execute()` to send, or `apigee_organizations_apis_keyvaluemaps_entries_get` for simplest API.
 
-pub fn apigee_organizations_apis_keyvaluemaps_entries_get_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_apis_keyvaluemaps_entries_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/apis/{apisId}/keyvaluemaps/{keyvaluemapsId}/entries/{entriesId}",
@@ -9943,12 +10118,15 @@ pub fn apigee_organizations_apis_keyvaluemaps_entries_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_apis_keyvaluemaps_entries_list_execute()` to send, or `apigee_organizations_apis_keyvaluemaps_entries_list` for simplest API.
 
-pub fn apigee_organizations_apis_keyvaluemaps_entries_list_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_apis_keyvaluemaps_entries_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/apis/{apisId}/keyvaluemaps/{keyvaluemapsId}/entries",
@@ -10134,10 +10312,13 @@ pub fn apigee_organizations_apis_keyvaluemaps_entries_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_apis_keyvaluemaps_entries_update_execute()` to send, or `apigee_organizations_apis_keyvaluemaps_entries_update` for simplest API.
 
-pub fn apigee_organizations_apis_keyvaluemaps_entries_update_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_apis_keyvaluemaps_entries_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/apis/{apisId}/keyvaluemaps/{keyvaluemapsId}/entries/{entriesId}",
@@ -10300,10 +10481,13 @@ pub fn apigee_organizations_apis_keyvaluemaps_entries_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_apis_revisions_delete_execute()` to send, or `apigee_organizations_apis_revisions_delete` for simplest API.
 
-pub fn apigee_organizations_apis_revisions_delete_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_apis_revisions_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/apis/{apisId}/revisions/{revisionsId}",
@@ -10465,11 +10649,14 @@ pub fn apigee_organizations_apis_revisions_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_apis_revisions_get_execute()` to send, or `apigee_organizations_apis_revisions_get` for simplest API.
 
-pub fn apigee_organizations_apis_revisions_get_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_apis_revisions_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     format: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/apis/{apisId}/revisions/{revisionsId}",
@@ -10641,11 +10828,14 @@ pub fn apigee_organizations_apis_revisions_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_apis_revisions_update_api_proxy_revision_execute()` to send, or `apigee_organizations_apis_revisions_update_api_proxy_revision` for simplest API.
 
-pub fn apigee_organizations_apis_revisions_update_api_proxy_revision_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_apis_revisions_update_api_proxy_revision_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     validate: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/apis/{apisId}/revisions/{revisionsId}",
@@ -10824,10 +11014,13 @@ pub fn apigee_organizations_apis_revisions_update_api_proxy_revision(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_apis_revisions_deployments_list_execute()` to send, or `apigee_organizations_apis_revisions_deployments_list` for simplest API.
 
-pub fn apigee_organizations_apis_revisions_deployments_list_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_apis_revisions_deployments_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/apis/{apisId}/revisions/{revisionsId}/deployments",
@@ -10991,10 +11184,13 @@ pub fn apigee_organizations_apis_revisions_deployments_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_appgroups_create_execute()` to send, or `apigee_organizations_appgroups_create` for simplest API.
 
-pub fn apigee_organizations_appgroups_create_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_appgroups_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/appgroups",
@@ -11156,10 +11352,13 @@ pub fn apigee_organizations_appgroups_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_appgroups_delete_execute()` to send, or `apigee_organizations_appgroups_delete` for simplest API.
 
-pub fn apigee_organizations_appgroups_delete_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_appgroups_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/appgroups/{appgroupsId}",
@@ -11321,10 +11520,13 @@ pub fn apigee_organizations_appgroups_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_appgroups_get_execute()` to send, or `apigee_organizations_appgroups_get` for simplest API.
 
-pub fn apigee_organizations_appgroups_get_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_appgroups_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/appgroups/{appgroupsId}",
@@ -11486,10 +11688,13 @@ pub fn apigee_organizations_appgroups_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_appgroups_get_balance_execute()` to send, or `apigee_organizations_appgroups_get_balance` for simplest API.
 
-pub fn apigee_organizations_appgroups_get_balance_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_appgroups_get_balance_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/appgroups/{appgroupsId}/balance",
@@ -11651,10 +11856,13 @@ pub fn apigee_organizations_appgroups_get_balance(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_appgroups_get_monetization_config_execute()` to send, or `apigee_organizations_appgroups_get_monetization_config` for simplest API.
 
-pub fn apigee_organizations_appgroups_get_monetization_config_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_appgroups_get_monetization_config_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/appgroups/{appgroupsId}/monetizationConfig",
@@ -11818,13 +12026,16 @@ pub fn apigee_organizations_appgroups_get_monetization_config(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_appgroups_list_execute()` to send, or `apigee_organizations_appgroups_list` for simplest API.
 
-pub fn apigee_organizations_appgroups_list_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_appgroups_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/appgroups",
@@ -12015,11 +12226,14 @@ pub fn apigee_organizations_appgroups_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_appgroups_update_execute()` to send, or `apigee_organizations_appgroups_update` for simplest API.
 
-pub fn apigee_organizations_appgroups_update_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_appgroups_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     action: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/appgroups/{appgroupsId}",
@@ -12194,10 +12408,13 @@ pub fn apigee_organizations_appgroups_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_appgroups_update_monetization_config_execute()` to send, or `apigee_organizations_appgroups_update_monetization_config` for simplest API.
 
-pub fn apigee_organizations_appgroups_update_monetization_config_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_appgroups_update_monetization_config_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/appgroups/{appgroupsId}/monetizationConfig",
@@ -12361,10 +12578,13 @@ pub fn apigee_organizations_appgroups_update_monetization_config(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_appgroups_apps_create_execute()` to send, or `apigee_organizations_appgroups_apps_create` for simplest API.
 
-pub fn apigee_organizations_appgroups_apps_create_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_appgroups_apps_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/appgroups/{appgroupsId}/apps",
@@ -12526,10 +12746,13 @@ pub fn apigee_organizations_appgroups_apps_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_appgroups_apps_delete_execute()` to send, or `apigee_organizations_appgroups_apps_delete` for simplest API.
 
-pub fn apigee_organizations_appgroups_apps_delete_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_appgroups_apps_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/appgroups/{appgroupsId}/apps/{appsId}",
@@ -12691,10 +12914,13 @@ pub fn apigee_organizations_appgroups_apps_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_appgroups_apps_get_execute()` to send, or `apigee_organizations_appgroups_apps_get` for simplest API.
 
-pub fn apigee_organizations_appgroups_apps_get_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_appgroups_apps_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/appgroups/{appgroupsId}/apps/{appsId}",
@@ -12856,12 +13082,15 @@ pub fn apigee_organizations_appgroups_apps_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_appgroups_apps_list_execute()` to send, or `apigee_organizations_appgroups_apps_list` for simplest API.
 
-pub fn apigee_organizations_appgroups_apps_list_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_appgroups_apps_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/appgroups/{appgroupsId}/apps",
@@ -13047,11 +13276,14 @@ pub fn apigee_organizations_appgroups_apps_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_appgroups_apps_update_execute()` to send, or `apigee_organizations_appgroups_apps_update` for simplest API.
 
-pub fn apigee_organizations_appgroups_apps_update_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_appgroups_apps_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     action: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/appgroups/{appgroupsId}/apps/{appsId}",
@@ -13227,10 +13459,13 @@ pub fn apigee_organizations_appgroups_apps_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_appgroups_apps_keys_create_execute()` to send, or `apigee_organizations_appgroups_apps_keys_create` for simplest API.
 
-pub fn apigee_organizations_appgroups_apps_keys_create_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_appgroups_apps_keys_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/appgroups/{appgroupsId}/apps/{appsId}/keys",
@@ -13392,10 +13627,13 @@ pub fn apigee_organizations_appgroups_apps_keys_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_appgroups_apps_keys_delete_execute()` to send, or `apigee_organizations_appgroups_apps_keys_delete` for simplest API.
 
-pub fn apigee_organizations_appgroups_apps_keys_delete_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_appgroups_apps_keys_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/appgroups/{appgroupsId}/apps/{appsId}/keys/{keysId}",
@@ -13557,10 +13795,13 @@ pub fn apigee_organizations_appgroups_apps_keys_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_appgroups_apps_keys_get_execute()` to send, or `apigee_organizations_appgroups_apps_keys_get` for simplest API.
 
-pub fn apigee_organizations_appgroups_apps_keys_get_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_appgroups_apps_keys_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/appgroups/{appgroupsId}/apps/{appsId}/keys/{keysId}",
@@ -13722,10 +13963,13 @@ pub fn apigee_organizations_appgroups_apps_keys_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_appgroups_apps_keys_update_app_group_app_key_execute()` to send, or `apigee_organizations_appgroups_apps_keys_update_app_group_app_key` for simplest API.
 
-pub fn apigee_organizations_appgroups_apps_keys_update_app_group_app_key_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_appgroups_apps_keys_update_app_group_app_key_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/appgroups/{appgroupsId}/apps/{appsId}/keys/{keysId}",
@@ -13889,10 +14133,13 @@ pub fn apigee_organizations_appgroups_apps_keys_update_app_group_app_key(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_appgroups_apps_keys_apiproducts_delete_execute()` to send, or `apigee_organizations_appgroups_apps_keys_apiproducts_delete` for simplest API.
 
-pub fn apigee_organizations_appgroups_apps_keys_apiproducts_delete_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_appgroups_apps_keys_apiproducts_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/appgroups/{appgroupsId}/apps/{appsId}/keys/{keysId}/apiproducts/{apiproductsId}",
@@ -14055,11 +14302,16 @@ pub fn apigee_organizations_appgroups_apps_keys_apiproducts_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_appgroups_apps_keys_apiproducts_update_app_group_app_key_api_product_execute()` to send, or `apigee_organizations_appgroups_apps_keys_apiproducts_update_app_group_app_key_api_product` for simplest API.
 
-pub fn apigee_organizations_appgroups_apps_keys_apiproducts_update_app_group_app_key_api_product_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_appgroups_apps_keys_apiproducts_update_app_group_app_key_api_product_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     action: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/appgroups/{appgroupsId}/apps/{appsId}/keys/{keysId}/apiproducts/{apiproductsId}",
@@ -14230,10 +14482,13 @@ pub fn apigee_organizations_appgroups_apps_keys_apiproducts_update_app_group_app
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_appgroups_balance_adjust_execute()` to send, or `apigee_organizations_appgroups_balance_adjust` for simplest API.
 
-pub fn apigee_organizations_appgroups_balance_adjust_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_appgroups_balance_adjust_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/appgroups/{appgroupsId}/balance:adjust",
@@ -14395,10 +14650,13 @@ pub fn apigee_organizations_appgroups_balance_adjust(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_appgroups_balance_credit_execute()` to send, or `apigee_organizations_appgroups_balance_credit` for simplest API.
 
-pub fn apigee_organizations_appgroups_balance_credit_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_appgroups_balance_credit_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/appgroups/{appgroupsId}/balance:credit",
@@ -14560,10 +14818,13 @@ pub fn apigee_organizations_appgroups_balance_credit(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_appgroups_subscriptions_create_execute()` to send, or `apigee_organizations_appgroups_subscriptions_create` for simplest API.
 
-pub fn apigee_organizations_appgroups_subscriptions_create_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_appgroups_subscriptions_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/appgroups/{appgroupsId}/subscriptions",
@@ -14727,10 +14988,13 @@ pub fn apigee_organizations_appgroups_subscriptions_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_appgroups_subscriptions_expire_execute()` to send, or `apigee_organizations_appgroups_subscriptions_expire` for simplest API.
 
-pub fn apigee_organizations_appgroups_subscriptions_expire_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_appgroups_subscriptions_expire_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/appgroups/{appgroupsId}/subscriptions/{subscriptionsId}:expire",
@@ -14893,10 +15157,13 @@ pub fn apigee_organizations_appgroups_subscriptions_expire(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_appgroups_subscriptions_get_execute()` to send, or `apigee_organizations_appgroups_subscriptions_get` for simplest API.
 
-pub fn apigee_organizations_appgroups_subscriptions_get_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_appgroups_subscriptions_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/appgroups/{appgroupsId}/subscriptions/{subscriptionsId}",
@@ -15059,12 +15326,15 @@ pub fn apigee_organizations_appgroups_subscriptions_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_appgroups_subscriptions_list_execute()` to send, or `apigee_organizations_appgroups_subscriptions_list` for simplest API.
 
-pub fn apigee_organizations_appgroups_subscriptions_list_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_appgroups_subscriptions_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/appgroups/{appgroupsId}/subscriptions",
@@ -15253,10 +15523,13 @@ pub fn apigee_organizations_appgroups_subscriptions_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_apps_get_execute()` to send, or `apigee_organizations_apps_get` for simplest API.
 
-pub fn apigee_organizations_apps_get_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_apps_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/apps/{appsId}",
@@ -15414,8 +15687,8 @@ pub fn apigee_organizations_apps_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_apps_list_execute()` to send, or `apigee_organizations_apps_list` for simplest API.
 
-pub fn apigee_organizations_apps_list_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_apps_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     apiProduct: &Option<Option<String>>,
     apptype: &Option<Option<String>>,
@@ -15429,7 +15702,10 @@ pub fn apigee_organizations_apps_list_builder(
     rows: &Option<Option<String>>,
     startKey: &Option<Option<String>>,
     status: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/apps",
@@ -15674,11 +15950,14 @@ pub fn apigee_organizations_apps_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_datacollectors_create_execute()` to send, or `apigee_organizations_datacollectors_create` for simplest API.
 
-pub fn apigee_organizations_datacollectors_create_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_datacollectors_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     dataCollectorId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/datacollectors",
@@ -15857,10 +16136,13 @@ pub fn apigee_organizations_datacollectors_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_datacollectors_delete_execute()` to send, or `apigee_organizations_datacollectors_delete` for simplest API.
 
-pub fn apigee_organizations_datacollectors_delete_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_datacollectors_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/datacollectors/{datacollectorsId}",
@@ -16018,10 +16300,13 @@ pub fn apigee_organizations_datacollectors_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_datacollectors_get_execute()` to send, or `apigee_organizations_datacollectors_get` for simplest API.
 
-pub fn apigee_organizations_datacollectors_get_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_datacollectors_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/datacollectors/{datacollectorsId}",
@@ -16183,12 +16468,15 @@ pub fn apigee_organizations_datacollectors_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_datacollectors_list_execute()` to send, or `apigee_organizations_datacollectors_list` for simplest API.
 
-pub fn apigee_organizations_datacollectors_list_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_datacollectors_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/datacollectors",
@@ -16374,11 +16662,14 @@ pub fn apigee_organizations_datacollectors_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_datacollectors_patch_execute()` to send, or `apigee_organizations_datacollectors_patch` for simplest API.
 
-pub fn apigee_organizations_datacollectors_patch_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_datacollectors_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/datacollectors/{datacollectorsId}",
@@ -16554,11 +16845,14 @@ pub fn apigee_organizations_datacollectors_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_deployments_list_execute()` to send, or `apigee_organizations_deployments_list` for simplest API.
 
-pub fn apigee_organizations_deployments_list_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_deployments_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     sharedFlows: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/deployments",
@@ -16735,10 +17029,13 @@ pub fn apigee_organizations_deployments_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_developers_attributes_execute()` to send, or `apigee_organizations_developers_attributes` for simplest API.
 
-pub fn apigee_organizations_developers_attributes_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_developers_attributes_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/developers/{developersId}/attributes",
@@ -16900,10 +17197,13 @@ pub fn apigee_organizations_developers_attributes(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_developers_create_execute()` to send, or `apigee_organizations_developers_create` for simplest API.
 
-pub fn apigee_organizations_developers_create_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_developers_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/developers",
@@ -17065,10 +17365,13 @@ pub fn apigee_organizations_developers_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_developers_delete_execute()` to send, or `apigee_organizations_developers_delete` for simplest API.
 
-pub fn apigee_organizations_developers_delete_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_developers_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/developers/{developersId}",
@@ -17230,11 +17533,14 @@ pub fn apigee_organizations_developers_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_developers_get_execute()` to send, or `apigee_organizations_developers_get` for simplest API.
 
-pub fn apigee_organizations_developers_get_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_developers_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     action: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/developers/{developersId}",
@@ -17409,10 +17715,13 @@ pub fn apigee_organizations_developers_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_developers_get_balance_execute()` to send, or `apigee_organizations_developers_get_balance` for simplest API.
 
-pub fn apigee_organizations_developers_get_balance_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_developers_get_balance_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/developers/{developersId}/balance",
@@ -17574,10 +17883,13 @@ pub fn apigee_organizations_developers_get_balance(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_developers_get_monetization_config_execute()` to send, or `apigee_organizations_developers_get_monetization_config` for simplest API.
 
-pub fn apigee_organizations_developers_get_monetization_config_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_developers_get_monetization_config_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/developers/{developersId}/monetizationConfig",
@@ -17741,8 +18053,8 @@ pub fn apigee_organizations_developers_get_monetization_config(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_developers_list_execute()` to send, or `apigee_organizations_developers_list` for simplest API.
 
-pub fn apigee_organizations_developers_list_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_developers_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     app: &Option<Option<String>>,
     count: &Option<Option<String>>,
@@ -17750,7 +18062,10 @@ pub fn apigee_organizations_developers_list_builder(
     ids: &Option<Option<String>>,
     includeCompany: &Option<Option<String>>,
     startKey: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/developers",
@@ -17960,11 +18275,14 @@ pub fn apigee_organizations_developers_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_developers_set_developer_status_execute()` to send, or `apigee_organizations_developers_set_developer_status` for simplest API.
 
-pub fn apigee_organizations_developers_set_developer_status_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_developers_set_developer_status_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     action: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/developers/{developersId}",
@@ -18139,10 +18457,13 @@ pub fn apigee_organizations_developers_set_developer_status(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_developers_update_execute()` to send, or `apigee_organizations_developers_update` for simplest API.
 
-pub fn apigee_organizations_developers_update_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_developers_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/developers/{developersId}",
@@ -18304,10 +18625,13 @@ pub fn apigee_organizations_developers_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_developers_update_monetization_config_execute()` to send, or `apigee_organizations_developers_update_monetization_config` for simplest API.
 
-pub fn apigee_organizations_developers_update_monetization_config_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_developers_update_monetization_config_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/developers/{developersId}/monetizationConfig",
@@ -18471,10 +18795,13 @@ pub fn apigee_organizations_developers_update_monetization_config(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_developers_apps_attributes_execute()` to send, or `apigee_organizations_developers_apps_attributes` for simplest API.
 
-pub fn apigee_organizations_developers_apps_attributes_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_developers_apps_attributes_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/developers/{developersId}/apps/{appsId}/attributes",
@@ -18636,10 +18963,13 @@ pub fn apigee_organizations_developers_apps_attributes(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_developers_apps_create_execute()` to send, or `apigee_organizations_developers_apps_create` for simplest API.
 
-pub fn apigee_organizations_developers_apps_create_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_developers_apps_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/developers/{developersId}/apps",
@@ -18801,10 +19131,13 @@ pub fn apigee_organizations_developers_apps_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_developers_apps_delete_execute()` to send, or `apigee_organizations_developers_apps_delete` for simplest API.
 
-pub fn apigee_organizations_developers_apps_delete_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_developers_apps_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/developers/{developersId}/apps/{appsId}",
@@ -18966,11 +19299,16 @@ pub fn apigee_organizations_developers_apps_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_developers_apps_generate_key_pair_or_update_developer_app_status_execute()` to send, or `apigee_organizations_developers_apps_generate_key_pair_or_update_developer_app_status` for simplest API.
 
-pub fn apigee_organizations_developers_apps_generate_key_pair_or_update_developer_app_status_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_developers_apps_generate_key_pair_or_update_developer_app_status_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     action: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/developers/{developersId}/apps/{appsId}",
@@ -19150,12 +19488,15 @@ pub fn apigee_organizations_developers_apps_generate_key_pair_or_update_develope
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_developers_apps_get_execute()` to send, or `apigee_organizations_developers_apps_get` for simplest API.
 
-pub fn apigee_organizations_developers_apps_get_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_developers_apps_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     entity: &Option<Option<String>>,
     query: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/developers/{developersId}/apps/{appsId}",
@@ -19340,14 +19681,17 @@ pub fn apigee_organizations_developers_apps_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_developers_apps_list_execute()` to send, or `apigee_organizations_developers_apps_list` for simplest API.
 
-pub fn apigee_organizations_developers_apps_list_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_developers_apps_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     count: &Option<Option<String>>,
     expand: &Option<Option<String>>,
     shallowExpand: &Option<Option<String>>,
     startKey: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/developers/{developersId}/apps",
@@ -19545,10 +19889,13 @@ pub fn apigee_organizations_developers_apps_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_developers_apps_update_execute()` to send, or `apigee_organizations_developers_apps_update` for simplest API.
 
-pub fn apigee_organizations_developers_apps_update_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_developers_apps_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/developers/{developersId}/apps/{appsId}",
@@ -19710,10 +20057,13 @@ pub fn apigee_organizations_developers_apps_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_developers_apps_attributes_delete_execute()` to send, or `apigee_organizations_developers_apps_attributes_delete` for simplest API.
 
-pub fn apigee_organizations_developers_apps_attributes_delete_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_developers_apps_attributes_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/developers/{developersId}/apps/{appsId}/attributes/{attributesId}",
@@ -19876,10 +20226,13 @@ pub fn apigee_organizations_developers_apps_attributes_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_developers_apps_attributes_get_execute()` to send, or `apigee_organizations_developers_apps_attributes_get` for simplest API.
 
-pub fn apigee_organizations_developers_apps_attributes_get_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_developers_apps_attributes_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/developers/{developersId}/apps/{appsId}/attributes/{attributesId}",
@@ -20041,10 +20394,13 @@ pub fn apigee_organizations_developers_apps_attributes_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_developers_apps_attributes_list_execute()` to send, or `apigee_organizations_developers_apps_attributes_list` for simplest API.
 
-pub fn apigee_organizations_developers_apps_attributes_list_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_developers_apps_attributes_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/developers/{developersId}/apps/{appsId}/attributes",
@@ -20207,10 +20563,13 @@ pub fn apigee_organizations_developers_apps_attributes_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_developers_apps_attributes_update_developer_app_attribute_execute()` to send, or `apigee_organizations_developers_apps_attributes_update_developer_app_attribute` for simplest API.
 
-pub fn apigee_organizations_developers_apps_attributes_update_developer_app_attribute_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_developers_apps_attributes_update_developer_app_attribute_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/developers/{developersId}/apps/{appsId}/attributes/{attributesId}",
@@ -20377,10 +20736,13 @@ pub fn apigee_organizations_developers_apps_attributes_update_developer_app_attr
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_developers_apps_keys_create_execute()` to send, or `apigee_organizations_developers_apps_keys_create` for simplest API.
 
-pub fn apigee_organizations_developers_apps_keys_create_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_developers_apps_keys_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/developers/{developersId}/apps/{appsId}/keys",
@@ -20542,10 +20904,13 @@ pub fn apigee_organizations_developers_apps_keys_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_developers_apps_keys_delete_execute()` to send, or `apigee_organizations_developers_apps_keys_delete` for simplest API.
 
-pub fn apigee_organizations_developers_apps_keys_delete_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_developers_apps_keys_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/developers/{developersId}/apps/{appsId}/keys/{keysId}",
@@ -20707,10 +21072,13 @@ pub fn apigee_organizations_developers_apps_keys_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_developers_apps_keys_get_execute()` to send, or `apigee_organizations_developers_apps_keys_get` for simplest API.
 
-pub fn apigee_organizations_developers_apps_keys_get_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_developers_apps_keys_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/developers/{developersId}/apps/{appsId}/keys/{keysId}",
@@ -20872,10 +21240,13 @@ pub fn apigee_organizations_developers_apps_keys_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_developers_apps_keys_replace_developer_app_key_execute()` to send, or `apigee_organizations_developers_apps_keys_replace_developer_app_key` for simplest API.
 
-pub fn apigee_organizations_developers_apps_keys_replace_developer_app_key_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_developers_apps_keys_replace_developer_app_key_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/developers/{developersId}/apps/{appsId}/keys/{keysId}",
@@ -21039,11 +21410,14 @@ pub fn apigee_organizations_developers_apps_keys_replace_developer_app_key(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_developers_apps_keys_update_developer_app_key_execute()` to send, or `apigee_organizations_developers_apps_keys_update_developer_app_key` for simplest API.
 
-pub fn apigee_organizations_developers_apps_keys_update_developer_app_key_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_developers_apps_keys_update_developer_app_key_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     action: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/developers/{developersId}/apps/{appsId}/keys/{keysId}",
@@ -21222,10 +21596,13 @@ pub fn apigee_organizations_developers_apps_keys_update_developer_app_key(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_developers_apps_keys_apiproducts_delete_execute()` to send, or `apigee_organizations_developers_apps_keys_apiproducts_delete` for simplest API.
 
-pub fn apigee_organizations_developers_apps_keys_apiproducts_delete_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_developers_apps_keys_apiproducts_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/developers/{developersId}/apps/{appsId}/keys/{keysId}/apiproducts/{apiproductsId}",
@@ -21388,11 +21765,16 @@ pub fn apigee_organizations_developers_apps_keys_apiproducts_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_developers_apps_keys_apiproducts_update_developer_app_key_api_product_execute()` to send, or `apigee_organizations_developers_apps_keys_apiproducts_update_developer_app_key_api_product` for simplest API.
 
-pub fn apigee_organizations_developers_apps_keys_apiproducts_update_developer_app_key_api_product_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_developers_apps_keys_apiproducts_update_developer_app_key_api_product_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     action: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/developers/{developersId}/apps/{appsId}/keys/{keysId}/apiproducts/{apiproductsId}",
@@ -21563,10 +21945,13 @@ pub fn apigee_organizations_developers_apps_keys_apiproducts_update_developer_ap
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_developers_apps_keys_create_create_execute()` to send, or `apigee_organizations_developers_apps_keys_create_create` for simplest API.
 
-pub fn apigee_organizations_developers_apps_keys_create_create_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_developers_apps_keys_create_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/developers/{developersId}/apps/{appsId}/keys/create",
@@ -21729,10 +22114,13 @@ pub fn apigee_organizations_developers_apps_keys_create_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_developers_attributes_delete_execute()` to send, or `apigee_organizations_developers_attributes_delete` for simplest API.
 
-pub fn apigee_organizations_developers_attributes_delete_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_developers_attributes_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/developers/{developersId}/attributes/{attributesId}",
@@ -21894,10 +22282,13 @@ pub fn apigee_organizations_developers_attributes_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_developers_attributes_get_execute()` to send, or `apigee_organizations_developers_attributes_get` for simplest API.
 
-pub fn apigee_organizations_developers_attributes_get_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_developers_attributes_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/developers/{developersId}/attributes/{attributesId}",
@@ -22059,10 +22450,13 @@ pub fn apigee_organizations_developers_attributes_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_developers_attributes_list_execute()` to send, or `apigee_organizations_developers_attributes_list` for simplest API.
 
-pub fn apigee_organizations_developers_attributes_list_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_developers_attributes_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/developers/{developersId}/attributes",
@@ -22224,10 +22618,13 @@ pub fn apigee_organizations_developers_attributes_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_developers_attributes_update_developer_attribute_execute()` to send, or `apigee_organizations_developers_attributes_update_developer_attribute` for simplest API.
 
-pub fn apigee_organizations_developers_attributes_update_developer_attribute_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_developers_attributes_update_developer_attribute_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/developers/{developersId}/attributes/{attributesId}",
@@ -22391,10 +22788,13 @@ pub fn apigee_organizations_developers_attributes_update_developer_attribute(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_developers_balance_adjust_execute()` to send, or `apigee_organizations_developers_balance_adjust` for simplest API.
 
-pub fn apigee_organizations_developers_balance_adjust_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_developers_balance_adjust_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/developers/{developersId}/balance:adjust",
@@ -22556,10 +22956,13 @@ pub fn apigee_organizations_developers_balance_adjust(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_developers_balance_credit_execute()` to send, or `apigee_organizations_developers_balance_credit` for simplest API.
 
-pub fn apigee_organizations_developers_balance_credit_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_developers_balance_credit_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/developers/{developersId}/balance:credit",
@@ -22721,10 +23124,13 @@ pub fn apigee_organizations_developers_balance_credit(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_developers_subscriptions_create_execute()` to send, or `apigee_organizations_developers_subscriptions_create` for simplest API.
 
-pub fn apigee_organizations_developers_subscriptions_create_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_developers_subscriptions_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/developers/{developersId}/subscriptions",
@@ -22887,10 +23293,13 @@ pub fn apigee_organizations_developers_subscriptions_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_developers_subscriptions_expire_execute()` to send, or `apigee_organizations_developers_subscriptions_expire` for simplest API.
 
-pub fn apigee_organizations_developers_subscriptions_expire_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_developers_subscriptions_expire_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/developers/{developersId}/subscriptions/{subscriptionsId}:expire",
@@ -23052,10 +23461,13 @@ pub fn apigee_organizations_developers_subscriptions_expire(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_developers_subscriptions_get_execute()` to send, or `apigee_organizations_developers_subscriptions_get` for simplest API.
 
-pub fn apigee_organizations_developers_subscriptions_get_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_developers_subscriptions_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/developers/{developersId}/subscriptions/{subscriptionsId}",
@@ -23217,12 +23629,15 @@ pub fn apigee_organizations_developers_subscriptions_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_developers_subscriptions_list_execute()` to send, or `apigee_organizations_developers_subscriptions_list` for simplest API.
 
-pub fn apigee_organizations_developers_subscriptions_list_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_developers_subscriptions_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     count: &Option<Option<String>>,
     startKey: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/developers/{developersId}/subscriptions",
@@ -23417,11 +23832,14 @@ pub fn apigee_organizations_developers_subscriptions_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_dns_zones_create_execute()` to send, or `apigee_organizations_dns_zones_create` for simplest API.
 
-pub fn apigee_organizations_dns_zones_create_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_dns_zones_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     dnsZoneId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/dnsZones",
@@ -23597,10 +24015,13 @@ pub fn apigee_organizations_dns_zones_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_dns_zones_delete_execute()` to send, or `apigee_organizations_dns_zones_delete` for simplest API.
 
-pub fn apigee_organizations_dns_zones_delete_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_dns_zones_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/dnsZones/{dnsZonesId}",
@@ -23762,10 +24183,13 @@ pub fn apigee_organizations_dns_zones_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_dns_zones_get_execute()` to send, or `apigee_organizations_dns_zones_get` for simplest API.
 
-pub fn apigee_organizations_dns_zones_get_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_dns_zones_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/dnsZones/{dnsZonesId}",
@@ -23927,12 +24351,15 @@ pub fn apigee_organizations_dns_zones_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_dns_zones_list_execute()` to send, or `apigee_organizations_dns_zones_list` for simplest API.
 
-pub fn apigee_organizations_dns_zones_list_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_dns_zones_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/dnsZones",
@@ -24118,11 +24545,14 @@ pub fn apigee_organizations_dns_zones_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_endpoint_attachments_create_execute()` to send, or `apigee_organizations_endpoint_attachments_create` for simplest API.
 
-pub fn apigee_organizations_endpoint_attachments_create_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_endpoint_attachments_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     endpointAttachmentId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/endpointAttachments",
@@ -24301,10 +24731,13 @@ pub fn apigee_organizations_endpoint_attachments_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_endpoint_attachments_delete_execute()` to send, or `apigee_organizations_endpoint_attachments_delete` for simplest API.
 
-pub fn apigee_organizations_endpoint_attachments_delete_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_endpoint_attachments_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/endpointAttachments/{endpointAttachmentsId}",
@@ -24466,10 +24899,13 @@ pub fn apigee_organizations_endpoint_attachments_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_endpoint_attachments_get_execute()` to send, or `apigee_organizations_endpoint_attachments_get` for simplest API.
 
-pub fn apigee_organizations_endpoint_attachments_get_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_endpoint_attachments_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/endpointAttachments/{endpointAttachmentsId}",
@@ -24631,12 +25067,15 @@ pub fn apigee_organizations_endpoint_attachments_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_endpoint_attachments_list_execute()` to send, or `apigee_organizations_endpoint_attachments_list` for simplest API.
 
-pub fn apigee_organizations_endpoint_attachments_list_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_endpoint_attachments_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/endpointAttachments",
@@ -24825,11 +25264,14 @@ pub fn apigee_organizations_endpoint_attachments_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_envgroups_create_execute()` to send, or `apigee_organizations_envgroups_create` for simplest API.
 
-pub fn apigee_organizations_envgroups_create_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_envgroups_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     name: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/envgroups",
@@ -25004,10 +25446,13 @@ pub fn apigee_organizations_envgroups_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_envgroups_delete_execute()` to send, or `apigee_organizations_envgroups_delete` for simplest API.
 
-pub fn apigee_organizations_envgroups_delete_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_envgroups_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/envgroups/{envgroupsId}",
@@ -25169,10 +25614,13 @@ pub fn apigee_organizations_envgroups_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_envgroups_get_execute()` to send, or `apigee_organizations_envgroups_get` for simplest API.
 
-pub fn apigee_organizations_envgroups_get_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_envgroups_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/envgroups/{envgroupsId}",
@@ -25334,11 +25782,14 @@ pub fn apigee_organizations_envgroups_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_envgroups_get_deployed_ingress_config_execute()` to send, or `apigee_organizations_envgroups_get_deployed_ingress_config` for simplest API.
 
-pub fn apigee_organizations_envgroups_get_deployed_ingress_config_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_envgroups_get_deployed_ingress_config_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/envgroups/{envgroupsId}/deployedIngressConfig",
@@ -25515,12 +25966,15 @@ pub fn apigee_organizations_envgroups_get_deployed_ingress_config(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_envgroups_list_execute()` to send, or `apigee_organizations_envgroups_list` for simplest API.
 
-pub fn apigee_organizations_envgroups_list_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_envgroups_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/envgroups",
@@ -25706,11 +26160,14 @@ pub fn apigee_organizations_envgroups_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_envgroups_patch_execute()` to send, or `apigee_organizations_envgroups_patch` for simplest API.
 
-pub fn apigee_organizations_envgroups_patch_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_envgroups_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/envgroups/{envgroupsId}",
@@ -25886,10 +26343,13 @@ pub fn apigee_organizations_envgroups_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_envgroups_attachments_create_execute()` to send, or `apigee_organizations_envgroups_attachments_create` for simplest API.
 
-pub fn apigee_organizations_envgroups_attachments_create_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_envgroups_attachments_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/envgroups/{envgroupsId}/attachments",
@@ -26051,10 +26511,13 @@ pub fn apigee_organizations_envgroups_attachments_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_envgroups_attachments_delete_execute()` to send, or `apigee_organizations_envgroups_attachments_delete` for simplest API.
 
-pub fn apigee_organizations_envgroups_attachments_delete_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_envgroups_attachments_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/envgroups/{envgroupsId}/attachments/{attachmentsId}",
@@ -26216,10 +26679,13 @@ pub fn apigee_organizations_envgroups_attachments_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_envgroups_attachments_get_execute()` to send, or `apigee_organizations_envgroups_attachments_get` for simplest API.
 
-pub fn apigee_organizations_envgroups_attachments_get_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_envgroups_attachments_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/envgroups/{envgroupsId}/attachments/{attachmentsId}",
@@ -26382,12 +26848,15 @@ pub fn apigee_organizations_envgroups_attachments_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_envgroups_attachments_list_execute()` to send, or `apigee_organizations_envgroups_attachments_list` for simplest API.
 
-pub fn apigee_organizations_envgroups_attachments_list_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_envgroups_attachments_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/envgroups/{envgroupsId}/attachments",
@@ -26582,11 +27051,14 @@ pub fn apigee_organizations_envgroups_attachments_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_environments_create_execute()` to send, or `apigee_organizations_environments_create` for simplest API.
 
-pub fn apigee_organizations_environments_create_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_environments_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     name: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/environments",
@@ -26762,10 +27234,13 @@ pub fn apigee_organizations_environments_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_environments_delete_execute()` to send, or `apigee_organizations_environments_delete` for simplest API.
 
-pub fn apigee_organizations_environments_delete_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_environments_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/environments/{environmentsId}",
@@ -26927,10 +27402,13 @@ pub fn apigee_organizations_environments_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_environments_get_execute()` to send, or `apigee_organizations_environments_get` for simplest API.
 
-pub fn apigee_organizations_environments_get_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_environments_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/environments/{environmentsId}",
@@ -27092,10 +27570,13 @@ pub fn apigee_organizations_environments_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_environments_get_addons_config_execute()` to send, or `apigee_organizations_environments_get_addons_config` for simplest API.
 
-pub fn apigee_organizations_environments_get_addons_config_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_environments_get_addons_config_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/environments/{environmentsId}/addonsConfig",
@@ -27257,10 +27738,13 @@ pub fn apigee_organizations_environments_get_addons_config(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_environments_get_api_security_runtime_config_execute()` to send, or `apigee_organizations_environments_get_api_security_runtime_config` for simplest API.
 
-pub fn apigee_organizations_environments_get_api_security_runtime_config_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_environments_get_api_security_runtime_config_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/environments/{environmentsId}/apiSecurityRuntimeConfig",
@@ -27425,10 +27909,13 @@ pub fn apigee_organizations_environments_get_api_security_runtime_config(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_environments_get_debugmask_execute()` to send, or `apigee_organizations_environments_get_debugmask` for simplest API.
 
-pub fn apigee_organizations_environments_get_debugmask_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_environments_get_debugmask_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/environments/{environmentsId}/debugmask",
@@ -27590,10 +28077,13 @@ pub fn apigee_organizations_environments_get_debugmask(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_environments_get_deployed_config_execute()` to send, or `apigee_organizations_environments_get_deployed_config` for simplest API.
 
-pub fn apigee_organizations_environments_get_deployed_config_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_environments_get_deployed_config_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/environments/{environmentsId}/deployedConfig",
@@ -27756,11 +28246,14 @@ pub fn apigee_organizations_environments_get_deployed_config(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_environments_get_iam_policy_execute()` to send, or `apigee_organizations_environments_get_iam_policy` for simplest API.
 
-pub fn apigee_organizations_environments_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_environments_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/environments/{environmentsId}:getIamPolicy",
@@ -27935,10 +28428,13 @@ pub fn apigee_organizations_environments_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_environments_get_security_actions_config_execute()` to send, or `apigee_organizations_environments_get_security_actions_config` for simplest API.
 
-pub fn apigee_organizations_environments_get_security_actions_config_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_environments_get_security_actions_config_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/environments/{environmentsId}/securityActionsConfig",
@@ -28101,10 +28597,13 @@ pub fn apigee_organizations_environments_get_security_actions_config(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_environments_get_trace_config_execute()` to send, or `apigee_organizations_environments_get_trace_config` for simplest API.
 
-pub fn apigee_organizations_environments_get_trace_config_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_environments_get_trace_config_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/environments/{environmentsId}/traceConfig",
@@ -28266,11 +28765,14 @@ pub fn apigee_organizations_environments_get_trace_config(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_environments_modify_environment_execute()` to send, or `apigee_organizations_environments_modify_environment` for simplest API.
 
-pub fn apigee_organizations_environments_modify_environment_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_environments_modify_environment_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/environments/{environmentsId}",
@@ -28449,10 +28951,13 @@ pub fn apigee_organizations_environments_modify_environment(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_environments_set_iam_policy_execute()` to send, or `apigee_organizations_environments_set_iam_policy` for simplest API.
 
-pub fn apigee_organizations_environments_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_environments_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/environments/{environmentsId}:setIamPolicy",
@@ -28610,10 +29115,13 @@ pub fn apigee_organizations_environments_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_environments_subscribe_execute()` to send, or `apigee_organizations_environments_subscribe` for simplest API.
 
-pub fn apigee_organizations_environments_subscribe_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_environments_subscribe_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/environments/{environmentsId}:subscribe",
@@ -28775,10 +29283,13 @@ pub fn apigee_organizations_environments_subscribe(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_environments_test_iam_permissions_execute()` to send, or `apigee_organizations_environments_test_iam_permissions` for simplest API.
 
-pub fn apigee_organizations_environments_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_environments_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/environments/{environmentsId}:testIamPermissions",
@@ -28941,10 +29452,13 @@ pub fn apigee_organizations_environments_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_environments_unsubscribe_execute()` to send, or `apigee_organizations_environments_unsubscribe` for simplest API.
 
-pub fn apigee_organizations_environments_unsubscribe_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_environments_unsubscribe_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/environments/{environmentsId}:unsubscribe",
@@ -29102,10 +29616,13 @@ pub fn apigee_organizations_environments_unsubscribe(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_environments_update_execute()` to send, or `apigee_organizations_environments_update` for simplest API.
 
-pub fn apigee_organizations_environments_update_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_environments_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/environments/{environmentsId}",
@@ -29267,12 +29784,15 @@ pub fn apigee_organizations_environments_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_environments_update_debugmask_execute()` to send, or `apigee_organizations_environments_update_debugmask` for simplest API.
 
-pub fn apigee_organizations_environments_update_debugmask_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_environments_update_debugmask_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     replaceRepeatedFields: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/environments/{environmentsId}/debugmask",
@@ -29457,10 +29977,13 @@ pub fn apigee_organizations_environments_update_debugmask(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_environments_update_environment_execute()` to send, or `apigee_organizations_environments_update_environment` for simplest API.
 
-pub fn apigee_organizations_environments_update_environment_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_environments_update_environment_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/environments/{environmentsId}",
@@ -29622,11 +30145,14 @@ pub fn apigee_organizations_environments_update_environment(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_environments_update_security_actions_config_execute()` to send, or `apigee_organizations_environments_update_security_actions_config` for simplest API.
 
-pub fn apigee_organizations_environments_update_security_actions_config_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_environments_update_security_actions_config_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/environments/{environmentsId}/securityActionsConfig",
@@ -29805,11 +30331,14 @@ pub fn apigee_organizations_environments_update_security_actions_config(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_environments_update_trace_config_execute()` to send, or `apigee_organizations_environments_update_trace_config` for simplest API.
 
-pub fn apigee_organizations_environments_update_trace_config_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_environments_update_trace_config_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/environments/{environmentsId}/traceConfig",
@@ -29988,10 +30517,13 @@ pub fn apigee_organizations_environments_update_trace_config(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_environments_addons_config_set_addon_enablement_execute()` to send, or `apigee_organizations_environments_addons_config_set_addon_enablement` for simplest API.
 
-pub fn apigee_organizations_environments_addons_config_set_addon_enablement_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_environments_addons_config_set_addon_enablement_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/environments/{environmentsId}/addonsConfig:setAddonEnablement",
@@ -30155,12 +30687,15 @@ pub fn apigee_organizations_environments_addons_config_set_addon_enablement(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_environments_analytics_admin_get_schemav2_execute()` to send, or `apigee_organizations_environments_analytics_admin_get_schemav2` for simplest API.
 
-pub fn apigee_organizations_environments_analytics_admin_get_schemav2_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_environments_analytics_admin_get_schemav2_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     disableCache: &Option<Option<String>>,
     type_rs: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/environments/{environmentsId}/analytics/admin/schemav2",
@@ -30341,10 +30876,13 @@ pub fn apigee_organizations_environments_analytics_admin_get_schemav2(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_environments_analytics_exports_create_execute()` to send, or `apigee_organizations_environments_analytics_exports_create` for simplest API.
 
-pub fn apigee_organizations_environments_analytics_exports_create_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_environments_analytics_exports_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/environments/{environmentsId}/analytics/exports",
@@ -30503,10 +31041,13 @@ pub fn apigee_organizations_environments_analytics_exports_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_environments_analytics_exports_get_execute()` to send, or `apigee_organizations_environments_analytics_exports_get` for simplest API.
 
-pub fn apigee_organizations_environments_analytics_exports_get_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_environments_analytics_exports_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/environments/{environmentsId}/analytics/exports/{exportsId}",
@@ -30665,10 +31206,13 @@ pub fn apigee_organizations_environments_analytics_exports_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_environments_analytics_exports_list_execute()` to send, or `apigee_organizations_environments_analytics_exports_list` for simplest API.
 
-pub fn apigee_organizations_environments_analytics_exports_list_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_environments_analytics_exports_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/environments/{environmentsId}/analytics/exports",
@@ -30831,10 +31375,13 @@ pub fn apigee_organizations_environments_analytics_exports_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_environments_apis_deployments_list_execute()` to send, or `apigee_organizations_environments_apis_deployments_list` for simplest API.
 
-pub fn apigee_organizations_environments_apis_deployments_list_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_environments_apis_deployments_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/environments/{environmentsId}/apis/{apisId}/deployments",
@@ -30998,13 +31545,16 @@ pub fn apigee_organizations_environments_apis_deployments_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_environments_apis_revisions_deploy_execute()` to send, or `apigee_organizations_environments_apis_revisions_deploy` for simplest API.
 
-pub fn apigee_organizations_environments_apis_revisions_deploy_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_environments_apis_revisions_deploy_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     override_rs: &Option<Option<String>>,
     sequencedRollout: &Option<Option<String>>,
     serviceAccount: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/environments/{environmentsId}/apis/{apisId}/revisions/{revisionsId}/deployments",
@@ -31195,10 +31745,13 @@ pub fn apigee_organizations_environments_apis_revisions_deploy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_environments_apis_revisions_get_deployments_execute()` to send, or `apigee_organizations_environments_apis_revisions_get_deployments` for simplest API.
 
-pub fn apigee_organizations_environments_apis_revisions_get_deployments_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_environments_apis_revisions_get_deployments_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/environments/{environmentsId}/apis/{apisId}/revisions/{revisionsId}/deployments",
@@ -31362,11 +31915,14 @@ pub fn apigee_organizations_environments_apis_revisions_get_deployments(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_environments_apis_revisions_undeploy_execute()` to send, or `apigee_organizations_environments_apis_revisions_undeploy` for simplest API.
 
-pub fn apigee_organizations_environments_apis_revisions_undeploy_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_environments_apis_revisions_undeploy_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     sequencedRollout: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/environments/{environmentsId}/apis/{apisId}/revisions/{revisionsId}/deployments",
@@ -31541,11 +32097,14 @@ pub fn apigee_organizations_environments_apis_revisions_undeploy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_environments_apis_revisions_debugsessions_create_execute()` to send, or `apigee_organizations_environments_apis_revisions_debugsessions_create` for simplest API.
 
-pub fn apigee_organizations_environments_apis_revisions_debugsessions_create_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_environments_apis_revisions_debugsessions_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     timeout: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/environments/{environmentsId}/apis/{apisId}/revisions/{revisionsId}/debugsessions",
@@ -31724,10 +32283,13 @@ pub fn apigee_organizations_environments_apis_revisions_debugsessions_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_environments_apis_revisions_debugsessions_delete_data_execute()` to send, or `apigee_organizations_environments_apis_revisions_debugsessions_delete_data` for simplest API.
 
-pub fn apigee_organizations_environments_apis_revisions_debugsessions_delete_data_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_environments_apis_revisions_debugsessions_delete_data_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/environments/{environmentsId}/apis/{apisId}/revisions/{revisionsId}/debugsessions/{debugsessionsId}/data",
@@ -31889,10 +32451,13 @@ pub fn apigee_organizations_environments_apis_revisions_debugsessions_delete_dat
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_environments_apis_revisions_debugsessions_get_execute()` to send, or `apigee_organizations_environments_apis_revisions_debugsessions_get` for simplest API.
 
-pub fn apigee_organizations_environments_apis_revisions_debugsessions_get_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_environments_apis_revisions_debugsessions_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/environments/{environmentsId}/apis/{apisId}/revisions/{revisionsId}/debugsessions/{debugsessionsId}",
@@ -32056,12 +32621,15 @@ pub fn apigee_organizations_environments_apis_revisions_debugsessions_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_environments_apis_revisions_debugsessions_list_execute()` to send, or `apigee_organizations_environments_apis_revisions_debugsessions_list` for simplest API.
 
-pub fn apigee_organizations_environments_apis_revisions_debugsessions_list_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_environments_apis_revisions_debugsessions_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/environments/{environmentsId}/apis/{apisId}/revisions/{revisionsId}/debugsessions",
@@ -32247,10 +32815,13 @@ pub fn apigee_organizations_environments_apis_revisions_debugsessions_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_environments_apis_revisions_debugsessions_data_get_execute()` to send, or `apigee_organizations_environments_apis_revisions_debugsessions_data_get` for simplest API.
 
-pub fn apigee_organizations_environments_apis_revisions_debugsessions_data_get_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_environments_apis_revisions_debugsessions_data_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/environments/{environmentsId}/apis/{apisId}/revisions/{revisionsId}/debugsessions/{debugsessionsId}/data/{dataId}",
@@ -32416,11 +32987,16 @@ pub fn apigee_organizations_environments_apis_revisions_debugsessions_data_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_environments_apis_revisions_deployments_generate_deploy_change_report_execute()` to send, or `apigee_organizations_environments_apis_revisions_deployments_generate_deploy_change_report` for simplest API.
 
-pub fn apigee_organizations_environments_apis_revisions_deployments_generate_deploy_change_report_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_environments_apis_revisions_deployments_generate_deploy_change_report_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     override_rs: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/environments/{environmentsId}/apis/{apisId}/revisions/{revisionsId}/deployments:generateDeployChangeReport",
@@ -32595,10 +33171,15 @@ pub fn apigee_organizations_environments_apis_revisions_deployments_generate_dep
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_environments_apis_revisions_deployments_generate_undeploy_change_report_execute()` to send, or `apigee_organizations_environments_apis_revisions_deployments_generate_undeploy_change_report` for simplest API.
 
-pub fn apigee_organizations_environments_apis_revisions_deployments_generate_undeploy_change_report_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_environments_apis_revisions_deployments_generate_undeploy_change_report_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/environments/{environmentsId}/apis/{apisId}/revisions/{revisionsId}/deployments:generateUndeployChangeReport",
@@ -32760,10 +33341,13 @@ pub fn apigee_organizations_environments_apis_revisions_deployments_generate_und
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_environments_archive_deployments_create_execute()` to send, or `apigee_organizations_environments_archive_deployments_create` for simplest API.
 
-pub fn apigee_organizations_environments_archive_deployments_create_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_environments_archive_deployments_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/environments/{environmentsId}/archiveDeployments",
@@ -32926,10 +33510,13 @@ pub fn apigee_organizations_environments_archive_deployments_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_environments_archive_deployments_delete_execute()` to send, or `apigee_organizations_environments_archive_deployments_delete` for simplest API.
 
-pub fn apigee_organizations_environments_archive_deployments_delete_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_environments_archive_deployments_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/environments/{environmentsId}/archiveDeployments/{archiveDeploymentsId}",
@@ -33088,10 +33675,13 @@ pub fn apigee_organizations_environments_archive_deployments_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_environments_archive_deployments_generate_download_url_execute()` to send, or `apigee_organizations_environments_archive_deployments_generate_download_url` for simplest API.
 
-pub fn apigee_organizations_environments_archive_deployments_generate_download_url_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_environments_archive_deployments_generate_download_url_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/environments/{environmentsId}/archiveDeployments/{archiveDeploymentsId}:generateDownloadUrl",
@@ -33258,10 +33848,13 @@ pub fn apigee_organizations_environments_archive_deployments_generate_download_u
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_environments_archive_deployments_generate_upload_url_execute()` to send, or `apigee_organizations_environments_archive_deployments_generate_upload_url` for simplest API.
 
-pub fn apigee_organizations_environments_archive_deployments_generate_upload_url_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_environments_archive_deployments_generate_upload_url_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/environments/{environmentsId}/archiveDeployments:generateUploadUrl",
@@ -33429,10 +34022,13 @@ pub fn apigee_organizations_environments_archive_deployments_generate_upload_url
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_environments_archive_deployments_get_execute()` to send, or `apigee_organizations_environments_archive_deployments_get` for simplest API.
 
-pub fn apigee_organizations_environments_archive_deployments_get_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_environments_archive_deployments_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/environments/{environmentsId}/archiveDeployments/{archiveDeploymentsId}",
@@ -33595,13 +34191,16 @@ pub fn apigee_organizations_environments_archive_deployments_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_environments_archive_deployments_list_execute()` to send, or `apigee_organizations_environments_archive_deployments_list` for simplest API.
 
-pub fn apigee_organizations_environments_archive_deployments_list_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_environments_archive_deployments_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/environments/{environmentsId}/archiveDeployments",
@@ -33796,11 +34395,14 @@ pub fn apigee_organizations_environments_archive_deployments_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_environments_archive_deployments_patch_execute()` to send, or `apigee_organizations_environments_archive_deployments_patch` for simplest API.
 
-pub fn apigee_organizations_environments_archive_deployments_patch_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_environments_archive_deployments_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/environments/{environmentsId}/archiveDeployments/{archiveDeploymentsId}",
@@ -33979,10 +34581,13 @@ pub fn apigee_organizations_environments_archive_deployments_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_environments_caches_delete_execute()` to send, or `apigee_organizations_environments_caches_delete` for simplest API.
 
-pub fn apigee_organizations_environments_caches_delete_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_environments_caches_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/environments/{environmentsId}/caches/{cachesId}",
@@ -34140,10 +34745,13 @@ pub fn apigee_organizations_environments_caches_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_environments_deployments_get_execute()` to send, or `apigee_organizations_environments_deployments_get` for simplest API.
 
-pub fn apigee_organizations_environments_deployments_get_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_environments_deployments_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/environments/{environmentsId}/deployments/{deploymentsId}",
@@ -34305,11 +34913,14 @@ pub fn apigee_organizations_environments_deployments_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_environments_deployments_get_iam_policy_execute()` to send, or `apigee_organizations_environments_deployments_get_iam_policy` for simplest API.
 
-pub fn apigee_organizations_environments_deployments_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_environments_deployments_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/environments/{environmentsId}/deployments/{deploymentsId}:getIamPolicy",
@@ -34484,11 +35095,14 @@ pub fn apigee_organizations_environments_deployments_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_environments_deployments_list_execute()` to send, or `apigee_organizations_environments_deployments_list` for simplest API.
 
-pub fn apigee_organizations_environments_deployments_list_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_environments_deployments_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     sharedFlows: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/environments/{environmentsId}/deployments",
@@ -34668,10 +35282,13 @@ pub fn apigee_organizations_environments_deployments_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_environments_deployments_set_iam_policy_execute()` to send, or `apigee_organizations_environments_deployments_set_iam_policy` for simplest API.
 
-pub fn apigee_organizations_environments_deployments_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_environments_deployments_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/environments/{environmentsId}/deployments/{deploymentsId}:setIamPolicy",
@@ -34832,10 +35449,13 @@ pub fn apigee_organizations_environments_deployments_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_environments_deployments_test_iam_permissions_execute()` to send, or `apigee_organizations_environments_deployments_test_iam_permissions` for simplest API.
 
-pub fn apigee_organizations_environments_deployments_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_environments_deployments_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/environments/{environmentsId}/deployments/{deploymentsId}:testIamPermissions",
@@ -35000,10 +35620,13 @@ pub fn apigee_organizations_environments_deployments_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_environments_flowhooks_attach_shared_flow_to_flow_hook_execute()` to send, or `apigee_organizations_environments_flowhooks_attach_shared_flow_to_flow_hook` for simplest API.
 
-pub fn apigee_organizations_environments_flowhooks_attach_shared_flow_to_flow_hook_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_environments_flowhooks_attach_shared_flow_to_flow_hook_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/environments/{environmentsId}/flowhooks/{flowhooksId}",
@@ -35169,10 +35792,13 @@ pub fn apigee_organizations_environments_flowhooks_attach_shared_flow_to_flow_ho
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_environments_flowhooks_detach_shared_flow_from_flow_hook_execute()` to send, or `apigee_organizations_environments_flowhooks_detach_shared_flow_from_flow_hook` for simplest API.
 
-pub fn apigee_organizations_environments_flowhooks_detach_shared_flow_from_flow_hook_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_environments_flowhooks_detach_shared_flow_from_flow_hook_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/environments/{environmentsId}/flowhooks/{flowhooksId}",
@@ -35339,10 +35965,13 @@ pub fn apigee_organizations_environments_flowhooks_detach_shared_flow_from_flow_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_environments_flowhooks_get_execute()` to send, or `apigee_organizations_environments_flowhooks_get` for simplest API.
 
-pub fn apigee_organizations_environments_flowhooks_get_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_environments_flowhooks_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/environments/{environmentsId}/flowhooks/{flowhooksId}",
@@ -35504,11 +36133,14 @@ pub fn apigee_organizations_environments_flowhooks_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_environments_keystores_create_execute()` to send, or `apigee_organizations_environments_keystores_create` for simplest API.
 
-pub fn apigee_organizations_environments_keystores_create_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_environments_keystores_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     name: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/environments/{environmentsId}/keystores",
@@ -35687,10 +36319,13 @@ pub fn apigee_organizations_environments_keystores_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_environments_keystores_delete_execute()` to send, or `apigee_organizations_environments_keystores_delete` for simplest API.
 
-pub fn apigee_organizations_environments_keystores_delete_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_environments_keystores_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/environments/{environmentsId}/keystores/{keystoresId}",
@@ -35852,10 +36487,13 @@ pub fn apigee_organizations_environments_keystores_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_environments_keystores_get_execute()` to send, or `apigee_organizations_environments_keystores_get` for simplest API.
 
-pub fn apigee_organizations_environments_keystores_get_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_environments_keystores_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/environments/{environmentsId}/keystores/{keystoresId}",
@@ -36017,15 +36655,18 @@ pub fn apigee_organizations_environments_keystores_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_environments_keystores_aliases_create_execute()` to send, or `apigee_organizations_environments_keystores_aliases_create` for simplest API.
 
-pub fn apigee_organizations_environments_keystores_aliases_create_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_environments_keystores_aliases_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     _password: &Option<Option<String>>,
     alias: &Option<Option<String>>,
     format: &Option<Option<String>>,
     ignoreExpiryValidation: &Option<Option<String>>,
     ignoreNewlineValidation: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/environments/{environmentsId}/keystores/{keystoresId}/aliases",
@@ -36224,10 +36865,13 @@ pub fn apigee_organizations_environments_keystores_aliases_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_environments_keystores_aliases_csr_execute()` to send, or `apigee_organizations_environments_keystores_aliases_csr` for simplest API.
 
-pub fn apigee_organizations_environments_keystores_aliases_csr_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_environments_keystores_aliases_csr_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/environments/{environmentsId}/keystores/{keystoresId}/aliases/{aliasesId}/csr",
@@ -36386,10 +37030,13 @@ pub fn apigee_organizations_environments_keystores_aliases_csr(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_environments_keystores_aliases_delete_execute()` to send, or `apigee_organizations_environments_keystores_aliases_delete` for simplest API.
 
-pub fn apigee_organizations_environments_keystores_aliases_delete_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_environments_keystores_aliases_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/environments/{environmentsId}/keystores/{keystoresId}/aliases/{aliasesId}",
@@ -36548,10 +37195,13 @@ pub fn apigee_organizations_environments_keystores_aliases_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_environments_keystores_aliases_get_execute()` to send, or `apigee_organizations_environments_keystores_aliases_get` for simplest API.
 
-pub fn apigee_organizations_environments_keystores_aliases_get_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_environments_keystores_aliases_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/environments/{environmentsId}/keystores/{keystoresId}/aliases/{aliasesId}",
@@ -36710,10 +37360,13 @@ pub fn apigee_organizations_environments_keystores_aliases_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_environments_keystores_aliases_get_certificate_execute()` to send, or `apigee_organizations_environments_keystores_aliases_get_certificate` for simplest API.
 
-pub fn apigee_organizations_environments_keystores_aliases_get_certificate_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_environments_keystores_aliases_get_certificate_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/environments/{environmentsId}/keystores/{keystoresId}/aliases/{aliasesId}/certificate",
@@ -36873,12 +37526,15 @@ pub fn apigee_organizations_environments_keystores_aliases_get_certificate(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_environments_keystores_aliases_update_execute()` to send, or `apigee_organizations_environments_keystores_aliases_update` for simplest API.
 
-pub fn apigee_organizations_environments_keystores_aliases_update_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_environments_keystores_aliases_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     ignoreExpiryValidation: &Option<Option<String>>,
     ignoreNewlineValidation: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/environments/{environmentsId}/keystores/{keystoresId}/aliases/{aliasesId}",
@@ -37059,10 +37715,13 @@ pub fn apigee_organizations_environments_keystores_aliases_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_environments_keyvaluemaps_create_execute()` to send, or `apigee_organizations_environments_keyvaluemaps_create` for simplest API.
 
-pub fn apigee_organizations_environments_keyvaluemaps_create_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_environments_keyvaluemaps_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/environments/{environmentsId}/keyvaluemaps",
@@ -37225,10 +37884,13 @@ pub fn apigee_organizations_environments_keyvaluemaps_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_environments_keyvaluemaps_delete_execute()` to send, or `apigee_organizations_environments_keyvaluemaps_delete` for simplest API.
 
-pub fn apigee_organizations_environments_keyvaluemaps_delete_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_environments_keyvaluemaps_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/environments/{environmentsId}/keyvaluemaps/{keyvaluemapsId}",
@@ -37391,10 +38053,13 @@ pub fn apigee_organizations_environments_keyvaluemaps_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_environments_keyvaluemaps_get_execute()` to send, or `apigee_organizations_environments_keyvaluemaps_get` for simplest API.
 
-pub fn apigee_organizations_environments_keyvaluemaps_get_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_environments_keyvaluemaps_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/environments/{environmentsId}/keyvaluemaps/{keyvaluemapsId}",
@@ -37556,10 +38221,13 @@ pub fn apigee_organizations_environments_keyvaluemaps_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_environments_keyvaluemaps_update_execute()` to send, or `apigee_organizations_environments_keyvaluemaps_update` for simplest API.
 
-pub fn apigee_organizations_environments_keyvaluemaps_update_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_environments_keyvaluemaps_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/environments/{environmentsId}/keyvaluemaps/{keyvaluemapsId}",
@@ -37722,10 +38390,13 @@ pub fn apigee_organizations_environments_keyvaluemaps_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_environments_keyvaluemaps_entries_create_execute()` to send, or `apigee_organizations_environments_keyvaluemaps_entries_create` for simplest API.
 
-pub fn apigee_organizations_environments_keyvaluemaps_entries_create_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_environments_keyvaluemaps_entries_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/environments/{environmentsId}/keyvaluemaps/{keyvaluemapsId}/entries",
@@ -37890,10 +38561,13 @@ pub fn apigee_organizations_environments_keyvaluemaps_entries_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_environments_keyvaluemaps_entries_delete_execute()` to send, or `apigee_organizations_environments_keyvaluemaps_entries_delete` for simplest API.
 
-pub fn apigee_organizations_environments_keyvaluemaps_entries_delete_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_environments_keyvaluemaps_entries_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/environments/{environmentsId}/keyvaluemaps/{keyvaluemapsId}/entries/{entriesId}",
@@ -38056,10 +38730,13 @@ pub fn apigee_organizations_environments_keyvaluemaps_entries_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_environments_keyvaluemaps_entries_get_execute()` to send, or `apigee_organizations_environments_keyvaluemaps_entries_get` for simplest API.
 
-pub fn apigee_organizations_environments_keyvaluemaps_entries_get_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_environments_keyvaluemaps_entries_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/environments/{environmentsId}/keyvaluemaps/{keyvaluemapsId}/entries/{entriesId}",
@@ -38222,12 +38899,15 @@ pub fn apigee_organizations_environments_keyvaluemaps_entries_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_environments_keyvaluemaps_entries_list_execute()` to send, or `apigee_organizations_environments_keyvaluemaps_entries_list` for simplest API.
 
-pub fn apigee_organizations_environments_keyvaluemaps_entries_list_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_environments_keyvaluemaps_entries_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/environments/{environmentsId}/keyvaluemaps/{keyvaluemapsId}/entries",
@@ -38413,10 +39093,13 @@ pub fn apigee_organizations_environments_keyvaluemaps_entries_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_environments_keyvaluemaps_entries_update_execute()` to send, or `apigee_organizations_environments_keyvaluemaps_entries_update` for simplest API.
 
-pub fn apigee_organizations_environments_keyvaluemaps_entries_update_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_environments_keyvaluemaps_entries_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/environments/{environmentsId}/keyvaluemaps/{keyvaluemapsId}/entries/{entriesId}",
@@ -38579,8 +39262,8 @@ pub fn apigee_organizations_environments_keyvaluemaps_entries_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_environments_optimized_stats_get_execute()` to send, or `apigee_organizations_environments_optimized_stats_get` for simplest API.
 
-pub fn apigee_organizations_environments_optimized_stats_get_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_environments_optimized_stats_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     accuracy: &Option<Option<String>>,
     aggTable: &Option<Option<String>>,
@@ -38597,7 +39280,10 @@ pub fn apigee_organizations_environments_optimized_stats_get_builder(
     topk: &Option<Option<String>>,
     tsAscending: &Option<Option<String>>,
     tzo: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/environments/{environmentsId}/optimizedStats/{optimizedStatsId}",
@@ -38860,10 +39546,13 @@ pub fn apigee_organizations_environments_optimized_stats_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_environments_queries_create_execute()` to send, or `apigee_organizations_environments_queries_create` for simplest API.
 
-pub fn apigee_organizations_environments_queries_create_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_environments_queries_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/environments/{environmentsId}/queries",
@@ -39025,10 +39714,13 @@ pub fn apigee_organizations_environments_queries_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_environments_queries_get_execute()` to send, or `apigee_organizations_environments_queries_get` for simplest API.
 
-pub fn apigee_organizations_environments_queries_get_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_environments_queries_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/environments/{environmentsId}/queries/{queriesId}",
@@ -39190,10 +39882,13 @@ pub fn apigee_organizations_environments_queries_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_environments_queries_get_result_execute()` to send, or `apigee_organizations_environments_queries_get_result` for simplest API.
 
-pub fn apigee_organizations_environments_queries_get_result_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_environments_queries_get_result_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/environments/{environmentsId}/queries/{queriesId}/result",
@@ -39351,10 +40046,13 @@ pub fn apigee_organizations_environments_queries_get_result(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_environments_queries_get_resulturl_execute()` to send, or `apigee_organizations_environments_queries_get_resulturl` for simplest API.
 
-pub fn apigee_organizations_environments_queries_get_resulturl_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_environments_queries_get_resulturl_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/environments/{environmentsId}/queries/{queriesId}/resulturl",
@@ -39521,8 +40219,8 @@ pub fn apigee_organizations_environments_queries_get_resulturl(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_environments_queries_list_execute()` to send, or `apigee_organizations_environments_queries_list` for simplest API.
 
-pub fn apigee_organizations_environments_queries_list_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_environments_queries_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     dataset: &Option<Option<String>>,
     from: &Option<Option<String>>,
@@ -39530,7 +40228,10 @@ pub fn apigee_organizations_environments_queries_list_builder(
     status: &Option<Option<String>>,
     submittedBy: &Option<Option<String>>,
     to: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/environments/{environmentsId}/queries",
@@ -39740,10 +40441,13 @@ pub fn apigee_organizations_environments_queries_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_environments_references_create_execute()` to send, or `apigee_organizations_environments_references_create` for simplest API.
 
-pub fn apigee_organizations_environments_references_create_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_environments_references_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/environments/{environmentsId}/references",
@@ -39906,10 +40610,13 @@ pub fn apigee_organizations_environments_references_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_environments_references_delete_execute()` to send, or `apigee_organizations_environments_references_delete` for simplest API.
 
-pub fn apigee_organizations_environments_references_delete_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_environments_references_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/environments/{environmentsId}/references/{referencesId}",
@@ -40071,10 +40778,13 @@ pub fn apigee_organizations_environments_references_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_environments_references_get_execute()` to send, or `apigee_organizations_environments_references_get` for simplest API.
 
-pub fn apigee_organizations_environments_references_get_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_environments_references_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/environments/{environmentsId}/references/{referencesId}",
@@ -40236,10 +40946,13 @@ pub fn apigee_organizations_environments_references_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_environments_references_update_execute()` to send, or `apigee_organizations_environments_references_update` for simplest API.
 
-pub fn apigee_organizations_environments_references_update_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_environments_references_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/environments/{environmentsId}/references/{referencesId}",
@@ -40401,12 +41114,15 @@ pub fn apigee_organizations_environments_references_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_environments_resourcefiles_create_execute()` to send, or `apigee_organizations_environments_resourcefiles_create` for simplest API.
 
-pub fn apigee_organizations_environments_resourcefiles_create_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_environments_resourcefiles_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     name: &Option<Option<String>>,
     type_rs: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/environments/{environmentsId}/resourcefiles",
@@ -40591,12 +41307,15 @@ pub fn apigee_organizations_environments_resourcefiles_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_environments_resourcefiles_delete_execute()` to send, or `apigee_organizations_environments_resourcefiles_delete` for simplest API.
 
-pub fn apigee_organizations_environments_resourcefiles_delete_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_environments_resourcefiles_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     type_rs: &String,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/environments/{}/resourcefiles/{}/{name}",
@@ -40767,12 +41486,15 @@ pub fn apigee_organizations_environments_resourcefiles_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_environments_resourcefiles_get_execute()` to send, or `apigee_organizations_environments_resourcefiles_get` for simplest API.
 
-pub fn apigee_organizations_environments_resourcefiles_get_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_environments_resourcefiles_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     type_rs: &String,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/environments/{}/resourcefiles/{}/{name}",
@@ -40939,11 +41661,14 @@ pub fn apigee_organizations_environments_resourcefiles_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_environments_resourcefiles_list_execute()` to send, or `apigee_organizations_environments_resourcefiles_list` for simplest API.
 
-pub fn apigee_organizations_environments_resourcefiles_list_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_environments_resourcefiles_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     type_rs: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/environments/{environmentsId}/resourcefiles",
@@ -41126,11 +41851,14 @@ pub fn apigee_organizations_environments_resourcefiles_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_environments_resourcefiles_list_environment_resources_execute()` to send, or `apigee_organizations_environments_resourcefiles_list_environment_resources` for simplest API.
 
-pub fn apigee_organizations_environments_resourcefiles_list_environment_resources_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_environments_resourcefiles_list_environment_resources_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     type_rs: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/environments/{}/resourcefiles/{type}",
@@ -41304,12 +42032,15 @@ pub fn apigee_organizations_environments_resourcefiles_list_environment_resource
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_environments_resourcefiles_update_execute()` to send, or `apigee_organizations_environments_resourcefiles_update` for simplest API.
 
-pub fn apigee_organizations_environments_resourcefiles_update_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_environments_resourcefiles_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     type_rs: &String,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/environments/{}/resourcefiles/{}/{name}",
@@ -41480,11 +42211,14 @@ pub fn apigee_organizations_environments_resourcefiles_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_environments_security_actions_create_execute()` to send, or `apigee_organizations_environments_security_actions_create` for simplest API.
 
-pub fn apigee_organizations_environments_security_actions_create_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_environments_security_actions_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     securityActionId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/environments/{environmentsId}/securityActions",
@@ -41663,10 +42397,13 @@ pub fn apigee_organizations_environments_security_actions_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_environments_security_actions_delete_execute()` to send, or `apigee_organizations_environments_security_actions_delete` for simplest API.
 
-pub fn apigee_organizations_environments_security_actions_delete_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_environments_security_actions_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/environments/{environmentsId}/securityActions/{securityActionsId}",
@@ -41825,10 +42562,13 @@ pub fn apigee_organizations_environments_security_actions_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_environments_security_actions_disable_execute()` to send, or `apigee_organizations_environments_security_actions_disable` for simplest API.
 
-pub fn apigee_organizations_environments_security_actions_disable_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_environments_security_actions_disable_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/environments/{environmentsId}/securityActions/{securityActionsId}:disable",
@@ -41991,10 +42731,13 @@ pub fn apigee_organizations_environments_security_actions_disable(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_environments_security_actions_enable_execute()` to send, or `apigee_organizations_environments_security_actions_enable` for simplest API.
 
-pub fn apigee_organizations_environments_security_actions_enable_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_environments_security_actions_enable_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/environments/{environmentsId}/securityActions/{securityActionsId}:enable",
@@ -42157,10 +42900,13 @@ pub fn apigee_organizations_environments_security_actions_enable(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_environments_security_actions_get_execute()` to send, or `apigee_organizations_environments_security_actions_get` for simplest API.
 
-pub fn apigee_organizations_environments_security_actions_get_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_environments_security_actions_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/environments/{environmentsId}/securityActions/{securityActionsId}",
@@ -42323,13 +43069,16 @@ pub fn apigee_organizations_environments_security_actions_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_environments_security_actions_list_execute()` to send, or `apigee_organizations_environments_security_actions_list` for simplest API.
 
-pub fn apigee_organizations_environments_security_actions_list_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_environments_security_actions_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/environments/{environmentsId}/securityActions",
@@ -42521,11 +43270,14 @@ pub fn apigee_organizations_environments_security_actions_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_environments_security_actions_patch_execute()` to send, or `apigee_organizations_environments_security_actions_patch` for simplest API.
 
-pub fn apigee_organizations_environments_security_actions_patch_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_environments_security_actions_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/environments/{environmentsId}/securityActions/{securityActionsId}",
@@ -42704,10 +43456,13 @@ pub fn apigee_organizations_environments_security_actions_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_environments_security_incidents_batch_update_execute()` to send, or `apigee_organizations_environments_security_incidents_batch_update` for simplest API.
 
-pub fn apigee_organizations_environments_security_incidents_batch_update_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_environments_security_incidents_batch_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/environments/{environmentsId}/securityIncidents:batchUpdate",
@@ -42882,10 +43637,13 @@ pub fn apigee_organizations_environments_security_incidents_batch_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_environments_security_incidents_get_execute()` to send, or `apigee_organizations_environments_security_incidents_get` for simplest API.
 
-pub fn apigee_organizations_environments_security_incidents_get_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_environments_security_incidents_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/environments/{environmentsId}/securityIncidents/{securityIncidentsId}",
@@ -43048,13 +43806,16 @@ pub fn apigee_organizations_environments_security_incidents_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_environments_security_incidents_list_execute()` to send, or `apigee_organizations_environments_security_incidents_list` for simplest API.
 
-pub fn apigee_organizations_environments_security_incidents_list_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_environments_security_incidents_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/environments/{environmentsId}/securityIncidents",
@@ -43246,11 +44007,14 @@ pub fn apigee_organizations_environments_security_incidents_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_environments_security_incidents_patch_execute()` to send, or `apigee_organizations_environments_security_incidents_patch` for simplest API.
 
-pub fn apigee_organizations_environments_security_incidents_patch_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_environments_security_incidents_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/environments/{environmentsId}/securityIncidents/{securityIncidentsId}",
@@ -43429,10 +44193,13 @@ pub fn apigee_organizations_environments_security_incidents_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_environments_security_reports_create_execute()` to send, or `apigee_organizations_environments_security_reports_create` for simplest API.
 
-pub fn apigee_organizations_environments_security_reports_create_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_environments_security_reports_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/environments/{environmentsId}/securityReports",
@@ -43595,10 +44362,13 @@ pub fn apigee_organizations_environments_security_reports_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_environments_security_reports_get_execute()` to send, or `apigee_organizations_environments_security_reports_get` for simplest API.
 
-pub fn apigee_organizations_environments_security_reports_get_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_environments_security_reports_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/environments/{environmentsId}/securityReports/{securityReportsId}",
@@ -43761,10 +44531,13 @@ pub fn apigee_organizations_environments_security_reports_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_environments_security_reports_get_result_execute()` to send, or `apigee_organizations_environments_security_reports_get_result` for simplest API.
 
-pub fn apigee_organizations_environments_security_reports_get_result_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_environments_security_reports_get_result_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/environments/{environmentsId}/securityReports/{securityReportsId}/result",
@@ -43923,10 +44696,13 @@ pub fn apigee_organizations_environments_security_reports_get_result(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_environments_security_reports_get_result_view_execute()` to send, or `apigee_organizations_environments_security_reports_get_result_view` for simplest API.
 
-pub fn apigee_organizations_environments_security_reports_get_result_view_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_environments_security_reports_get_result_view_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/environments/{environmentsId}/securityReports/{securityReportsId}/resultView",
@@ -44091,8 +44867,8 @@ pub fn apigee_organizations_environments_security_reports_get_result_view(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_environments_security_reports_list_execute()` to send, or `apigee_organizations_environments_security_reports_list` for simplest API.
 
-pub fn apigee_organizations_environments_security_reports_list_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_environments_security_reports_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     dataset: &Option<Option<String>>,
     from: &Option<Option<String>>,
@@ -44101,7 +44877,10 @@ pub fn apigee_organizations_environments_security_reports_list_builder(
     status: &Option<Option<String>>,
     submittedBy: &Option<Option<String>>,
     to: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/environments/{environmentsId}/securityReports",
@@ -44317,10 +45096,13 @@ pub fn apigee_organizations_environments_security_reports_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_environments_security_stats_query_tabular_stats_execute()` to send, or `apigee_organizations_environments_security_stats_query_tabular_stats` for simplest API.
 
-pub fn apigee_organizations_environments_security_stats_query_tabular_stats_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_environments_security_stats_query_tabular_stats_builder<R>(
+    client: &SimpleHttpClient<R>,
     orgenv: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/environments/{environmentsId}/securityStats:queryTabularStats",
@@ -44486,10 +45268,13 @@ pub fn apigee_organizations_environments_security_stats_query_tabular_stats(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_environments_security_stats_query_time_series_stats_execute()` to send, or `apigee_organizations_environments_security_stats_query_time_series_stats` for simplest API.
 
-pub fn apigee_organizations_environments_security_stats_query_time_series_stats_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_environments_security_stats_query_time_series_stats_builder<R>(
+    client: &SimpleHttpClient<R>,
     orgenv: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/environments/{environmentsId}/securityStats:queryTimeSeriesStats",
@@ -44656,10 +45441,13 @@ pub fn apigee_organizations_environments_security_stats_query_time_series_stats(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_environments_sharedflows_deployments_list_execute()` to send, or `apigee_organizations_environments_sharedflows_deployments_list` for simplest API.
 
-pub fn apigee_organizations_environments_sharedflows_deployments_list_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_environments_sharedflows_deployments_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/environments/{environmentsId}/sharedflows/{sharedflowsId}/deployments",
@@ -44825,12 +45613,15 @@ pub fn apigee_organizations_environments_sharedflows_deployments_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_environments_sharedflows_revisions_deploy_execute()` to send, or `apigee_organizations_environments_sharedflows_revisions_deploy` for simplest API.
 
-pub fn apigee_organizations_environments_sharedflows_revisions_deploy_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_environments_sharedflows_revisions_deploy_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     override_rs: &Option<Option<String>>,
     serviceAccount: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/environments/{environmentsId}/sharedflows/{sharedflowsId}/revisions/{revisionsId}/deployments",
@@ -45015,10 +45806,13 @@ pub fn apigee_organizations_environments_sharedflows_revisions_deploy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_environments_sharedflows_revisions_get_deployments_execute()` to send, or `apigee_organizations_environments_sharedflows_revisions_get_deployments` for simplest API.
 
-pub fn apigee_organizations_environments_sharedflows_revisions_get_deployments_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_environments_sharedflows_revisions_get_deployments_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/environments/{environmentsId}/sharedflows/{sharedflowsId}/revisions/{revisionsId}/deployments",
@@ -45183,10 +45977,13 @@ pub fn apigee_organizations_environments_sharedflows_revisions_get_deployments(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_environments_sharedflows_revisions_undeploy_execute()` to send, or `apigee_organizations_environments_sharedflows_revisions_undeploy` for simplest API.
 
-pub fn apigee_organizations_environments_sharedflows_revisions_undeploy_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_environments_sharedflows_revisions_undeploy_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/environments/{environmentsId}/sharedflows/{sharedflowsId}/revisions/{revisionsId}/deployments",
@@ -45346,8 +46143,8 @@ pub fn apigee_organizations_environments_sharedflows_revisions_undeploy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_environments_stats_get_execute()` to send, or `apigee_organizations_environments_stats_get` for simplest API.
 
-pub fn apigee_organizations_environments_stats_get_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_environments_stats_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     accuracy: &Option<Option<String>>,
     aggTable: &Option<Option<String>>,
@@ -45364,7 +46161,10 @@ pub fn apigee_organizations_environments_stats_get_builder(
     topk: &Option<Option<String>>,
     tsAscending: &Option<Option<String>>,
     tzo: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/environments/{environmentsId}/stats/{statsId}",
@@ -45623,11 +46423,14 @@ pub fn apigee_organizations_environments_stats_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_environments_targetservers_create_execute()` to send, or `apigee_organizations_environments_targetservers_create` for simplest API.
 
-pub fn apigee_organizations_environments_targetservers_create_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_environments_targetservers_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     name: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/environments/{environmentsId}/targetservers",
@@ -45806,10 +46609,13 @@ pub fn apigee_organizations_environments_targetservers_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_environments_targetservers_delete_execute()` to send, or `apigee_organizations_environments_targetservers_delete` for simplest API.
 
-pub fn apigee_organizations_environments_targetservers_delete_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_environments_targetservers_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/environments/{environmentsId}/targetservers/{targetserversId}",
@@ -45972,10 +46778,13 @@ pub fn apigee_organizations_environments_targetservers_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_environments_targetservers_get_execute()` to send, or `apigee_organizations_environments_targetservers_get` for simplest API.
 
-pub fn apigee_organizations_environments_targetservers_get_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_environments_targetservers_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/environments/{environmentsId}/targetservers/{targetserversId}",
@@ -46137,10 +46946,13 @@ pub fn apigee_organizations_environments_targetservers_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_environments_targetservers_update_execute()` to send, or `apigee_organizations_environments_targetservers_update` for simplest API.
 
-pub fn apigee_organizations_environments_targetservers_update_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_environments_targetservers_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/environments/{environmentsId}/targetservers/{targetserversId}",
@@ -46303,10 +47115,13 @@ pub fn apigee_organizations_environments_targetservers_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_environments_trace_config_overrides_create_execute()` to send, or `apigee_organizations_environments_trace_config_overrides_create` for simplest API.
 
-pub fn apigee_organizations_environments_trace_config_overrides_create_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_environments_trace_config_overrides_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/environments/{environmentsId}/traceConfig/overrides",
@@ -46471,10 +47286,13 @@ pub fn apigee_organizations_environments_trace_config_overrides_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_environments_trace_config_overrides_delete_execute()` to send, or `apigee_organizations_environments_trace_config_overrides_delete` for simplest API.
 
-pub fn apigee_organizations_environments_trace_config_overrides_delete_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_environments_trace_config_overrides_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/environments/{environmentsId}/traceConfig/overrides/{overridesId}",
@@ -46634,10 +47452,13 @@ pub fn apigee_organizations_environments_trace_config_overrides_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_environments_trace_config_overrides_get_execute()` to send, or `apigee_organizations_environments_trace_config_overrides_get` for simplest API.
 
-pub fn apigee_organizations_environments_trace_config_overrides_get_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_environments_trace_config_overrides_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/environments/{environmentsId}/traceConfig/overrides/{overridesId}",
@@ -46800,12 +47621,15 @@ pub fn apigee_organizations_environments_trace_config_overrides_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_environments_trace_config_overrides_list_execute()` to send, or `apigee_organizations_environments_trace_config_overrides_list` for simplest API.
 
-pub fn apigee_organizations_environments_trace_config_overrides_list_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_environments_trace_config_overrides_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/environments/{environmentsId}/traceConfig/overrides",
@@ -46994,11 +47818,14 @@ pub fn apigee_organizations_environments_trace_config_overrides_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_environments_trace_config_overrides_patch_execute()` to send, or `apigee_organizations_environments_trace_config_overrides_patch` for simplest API.
 
-pub fn apigee_organizations_environments_trace_config_overrides_patch_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_environments_trace_config_overrides_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/environments/{environmentsId}/traceConfig/overrides/{overridesId}",
@@ -47177,10 +48004,13 @@ pub fn apigee_organizations_environments_trace_config_overrides_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_host_queries_create_execute()` to send, or `apigee_organizations_host_queries_create` for simplest API.
 
-pub fn apigee_organizations_host_queries_create_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_host_queries_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/hostQueries",
@@ -47342,10 +48172,13 @@ pub fn apigee_organizations_host_queries_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_host_queries_get_execute()` to send, or `apigee_organizations_host_queries_get` for simplest API.
 
-pub fn apigee_organizations_host_queries_get_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_host_queries_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/hostQueries/{hostQueriesId}",
@@ -47507,10 +48340,13 @@ pub fn apigee_organizations_host_queries_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_host_queries_get_result_execute()` to send, or `apigee_organizations_host_queries_get_result` for simplest API.
 
-pub fn apigee_organizations_host_queries_get_result_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_host_queries_get_result_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/hostQueries/{hostQueriesId}/result",
@@ -47668,10 +48504,13 @@ pub fn apigee_organizations_host_queries_get_result(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_host_queries_get_result_view_execute()` to send, or `apigee_organizations_host_queries_get_result_view` for simplest API.
 
-pub fn apigee_organizations_host_queries_get_result_view_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_host_queries_get_result_view_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/hostQueries/{hostQueriesId}/resultView",
@@ -47834,8 +48673,8 @@ pub fn apigee_organizations_host_queries_get_result_view(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_host_queries_list_execute()` to send, or `apigee_organizations_host_queries_list` for simplest API.
 
-pub fn apigee_organizations_host_queries_list_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_host_queries_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     dataset: &Option<Option<String>>,
     envgroupHostname: &Option<Option<String>>,
@@ -47844,7 +48683,10 @@ pub fn apigee_organizations_host_queries_list_builder(
     status: &Option<Option<String>>,
     submittedBy: &Option<Option<String>>,
     to: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/hostQueries",
@@ -48060,10 +48902,13 @@ pub fn apigee_organizations_host_queries_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_host_security_reports_create_execute()` to send, or `apigee_organizations_host_security_reports_create` for simplest API.
 
-pub fn apigee_organizations_host_security_reports_create_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_host_security_reports_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/hostSecurityReports",
@@ -48225,10 +49070,13 @@ pub fn apigee_organizations_host_security_reports_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_host_security_reports_get_execute()` to send, or `apigee_organizations_host_security_reports_get` for simplest API.
 
-pub fn apigee_organizations_host_security_reports_get_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_host_security_reports_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/hostSecurityReports/{hostSecurityReportsId}",
@@ -48390,10 +49238,13 @@ pub fn apigee_organizations_host_security_reports_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_host_security_reports_get_result_execute()` to send, or `apigee_organizations_host_security_reports_get_result` for simplest API.
 
-pub fn apigee_organizations_host_security_reports_get_result_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_host_security_reports_get_result_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/hostSecurityReports/{hostSecurityReportsId}/result",
@@ -48552,10 +49403,13 @@ pub fn apigee_organizations_host_security_reports_get_result(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_host_security_reports_get_result_view_execute()` to send, or `apigee_organizations_host_security_reports_get_result_view` for simplest API.
 
-pub fn apigee_organizations_host_security_reports_get_result_view_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_host_security_reports_get_result_view_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/hostSecurityReports/{hostSecurityReportsId}/resultView",
@@ -48719,8 +49573,8 @@ pub fn apigee_organizations_host_security_reports_get_result_view(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_host_security_reports_list_execute()` to send, or `apigee_organizations_host_security_reports_list` for simplest API.
 
-pub fn apigee_organizations_host_security_reports_list_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_host_security_reports_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     dataset: &Option<Option<String>>,
     envgroupHostname: &Option<Option<String>>,
@@ -48730,7 +49584,10 @@ pub fn apigee_organizations_host_security_reports_list_builder(
     status: &Option<Option<String>>,
     submittedBy: &Option<Option<String>>,
     to: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/hostSecurityReports",
@@ -48952,8 +49809,8 @@ pub fn apigee_organizations_host_security_reports_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_host_stats_get_execute()` to send, or `apigee_organizations_host_stats_get` for simplest API.
 
-pub fn apigee_organizations_host_stats_get_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_host_stats_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     accuracy: &Option<Option<String>>,
     envgroupHostname: &Option<Option<String>>,
@@ -48969,7 +49826,10 @@ pub fn apigee_organizations_host_stats_get_builder(
     topk: &Option<Option<String>>,
     tsAscending: &Option<Option<String>>,
     tzo: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/hostStats/{hostStatsId}",
@@ -49222,10 +50082,13 @@ pub fn apigee_organizations_host_stats_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_instances_create_execute()` to send, or `apigee_organizations_instances_create` for simplest API.
 
-pub fn apigee_organizations_instances_create_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_instances_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/instances",
@@ -49387,10 +50250,13 @@ pub fn apigee_organizations_instances_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_instances_delete_execute()` to send, or `apigee_organizations_instances_delete` for simplest API.
 
-pub fn apigee_organizations_instances_delete_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_instances_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/instances/{instancesId}",
@@ -49552,10 +50418,13 @@ pub fn apigee_organizations_instances_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_instances_get_execute()` to send, or `apigee_organizations_instances_get` for simplest API.
 
-pub fn apigee_organizations_instances_get_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_instances_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/instances/{instancesId}",
@@ -49717,12 +50586,15 @@ pub fn apigee_organizations_instances_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_instances_list_execute()` to send, or `apigee_organizations_instances_list` for simplest API.
 
-pub fn apigee_organizations_instances_list_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_instances_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/instances",
@@ -49907,11 +50779,14 @@ pub fn apigee_organizations_instances_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_instances_patch_execute()` to send, or `apigee_organizations_instances_patch` for simplest API.
 
-pub fn apigee_organizations_instances_patch_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_instances_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/instances/{instancesId}",
@@ -50087,10 +50962,13 @@ pub fn apigee_organizations_instances_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_instances_report_status_execute()` to send, or `apigee_organizations_instances_report_status` for simplest API.
 
-pub fn apigee_organizations_instances_report_status_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_instances_report_status_builder<R>(
+    client: &SimpleHttpClient<R>,
     instance: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/instances/{instancesId}:reportStatus",
@@ -50253,10 +51131,13 @@ pub fn apigee_organizations_instances_report_status(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_instances_attachments_create_execute()` to send, or `apigee_organizations_instances_attachments_create` for simplest API.
 
-pub fn apigee_organizations_instances_attachments_create_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_instances_attachments_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/instances/{instancesId}/attachments",
@@ -50418,10 +51299,13 @@ pub fn apigee_organizations_instances_attachments_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_instances_attachments_delete_execute()` to send, or `apigee_organizations_instances_attachments_delete` for simplest API.
 
-pub fn apigee_organizations_instances_attachments_delete_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_instances_attachments_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/instances/{instancesId}/attachments/{attachmentsId}",
@@ -50583,10 +51467,13 @@ pub fn apigee_organizations_instances_attachments_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_instances_attachments_get_execute()` to send, or `apigee_organizations_instances_attachments_get` for simplest API.
 
-pub fn apigee_organizations_instances_attachments_get_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_instances_attachments_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/instances/{instancesId}/attachments/{attachmentsId}",
@@ -50748,12 +51635,15 @@ pub fn apigee_organizations_instances_attachments_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_instances_attachments_list_execute()` to send, or `apigee_organizations_instances_attachments_list` for simplest API.
 
-pub fn apigee_organizations_instances_attachments_list_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_instances_attachments_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/instances/{instancesId}/attachments",
@@ -50942,10 +51832,13 @@ pub fn apigee_organizations_instances_attachments_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_instances_canaryevaluations_create_execute()` to send, or `apigee_organizations_instances_canaryevaluations_create` for simplest API.
 
-pub fn apigee_organizations_instances_canaryevaluations_create_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_instances_canaryevaluations_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/instances/{instancesId}/canaryevaluations",
@@ -51108,10 +52001,13 @@ pub fn apigee_organizations_instances_canaryevaluations_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_instances_canaryevaluations_get_execute()` to send, or `apigee_organizations_instances_canaryevaluations_get` for simplest API.
 
-pub fn apigee_organizations_instances_canaryevaluations_get_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_instances_canaryevaluations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/instances/{instancesId}/canaryevaluations/{canaryevaluationsId}",
@@ -51273,10 +52169,13 @@ pub fn apigee_organizations_instances_canaryevaluations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_instances_nat_addresses_activate_execute()` to send, or `apigee_organizations_instances_nat_addresses_activate` for simplest API.
 
-pub fn apigee_organizations_instances_nat_addresses_activate_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_instances_nat_addresses_activate_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/instances/{instancesId}/natAddresses/{natAddressesId}:activate",
@@ -51439,10 +52338,13 @@ pub fn apigee_organizations_instances_nat_addresses_activate(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_instances_nat_addresses_create_execute()` to send, or `apigee_organizations_instances_nat_addresses_create` for simplest API.
 
-pub fn apigee_organizations_instances_nat_addresses_create_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_instances_nat_addresses_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/instances/{instancesId}/natAddresses",
@@ -51605,10 +52507,13 @@ pub fn apigee_organizations_instances_nat_addresses_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_instances_nat_addresses_delete_execute()` to send, or `apigee_organizations_instances_nat_addresses_delete` for simplest API.
 
-pub fn apigee_organizations_instances_nat_addresses_delete_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_instances_nat_addresses_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/instances/{instancesId}/natAddresses/{natAddressesId}",
@@ -51770,10 +52675,13 @@ pub fn apigee_organizations_instances_nat_addresses_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_instances_nat_addresses_get_execute()` to send, or `apigee_organizations_instances_nat_addresses_get` for simplest API.
 
-pub fn apigee_organizations_instances_nat_addresses_get_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_instances_nat_addresses_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/instances/{instancesId}/natAddresses/{natAddressesId}",
@@ -51935,12 +52843,15 @@ pub fn apigee_organizations_instances_nat_addresses_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_instances_nat_addresses_list_execute()` to send, or `apigee_organizations_instances_nat_addresses_list` for simplest API.
 
-pub fn apigee_organizations_instances_nat_addresses_list_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_instances_nat_addresses_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/instances/{instancesId}/natAddresses",
@@ -52126,10 +53037,13 @@ pub fn apigee_organizations_instances_nat_addresses_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_keyvaluemaps_create_execute()` to send, or `apigee_organizations_keyvaluemaps_create` for simplest API.
 
-pub fn apigee_organizations_keyvaluemaps_create_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_keyvaluemaps_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/keyvaluemaps",
@@ -52291,10 +53205,13 @@ pub fn apigee_organizations_keyvaluemaps_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_keyvaluemaps_delete_execute()` to send, or `apigee_organizations_keyvaluemaps_delete` for simplest API.
 
-pub fn apigee_organizations_keyvaluemaps_delete_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_keyvaluemaps_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/keyvaluemaps/{keyvaluemapsId}",
@@ -52456,10 +53373,13 @@ pub fn apigee_organizations_keyvaluemaps_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_keyvaluemaps_get_execute()` to send, or `apigee_organizations_keyvaluemaps_get` for simplest API.
 
-pub fn apigee_organizations_keyvaluemaps_get_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_keyvaluemaps_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/keyvaluemaps/{keyvaluemapsId}",
@@ -52621,10 +53541,13 @@ pub fn apigee_organizations_keyvaluemaps_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_keyvaluemaps_update_execute()` to send, or `apigee_organizations_keyvaluemaps_update` for simplest API.
 
-pub fn apigee_organizations_keyvaluemaps_update_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_keyvaluemaps_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/keyvaluemaps/{keyvaluemapsId}",
@@ -52786,10 +53709,13 @@ pub fn apigee_organizations_keyvaluemaps_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_keyvaluemaps_entries_create_execute()` to send, or `apigee_organizations_keyvaluemaps_entries_create` for simplest API.
 
-pub fn apigee_organizations_keyvaluemaps_entries_create_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_keyvaluemaps_entries_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/keyvaluemaps/{keyvaluemapsId}/entries",
@@ -52951,10 +53877,13 @@ pub fn apigee_organizations_keyvaluemaps_entries_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_keyvaluemaps_entries_delete_execute()` to send, or `apigee_organizations_keyvaluemaps_entries_delete` for simplest API.
 
-pub fn apigee_organizations_keyvaluemaps_entries_delete_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_keyvaluemaps_entries_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/keyvaluemaps/{keyvaluemapsId}/entries/{entriesId}",
@@ -53116,10 +54045,13 @@ pub fn apigee_organizations_keyvaluemaps_entries_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_keyvaluemaps_entries_get_execute()` to send, or `apigee_organizations_keyvaluemaps_entries_get` for simplest API.
 
-pub fn apigee_organizations_keyvaluemaps_entries_get_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_keyvaluemaps_entries_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/keyvaluemaps/{keyvaluemapsId}/entries/{entriesId}",
@@ -53281,12 +54213,15 @@ pub fn apigee_organizations_keyvaluemaps_entries_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_keyvaluemaps_entries_list_execute()` to send, or `apigee_organizations_keyvaluemaps_entries_list` for simplest API.
 
-pub fn apigee_organizations_keyvaluemaps_entries_list_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_keyvaluemaps_entries_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/keyvaluemaps/{keyvaluemapsId}/entries",
@@ -53472,10 +54407,13 @@ pub fn apigee_organizations_keyvaluemaps_entries_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_keyvaluemaps_entries_update_execute()` to send, or `apigee_organizations_keyvaluemaps_entries_update` for simplest API.
 
-pub fn apigee_organizations_keyvaluemaps_entries_update_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_keyvaluemaps_entries_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/keyvaluemaps/{keyvaluemapsId}/entries/{entriesId}",
@@ -53637,10 +54575,13 @@ pub fn apigee_organizations_keyvaluemaps_entries_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_operations_get_execute()` to send, or `apigee_organizations_operations_get` for simplest API.
 
-pub fn apigee_organizations_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/operations/{operationsId}",
@@ -53802,14 +54743,17 @@ pub fn apigee_organizations_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_operations_list_execute()` to send, or `apigee_organizations_operations_list` for simplest API.
 
-pub fn apigee_organizations_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/operations",
@@ -54007,8 +54951,8 @@ pub fn apigee_organizations_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_optimized_host_stats_get_execute()` to send, or `apigee_organizations_optimized_host_stats_get` for simplest API.
 
-pub fn apigee_organizations_optimized_host_stats_get_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_optimized_host_stats_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     accuracy: &Option<Option<String>>,
     envgroupHostname: &Option<Option<String>>,
@@ -54024,7 +54968,10 @@ pub fn apigee_organizations_optimized_host_stats_get_builder(
     topk: &Option<Option<String>>,
     tsAscending: &Option<Option<String>>,
     tzo: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/optimizedHostStats/{optimizedHostStatsId}",
@@ -54281,10 +55228,13 @@ pub fn apigee_organizations_optimized_host_stats_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_reports_create_execute()` to send, or `apigee_organizations_reports_create` for simplest API.
 
-pub fn apigee_organizations_reports_create_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_reports_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/reports",
@@ -54446,10 +55396,13 @@ pub fn apigee_organizations_reports_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_reports_delete_execute()` to send, or `apigee_organizations_reports_delete` for simplest API.
 
-pub fn apigee_organizations_reports_delete_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_reports_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/reports/{reportsId}",
@@ -54612,10 +55565,13 @@ pub fn apigee_organizations_reports_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_reports_get_execute()` to send, or `apigee_organizations_reports_get` for simplest API.
 
-pub fn apigee_organizations_reports_get_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_reports_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/reports/{reportsId}",
@@ -54777,11 +55733,14 @@ pub fn apigee_organizations_reports_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_reports_list_execute()` to send, or `apigee_organizations_reports_list` for simplest API.
 
-pub fn apigee_organizations_reports_list_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_reports_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     expand: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/reports",
@@ -54957,10 +55916,13 @@ pub fn apigee_organizations_reports_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_reports_update_execute()` to send, or `apigee_organizations_reports_update` for simplest API.
 
-pub fn apigee_organizations_reports_update_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_reports_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/reports/{reportsId}",
@@ -55122,10 +56084,13 @@ pub fn apigee_organizations_reports_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_security_assessment_results_batch_compute_execute()` to send, or `apigee_organizations_security_assessment_results_batch_compute` for simplest API.
 
-pub fn apigee_organizations_security_assessment_results_batch_compute_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_security_assessment_results_batch_compute_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/securityAssessmentResults:batchCompute",
@@ -55298,11 +56263,14 @@ pub fn apigee_organizations_security_assessment_results_batch_compute(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_security_feedback_create_execute()` to send, or `apigee_organizations_security_feedback_create` for simplest API.
 
-pub fn apigee_organizations_security_feedback_create_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_security_feedback_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     securityFeedbackId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/securityFeedback",
@@ -55481,10 +56449,13 @@ pub fn apigee_organizations_security_feedback_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_security_feedback_delete_execute()` to send, or `apigee_organizations_security_feedback_delete` for simplest API.
 
-pub fn apigee_organizations_security_feedback_delete_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_security_feedback_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/securityFeedback/{securityFeedbackId}",
@@ -55642,10 +56613,13 @@ pub fn apigee_organizations_security_feedback_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_security_feedback_get_execute()` to send, or `apigee_organizations_security_feedback_get` for simplest API.
 
-pub fn apigee_organizations_security_feedback_get_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_security_feedback_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/securityFeedback/{securityFeedbackId}",
@@ -55807,12 +56781,15 @@ pub fn apigee_organizations_security_feedback_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_security_feedback_list_execute()` to send, or `apigee_organizations_security_feedback_list` for simplest API.
 
-pub fn apigee_organizations_security_feedback_list_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_security_feedback_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/securityFeedback",
@@ -55998,11 +56975,14 @@ pub fn apigee_organizations_security_feedback_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_security_feedback_patch_execute()` to send, or `apigee_organizations_security_feedback_patch` for simplest API.
 
-pub fn apigee_organizations_security_feedback_patch_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_security_feedback_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/securityFeedback/{securityFeedbackId}",
@@ -56178,11 +57158,14 @@ pub fn apigee_organizations_security_feedback_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_security_monitoring_conditions_create_execute()` to send, or `apigee_organizations_security_monitoring_conditions_create` for simplest API.
 
-pub fn apigee_organizations_security_monitoring_conditions_create_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_security_monitoring_conditions_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     securityMonitoringConditionId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/securityMonitoringConditions",
@@ -56362,11 +57345,14 @@ pub fn apigee_organizations_security_monitoring_conditions_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_security_monitoring_conditions_delete_execute()` to send, or `apigee_organizations_security_monitoring_conditions_delete` for simplest API.
 
-pub fn apigee_organizations_security_monitoring_conditions_delete_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_security_monitoring_conditions_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     riskAssessmentType: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/securityMonitoringConditions/{securityMonitoringConditionsId}",
@@ -56541,11 +57527,14 @@ pub fn apigee_organizations_security_monitoring_conditions_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_security_monitoring_conditions_get_execute()` to send, or `apigee_organizations_security_monitoring_conditions_get` for simplest API.
 
-pub fn apigee_organizations_security_monitoring_conditions_get_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_security_monitoring_conditions_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     riskAssessmentType: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/securityMonitoringConditions/{securityMonitoringConditionsId}",
@@ -56725,14 +57714,17 @@ pub fn apigee_organizations_security_monitoring_conditions_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_security_monitoring_conditions_list_execute()` to send, or `apigee_organizations_security_monitoring_conditions_list` for simplest API.
 
-pub fn apigee_organizations_security_monitoring_conditions_list_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_security_monitoring_conditions_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     riskAssessmentType: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/securityMonitoringConditions",
@@ -56939,11 +57931,14 @@ pub fn apigee_organizations_security_monitoring_conditions_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_security_monitoring_conditions_patch_execute()` to send, or `apigee_organizations_security_monitoring_conditions_patch` for simplest API.
 
-pub fn apigee_organizations_security_monitoring_conditions_patch_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_security_monitoring_conditions_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/securityMonitoringConditions/{securityMonitoringConditionsId}",
@@ -57123,11 +58118,14 @@ pub fn apigee_organizations_security_monitoring_conditions_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_security_profiles_create_execute()` to send, or `apigee_organizations_security_profiles_create` for simplest API.
 
-pub fn apigee_organizations_security_profiles_create_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_security_profiles_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     securityProfileId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/securityProfiles",
@@ -57306,10 +58304,13 @@ pub fn apigee_organizations_security_profiles_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_security_profiles_delete_execute()` to send, or `apigee_organizations_security_profiles_delete` for simplest API.
 
-pub fn apigee_organizations_security_profiles_delete_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_security_profiles_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/securityProfiles/{securityProfilesId}",
@@ -57467,10 +58468,13 @@ pub fn apigee_organizations_security_profiles_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_security_profiles_get_execute()` to send, or `apigee_organizations_security_profiles_get` for simplest API.
 
-pub fn apigee_organizations_security_profiles_get_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_security_profiles_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/securityProfiles/{securityProfilesId}",
@@ -57632,12 +58636,15 @@ pub fn apigee_organizations_security_profiles_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_security_profiles_list_execute()` to send, or `apigee_organizations_security_profiles_list` for simplest API.
 
-pub fn apigee_organizations_security_profiles_list_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_security_profiles_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/securityProfiles",
@@ -57823,12 +58830,15 @@ pub fn apigee_organizations_security_profiles_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_security_profiles_list_revisions_execute()` to send, or `apigee_organizations_security_profiles_list_revisions` for simplest API.
 
-pub fn apigee_organizations_security_profiles_list_revisions_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_security_profiles_list_revisions_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/securityProfiles/{securityProfilesId}:listRevisions",
@@ -58023,11 +59033,14 @@ pub fn apigee_organizations_security_profiles_list_revisions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_security_profiles_patch_execute()` to send, or `apigee_organizations_security_profiles_patch` for simplest API.
 
-pub fn apigee_organizations_security_profiles_patch_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_security_profiles_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/securityProfiles/{securityProfilesId}",
@@ -58203,10 +59216,13 @@ pub fn apigee_organizations_security_profiles_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_security_profiles_environments_compute_environment_scores_execute()` to send, or `apigee_organizations_security_profiles_environments_compute_environment_scores` for simplest API.
 
-pub fn apigee_organizations_security_profiles_environments_compute_environment_scores_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_security_profiles_environments_compute_environment_scores_builder<R>(
+    client: &SimpleHttpClient<R>,
     profileEnvironment: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/securityProfiles/{securityProfilesId}/environments/{environmentsId}:computeEnvironmentScores",
@@ -58378,10 +59394,13 @@ pub fn apigee_organizations_security_profiles_environments_compute_environment_s
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_security_profiles_environments_create_execute()` to send, or `apigee_organizations_security_profiles_environments_create` for simplest API.
 
-pub fn apigee_organizations_security_profiles_environments_create_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_security_profiles_environments_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/securityProfiles/{securityProfilesId}/environments",
@@ -58554,10 +59573,13 @@ pub fn apigee_organizations_security_profiles_environments_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_security_profiles_environments_delete_execute()` to send, or `apigee_organizations_security_profiles_environments_delete` for simplest API.
 
-pub fn apigee_organizations_security_profiles_environments_delete_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_security_profiles_environments_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/securityProfiles/{securityProfilesId}/environments/{environmentsId}",
@@ -58716,11 +59738,14 @@ pub fn apigee_organizations_security_profiles_environments_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_security_profiles_v2_create_execute()` to send, or `apigee_organizations_security_profiles_v2_create` for simplest API.
 
-pub fn apigee_organizations_security_profiles_v2_create_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_security_profiles_v2_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     securityProfileV2Id: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/securityProfilesV2",
@@ -58899,11 +59924,14 @@ pub fn apigee_organizations_security_profiles_v2_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_security_profiles_v2_delete_execute()` to send, or `apigee_organizations_security_profiles_v2_delete` for simplest API.
 
-pub fn apigee_organizations_security_profiles_v2_delete_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_security_profiles_v2_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     riskAssessmentType: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/securityProfilesV2/{securityProfilesV2Id}",
@@ -59078,11 +60106,14 @@ pub fn apigee_organizations_security_profiles_v2_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_security_profiles_v2_get_execute()` to send, or `apigee_organizations_security_profiles_v2_get` for simplest API.
 
-pub fn apigee_organizations_security_profiles_v2_get_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_security_profiles_v2_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     riskAssessmentType: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/securityProfilesV2/{securityProfilesV2Id}",
@@ -59261,13 +60292,16 @@ pub fn apigee_organizations_security_profiles_v2_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_security_profiles_v2_list_execute()` to send, or `apigee_organizations_security_profiles_v2_list` for simplest API.
 
-pub fn apigee_organizations_security_profiles_v2_list_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_security_profiles_v2_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     riskAssessmentType: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/securityProfilesV2",
@@ -59462,11 +60496,14 @@ pub fn apigee_organizations_security_profiles_v2_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_security_profiles_v2_patch_execute()` to send, or `apigee_organizations_security_profiles_v2_patch` for simplest API.
 
-pub fn apigee_organizations_security_profiles_v2_patch_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_security_profiles_v2_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/securityProfilesV2/{securityProfilesV2Id}",
@@ -59645,13 +60682,16 @@ pub fn apigee_organizations_security_profiles_v2_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_sharedflows_create_execute()` to send, or `apigee_organizations_sharedflows_create` for simplest API.
 
-pub fn apigee_organizations_sharedflows_create_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_sharedflows_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     action: &Option<Option<String>>,
     name: &Option<Option<String>>,
     space: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/sharedflows",
@@ -59842,10 +60882,13 @@ pub fn apigee_organizations_sharedflows_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_sharedflows_delete_execute()` to send, or `apigee_organizations_sharedflows_delete` for simplest API.
 
-pub fn apigee_organizations_sharedflows_delete_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_sharedflows_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/sharedflows/{sharedflowsId}",
@@ -60007,10 +61050,13 @@ pub fn apigee_organizations_sharedflows_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_sharedflows_get_execute()` to send, or `apigee_organizations_sharedflows_get` for simplest API.
 
-pub fn apigee_organizations_sharedflows_get_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_sharedflows_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/sharedflows/{sharedflowsId}",
@@ -60172,13 +61218,16 @@ pub fn apigee_organizations_sharedflows_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_sharedflows_list_execute()` to send, or `apigee_organizations_sharedflows_list` for simplest API.
 
-pub fn apigee_organizations_sharedflows_list_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_sharedflows_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     includeMetaData: &Option<Option<String>>,
     includeRevisions: &Option<Option<String>>,
     space: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/sharedflows",
@@ -60370,10 +61419,13 @@ pub fn apigee_organizations_sharedflows_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_sharedflows_move_execute()` to send, or `apigee_organizations_sharedflows_move` for simplest API.
 
-pub fn apigee_organizations_sharedflows_move_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_sharedflows_move_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/sharedflows/{sharedflowsId}:move",
@@ -60535,10 +61587,13 @@ pub fn apigee_organizations_sharedflows_move(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_sharedflows_deployments_list_execute()` to send, or `apigee_organizations_sharedflows_deployments_list` for simplest API.
 
-pub fn apigee_organizations_sharedflows_deployments_list_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_sharedflows_deployments_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/sharedflows/{sharedflowsId}/deployments",
@@ -60701,10 +61756,13 @@ pub fn apigee_organizations_sharedflows_deployments_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_sharedflows_revisions_delete_execute()` to send, or `apigee_organizations_sharedflows_revisions_delete` for simplest API.
 
-pub fn apigee_organizations_sharedflows_revisions_delete_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_sharedflows_revisions_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/sharedflows/{sharedflowsId}/revisions/{revisionsId}",
@@ -60866,11 +61924,14 @@ pub fn apigee_organizations_sharedflows_revisions_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_sharedflows_revisions_get_execute()` to send, or `apigee_organizations_sharedflows_revisions_get` for simplest API.
 
-pub fn apigee_organizations_sharedflows_revisions_get_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_sharedflows_revisions_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     format: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/sharedflows/{sharedflowsId}/revisions/{revisionsId}",
@@ -61042,11 +62103,14 @@ pub fn apigee_organizations_sharedflows_revisions_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_sharedflows_revisions_update_shared_flow_revision_execute()` to send, or `apigee_organizations_sharedflows_revisions_update_shared_flow_revision` for simplest API.
 
-pub fn apigee_organizations_sharedflows_revisions_update_shared_flow_revision_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_sharedflows_revisions_update_shared_flow_revision_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     validate: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/sharedflows/{sharedflowsId}/revisions/{revisionsId}",
@@ -61226,10 +62290,13 @@ pub fn apigee_organizations_sharedflows_revisions_update_shared_flow_revision(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_sharedflows_revisions_deployments_list_execute()` to send, or `apigee_organizations_sharedflows_revisions_deployments_list` for simplest API.
 
-pub fn apigee_organizations_sharedflows_revisions_deployments_list_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_sharedflows_revisions_deployments_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/sharedflows/{sharedflowsId}/revisions/{revisionsId}/deployments",
@@ -61393,10 +62460,13 @@ pub fn apigee_organizations_sharedflows_revisions_deployments_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_sites_apicategories_create_execute()` to send, or `apigee_organizations_sites_apicategories_create` for simplest API.
 
-pub fn apigee_organizations_sites_apicategories_create_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_sites_apicategories_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/sites/{sitesId}/apicategories",
@@ -61558,10 +62628,13 @@ pub fn apigee_organizations_sites_apicategories_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_sites_apicategories_delete_execute()` to send, or `apigee_organizations_sites_apicategories_delete` for simplest API.
 
-pub fn apigee_organizations_sites_apicategories_delete_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_sites_apicategories_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/sites/{sitesId}/apicategories/{apicategoriesId}",
@@ -61723,10 +62796,13 @@ pub fn apigee_organizations_sites_apicategories_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_sites_apicategories_get_execute()` to send, or `apigee_organizations_sites_apicategories_get` for simplest API.
 
-pub fn apigee_organizations_sites_apicategories_get_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_sites_apicategories_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/sites/{sitesId}/apicategories/{apicategoriesId}",
@@ -61888,10 +62964,13 @@ pub fn apigee_organizations_sites_apicategories_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_sites_apicategories_list_execute()` to send, or `apigee_organizations_sites_apicategories_list` for simplest API.
 
-pub fn apigee_organizations_sites_apicategories_list_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_sites_apicategories_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/sites/{sitesId}/apicategories",
@@ -62054,10 +63133,13 @@ pub fn apigee_organizations_sites_apicategories_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_sites_apicategories_patch_execute()` to send, or `apigee_organizations_sites_apicategories_patch` for simplest API.
 
-pub fn apigee_organizations_sites_apicategories_patch_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_sites_apicategories_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/sites/{sitesId}/apicategories/{apicategoriesId}",
@@ -62219,10 +63301,13 @@ pub fn apigee_organizations_sites_apicategories_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_sites_apidocs_create_execute()` to send, or `apigee_organizations_sites_apidocs_create` for simplest API.
 
-pub fn apigee_organizations_sites_apidocs_create_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_sites_apidocs_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/sites/{sitesId}/apidocs",
@@ -62384,10 +63469,13 @@ pub fn apigee_organizations_sites_apidocs_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_sites_apidocs_delete_execute()` to send, or `apigee_organizations_sites_apidocs_delete` for simplest API.
 
-pub fn apigee_organizations_sites_apidocs_delete_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_sites_apidocs_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/sites/{sitesId}/apidocs/{apidocsId}",
@@ -62549,10 +63637,13 @@ pub fn apigee_organizations_sites_apidocs_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_sites_apidocs_get_execute()` to send, or `apigee_organizations_sites_apidocs_get` for simplest API.
 
-pub fn apigee_organizations_sites_apidocs_get_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_sites_apidocs_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/sites/{sitesId}/apidocs/{apidocsId}",
@@ -62714,10 +63805,13 @@ pub fn apigee_organizations_sites_apidocs_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_sites_apidocs_get_documentation_execute()` to send, or `apigee_organizations_sites_apidocs_get_documentation` for simplest API.
 
-pub fn apigee_organizations_sites_apidocs_get_documentation_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_sites_apidocs_get_documentation_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/sites/{sitesId}/apidocs/{apidocsId}/documentation",
@@ -62880,12 +63974,15 @@ pub fn apigee_organizations_sites_apidocs_get_documentation(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_sites_apidocs_list_execute()` to send, or `apigee_organizations_sites_apidocs_list` for simplest API.
 
-pub fn apigee_organizations_sites_apidocs_list_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_sites_apidocs_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/sites/{sitesId}/apidocs",
@@ -63070,10 +64167,13 @@ pub fn apigee_organizations_sites_apidocs_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_sites_apidocs_update_execute()` to send, or `apigee_organizations_sites_apidocs_update` for simplest API.
 
-pub fn apigee_organizations_sites_apidocs_update_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_sites_apidocs_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/sites/{sitesId}/apidocs/{apidocsId}",
@@ -63235,10 +64335,13 @@ pub fn apigee_organizations_sites_apidocs_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_sites_apidocs_update_documentation_execute()` to send, or `apigee_organizations_sites_apidocs_update_documentation` for simplest API.
 
-pub fn apigee_organizations_sites_apidocs_update_documentation_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_sites_apidocs_update_documentation_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/sites/{sitesId}/apidocs/{apidocsId}/documentation",
@@ -63402,11 +64505,14 @@ pub fn apigee_organizations_sites_apidocs_update_documentation(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_spaces_create_execute()` to send, or `apigee_organizations_spaces_create` for simplest API.
 
-pub fn apigee_organizations_spaces_create_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_spaces_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     spaceId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/spaces",
@@ -63577,10 +64683,13 @@ pub fn apigee_organizations_spaces_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_spaces_delete_execute()` to send, or `apigee_organizations_spaces_delete` for simplest API.
 
-pub fn apigee_organizations_spaces_delete_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_spaces_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/spaces/{spacesId}",
@@ -63738,10 +64847,13 @@ pub fn apigee_organizations_spaces_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_spaces_get_execute()` to send, or `apigee_organizations_spaces_get` for simplest API.
 
-pub fn apigee_organizations_spaces_get_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_spaces_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/spaces/{spacesId}",
@@ -63899,11 +65011,14 @@ pub fn apigee_organizations_spaces_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_spaces_get_iam_policy_execute()` to send, or `apigee_organizations_spaces_get_iam_policy` for simplest API.
 
-pub fn apigee_organizations_spaces_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_spaces_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/spaces/{spacesId}:getIamPolicy",
@@ -64078,12 +65193,15 @@ pub fn apigee_organizations_spaces_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_spaces_list_execute()` to send, or `apigee_organizations_spaces_list` for simplest API.
 
-pub fn apigee_organizations_spaces_list_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_spaces_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/spaces",
@@ -64268,11 +65386,14 @@ pub fn apigee_organizations_spaces_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_spaces_patch_execute()` to send, or `apigee_organizations_spaces_patch` for simplest API.
 
-pub fn apigee_organizations_spaces_patch_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_spaces_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/spaces/{spacesId}",
@@ -64443,10 +65564,13 @@ pub fn apigee_organizations_spaces_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_spaces_set_iam_policy_execute()` to send, or `apigee_organizations_spaces_set_iam_policy` for simplest API.
 
-pub fn apigee_organizations_spaces_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_spaces_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/spaces/{spacesId}:setIamPolicy",
@@ -64604,10 +65728,13 @@ pub fn apigee_organizations_spaces_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_spaces_test_iam_permissions_execute()` to send, or `apigee_organizations_spaces_test_iam_permissions` for simplest API.
 
-pub fn apigee_organizations_spaces_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_organizations_spaces_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/organizations/{}/spaces/{spacesId}:testIamPermissions",
@@ -64769,10 +65896,13 @@ pub fn apigee_organizations_spaces_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_projects_provision_organization_execute()` to send, or `apigee_projects_provision_organization` for simplest API.
 
-pub fn apigee_projects_provision_organization_builder(
-    client: &SimpleHttpClient,
+pub fn apigee_projects_provision_organization_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://apigee.googleapis.com/v1/projects/{}:provisionOrganization",

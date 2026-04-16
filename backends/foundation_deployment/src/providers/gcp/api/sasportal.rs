@@ -133,9 +133,6 @@ use crate::providers::gcp::clients::sasportal::SasportalCustomersDevicesSignDevi
 use crate::providers::gcp::clients::sasportal::SasportalCustomersDevicesUpdateSignedArgs;
 use crate::providers::gcp::clients::sasportal::SasportalCustomersGetArgs;
 use crate::providers::gcp::clients::sasportal::SasportalCustomersListArgs;
-use crate::providers::gcp::clients::sasportal::SasportalCustomersListGcpProjectDeploymentsArgs;
-use crate::providers::gcp::clients::sasportal::SasportalCustomersListLegacyOrganizationsArgs;
-use crate::providers::gcp::clients::sasportal::SasportalCustomersMigrateOrganizationArgs;
 use crate::providers::gcp::clients::sasportal::SasportalCustomersNodesCreateArgs;
 use crate::providers::gcp::clients::sasportal::SasportalCustomersNodesDeleteArgs;
 use crate::providers::gcp::clients::sasportal::SasportalCustomersNodesDeploymentsCreateArgs;
@@ -150,8 +147,6 @@ use crate::providers::gcp::clients::sasportal::SasportalCustomersNodesNodesCreat
 use crate::providers::gcp::clients::sasportal::SasportalCustomersNodesNodesListArgs;
 use crate::providers::gcp::clients::sasportal::SasportalCustomersNodesPatchArgs;
 use crate::providers::gcp::clients::sasportal::SasportalCustomersPatchArgs;
-use crate::providers::gcp::clients::sasportal::SasportalCustomersProvisionDeploymentArgs;
-use crate::providers::gcp::clients::sasportal::SasportalCustomersSetupSasAnalyticsArgs;
 use crate::providers::gcp::clients::sasportal::SasportalDeploymentsDevicesDeleteArgs;
 use crate::providers::gcp::clients::sasportal::SasportalDeploymentsDevicesGetArgs;
 use crate::providers::gcp::clients::sasportal::SasportalDeploymentsDevicesMoveArgs;
@@ -159,8 +154,6 @@ use crate::providers::gcp::clients::sasportal::SasportalDeploymentsDevicesPatchA
 use crate::providers::gcp::clients::sasportal::SasportalDeploymentsDevicesSignDeviceArgs;
 use crate::providers::gcp::clients::sasportal::SasportalDeploymentsDevicesUpdateSignedArgs;
 use crate::providers::gcp::clients::sasportal::SasportalDeploymentsGetArgs;
-use crate::providers::gcp::clients::sasportal::SasportalInstallerGenerateSecretArgs;
-use crate::providers::gcp::clients::sasportal::SasportalInstallerValidateArgs;
 use crate::providers::gcp::clients::sasportal::SasportalNodesDeploymentsDeleteArgs;
 use crate::providers::gcp::clients::sasportal::SasportalNodesDeploymentsDevicesCreateArgs;
 use crate::providers::gcp::clients::sasportal::SasportalNodesDeploymentsDevicesCreateSignedArgs;
@@ -192,12 +185,9 @@ use crate::providers::gcp::clients::sasportal::SasportalNodesNodesMoveArgs;
 use crate::providers::gcp::clients::sasportal::SasportalNodesNodesNodesCreateArgs;
 use crate::providers::gcp::clients::sasportal::SasportalNodesNodesNodesListArgs;
 use crate::providers::gcp::clients::sasportal::SasportalNodesNodesPatchArgs;
-use crate::providers::gcp::clients::sasportal::SasportalPoliciesGetArgs;
-use crate::providers::gcp::clients::sasportal::SasportalPoliciesSetArgs;
-use crate::providers::gcp::clients::sasportal::SasportalPoliciesTestArgs;
 use crate::provider_client::{ProviderClient, ProviderError};
 use foundation_core::valtron::{execute, StreamIterator};
-use foundation_core::wire::simple_http::client::SimpleHttpClient;
+use foundation_core::wire::simple_http::client::{SimpleHttpClient, DnsResolver};
 use foundation_db::state::store_state_task::StoreStateIdentifierTask;
 use std::sync::Arc;
 
@@ -206,34 +196,44 @@ use std::sync::Arc;
 /// # Type Parameters
 ///
 /// * `S` - StateStore implementation (FileStateStore, SqliteStateStore, etc.)
+/// * `R` - DNS resolver type for HTTP client
 ///
 /// # Example
 ///
 /// ```rust
 /// let state_store = FileStateStore::new("/path", "my-project", "dev");
-/// let client = ProviderClient::new("my-project", "dev", state_store);
-/// let http_client = SimpleHttpClient::new(...);
-/// let provider = SasportalProvider::new(client, http_client);
+/// let http_client = SimpleHttpClient::with_resolver(StaticSocketAddr::new(addr));
+/// let client = ProviderClient::new("my-project", "dev", state_store, http_client);
+/// let provider = SasportalProvider::from_provider_client(client);
 /// ```
 #[derive(Clone)]
-pub struct SasportalProvider<S>
+pub struct SasportalProvider<S, R>
 where
     S: foundation_db::state::traits::StateStore + Send + Sync + 'static,
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + 'static,
 {
-    client: ProviderClient<S>,
-    http_client: Arc<SimpleHttpClient>,
+    client: ProviderClient<S, R>,
+    http_client: Arc<SimpleHttpClient<R>>,
 }
 
-impl<S> SasportalProvider<S>
+impl<S, R> SasportalProvider<S, R>
 where
     S: foundation_db::state::traits::StateStore + Send + Sync + 'static,
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + 'static,
 {
     /// Create new SasportalProvider.
-    pub fn new(client: ProviderClient<S>, http_client: SimpleHttpClient) -> Self {
+    pub fn new(client: ProviderClient<S, R>, http_client: Arc<SimpleHttpClient<R>>) -> Self {
         Self {
             client,
-            http_client: Arc::new(http_client),
+            http_client,
         }
+    }
+
+    /// Create new SasportalProvider from ProviderClient, extracting the HTTP client.
+    ///
+    /// This is a convenience method that calls `Self::new()` with `client.http_client()`.
+    pub fn from_provider_client(client: ProviderClient<S, R>) -> Self {
+        Self::new(client, client.http_client.clone())
     }
 
     /// Sasportal customers get.

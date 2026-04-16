@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `artifactregistry_projects_get_project_settings_execute()` to send, or `artifactregistry_projects_get_project_settings` for simplest API.
 
-pub fn artifactregistry_projects_get_project_settings_builder(
-    client: &SimpleHttpClient,
+pub fn artifactregistry_projects_get_project_settings_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://artifactregistry.googleapis.com/v1/projects/{}/projectSettings",
@@ -187,11 +191,14 @@ pub fn artifactregistry_projects_get_project_settings(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `artifactregistry_projects_update_project_settings_execute()` to send, or `artifactregistry_projects_update_project_settings` for simplest API.
 
-pub fn artifactregistry_projects_update_project_settings_builder(
-    client: &SimpleHttpClient,
+pub fn artifactregistry_projects_update_project_settings_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://artifactregistry.googleapis.com/v1/projects/{}/projectSettings",
@@ -366,10 +373,13 @@ pub fn artifactregistry_projects_update_project_settings(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `artifactregistry_projects_locations_get_execute()` to send, or `artifactregistry_projects_locations_get` for simplest API.
 
-pub fn artifactregistry_projects_locations_get_builder(
-    client: &SimpleHttpClient,
+pub fn artifactregistry_projects_locations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://artifactregistry.googleapis.com/v1/projects/{}/locations/{locationsId}",
@@ -523,10 +533,13 @@ pub fn artifactregistry_projects_locations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `artifactregistry_projects_locations_get_project_config_execute()` to send, or `artifactregistry_projects_locations_get_project_config` for simplest API.
 
-pub fn artifactregistry_projects_locations_get_project_config_builder(
-    client: &SimpleHttpClient,
+pub fn artifactregistry_projects_locations_get_project_config_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://artifactregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/projectConfig",
@@ -685,10 +698,13 @@ pub fn artifactregistry_projects_locations_get_project_config(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `artifactregistry_projects_locations_get_vpcsc_config_execute()` to send, or `artifactregistry_projects_locations_get_vpcsc_config` for simplest API.
 
-pub fn artifactregistry_projects_locations_get_vpcsc_config_builder(
-    client: &SimpleHttpClient,
+pub fn artifactregistry_projects_locations_get_vpcsc_config_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://artifactregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/vpcscConfig",
@@ -842,14 +858,17 @@ pub fn artifactregistry_projects_locations_get_vpcsc_config(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `artifactregistry_projects_locations_list_execute()` to send, or `artifactregistry_projects_locations_list` for simplest API.
 
-pub fn artifactregistry_projects_locations_list_builder(
-    client: &SimpleHttpClient,
+pub fn artifactregistry_projects_locations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     extraLocationTypes: &Option<Option<String>>,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://artifactregistry.googleapis.com/v1/projects/{}/locations",
@@ -1042,11 +1061,14 @@ pub fn artifactregistry_projects_locations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `artifactregistry_projects_locations_update_project_config_execute()` to send, or `artifactregistry_projects_locations_update_project_config` for simplest API.
 
-pub fn artifactregistry_projects_locations_update_project_config_builder(
-    client: &SimpleHttpClient,
+pub fn artifactregistry_projects_locations_update_project_config_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://artifactregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/projectConfig",
@@ -1221,11 +1243,14 @@ pub fn artifactregistry_projects_locations_update_project_config(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `artifactregistry_projects_locations_update_vpcsc_config_execute()` to send, or `artifactregistry_projects_locations_update_vpcsc_config` for simplest API.
 
-pub fn artifactregistry_projects_locations_update_vpcsc_config_builder(
-    client: &SimpleHttpClient,
+pub fn artifactregistry_projects_locations_update_vpcsc_config_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://artifactregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/vpcscConfig",
@@ -1396,10 +1421,13 @@ pub fn artifactregistry_projects_locations_update_vpcsc_config(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `artifactregistry_projects_locations_operations_cancel_execute()` to send, or `artifactregistry_projects_locations_operations_cancel` for simplest API.
 
-pub fn artifactregistry_projects_locations_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn artifactregistry_projects_locations_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://artifactregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}:cancel",
@@ -1554,10 +1582,13 @@ pub fn artifactregistry_projects_locations_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `artifactregistry_projects_locations_operations_get_execute()` to send, or `artifactregistry_projects_locations_operations_get` for simplest API.
 
-pub fn artifactregistry_projects_locations_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn artifactregistry_projects_locations_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://artifactregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -1711,11 +1742,14 @@ pub fn artifactregistry_projects_locations_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `artifactregistry_projects_locations_repositories_create_execute()` to send, or `artifactregistry_projects_locations_repositories_create` for simplest API.
 
-pub fn artifactregistry_projects_locations_repositories_create_builder(
-    client: &SimpleHttpClient,
+pub fn artifactregistry_projects_locations_repositories_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     repositoryId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://artifactregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories",
@@ -1886,10 +1920,13 @@ pub fn artifactregistry_projects_locations_repositories_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `artifactregistry_projects_locations_repositories_delete_execute()` to send, or `artifactregistry_projects_locations_repositories_delete` for simplest API.
 
-pub fn artifactregistry_projects_locations_repositories_delete_builder(
-    client: &SimpleHttpClient,
+pub fn artifactregistry_projects_locations_repositories_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://artifactregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}",
@@ -2044,10 +2081,13 @@ pub fn artifactregistry_projects_locations_repositories_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `artifactregistry_projects_locations_repositories_export_artifact_execute()` to send, or `artifactregistry_projects_locations_repositories_export_artifact` for simplest API.
 
-pub fn artifactregistry_projects_locations_repositories_export_artifact_builder(
-    client: &SimpleHttpClient,
+pub fn artifactregistry_projects_locations_repositories_export_artifact_builder<R>(
+    client: &SimpleHttpClient<R>,
     repository: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://artifactregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}:exportArtifact",
@@ -2204,10 +2244,13 @@ pub fn artifactregistry_projects_locations_repositories_export_artifact(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `artifactregistry_projects_locations_repositories_get_execute()` to send, or `artifactregistry_projects_locations_repositories_get` for simplest API.
 
-pub fn artifactregistry_projects_locations_repositories_get_builder(
-    client: &SimpleHttpClient,
+pub fn artifactregistry_projects_locations_repositories_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://artifactregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}",
@@ -2361,11 +2404,14 @@ pub fn artifactregistry_projects_locations_repositories_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `artifactregistry_projects_locations_repositories_get_iam_policy_execute()` to send, or `artifactregistry_projects_locations_repositories_get_iam_policy` for simplest API.
 
-pub fn artifactregistry_projects_locations_repositories_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn artifactregistry_projects_locations_repositories_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://artifactregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}:getIamPolicy",
@@ -2536,14 +2582,17 @@ pub fn artifactregistry_projects_locations_repositories_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `artifactregistry_projects_locations_repositories_list_execute()` to send, or `artifactregistry_projects_locations_repositories_list` for simplest API.
 
-pub fn artifactregistry_projects_locations_repositories_list_builder(
-    client: &SimpleHttpClient,
+pub fn artifactregistry_projects_locations_repositories_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://artifactregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories",
@@ -2736,11 +2785,14 @@ pub fn artifactregistry_projects_locations_repositories_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `artifactregistry_projects_locations_repositories_patch_execute()` to send, or `artifactregistry_projects_locations_repositories_patch` for simplest API.
 
-pub fn artifactregistry_projects_locations_repositories_patch_builder(
-    client: &SimpleHttpClient,
+pub fn artifactregistry_projects_locations_repositories_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://artifactregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}",
@@ -2911,10 +2963,13 @@ pub fn artifactregistry_projects_locations_repositories_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `artifactregistry_projects_locations_repositories_set_iam_policy_execute()` to send, or `artifactregistry_projects_locations_repositories_set_iam_policy` for simplest API.
 
-pub fn artifactregistry_projects_locations_repositories_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn artifactregistry_projects_locations_repositories_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://artifactregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}:setIamPolicy",
@@ -3071,10 +3126,13 @@ pub fn artifactregistry_projects_locations_repositories_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `artifactregistry_projects_locations_repositories_test_iam_permissions_execute()` to send, or `artifactregistry_projects_locations_repositories_test_iam_permissions` for simplest API.
 
-pub fn artifactregistry_projects_locations_repositories_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn artifactregistry_projects_locations_repositories_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://artifactregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}:testIamPermissions",
@@ -3239,10 +3297,13 @@ pub fn artifactregistry_projects_locations_repositories_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `artifactregistry_projects_locations_repositories_apt_artifacts_import_execute()` to send, or `artifactregistry_projects_locations_repositories_apt_artifacts_import` for simplest API.
 
-pub fn artifactregistry_projects_locations_repositories_apt_artifacts_import_builder(
-    client: &SimpleHttpClient,
+pub fn artifactregistry_projects_locations_repositories_apt_artifacts_import_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://artifactregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/aptArtifacts:import",
@@ -3399,10 +3460,13 @@ pub fn artifactregistry_projects_locations_repositories_apt_artifacts_import(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `artifactregistry_projects_locations_repositories_apt_artifacts_upload_execute()` to send, or `artifactregistry_projects_locations_repositories_apt_artifacts_upload` for simplest API.
 
-pub fn artifactregistry_projects_locations_repositories_apt_artifacts_upload_builder(
-    client: &SimpleHttpClient,
+pub fn artifactregistry_projects_locations_repositories_apt_artifacts_upload_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://artifactregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/aptArtifacts:create",
@@ -3567,11 +3631,14 @@ pub fn artifactregistry_projects_locations_repositories_apt_artifacts_upload(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `artifactregistry_projects_locations_repositories_attachments_create_execute()` to send, or `artifactregistry_projects_locations_repositories_attachments_create` for simplest API.
 
-pub fn artifactregistry_projects_locations_repositories_attachments_create_builder(
-    client: &SimpleHttpClient,
+pub fn artifactregistry_projects_locations_repositories_attachments_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     attachmentId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://artifactregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/attachments",
@@ -3742,10 +3809,13 @@ pub fn artifactregistry_projects_locations_repositories_attachments_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `artifactregistry_projects_locations_repositories_attachments_delete_execute()` to send, or `artifactregistry_projects_locations_repositories_attachments_delete` for simplest API.
 
-pub fn artifactregistry_projects_locations_repositories_attachments_delete_builder(
-    client: &SimpleHttpClient,
+pub fn artifactregistry_projects_locations_repositories_attachments_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://artifactregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/attachments/{attachmentsId}",
@@ -3901,10 +3971,13 @@ pub fn artifactregistry_projects_locations_repositories_attachments_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `artifactregistry_projects_locations_repositories_attachments_get_execute()` to send, or `artifactregistry_projects_locations_repositories_attachments_get` for simplest API.
 
-pub fn artifactregistry_projects_locations_repositories_attachments_get_builder(
-    client: &SimpleHttpClient,
+pub fn artifactregistry_projects_locations_repositories_attachments_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://artifactregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/attachments/{attachmentsId}",
@@ -4060,13 +4133,16 @@ pub fn artifactregistry_projects_locations_repositories_attachments_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `artifactregistry_projects_locations_repositories_attachments_list_execute()` to send, or `artifactregistry_projects_locations_repositories_attachments_list` for simplest API.
 
-pub fn artifactregistry_projects_locations_repositories_attachments_list_builder(
-    client: &SimpleHttpClient,
+pub fn artifactregistry_projects_locations_repositories_attachments_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://artifactregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/attachments",
@@ -4253,10 +4329,13 @@ pub fn artifactregistry_projects_locations_repositories_attachments_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `artifactregistry_projects_locations_repositories_docker_images_get_execute()` to send, or `artifactregistry_projects_locations_repositories_docker_images_get` for simplest API.
 
-pub fn artifactregistry_projects_locations_repositories_docker_images_get_builder(
-    client: &SimpleHttpClient,
+pub fn artifactregistry_projects_locations_repositories_docker_images_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://artifactregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/dockerImages/{dockerImagesId}",
@@ -4412,13 +4491,16 @@ pub fn artifactregistry_projects_locations_repositories_docker_images_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `artifactregistry_projects_locations_repositories_docker_images_list_execute()` to send, or `artifactregistry_projects_locations_repositories_docker_images_list` for simplest API.
 
-pub fn artifactregistry_projects_locations_repositories_docker_images_list_builder(
-    client: &SimpleHttpClient,
+pub fn artifactregistry_projects_locations_repositories_docker_images_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://artifactregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/dockerImages",
@@ -4605,10 +4687,13 @@ pub fn artifactregistry_projects_locations_repositories_docker_images_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `artifactregistry_projects_locations_repositories_files_delete_execute()` to send, or `artifactregistry_projects_locations_repositories_files_delete` for simplest API.
 
-pub fn artifactregistry_projects_locations_repositories_files_delete_builder(
-    client: &SimpleHttpClient,
+pub fn artifactregistry_projects_locations_repositories_files_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://artifactregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/files/{filesId}",
@@ -4763,10 +4848,13 @@ pub fn artifactregistry_projects_locations_repositories_files_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `artifactregistry_projects_locations_repositories_files_download_execute()` to send, or `artifactregistry_projects_locations_repositories_files_download` for simplest API.
 
-pub fn artifactregistry_projects_locations_repositories_files_download_builder(
-    client: &SimpleHttpClient,
+pub fn artifactregistry_projects_locations_repositories_files_download_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://artifactregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/files/{filesId}:download",
@@ -4926,10 +5014,13 @@ pub fn artifactregistry_projects_locations_repositories_files_download(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `artifactregistry_projects_locations_repositories_files_get_execute()` to send, or `artifactregistry_projects_locations_repositories_files_get` for simplest API.
 
-pub fn artifactregistry_projects_locations_repositories_files_get_builder(
-    client: &SimpleHttpClient,
+pub fn artifactregistry_projects_locations_repositories_files_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://artifactregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/files/{filesId}",
@@ -5092,14 +5183,17 @@ pub fn artifactregistry_projects_locations_repositories_files_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `artifactregistry_projects_locations_repositories_files_list_execute()` to send, or `artifactregistry_projects_locations_repositories_files_list` for simplest API.
 
-pub fn artifactregistry_projects_locations_repositories_files_list_builder(
-    client: &SimpleHttpClient,
+pub fn artifactregistry_projects_locations_repositories_files_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://artifactregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/files",
@@ -5292,11 +5386,14 @@ pub fn artifactregistry_projects_locations_repositories_files_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `artifactregistry_projects_locations_repositories_files_patch_execute()` to send, or `artifactregistry_projects_locations_repositories_files_patch` for simplest API.
 
-pub fn artifactregistry_projects_locations_repositories_files_patch_builder(
-    client: &SimpleHttpClient,
+pub fn artifactregistry_projects_locations_repositories_files_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://artifactregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/files/{filesId}",
@@ -5475,10 +5572,13 @@ pub fn artifactregistry_projects_locations_repositories_files_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `artifactregistry_projects_locations_repositories_files_upload_execute()` to send, or `artifactregistry_projects_locations_repositories_files_upload` for simplest API.
 
-pub fn artifactregistry_projects_locations_repositories_files_upload_builder(
-    client: &SimpleHttpClient,
+pub fn artifactregistry_projects_locations_repositories_files_upload_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://artifactregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/files:upload",
@@ -5639,10 +5739,13 @@ pub fn artifactregistry_projects_locations_repositories_files_upload(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `artifactregistry_projects_locations_repositories_generic_artifacts_upload_execute()` to send, or `artifactregistry_projects_locations_repositories_generic_artifacts_upload` for simplest API.
 
-pub fn artifactregistry_projects_locations_repositories_generic_artifacts_upload_builder(
-    client: &SimpleHttpClient,
+pub fn artifactregistry_projects_locations_repositories_generic_artifacts_upload_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://artifactregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/genericArtifacts:create",
@@ -5809,10 +5912,13 @@ pub fn artifactregistry_projects_locations_repositories_generic_artifacts_upload
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `artifactregistry_projects_locations_repositories_go_modules_upload_execute()` to send, or `artifactregistry_projects_locations_repositories_go_modules_upload` for simplest API.
 
-pub fn artifactregistry_projects_locations_repositories_go_modules_upload_builder(
-    client: &SimpleHttpClient,
+pub fn artifactregistry_projects_locations_repositories_go_modules_upload_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://artifactregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/goModules:create",
@@ -5977,10 +6083,13 @@ pub fn artifactregistry_projects_locations_repositories_go_modules_upload(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `artifactregistry_projects_locations_repositories_googet_artifacts_import_execute()` to send, or `artifactregistry_projects_locations_repositories_googet_artifacts_import` for simplest API.
 
-pub fn artifactregistry_projects_locations_repositories_googet_artifacts_import_builder(
-    client: &SimpleHttpClient,
+pub fn artifactregistry_projects_locations_repositories_googet_artifacts_import_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://artifactregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/googetArtifacts:import",
@@ -6138,10 +6247,13 @@ pub fn artifactregistry_projects_locations_repositories_googet_artifacts_import(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `artifactregistry_projects_locations_repositories_googet_artifacts_upload_execute()` to send, or `artifactregistry_projects_locations_repositories_googet_artifacts_upload` for simplest API.
 
-pub fn artifactregistry_projects_locations_repositories_googet_artifacts_upload_builder(
-    client: &SimpleHttpClient,
+pub fn artifactregistry_projects_locations_repositories_googet_artifacts_upload_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://artifactregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/googetArtifacts:create",
@@ -6307,10 +6419,13 @@ pub fn artifactregistry_projects_locations_repositories_googet_artifacts_upload(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `artifactregistry_projects_locations_repositories_kfp_artifacts_upload_execute()` to send, or `artifactregistry_projects_locations_repositories_kfp_artifacts_upload` for simplest API.
 
-pub fn artifactregistry_projects_locations_repositories_kfp_artifacts_upload_builder(
-    client: &SimpleHttpClient,
+pub fn artifactregistry_projects_locations_repositories_kfp_artifacts_upload_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://artifactregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/kfpArtifacts:create",
@@ -6475,10 +6590,13 @@ pub fn artifactregistry_projects_locations_repositories_kfp_artifacts_upload(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `artifactregistry_projects_locations_repositories_maven_artifacts_get_execute()` to send, or `artifactregistry_projects_locations_repositories_maven_artifacts_get` for simplest API.
 
-pub fn artifactregistry_projects_locations_repositories_maven_artifacts_get_builder(
-    client: &SimpleHttpClient,
+pub fn artifactregistry_projects_locations_repositories_maven_artifacts_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://artifactregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/mavenArtifacts/{mavenArtifactsId}",
@@ -6638,12 +6756,15 @@ pub fn artifactregistry_projects_locations_repositories_maven_artifacts_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `artifactregistry_projects_locations_repositories_maven_artifacts_list_execute()` to send, or `artifactregistry_projects_locations_repositories_maven_artifacts_list` for simplest API.
 
-pub fn artifactregistry_projects_locations_repositories_maven_artifacts_list_builder(
-    client: &SimpleHttpClient,
+pub fn artifactregistry_projects_locations_repositories_maven_artifacts_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://artifactregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/mavenArtifacts",
@@ -6828,10 +6949,13 @@ pub fn artifactregistry_projects_locations_repositories_maven_artifacts_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `artifactregistry_projects_locations_repositories_npm_packages_get_execute()` to send, or `artifactregistry_projects_locations_repositories_npm_packages_get` for simplest API.
 
-pub fn artifactregistry_projects_locations_repositories_npm_packages_get_builder(
-    client: &SimpleHttpClient,
+pub fn artifactregistry_projects_locations_repositories_npm_packages_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://artifactregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/npmPackages/{npmPackagesId}",
@@ -6987,12 +7111,15 @@ pub fn artifactregistry_projects_locations_repositories_npm_packages_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `artifactregistry_projects_locations_repositories_npm_packages_list_execute()` to send, or `artifactregistry_projects_locations_repositories_npm_packages_list` for simplest API.
 
-pub fn artifactregistry_projects_locations_repositories_npm_packages_list_builder(
-    client: &SimpleHttpClient,
+pub fn artifactregistry_projects_locations_repositories_npm_packages_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://artifactregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/npmPackages",
@@ -7173,10 +7300,13 @@ pub fn artifactregistry_projects_locations_repositories_npm_packages_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `artifactregistry_projects_locations_repositories_packages_delete_execute()` to send, or `artifactregistry_projects_locations_repositories_packages_delete` for simplest API.
 
-pub fn artifactregistry_projects_locations_repositories_packages_delete_builder(
-    client: &SimpleHttpClient,
+pub fn artifactregistry_projects_locations_repositories_packages_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://artifactregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/packages/{packagesId}",
@@ -7332,10 +7462,13 @@ pub fn artifactregistry_projects_locations_repositories_packages_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `artifactregistry_projects_locations_repositories_packages_get_execute()` to send, or `artifactregistry_projects_locations_repositories_packages_get` for simplest API.
 
-pub fn artifactregistry_projects_locations_repositories_packages_get_builder(
-    client: &SimpleHttpClient,
+pub fn artifactregistry_projects_locations_repositories_packages_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://artifactregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/packages/{packagesId}",
@@ -7490,14 +7623,17 @@ pub fn artifactregistry_projects_locations_repositories_packages_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `artifactregistry_projects_locations_repositories_packages_list_execute()` to send, or `artifactregistry_projects_locations_repositories_packages_list` for simplest API.
 
-pub fn artifactregistry_projects_locations_repositories_packages_list_builder(
-    client: &SimpleHttpClient,
+pub fn artifactregistry_projects_locations_repositories_packages_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://artifactregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/packages",
@@ -7690,11 +7826,14 @@ pub fn artifactregistry_projects_locations_repositories_packages_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `artifactregistry_projects_locations_repositories_packages_patch_execute()` to send, or `artifactregistry_projects_locations_repositories_packages_patch` for simplest API.
 
-pub fn artifactregistry_projects_locations_repositories_packages_patch_builder(
-    client: &SimpleHttpClient,
+pub fn artifactregistry_projects_locations_repositories_packages_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://artifactregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/packages/{packagesId}",
@@ -7865,11 +8004,14 @@ pub fn artifactregistry_projects_locations_repositories_packages_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `artifactregistry_projects_locations_repositories_packages_tags_create_execute()` to send, or `artifactregistry_projects_locations_repositories_packages_tags_create` for simplest API.
 
-pub fn artifactregistry_projects_locations_repositories_packages_tags_create_builder(
-    client: &SimpleHttpClient,
+pub fn artifactregistry_projects_locations_repositories_packages_tags_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     tagId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://artifactregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/packages/{packagesId}/tags",
@@ -8040,10 +8182,13 @@ pub fn artifactregistry_projects_locations_repositories_packages_tags_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `artifactregistry_projects_locations_repositories_packages_tags_delete_execute()` to send, or `artifactregistry_projects_locations_repositories_packages_tags_delete` for simplest API.
 
-pub fn artifactregistry_projects_locations_repositories_packages_tags_delete_builder(
-    client: &SimpleHttpClient,
+pub fn artifactregistry_projects_locations_repositories_packages_tags_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://artifactregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/packages/{packagesId}/tags/{tagsId}",
@@ -8199,10 +8344,13 @@ pub fn artifactregistry_projects_locations_repositories_packages_tags_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `artifactregistry_projects_locations_repositories_packages_tags_get_execute()` to send, or `artifactregistry_projects_locations_repositories_packages_tags_get` for simplest API.
 
-pub fn artifactregistry_projects_locations_repositories_packages_tags_get_builder(
-    client: &SimpleHttpClient,
+pub fn artifactregistry_projects_locations_repositories_packages_tags_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://artifactregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/packages/{packagesId}/tags/{tagsId}",
@@ -8358,13 +8506,16 @@ pub fn artifactregistry_projects_locations_repositories_packages_tags_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `artifactregistry_projects_locations_repositories_packages_tags_list_execute()` to send, or `artifactregistry_projects_locations_repositories_packages_tags_list` for simplest API.
 
-pub fn artifactregistry_projects_locations_repositories_packages_tags_list_builder(
-    client: &SimpleHttpClient,
+pub fn artifactregistry_projects_locations_repositories_packages_tags_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://artifactregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/packages/{packagesId}/tags",
@@ -8551,11 +8702,14 @@ pub fn artifactregistry_projects_locations_repositories_packages_tags_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `artifactregistry_projects_locations_repositories_packages_tags_patch_execute()` to send, or `artifactregistry_projects_locations_repositories_packages_tags_patch` for simplest API.
 
-pub fn artifactregistry_projects_locations_repositories_packages_tags_patch_builder(
-    client: &SimpleHttpClient,
+pub fn artifactregistry_projects_locations_repositories_packages_tags_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://artifactregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/packages/{packagesId}/tags/{tagsId}",
@@ -8726,10 +8880,13 @@ pub fn artifactregistry_projects_locations_repositories_packages_tags_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `artifactregistry_projects_locations_repositories_packages_versions_batch_delete_execute()` to send, or `artifactregistry_projects_locations_repositories_packages_versions_batch_delete` for simplest API.
 
-pub fn artifactregistry_projects_locations_repositories_packages_versions_batch_delete_builder(
-    client: &SimpleHttpClient,
+pub fn artifactregistry_projects_locations_repositories_packages_versions_batch_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://artifactregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/packages/{packagesId}/versions:batchDelete",
@@ -8890,11 +9047,14 @@ pub fn artifactregistry_projects_locations_repositories_packages_versions_batch_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `artifactregistry_projects_locations_repositories_packages_versions_delete_execute()` to send, or `artifactregistry_projects_locations_repositories_packages_versions_delete` for simplest API.
 
-pub fn artifactregistry_projects_locations_repositories_packages_versions_delete_builder(
-    client: &SimpleHttpClient,
+pub fn artifactregistry_projects_locations_repositories_packages_versions_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     force: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://artifactregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/packages/{packagesId}/versions/{versionsId}",
@@ -9067,11 +9227,14 @@ pub fn artifactregistry_projects_locations_repositories_packages_versions_delete
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `artifactregistry_projects_locations_repositories_packages_versions_get_execute()` to send, or `artifactregistry_projects_locations_repositories_packages_versions_get` for simplest API.
 
-pub fn artifactregistry_projects_locations_repositories_packages_versions_get_builder(
-    client: &SimpleHttpClient,
+pub fn artifactregistry_projects_locations_repositories_packages_versions_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://artifactregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/packages/{packagesId}/versions/{versionsId}",
@@ -9241,15 +9404,18 @@ pub fn artifactregistry_projects_locations_repositories_packages_versions_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `artifactregistry_projects_locations_repositories_packages_versions_list_execute()` to send, or `artifactregistry_projects_locations_repositories_packages_versions_list` for simplest API.
 
-pub fn artifactregistry_projects_locations_repositories_packages_versions_list_builder(
-    client: &SimpleHttpClient,
+pub fn artifactregistry_projects_locations_repositories_packages_versions_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://artifactregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/packages/{packagesId}/versions",
@@ -9449,11 +9615,14 @@ pub fn artifactregistry_projects_locations_repositories_packages_versions_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `artifactregistry_projects_locations_repositories_packages_versions_patch_execute()` to send, or `artifactregistry_projects_locations_repositories_packages_versions_patch` for simplest API.
 
-pub fn artifactregistry_projects_locations_repositories_packages_versions_patch_builder(
-    client: &SimpleHttpClient,
+pub fn artifactregistry_projects_locations_repositories_packages_versions_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://artifactregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/packages/{packagesId}/versions/{versionsId}",
@@ -9625,10 +9794,13 @@ pub fn artifactregistry_projects_locations_repositories_packages_versions_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `artifactregistry_projects_locations_repositories_python_packages_get_execute()` to send, or `artifactregistry_projects_locations_repositories_python_packages_get` for simplest API.
 
-pub fn artifactregistry_projects_locations_repositories_python_packages_get_builder(
-    client: &SimpleHttpClient,
+pub fn artifactregistry_projects_locations_repositories_python_packages_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://artifactregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/pythonPackages/{pythonPackagesId}",
@@ -9788,12 +9960,15 @@ pub fn artifactregistry_projects_locations_repositories_python_packages_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `artifactregistry_projects_locations_repositories_python_packages_list_execute()` to send, or `artifactregistry_projects_locations_repositories_python_packages_list` for simplest API.
 
-pub fn artifactregistry_projects_locations_repositories_python_packages_list_builder(
-    client: &SimpleHttpClient,
+pub fn artifactregistry_projects_locations_repositories_python_packages_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://artifactregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/pythonPackages",
@@ -9978,11 +10153,14 @@ pub fn artifactregistry_projects_locations_repositories_python_packages_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `artifactregistry_projects_locations_repositories_rules_create_execute()` to send, or `artifactregistry_projects_locations_repositories_rules_create` for simplest API.
 
-pub fn artifactregistry_projects_locations_repositories_rules_create_builder(
-    client: &SimpleHttpClient,
+pub fn artifactregistry_projects_locations_repositories_rules_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     ruleId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://artifactregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/rules",
@@ -10161,10 +10339,13 @@ pub fn artifactregistry_projects_locations_repositories_rules_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `artifactregistry_projects_locations_repositories_rules_delete_execute()` to send, or `artifactregistry_projects_locations_repositories_rules_delete` for simplest API.
 
-pub fn artifactregistry_projects_locations_repositories_rules_delete_builder(
-    client: &SimpleHttpClient,
+pub fn artifactregistry_projects_locations_repositories_rules_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://artifactregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/rules/{rulesId}",
@@ -10319,10 +10500,13 @@ pub fn artifactregistry_projects_locations_repositories_rules_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `artifactregistry_projects_locations_repositories_rules_get_execute()` to send, or `artifactregistry_projects_locations_repositories_rules_get` for simplest API.
 
-pub fn artifactregistry_projects_locations_repositories_rules_get_builder(
-    client: &SimpleHttpClient,
+pub fn artifactregistry_projects_locations_repositories_rules_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://artifactregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/rules/{rulesId}",
@@ -10485,12 +10669,15 @@ pub fn artifactregistry_projects_locations_repositories_rules_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `artifactregistry_projects_locations_repositories_rules_list_execute()` to send, or `artifactregistry_projects_locations_repositories_rules_list` for simplest API.
 
-pub fn artifactregistry_projects_locations_repositories_rules_list_builder(
-    client: &SimpleHttpClient,
+pub fn artifactregistry_projects_locations_repositories_rules_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://artifactregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/rules",
@@ -10671,11 +10858,14 @@ pub fn artifactregistry_projects_locations_repositories_rules_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `artifactregistry_projects_locations_repositories_rules_patch_execute()` to send, or `artifactregistry_projects_locations_repositories_rules_patch` for simplest API.
 
-pub fn artifactregistry_projects_locations_repositories_rules_patch_builder(
-    client: &SimpleHttpClient,
+pub fn artifactregistry_projects_locations_repositories_rules_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://artifactregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/rules/{rulesId}",
@@ -10854,10 +11044,13 @@ pub fn artifactregistry_projects_locations_repositories_rules_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `artifactregistry_projects_locations_repositories_yum_artifacts_import_execute()` to send, or `artifactregistry_projects_locations_repositories_yum_artifacts_import` for simplest API.
 
-pub fn artifactregistry_projects_locations_repositories_yum_artifacts_import_builder(
-    client: &SimpleHttpClient,
+pub fn artifactregistry_projects_locations_repositories_yum_artifacts_import_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://artifactregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/yumArtifacts:import",
@@ -11014,10 +11207,13 @@ pub fn artifactregistry_projects_locations_repositories_yum_artifacts_import(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `artifactregistry_projects_locations_repositories_yum_artifacts_upload_execute()` to send, or `artifactregistry_projects_locations_repositories_yum_artifacts_upload` for simplest API.
 
-pub fn artifactregistry_projects_locations_repositories_yum_artifacts_upload_builder(
-    client: &SimpleHttpClient,
+pub fn artifactregistry_projects_locations_repositories_yum_artifacts_upload_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://artifactregistry.googleapis.com/v1/projects/{}/locations/{locationsId}/repositories/{repositoriesId}/yumArtifacts:create",

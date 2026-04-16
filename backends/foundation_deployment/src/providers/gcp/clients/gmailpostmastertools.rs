@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,9 +27,12 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gmailpostmastertools_domain_stats_batch_query_execute()` to send, or `gmailpostmastertools_domain_stats_batch_query` for simplest API.
 
-pub fn gmailpostmastertools_domain_stats_batch_query_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn gmailpostmastertools_domain_stats_batch_query_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://gmailpostmastertools.googleapis.com/v2/domainStats:batchQuery",);
@@ -180,10 +184,13 @@ pub fn gmailpostmastertools_domain_stats_batch_query(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gmailpostmastertools_domains_get_execute()` to send, or `gmailpostmastertools_domains_get` for simplest API.
 
-pub fn gmailpostmastertools_domains_get_builder(
-    client: &SimpleHttpClient,
+pub fn gmailpostmastertools_domains_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gmailpostmastertools.googleapis.com/v2/domains/{}",
@@ -337,10 +344,13 @@ pub fn gmailpostmastertools_domains_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gmailpostmastertools_domains_get_compliance_status_execute()` to send, or `gmailpostmastertools_domains_get_compliance_status` for simplest API.
 
-pub fn gmailpostmastertools_domains_get_compliance_status_builder(
-    client: &SimpleHttpClient,
+pub fn gmailpostmastertools_domains_get_compliance_status_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gmailpostmastertools.googleapis.com/v2/domains/{}/complianceStatus",
@@ -498,11 +508,14 @@ pub fn gmailpostmastertools_domains_get_compliance_status(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gmailpostmastertools_domains_list_execute()` to send, or `gmailpostmastertools_domains_list` for simplest API.
 
-pub fn gmailpostmastertools_domains_list_builder(
-    client: &SimpleHttpClient,
+pub fn gmailpostmastertools_domains_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://gmailpostmastertools.googleapis.com/v2/domains",);
 
@@ -674,10 +687,13 @@ pub fn gmailpostmastertools_domains_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gmailpostmastertools_domains_domain_stats_query_execute()` to send, or `gmailpostmastertools_domains_domain_stats_query` for simplest API.
 
-pub fn gmailpostmastertools_domains_domain_stats_query_builder(
-    client: &SimpleHttpClient,
+pub fn gmailpostmastertools_domains_domain_stats_query_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gmailpostmastertools.googleapis.com/v2/domains/{}/domainStats:query",

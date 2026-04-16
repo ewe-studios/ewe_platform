@@ -153,12 +153,10 @@ use crate::providers::gcp::clients::cloudidentity::CloudidentityGroupsMembership
 use crate::providers::gcp::clients::cloudidentity::CloudidentityGroupsPatchArgs;
 use crate::providers::gcp::clients::cloudidentity::CloudidentityGroupsSearchArgs;
 use crate::providers::gcp::clients::cloudidentity::CloudidentityGroupsUpdateSecuritySettingsArgs;
-use crate::providers::gcp::clients::cloudidentity::CloudidentityInboundOidcSsoProfilesCreateArgs;
 use crate::providers::gcp::clients::cloudidentity::CloudidentityInboundOidcSsoProfilesDeleteArgs;
 use crate::providers::gcp::clients::cloudidentity::CloudidentityInboundOidcSsoProfilesGetArgs;
 use crate::providers::gcp::clients::cloudidentity::CloudidentityInboundOidcSsoProfilesListArgs;
 use crate::providers::gcp::clients::cloudidentity::CloudidentityInboundOidcSsoProfilesPatchArgs;
-use crate::providers::gcp::clients::cloudidentity::CloudidentityInboundSamlSsoProfilesCreateArgs;
 use crate::providers::gcp::clients::cloudidentity::CloudidentityInboundSamlSsoProfilesDeleteArgs;
 use crate::providers::gcp::clients::cloudidentity::CloudidentityInboundSamlSsoProfilesGetArgs;
 use crate::providers::gcp::clients::cloudidentity::CloudidentityInboundSamlSsoProfilesIdpCredentialsAddArgs;
@@ -167,7 +165,6 @@ use crate::providers::gcp::clients::cloudidentity::CloudidentityInboundSamlSsoPr
 use crate::providers::gcp::clients::cloudidentity::CloudidentityInboundSamlSsoProfilesIdpCredentialsListArgs;
 use crate::providers::gcp::clients::cloudidentity::CloudidentityInboundSamlSsoProfilesListArgs;
 use crate::providers::gcp::clients::cloudidentity::CloudidentityInboundSamlSsoProfilesPatchArgs;
-use crate::providers::gcp::clients::cloudidentity::CloudidentityInboundSsoAssignmentsCreateArgs;
 use crate::providers::gcp::clients::cloudidentity::CloudidentityInboundSsoAssignmentsDeleteArgs;
 use crate::providers::gcp::clients::cloudidentity::CloudidentityInboundSsoAssignmentsGetArgs;
 use crate::providers::gcp::clients::cloudidentity::CloudidentityInboundSsoAssignmentsListArgs;
@@ -176,7 +173,7 @@ use crate::providers::gcp::clients::cloudidentity::CloudidentityPoliciesGetArgs;
 use crate::providers::gcp::clients::cloudidentity::CloudidentityPoliciesListArgs;
 use crate::provider_client::{ProviderClient, ProviderError};
 use foundation_core::valtron::{execute, StreamIterator};
-use foundation_core::wire::simple_http::client::SimpleHttpClient;
+use foundation_core::wire::simple_http::client::{SimpleHttpClient, DnsResolver};
 use foundation_db::state::store_state_task::StoreStateIdentifierTask;
 use std::sync::Arc;
 
@@ -185,34 +182,44 @@ use std::sync::Arc;
 /// # Type Parameters
 ///
 /// * `S` - StateStore implementation (FileStateStore, SqliteStateStore, etc.)
+/// * `R` - DNS resolver type for HTTP client
 ///
 /// # Example
 ///
 /// ```rust
 /// let state_store = FileStateStore::new("/path", "my-project", "dev");
-/// let client = ProviderClient::new("my-project", "dev", state_store);
-/// let http_client = SimpleHttpClient::new(...);
-/// let provider = CloudidentityProvider::new(client, http_client);
+/// let http_client = SimpleHttpClient::with_resolver(StaticSocketAddr::new(addr));
+/// let client = ProviderClient::new("my-project", "dev", state_store, http_client);
+/// let provider = CloudidentityProvider::from_provider_client(client);
 /// ```
 #[derive(Clone)]
-pub struct CloudidentityProvider<S>
+pub struct CloudidentityProvider<S, R>
 where
     S: foundation_db::state::traits::StateStore + Send + Sync + 'static,
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + 'static,
 {
-    client: ProviderClient<S>,
-    http_client: Arc<SimpleHttpClient>,
+    client: ProviderClient<S, R>,
+    http_client: Arc<SimpleHttpClient<R>>,
 }
 
-impl<S> CloudidentityProvider<S>
+impl<S, R> CloudidentityProvider<S, R>
 where
     S: foundation_db::state::traits::StateStore + Send + Sync + 'static,
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + 'static,
 {
     /// Create new CloudidentityProvider.
-    pub fn new(client: ProviderClient<S>, http_client: SimpleHttpClient) -> Self {
+    pub fn new(client: ProviderClient<S, R>, http_client: Arc<SimpleHttpClient<R>>) -> Self {
         Self {
             client,
-            http_client: Arc::new(http_client),
+            http_client,
         }
+    }
+
+    /// Create new CloudidentityProvider from ProviderClient, extracting the HTTP client.
+    ///
+    /// This is a convenience method that calls `Self::new()` with `client.http_client()`.
+    pub fn from_provider_client(client: ProviderClient<S, R>) -> Self {
+        Self::new(client, client.http_client.clone())
     }
 
     /// Cloudidentity customers userinvitations cancel.
@@ -1375,8 +1382,8 @@ where
     > {
         let builder = cloudidentity_groups_lookup_builder(
             &self.http_client,
-            &args.groupKey.id,
-            &args.groupKey.namespace,
+            &args.groupKey_id,
+            &args.groupKey_namespace,
         )
         .map_err(ProviderError::Api)?;
 
@@ -1787,8 +1794,8 @@ where
         let builder = cloudidentity_groups_memberships_lookup_builder(
             &self.http_client,
             &args.parent,
-            &args.memberKey.id,
-            &args.memberKey.namespace,
+            &args.memberKey_id,
+            &args.memberKey_namespace,
         )
         .map_err(ProviderError::Api)?;
 

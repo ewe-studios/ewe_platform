@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `baremetalsolution_projects_locations_get_execute()` to send, or `baremetalsolution_projects_locations_get` for simplest API.
 
-pub fn baremetalsolution_projects_locations_get_builder(
-    client: &SimpleHttpClient,
+pub fn baremetalsolution_projects_locations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://baremetalsolution.googleapis.com/v2/projects/{}/locations/{locationsId}",
@@ -183,14 +187,17 @@ pub fn baremetalsolution_projects_locations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `baremetalsolution_projects_locations_list_execute()` to send, or `baremetalsolution_projects_locations_list` for simplest API.
 
-pub fn baremetalsolution_projects_locations_list_builder(
-    client: &SimpleHttpClient,
+pub fn baremetalsolution_projects_locations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     extraLocationTypes: &Option<Option<String>>,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://baremetalsolution.googleapis.com/v2/projects/{}/locations",
@@ -383,10 +390,13 @@ pub fn baremetalsolution_projects_locations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `baremetalsolution_projects_locations_instances_detach_lun_execute()` to send, or `baremetalsolution_projects_locations_instances_detach_lun` for simplest API.
 
-pub fn baremetalsolution_projects_locations_instances_detach_lun_builder(
-    client: &SimpleHttpClient,
+pub fn baremetalsolution_projects_locations_instances_detach_lun_builder<R>(
+    client: &SimpleHttpClient<R>,
     instance: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://baremetalsolution.googleapis.com/v2/projects/{}/locations/{locationsId}/instances/{instancesId}:detachLun",
@@ -541,10 +551,13 @@ pub fn baremetalsolution_projects_locations_instances_detach_lun(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `baremetalsolution_projects_locations_instances_disable_hyperthreading_execute()` to send, or `baremetalsolution_projects_locations_instances_disable_hyperthreading` for simplest API.
 
-pub fn baremetalsolution_projects_locations_instances_disable_hyperthreading_builder(
-    client: &SimpleHttpClient,
+pub fn baremetalsolution_projects_locations_instances_disable_hyperthreading_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://baremetalsolution.googleapis.com/v2/projects/{}/locations/{locationsId}/instances/{instancesId}:disableHyperthreading",
@@ -700,10 +713,15 @@ pub fn baremetalsolution_projects_locations_instances_disable_hyperthreading(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `baremetalsolution_projects_locations_instances_disable_interactive_serial_console_execute()` to send, or `baremetalsolution_projects_locations_instances_disable_interactive_serial_console` for simplest API.
 
-pub fn baremetalsolution_projects_locations_instances_disable_interactive_serial_console_builder(
-    client: &SimpleHttpClient,
+pub fn baremetalsolution_projects_locations_instances_disable_interactive_serial_console_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://baremetalsolution.googleapis.com/v2/projects/{}/locations/{locationsId}/instances/{instancesId}:disableInteractiveSerialConsole",
@@ -865,10 +883,13 @@ pub fn baremetalsolution_projects_locations_instances_disable_interactive_serial
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `baremetalsolution_projects_locations_instances_enable_hyperthreading_execute()` to send, or `baremetalsolution_projects_locations_instances_enable_hyperthreading` for simplest API.
 
-pub fn baremetalsolution_projects_locations_instances_enable_hyperthreading_builder(
-    client: &SimpleHttpClient,
+pub fn baremetalsolution_projects_locations_instances_enable_hyperthreading_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://baremetalsolution.googleapis.com/v2/projects/{}/locations/{locationsId}/instances/{instancesId}:enableHyperthreading",
@@ -1024,10 +1045,13 @@ pub fn baremetalsolution_projects_locations_instances_enable_hyperthreading(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `baremetalsolution_projects_locations_instances_enable_interactive_serial_console_execute()` to send, or `baremetalsolution_projects_locations_instances_enable_interactive_serial_console` for simplest API.
 
-pub fn baremetalsolution_projects_locations_instances_enable_interactive_serial_console_builder(
-    client: &SimpleHttpClient,
+pub fn baremetalsolution_projects_locations_instances_enable_interactive_serial_console_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://baremetalsolution.googleapis.com/v2/projects/{}/locations/{locationsId}/instances/{instancesId}:enableInteractiveSerialConsole",
@@ -1189,10 +1213,13 @@ pub fn baremetalsolution_projects_locations_instances_enable_interactive_serial_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `baremetalsolution_projects_locations_instances_get_execute()` to send, or `baremetalsolution_projects_locations_instances_get` for simplest API.
 
-pub fn baremetalsolution_projects_locations_instances_get_builder(
-    client: &SimpleHttpClient,
+pub fn baremetalsolution_projects_locations_instances_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://baremetalsolution.googleapis.com/v2/projects/{}/locations/{locationsId}/instances/{instancesId}",
@@ -1346,13 +1373,16 @@ pub fn baremetalsolution_projects_locations_instances_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `baremetalsolution_projects_locations_instances_list_execute()` to send, or `baremetalsolution_projects_locations_instances_list` for simplest API.
 
-pub fn baremetalsolution_projects_locations_instances_list_builder(
-    client: &SimpleHttpClient,
+pub fn baremetalsolution_projects_locations_instances_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://baremetalsolution.googleapis.com/v2/projects/{}/locations/{locationsId}/instances",
@@ -1539,10 +1569,13 @@ pub fn baremetalsolution_projects_locations_instances_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `baremetalsolution_projects_locations_instances_load_auth_info_execute()` to send, or `baremetalsolution_projects_locations_instances_load_auth_info` for simplest API.
 
-pub fn baremetalsolution_projects_locations_instances_load_auth_info_builder(
-    client: &SimpleHttpClient,
+pub fn baremetalsolution_projects_locations_instances_load_auth_info_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://baremetalsolution.googleapis.com/v2/projects/{}/locations/{locationsId}/instances/{instancesId}:loadAuthInfo",
@@ -1705,11 +1738,14 @@ pub fn baremetalsolution_projects_locations_instances_load_auth_info(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `baremetalsolution_projects_locations_instances_patch_execute()` to send, or `baremetalsolution_projects_locations_instances_patch` for simplest API.
 
-pub fn baremetalsolution_projects_locations_instances_patch_builder(
-    client: &SimpleHttpClient,
+pub fn baremetalsolution_projects_locations_instances_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://baremetalsolution.googleapis.com/v2/projects/{}/locations/{locationsId}/instances/{instancesId}",
@@ -1880,10 +1916,13 @@ pub fn baremetalsolution_projects_locations_instances_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `baremetalsolution_projects_locations_instances_reimage_execute()` to send, or `baremetalsolution_projects_locations_instances_reimage` for simplest API.
 
-pub fn baremetalsolution_projects_locations_instances_reimage_builder(
-    client: &SimpleHttpClient,
+pub fn baremetalsolution_projects_locations_instances_reimage_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://baremetalsolution.googleapis.com/v2/projects/{}/locations/{locationsId}/instances/{instancesId}:reimage",
@@ -2038,10 +2077,13 @@ pub fn baremetalsolution_projects_locations_instances_reimage(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `baremetalsolution_projects_locations_instances_rename_execute()` to send, or `baremetalsolution_projects_locations_instances_rename` for simplest API.
 
-pub fn baremetalsolution_projects_locations_instances_rename_builder(
-    client: &SimpleHttpClient,
+pub fn baremetalsolution_projects_locations_instances_rename_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://baremetalsolution.googleapis.com/v2/projects/{}/locations/{locationsId}/instances/{instancesId}:rename",
@@ -2196,10 +2238,13 @@ pub fn baremetalsolution_projects_locations_instances_rename(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `baremetalsolution_projects_locations_instances_reset_execute()` to send, or `baremetalsolution_projects_locations_instances_reset` for simplest API.
 
-pub fn baremetalsolution_projects_locations_instances_reset_builder(
-    client: &SimpleHttpClient,
+pub fn baremetalsolution_projects_locations_instances_reset_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://baremetalsolution.googleapis.com/v2/projects/{}/locations/{locationsId}/instances/{instancesId}:reset",
@@ -2353,10 +2398,13 @@ pub fn baremetalsolution_projects_locations_instances_reset(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `baremetalsolution_projects_locations_instances_start_execute()` to send, or `baremetalsolution_projects_locations_instances_start` for simplest API.
 
-pub fn baremetalsolution_projects_locations_instances_start_builder(
-    client: &SimpleHttpClient,
+pub fn baremetalsolution_projects_locations_instances_start_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://baremetalsolution.googleapis.com/v2/projects/{}/locations/{locationsId}/instances/{instancesId}:start",
@@ -2510,10 +2558,13 @@ pub fn baremetalsolution_projects_locations_instances_start(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `baremetalsolution_projects_locations_instances_stop_execute()` to send, or `baremetalsolution_projects_locations_instances_stop` for simplest API.
 
-pub fn baremetalsolution_projects_locations_instances_stop_builder(
-    client: &SimpleHttpClient,
+pub fn baremetalsolution_projects_locations_instances_stop_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://baremetalsolution.googleapis.com/v2/projects/{}/locations/{locationsId}/instances/{instancesId}:stop",
@@ -2667,10 +2718,13 @@ pub fn baremetalsolution_projects_locations_instances_stop(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `baremetalsolution_projects_locations_networks_get_execute()` to send, or `baremetalsolution_projects_locations_networks_get` for simplest API.
 
-pub fn baremetalsolution_projects_locations_networks_get_builder(
-    client: &SimpleHttpClient,
+pub fn baremetalsolution_projects_locations_networks_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://baremetalsolution.googleapis.com/v2/projects/{}/locations/{locationsId}/networks/{networksId}",
@@ -2824,13 +2878,16 @@ pub fn baremetalsolution_projects_locations_networks_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `baremetalsolution_projects_locations_networks_list_execute()` to send, or `baremetalsolution_projects_locations_networks_list` for simplest API.
 
-pub fn baremetalsolution_projects_locations_networks_list_builder(
-    client: &SimpleHttpClient,
+pub fn baremetalsolution_projects_locations_networks_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://baremetalsolution.googleapis.com/v2/projects/{}/locations/{locationsId}/networks",
@@ -3017,10 +3074,13 @@ pub fn baremetalsolution_projects_locations_networks_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `baremetalsolution_projects_locations_networks_list_network_usage_execute()` to send, or `baremetalsolution_projects_locations_networks_list_network_usage` for simplest API.
 
-pub fn baremetalsolution_projects_locations_networks_list_network_usage_builder(
-    client: &SimpleHttpClient,
+pub fn baremetalsolution_projects_locations_networks_list_network_usage_builder<R>(
+    client: &SimpleHttpClient<R>,
     location: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://baremetalsolution.googleapis.com/v2/projects/{}/locations/{locationsId}/networks:listNetworkUsage",
@@ -3181,11 +3241,14 @@ pub fn baremetalsolution_projects_locations_networks_list_network_usage(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `baremetalsolution_projects_locations_networks_patch_execute()` to send, or `baremetalsolution_projects_locations_networks_patch` for simplest API.
 
-pub fn baremetalsolution_projects_locations_networks_patch_builder(
-    client: &SimpleHttpClient,
+pub fn baremetalsolution_projects_locations_networks_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://baremetalsolution.googleapis.com/v2/projects/{}/locations/{locationsId}/networks/{networksId}",
@@ -3356,10 +3419,13 @@ pub fn baremetalsolution_projects_locations_networks_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `baremetalsolution_projects_locations_networks_rename_execute()` to send, or `baremetalsolution_projects_locations_networks_rename` for simplest API.
 
-pub fn baremetalsolution_projects_locations_networks_rename_builder(
-    client: &SimpleHttpClient,
+pub fn baremetalsolution_projects_locations_networks_rename_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://baremetalsolution.googleapis.com/v2/projects/{}/locations/{locationsId}/networks/{networksId}:rename",
@@ -3513,10 +3579,13 @@ pub fn baremetalsolution_projects_locations_networks_rename(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `baremetalsolution_projects_locations_nfs_shares_create_execute()` to send, or `baremetalsolution_projects_locations_nfs_shares_create` for simplest API.
 
-pub fn baremetalsolution_projects_locations_nfs_shares_create_builder(
-    client: &SimpleHttpClient,
+pub fn baremetalsolution_projects_locations_nfs_shares_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://baremetalsolution.googleapis.com/v2/projects/{}/locations/{locationsId}/nfsShares",
@@ -3671,10 +3740,13 @@ pub fn baremetalsolution_projects_locations_nfs_shares_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `baremetalsolution_projects_locations_nfs_shares_delete_execute()` to send, or `baremetalsolution_projects_locations_nfs_shares_delete` for simplest API.
 
-pub fn baremetalsolution_projects_locations_nfs_shares_delete_builder(
-    client: &SimpleHttpClient,
+pub fn baremetalsolution_projects_locations_nfs_shares_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://baremetalsolution.googleapis.com/v2/projects/{}/locations/{locationsId}/nfsShares/{nfsSharesId}",
@@ -3829,10 +3901,13 @@ pub fn baremetalsolution_projects_locations_nfs_shares_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `baremetalsolution_projects_locations_nfs_shares_get_execute()` to send, or `baremetalsolution_projects_locations_nfs_shares_get` for simplest API.
 
-pub fn baremetalsolution_projects_locations_nfs_shares_get_builder(
-    client: &SimpleHttpClient,
+pub fn baremetalsolution_projects_locations_nfs_shares_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://baremetalsolution.googleapis.com/v2/projects/{}/locations/{locationsId}/nfsShares/{nfsSharesId}",
@@ -3986,13 +4061,16 @@ pub fn baremetalsolution_projects_locations_nfs_shares_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `baremetalsolution_projects_locations_nfs_shares_list_execute()` to send, or `baremetalsolution_projects_locations_nfs_shares_list` for simplest API.
 
-pub fn baremetalsolution_projects_locations_nfs_shares_list_builder(
-    client: &SimpleHttpClient,
+pub fn baremetalsolution_projects_locations_nfs_shares_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://baremetalsolution.googleapis.com/v2/projects/{}/locations/{locationsId}/nfsShares",
@@ -4179,11 +4257,14 @@ pub fn baremetalsolution_projects_locations_nfs_shares_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `baremetalsolution_projects_locations_nfs_shares_patch_execute()` to send, or `baremetalsolution_projects_locations_nfs_shares_patch` for simplest API.
 
-pub fn baremetalsolution_projects_locations_nfs_shares_patch_builder(
-    client: &SimpleHttpClient,
+pub fn baremetalsolution_projects_locations_nfs_shares_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://baremetalsolution.googleapis.com/v2/projects/{}/locations/{locationsId}/nfsShares/{nfsSharesId}",
@@ -4354,10 +4435,13 @@ pub fn baremetalsolution_projects_locations_nfs_shares_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `baremetalsolution_projects_locations_nfs_shares_rename_execute()` to send, or `baremetalsolution_projects_locations_nfs_shares_rename` for simplest API.
 
-pub fn baremetalsolution_projects_locations_nfs_shares_rename_builder(
-    client: &SimpleHttpClient,
+pub fn baremetalsolution_projects_locations_nfs_shares_rename_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://baremetalsolution.googleapis.com/v2/projects/{}/locations/{locationsId}/nfsShares/{nfsSharesId}:rename",
@@ -4512,10 +4596,13 @@ pub fn baremetalsolution_projects_locations_nfs_shares_rename(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `baremetalsolution_projects_locations_operations_get_execute()` to send, or `baremetalsolution_projects_locations_operations_get` for simplest API.
 
-pub fn baremetalsolution_projects_locations_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn baremetalsolution_projects_locations_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://baremetalsolution.googleapis.com/v2/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -4669,10 +4756,13 @@ pub fn baremetalsolution_projects_locations_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `baremetalsolution_projects_locations_os_images_get_execute()` to send, or `baremetalsolution_projects_locations_os_images_get` for simplest API.
 
-pub fn baremetalsolution_projects_locations_os_images_get_builder(
-    client: &SimpleHttpClient,
+pub fn baremetalsolution_projects_locations_os_images_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://baremetalsolution.googleapis.com/v2/projects/{}/locations/{locationsId}/osImages/{osImagesId}",
@@ -4826,12 +4916,15 @@ pub fn baremetalsolution_projects_locations_os_images_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `baremetalsolution_projects_locations_os_images_list_execute()` to send, or `baremetalsolution_projects_locations_os_images_list` for simplest API.
 
-pub fn baremetalsolution_projects_locations_os_images_list_builder(
-    client: &SimpleHttpClient,
+pub fn baremetalsolution_projects_locations_os_images_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://baremetalsolution.googleapis.com/v2/projects/{}/locations/{locationsId}/osImages",
@@ -5012,11 +5105,14 @@ pub fn baremetalsolution_projects_locations_os_images_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `baremetalsolution_projects_locations_provisioning_configs_create_execute()` to send, or `baremetalsolution_projects_locations_provisioning_configs_create` for simplest API.
 
-pub fn baremetalsolution_projects_locations_provisioning_configs_create_builder(
-    client: &SimpleHttpClient,
+pub fn baremetalsolution_projects_locations_provisioning_configs_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     email: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://baremetalsolution.googleapis.com/v2/projects/{}/locations/{locationsId}/provisioningConfigs",
@@ -5191,10 +5287,13 @@ pub fn baremetalsolution_projects_locations_provisioning_configs_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `baremetalsolution_projects_locations_provisioning_configs_get_execute()` to send, or `baremetalsolution_projects_locations_provisioning_configs_get` for simplest API.
 
-pub fn baremetalsolution_projects_locations_provisioning_configs_get_builder(
-    client: &SimpleHttpClient,
+pub fn baremetalsolution_projects_locations_provisioning_configs_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://baremetalsolution.googleapis.com/v2/projects/{}/locations/{locationsId}/provisioningConfigs/{provisioningConfigsId}",
@@ -5353,12 +5452,15 @@ pub fn baremetalsolution_projects_locations_provisioning_configs_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `baremetalsolution_projects_locations_provisioning_configs_patch_execute()` to send, or `baremetalsolution_projects_locations_provisioning_configs_patch` for simplest API.
 
-pub fn baremetalsolution_projects_locations_provisioning_configs_patch_builder(
-    client: &SimpleHttpClient,
+pub fn baremetalsolution_projects_locations_provisioning_configs_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     email: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://baremetalsolution.googleapis.com/v2/projects/{}/locations/{locationsId}/provisioningConfigs/{provisioningConfigsId}",
@@ -5539,10 +5641,13 @@ pub fn baremetalsolution_projects_locations_provisioning_configs_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `baremetalsolution_projects_locations_provisioning_configs_submit_execute()` to send, or `baremetalsolution_projects_locations_provisioning_configs_submit` for simplest API.
 
-pub fn baremetalsolution_projects_locations_provisioning_configs_submit_builder(
-    client: &SimpleHttpClient,
+pub fn baremetalsolution_projects_locations_provisioning_configs_submit_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://baremetalsolution.googleapis.com/v2/projects/{}/locations/{locationsId}/provisioningConfigs:submit",
@@ -5707,12 +5812,15 @@ pub fn baremetalsolution_projects_locations_provisioning_configs_submit(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `baremetalsolution_projects_locations_provisioning_quotas_list_execute()` to send, or `baremetalsolution_projects_locations_provisioning_quotas_list` for simplest API.
 
-pub fn baremetalsolution_projects_locations_provisioning_quotas_list_builder(
-    client: &SimpleHttpClient,
+pub fn baremetalsolution_projects_locations_provisioning_quotas_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://baremetalsolution.googleapis.com/v2/projects/{}/locations/{locationsId}/provisioningQuotas",
@@ -5897,11 +6005,14 @@ pub fn baremetalsolution_projects_locations_provisioning_quotas_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `baremetalsolution_projects_locations_ssh_keys_create_execute()` to send, or `baremetalsolution_projects_locations_ssh_keys_create` for simplest API.
 
-pub fn baremetalsolution_projects_locations_ssh_keys_create_builder(
-    client: &SimpleHttpClient,
+pub fn baremetalsolution_projects_locations_ssh_keys_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     sshKeyId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://baremetalsolution.googleapis.com/v2/projects/{}/locations/{locationsId}/sshKeys",
@@ -6072,10 +6183,13 @@ pub fn baremetalsolution_projects_locations_ssh_keys_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `baremetalsolution_projects_locations_ssh_keys_delete_execute()` to send, or `baremetalsolution_projects_locations_ssh_keys_delete` for simplest API.
 
-pub fn baremetalsolution_projects_locations_ssh_keys_delete_builder(
-    client: &SimpleHttpClient,
+pub fn baremetalsolution_projects_locations_ssh_keys_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://baremetalsolution.googleapis.com/v2/projects/{}/locations/{locationsId}/sshKeys/{sshKeysId}",
@@ -6229,12 +6343,15 @@ pub fn baremetalsolution_projects_locations_ssh_keys_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `baremetalsolution_projects_locations_ssh_keys_list_execute()` to send, or `baremetalsolution_projects_locations_ssh_keys_list` for simplest API.
 
-pub fn baremetalsolution_projects_locations_ssh_keys_list_builder(
-    client: &SimpleHttpClient,
+pub fn baremetalsolution_projects_locations_ssh_keys_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://baremetalsolution.googleapis.com/v2/projects/{}/locations/{locationsId}/sshKeys",
@@ -6415,10 +6532,13 @@ pub fn baremetalsolution_projects_locations_ssh_keys_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `baremetalsolution_projects_locations_volumes_evict_execute()` to send, or `baremetalsolution_projects_locations_volumes_evict` for simplest API.
 
-pub fn baremetalsolution_projects_locations_volumes_evict_builder(
-    client: &SimpleHttpClient,
+pub fn baremetalsolution_projects_locations_volumes_evict_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://baremetalsolution.googleapis.com/v2/projects/{}/locations/{locationsId}/volumes/{volumesId}:evict",
@@ -6572,10 +6692,13 @@ pub fn baremetalsolution_projects_locations_volumes_evict(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `baremetalsolution_projects_locations_volumes_get_execute()` to send, or `baremetalsolution_projects_locations_volumes_get` for simplest API.
 
-pub fn baremetalsolution_projects_locations_volumes_get_builder(
-    client: &SimpleHttpClient,
+pub fn baremetalsolution_projects_locations_volumes_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://baremetalsolution.googleapis.com/v2/projects/{}/locations/{locationsId}/volumes/{volumesId}",
@@ -6729,13 +6852,16 @@ pub fn baremetalsolution_projects_locations_volumes_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `baremetalsolution_projects_locations_volumes_list_execute()` to send, or `baremetalsolution_projects_locations_volumes_list` for simplest API.
 
-pub fn baremetalsolution_projects_locations_volumes_list_builder(
-    client: &SimpleHttpClient,
+pub fn baremetalsolution_projects_locations_volumes_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://baremetalsolution.googleapis.com/v2/projects/{}/locations/{locationsId}/volumes",
@@ -6922,11 +7048,14 @@ pub fn baremetalsolution_projects_locations_volumes_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `baremetalsolution_projects_locations_volumes_patch_execute()` to send, or `baremetalsolution_projects_locations_volumes_patch` for simplest API.
 
-pub fn baremetalsolution_projects_locations_volumes_patch_builder(
-    client: &SimpleHttpClient,
+pub fn baremetalsolution_projects_locations_volumes_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://baremetalsolution.googleapis.com/v2/projects/{}/locations/{locationsId}/volumes/{volumesId}",
@@ -7097,10 +7226,13 @@ pub fn baremetalsolution_projects_locations_volumes_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `baremetalsolution_projects_locations_volumes_rename_execute()` to send, or `baremetalsolution_projects_locations_volumes_rename` for simplest API.
 
-pub fn baremetalsolution_projects_locations_volumes_rename_builder(
-    client: &SimpleHttpClient,
+pub fn baremetalsolution_projects_locations_volumes_rename_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://baremetalsolution.googleapis.com/v2/projects/{}/locations/{locationsId}/volumes/{volumesId}:rename",
@@ -7254,10 +7386,13 @@ pub fn baremetalsolution_projects_locations_volumes_rename(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `baremetalsolution_projects_locations_volumes_resize_execute()` to send, or `baremetalsolution_projects_locations_volumes_resize` for simplest API.
 
-pub fn baremetalsolution_projects_locations_volumes_resize_builder(
-    client: &SimpleHttpClient,
+pub fn baremetalsolution_projects_locations_volumes_resize_builder<R>(
+    client: &SimpleHttpClient<R>,
     volume: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://baremetalsolution.googleapis.com/v2/projects/{}/locations/{locationsId}/volumes/{volumesId}:resize",
@@ -7412,10 +7547,13 @@ pub fn baremetalsolution_projects_locations_volumes_resize(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `baremetalsolution_projects_locations_volumes_luns_evict_execute()` to send, or `baremetalsolution_projects_locations_volumes_luns_evict` for simplest API.
 
-pub fn baremetalsolution_projects_locations_volumes_luns_evict_builder(
-    client: &SimpleHttpClient,
+pub fn baremetalsolution_projects_locations_volumes_luns_evict_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://baremetalsolution.googleapis.com/v2/projects/{}/locations/{locationsId}/volumes/{volumesId}/luns/{lunsId}:evict",
@@ -7570,10 +7708,13 @@ pub fn baremetalsolution_projects_locations_volumes_luns_evict(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `baremetalsolution_projects_locations_volumes_luns_get_execute()` to send, or `baremetalsolution_projects_locations_volumes_luns_get` for simplest API.
 
-pub fn baremetalsolution_projects_locations_volumes_luns_get_builder(
-    client: &SimpleHttpClient,
+pub fn baremetalsolution_projects_locations_volumes_luns_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://baremetalsolution.googleapis.com/v2/projects/{}/locations/{locationsId}/volumes/{volumesId}/luns/{lunsId}",
@@ -7728,12 +7869,15 @@ pub fn baremetalsolution_projects_locations_volumes_luns_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `baremetalsolution_projects_locations_volumes_luns_list_execute()` to send, or `baremetalsolution_projects_locations_volumes_luns_list` for simplest API.
 
-pub fn baremetalsolution_projects_locations_volumes_luns_list_builder(
-    client: &SimpleHttpClient,
+pub fn baremetalsolution_projects_locations_volumes_luns_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://baremetalsolution.googleapis.com/v2/projects/{}/locations/{locationsId}/volumes/{volumesId}/luns",
@@ -7914,10 +8058,13 @@ pub fn baremetalsolution_projects_locations_volumes_luns_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `baremetalsolution_projects_locations_volumes_snapshots_create_execute()` to send, or `baremetalsolution_projects_locations_volumes_snapshots_create` for simplest API.
 
-pub fn baremetalsolution_projects_locations_volumes_snapshots_create_builder(
-    client: &SimpleHttpClient,
+pub fn baremetalsolution_projects_locations_volumes_snapshots_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://baremetalsolution.googleapis.com/v2/projects/{}/locations/{locationsId}/volumes/{volumesId}/snapshots",
@@ -8078,10 +8225,13 @@ pub fn baremetalsolution_projects_locations_volumes_snapshots_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `baremetalsolution_projects_locations_volumes_snapshots_delete_execute()` to send, or `baremetalsolution_projects_locations_volumes_snapshots_delete` for simplest API.
 
-pub fn baremetalsolution_projects_locations_volumes_snapshots_delete_builder(
-    client: &SimpleHttpClient,
+pub fn baremetalsolution_projects_locations_volumes_snapshots_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://baremetalsolution.googleapis.com/v2/projects/{}/locations/{locationsId}/volumes/{volumesId}/snapshots/{snapshotsId}",
@@ -8236,10 +8386,13 @@ pub fn baremetalsolution_projects_locations_volumes_snapshots_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `baremetalsolution_projects_locations_volumes_snapshots_get_execute()` to send, or `baremetalsolution_projects_locations_volumes_snapshots_get` for simplest API.
 
-pub fn baremetalsolution_projects_locations_volumes_snapshots_get_builder(
-    client: &SimpleHttpClient,
+pub fn baremetalsolution_projects_locations_volumes_snapshots_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://baremetalsolution.googleapis.com/v2/projects/{}/locations/{locationsId}/volumes/{volumesId}/snapshots/{snapshotsId}",
@@ -8398,12 +8551,15 @@ pub fn baremetalsolution_projects_locations_volumes_snapshots_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `baremetalsolution_projects_locations_volumes_snapshots_list_execute()` to send, or `baremetalsolution_projects_locations_volumes_snapshots_list` for simplest API.
 
-pub fn baremetalsolution_projects_locations_volumes_snapshots_list_builder(
-    client: &SimpleHttpClient,
+pub fn baremetalsolution_projects_locations_volumes_snapshots_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://baremetalsolution.googleapis.com/v2/projects/{}/locations/{locationsId}/volumes/{volumesId}/snapshots",
@@ -8588,10 +8744,13 @@ pub fn baremetalsolution_projects_locations_volumes_snapshots_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `baremetalsolution_projects_locations_volumes_snapshots_restore_volume_snapshot_execute()` to send, or `baremetalsolution_projects_locations_volumes_snapshots_restore_volume_snapshot` for simplest API.
 
-pub fn baremetalsolution_projects_locations_volumes_snapshots_restore_volume_snapshot_builder(
-    client: &SimpleHttpClient,
+pub fn baremetalsolution_projects_locations_volumes_snapshots_restore_volume_snapshot_builder<R>(
+    client: &SimpleHttpClient<R>,
     volumeSnapshot: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://baremetalsolution.googleapis.com/v2/projects/{}/locations/{locationsId}/volumes/{volumesId}/snapshots/{snapshotsId}:restoreVolumeSnapshot",

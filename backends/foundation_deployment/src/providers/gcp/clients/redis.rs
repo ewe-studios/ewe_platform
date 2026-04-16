@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `redis_projects_locations_get_execute()` to send, or `redis_projects_locations_get` for simplest API.
 
-pub fn redis_projects_locations_get_builder(
-    client: &SimpleHttpClient,
+pub fn redis_projects_locations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://redis.googleapis.com/v1/projects/{}/locations/{locationsId}",
@@ -183,10 +187,13 @@ pub fn redis_projects_locations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `redis_projects_locations_get_shared_regional_certificate_authority_execute()` to send, or `redis_projects_locations_get_shared_regional_certificate_authority` for simplest API.
 
-pub fn redis_projects_locations_get_shared_regional_certificate_authority_builder(
-    client: &SimpleHttpClient,
+pub fn redis_projects_locations_get_shared_regional_certificate_authority_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://redis.googleapis.com/v1/projects/{}/locations/{locationsId}/sharedRegionalCertificateAuthority",
@@ -350,14 +357,17 @@ pub fn redis_projects_locations_get_shared_regional_certificate_authority(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `redis_projects_locations_list_execute()` to send, or `redis_projects_locations_list` for simplest API.
 
-pub fn redis_projects_locations_list_builder(
-    client: &SimpleHttpClient,
+pub fn redis_projects_locations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     extraLocationTypes: &Option<Option<String>>,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://redis.googleapis.com/v1/projects/{}/locations",
@@ -550,12 +560,15 @@ pub fn redis_projects_locations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `redis_projects_locations_acl_policies_create_execute()` to send, or `redis_projects_locations_acl_policies_create` for simplest API.
 
-pub fn redis_projects_locations_acl_policies_create_builder(
-    client: &SimpleHttpClient,
+pub fn redis_projects_locations_acl_policies_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     aclPolicyId: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://redis.googleapis.com/v1/projects/{}/locations/{locationsId}/aclPolicies",
@@ -732,12 +745,15 @@ pub fn redis_projects_locations_acl_policies_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `redis_projects_locations_acl_policies_delete_execute()` to send, or `redis_projects_locations_acl_policies_delete` for simplest API.
 
-pub fn redis_projects_locations_acl_policies_delete_builder(
-    client: &SimpleHttpClient,
+pub fn redis_projects_locations_acl_policies_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     etag: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://redis.googleapis.com/v1/projects/{}/locations/{locationsId}/aclPolicies/{aclPoliciesId}",
@@ -914,10 +930,13 @@ pub fn redis_projects_locations_acl_policies_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `redis_projects_locations_acl_policies_get_execute()` to send, or `redis_projects_locations_acl_policies_get` for simplest API.
 
-pub fn redis_projects_locations_acl_policies_get_builder(
-    client: &SimpleHttpClient,
+pub fn redis_projects_locations_acl_policies_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://redis.googleapis.com/v1/projects/{}/locations/{locationsId}/aclPolicies/{aclPoliciesId}",
@@ -1071,12 +1090,15 @@ pub fn redis_projects_locations_acl_policies_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `redis_projects_locations_acl_policies_list_execute()` to send, or `redis_projects_locations_acl_policies_list` for simplest API.
 
-pub fn redis_projects_locations_acl_policies_list_builder(
-    client: &SimpleHttpClient,
+pub fn redis_projects_locations_acl_policies_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://redis.googleapis.com/v1/projects/{}/locations/{locationsId}/aclPolicies",
@@ -1257,12 +1279,15 @@ pub fn redis_projects_locations_acl_policies_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `redis_projects_locations_acl_policies_patch_execute()` to send, or `redis_projects_locations_acl_policies_patch` for simplest API.
 
-pub fn redis_projects_locations_acl_policies_patch_builder(
-    client: &SimpleHttpClient,
+pub fn redis_projects_locations_acl_policies_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://redis.googleapis.com/v1/projects/{}/locations/{locationsId}/aclPolicies/{aclPoliciesId}",
@@ -1439,10 +1464,13 @@ pub fn redis_projects_locations_acl_policies_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `redis_projects_locations_backup_collections_get_execute()` to send, or `redis_projects_locations_backup_collections_get` for simplest API.
 
-pub fn redis_projects_locations_backup_collections_get_builder(
-    client: &SimpleHttpClient,
+pub fn redis_projects_locations_backup_collections_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://redis.googleapis.com/v1/projects/{}/locations/{locationsId}/backupCollections/{backupCollectionsId}",
@@ -1600,12 +1628,15 @@ pub fn redis_projects_locations_backup_collections_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `redis_projects_locations_backup_collections_list_execute()` to send, or `redis_projects_locations_backup_collections_list` for simplest API.
 
-pub fn redis_projects_locations_backup_collections_list_builder(
-    client: &SimpleHttpClient,
+pub fn redis_projects_locations_backup_collections_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://redis.googleapis.com/v1/projects/{}/locations/{locationsId}/backupCollections",
@@ -1790,11 +1821,14 @@ pub fn redis_projects_locations_backup_collections_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `redis_projects_locations_backup_collections_backups_delete_execute()` to send, or `redis_projects_locations_backup_collections_backups_delete` for simplest API.
 
-pub fn redis_projects_locations_backup_collections_backups_delete_builder(
-    client: &SimpleHttpClient,
+pub fn redis_projects_locations_backup_collections_backups_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://redis.googleapis.com/v1/projects/{}/locations/{locationsId}/backupCollections/{backupCollectionsId}/backups/{backupsId}",
@@ -1965,10 +1999,13 @@ pub fn redis_projects_locations_backup_collections_backups_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `redis_projects_locations_backup_collections_backups_export_execute()` to send, or `redis_projects_locations_backup_collections_backups_export` for simplest API.
 
-pub fn redis_projects_locations_backup_collections_backups_export_builder(
-    client: &SimpleHttpClient,
+pub fn redis_projects_locations_backup_collections_backups_export_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://redis.googleapis.com/v1/projects/{}/locations/{locationsId}/backupCollections/{backupCollectionsId}/backups/{backupsId}:export",
@@ -2123,10 +2160,13 @@ pub fn redis_projects_locations_backup_collections_backups_export(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `redis_projects_locations_backup_collections_backups_get_execute()` to send, or `redis_projects_locations_backup_collections_backups_get` for simplest API.
 
-pub fn redis_projects_locations_backup_collections_backups_get_builder(
-    client: &SimpleHttpClient,
+pub fn redis_projects_locations_backup_collections_backups_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://redis.googleapis.com/v1/projects/{}/locations/{locationsId}/backupCollections/{backupCollectionsId}/backups/{backupsId}",
@@ -2281,12 +2321,15 @@ pub fn redis_projects_locations_backup_collections_backups_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `redis_projects_locations_backup_collections_backups_list_execute()` to send, or `redis_projects_locations_backup_collections_backups_list` for simplest API.
 
-pub fn redis_projects_locations_backup_collections_backups_list_builder(
-    client: &SimpleHttpClient,
+pub fn redis_projects_locations_backup_collections_backups_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://redis.googleapis.com/v1/projects/{}/locations/{locationsId}/backupCollections/{backupCollectionsId}/backups",
@@ -2467,10 +2510,13 @@ pub fn redis_projects_locations_backup_collections_backups_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `redis_projects_locations_clusters_add_token_auth_user_execute()` to send, or `redis_projects_locations_clusters_add_token_auth_user` for simplest API.
 
-pub fn redis_projects_locations_clusters_add_token_auth_user_builder(
-    client: &SimpleHttpClient,
+pub fn redis_projects_locations_clusters_add_token_auth_user_builder<R>(
+    client: &SimpleHttpClient<R>,
     cluster: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://redis.googleapis.com/v1/projects/{}/locations/{locationsId}/clusters/{clustersId}:addTokenAuthUser",
@@ -2625,10 +2671,13 @@ pub fn redis_projects_locations_clusters_add_token_auth_user(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `redis_projects_locations_clusters_backup_execute()` to send, or `redis_projects_locations_clusters_backup` for simplest API.
 
-pub fn redis_projects_locations_clusters_backup_builder(
-    client: &SimpleHttpClient,
+pub fn redis_projects_locations_clusters_backup_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://redis.googleapis.com/v1/projects/{}/locations/{locationsId}/clusters/{clustersId}:backup",
@@ -2782,12 +2831,15 @@ pub fn redis_projects_locations_clusters_backup(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `redis_projects_locations_clusters_create_execute()` to send, or `redis_projects_locations_clusters_create` for simplest API.
 
-pub fn redis_projects_locations_clusters_create_builder(
-    client: &SimpleHttpClient,
+pub fn redis_projects_locations_clusters_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     clusterId: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://redis.googleapis.com/v1/projects/{}/locations/{locationsId}/clusters",
@@ -2964,11 +3016,14 @@ pub fn redis_projects_locations_clusters_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `redis_projects_locations_clusters_delete_execute()` to send, or `redis_projects_locations_clusters_delete` for simplest API.
 
-pub fn redis_projects_locations_clusters_delete_builder(
-    client: &SimpleHttpClient,
+pub fn redis_projects_locations_clusters_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://redis.googleapis.com/v1/projects/{}/locations/{locationsId}/clusters/{clustersId}",
@@ -3136,10 +3191,13 @@ pub fn redis_projects_locations_clusters_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `redis_projects_locations_clusters_get_execute()` to send, or `redis_projects_locations_clusters_get` for simplest API.
 
-pub fn redis_projects_locations_clusters_get_builder(
-    client: &SimpleHttpClient,
+pub fn redis_projects_locations_clusters_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://redis.googleapis.com/v1/projects/{}/locations/{locationsId}/clusters/{clustersId}",
@@ -3293,10 +3351,13 @@ pub fn redis_projects_locations_clusters_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `redis_projects_locations_clusters_get_certificate_authority_execute()` to send, or `redis_projects_locations_clusters_get_certificate_authority` for simplest API.
 
-pub fn redis_projects_locations_clusters_get_certificate_authority_builder(
-    client: &SimpleHttpClient,
+pub fn redis_projects_locations_clusters_get_certificate_authority_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://redis.googleapis.com/v1/projects/{}/locations/{locationsId}/clusters/{clustersId}/certificateAuthority",
@@ -3455,12 +3516,15 @@ pub fn redis_projects_locations_clusters_get_certificate_authority(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `redis_projects_locations_clusters_list_execute()` to send, or `redis_projects_locations_clusters_list` for simplest API.
 
-pub fn redis_projects_locations_clusters_list_builder(
-    client: &SimpleHttpClient,
+pub fn redis_projects_locations_clusters_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://redis.googleapis.com/v1/projects/{}/locations/{locationsId}/clusters",
@@ -3641,12 +3705,15 @@ pub fn redis_projects_locations_clusters_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `redis_projects_locations_clusters_patch_execute()` to send, or `redis_projects_locations_clusters_patch` for simplest API.
 
-pub fn redis_projects_locations_clusters_patch_builder(
-    client: &SimpleHttpClient,
+pub fn redis_projects_locations_clusters_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://redis.googleapis.com/v1/projects/{}/locations/{locationsId}/clusters/{clustersId}",
@@ -3823,10 +3890,13 @@ pub fn redis_projects_locations_clusters_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `redis_projects_locations_clusters_reschedule_cluster_maintenance_execute()` to send, or `redis_projects_locations_clusters_reschedule_cluster_maintenance` for simplest API.
 
-pub fn redis_projects_locations_clusters_reschedule_cluster_maintenance_builder(
-    client: &SimpleHttpClient,
+pub fn redis_projects_locations_clusters_reschedule_cluster_maintenance_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://redis.googleapis.com/v1/projects/{}/locations/{locationsId}/clusters/{clustersId}:rescheduleClusterMaintenance",
@@ -3982,10 +4052,13 @@ pub fn redis_projects_locations_clusters_reschedule_cluster_maintenance(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `redis_projects_locations_clusters_token_auth_users_add_auth_token_execute()` to send, or `redis_projects_locations_clusters_token_auth_users_add_auth_token` for simplest API.
 
-pub fn redis_projects_locations_clusters_token_auth_users_add_auth_token_builder(
-    client: &SimpleHttpClient,
+pub fn redis_projects_locations_clusters_token_auth_users_add_auth_token_builder<R>(
+    client: &SimpleHttpClient<R>,
     tokenAuthUser: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://redis.googleapis.com/v1/projects/{}/locations/{locationsId}/clusters/{clustersId}/tokenAuthUsers/{tokenAuthUsersId}:addAuthToken",
@@ -4142,12 +4215,15 @@ pub fn redis_projects_locations_clusters_token_auth_users_add_auth_token(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `redis_projects_locations_clusters_token_auth_users_delete_execute()` to send, or `redis_projects_locations_clusters_token_auth_users_delete` for simplest API.
 
-pub fn redis_projects_locations_clusters_token_auth_users_delete_builder(
-    client: &SimpleHttpClient,
+pub fn redis_projects_locations_clusters_token_auth_users_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     force: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://redis.googleapis.com/v1/projects/{}/locations/{locationsId}/clusters/{clustersId}/tokenAuthUsers/{tokenAuthUsersId}",
@@ -4324,10 +4400,13 @@ pub fn redis_projects_locations_clusters_token_auth_users_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `redis_projects_locations_clusters_token_auth_users_get_execute()` to send, or `redis_projects_locations_clusters_token_auth_users_get` for simplest API.
 
-pub fn redis_projects_locations_clusters_token_auth_users_get_builder(
-    client: &SimpleHttpClient,
+pub fn redis_projects_locations_clusters_token_auth_users_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://redis.googleapis.com/v1/projects/{}/locations/{locationsId}/clusters/{clustersId}/tokenAuthUsers/{tokenAuthUsersId}",
@@ -4486,14 +4565,17 @@ pub fn redis_projects_locations_clusters_token_auth_users_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `redis_projects_locations_clusters_token_auth_users_list_execute()` to send, or `redis_projects_locations_clusters_token_auth_users_list` for simplest API.
 
-pub fn redis_projects_locations_clusters_token_auth_users_list_builder(
-    client: &SimpleHttpClient,
+pub fn redis_projects_locations_clusters_token_auth_users_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://redis.googleapis.com/v1/projects/{}/locations/{locationsId}/clusters/{clustersId}/tokenAuthUsers",
@@ -4690,10 +4772,13 @@ pub fn redis_projects_locations_clusters_token_auth_users_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `redis_projects_locations_clusters_token_auth_users_auth_tokens_delete_execute()` to send, or `redis_projects_locations_clusters_token_auth_users_auth_tokens_delete` for simplest API.
 
-pub fn redis_projects_locations_clusters_token_auth_users_auth_tokens_delete_builder(
-    client: &SimpleHttpClient,
+pub fn redis_projects_locations_clusters_token_auth_users_auth_tokens_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://redis.googleapis.com/v1/projects/{}/locations/{locationsId}/clusters/{clustersId}/tokenAuthUsers/{tokenAuthUsersId}/authTokens/{authTokensId}",
@@ -4849,10 +4934,13 @@ pub fn redis_projects_locations_clusters_token_auth_users_auth_tokens_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `redis_projects_locations_clusters_token_auth_users_auth_tokens_get_execute()` to send, or `redis_projects_locations_clusters_token_auth_users_auth_tokens_get` for simplest API.
 
-pub fn redis_projects_locations_clusters_token_auth_users_auth_tokens_get_builder(
-    client: &SimpleHttpClient,
+pub fn redis_projects_locations_clusters_token_auth_users_auth_tokens_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://redis.googleapis.com/v1/projects/{}/locations/{locationsId}/clusters/{clustersId}/tokenAuthUsers/{tokenAuthUsersId}/authTokens/{authTokensId}",
@@ -5008,14 +5096,17 @@ pub fn redis_projects_locations_clusters_token_auth_users_auth_tokens_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `redis_projects_locations_clusters_token_auth_users_auth_tokens_list_execute()` to send, or `redis_projects_locations_clusters_token_auth_users_auth_tokens_list` for simplest API.
 
-pub fn redis_projects_locations_clusters_token_auth_users_auth_tokens_list_builder(
-    client: &SimpleHttpClient,
+pub fn redis_projects_locations_clusters_token_auth_users_auth_tokens_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://redis.googleapis.com/v1/projects/{}/locations/{locationsId}/clusters/{clustersId}/tokenAuthUsers/{tokenAuthUsersId}/authTokens",
@@ -5208,11 +5299,14 @@ pub fn redis_projects_locations_clusters_token_auth_users_auth_tokens_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `redis_projects_locations_instances_create_execute()` to send, or `redis_projects_locations_instances_create` for simplest API.
 
-pub fn redis_projects_locations_instances_create_builder(
-    client: &SimpleHttpClient,
+pub fn redis_projects_locations_instances_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     instanceId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://redis.googleapis.com/v1/projects/{}/locations/{locationsId}/instances",
@@ -5380,10 +5474,13 @@ pub fn redis_projects_locations_instances_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `redis_projects_locations_instances_delete_execute()` to send, or `redis_projects_locations_instances_delete` for simplest API.
 
-pub fn redis_projects_locations_instances_delete_builder(
-    client: &SimpleHttpClient,
+pub fn redis_projects_locations_instances_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://redis.googleapis.com/v1/projects/{}/locations/{locationsId}/instances/{instancesId}",
@@ -5537,10 +5634,13 @@ pub fn redis_projects_locations_instances_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `redis_projects_locations_instances_export_execute()` to send, or `redis_projects_locations_instances_export` for simplest API.
 
-pub fn redis_projects_locations_instances_export_builder(
-    client: &SimpleHttpClient,
+pub fn redis_projects_locations_instances_export_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://redis.googleapis.com/v1/projects/{}/locations/{locationsId}/instances/{instancesId}:export",
@@ -5694,10 +5794,13 @@ pub fn redis_projects_locations_instances_export(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `redis_projects_locations_instances_failover_execute()` to send, or `redis_projects_locations_instances_failover` for simplest API.
 
-pub fn redis_projects_locations_instances_failover_builder(
-    client: &SimpleHttpClient,
+pub fn redis_projects_locations_instances_failover_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://redis.googleapis.com/v1/projects/{}/locations/{locationsId}/instances/{instancesId}:failover",
@@ -5851,10 +5954,13 @@ pub fn redis_projects_locations_instances_failover(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `redis_projects_locations_instances_get_execute()` to send, or `redis_projects_locations_instances_get` for simplest API.
 
-pub fn redis_projects_locations_instances_get_builder(
-    client: &SimpleHttpClient,
+pub fn redis_projects_locations_instances_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://redis.googleapis.com/v1/projects/{}/locations/{locationsId}/instances/{instancesId}",
@@ -6008,10 +6114,13 @@ pub fn redis_projects_locations_instances_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `redis_projects_locations_instances_get_auth_string_execute()` to send, or `redis_projects_locations_instances_get_auth_string` for simplest API.
 
-pub fn redis_projects_locations_instances_get_auth_string_builder(
-    client: &SimpleHttpClient,
+pub fn redis_projects_locations_instances_get_auth_string_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://redis.googleapis.com/v1/projects/{}/locations/{locationsId}/instances/{instancesId}/authString",
@@ -6169,10 +6278,13 @@ pub fn redis_projects_locations_instances_get_auth_string(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `redis_projects_locations_instances_import_execute()` to send, or `redis_projects_locations_instances_import` for simplest API.
 
-pub fn redis_projects_locations_instances_import_builder(
-    client: &SimpleHttpClient,
+pub fn redis_projects_locations_instances_import_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://redis.googleapis.com/v1/projects/{}/locations/{locationsId}/instances/{instancesId}:import",
@@ -6326,12 +6438,15 @@ pub fn redis_projects_locations_instances_import(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `redis_projects_locations_instances_list_execute()` to send, or `redis_projects_locations_instances_list` for simplest API.
 
-pub fn redis_projects_locations_instances_list_builder(
-    client: &SimpleHttpClient,
+pub fn redis_projects_locations_instances_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://redis.googleapis.com/v1/projects/{}/locations/{locationsId}/instances",
@@ -6512,11 +6627,14 @@ pub fn redis_projects_locations_instances_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `redis_projects_locations_instances_patch_execute()` to send, or `redis_projects_locations_instances_patch` for simplest API.
 
-pub fn redis_projects_locations_instances_patch_builder(
-    client: &SimpleHttpClient,
+pub fn redis_projects_locations_instances_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://redis.googleapis.com/v1/projects/{}/locations/{locationsId}/instances/{instancesId}",
@@ -6684,10 +6802,13 @@ pub fn redis_projects_locations_instances_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `redis_projects_locations_instances_reschedule_maintenance_execute()` to send, or `redis_projects_locations_instances_reschedule_maintenance` for simplest API.
 
-pub fn redis_projects_locations_instances_reschedule_maintenance_builder(
-    client: &SimpleHttpClient,
+pub fn redis_projects_locations_instances_reschedule_maintenance_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://redis.googleapis.com/v1/projects/{}/locations/{locationsId}/instances/{instancesId}:rescheduleMaintenance",
@@ -6842,10 +6963,13 @@ pub fn redis_projects_locations_instances_reschedule_maintenance(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `redis_projects_locations_instances_upgrade_execute()` to send, or `redis_projects_locations_instances_upgrade` for simplest API.
 
-pub fn redis_projects_locations_instances_upgrade_builder(
-    client: &SimpleHttpClient,
+pub fn redis_projects_locations_instances_upgrade_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://redis.googleapis.com/v1/projects/{}/locations/{locationsId}/instances/{instancesId}:upgrade",
@@ -6999,10 +7123,13 @@ pub fn redis_projects_locations_instances_upgrade(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `redis_projects_locations_operations_cancel_execute()` to send, or `redis_projects_locations_operations_cancel` for simplest API.
 
-pub fn redis_projects_locations_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn redis_projects_locations_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://redis.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}:cancel",
@@ -7156,10 +7283,13 @@ pub fn redis_projects_locations_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `redis_projects_locations_operations_delete_execute()` to send, or `redis_projects_locations_operations_delete` for simplest API.
 
-pub fn redis_projects_locations_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn redis_projects_locations_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://redis.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -7313,10 +7443,13 @@ pub fn redis_projects_locations_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `redis_projects_locations_operations_get_execute()` to send, or `redis_projects_locations_operations_get` for simplest API.
 
-pub fn redis_projects_locations_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn redis_projects_locations_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://redis.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -7470,14 +7603,17 @@ pub fn redis_projects_locations_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `redis_projects_locations_operations_list_execute()` to send, or `redis_projects_locations_operations_list` for simplest API.
 
-pub fn redis_projects_locations_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn redis_projects_locations_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://redis.googleapis.com/v1/projects/{}/locations/{locationsId}/operations",

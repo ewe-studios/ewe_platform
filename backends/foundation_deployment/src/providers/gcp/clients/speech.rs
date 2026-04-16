@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `speech_operations_get_execute()` to send, or `speech_operations_get` for simplest API.
 
-pub fn speech_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn speech_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://speech.googleapis.com/v1/operations/{}", name,);
 
@@ -180,14 +184,17 @@ pub fn speech_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `speech_operations_list_execute()` to send, or `speech_operations_list` for simplest API.
 
-pub fn speech_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn speech_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     filter: &Option<Option<String>>,
     name: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://speech.googleapis.com/v1/operations",);
 
@@ -380,10 +387,13 @@ pub fn speech_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `speech_projects_locations_custom_classes_create_execute()` to send, or `speech_projects_locations_custom_classes_create` for simplest API.
 
-pub fn speech_projects_locations_custom_classes_create_builder(
-    client: &SimpleHttpClient,
+pub fn speech_projects_locations_custom_classes_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://speech.googleapis.com/v1/projects/{}/locations/{locationsId}/customClasses",
@@ -537,10 +547,13 @@ pub fn speech_projects_locations_custom_classes_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `speech_projects_locations_custom_classes_delete_execute()` to send, or `speech_projects_locations_custom_classes_delete` for simplest API.
 
-pub fn speech_projects_locations_custom_classes_delete_builder(
-    client: &SimpleHttpClient,
+pub fn speech_projects_locations_custom_classes_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://speech.googleapis.com/v1/projects/{}/locations/{locationsId}/customClasses/{customClassesId}",
@@ -694,10 +707,13 @@ pub fn speech_projects_locations_custom_classes_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `speech_projects_locations_custom_classes_get_execute()` to send, or `speech_projects_locations_custom_classes_get` for simplest API.
 
-pub fn speech_projects_locations_custom_classes_get_builder(
-    client: &SimpleHttpClient,
+pub fn speech_projects_locations_custom_classes_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://speech.googleapis.com/v1/projects/{}/locations/{locationsId}/customClasses/{customClassesId}",
@@ -851,12 +867,15 @@ pub fn speech_projects_locations_custom_classes_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `speech_projects_locations_custom_classes_list_execute()` to send, or `speech_projects_locations_custom_classes_list` for simplest API.
 
-pub fn speech_projects_locations_custom_classes_list_builder(
-    client: &SimpleHttpClient,
+pub fn speech_projects_locations_custom_classes_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://speech.googleapis.com/v1/projects/{}/locations/{locationsId}/customClasses",
@@ -1037,11 +1056,14 @@ pub fn speech_projects_locations_custom_classes_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `speech_projects_locations_custom_classes_patch_execute()` to send, or `speech_projects_locations_custom_classes_patch` for simplest API.
 
-pub fn speech_projects_locations_custom_classes_patch_builder(
-    client: &SimpleHttpClient,
+pub fn speech_projects_locations_custom_classes_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://speech.googleapis.com/v1/projects/{}/locations/{locationsId}/customClasses/{customClassesId}",
@@ -1212,10 +1234,13 @@ pub fn speech_projects_locations_custom_classes_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `speech_projects_locations_phrase_sets_create_execute()` to send, or `speech_projects_locations_phrase_sets_create` for simplest API.
 
-pub fn speech_projects_locations_phrase_sets_create_builder(
-    client: &SimpleHttpClient,
+pub fn speech_projects_locations_phrase_sets_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://speech.googleapis.com/v1/projects/{}/locations/{locationsId}/phraseSets",
@@ -1369,10 +1394,13 @@ pub fn speech_projects_locations_phrase_sets_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `speech_projects_locations_phrase_sets_delete_execute()` to send, or `speech_projects_locations_phrase_sets_delete` for simplest API.
 
-pub fn speech_projects_locations_phrase_sets_delete_builder(
-    client: &SimpleHttpClient,
+pub fn speech_projects_locations_phrase_sets_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://speech.googleapis.com/v1/projects/{}/locations/{locationsId}/phraseSets/{phraseSetsId}",
@@ -1526,10 +1554,13 @@ pub fn speech_projects_locations_phrase_sets_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `speech_projects_locations_phrase_sets_get_execute()` to send, or `speech_projects_locations_phrase_sets_get` for simplest API.
 
-pub fn speech_projects_locations_phrase_sets_get_builder(
-    client: &SimpleHttpClient,
+pub fn speech_projects_locations_phrase_sets_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://speech.googleapis.com/v1/projects/{}/locations/{locationsId}/phraseSets/{phraseSetsId}",
@@ -1683,12 +1714,15 @@ pub fn speech_projects_locations_phrase_sets_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `speech_projects_locations_phrase_sets_list_execute()` to send, or `speech_projects_locations_phrase_sets_list` for simplest API.
 
-pub fn speech_projects_locations_phrase_sets_list_builder(
-    client: &SimpleHttpClient,
+pub fn speech_projects_locations_phrase_sets_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://speech.googleapis.com/v1/projects/{}/locations/{locationsId}/phraseSets",
@@ -1869,11 +1903,14 @@ pub fn speech_projects_locations_phrase_sets_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `speech_projects_locations_phrase_sets_patch_execute()` to send, or `speech_projects_locations_phrase_sets_patch` for simplest API.
 
-pub fn speech_projects_locations_phrase_sets_patch_builder(
-    client: &SimpleHttpClient,
+pub fn speech_projects_locations_phrase_sets_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://speech.googleapis.com/v1/projects/{}/locations/{locationsId}/phraseSets/{phraseSetsId}",
@@ -2041,9 +2078,12 @@ pub fn speech_projects_locations_phrase_sets_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `speech_speech_longrunningrecognize_execute()` to send, or `speech_speech_longrunningrecognize` for simplest API.
 
-pub fn speech_speech_longrunningrecognize_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn speech_speech_longrunningrecognize_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://speech.googleapis.com/v1/speech:longrunningrecognize",);
 
@@ -2186,9 +2226,12 @@ pub fn speech_speech_longrunningrecognize(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `speech_speech_recognize_execute()` to send, or `speech_speech_recognize` for simplest API.
 
-pub fn speech_speech_recognize_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn speech_speech_recognize_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://speech.googleapis.com/v1/speech:recognize",);
 

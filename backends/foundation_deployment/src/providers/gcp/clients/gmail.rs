@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gmail_users_get_profile_execute()` to send, or `gmail_users_get_profile` for simplest API.
 
-pub fn gmail_users_get_profile_builder(
-    client: &SimpleHttpClient,
+pub fn gmail_users_get_profile_builder<R>(
+    client: &SimpleHttpClient<R>,
     userId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/profile",
@@ -183,10 +187,13 @@ pub fn gmail_users_get_profile(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gmail_users_stop_execute()` to send, or `gmail_users_stop` for simplest API.
 
-pub fn gmail_users_stop_builder(
-    client: &SimpleHttpClient,
+pub fn gmail_users_stop_builder<R>(
+    client: &SimpleHttpClient<R>,
     userId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/stop",
@@ -337,10 +344,13 @@ pub fn gmail_users_stop(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gmail_users_watch_execute()` to send, or `gmail_users_watch` for simplest API.
 
-pub fn gmail_users_watch_builder(
-    client: &SimpleHttpClient,
+pub fn gmail_users_watch_builder<R>(
+    client: &SimpleHttpClient<R>,
     userId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/watch",
@@ -498,10 +508,13 @@ pub fn gmail_users_watch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gmail_users_drafts_create_execute()` to send, or `gmail_users_drafts_create` for simplest API.
 
-pub fn gmail_users_drafts_create_builder(
-    client: &SimpleHttpClient,
+pub fn gmail_users_drafts_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     userId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/drafts",
@@ -655,11 +668,14 @@ pub fn gmail_users_drafts_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gmail_users_drafts_delete_execute()` to send, or `gmail_users_drafts_delete` for simplest API.
 
-pub fn gmail_users_drafts_delete_builder(
-    client: &SimpleHttpClient,
+pub fn gmail_users_drafts_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     userId: &String,
     id: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/drafts/{}",
@@ -812,12 +828,15 @@ pub fn gmail_users_drafts_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gmail_users_drafts_get_execute()` to send, or `gmail_users_drafts_get` for simplest API.
 
-pub fn gmail_users_drafts_get_builder(
-    client: &SimpleHttpClient,
+pub fn gmail_users_drafts_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     userId: &String,
     id: &String,
     format: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/drafts/{}",
@@ -986,14 +1005,17 @@ pub fn gmail_users_drafts_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gmail_users_drafts_list_execute()` to send, or `gmail_users_drafts_list` for simplest API.
 
-pub fn gmail_users_drafts_list_builder(
-    client: &SimpleHttpClient,
+pub fn gmail_users_drafts_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     userId: &String,
     includeSpamTrash: &Option<Option<String>>,
     maxResults: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     q: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/drafts",
@@ -1186,10 +1208,13 @@ pub fn gmail_users_drafts_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gmail_users_drafts_send_execute()` to send, or `gmail_users_drafts_send` for simplest API.
 
-pub fn gmail_users_drafts_send_builder(
-    client: &SimpleHttpClient,
+pub fn gmail_users_drafts_send_builder<R>(
+    client: &SimpleHttpClient<R>,
     userId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/drafts/send",
@@ -1343,11 +1368,14 @@ pub fn gmail_users_drafts_send(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gmail_users_drafts_update_execute()` to send, or `gmail_users_drafts_update` for simplest API.
 
-pub fn gmail_users_drafts_update_builder(
-    client: &SimpleHttpClient,
+pub fn gmail_users_drafts_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     userId: &String,
     id: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/drafts/{}",
@@ -1503,15 +1531,18 @@ pub fn gmail_users_drafts_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gmail_users_history_list_execute()` to send, or `gmail_users_history_list` for simplest API.
 
-pub fn gmail_users_history_list_builder(
-    client: &SimpleHttpClient,
+pub fn gmail_users_history_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     userId: &String,
     historyTypes: &Option<Option<String>>,
     labelId: &Option<Option<String>>,
     maxResults: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     startHistoryId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/history",
@@ -1710,10 +1741,13 @@ pub fn gmail_users_history_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gmail_users_labels_create_execute()` to send, or `gmail_users_labels_create` for simplest API.
 
-pub fn gmail_users_labels_create_builder(
-    client: &SimpleHttpClient,
+pub fn gmail_users_labels_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     userId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/labels",
@@ -1867,11 +1901,14 @@ pub fn gmail_users_labels_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gmail_users_labels_delete_execute()` to send, or `gmail_users_labels_delete` for simplest API.
 
-pub fn gmail_users_labels_delete_builder(
-    client: &SimpleHttpClient,
+pub fn gmail_users_labels_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     userId: &String,
     id: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/labels/{}",
@@ -2024,11 +2061,14 @@ pub fn gmail_users_labels_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gmail_users_labels_get_execute()` to send, or `gmail_users_labels_get` for simplest API.
 
-pub fn gmail_users_labels_get_builder(
-    client: &SimpleHttpClient,
+pub fn gmail_users_labels_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     userId: &String,
     id: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/labels/{}",
@@ -2184,10 +2224,13 @@ pub fn gmail_users_labels_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gmail_users_labels_list_execute()` to send, or `gmail_users_labels_list` for simplest API.
 
-pub fn gmail_users_labels_list_builder(
-    client: &SimpleHttpClient,
+pub fn gmail_users_labels_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     userId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/labels",
@@ -2345,11 +2388,14 @@ pub fn gmail_users_labels_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gmail_users_labels_patch_execute()` to send, or `gmail_users_labels_patch` for simplest API.
 
-pub fn gmail_users_labels_patch_builder(
-    client: &SimpleHttpClient,
+pub fn gmail_users_labels_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     userId: &String,
     id: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/labels/{}",
@@ -2505,11 +2551,14 @@ pub fn gmail_users_labels_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gmail_users_labels_update_execute()` to send, or `gmail_users_labels_update` for simplest API.
 
-pub fn gmail_users_labels_update_builder(
-    client: &SimpleHttpClient,
+pub fn gmail_users_labels_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     userId: &String,
     id: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/labels/{}",
@@ -2665,10 +2714,13 @@ pub fn gmail_users_labels_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gmail_users_messages_batch_delete_execute()` to send, or `gmail_users_messages_batch_delete` for simplest API.
 
-pub fn gmail_users_messages_batch_delete_builder(
-    client: &SimpleHttpClient,
+pub fn gmail_users_messages_batch_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     userId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/messages/batchDelete",
@@ -2819,10 +2871,13 @@ pub fn gmail_users_messages_batch_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gmail_users_messages_batch_modify_execute()` to send, or `gmail_users_messages_batch_modify` for simplest API.
 
-pub fn gmail_users_messages_batch_modify_builder(
-    client: &SimpleHttpClient,
+pub fn gmail_users_messages_batch_modify_builder<R>(
+    client: &SimpleHttpClient<R>,
     userId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/messages/batchModify",
@@ -2973,11 +3028,14 @@ pub fn gmail_users_messages_batch_modify(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gmail_users_messages_delete_execute()` to send, or `gmail_users_messages_delete` for simplest API.
 
-pub fn gmail_users_messages_delete_builder(
-    client: &SimpleHttpClient,
+pub fn gmail_users_messages_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     userId: &String,
     id: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/messages/{}",
@@ -3130,13 +3188,16 @@ pub fn gmail_users_messages_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gmail_users_messages_get_execute()` to send, or `gmail_users_messages_get` for simplest API.
 
-pub fn gmail_users_messages_get_builder(
-    client: &SimpleHttpClient,
+pub fn gmail_users_messages_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     userId: &String,
     id: &String,
     format: &Option<Option<String>>,
     metadataHeaders: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/messages/{}",
@@ -3316,14 +3377,17 @@ pub fn gmail_users_messages_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gmail_users_messages_import_execute()` to send, or `gmail_users_messages_import` for simplest API.
 
-pub fn gmail_users_messages_import_builder(
-    client: &SimpleHttpClient,
+pub fn gmail_users_messages_import_builder<R>(
+    client: &SimpleHttpClient<R>,
     userId: &String,
     deleted: &Option<Option<String>>,
     internalDateSource: &Option<Option<String>>,
     neverMarkSpam: &Option<Option<String>>,
     processForCalendar: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/messages/import",
@@ -3512,12 +3576,15 @@ pub fn gmail_users_messages_import(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gmail_users_messages_insert_execute()` to send, or `gmail_users_messages_insert` for simplest API.
 
-pub fn gmail_users_messages_insert_builder(
-    client: &SimpleHttpClient,
+pub fn gmail_users_messages_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     userId: &String,
     deleted: &Option<Option<String>>,
     internalDateSource: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/messages",
@@ -3694,15 +3761,18 @@ pub fn gmail_users_messages_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gmail_users_messages_list_execute()` to send, or `gmail_users_messages_list` for simplest API.
 
-pub fn gmail_users_messages_list_builder(
-    client: &SimpleHttpClient,
+pub fn gmail_users_messages_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     userId: &String,
     includeSpamTrash: &Option<Option<String>>,
     labelIds: &Option<Option<String>>,
     maxResults: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     q: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/messages",
@@ -3901,11 +3971,14 @@ pub fn gmail_users_messages_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gmail_users_messages_modify_execute()` to send, or `gmail_users_messages_modify` for simplest API.
 
-pub fn gmail_users_messages_modify_builder(
-    client: &SimpleHttpClient,
+pub fn gmail_users_messages_modify_builder<R>(
+    client: &SimpleHttpClient<R>,
     userId: &String,
     id: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/messages/{}/modify",
@@ -4061,10 +4134,13 @@ pub fn gmail_users_messages_modify(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gmail_users_messages_send_execute()` to send, or `gmail_users_messages_send` for simplest API.
 
-pub fn gmail_users_messages_send_builder(
-    client: &SimpleHttpClient,
+pub fn gmail_users_messages_send_builder<R>(
+    client: &SimpleHttpClient<R>,
     userId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/messages/send",
@@ -4218,11 +4294,14 @@ pub fn gmail_users_messages_send(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gmail_users_messages_trash_execute()` to send, or `gmail_users_messages_trash` for simplest API.
 
-pub fn gmail_users_messages_trash_builder(
-    client: &SimpleHttpClient,
+pub fn gmail_users_messages_trash_builder<R>(
+    client: &SimpleHttpClient<R>,
     userId: &String,
     id: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/messages/{}/trash",
@@ -4378,11 +4457,14 @@ pub fn gmail_users_messages_trash(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gmail_users_messages_untrash_execute()` to send, or `gmail_users_messages_untrash` for simplest API.
 
-pub fn gmail_users_messages_untrash_builder(
-    client: &SimpleHttpClient,
+pub fn gmail_users_messages_untrash_builder<R>(
+    client: &SimpleHttpClient<R>,
     userId: &String,
     id: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/messages/{}/untrash",
@@ -4538,12 +4620,15 @@ pub fn gmail_users_messages_untrash(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gmail_users_messages_attachments_get_execute()` to send, or `gmail_users_messages_attachments_get` for simplest API.
 
-pub fn gmail_users_messages_attachments_get_builder(
-    client: &SimpleHttpClient,
+pub fn gmail_users_messages_attachments_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     userId: &String,
     messageId: &String,
     id: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/messages/{}/attachments/{}",
@@ -4710,10 +4795,13 @@ pub fn gmail_users_messages_attachments_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gmail_users_settings_get_auto_forwarding_execute()` to send, or `gmail_users_settings_get_auto_forwarding` for simplest API.
 
-pub fn gmail_users_settings_get_auto_forwarding_builder(
-    client: &SimpleHttpClient,
+pub fn gmail_users_settings_get_auto_forwarding_builder<R>(
+    client: &SimpleHttpClient<R>,
     userId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/settings/autoForwarding",
@@ -4871,10 +4959,13 @@ pub fn gmail_users_settings_get_auto_forwarding(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gmail_users_settings_get_imap_execute()` to send, or `gmail_users_settings_get_imap` for simplest API.
 
-pub fn gmail_users_settings_get_imap_builder(
-    client: &SimpleHttpClient,
+pub fn gmail_users_settings_get_imap_builder<R>(
+    client: &SimpleHttpClient<R>,
     userId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/settings/imap",
@@ -5032,10 +5123,13 @@ pub fn gmail_users_settings_get_imap(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gmail_users_settings_get_language_execute()` to send, or `gmail_users_settings_get_language` for simplest API.
 
-pub fn gmail_users_settings_get_language_builder(
-    client: &SimpleHttpClient,
+pub fn gmail_users_settings_get_language_builder<R>(
+    client: &SimpleHttpClient<R>,
     userId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/settings/language",
@@ -5193,10 +5287,13 @@ pub fn gmail_users_settings_get_language(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gmail_users_settings_get_pop_execute()` to send, or `gmail_users_settings_get_pop` for simplest API.
 
-pub fn gmail_users_settings_get_pop_builder(
-    client: &SimpleHttpClient,
+pub fn gmail_users_settings_get_pop_builder<R>(
+    client: &SimpleHttpClient<R>,
     userId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/settings/pop",
@@ -5350,10 +5447,13 @@ pub fn gmail_users_settings_get_pop(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gmail_users_settings_get_vacation_execute()` to send, or `gmail_users_settings_get_vacation` for simplest API.
 
-pub fn gmail_users_settings_get_vacation_builder(
-    client: &SimpleHttpClient,
+pub fn gmail_users_settings_get_vacation_builder<R>(
+    client: &SimpleHttpClient<R>,
     userId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/settings/vacation",
@@ -5511,10 +5611,13 @@ pub fn gmail_users_settings_get_vacation(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gmail_users_settings_update_auto_forwarding_execute()` to send, or `gmail_users_settings_update_auto_forwarding` for simplest API.
 
-pub fn gmail_users_settings_update_auto_forwarding_builder(
-    client: &SimpleHttpClient,
+pub fn gmail_users_settings_update_auto_forwarding_builder<R>(
+    client: &SimpleHttpClient<R>,
     userId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/settings/autoForwarding",
@@ -5672,10 +5775,13 @@ pub fn gmail_users_settings_update_auto_forwarding(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gmail_users_settings_update_imap_execute()` to send, or `gmail_users_settings_update_imap` for simplest API.
 
-pub fn gmail_users_settings_update_imap_builder(
-    client: &SimpleHttpClient,
+pub fn gmail_users_settings_update_imap_builder<R>(
+    client: &SimpleHttpClient<R>,
     userId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/settings/imap",
@@ -5833,10 +5939,13 @@ pub fn gmail_users_settings_update_imap(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gmail_users_settings_update_language_execute()` to send, or `gmail_users_settings_update_language` for simplest API.
 
-pub fn gmail_users_settings_update_language_builder(
-    client: &SimpleHttpClient,
+pub fn gmail_users_settings_update_language_builder<R>(
+    client: &SimpleHttpClient<R>,
     userId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/settings/language",
@@ -5994,10 +6103,13 @@ pub fn gmail_users_settings_update_language(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gmail_users_settings_update_pop_execute()` to send, or `gmail_users_settings_update_pop` for simplest API.
 
-pub fn gmail_users_settings_update_pop_builder(
-    client: &SimpleHttpClient,
+pub fn gmail_users_settings_update_pop_builder<R>(
+    client: &SimpleHttpClient<R>,
     userId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/settings/pop",
@@ -6151,10 +6263,13 @@ pub fn gmail_users_settings_update_pop(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gmail_users_settings_update_vacation_execute()` to send, or `gmail_users_settings_update_vacation` for simplest API.
 
-pub fn gmail_users_settings_update_vacation_builder(
-    client: &SimpleHttpClient,
+pub fn gmail_users_settings_update_vacation_builder<R>(
+    client: &SimpleHttpClient<R>,
     userId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/settings/vacation",
@@ -6312,10 +6427,13 @@ pub fn gmail_users_settings_update_vacation(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gmail_users_settings_cse_identities_create_execute()` to send, or `gmail_users_settings_cse_identities_create` for simplest API.
 
-pub fn gmail_users_settings_cse_identities_create_builder(
-    client: &SimpleHttpClient,
+pub fn gmail_users_settings_cse_identities_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     userId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/settings/cse/identities",
@@ -6469,11 +6587,14 @@ pub fn gmail_users_settings_cse_identities_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gmail_users_settings_cse_identities_delete_execute()` to send, or `gmail_users_settings_cse_identities_delete` for simplest API.
 
-pub fn gmail_users_settings_cse_identities_delete_builder(
-    client: &SimpleHttpClient,
+pub fn gmail_users_settings_cse_identities_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     userId: &String,
     cseEmailAddress: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/settings/cse/identities/{}",
@@ -6630,11 +6751,14 @@ pub fn gmail_users_settings_cse_identities_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gmail_users_settings_cse_identities_get_execute()` to send, or `gmail_users_settings_cse_identities_get` for simplest API.
 
-pub fn gmail_users_settings_cse_identities_get_builder(
-    client: &SimpleHttpClient,
+pub fn gmail_users_settings_cse_identities_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     userId: &String,
     cseEmailAddress: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/settings/cse/identities/{}",
@@ -6794,12 +6918,15 @@ pub fn gmail_users_settings_cse_identities_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gmail_users_settings_cse_identities_list_execute()` to send, or `gmail_users_settings_cse_identities_list` for simplest API.
 
-pub fn gmail_users_settings_cse_identities_list_builder(
-    client: &SimpleHttpClient,
+pub fn gmail_users_settings_cse_identities_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     userId: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/settings/cse/identities",
@@ -6980,11 +7107,14 @@ pub fn gmail_users_settings_cse_identities_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gmail_users_settings_cse_identities_patch_execute()` to send, or `gmail_users_settings_cse_identities_patch` for simplest API.
 
-pub fn gmail_users_settings_cse_identities_patch_builder(
-    client: &SimpleHttpClient,
+pub fn gmail_users_settings_cse_identities_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     userId: &String,
     emailAddress: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/settings/cse/identities/{}",
@@ -7144,10 +7274,13 @@ pub fn gmail_users_settings_cse_identities_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gmail_users_settings_cse_keypairs_create_execute()` to send, or `gmail_users_settings_cse_keypairs_create` for simplest API.
 
-pub fn gmail_users_settings_cse_keypairs_create_builder(
-    client: &SimpleHttpClient,
+pub fn gmail_users_settings_cse_keypairs_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     userId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/settings/cse/keypairs",
@@ -7301,11 +7434,14 @@ pub fn gmail_users_settings_cse_keypairs_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gmail_users_settings_cse_keypairs_disable_execute()` to send, or `gmail_users_settings_cse_keypairs_disable` for simplest API.
 
-pub fn gmail_users_settings_cse_keypairs_disable_builder(
-    client: &SimpleHttpClient,
+pub fn gmail_users_settings_cse_keypairs_disable_builder<R>(
+    client: &SimpleHttpClient<R>,
     userId: &String,
     keyPairId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/settings/cse/keypairs/{}:disable",
@@ -7462,11 +7598,14 @@ pub fn gmail_users_settings_cse_keypairs_disable(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gmail_users_settings_cse_keypairs_enable_execute()` to send, or `gmail_users_settings_cse_keypairs_enable` for simplest API.
 
-pub fn gmail_users_settings_cse_keypairs_enable_builder(
-    client: &SimpleHttpClient,
+pub fn gmail_users_settings_cse_keypairs_enable_builder<R>(
+    client: &SimpleHttpClient<R>,
     userId: &String,
     keyPairId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/settings/cse/keypairs/{}:enable",
@@ -7623,11 +7762,14 @@ pub fn gmail_users_settings_cse_keypairs_enable(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gmail_users_settings_cse_keypairs_get_execute()` to send, or `gmail_users_settings_cse_keypairs_get` for simplest API.
 
-pub fn gmail_users_settings_cse_keypairs_get_builder(
-    client: &SimpleHttpClient,
+pub fn gmail_users_settings_cse_keypairs_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     userId: &String,
     keyPairId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/settings/cse/keypairs/{}",
@@ -7784,12 +7926,15 @@ pub fn gmail_users_settings_cse_keypairs_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gmail_users_settings_cse_keypairs_list_execute()` to send, or `gmail_users_settings_cse_keypairs_list` for simplest API.
 
-pub fn gmail_users_settings_cse_keypairs_list_builder(
-    client: &SimpleHttpClient,
+pub fn gmail_users_settings_cse_keypairs_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     userId: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/settings/cse/keypairs",
@@ -7970,11 +8115,14 @@ pub fn gmail_users_settings_cse_keypairs_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gmail_users_settings_cse_keypairs_obliterate_execute()` to send, or `gmail_users_settings_cse_keypairs_obliterate` for simplest API.
 
-pub fn gmail_users_settings_cse_keypairs_obliterate_builder(
-    client: &SimpleHttpClient,
+pub fn gmail_users_settings_cse_keypairs_obliterate_builder<R>(
+    client: &SimpleHttpClient<R>,
     userId: &String,
     keyPairId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/settings/cse/keypairs/{}:obliterate",
@@ -8131,10 +8279,13 @@ pub fn gmail_users_settings_cse_keypairs_obliterate(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gmail_users_settings_delegates_create_execute()` to send, or `gmail_users_settings_delegates_create` for simplest API.
 
-pub fn gmail_users_settings_delegates_create_builder(
-    client: &SimpleHttpClient,
+pub fn gmail_users_settings_delegates_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     userId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/settings/delegates",
@@ -8288,11 +8439,14 @@ pub fn gmail_users_settings_delegates_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gmail_users_settings_delegates_delete_execute()` to send, or `gmail_users_settings_delegates_delete` for simplest API.
 
-pub fn gmail_users_settings_delegates_delete_builder(
-    client: &SimpleHttpClient,
+pub fn gmail_users_settings_delegates_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     userId: &String,
     delegateEmail: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/settings/delegates/{}",
@@ -8446,11 +8600,14 @@ pub fn gmail_users_settings_delegates_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gmail_users_settings_delegates_get_execute()` to send, or `gmail_users_settings_delegates_get` for simplest API.
 
-pub fn gmail_users_settings_delegates_get_builder(
-    client: &SimpleHttpClient,
+pub fn gmail_users_settings_delegates_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     userId: &String,
     delegateEmail: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/settings/delegates/{}",
@@ -8607,10 +8764,13 @@ pub fn gmail_users_settings_delegates_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gmail_users_settings_delegates_list_execute()` to send, or `gmail_users_settings_delegates_list` for simplest API.
 
-pub fn gmail_users_settings_delegates_list_builder(
-    client: &SimpleHttpClient,
+pub fn gmail_users_settings_delegates_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     userId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/settings/delegates",
@@ -8768,10 +8928,13 @@ pub fn gmail_users_settings_delegates_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gmail_users_settings_filters_create_execute()` to send, or `gmail_users_settings_filters_create` for simplest API.
 
-pub fn gmail_users_settings_filters_create_builder(
-    client: &SimpleHttpClient,
+pub fn gmail_users_settings_filters_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     userId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/settings/filters",
@@ -8925,11 +9088,14 @@ pub fn gmail_users_settings_filters_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gmail_users_settings_filters_delete_execute()` to send, or `gmail_users_settings_filters_delete` for simplest API.
 
-pub fn gmail_users_settings_filters_delete_builder(
-    client: &SimpleHttpClient,
+pub fn gmail_users_settings_filters_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     userId: &String,
     id: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/settings/filters/{}",
@@ -9082,11 +9248,14 @@ pub fn gmail_users_settings_filters_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gmail_users_settings_filters_get_execute()` to send, or `gmail_users_settings_filters_get` for simplest API.
 
-pub fn gmail_users_settings_filters_get_builder(
-    client: &SimpleHttpClient,
+pub fn gmail_users_settings_filters_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     userId: &String,
     id: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/settings/filters/{}",
@@ -9242,10 +9411,13 @@ pub fn gmail_users_settings_filters_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gmail_users_settings_filters_list_execute()` to send, or `gmail_users_settings_filters_list` for simplest API.
 
-pub fn gmail_users_settings_filters_list_builder(
-    client: &SimpleHttpClient,
+pub fn gmail_users_settings_filters_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     userId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/settings/filters",
@@ -9403,10 +9575,13 @@ pub fn gmail_users_settings_filters_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gmail_users_settings_forwarding_addresses_create_execute()` to send, or `gmail_users_settings_forwarding_addresses_create` for simplest API.
 
-pub fn gmail_users_settings_forwarding_addresses_create_builder(
-    client: &SimpleHttpClient,
+pub fn gmail_users_settings_forwarding_addresses_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     userId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/settings/forwardingAddresses",
@@ -9564,11 +9739,14 @@ pub fn gmail_users_settings_forwarding_addresses_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gmail_users_settings_forwarding_addresses_delete_execute()` to send, or `gmail_users_settings_forwarding_addresses_delete` for simplest API.
 
-pub fn gmail_users_settings_forwarding_addresses_delete_builder(
-    client: &SimpleHttpClient,
+pub fn gmail_users_settings_forwarding_addresses_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     userId: &String,
     forwardingEmail: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/settings/forwardingAddresses/{}",
@@ -9725,11 +9903,14 @@ pub fn gmail_users_settings_forwarding_addresses_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gmail_users_settings_forwarding_addresses_get_execute()` to send, or `gmail_users_settings_forwarding_addresses_get` for simplest API.
 
-pub fn gmail_users_settings_forwarding_addresses_get_builder(
-    client: &SimpleHttpClient,
+pub fn gmail_users_settings_forwarding_addresses_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     userId: &String,
     forwardingEmail: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/settings/forwardingAddresses/{}",
@@ -9893,10 +10074,13 @@ pub fn gmail_users_settings_forwarding_addresses_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gmail_users_settings_forwarding_addresses_list_execute()` to send, or `gmail_users_settings_forwarding_addresses_list` for simplest API.
 
-pub fn gmail_users_settings_forwarding_addresses_list_builder(
-    client: &SimpleHttpClient,
+pub fn gmail_users_settings_forwarding_addresses_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     userId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/settings/forwardingAddresses",
@@ -10058,10 +10242,13 @@ pub fn gmail_users_settings_forwarding_addresses_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gmail_users_settings_send_as_create_execute()` to send, or `gmail_users_settings_send_as_create` for simplest API.
 
-pub fn gmail_users_settings_send_as_create_builder(
-    client: &SimpleHttpClient,
+pub fn gmail_users_settings_send_as_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     userId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/settings/sendAs",
@@ -10215,11 +10402,14 @@ pub fn gmail_users_settings_send_as_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gmail_users_settings_send_as_delete_execute()` to send, or `gmail_users_settings_send_as_delete` for simplest API.
 
-pub fn gmail_users_settings_send_as_delete_builder(
-    client: &SimpleHttpClient,
+pub fn gmail_users_settings_send_as_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     userId: &String,
     sendAsEmail: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/settings/sendAs/{}",
@@ -10373,11 +10563,14 @@ pub fn gmail_users_settings_send_as_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gmail_users_settings_send_as_get_execute()` to send, or `gmail_users_settings_send_as_get` for simplest API.
 
-pub fn gmail_users_settings_send_as_get_builder(
-    client: &SimpleHttpClient,
+pub fn gmail_users_settings_send_as_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     userId: &String,
     sendAsEmail: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/settings/sendAs/{}",
@@ -10534,10 +10727,13 @@ pub fn gmail_users_settings_send_as_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gmail_users_settings_send_as_list_execute()` to send, or `gmail_users_settings_send_as_list` for simplest API.
 
-pub fn gmail_users_settings_send_as_list_builder(
-    client: &SimpleHttpClient,
+pub fn gmail_users_settings_send_as_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     userId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/settings/sendAs",
@@ -10695,11 +10891,14 @@ pub fn gmail_users_settings_send_as_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gmail_users_settings_send_as_patch_execute()` to send, or `gmail_users_settings_send_as_patch` for simplest API.
 
-pub fn gmail_users_settings_send_as_patch_builder(
-    client: &SimpleHttpClient,
+pub fn gmail_users_settings_send_as_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     userId: &String,
     sendAsEmail: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/settings/sendAs/{}",
@@ -10856,11 +11055,14 @@ pub fn gmail_users_settings_send_as_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gmail_users_settings_send_as_update_execute()` to send, or `gmail_users_settings_send_as_update` for simplest API.
 
-pub fn gmail_users_settings_send_as_update_builder(
-    client: &SimpleHttpClient,
+pub fn gmail_users_settings_send_as_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     userId: &String,
     sendAsEmail: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/settings/sendAs/{}",
@@ -11017,11 +11219,14 @@ pub fn gmail_users_settings_send_as_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gmail_users_settings_send_as_verify_execute()` to send, or `gmail_users_settings_send_as_verify` for simplest API.
 
-pub fn gmail_users_settings_send_as_verify_builder(
-    client: &SimpleHttpClient,
+pub fn gmail_users_settings_send_as_verify_builder<R>(
+    client: &SimpleHttpClient<R>,
     userId: &String,
     sendAsEmail: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/settings/sendAs/{}/verify",
@@ -11175,12 +11380,15 @@ pub fn gmail_users_settings_send_as_verify(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gmail_users_settings_send_as_smime_info_delete_execute()` to send, or `gmail_users_settings_send_as_smime_info_delete` for simplest API.
 
-pub fn gmail_users_settings_send_as_smime_info_delete_builder(
-    client: &SimpleHttpClient,
+pub fn gmail_users_settings_send_as_smime_info_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     userId: &String,
     sendAsEmail: &String,
     id: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/settings/sendAs/{}/smimeInfo/{}",
@@ -11340,12 +11548,15 @@ pub fn gmail_users_settings_send_as_smime_info_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gmail_users_settings_send_as_smime_info_get_execute()` to send, or `gmail_users_settings_send_as_smime_info_get` for simplest API.
 
-pub fn gmail_users_settings_send_as_smime_info_get_builder(
-    client: &SimpleHttpClient,
+pub fn gmail_users_settings_send_as_smime_info_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     userId: &String,
     sendAsEmail: &String,
     id: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/settings/sendAs/{}/smimeInfo/{}",
@@ -11508,11 +11719,14 @@ pub fn gmail_users_settings_send_as_smime_info_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gmail_users_settings_send_as_smime_info_insert_execute()` to send, or `gmail_users_settings_send_as_smime_info_insert` for simplest API.
 
-pub fn gmail_users_settings_send_as_smime_info_insert_builder(
-    client: &SimpleHttpClient,
+pub fn gmail_users_settings_send_as_smime_info_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     userId: &String,
     sendAsEmail: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/settings/sendAs/{}/smimeInfo",
@@ -11672,11 +11886,14 @@ pub fn gmail_users_settings_send_as_smime_info_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gmail_users_settings_send_as_smime_info_list_execute()` to send, or `gmail_users_settings_send_as_smime_info_list` for simplest API.
 
-pub fn gmail_users_settings_send_as_smime_info_list_builder(
-    client: &SimpleHttpClient,
+pub fn gmail_users_settings_send_as_smime_info_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     userId: &String,
     sendAsEmail: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/settings/sendAs/{}/smimeInfo",
@@ -11840,12 +12057,15 @@ pub fn gmail_users_settings_send_as_smime_info_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gmail_users_settings_send_as_smime_info_set_default_execute()` to send, or `gmail_users_settings_send_as_smime_info_set_default` for simplest API.
 
-pub fn gmail_users_settings_send_as_smime_info_set_default_builder(
-    client: &SimpleHttpClient,
+pub fn gmail_users_settings_send_as_smime_info_set_default_builder<R>(
+    client: &SimpleHttpClient<R>,
     userId: &String,
     sendAsEmail: &String,
     id: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/settings/sendAs/{}/smimeInfo/{}/setDefault",
@@ -12005,11 +12225,14 @@ pub fn gmail_users_settings_send_as_smime_info_set_default(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gmail_users_threads_delete_execute()` to send, or `gmail_users_threads_delete` for simplest API.
 
-pub fn gmail_users_threads_delete_builder(
-    client: &SimpleHttpClient,
+pub fn gmail_users_threads_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     userId: &String,
     id: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/threads/{}",
@@ -12162,13 +12385,16 @@ pub fn gmail_users_threads_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gmail_users_threads_get_execute()` to send, or `gmail_users_threads_get` for simplest API.
 
-pub fn gmail_users_threads_get_builder(
-    client: &SimpleHttpClient,
+pub fn gmail_users_threads_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     userId: &String,
     id: &String,
     format: &Option<Option<String>>,
     metadataHeaders: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/threads/{}",
@@ -12348,15 +12574,18 @@ pub fn gmail_users_threads_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gmail_users_threads_list_execute()` to send, or `gmail_users_threads_list` for simplest API.
 
-pub fn gmail_users_threads_list_builder(
-    client: &SimpleHttpClient,
+pub fn gmail_users_threads_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     userId: &String,
     includeSpamTrash: &Option<Option<String>>,
     labelIds: &Option<Option<String>>,
     maxResults: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     q: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/threads",
@@ -12555,11 +12784,14 @@ pub fn gmail_users_threads_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gmail_users_threads_modify_execute()` to send, or `gmail_users_threads_modify` for simplest API.
 
-pub fn gmail_users_threads_modify_builder(
-    client: &SimpleHttpClient,
+pub fn gmail_users_threads_modify_builder<R>(
+    client: &SimpleHttpClient<R>,
     userId: &String,
     id: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/threads/{}/modify",
@@ -12715,11 +12947,14 @@ pub fn gmail_users_threads_modify(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gmail_users_threads_trash_execute()` to send, or `gmail_users_threads_trash` for simplest API.
 
-pub fn gmail_users_threads_trash_builder(
-    client: &SimpleHttpClient,
+pub fn gmail_users_threads_trash_builder<R>(
+    client: &SimpleHttpClient<R>,
     userId: &String,
     id: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/threads/{}/trash",
@@ -12875,11 +13110,14 @@ pub fn gmail_users_threads_trash(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gmail_users_threads_untrash_execute()` to send, or `gmail_users_threads_untrash` for simplest API.
 
-pub fn gmail_users_threads_untrash_builder(
-    client: &SimpleHttpClient,
+pub fn gmail_users_threads_untrash_builder<R>(
+    client: &SimpleHttpClient<R>,
     userId: &String,
     id: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/threads/{}/untrash",

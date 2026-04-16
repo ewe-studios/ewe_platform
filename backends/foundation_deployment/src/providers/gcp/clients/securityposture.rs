@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securityposture_organizations_locations_operations_cancel_execute()` to send, or `securityposture_organizations_locations_operations_cancel` for simplest API.
 
-pub fn securityposture_organizations_locations_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn securityposture_organizations_locations_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securityposture.googleapis.com/v1/organizations/{}/locations/{locationsId}/operations/{operationsId}:cancel",
@@ -184,10 +188,13 @@ pub fn securityposture_organizations_locations_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securityposture_organizations_locations_operations_delete_execute()` to send, or `securityposture_organizations_locations_operations_delete` for simplest API.
 
-pub fn securityposture_organizations_locations_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn securityposture_organizations_locations_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securityposture.googleapis.com/v1/organizations/{}/locations/{locationsId}/operations/{operationsId}",
@@ -342,10 +349,13 @@ pub fn securityposture_organizations_locations_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securityposture_organizations_locations_operations_get_execute()` to send, or `securityposture_organizations_locations_operations_get` for simplest API.
 
-pub fn securityposture_organizations_locations_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn securityposture_organizations_locations_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securityposture.googleapis.com/v1/organizations/{}/locations/{locationsId}/operations/{operationsId}",
@@ -500,14 +510,17 @@ pub fn securityposture_organizations_locations_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securityposture_organizations_locations_operations_list_execute()` to send, or `securityposture_organizations_locations_operations_list` for simplest API.
 
-pub fn securityposture_organizations_locations_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn securityposture_organizations_locations_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securityposture.googleapis.com/v1/organizations/{}/locations/{locationsId}/operations",
@@ -700,11 +713,14 @@ pub fn securityposture_organizations_locations_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securityposture_organizations_locations_posture_deployments_create_execute()` to send, or `securityposture_organizations_locations_posture_deployments_create` for simplest API.
 
-pub fn securityposture_organizations_locations_posture_deployments_create_builder(
-    client: &SimpleHttpClient,
+pub fn securityposture_organizations_locations_posture_deployments_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     postureDeploymentId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securityposture.googleapis.com/v1/organizations/{}/locations/{locationsId}/postureDeployments",
@@ -875,11 +891,14 @@ pub fn securityposture_organizations_locations_posture_deployments_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securityposture_organizations_locations_posture_deployments_delete_execute()` to send, or `securityposture_organizations_locations_posture_deployments_delete` for simplest API.
 
-pub fn securityposture_organizations_locations_posture_deployments_delete_builder(
-    client: &SimpleHttpClient,
+pub fn securityposture_organizations_locations_posture_deployments_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     etag: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securityposture.googleapis.com/v1/organizations/{}/locations/{locationsId}/postureDeployments/{postureDeploymentsId}",
@@ -1048,10 +1067,13 @@ pub fn securityposture_organizations_locations_posture_deployments_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securityposture_organizations_locations_posture_deployments_get_execute()` to send, or `securityposture_organizations_locations_posture_deployments_get` for simplest API.
 
-pub fn securityposture_organizations_locations_posture_deployments_get_builder(
-    client: &SimpleHttpClient,
+pub fn securityposture_organizations_locations_posture_deployments_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securityposture.googleapis.com/v1/organizations/{}/locations/{locationsId}/postureDeployments/{postureDeploymentsId}",
@@ -1211,13 +1233,16 @@ pub fn securityposture_organizations_locations_posture_deployments_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securityposture_organizations_locations_posture_deployments_list_execute()` to send, or `securityposture_organizations_locations_posture_deployments_list` for simplest API.
 
-pub fn securityposture_organizations_locations_posture_deployments_list_builder(
-    client: &SimpleHttpClient,
+pub fn securityposture_organizations_locations_posture_deployments_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securityposture.googleapis.com/v1/organizations/{}/locations/{locationsId}/postureDeployments",
@@ -1408,11 +1433,14 @@ pub fn securityposture_organizations_locations_posture_deployments_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securityposture_organizations_locations_posture_deployments_patch_execute()` to send, or `securityposture_organizations_locations_posture_deployments_patch` for simplest API.
 
-pub fn securityposture_organizations_locations_posture_deployments_patch_builder(
-    client: &SimpleHttpClient,
+pub fn securityposture_organizations_locations_posture_deployments_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securityposture.googleapis.com/v1/organizations/{}/locations/{locationsId}/postureDeployments/{postureDeploymentsId}",
@@ -1583,11 +1611,14 @@ pub fn securityposture_organizations_locations_posture_deployments_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securityposture_organizations_locations_posture_templates_get_execute()` to send, or `securityposture_organizations_locations_posture_templates_get` for simplest API.
 
-pub fn securityposture_organizations_locations_posture_templates_get_builder(
-    client: &SimpleHttpClient,
+pub fn securityposture_organizations_locations_posture_templates_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     revisionId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securityposture.googleapis.com/v1/organizations/{}/locations/{locationsId}/postureTemplates/{postureTemplatesId}",
@@ -1762,13 +1793,16 @@ pub fn securityposture_organizations_locations_posture_templates_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securityposture_organizations_locations_posture_templates_list_execute()` to send, or `securityposture_organizations_locations_posture_templates_list` for simplest API.
 
-pub fn securityposture_organizations_locations_posture_templates_list_builder(
-    client: &SimpleHttpClient,
+pub fn securityposture_organizations_locations_posture_templates_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securityposture.googleapis.com/v1/organizations/{}/locations/{locationsId}/postureTemplates",
@@ -1959,11 +1993,14 @@ pub fn securityposture_organizations_locations_posture_templates_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securityposture_organizations_locations_postures_create_execute()` to send, or `securityposture_organizations_locations_postures_create` for simplest API.
 
-pub fn securityposture_organizations_locations_postures_create_builder(
-    client: &SimpleHttpClient,
+pub fn securityposture_organizations_locations_postures_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     postureId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securityposture.googleapis.com/v1/organizations/{}/locations/{locationsId}/postures",
@@ -2134,11 +2171,14 @@ pub fn securityposture_organizations_locations_postures_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securityposture_organizations_locations_postures_delete_execute()` to send, or `securityposture_organizations_locations_postures_delete` for simplest API.
 
-pub fn securityposture_organizations_locations_postures_delete_builder(
-    client: &SimpleHttpClient,
+pub fn securityposture_organizations_locations_postures_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     etag: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securityposture.googleapis.com/v1/organizations/{}/locations/{locationsId}/postures/{posturesId}",
@@ -2307,10 +2347,13 @@ pub fn securityposture_organizations_locations_postures_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securityposture_organizations_locations_postures_extract_execute()` to send, or `securityposture_organizations_locations_postures_extract` for simplest API.
 
-pub fn securityposture_organizations_locations_postures_extract_builder(
-    client: &SimpleHttpClient,
+pub fn securityposture_organizations_locations_postures_extract_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securityposture.googleapis.com/v1/organizations/{}/locations/{locationsId}/postures:extract",
@@ -2465,11 +2508,14 @@ pub fn securityposture_organizations_locations_postures_extract(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securityposture_organizations_locations_postures_get_execute()` to send, or `securityposture_organizations_locations_postures_get` for simplest API.
 
-pub fn securityposture_organizations_locations_postures_get_builder(
-    client: &SimpleHttpClient,
+pub fn securityposture_organizations_locations_postures_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     revisionId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securityposture.googleapis.com/v1/organizations/{}/locations/{locationsId}/postures/{posturesId}",
@@ -2640,13 +2686,16 @@ pub fn securityposture_organizations_locations_postures_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securityposture_organizations_locations_postures_list_execute()` to send, or `securityposture_organizations_locations_postures_list` for simplest API.
 
-pub fn securityposture_organizations_locations_postures_list_builder(
-    client: &SimpleHttpClient,
+pub fn securityposture_organizations_locations_postures_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securityposture.googleapis.com/v1/organizations/{}/locations/{locationsId}/postures",
@@ -2833,12 +2882,15 @@ pub fn securityposture_organizations_locations_postures_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securityposture_organizations_locations_postures_list_revisions_execute()` to send, or `securityposture_organizations_locations_postures_list_revisions` for simplest API.
 
-pub fn securityposture_organizations_locations_postures_list_revisions_builder(
-    client: &SimpleHttpClient,
+pub fn securityposture_organizations_locations_postures_list_revisions_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securityposture.googleapis.com/v1/organizations/{}/locations/{locationsId}/postures/{posturesId}:listRevisions",
@@ -3023,12 +3075,15 @@ pub fn securityposture_organizations_locations_postures_list_revisions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securityposture_organizations_locations_postures_patch_execute()` to send, or `securityposture_organizations_locations_postures_patch` for simplest API.
 
-pub fn securityposture_organizations_locations_postures_patch_builder(
-    client: &SimpleHttpClient,
+pub fn securityposture_organizations_locations_postures_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     revisionId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securityposture.googleapis.com/v1/organizations/{}/locations/{locationsId}/postures/{posturesId}",
@@ -3205,10 +3260,13 @@ pub fn securityposture_organizations_locations_postures_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securityposture_organizations_locations_reports_create_ia_cvalidation_report_execute()` to send, or `securityposture_organizations_locations_reports_create_ia_cvalidation_report` for simplest API.
 
-pub fn securityposture_organizations_locations_reports_create_ia_cvalidation_report_builder(
-    client: &SimpleHttpClient,
+pub fn securityposture_organizations_locations_reports_create_ia_cvalidation_report_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securityposture.googleapis.com/v1/organizations/{}/locations/{locationsId}/reports:createIaCValidationReport",
@@ -3367,10 +3425,13 @@ pub fn securityposture_organizations_locations_reports_create_ia_cvalidation_rep
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securityposture_organizations_locations_reports_get_execute()` to send, or `securityposture_organizations_locations_reports_get` for simplest API.
 
-pub fn securityposture_organizations_locations_reports_get_builder(
-    client: &SimpleHttpClient,
+pub fn securityposture_organizations_locations_reports_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securityposture.googleapis.com/v1/organizations/{}/locations/{locationsId}/reports/{reportsId}",
@@ -3524,13 +3585,16 @@ pub fn securityposture_organizations_locations_reports_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securityposture_organizations_locations_reports_list_execute()` to send, or `securityposture_organizations_locations_reports_list` for simplest API.
 
-pub fn securityposture_organizations_locations_reports_list_builder(
-    client: &SimpleHttpClient,
+pub fn securityposture_organizations_locations_reports_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securityposture.googleapis.com/v1/organizations/{}/locations/{locationsId}/reports",
@@ -3717,10 +3781,13 @@ pub fn securityposture_organizations_locations_reports_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securityposture_projects_locations_get_execute()` to send, or `securityposture_projects_locations_get` for simplest API.
 
-pub fn securityposture_projects_locations_get_builder(
-    client: &SimpleHttpClient,
+pub fn securityposture_projects_locations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securityposture.googleapis.com/v1/projects/{}/locations/{locationsId}",
@@ -3874,14 +3941,17 @@ pub fn securityposture_projects_locations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securityposture_projects_locations_list_execute()` to send, or `securityposture_projects_locations_list` for simplest API.
 
-pub fn securityposture_projects_locations_list_builder(
-    client: &SimpleHttpClient,
+pub fn securityposture_projects_locations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     extraLocationTypes: &Option<Option<String>>,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://securityposture.googleapis.com/v1/projects/{}/locations",

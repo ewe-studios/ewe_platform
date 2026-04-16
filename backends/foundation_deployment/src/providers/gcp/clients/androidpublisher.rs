@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_applications_data_safety_execute()` to send, or `androidpublisher_applications_data_safety` for simplest API.
 
-pub fn androidpublisher_applications_data_safety_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_applications_data_safety_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/dataSafety",
@@ -191,11 +195,14 @@ pub fn androidpublisher_applications_data_safety(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_applications_device_tier_configs_create_execute()` to send, or `androidpublisher_applications_device_tier_configs_create` for simplest API.
 
-pub fn androidpublisher_applications_device_tier_configs_create_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_applications_device_tier_configs_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
     allowUnknownDevices: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/deviceTierConfigs",
@@ -370,11 +377,14 @@ pub fn androidpublisher_applications_device_tier_configs_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_applications_device_tier_configs_get_execute()` to send, or `androidpublisher_applications_device_tier_configs_get` for simplest API.
 
-pub fn androidpublisher_applications_device_tier_configs_get_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_applications_device_tier_configs_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
     deviceTierConfigId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/deviceTierConfigs/{}",
@@ -539,12 +549,15 @@ pub fn androidpublisher_applications_device_tier_configs_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_applications_device_tier_configs_list_execute()` to send, or `androidpublisher_applications_device_tier_configs_list` for simplest API.
 
-pub fn androidpublisher_applications_device_tier_configs_list_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_applications_device_tier_configs_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/deviceTierConfigs",
@@ -729,10 +742,13 @@ pub fn androidpublisher_applications_device_tier_configs_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_applications_tracks_releases_list_execute()` to send, or `androidpublisher_applications_tracks_releases_list` for simplest API.
 
-pub fn androidpublisher_applications_tracks_releases_list_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_applications_tracks_releases_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/tracks/{tracksId}/releases",
@@ -894,11 +910,14 @@ pub fn androidpublisher_applications_tracks_releases_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_apprecovery_add_targeting_execute()` to send, or `androidpublisher_apprecovery_add_targeting` for simplest API.
 
-pub fn androidpublisher_apprecovery_add_targeting_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_apprecovery_add_targeting_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
     appRecoveryId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/appRecoveries/{}:addTargeting",
@@ -1063,11 +1082,14 @@ pub fn androidpublisher_apprecovery_add_targeting(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_apprecovery_cancel_execute()` to send, or `androidpublisher_apprecovery_cancel` for simplest API.
 
-pub fn androidpublisher_apprecovery_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_apprecovery_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
     appRecoveryId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/appRecoveries/{}:cancel",
@@ -1232,10 +1254,13 @@ pub fn androidpublisher_apprecovery_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_apprecovery_create_execute()` to send, or `androidpublisher_apprecovery_create` for simplest API.
 
-pub fn androidpublisher_apprecovery_create_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_apprecovery_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/appRecoveries",
@@ -1393,11 +1418,14 @@ pub fn androidpublisher_apprecovery_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_apprecovery_deploy_execute()` to send, or `androidpublisher_apprecovery_deploy` for simplest API.
 
-pub fn androidpublisher_apprecovery_deploy_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_apprecovery_deploy_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
     appRecoveryId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/appRecoveries/{}:deploy",
@@ -1562,11 +1590,14 @@ pub fn androidpublisher_apprecovery_deploy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_apprecovery_list_execute()` to send, or `androidpublisher_apprecovery_list` for simplest API.
 
-pub fn androidpublisher_apprecovery_list_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_apprecovery_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
     versionCode: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/appRecoveries",
@@ -1738,13 +1769,16 @@ pub fn androidpublisher_apprecovery_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_edits_commit_execute()` to send, or `androidpublisher_edits_commit` for simplest API.
 
-pub fn androidpublisher_edits_commit_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_edits_commit_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
     editId: &String,
     changesInReviewBehavior: &Option<Option<String>>,
     changesNotSentForReview: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/edits/{}:commit",
@@ -1925,11 +1959,14 @@ pub fn androidpublisher_edits_commit(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_edits_delete_execute()` to send, or `androidpublisher_edits_delete` for simplest API.
 
-pub fn androidpublisher_edits_delete_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_edits_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
     editId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/edits/{}",
@@ -2082,11 +2119,14 @@ pub fn androidpublisher_edits_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_edits_get_execute()` to send, or `androidpublisher_edits_get` for simplest API.
 
-pub fn androidpublisher_edits_get_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_edits_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
     editId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/edits/{}",
@@ -2242,10 +2282,13 @@ pub fn androidpublisher_edits_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_edits_insert_execute()` to send, or `androidpublisher_edits_insert` for simplest API.
 
-pub fn androidpublisher_edits_insert_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_edits_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/edits",
@@ -2399,11 +2442,14 @@ pub fn androidpublisher_edits_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_edits_validate_execute()` to send, or `androidpublisher_edits_validate` for simplest API.
 
-pub fn androidpublisher_edits_validate_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_edits_validate_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
     editId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/edits/{}:validate",
@@ -2560,11 +2606,14 @@ pub fn androidpublisher_edits_validate(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_edits_apks_addexternallyhosted_execute()` to send, or `androidpublisher_edits_apks_addexternallyhosted` for simplest API.
 
-pub fn androidpublisher_edits_apks_addexternallyhosted_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_edits_apks_addexternallyhosted_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
     editId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/edits/{}/apks/externallyHosted",
@@ -2733,11 +2782,14 @@ pub fn androidpublisher_edits_apks_addexternallyhosted(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_edits_apks_list_execute()` to send, or `androidpublisher_edits_apks_list` for simplest API.
 
-pub fn androidpublisher_edits_apks_list_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_edits_apks_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
     editId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/edits/{}/apks",
@@ -2898,11 +2950,14 @@ pub fn androidpublisher_edits_apks_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_edits_apks_upload_execute()` to send, or `androidpublisher_edits_apks_upload` for simplest API.
 
-pub fn androidpublisher_edits_apks_upload_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_edits_apks_upload_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
     editId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/edits/{}/apks",
@@ -3059,11 +3114,14 @@ pub fn androidpublisher_edits_apks_upload(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_edits_bundles_list_execute()` to send, or `androidpublisher_edits_bundles_list` for simplest API.
 
-pub fn androidpublisher_edits_bundles_list_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_edits_bundles_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
     editId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/edits/{}/bundles",
@@ -3225,13 +3283,16 @@ pub fn androidpublisher_edits_bundles_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_edits_bundles_upload_execute()` to send, or `androidpublisher_edits_bundles_upload` for simplest API.
 
-pub fn androidpublisher_edits_bundles_upload_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_edits_bundles_upload_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
     editId: &String,
     ackBundleInstallationWarning: &Option<Option<String>>,
     deviceTierConfigId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/edits/{}/bundles",
@@ -3412,12 +3473,15 @@ pub fn androidpublisher_edits_bundles_upload(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_edits_countryavailability_get_execute()` to send, or `androidpublisher_edits_countryavailability_get` for simplest API.
 
-pub fn androidpublisher_edits_countryavailability_get_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_edits_countryavailability_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
     editId: &String,
     track: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/edits/{}/countryAvailability/{}",
@@ -3586,13 +3650,16 @@ pub fn androidpublisher_edits_countryavailability_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_edits_deobfuscationfiles_upload_execute()` to send, or `androidpublisher_edits_deobfuscationfiles_upload` for simplest API.
 
-pub fn androidpublisher_edits_deobfuscationfiles_upload_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_edits_deobfuscationfiles_upload_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
     editId: &String,
     apkVersionCode: &String,
     deobfuscationFileType: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/edits/{}/apks/{}/deobfuscationFiles/{}",
@@ -3769,11 +3836,14 @@ pub fn androidpublisher_edits_deobfuscationfiles_upload(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_edits_details_get_execute()` to send, or `androidpublisher_edits_details_get` for simplest API.
 
-pub fn androidpublisher_edits_details_get_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_edits_details_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
     editId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/edits/{}/details",
@@ -3931,11 +4001,14 @@ pub fn androidpublisher_edits_details_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_edits_details_patch_execute()` to send, or `androidpublisher_edits_details_patch` for simplest API.
 
-pub fn androidpublisher_edits_details_patch_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_edits_details_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
     editId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/edits/{}/details",
@@ -4093,11 +4166,14 @@ pub fn androidpublisher_edits_details_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_edits_details_update_execute()` to send, or `androidpublisher_edits_details_update` for simplest API.
 
-pub fn androidpublisher_edits_details_update_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_edits_details_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
     editId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/edits/{}/details",
@@ -4255,13 +4331,16 @@ pub fn androidpublisher_edits_details_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_edits_expansionfiles_get_execute()` to send, or `androidpublisher_edits_expansionfiles_get` for simplest API.
 
-pub fn androidpublisher_edits_expansionfiles_get_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_edits_expansionfiles_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
     editId: &String,
     apkVersionCode: &String,
     expansionFileType: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/edits/{}/apks/{}/expansionFiles/{}",
@@ -4434,13 +4513,16 @@ pub fn androidpublisher_edits_expansionfiles_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_edits_expansionfiles_patch_execute()` to send, or `androidpublisher_edits_expansionfiles_patch` for simplest API.
 
-pub fn androidpublisher_edits_expansionfiles_patch_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_edits_expansionfiles_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
     editId: &String,
     apkVersionCode: &String,
     expansionFileType: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/edits/{}/apks/{}/expansionFiles/{}",
@@ -4613,13 +4695,16 @@ pub fn androidpublisher_edits_expansionfiles_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_edits_expansionfiles_update_execute()` to send, or `androidpublisher_edits_expansionfiles_update` for simplest API.
 
-pub fn androidpublisher_edits_expansionfiles_update_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_edits_expansionfiles_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
     editId: &String,
     apkVersionCode: &String,
     expansionFileType: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/edits/{}/apks/{}/expansionFiles/{}",
@@ -4792,13 +4877,16 @@ pub fn androidpublisher_edits_expansionfiles_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_edits_expansionfiles_upload_execute()` to send, or `androidpublisher_edits_expansionfiles_upload` for simplest API.
 
-pub fn androidpublisher_edits_expansionfiles_upload_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_edits_expansionfiles_upload_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
     editId: &String,
     apkVersionCode: &String,
     expansionFileType: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/edits/{}/apks/{}/expansionFiles/{}",
@@ -4975,14 +5063,17 @@ pub fn androidpublisher_edits_expansionfiles_upload(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_edits_images_delete_execute()` to send, or `androidpublisher_edits_images_delete` for simplest API.
 
-pub fn androidpublisher_edits_images_delete_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_edits_images_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
     editId: &String,
     language: &String,
     imageType: &String,
     imageId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/edits/{}/listings/{}/{}/{}",
@@ -5152,13 +5243,16 @@ pub fn androidpublisher_edits_images_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_edits_images_deleteall_execute()` to send, or `androidpublisher_edits_images_deleteall` for simplest API.
 
-pub fn androidpublisher_edits_images_deleteall_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_edits_images_deleteall_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
     editId: &String,
     language: &String,
     imageType: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/edits/{}/listings/{}/{}",
@@ -5331,13 +5425,16 @@ pub fn androidpublisher_edits_images_deleteall(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_edits_images_list_execute()` to send, or `androidpublisher_edits_images_list` for simplest API.
 
-pub fn androidpublisher_edits_images_list_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_edits_images_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
     editId: &String,
     language: &String,
     imageType: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/edits/{}/listings/{}/{}",
@@ -5510,13 +5607,16 @@ pub fn androidpublisher_edits_images_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_edits_images_upload_execute()` to send, or `androidpublisher_edits_images_upload` for simplest API.
 
-pub fn androidpublisher_edits_images_upload_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_edits_images_upload_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
     editId: &String,
     language: &String,
     imageType: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/edits/{}/listings/{}/{}",
@@ -5689,12 +5789,15 @@ pub fn androidpublisher_edits_images_upload(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_edits_listings_delete_execute()` to send, or `androidpublisher_edits_listings_delete` for simplest API.
 
-pub fn androidpublisher_edits_listings_delete_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_edits_listings_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
     editId: &String,
     language: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/edits/{}/listings/{}",
@@ -5856,11 +5959,14 @@ pub fn androidpublisher_edits_listings_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_edits_listings_deleteall_execute()` to send, or `androidpublisher_edits_listings_deleteall` for simplest API.
 
-pub fn androidpublisher_edits_listings_deleteall_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_edits_listings_deleteall_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
     editId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/edits/{}/listings",
@@ -6015,12 +6121,15 @@ pub fn androidpublisher_edits_listings_deleteall(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_edits_listings_get_execute()` to send, or `androidpublisher_edits_listings_get` for simplest API.
 
-pub fn androidpublisher_edits_listings_get_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_edits_listings_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
     editId: &String,
     language: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/edits/{}/listings/{}",
@@ -6185,11 +6294,14 @@ pub fn androidpublisher_edits_listings_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_edits_listings_list_execute()` to send, or `androidpublisher_edits_listings_list` for simplest API.
 
-pub fn androidpublisher_edits_listings_list_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_edits_listings_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
     editId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/edits/{}/listings",
@@ -6351,12 +6463,15 @@ pub fn androidpublisher_edits_listings_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_edits_listings_patch_execute()` to send, or `androidpublisher_edits_listings_patch` for simplest API.
 
-pub fn androidpublisher_edits_listings_patch_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_edits_listings_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
     editId: &String,
     language: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/edits/{}/listings/{}",
@@ -6521,12 +6636,15 @@ pub fn androidpublisher_edits_listings_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_edits_listings_update_execute()` to send, or `androidpublisher_edits_listings_update` for simplest API.
 
-pub fn androidpublisher_edits_listings_update_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_edits_listings_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
     editId: &String,
     language: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/edits/{}/listings/{}",
@@ -6691,12 +6809,15 @@ pub fn androidpublisher_edits_listings_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_edits_testers_get_execute()` to send, or `androidpublisher_edits_testers_get` for simplest API.
 
-pub fn androidpublisher_edits_testers_get_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_edits_testers_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
     editId: &String,
     track: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/edits/{}/testers/{}",
@@ -6861,12 +6982,15 @@ pub fn androidpublisher_edits_testers_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_edits_testers_patch_execute()` to send, or `androidpublisher_edits_testers_patch` for simplest API.
 
-pub fn androidpublisher_edits_testers_patch_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_edits_testers_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
     editId: &String,
     track: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/edits/{}/testers/{}",
@@ -7031,12 +7155,15 @@ pub fn androidpublisher_edits_testers_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_edits_testers_update_execute()` to send, or `androidpublisher_edits_testers_update` for simplest API.
 
-pub fn androidpublisher_edits_testers_update_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_edits_testers_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
     editId: &String,
     track: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/edits/{}/testers/{}",
@@ -7201,11 +7328,14 @@ pub fn androidpublisher_edits_testers_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_edits_tracks_create_execute()` to send, or `androidpublisher_edits_tracks_create` for simplest API.
 
-pub fn androidpublisher_edits_tracks_create_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_edits_tracks_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
     editId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/edits/{}/tracks",
@@ -7363,12 +7493,15 @@ pub fn androidpublisher_edits_tracks_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_edits_tracks_get_execute()` to send, or `androidpublisher_edits_tracks_get` for simplest API.
 
-pub fn androidpublisher_edits_tracks_get_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_edits_tracks_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
     editId: &String,
     track: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/edits/{}/tracks/{}",
@@ -7533,11 +7666,14 @@ pub fn androidpublisher_edits_tracks_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_edits_tracks_list_execute()` to send, or `androidpublisher_edits_tracks_list` for simplest API.
 
-pub fn androidpublisher_edits_tracks_list_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_edits_tracks_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
     editId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/edits/{}/tracks",
@@ -7699,12 +7835,15 @@ pub fn androidpublisher_edits_tracks_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_edits_tracks_patch_execute()` to send, or `androidpublisher_edits_tracks_patch` for simplest API.
 
-pub fn androidpublisher_edits_tracks_patch_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_edits_tracks_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
     editId: &String,
     track: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/edits/{}/tracks/{}",
@@ -7869,12 +8008,15 @@ pub fn androidpublisher_edits_tracks_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_edits_tracks_update_execute()` to send, or `androidpublisher_edits_tracks_update` for simplest API.
 
-pub fn androidpublisher_edits_tracks_update_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_edits_tracks_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
     editId: &String,
     track: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/edits/{}/tracks/{}",
@@ -8039,11 +8181,14 @@ pub fn androidpublisher_edits_tracks_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_externaltransactions_createexternaltransaction_execute()` to send, or `androidpublisher_externaltransactions_createexternaltransaction` for simplest API.
 
-pub fn androidpublisher_externaltransactions_createexternaltransaction_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_externaltransactions_createexternaltransaction_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     externalTransactionId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/externalTransactions",
@@ -8218,10 +8363,13 @@ pub fn androidpublisher_externaltransactions_createexternaltransaction(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_externaltransactions_getexternaltransaction_execute()` to send, or `androidpublisher_externaltransactions_getexternaltransaction` for simplest API.
 
-pub fn androidpublisher_externaltransactions_getexternaltransaction_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_externaltransactions_getexternaltransaction_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/externalTransactions/{externalTransactionsId}",
@@ -8380,10 +8528,13 @@ pub fn androidpublisher_externaltransactions_getexternaltransaction(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_externaltransactions_refundexternaltransaction_execute()` to send, or `androidpublisher_externaltransactions_refundexternaltransaction` for simplest API.
 
-pub fn androidpublisher_externaltransactions_refundexternaltransaction_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_externaltransactions_refundexternaltransaction_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/externalTransactions/{externalTransactionsId}:refund",
@@ -8543,12 +8694,15 @@ pub fn androidpublisher_externaltransactions_refundexternaltransaction(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_generatedapks_download_execute()` to send, or `androidpublisher_generatedapks_download` for simplest API.
 
-pub fn androidpublisher_generatedapks_download_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_generatedapks_download_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
     versionCode: &String,
     downloadId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/generatedApks/{}/downloads/{}:download",
@@ -8710,11 +8864,14 @@ pub fn androidpublisher_generatedapks_download(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_generatedapks_list_execute()` to send, or `androidpublisher_generatedapks_list` for simplest API.
 
-pub fn androidpublisher_generatedapks_list_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_generatedapks_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
     versionCode: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/generatedApks/{}",
@@ -8876,10 +9033,13 @@ pub fn androidpublisher_generatedapks_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_grants_create_execute()` to send, or `androidpublisher_grants_create` for simplest API.
 
-pub fn androidpublisher_grants_create_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_grants_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/developers/{}/users/{usersId}/grants",
@@ -9033,10 +9193,13 @@ pub fn androidpublisher_grants_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_grants_delete_execute()` to send, or `androidpublisher_grants_delete` for simplest API.
 
-pub fn androidpublisher_grants_delete_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_grants_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/developers/{}/users/{usersId}/grants/{grantsId}",
@@ -9187,11 +9350,14 @@ pub fn androidpublisher_grants_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_grants_patch_execute()` to send, or `androidpublisher_grants_patch` for simplest API.
 
-pub fn androidpublisher_grants_patch_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_grants_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/developers/{}/users/{usersId}/grants/{grantsId}",
@@ -9358,10 +9524,13 @@ pub fn androidpublisher_grants_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_inappproducts_batch_delete_execute()` to send, or `androidpublisher_inappproducts_batch_delete` for simplest API.
 
-pub fn androidpublisher_inappproducts_batch_delete_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_inappproducts_batch_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/inappproducts:batchDelete",
@@ -9512,11 +9681,14 @@ pub fn androidpublisher_inappproducts_batch_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_inappproducts_batch_get_execute()` to send, or `androidpublisher_inappproducts_batch_get` for simplest API.
 
-pub fn androidpublisher_inappproducts_batch_get_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_inappproducts_batch_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
     sku: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/inappproducts:batchGet",
@@ -9692,10 +9864,13 @@ pub fn androidpublisher_inappproducts_batch_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_inappproducts_batch_update_execute()` to send, or `androidpublisher_inappproducts_batch_update` for simplest API.
 
-pub fn androidpublisher_inappproducts_batch_update_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_inappproducts_batch_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/inappproducts:batchUpdate",
@@ -9857,12 +10032,15 @@ pub fn androidpublisher_inappproducts_batch_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_inappproducts_delete_execute()` to send, or `androidpublisher_inappproducts_delete` for simplest API.
 
-pub fn androidpublisher_inappproducts_delete_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_inappproducts_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
     sku: &String,
     latencyTolerance: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/inappproducts/{}",
@@ -10034,11 +10212,14 @@ pub fn androidpublisher_inappproducts_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_inappproducts_get_execute()` to send, or `androidpublisher_inappproducts_get` for simplest API.
 
-pub fn androidpublisher_inappproducts_get_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_inappproducts_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
     sku: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/inappproducts/{}",
@@ -10199,11 +10380,14 @@ pub fn androidpublisher_inappproducts_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_inappproducts_insert_execute()` to send, or `androidpublisher_inappproducts_insert` for simplest API.
 
-pub fn androidpublisher_inappproducts_insert_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_inappproducts_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
     autoConvertMissingPrices: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/inappproducts",
@@ -10378,13 +10562,16 @@ pub fn androidpublisher_inappproducts_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_inappproducts_list_execute()` to send, or `androidpublisher_inappproducts_list` for simplest API.
 
-pub fn androidpublisher_inappproducts_list_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_inappproducts_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
     maxResults: &Option<Option<String>>,
     startIndex: &Option<Option<String>>,
     token: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/inappproducts",
@@ -10571,13 +10758,16 @@ pub fn androidpublisher_inappproducts_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_inappproducts_patch_execute()` to send, or `androidpublisher_inappproducts_patch` for simplest API.
 
-pub fn androidpublisher_inappproducts_patch_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_inappproducts_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
     sku: &String,
     autoConvertMissingPrices: &Option<Option<String>>,
     latencyTolerance: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/inappproducts/{}",
@@ -10762,14 +10952,17 @@ pub fn androidpublisher_inappproducts_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_inappproducts_update_execute()` to send, or `androidpublisher_inappproducts_update` for simplest API.
 
-pub fn androidpublisher_inappproducts_update_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_inappproducts_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
     sku: &String,
     allowMissing: &Option<Option<String>>,
     autoConvertMissingPrices: &Option<Option<String>>,
     latencyTolerance: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/inappproducts/{}",
@@ -10960,10 +11153,13 @@ pub fn androidpublisher_inappproducts_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_internalappsharingartifacts_uploadapk_execute()` to send, or `androidpublisher_internalappsharingartifacts_uploadapk` for simplest API.
 
-pub fn androidpublisher_internalappsharingartifacts_uploadapk_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_internalappsharingartifacts_uploadapk_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/internalappsharing/{}/artifacts/apk",
@@ -11126,10 +11322,13 @@ pub fn androidpublisher_internalappsharingartifacts_uploadapk(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_internalappsharingartifacts_uploadbundle_execute()` to send, or `androidpublisher_internalappsharingartifacts_uploadbundle` for simplest API.
 
-pub fn androidpublisher_internalappsharingartifacts_uploadbundle_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_internalappsharingartifacts_uploadbundle_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/internalappsharing/{}/artifacts/bundle",
@@ -11294,10 +11493,13 @@ pub fn androidpublisher_internalappsharingartifacts_uploadbundle(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_monetization_convert_region_prices_execute()` to send, or `androidpublisher_monetization_convert_region_prices` for simplest API.
 
-pub fn androidpublisher_monetization_convert_region_prices_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_monetization_convert_region_prices_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/pricing:convertRegionPrices",
@@ -11460,10 +11662,13 @@ pub fn androidpublisher_monetization_convert_region_prices(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_monetization_onetimeproducts_batch_delete_execute()` to send, or `androidpublisher_monetization_onetimeproducts_batch_delete` for simplest API.
 
-pub fn androidpublisher_monetization_onetimeproducts_batch_delete_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_monetization_onetimeproducts_batch_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/oneTimeProducts:batchDelete",
@@ -11617,11 +11822,14 @@ pub fn androidpublisher_monetization_onetimeproducts_batch_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_monetization_onetimeproducts_batch_get_execute()` to send, or `androidpublisher_monetization_onetimeproducts_batch_get` for simplest API.
 
-pub fn androidpublisher_monetization_onetimeproducts_batch_get_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_monetization_onetimeproducts_batch_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
     productIds: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/oneTimeProducts:batchGet",
@@ -11800,10 +12008,13 @@ pub fn androidpublisher_monetization_onetimeproducts_batch_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_monetization_onetimeproducts_batch_update_execute()` to send, or `androidpublisher_monetization_onetimeproducts_batch_update` for simplest API.
 
-pub fn androidpublisher_monetization_onetimeproducts_batch_update_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_monetization_onetimeproducts_batch_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/oneTimeProducts:batchUpdate",
@@ -11968,12 +12179,15 @@ pub fn androidpublisher_monetization_onetimeproducts_batch_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_monetization_onetimeproducts_delete_execute()` to send, or `androidpublisher_monetization_onetimeproducts_delete` for simplest API.
 
-pub fn androidpublisher_monetization_onetimeproducts_delete_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_monetization_onetimeproducts_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
     productId: &String,
     latencyTolerance: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/oneTimeProducts/{}",
@@ -12145,11 +12359,14 @@ pub fn androidpublisher_monetization_onetimeproducts_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_monetization_onetimeproducts_get_execute()` to send, or `androidpublisher_monetization_onetimeproducts_get` for simplest API.
 
-pub fn androidpublisher_monetization_onetimeproducts_get_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_monetization_onetimeproducts_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
     productId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/oneTimeProducts/{}",
@@ -12314,12 +12531,15 @@ pub fn androidpublisher_monetization_onetimeproducts_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_monetization_onetimeproducts_list_execute()` to send, or `androidpublisher_monetization_onetimeproducts_list` for simplest API.
 
-pub fn androidpublisher_monetization_onetimeproducts_list_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_monetization_onetimeproducts_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/oneTimeProducts",
@@ -12504,15 +12724,18 @@ pub fn androidpublisher_monetization_onetimeproducts_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_monetization_onetimeproducts_patch_execute()` to send, or `androidpublisher_monetization_onetimeproducts_patch` for simplest API.
 
-pub fn androidpublisher_monetization_onetimeproducts_patch_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_monetization_onetimeproducts_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
     productId: &String,
     allowMissing: &Option<Option<String>>,
     latencyTolerance: &Option<Option<String>>,
     regionsVersion_version: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/onetimeproducts/{}",
@@ -12709,11 +12932,14 @@ pub fn androidpublisher_monetization_onetimeproducts_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_monetization_onetimeproducts_purchase_options_batch_delete_execute()` to send, or `androidpublisher_monetization_onetimeproducts_purchase_options_batch_delete` for simplest API.
 
-pub fn androidpublisher_monetization_onetimeproducts_purchase_options_batch_delete_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_monetization_onetimeproducts_purchase_options_batch_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
     productId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/oneTimeProducts/{}/purchaseOptions:batchDelete",
@@ -12873,11 +13099,16 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_batch_dele
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_monetization_onetimeproducts_purchase_options_batch_update_states_execute()` to send, or `androidpublisher_monetization_onetimeproducts_purchase_options_batch_update_states` for simplest API.
 
-pub fn androidpublisher_monetization_onetimeproducts_purchase_options_batch_update_states_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_monetization_onetimeproducts_purchase_options_batch_update_states_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
     productId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/oneTimeProducts/{}/purchaseOptions:batchUpdateStates",
@@ -13053,13 +13284,16 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_batch_upda
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_monetization_onetimeproducts_purchase_options_offers_activate_execute()` to send, or `androidpublisher_monetization_onetimeproducts_purchase_options_offers_activate` for simplest API.
 
-pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_activate_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_activate_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
     productId: &String,
     purchaseOptionId: &String,
     offerId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/oneTimeProducts/{}/purchaseOptions/{}/offers/{}:activate",
@@ -13235,12 +13469,17 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_act
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_monetization_onetimeproducts_purchase_options_offers_batch_delete_execute()` to send, or `androidpublisher_monetization_onetimeproducts_purchase_options_offers_batch_delete` for simplest API.
 
-pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_batch_delete_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_batch_delete_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
     productId: &String,
     purchaseOptionId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/oneTimeProducts/{}/purchaseOptions/{}/offers:batchDelete",
@@ -13408,12 +13647,15 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_bat
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_monetization_onetimeproducts_purchase_options_offers_batch_get_execute()` to send, or `androidpublisher_monetization_onetimeproducts_purchase_options_offers_batch_get` for simplest API.
 
-pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_batch_get_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_batch_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
     productId: &String,
     purchaseOptionId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/oneTimeProducts/{}/purchaseOptions/{}/offers:batchGet",
@@ -13590,12 +13832,17 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_bat
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_monetization_onetimeproducts_purchase_options_offers_batch_update_execute()` to send, or `androidpublisher_monetization_onetimeproducts_purchase_options_offers_batch_update` for simplest API.
 
-pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_batch_update_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_batch_update_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
     productId: &String,
     purchaseOptionId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/oneTimeProducts/{}/purchaseOptions/{}/offers:batchUpdate",
@@ -13775,12 +14022,17 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_bat
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_monetization_onetimeproducts_purchase_options_offers_batch_update_states_execute()` to send, or `androidpublisher_monetization_onetimeproducts_purchase_options_offers_batch_update_states` for simplest API.
 
-pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_batch_update_states_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_batch_update_states_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
     productId: &String,
     purchaseOptionId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/oneTimeProducts/{}/purchaseOptions/{}/offers:batchUpdateStates",
@@ -13949,13 +14201,16 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_bat
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_monetization_onetimeproducts_purchase_options_offers_cancel_execute()` to send, or `androidpublisher_monetization_onetimeproducts_purchase_options_offers_cancel` for simplest API.
 
-pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
     productId: &String,
     purchaseOptionId: &String,
     offerId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/oneTimeProducts/{}/purchaseOptions/{}/offers/{}:cancel",
@@ -14130,13 +14385,16 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_can
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_monetization_onetimeproducts_purchase_options_offers_deactivate_execute()` to send, or `androidpublisher_monetization_onetimeproducts_purchase_options_offers_deactivate` for simplest API.
 
-pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_deactivate_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_deactivate_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
     productId: &String,
     purchaseOptionId: &String,
     offerId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/oneTimeProducts/{}/purchaseOptions/{}/offers/{}:deactivate",
@@ -14315,14 +14573,17 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_dea
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_monetization_onetimeproducts_purchase_options_offers_list_execute()` to send, or `androidpublisher_monetization_onetimeproducts_purchase_options_offers_list` for simplest API.
 
-pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_list_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
     productId: &String,
     purchaseOptionId: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/oneTimeProducts/{}/purchaseOptions/{}/offers",
@@ -14517,11 +14778,14 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_lis
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_monetization_subscriptions_archive_execute()` to send, or `androidpublisher_monetization_subscriptions_archive` for simplest API.
 
-pub fn androidpublisher_monetization_subscriptions_archive_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_monetization_subscriptions_archive_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
     productId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/subscriptions/{}:archive",
@@ -14686,11 +14950,14 @@ pub fn androidpublisher_monetization_subscriptions_archive(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_monetization_subscriptions_batch_get_execute()` to send, or `androidpublisher_monetization_subscriptions_batch_get` for simplest API.
 
-pub fn androidpublisher_monetization_subscriptions_batch_get_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_monetization_subscriptions_batch_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
     productIds: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/subscriptions:batchGet",
@@ -14869,10 +15136,13 @@ pub fn androidpublisher_monetization_subscriptions_batch_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_monetization_subscriptions_batch_update_execute()` to send, or `androidpublisher_monetization_subscriptions_batch_update` for simplest API.
 
-pub fn androidpublisher_monetization_subscriptions_batch_update_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_monetization_subscriptions_batch_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/subscriptions:batchUpdate",
@@ -15037,12 +15307,15 @@ pub fn androidpublisher_monetization_subscriptions_batch_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_monetization_subscriptions_create_execute()` to send, or `androidpublisher_monetization_subscriptions_create` for simplest API.
 
-pub fn androidpublisher_monetization_subscriptions_create_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_monetization_subscriptions_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
     productId: &Option<Option<String>>,
     regionsVersion_version: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/subscriptions",
@@ -15223,11 +15496,14 @@ pub fn androidpublisher_monetization_subscriptions_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_monetization_subscriptions_delete_execute()` to send, or `androidpublisher_monetization_subscriptions_delete` for simplest API.
 
-pub fn androidpublisher_monetization_subscriptions_delete_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_monetization_subscriptions_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
     productId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/subscriptions/{}",
@@ -15385,11 +15661,14 @@ pub fn androidpublisher_monetization_subscriptions_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_monetization_subscriptions_get_execute()` to send, or `androidpublisher_monetization_subscriptions_get` for simplest API.
 
-pub fn androidpublisher_monetization_subscriptions_get_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_monetization_subscriptions_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
     productId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/subscriptions/{}",
@@ -15554,13 +15833,16 @@ pub fn androidpublisher_monetization_subscriptions_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_monetization_subscriptions_list_execute()` to send, or `androidpublisher_monetization_subscriptions_list` for simplest API.
 
-pub fn androidpublisher_monetization_subscriptions_list_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_monetization_subscriptions_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     showArchived: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/subscriptions",
@@ -15747,15 +16029,18 @@ pub fn androidpublisher_monetization_subscriptions_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_monetization_subscriptions_patch_execute()` to send, or `androidpublisher_monetization_subscriptions_patch` for simplest API.
 
-pub fn androidpublisher_monetization_subscriptions_patch_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_monetization_subscriptions_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
     productId: &String,
     allowMissing: &Option<Option<String>>,
     latencyTolerance: &Option<Option<String>>,
     regionsVersion_version: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/subscriptions/{}",
@@ -15952,12 +16237,15 @@ pub fn androidpublisher_monetization_subscriptions_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_monetization_subscriptions_base_plans_activate_execute()` to send, or `androidpublisher_monetization_subscriptions_base_plans_activate` for simplest API.
 
-pub fn androidpublisher_monetization_subscriptions_base_plans_activate_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_monetization_subscriptions_base_plans_activate_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
     productId: &String,
     basePlanId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/subscriptions/{}/basePlans/{}:activate",
@@ -16126,11 +16414,14 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_activate(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_monetization_subscriptions_base_plans_batch_migrate_prices_execute()` to send, or `androidpublisher_monetization_subscriptions_base_plans_batch_migrate_prices` for simplest API.
 
-pub fn androidpublisher_monetization_subscriptions_base_plans_batch_migrate_prices_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_monetization_subscriptions_base_plans_batch_migrate_prices_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
     productId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/subscriptions/{}/basePlans:batchMigratePrices",
@@ -16301,11 +16592,14 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_batch_migrate_pric
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_monetization_subscriptions_base_plans_batch_update_states_execute()` to send, or `androidpublisher_monetization_subscriptions_base_plans_batch_update_states` for simplest API.
 
-pub fn androidpublisher_monetization_subscriptions_base_plans_batch_update_states_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_monetization_subscriptions_base_plans_batch_update_states_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
     productId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/subscriptions/{}/basePlans:batchUpdateStates",
@@ -16476,12 +16770,15 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_batch_update_state
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_monetization_subscriptions_base_plans_deactivate_execute()` to send, or `androidpublisher_monetization_subscriptions_base_plans_deactivate` for simplest API.
 
-pub fn androidpublisher_monetization_subscriptions_base_plans_deactivate_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_monetization_subscriptions_base_plans_deactivate_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
     productId: &String,
     basePlanId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/subscriptions/{}/basePlans/{}:deactivate",
@@ -16650,12 +16947,15 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_deactivate(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_monetization_subscriptions_base_plans_delete_execute()` to send, or `androidpublisher_monetization_subscriptions_base_plans_delete` for simplest API.
 
-pub fn androidpublisher_monetization_subscriptions_base_plans_delete_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_monetization_subscriptions_base_plans_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
     productId: &String,
     basePlanId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/subscriptions/{}/basePlans/{}",
@@ -16817,12 +17117,15 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_monetization_subscriptions_base_plans_migrate_prices_execute()` to send, or `androidpublisher_monetization_subscriptions_base_plans_migrate_prices` for simplest API.
 
-pub fn androidpublisher_monetization_subscriptions_base_plans_migrate_prices_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_monetization_subscriptions_base_plans_migrate_prices_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
     productId: &String,
     basePlanId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/subscriptions/{}/basePlans/{}:migratePrices",
@@ -16995,13 +17298,16 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_migrate_prices(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_monetization_subscriptions_base_plans_offers_activate_execute()` to send, or `androidpublisher_monetization_subscriptions_base_plans_offers_activate` for simplest API.
 
-pub fn androidpublisher_monetization_subscriptions_base_plans_offers_activate_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_monetization_subscriptions_base_plans_offers_activate_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
     productId: &String,
     basePlanId: &String,
     offerId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/subscriptions/{}/basePlans/{}/offers/{}:activate",
@@ -17175,12 +17481,15 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_offers_activate(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_monetization_subscriptions_base_plans_offers_batch_get_execute()` to send, or `androidpublisher_monetization_subscriptions_base_plans_offers_batch_get` for simplest API.
 
-pub fn androidpublisher_monetization_subscriptions_base_plans_offers_batch_get_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_monetization_subscriptions_base_plans_offers_batch_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
     productId: &String,
     basePlanId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/subscriptions/{}/basePlans/{}/offers:batchGet",
@@ -17354,12 +17663,15 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_offers_batch_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_monetization_subscriptions_base_plans_offers_batch_update_execute()` to send, or `androidpublisher_monetization_subscriptions_base_plans_offers_batch_update` for simplest API.
 
-pub fn androidpublisher_monetization_subscriptions_base_plans_offers_batch_update_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_monetization_subscriptions_base_plans_offers_batch_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
     productId: &String,
     basePlanId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/subscriptions/{}/basePlans/{}/offers:batchUpdate",
@@ -17534,12 +17846,17 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_offers_batch_updat
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_monetization_subscriptions_base_plans_offers_batch_update_states_execute()` to send, or `androidpublisher_monetization_subscriptions_base_plans_offers_batch_update_states` for simplest API.
 
-pub fn androidpublisher_monetization_subscriptions_base_plans_offers_batch_update_states_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_monetization_subscriptions_base_plans_offers_batch_update_states_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
     productId: &String,
     basePlanId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/subscriptions/{}/basePlans/{}/offers:batchUpdateStates",
@@ -17719,14 +18036,17 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_offers_batch_updat
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_monetization_subscriptions_base_plans_offers_create_execute()` to send, or `androidpublisher_monetization_subscriptions_base_plans_offers_create` for simplest API.
 
-pub fn androidpublisher_monetization_subscriptions_base_plans_offers_create_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_monetization_subscriptions_base_plans_offers_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
     productId: &String,
     basePlanId: &String,
     offerId: &Option<Option<String>>,
     regionsVersion_version: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/subscriptions/{}/basePlans/{}/offers",
@@ -17915,13 +18235,16 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_offers_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_monetization_subscriptions_base_plans_offers_deactivate_execute()` to send, or `androidpublisher_monetization_subscriptions_base_plans_offers_deactivate` for simplest API.
 
-pub fn androidpublisher_monetization_subscriptions_base_plans_offers_deactivate_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_monetization_subscriptions_base_plans_offers_deactivate_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
     productId: &String,
     basePlanId: &String,
     offerId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/subscriptions/{}/basePlans/{}/offers/{}:deactivate",
@@ -18095,13 +18418,16 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_offers_deactivate(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_monetization_subscriptions_base_plans_offers_delete_execute()` to send, or `androidpublisher_monetization_subscriptions_base_plans_offers_delete` for simplest API.
 
-pub fn androidpublisher_monetization_subscriptions_base_plans_offers_delete_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_monetization_subscriptions_base_plans_offers_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
     productId: &String,
     basePlanId: &String,
     offerId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/subscriptions/{}/basePlans/{}/offers/{}",
@@ -18267,13 +18593,16 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_offers_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_monetization_subscriptions_base_plans_offers_get_execute()` to send, or `androidpublisher_monetization_subscriptions_base_plans_offers_get` for simplest API.
 
-pub fn androidpublisher_monetization_subscriptions_base_plans_offers_get_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_monetization_subscriptions_base_plans_offers_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
     productId: &String,
     basePlanId: &String,
     offerId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/subscriptions/{}/basePlans/{}/offers/{}",
@@ -18446,14 +18775,17 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_offers_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_monetization_subscriptions_base_plans_offers_list_execute()` to send, or `androidpublisher_monetization_subscriptions_base_plans_offers_list` for simplest API.
 
-pub fn androidpublisher_monetization_subscriptions_base_plans_offers_list_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_monetization_subscriptions_base_plans_offers_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
     productId: &String,
     basePlanId: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/subscriptions/{}/basePlans/{}/offers",
@@ -18646,8 +18978,8 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_offers_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_monetization_subscriptions_base_plans_offers_patch_execute()` to send, or `androidpublisher_monetization_subscriptions_base_plans_offers_patch` for simplest API.
 
-pub fn androidpublisher_monetization_subscriptions_base_plans_offers_patch_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_monetization_subscriptions_base_plans_offers_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
     productId: &String,
     basePlanId: &String,
@@ -18656,7 +18988,10 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_offers_patch_build
     latencyTolerance: &Option<Option<String>>,
     regionsVersion_version: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/subscriptions/{}/basePlans/{}/offers/{}",
@@ -18861,11 +19196,14 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_offers_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_orders_batchget_execute()` to send, or `androidpublisher_orders_batchget` for simplest API.
 
-pub fn androidpublisher_orders_batchget_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_orders_batchget_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
     orderIds: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/orders:batchGet",
@@ -19037,11 +19375,14 @@ pub fn androidpublisher_orders_batchget(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_orders_get_execute()` to send, or `androidpublisher_orders_get` for simplest API.
 
-pub fn androidpublisher_orders_get_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_orders_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
     orderId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/orders/{}",
@@ -19197,12 +19538,15 @@ pub fn androidpublisher_orders_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_orders_refund_execute()` to send, or `androidpublisher_orders_refund` for simplest API.
 
-pub fn androidpublisher_orders_refund_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_orders_refund_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
     orderId: &String,
     revoke: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/orders/{}:refund",
@@ -19374,12 +19718,15 @@ pub fn androidpublisher_orders_refund(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_purchases_products_acknowledge_execute()` to send, or `androidpublisher_purchases_products_acknowledge` for simplest API.
 
-pub fn androidpublisher_purchases_products_acknowledge_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_purchases_products_acknowledge_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
     productId: &String,
     token: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/purchases/products/{}/tokens/{}:acknowledge",
@@ -19541,12 +19888,15 @@ pub fn androidpublisher_purchases_products_acknowledge(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_purchases_products_consume_execute()` to send, or `androidpublisher_purchases_products_consume` for simplest API.
 
-pub fn androidpublisher_purchases_products_consume_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_purchases_products_consume_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
     productId: &String,
     token: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/purchases/products/{}/tokens/{}:consume",
@@ -19708,12 +20058,15 @@ pub fn androidpublisher_purchases_products_consume(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_purchases_products_get_execute()` to send, or `androidpublisher_purchases_products_get` for simplest API.
 
-pub fn androidpublisher_purchases_products_get_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_purchases_products_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
     productId: &String,
     token: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/purchases/products/{}/tokens/{}",
@@ -19882,11 +20235,14 @@ pub fn androidpublisher_purchases_products_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_purchases_productsv2_getproductpurchasev2_execute()` to send, or `androidpublisher_purchases_productsv2_getproductpurchasev2` for simplest API.
 
-pub fn androidpublisher_purchases_productsv2_getproductpurchasev2_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_purchases_productsv2_getproductpurchasev2_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
     token: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/purchases/productsv2/tokens/{}",
@@ -20051,12 +20407,15 @@ pub fn androidpublisher_purchases_productsv2_getproductpurchasev2(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_purchases_subscriptions_acknowledge_execute()` to send, or `androidpublisher_purchases_subscriptions_acknowledge` for simplest API.
 
-pub fn androidpublisher_purchases_subscriptions_acknowledge_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_purchases_subscriptions_acknowledge_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
     subscriptionId: &String,
     token: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/purchases/subscriptions/{}/tokens/{}:acknowledge",
@@ -20218,12 +20577,15 @@ pub fn androidpublisher_purchases_subscriptions_acknowledge(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_purchases_subscriptions_cancel_execute()` to send, or `androidpublisher_purchases_subscriptions_cancel` for simplest API.
 
-pub fn androidpublisher_purchases_subscriptions_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_purchases_subscriptions_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
     subscriptionId: &String,
     token: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/purchases/subscriptions/{}/tokens/{}:cancel",
@@ -20385,12 +20747,15 @@ pub fn androidpublisher_purchases_subscriptions_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_purchases_subscriptions_defer_execute()` to send, or `androidpublisher_purchases_subscriptions_defer` for simplest API.
 
-pub fn androidpublisher_purchases_subscriptions_defer_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_purchases_subscriptions_defer_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
     subscriptionId: &String,
     token: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/purchases/subscriptions/{}/tokens/{}:defer",
@@ -20563,12 +20928,15 @@ pub fn androidpublisher_purchases_subscriptions_defer(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_purchases_subscriptions_get_execute()` to send, or `androidpublisher_purchases_subscriptions_get` for simplest API.
 
-pub fn androidpublisher_purchases_subscriptions_get_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_purchases_subscriptions_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
     subscriptionId: &String,
     token: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/purchases/subscriptions/{}/tokens/{}",
@@ -20737,12 +21105,15 @@ pub fn androidpublisher_purchases_subscriptions_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_purchases_subscriptions_refund_execute()` to send, or `androidpublisher_purchases_subscriptions_refund` for simplest API.
 
-pub fn androidpublisher_purchases_subscriptions_refund_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_purchases_subscriptions_refund_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
     subscriptionId: &String,
     token: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/purchases/subscriptions/{}/tokens/{}:refund",
@@ -20904,12 +21275,15 @@ pub fn androidpublisher_purchases_subscriptions_refund(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_purchases_subscriptions_revoke_execute()` to send, or `androidpublisher_purchases_subscriptions_revoke` for simplest API.
 
-pub fn androidpublisher_purchases_subscriptions_revoke_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_purchases_subscriptions_revoke_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
     subscriptionId: &String,
     token: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/purchases/subscriptions/{}/tokens/{}:revoke",
@@ -21071,11 +21445,14 @@ pub fn androidpublisher_purchases_subscriptions_revoke(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_purchases_subscriptionsv2_cancel_execute()` to send, or `androidpublisher_purchases_subscriptionsv2_cancel` for simplest API.
 
-pub fn androidpublisher_purchases_subscriptionsv2_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_purchases_subscriptionsv2_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
     token: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/purchases/subscriptionsv2/tokens/{}:cancel",
@@ -21244,11 +21621,14 @@ pub fn androidpublisher_purchases_subscriptionsv2_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_purchases_subscriptionsv2_defer_execute()` to send, or `androidpublisher_purchases_subscriptionsv2_defer` for simplest API.
 
-pub fn androidpublisher_purchases_subscriptionsv2_defer_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_purchases_subscriptionsv2_defer_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
     token: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/purchases/subscriptionsv2/tokens/{}:defer",
@@ -21417,11 +21797,14 @@ pub fn androidpublisher_purchases_subscriptionsv2_defer(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_purchases_subscriptionsv2_get_execute()` to send, or `androidpublisher_purchases_subscriptionsv2_get` for simplest API.
 
-pub fn androidpublisher_purchases_subscriptionsv2_get_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_purchases_subscriptionsv2_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
     token: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/purchases/subscriptionsv2/tokens/{}",
@@ -21586,11 +21969,14 @@ pub fn androidpublisher_purchases_subscriptionsv2_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_purchases_subscriptionsv2_revoke_execute()` to send, or `androidpublisher_purchases_subscriptionsv2_revoke` for simplest API.
 
-pub fn androidpublisher_purchases_subscriptionsv2_revoke_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_purchases_subscriptionsv2_revoke_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
     token: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/purchases/subscriptionsv2/tokens/{}:revoke",
@@ -21759,8 +22145,8 @@ pub fn androidpublisher_purchases_subscriptionsv2_revoke(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_purchases_voidedpurchases_list_execute()` to send, or `androidpublisher_purchases_voidedpurchases_list` for simplest API.
 
-pub fn androidpublisher_purchases_voidedpurchases_list_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_purchases_voidedpurchases_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
     endTime: &Option<Option<String>>,
     includeQuantityBasedPartialRefund: &Option<Option<String>>,
@@ -21769,7 +22155,10 @@ pub fn androidpublisher_purchases_voidedpurchases_list_builder(
     startTime: &Option<Option<String>>,
     token: &Option<Option<String>>,
     type_rs: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/purchases/voidedpurchases",
@@ -21984,12 +22373,15 @@ pub fn androidpublisher_purchases_voidedpurchases_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_reviews_get_execute()` to send, or `androidpublisher_reviews_get` for simplest API.
 
-pub fn androidpublisher_reviews_get_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_reviews_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
     reviewId: &String,
     translationLanguage: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/reviews/{}",
@@ -22163,14 +22555,17 @@ pub fn androidpublisher_reviews_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_reviews_list_execute()` to send, or `androidpublisher_reviews_list` for simplest API.
 
-pub fn androidpublisher_reviews_list_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_reviews_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
     maxResults: &Option<Option<String>>,
     startIndex: &Option<Option<String>>,
     token: &Option<Option<String>>,
     translationLanguage: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/reviews",
@@ -22363,11 +22758,14 @@ pub fn androidpublisher_reviews_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_reviews_reply_execute()` to send, or `androidpublisher_reviews_reply` for simplest API.
 
-pub fn androidpublisher_reviews_reply_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_reviews_reply_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
     reviewId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/reviews/{}:reply",
@@ -22529,11 +22927,14 @@ pub fn androidpublisher_reviews_reply(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_systemapks_variants_create_execute()` to send, or `androidpublisher_systemapks_variants_create` for simplest API.
 
-pub fn androidpublisher_systemapks_variants_create_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_systemapks_variants_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
     versionCode: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/systemApks/{}/variants",
@@ -22694,12 +23095,15 @@ pub fn androidpublisher_systemapks_variants_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_systemapks_variants_download_execute()` to send, or `androidpublisher_systemapks_variants_download` for simplest API.
 
-pub fn androidpublisher_systemapks_variants_download_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_systemapks_variants_download_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
     versionCode: &String,
     variantId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/systemApks/{}/variants/{}:download",
@@ -22861,12 +23265,15 @@ pub fn androidpublisher_systemapks_variants_download(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_systemapks_variants_get_execute()` to send, or `androidpublisher_systemapks_variants_get` for simplest API.
 
-pub fn androidpublisher_systemapks_variants_get_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_systemapks_variants_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
     versionCode: &String,
     variantId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/systemApks/{}/variants/{}",
@@ -23031,11 +23438,14 @@ pub fn androidpublisher_systemapks_variants_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_systemapks_variants_list_execute()` to send, or `androidpublisher_systemapks_variants_list` for simplest API.
 
-pub fn androidpublisher_systemapks_variants_list_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_systemapks_variants_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     packageName: &String,
     versionCode: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/systemApks/{}/variants",
@@ -23200,10 +23610,13 @@ pub fn androidpublisher_systemapks_variants_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_users_create_execute()` to send, or `androidpublisher_users_create` for simplest API.
 
-pub fn androidpublisher_users_create_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_users_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/developers/{}/users",
@@ -23357,10 +23770,13 @@ pub fn androidpublisher_users_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_users_delete_execute()` to send, or `androidpublisher_users_delete` for simplest API.
 
-pub fn androidpublisher_users_delete_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_users_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/developers/{}/users/{usersId}",
@@ -23511,12 +23927,15 @@ pub fn androidpublisher_users_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_users_list_execute()` to send, or `androidpublisher_users_list` for simplest API.
 
-pub fn androidpublisher_users_list_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_users_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/developers/{}/users",
@@ -23693,11 +24112,14 @@ pub fn androidpublisher_users_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_users_patch_execute()` to send, or `androidpublisher_users_patch` for simplest API.
 
-pub fn androidpublisher_users_patch_builder(
-    client: &SimpleHttpClient,
+pub fn androidpublisher_users_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/developers/{}/users/{usersId}",

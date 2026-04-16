@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudshell_operations_cancel_execute()` to send, or `cloudshell_operations_cancel` for simplest API.
 
-pub fn cloudshell_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn cloudshell_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudshell.googleapis.com/v1/operations/{}:cancel",
@@ -183,10 +187,13 @@ pub fn cloudshell_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudshell_operations_delete_execute()` to send, or `cloudshell_operations_delete` for simplest API.
 
-pub fn cloudshell_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn cloudshell_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://cloudshell.googleapis.com/v1/operations/{}", name,);
 
@@ -337,10 +344,13 @@ pub fn cloudshell_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudshell_operations_get_execute()` to send, or `cloudshell_operations_get` for simplest API.
 
-pub fn cloudshell_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn cloudshell_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://cloudshell.googleapis.com/v1/operations/{}", name,);
 
@@ -491,13 +501,16 @@ pub fn cloudshell_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudshell_operations_list_execute()` to send, or `cloudshell_operations_list` for simplest API.
 
-pub fn cloudshell_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn cloudshell_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://cloudshell.googleapis.com/v1/operations",);
 
@@ -684,10 +697,13 @@ pub fn cloudshell_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudshell_users_environments_add_public_key_execute()` to send, or `cloudshell_users_environments_add_public_key` for simplest API.
 
-pub fn cloudshell_users_environments_add_public_key_builder(
-    client: &SimpleHttpClient,
+pub fn cloudshell_users_environments_add_public_key_builder<R>(
+    client: &SimpleHttpClient<R>,
     environment: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudshell.googleapis.com/v1/users/{}/environments/{environmentsId}:addPublicKey",
@@ -841,10 +857,13 @@ pub fn cloudshell_users_environments_add_public_key(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudshell_users_environments_authorize_execute()` to send, or `cloudshell_users_environments_authorize` for simplest API.
 
-pub fn cloudshell_users_environments_authorize_builder(
-    client: &SimpleHttpClient,
+pub fn cloudshell_users_environments_authorize_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudshell.googleapis.com/v1/users/{}/environments/{environmentsId}:authorize",
@@ -998,12 +1017,15 @@ pub fn cloudshell_users_environments_authorize(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudshell_users_environments_generate_access_token_execute()` to send, or `cloudshell_users_environments_generate_access_token` for simplest API.
 
-pub fn cloudshell_users_environments_generate_access_token_builder(
-    client: &SimpleHttpClient,
+pub fn cloudshell_users_environments_generate_access_token_builder<R>(
+    client: &SimpleHttpClient<R>,
     environment: &String,
     expireTime: &Option<Option<String>>,
     ttl: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudshell.googleapis.com/v1/users/{}/environments/{environmentsId}:generateAccessToken",
@@ -1188,10 +1210,13 @@ pub fn cloudshell_users_environments_generate_access_token(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudshell_users_environments_get_execute()` to send, or `cloudshell_users_environments_get` for simplest API.
 
-pub fn cloudshell_users_environments_get_builder(
-    client: &SimpleHttpClient,
+pub fn cloudshell_users_environments_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudshell.googleapis.com/v1/users/{}/environments/{environmentsId}",
@@ -1345,10 +1370,13 @@ pub fn cloudshell_users_environments_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudshell_users_environments_remove_public_key_execute()` to send, or `cloudshell_users_environments_remove_public_key` for simplest API.
 
-pub fn cloudshell_users_environments_remove_public_key_builder(
-    client: &SimpleHttpClient,
+pub fn cloudshell_users_environments_remove_public_key_builder<R>(
+    client: &SimpleHttpClient<R>,
     environment: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudshell.googleapis.com/v1/users/{}/environments/{environmentsId}:removePublicKey",
@@ -1503,10 +1531,13 @@ pub fn cloudshell_users_environments_remove_public_key(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudshell_users_environments_start_execute()` to send, or `cloudshell_users_environments_start` for simplest API.
 
-pub fn cloudshell_users_environments_start_builder(
-    client: &SimpleHttpClient,
+pub fn cloudshell_users_environments_start_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudshell.googleapis.com/v1/users/{}/environments/{environmentsId}:start",

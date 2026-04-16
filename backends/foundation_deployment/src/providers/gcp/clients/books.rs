@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,12 +27,15 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `books_bookshelves_get_execute()` to send, or `books_bookshelves_get` for simplest API.
 
-pub fn books_bookshelves_get_builder(
-    client: &SimpleHttpClient,
+pub fn books_bookshelves_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     userId: &String,
     shelf: &String,
     source: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://books.googleapis.com/books/v1/users/{}/bookshelves/{}",
@@ -200,11 +204,14 @@ pub fn books_bookshelves_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `books_bookshelves_list_execute()` to send, or `books_bookshelves_list` for simplest API.
 
-pub fn books_bookshelves_list_builder(
-    client: &SimpleHttpClient,
+pub fn books_bookshelves_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     userId: &String,
     source: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://books.googleapis.com/books/v1/users/{}/bookshelves",
@@ -371,15 +378,18 @@ pub fn books_bookshelves_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `books_bookshelves_volumes_list_execute()` to send, or `books_bookshelves_volumes_list` for simplest API.
 
-pub fn books_bookshelves_volumes_list_builder(
-    client: &SimpleHttpClient,
+pub fn books_bookshelves_volumes_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     userId: &String,
     shelf: &String,
     maxResults: &Option<Option<String>>,
     showPreorders: &Option<Option<String>>,
     source: &Option<Option<String>>,
     startIndex: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://books.googleapis.com/books/v1/users/{}/bookshelves/{}/volumes",
@@ -571,13 +581,16 @@ pub fn books_bookshelves_volumes_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `books_cloudloading_add_book_execute()` to send, or `books_cloudloading_add_book` for simplest API.
 
-pub fn books_cloudloading_add_book_builder(
-    client: &SimpleHttpClient,
+pub fn books_cloudloading_add_book_builder<R>(
+    client: &SimpleHttpClient<R>,
     drive_document_id: &Option<Option<String>>,
     mime_type: &Option<Option<String>>,
     name: &Option<Option<String>>,
     upload_client_token: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://books.googleapis.com/books/v1/cloudloading/addBook",);
 
@@ -764,10 +777,13 @@ pub fn books_cloudloading_add_book(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `books_cloudloading_delete_book_execute()` to send, or `books_cloudloading_delete_book` for simplest API.
 
-pub fn books_cloudloading_delete_book_builder(
-    client: &SimpleHttpClient,
+pub fn books_cloudloading_delete_book_builder<R>(
+    client: &SimpleHttpClient<R>,
     volumeId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://books.googleapis.com/books/v1/cloudloading/deleteBook",);
 
@@ -929,9 +945,12 @@ pub fn books_cloudloading_delete_book(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `books_cloudloading_update_book_execute()` to send, or `books_cloudloading_update_book` for simplest API.
 
-pub fn books_cloudloading_update_book_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn books_cloudloading_update_book_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://books.googleapis.com/books/v1/cloudloading/updateBook",);
 
@@ -1078,10 +1097,13 @@ pub fn books_cloudloading_update_book(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `books_dictionary_list_offline_metadata_execute()` to send, or `books_dictionary_list_offline_metadata` for simplest API.
 
-pub fn books_dictionary_list_offline_metadata_builder(
-    client: &SimpleHttpClient,
+pub fn books_dictionary_list_offline_metadata_builder<R>(
+    client: &SimpleHttpClient<R>,
     cpksver: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://books.googleapis.com/books/v1/dictionary/listOfflineMetadata",);
@@ -1244,10 +1266,13 @@ pub fn books_dictionary_list_offline_metadata(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `books_familysharing_get_family_info_execute()` to send, or `books_familysharing_get_family_info` for simplest API.
 
-pub fn books_familysharing_get_family_info_builder(
-    client: &SimpleHttpClient,
+pub fn books_familysharing_get_family_info_builder<R>(
+    client: &SimpleHttpClient<R>,
     source: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://books.googleapis.com/books/v1/familysharing/getFamilyInfo",);
@@ -1410,12 +1435,15 @@ pub fn books_familysharing_get_family_info(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `books_familysharing_share_execute()` to send, or `books_familysharing_share` for simplest API.
 
-pub fn books_familysharing_share_builder(
-    client: &SimpleHttpClient,
+pub fn books_familysharing_share_builder<R>(
+    client: &SimpleHttpClient<R>,
     docId: &Option<Option<String>>,
     source: &Option<Option<String>>,
     volumeId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://books.googleapis.com/books/v1/familysharing/share",);
 
@@ -1588,12 +1616,15 @@ pub fn books_familysharing_share(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `books_familysharing_unshare_execute()` to send, or `books_familysharing_unshare` for simplest API.
 
-pub fn books_familysharing_unshare_builder(
-    client: &SimpleHttpClient,
+pub fn books_familysharing_unshare_builder<R>(
+    client: &SimpleHttpClient<R>,
     docId: &Option<Option<String>>,
     source: &Option<Option<String>>,
     volumeId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://books.googleapis.com/books/v1/familysharing/unshare",);
 
@@ -1766,13 +1797,16 @@ pub fn books_familysharing_unshare(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `books_layers_get_execute()` to send, or `books_layers_get` for simplest API.
 
-pub fn books_layers_get_builder(
-    client: &SimpleHttpClient,
+pub fn books_layers_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     volumeId: &String,
     summaryId: &String,
     contentVersion: &Option<Option<String>>,
     source: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://books.googleapis.com/books/v1/volumes/{}/layersummary/{}",
@@ -1956,14 +1990,17 @@ pub fn books_layers_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `books_layers_list_execute()` to send, or `books_layers_list` for simplest API.
 
-pub fn books_layers_list_builder(
-    client: &SimpleHttpClient,
+pub fn books_layers_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     volumeId: &String,
     contentVersion: &Option<Option<String>>,
     maxResults: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     source: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://books.googleapis.com/books/v1/volumes/{}/layersummary",
@@ -2156,8 +2193,8 @@ pub fn books_layers_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `books_layers_annotation_data_get_execute()` to send, or `books_layers_annotation_data_get` for simplest API.
 
-pub fn books_layers_annotation_data_get_builder(
-    client: &SimpleHttpClient,
+pub fn books_layers_annotation_data_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     volumeId: &String,
     layerId: &String,
     annotationDataId: &String,
@@ -2168,7 +2205,10 @@ pub fn books_layers_annotation_data_get_builder(
     scale: &Option<Option<String>>,
     source: &Option<Option<String>>,
     w: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://books.googleapis.com/books/v1/volumes/{}/layers/{}/data/{}",
@@ -2385,8 +2425,8 @@ pub fn books_layers_annotation_data_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `books_layers_annotation_data_list_execute()` to send, or `books_layers_annotation_data_list` for simplest API.
 
-pub fn books_layers_annotation_data_list_builder(
-    client: &SimpleHttpClient,
+pub fn books_layers_annotation_data_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     volumeId: &String,
     layerId: &String,
     annotationDataId: &Option<Option<String>>,
@@ -2400,7 +2440,10 @@ pub fn books_layers_annotation_data_list_builder(
     updatedMax: &Option<Option<String>>,
     updatedMin: &Option<Option<String>>,
     w: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://books.googleapis.com/books/v1/volumes/{}/layers/{}/data",
@@ -2638,14 +2681,17 @@ pub fn books_layers_annotation_data_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `books_layers_volume_annotations_get_execute()` to send, or `books_layers_volume_annotations_get` for simplest API.
 
-pub fn books_layers_volume_annotations_get_builder(
-    client: &SimpleHttpClient,
+pub fn books_layers_volume_annotations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     volumeId: &String,
     layerId: &String,
     annotationId: &String,
     locale: &Option<Option<String>>,
     source: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://books.googleapis.com/books/v1/volumes/{}/layers/{}/annotations/{}",
@@ -2832,8 +2878,8 @@ pub fn books_layers_volume_annotations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `books_layers_volume_annotations_list_execute()` to send, or `books_layers_volume_annotations_list` for simplest API.
 
-pub fn books_layers_volume_annotations_list_builder(
-    client: &SimpleHttpClient,
+pub fn books_layers_volume_annotations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     volumeId: &String,
     layerId: &String,
     contentVersion: &Option<Option<String>>,
@@ -2849,7 +2895,10 @@ pub fn books_layers_volume_annotations_list_builder(
     updatedMax: &Option<Option<String>>,
     updatedMin: &Option<Option<String>>,
     volumeAnnotationsVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://books.googleapis.com/books/v1/volumes/{}/layers/{}",
@@ -3099,10 +3148,13 @@ pub fn books_layers_volume_annotations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `books_myconfig_get_user_settings_execute()` to send, or `books_myconfig_get_user_settings` for simplest API.
 
-pub fn books_myconfig_get_user_settings_builder(
-    client: &SimpleHttpClient,
+pub fn books_myconfig_get_user_settings_builder<R>(
+    client: &SimpleHttpClient<R>,
     country: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://books.googleapis.com/books/v1/myconfig/getUserSettings",);
 
@@ -3268,13 +3320,16 @@ pub fn books_myconfig_get_user_settings(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `books_myconfig_release_download_access_execute()` to send, or `books_myconfig_release_download_access` for simplest API.
 
-pub fn books_myconfig_release_download_access_builder(
-    client: &SimpleHttpClient,
+pub fn books_myconfig_release_download_access_builder<R>(
+    client: &SimpleHttpClient<R>,
     cpksver: &Option<Option<String>>,
     locale: &Option<Option<String>>,
     source: &Option<Option<String>>,
     volumeIds: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://books.googleapis.com/books/v1/myconfig/releaseDownloadAccess",);
@@ -3462,15 +3517,18 @@ pub fn books_myconfig_release_download_access(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `books_myconfig_request_access_execute()` to send, or `books_myconfig_request_access` for simplest API.
 
-pub fn books_myconfig_request_access_builder(
-    client: &SimpleHttpClient,
+pub fn books_myconfig_request_access_builder<R>(
+    client: &SimpleHttpClient<R>,
     cpksver: &Option<Option<String>>,
     licenseTypes: &Option<Option<String>>,
     locale: &Option<Option<String>>,
     nonce: &Option<Option<String>>,
     source: &Option<Option<String>>,
     volumeId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://books.googleapis.com/books/v1/myconfig/requestAccess",);
 
@@ -3669,8 +3727,8 @@ pub fn books_myconfig_request_access(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `books_myconfig_sync_volume_licenses_execute()` to send, or `books_myconfig_sync_volume_licenses` for simplest API.
 
-pub fn books_myconfig_sync_volume_licenses_builder(
-    client: &SimpleHttpClient,
+pub fn books_myconfig_sync_volume_licenses_builder<R>(
+    client: &SimpleHttpClient<R>,
     cpksver: &Option<Option<String>>,
     features: &Option<Option<String>>,
     includeNonComicsSeries: &Option<Option<String>>,
@@ -3679,7 +3737,10 @@ pub fn books_myconfig_sync_volume_licenses_builder(
     showPreorders: &Option<Option<String>>,
     source: &Option<Option<String>>,
     volumeIds: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://books.googleapis.com/books/v1/myconfig/syncVolumeLicenses",);
@@ -3887,9 +3948,12 @@ pub fn books_myconfig_sync_volume_licenses(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `books_myconfig_update_user_settings_execute()` to send, or `books_myconfig_update_user_settings` for simplest API.
 
-pub fn books_myconfig_update_user_settings_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn books_myconfig_update_user_settings_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://books.googleapis.com/books/v1/myconfig/updateUserSettings",);
@@ -4037,11 +4101,14 @@ pub fn books_myconfig_update_user_settings(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `books_mylibrary_annotations_delete_execute()` to send, or `books_mylibrary_annotations_delete` for simplest API.
 
-pub fn books_mylibrary_annotations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn books_mylibrary_annotations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     annotationId: &String,
     source: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://books.googleapis.com/books/v1/mylibrary/annotations/{}",
@@ -4209,13 +4276,16 @@ pub fn books_mylibrary_annotations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `books_mylibrary_annotations_insert_execute()` to send, or `books_mylibrary_annotations_insert` for simplest API.
 
-pub fn books_mylibrary_annotations_insert_builder(
-    client: &SimpleHttpClient,
+pub fn books_mylibrary_annotations_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     annotationId: &Option<Option<String>>,
     country: &Option<Option<String>>,
     showOnlySummaryInResponse: &Option<Option<String>>,
     source: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://books.googleapis.com/books/v1/mylibrary/annotations",);
 
@@ -4398,8 +4468,8 @@ pub fn books_mylibrary_annotations_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `books_mylibrary_annotations_list_execute()` to send, or `books_mylibrary_annotations_list` for simplest API.
 
-pub fn books_mylibrary_annotations_list_builder(
-    client: &SimpleHttpClient,
+pub fn books_mylibrary_annotations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     contentVersion: &Option<Option<String>>,
     layerId: &Option<Option<String>>,
     layerIds: &Option<Option<String>>,
@@ -4410,7 +4480,10 @@ pub fn books_mylibrary_annotations_list_builder(
     updatedMax: &Option<Option<String>>,
     updatedMin: &Option<Option<String>>,
     volumeId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://books.googleapis.com/books/v1/mylibrary/annotations",);
 
@@ -4629,12 +4702,15 @@ pub fn books_mylibrary_annotations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `books_mylibrary_annotations_summary_execute()` to send, or `books_mylibrary_annotations_summary` for simplest API.
 
-pub fn books_mylibrary_annotations_summary_builder(
-    client: &SimpleHttpClient,
+pub fn books_mylibrary_annotations_summary_builder<R>(
+    client: &SimpleHttpClient<R>,
     layerIds: &Option<Option<String>>,
     source: &Option<Option<String>>,
     volumeId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://books.googleapis.com/books/v1/mylibrary/annotations/summary",);
@@ -4816,11 +4892,14 @@ pub fn books_mylibrary_annotations_summary(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `books_mylibrary_annotations_update_execute()` to send, or `books_mylibrary_annotations_update` for simplest API.
 
-pub fn books_mylibrary_annotations_update_builder(
-    client: &SimpleHttpClient,
+pub fn books_mylibrary_annotations_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     annotationId: &String,
     source: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://books.googleapis.com/books/v1/mylibrary/annotations/{}",
@@ -4988,13 +5067,16 @@ pub fn books_mylibrary_annotations_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `books_mylibrary_bookshelves_add_volume_execute()` to send, or `books_mylibrary_bookshelves_add_volume` for simplest API.
 
-pub fn books_mylibrary_bookshelves_add_volume_builder(
-    client: &SimpleHttpClient,
+pub fn books_mylibrary_bookshelves_add_volume_builder<R>(
+    client: &SimpleHttpClient<R>,
     shelf: &String,
     reason: &Option<Option<String>>,
     source: &Option<Option<String>>,
     volumeId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://books.googleapis.com/books/v1/mylibrary/bookshelves/{}/addVolume",
@@ -5177,11 +5259,14 @@ pub fn books_mylibrary_bookshelves_add_volume(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `books_mylibrary_bookshelves_clear_volumes_execute()` to send, or `books_mylibrary_bookshelves_clear_volumes` for simplest API.
 
-pub fn books_mylibrary_bookshelves_clear_volumes_builder(
-    client: &SimpleHttpClient,
+pub fn books_mylibrary_bookshelves_clear_volumes_builder<R>(
+    client: &SimpleHttpClient<R>,
     shelf: &String,
     source: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://books.googleapis.com/books/v1/mylibrary/bookshelves/{}/clearVolumes",
@@ -5349,11 +5434,14 @@ pub fn books_mylibrary_bookshelves_clear_volumes(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `books_mylibrary_bookshelves_get_execute()` to send, or `books_mylibrary_bookshelves_get` for simplest API.
 
-pub fn books_mylibrary_bookshelves_get_builder(
-    client: &SimpleHttpClient,
+pub fn books_mylibrary_bookshelves_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     shelf: &String,
     source: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://books.googleapis.com/books/v1/mylibrary/bookshelves/{}",
@@ -5520,10 +5608,13 @@ pub fn books_mylibrary_bookshelves_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `books_mylibrary_bookshelves_list_execute()` to send, or `books_mylibrary_bookshelves_list` for simplest API.
 
-pub fn books_mylibrary_bookshelves_list_builder(
-    client: &SimpleHttpClient,
+pub fn books_mylibrary_bookshelves_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     source: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://books.googleapis.com/books/v1/mylibrary/bookshelves",);
 
@@ -5685,13 +5776,16 @@ pub fn books_mylibrary_bookshelves_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `books_mylibrary_bookshelves_move_volume_execute()` to send, or `books_mylibrary_bookshelves_move_volume` for simplest API.
 
-pub fn books_mylibrary_bookshelves_move_volume_builder(
-    client: &SimpleHttpClient,
+pub fn books_mylibrary_bookshelves_move_volume_builder<R>(
+    client: &SimpleHttpClient<R>,
     shelf: &String,
     source: &Option<Option<String>>,
     volumeId: &Option<Option<String>>,
     volumePosition: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://books.googleapis.com/books/v1/mylibrary/bookshelves/{}/moveVolume",
@@ -5874,13 +5968,16 @@ pub fn books_mylibrary_bookshelves_move_volume(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `books_mylibrary_bookshelves_remove_volume_execute()` to send, or `books_mylibrary_bookshelves_remove_volume` for simplest API.
 
-pub fn books_mylibrary_bookshelves_remove_volume_builder(
-    client: &SimpleHttpClient,
+pub fn books_mylibrary_bookshelves_remove_volume_builder<R>(
+    client: &SimpleHttpClient<R>,
     shelf: &String,
     reason: &Option<Option<String>>,
     source: &Option<Option<String>>,
     volumeId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://books.googleapis.com/books/v1/mylibrary/bookshelves/{}/removeVolume",
@@ -6063,8 +6160,8 @@ pub fn books_mylibrary_bookshelves_remove_volume(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `books_mylibrary_bookshelves_volumes_list_execute()` to send, or `books_mylibrary_bookshelves_volumes_list` for simplest API.
 
-pub fn books_mylibrary_bookshelves_volumes_list_builder(
-    client: &SimpleHttpClient,
+pub fn books_mylibrary_bookshelves_volumes_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     shelf: &String,
     country: &Option<Option<String>>,
     maxResults: &Option<Option<String>>,
@@ -6073,7 +6170,10 @@ pub fn books_mylibrary_bookshelves_volumes_list_builder(
     showPreorders: &Option<Option<String>>,
     source: &Option<Option<String>>,
     startIndex: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://books.googleapis.com/books/v1/mylibrary/bookshelves/{}/volumes",
@@ -6280,12 +6380,15 @@ pub fn books_mylibrary_bookshelves_volumes_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `books_mylibrary_readingpositions_get_execute()` to send, or `books_mylibrary_readingpositions_get` for simplest API.
 
-pub fn books_mylibrary_readingpositions_get_builder(
-    client: &SimpleHttpClient,
+pub fn books_mylibrary_readingpositions_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     volumeId: &String,
     contentVersion: &Option<Option<String>>,
     source: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://books.googleapis.com/books/v1/mylibrary/readingpositions/{}",
@@ -6466,8 +6569,8 @@ pub fn books_mylibrary_readingpositions_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `books_mylibrary_readingpositions_set_position_execute()` to send, or `books_mylibrary_readingpositions_set_position` for simplest API.
 
-pub fn books_mylibrary_readingpositions_set_position_builder(
-    client: &SimpleHttpClient,
+pub fn books_mylibrary_readingpositions_set_position_builder<R>(
+    client: &SimpleHttpClient<R>,
     volumeId: &String,
     action: &Option<Option<String>>,
     contentVersion: &Option<Option<String>>,
@@ -6475,7 +6578,10 @@ pub fn books_mylibrary_readingpositions_set_position_builder(
     position: &Option<Option<String>>,
     source: &Option<Option<String>>,
     timestamp: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://books.googleapis.com/books/v1/mylibrary/readingpositions/{}/setPosition",
@@ -6676,12 +6782,15 @@ pub fn books_mylibrary_readingpositions_set_position(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `books_notification_get_execute()` to send, or `books_notification_get` for simplest API.
 
-pub fn books_notification_get_builder(
-    client: &SimpleHttpClient,
+pub fn books_notification_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     locale: &Option<Option<String>>,
     notification_id: &Option<Option<String>>,
     source: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://books.googleapis.com/books/v1/notification/get",);
 
@@ -6858,10 +6967,13 @@ pub fn books_notification_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `books_onboarding_list_categories_execute()` to send, or `books_onboarding_list_categories` for simplest API.
 
-pub fn books_onboarding_list_categories_builder(
-    client: &SimpleHttpClient,
+pub fn books_onboarding_list_categories_builder<R>(
+    client: &SimpleHttpClient<R>,
     locale: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://books.googleapis.com/books/v1/onboarding/listCategories",);
 
@@ -7023,14 +7135,17 @@ pub fn books_onboarding_list_categories(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `books_onboarding_list_category_volumes_execute()` to send, or `books_onboarding_list_category_volumes` for simplest API.
 
-pub fn books_onboarding_list_category_volumes_builder(
-    client: &SimpleHttpClient,
+pub fn books_onboarding_list_category_volumes_builder<R>(
+    client: &SimpleHttpClient<R>,
     categoryId: &Option<Option<String>>,
     locale: &Option<Option<String>>,
     maxAllowedMaturityRating: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://books.googleapis.com/books/v1/onboarding/listCategoryVolumes",);
@@ -7220,12 +7335,15 @@ pub fn books_onboarding_list_category_volumes(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `books_personalizedstream_get_execute()` to send, or `books_personalizedstream_get` for simplest API.
 
-pub fn books_personalizedstream_get_builder(
-    client: &SimpleHttpClient,
+pub fn books_personalizedstream_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     locale: &Option<Option<String>>,
     maxAllowedMaturityRating: &Option<Option<String>>,
     source: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://books.googleapis.com/books/v1/personalizedstream/get",);
 
@@ -7406,8 +7524,8 @@ pub fn books_personalizedstream_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `books_promooffer_accept_execute()` to send, or `books_promooffer_accept` for simplest API.
 
-pub fn books_promooffer_accept_builder(
-    client: &SimpleHttpClient,
+pub fn books_promooffer_accept_builder<R>(
+    client: &SimpleHttpClient<R>,
     androidId: &Option<Option<String>>,
     device: &Option<Option<String>>,
     manufacturer: &Option<Option<String>>,
@@ -7416,7 +7534,10 @@ pub fn books_promooffer_accept_builder(
     product: &Option<Option<String>>,
     serial: &Option<Option<String>>,
     volumeId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://books.googleapis.com/books/v1/promooffer/accept",);
 
@@ -7623,8 +7744,8 @@ pub fn books_promooffer_accept(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `books_promooffer_dismiss_execute()` to send, or `books_promooffer_dismiss` for simplest API.
 
-pub fn books_promooffer_dismiss_builder(
-    client: &SimpleHttpClient,
+pub fn books_promooffer_dismiss_builder<R>(
+    client: &SimpleHttpClient<R>,
     androidId: &Option<Option<String>>,
     device: &Option<Option<String>>,
     manufacturer: &Option<Option<String>>,
@@ -7632,7 +7753,10 @@ pub fn books_promooffer_dismiss_builder(
     offerId: &Option<Option<String>>,
     product: &Option<Option<String>>,
     serial: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://books.googleapis.com/books/v1/promooffer/dismiss",);
 
@@ -7833,15 +7957,18 @@ pub fn books_promooffer_dismiss(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `books_promooffer_get_execute()` to send, or `books_promooffer_get` for simplest API.
 
-pub fn books_promooffer_get_builder(
-    client: &SimpleHttpClient,
+pub fn books_promooffer_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     androidId: &Option<Option<String>>,
     device: &Option<Option<String>>,
     manufacturer: &Option<Option<String>>,
     model: &Option<Option<String>>,
     product: &Option<Option<String>>,
     serial: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://books.googleapis.com/books/v1/promooffer/get",);
 
@@ -8036,10 +8163,13 @@ pub fn books_promooffer_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `books_series_get_execute()` to send, or `books_series_get` for simplest API.
 
-pub fn books_series_get_builder(
-    client: &SimpleHttpClient,
+pub fn books_series_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     series_id: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://books.googleapis.com/books/v1/series/get",);
 
@@ -8201,12 +8331,15 @@ pub fn books_series_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `books_series_membership_get_execute()` to send, or `books_series_membership_get` for simplest API.
 
-pub fn books_series_membership_get_builder(
-    client: &SimpleHttpClient,
+pub fn books_series_membership_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     page_size: &Option<Option<String>>,
     page_token: &Option<Option<String>>,
     series_id: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://books.googleapis.com/books/v1/series/membership/get",);
 
@@ -8387,8 +8520,8 @@ pub fn books_series_membership_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `books_volumes_get_execute()` to send, or `books_volumes_get` for simplest API.
 
-pub fn books_volumes_get_builder(
-    client: &SimpleHttpClient,
+pub fn books_volumes_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     volumeId: &String,
     country: &Option<Option<String>>,
     includeNonComicsSeries: &Option<Option<String>>,
@@ -8396,7 +8529,10 @@ pub fn books_volumes_get_builder(
     projection: &Option<Option<String>>,
     source: &Option<Option<String>>,
     user_library_consistent_read: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://books.googleapis.com/books/v1/volumes/{}", volumeId,);
 
@@ -8594,8 +8730,8 @@ pub fn books_volumes_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `books_volumes_list_execute()` to send, or `books_volumes_list` for simplest API.
 
-pub fn books_volumes_list_builder(
-    client: &SimpleHttpClient,
+pub fn books_volumes_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     download: &Option<Option<String>>,
     filter: &Option<Option<String>>,
     langRestrict: &Option<Option<String>>,
@@ -8610,7 +8746,10 @@ pub fn books_volumes_list_builder(
     showPreorders: &Option<Option<String>>,
     source: &Option<Option<String>>,
     startIndex: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://books.googleapis.com/books/v1/volumes",);
 
@@ -8853,14 +8992,17 @@ pub fn books_volumes_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `books_volumes_associated_list_execute()` to send, or `books_volumes_associated_list` for simplest API.
 
-pub fn books_volumes_associated_list_builder(
-    client: &SimpleHttpClient,
+pub fn books_volumes_associated_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     volumeId: &String,
     association: &Option<Option<String>>,
     locale: &Option<Option<String>>,
     maxAllowedMaturityRating: &Option<Option<String>>,
     source: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://books.googleapis.com/books/v1/volumes/{}/associated",
@@ -9049,8 +9191,8 @@ pub fn books_volumes_associated_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `books_volumes_mybooks_list_execute()` to send, or `books_volumes_mybooks_list` for simplest API.
 
-pub fn books_volumes_mybooks_list_builder(
-    client: &SimpleHttpClient,
+pub fn books_volumes_mybooks_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     acquireMethod: &Option<Option<String>>,
     country: &Option<Option<String>>,
     locale: &Option<Option<String>>,
@@ -9058,7 +9200,10 @@ pub fn books_volumes_mybooks_list_builder(
     processingState: &Option<Option<String>>,
     source: &Option<Option<String>>,
     startIndex: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://books.googleapis.com/books/v1/volumes/mybooks",);
 
@@ -9259,12 +9404,15 @@ pub fn books_volumes_mybooks_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `books_volumes_recommended_list_execute()` to send, or `books_volumes_recommended_list` for simplest API.
 
-pub fn books_volumes_recommended_list_builder(
-    client: &SimpleHttpClient,
+pub fn books_volumes_recommended_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     locale: &Option<Option<String>>,
     maxAllowedMaturityRating: &Option<Option<String>>,
     source: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://books.googleapis.com/books/v1/volumes/recommended",);
 
@@ -9441,13 +9589,16 @@ pub fn books_volumes_recommended_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `books_volumes_recommended_rate_execute()` to send, or `books_volumes_recommended_rate` for simplest API.
 
-pub fn books_volumes_recommended_rate_builder(
-    client: &SimpleHttpClient,
+pub fn books_volumes_recommended_rate_builder<R>(
+    client: &SimpleHttpClient<R>,
     locale: &Option<Option<String>>,
     rating: &Option<Option<String>>,
     source: &Option<Option<String>>,
     volumeId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://books.googleapis.com/books/v1/volumes/recommended/rate",);
 
@@ -9638,15 +9789,18 @@ pub fn books_volumes_recommended_rate(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `books_volumes_useruploaded_list_execute()` to send, or `books_volumes_useruploaded_list` for simplest API.
 
-pub fn books_volumes_useruploaded_list_builder(
-    client: &SimpleHttpClient,
+pub fn books_volumes_useruploaded_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     locale: &Option<Option<String>>,
     maxResults: &Option<Option<String>>,
     processingState: &Option<Option<String>>,
     source: &Option<Option<String>>,
     startIndex: &Option<Option<String>>,
     volumeId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://books.googleapis.com/books/v1/volumes/useruploaded",);
 

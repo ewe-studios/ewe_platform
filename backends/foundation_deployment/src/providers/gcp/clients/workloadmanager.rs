@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `workloadmanager_projects_locations_get_execute()` to send, or `workloadmanager_projects_locations_get` for simplest API.
 
-pub fn workloadmanager_projects_locations_get_builder(
-    client: &SimpleHttpClient,
+pub fn workloadmanager_projects_locations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://workloadmanager.googleapis.com/v1/projects/{}/locations/{locationsId}",
@@ -183,14 +187,17 @@ pub fn workloadmanager_projects_locations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `workloadmanager_projects_locations_list_execute()` to send, or `workloadmanager_projects_locations_list` for simplest API.
 
-pub fn workloadmanager_projects_locations_list_builder(
-    client: &SimpleHttpClient,
+pub fn workloadmanager_projects_locations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     extraLocationTypes: &Option<Option<String>>,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://workloadmanager.googleapis.com/v1/projects/{}/locations",
@@ -383,12 +390,15 @@ pub fn workloadmanager_projects_locations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `workloadmanager_projects_locations_deployments_create_execute()` to send, or `workloadmanager_projects_locations_deployments_create` for simplest API.
 
-pub fn workloadmanager_projects_locations_deployments_create_builder(
-    client: &SimpleHttpClient,
+pub fn workloadmanager_projects_locations_deployments_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     deploymentId: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://workloadmanager.googleapis.com/v1/projects/{}/locations/{locationsId}/deployments",
@@ -565,11 +575,14 @@ pub fn workloadmanager_projects_locations_deployments_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `workloadmanager_projects_locations_deployments_delete_execute()` to send, or `workloadmanager_projects_locations_deployments_delete` for simplest API.
 
-pub fn workloadmanager_projects_locations_deployments_delete_builder(
-    client: &SimpleHttpClient,
+pub fn workloadmanager_projects_locations_deployments_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     force: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://workloadmanager.googleapis.com/v1/projects/{}/locations/{locationsId}/deployments/{deploymentsId}",
@@ -740,10 +753,13 @@ pub fn workloadmanager_projects_locations_deployments_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `workloadmanager_projects_locations_deployments_get_execute()` to send, or `workloadmanager_projects_locations_deployments_get` for simplest API.
 
-pub fn workloadmanager_projects_locations_deployments_get_builder(
-    client: &SimpleHttpClient,
+pub fn workloadmanager_projects_locations_deployments_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://workloadmanager.googleapis.com/v1/projects/{}/locations/{locationsId}/deployments/{deploymentsId}",
@@ -897,14 +913,17 @@ pub fn workloadmanager_projects_locations_deployments_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `workloadmanager_projects_locations_deployments_list_execute()` to send, or `workloadmanager_projects_locations_deployments_list` for simplest API.
 
-pub fn workloadmanager_projects_locations_deployments_list_builder(
-    client: &SimpleHttpClient,
+pub fn workloadmanager_projects_locations_deployments_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://workloadmanager.googleapis.com/v1/projects/{}/locations/{locationsId}/deployments",
@@ -1097,11 +1116,14 @@ pub fn workloadmanager_projects_locations_deployments_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `workloadmanager_projects_locations_deployments_actuations_create_execute()` to send, or `workloadmanager_projects_locations_deployments_actuations_create` for simplest API.
 
-pub fn workloadmanager_projects_locations_deployments_actuations_create_builder(
-    client: &SimpleHttpClient,
+pub fn workloadmanager_projects_locations_deployments_actuations_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://workloadmanager.googleapis.com/v1/projects/{}/locations/{locationsId}/deployments/{deploymentsId}/actuations",
@@ -1272,10 +1294,13 @@ pub fn workloadmanager_projects_locations_deployments_actuations_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `workloadmanager_projects_locations_deployments_actuations_delete_execute()` to send, or `workloadmanager_projects_locations_deployments_actuations_delete` for simplest API.
 
-pub fn workloadmanager_projects_locations_deployments_actuations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn workloadmanager_projects_locations_deployments_actuations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://workloadmanager.googleapis.com/v1/projects/{}/locations/{locationsId}/deployments/{deploymentsId}/actuations/{actuationsId}",
@@ -1431,10 +1456,13 @@ pub fn workloadmanager_projects_locations_deployments_actuations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `workloadmanager_projects_locations_deployments_actuations_get_execute()` to send, or `workloadmanager_projects_locations_deployments_actuations_get` for simplest API.
 
-pub fn workloadmanager_projects_locations_deployments_actuations_get_builder(
-    client: &SimpleHttpClient,
+pub fn workloadmanager_projects_locations_deployments_actuations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://workloadmanager.googleapis.com/v1/projects/{}/locations/{locationsId}/deployments/{deploymentsId}/actuations/{actuationsId}",
@@ -1589,14 +1617,17 @@ pub fn workloadmanager_projects_locations_deployments_actuations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `workloadmanager_projects_locations_deployments_actuations_list_execute()` to send, or `workloadmanager_projects_locations_deployments_actuations_list` for simplest API.
 
-pub fn workloadmanager_projects_locations_deployments_actuations_list_builder(
-    client: &SimpleHttpClient,
+pub fn workloadmanager_projects_locations_deployments_actuations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://workloadmanager.googleapis.com/v1/projects/{}/locations/{locationsId}/deployments/{deploymentsId}/actuations",
@@ -1789,10 +1820,13 @@ pub fn workloadmanager_projects_locations_deployments_actuations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `workloadmanager_projects_locations_discoveredprofiles_get_execute()` to send, or `workloadmanager_projects_locations_discoveredprofiles_get` for simplest API.
 
-pub fn workloadmanager_projects_locations_discoveredprofiles_get_builder(
-    client: &SimpleHttpClient,
+pub fn workloadmanager_projects_locations_discoveredprofiles_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://workloadmanager.googleapis.com/v1/projects/{}/locations/{locationsId}/discoveredprofiles/{discoveredprofilesId}",
@@ -1951,13 +1985,16 @@ pub fn workloadmanager_projects_locations_discoveredprofiles_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `workloadmanager_projects_locations_discoveredprofiles_list_execute()` to send, or `workloadmanager_projects_locations_discoveredprofiles_list` for simplest API.
 
-pub fn workloadmanager_projects_locations_discoveredprofiles_list_builder(
-    client: &SimpleHttpClient,
+pub fn workloadmanager_projects_locations_discoveredprofiles_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://workloadmanager.googleapis.com/v1/projects/{}/locations/{locationsId}/discoveredprofiles",
@@ -2148,10 +2185,13 @@ pub fn workloadmanager_projects_locations_discoveredprofiles_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `workloadmanager_projects_locations_discoveredprofiles_health_get_execute()` to send, or `workloadmanager_projects_locations_discoveredprofiles_health_get` for simplest API.
 
-pub fn workloadmanager_projects_locations_discoveredprofiles_health_get_builder(
-    client: &SimpleHttpClient,
+pub fn workloadmanager_projects_locations_discoveredprofiles_health_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://workloadmanager.googleapis.com/v1/projects/{}/locations/{locationsId}/discoveredprofiles/{discoveredprofilesId}/health/{healthId}",
@@ -2311,12 +2351,15 @@ pub fn workloadmanager_projects_locations_discoveredprofiles_health_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `workloadmanager_projects_locations_evaluations_create_execute()` to send, or `workloadmanager_projects_locations_evaluations_create` for simplest API.
 
-pub fn workloadmanager_projects_locations_evaluations_create_builder(
-    client: &SimpleHttpClient,
+pub fn workloadmanager_projects_locations_evaluations_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     evaluationId: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://workloadmanager.googleapis.com/v1/projects/{}/locations/{locationsId}/evaluations",
@@ -2493,12 +2536,15 @@ pub fn workloadmanager_projects_locations_evaluations_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `workloadmanager_projects_locations_evaluations_delete_execute()` to send, or `workloadmanager_projects_locations_evaluations_delete` for simplest API.
 
-pub fn workloadmanager_projects_locations_evaluations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn workloadmanager_projects_locations_evaluations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     force: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://workloadmanager.googleapis.com/v1/projects/{}/locations/{locationsId}/evaluations/{evaluationsId}",
@@ -2675,10 +2721,13 @@ pub fn workloadmanager_projects_locations_evaluations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `workloadmanager_projects_locations_evaluations_get_execute()` to send, or `workloadmanager_projects_locations_evaluations_get` for simplest API.
 
-pub fn workloadmanager_projects_locations_evaluations_get_builder(
-    client: &SimpleHttpClient,
+pub fn workloadmanager_projects_locations_evaluations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://workloadmanager.googleapis.com/v1/projects/{}/locations/{locationsId}/evaluations/{evaluationsId}",
@@ -2832,14 +2881,17 @@ pub fn workloadmanager_projects_locations_evaluations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `workloadmanager_projects_locations_evaluations_list_execute()` to send, or `workloadmanager_projects_locations_evaluations_list` for simplest API.
 
-pub fn workloadmanager_projects_locations_evaluations_list_builder(
-    client: &SimpleHttpClient,
+pub fn workloadmanager_projects_locations_evaluations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://workloadmanager.googleapis.com/v1/projects/{}/locations/{locationsId}/evaluations",
@@ -3032,12 +3084,15 @@ pub fn workloadmanager_projects_locations_evaluations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `workloadmanager_projects_locations_evaluations_patch_execute()` to send, or `workloadmanager_projects_locations_evaluations_patch` for simplest API.
 
-pub fn workloadmanager_projects_locations_evaluations_patch_builder(
-    client: &SimpleHttpClient,
+pub fn workloadmanager_projects_locations_evaluations_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://workloadmanager.googleapis.com/v1/projects/{}/locations/{locationsId}/evaluations/{evaluationsId}",
@@ -3214,11 +3269,14 @@ pub fn workloadmanager_projects_locations_evaluations_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `workloadmanager_projects_locations_evaluations_executions_delete_execute()` to send, or `workloadmanager_projects_locations_evaluations_executions_delete` for simplest API.
 
-pub fn workloadmanager_projects_locations_evaluations_executions_delete_builder(
-    client: &SimpleHttpClient,
+pub fn workloadmanager_projects_locations_evaluations_executions_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://workloadmanager.googleapis.com/v1/projects/{}/locations/{locationsId}/evaluations/{evaluationsId}/executions/{executionsId}",
@@ -3389,10 +3447,13 @@ pub fn workloadmanager_projects_locations_evaluations_executions_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `workloadmanager_projects_locations_evaluations_executions_get_execute()` to send, or `workloadmanager_projects_locations_evaluations_executions_get` for simplest API.
 
-pub fn workloadmanager_projects_locations_evaluations_executions_get_builder(
-    client: &SimpleHttpClient,
+pub fn workloadmanager_projects_locations_evaluations_executions_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://workloadmanager.googleapis.com/v1/projects/{}/locations/{locationsId}/evaluations/{evaluationsId}/executions/{executionsId}",
@@ -3547,14 +3608,17 @@ pub fn workloadmanager_projects_locations_evaluations_executions_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `workloadmanager_projects_locations_evaluations_executions_list_execute()` to send, or `workloadmanager_projects_locations_evaluations_executions_list` for simplest API.
 
-pub fn workloadmanager_projects_locations_evaluations_executions_list_builder(
-    client: &SimpleHttpClient,
+pub fn workloadmanager_projects_locations_evaluations_executions_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://workloadmanager.googleapis.com/v1/projects/{}/locations/{locationsId}/evaluations/{evaluationsId}/executions",
@@ -3747,10 +3811,13 @@ pub fn workloadmanager_projects_locations_evaluations_executions_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `workloadmanager_projects_locations_evaluations_executions_run_execute()` to send, or `workloadmanager_projects_locations_evaluations_executions_run` for simplest API.
 
-pub fn workloadmanager_projects_locations_evaluations_executions_run_builder(
-    client: &SimpleHttpClient,
+pub fn workloadmanager_projects_locations_evaluations_executions_run_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://workloadmanager.googleapis.com/v1/projects/{}/locations/{locationsId}/evaluations/{evaluationsId}/executions:run",
@@ -3905,13 +3972,16 @@ pub fn workloadmanager_projects_locations_evaluations_executions_run(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `workloadmanager_projects_locations_evaluations_executions_results_list_execute()` to send, or `workloadmanager_projects_locations_evaluations_executions_results_list` for simplest API.
 
-pub fn workloadmanager_projects_locations_evaluations_executions_results_list_builder(
-    client: &SimpleHttpClient,
+pub fn workloadmanager_projects_locations_evaluations_executions_results_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://workloadmanager.googleapis.com/v1/projects/{}/locations/{locationsId}/evaluations/{evaluationsId}/executions/{executionsId}/results",
@@ -4103,15 +4173,18 @@ pub fn workloadmanager_projects_locations_evaluations_executions_results_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `workloadmanager_projects_locations_evaluations_executions_scanned_resources_list_execute()` to send, or `workloadmanager_projects_locations_evaluations_executions_scanned_resources_list` for simplest API.
 
-pub fn workloadmanager_projects_locations_evaluations_executions_scanned_resources_list_builder(
-    client: &SimpleHttpClient,
+pub fn workloadmanager_projects_locations_evaluations_executions_scanned_resources_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     rule: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://workloadmanager.googleapis.com/v1/projects/{}/locations/{locationsId}/evaluations/{evaluationsId}/executions/{executionsId}/scannedResources",
@@ -4320,11 +4393,14 @@ pub fn workloadmanager_projects_locations_evaluations_executions_scanned_resourc
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `workloadmanager_projects_locations_insights_delete_execute()` to send, or `workloadmanager_projects_locations_insights_delete` for simplest API.
 
-pub fn workloadmanager_projects_locations_insights_delete_builder(
-    client: &SimpleHttpClient,
+pub fn workloadmanager_projects_locations_insights_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://workloadmanager.googleapis.com/v1/projects/{}/locations/{locationsId}/insights/{insightsId}",
@@ -4495,10 +4571,13 @@ pub fn workloadmanager_projects_locations_insights_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `workloadmanager_projects_locations_insights_write_insight_execute()` to send, or `workloadmanager_projects_locations_insights_write_insight` for simplest API.
 
-pub fn workloadmanager_projects_locations_insights_write_insight_builder(
-    client: &SimpleHttpClient,
+pub fn workloadmanager_projects_locations_insights_write_insight_builder<R>(
+    client: &SimpleHttpClient<R>,
     location: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://workloadmanager.googleapis.com/v1/projects/{}/locations/{locationsId}/insights:writeInsight",
@@ -4657,10 +4736,13 @@ pub fn workloadmanager_projects_locations_insights_write_insight(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `workloadmanager_projects_locations_operations_cancel_execute()` to send, or `workloadmanager_projects_locations_operations_cancel` for simplest API.
 
-pub fn workloadmanager_projects_locations_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn workloadmanager_projects_locations_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://workloadmanager.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}:cancel",
@@ -4814,10 +4896,13 @@ pub fn workloadmanager_projects_locations_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `workloadmanager_projects_locations_operations_delete_execute()` to send, or `workloadmanager_projects_locations_operations_delete` for simplest API.
 
-pub fn workloadmanager_projects_locations_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn workloadmanager_projects_locations_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://workloadmanager.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -4971,10 +5056,13 @@ pub fn workloadmanager_projects_locations_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `workloadmanager_projects_locations_operations_get_execute()` to send, or `workloadmanager_projects_locations_operations_get` for simplest API.
 
-pub fn workloadmanager_projects_locations_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn workloadmanager_projects_locations_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://workloadmanager.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -5128,14 +5216,17 @@ pub fn workloadmanager_projects_locations_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `workloadmanager_projects_locations_operations_list_execute()` to send, or `workloadmanager_projects_locations_operations_list` for simplest API.
 
-pub fn workloadmanager_projects_locations_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn workloadmanager_projects_locations_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://workloadmanager.googleapis.com/v1/projects/{}/locations/{locationsId}/operations",
@@ -5328,15 +5419,18 @@ pub fn workloadmanager_projects_locations_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `workloadmanager_projects_locations_rules_list_execute()` to send, or `workloadmanager_projects_locations_rules_list` for simplest API.
 
-pub fn workloadmanager_projects_locations_rules_list_builder(
-    client: &SimpleHttpClient,
+pub fn workloadmanager_projects_locations_rules_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     customRulesBucket: &Option<Option<String>>,
     evaluationType: &Option<Option<String>>,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://workloadmanager.googleapis.com/v1/projects/{}/locations/{locationsId}/rules",

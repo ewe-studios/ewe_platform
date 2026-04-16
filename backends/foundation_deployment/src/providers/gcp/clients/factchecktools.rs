@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,14 +27,17 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `factchecktools_claims_image_search_execute()` to send, or `factchecktools_claims_image_search` for simplest API.
 
-pub fn factchecktools_claims_image_search_builder(
-    client: &SimpleHttpClient,
+pub fn factchecktools_claims_image_search_builder<R>(
+    client: &SimpleHttpClient<R>,
     imageUri: &Option<Option<String>>,
     languageCode: &Option<Option<String>>,
     offset: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://factchecktools.googleapis.com/v1alpha1/claims:imageSearch",);
@@ -241,8 +245,8 @@ pub fn factchecktools_claims_image_search(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `factchecktools_claims_search_execute()` to send, or `factchecktools_claims_search` for simplest API.
 
-pub fn factchecktools_claims_search_builder(
-    client: &SimpleHttpClient,
+pub fn factchecktools_claims_search_builder<R>(
+    client: &SimpleHttpClient<R>,
     languageCode: &Option<Option<String>>,
     maxAgeDays: &Option<Option<String>>,
     offset: &Option<Option<String>>,
@@ -250,7 +254,10 @@ pub fn factchecktools_claims_search_builder(
     pageToken: &Option<Option<String>>,
     query: &Option<Option<String>>,
     reviewPublisherSiteFilter: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://factchecktools.googleapis.com/v1alpha1/claims:search",);
 
@@ -468,9 +475,12 @@ pub fn factchecktools_claims_search(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `factchecktools_pages_create_execute()` to send, or `factchecktools_pages_create` for simplest API.
 
-pub fn factchecktools_pages_create_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn factchecktools_pages_create_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://factchecktools.googleapis.com/v1alpha1/pages",);
 
@@ -631,10 +641,13 @@ pub fn factchecktools_pages_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `factchecktools_pages_delete_execute()` to send, or `factchecktools_pages_delete` for simplest API.
 
-pub fn factchecktools_pages_delete_builder(
-    client: &SimpleHttpClient,
+pub fn factchecktools_pages_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://factchecktools.googleapis.com/v1alpha1/pages/{}",
@@ -792,10 +805,13 @@ pub fn factchecktools_pages_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `factchecktools_pages_get_execute()` to send, or `factchecktools_pages_get` for simplest API.
 
-pub fn factchecktools_pages_get_builder(
-    client: &SimpleHttpClient,
+pub fn factchecktools_pages_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://factchecktools.googleapis.com/v1alpha1/pages/{}",
@@ -967,14 +983,17 @@ pub fn factchecktools_pages_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `factchecktools_pages_list_execute()` to send, or `factchecktools_pages_list` for simplest API.
 
-pub fn factchecktools_pages_list_builder(
-    client: &SimpleHttpClient,
+pub fn factchecktools_pages_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     offset: &Option<Option<String>>,
     organization: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     url: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://factchecktools.googleapis.com/v1alpha1/pages",);
 
@@ -1181,10 +1200,13 @@ pub fn factchecktools_pages_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `factchecktools_pages_update_execute()` to send, or `factchecktools_pages_update` for simplest API.
 
-pub fn factchecktools_pages_update_builder(
-    client: &SimpleHttpClient,
+pub fn factchecktools_pages_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://factchecktools.googleapis.com/v1alpha1/pages/{}",

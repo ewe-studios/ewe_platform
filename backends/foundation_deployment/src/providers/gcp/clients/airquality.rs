@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,9 +27,12 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `airquality_current_conditions_lookup_execute()` to send, or `airquality_current_conditions_lookup` for simplest API.
 
-pub fn airquality_current_conditions_lookup_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn airquality_current_conditions_lookup_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://airquality.googleapis.com/v1/currentConditions:lookup",);
 
@@ -179,9 +183,12 @@ pub fn airquality_current_conditions_lookup(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `airquality_forecast_lookup_execute()` to send, or `airquality_forecast_lookup` for simplest API.
 
-pub fn airquality_forecast_lookup_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn airquality_forecast_lookup_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://airquality.googleapis.com/v1/forecast:lookup",);
 
@@ -328,9 +335,12 @@ pub fn airquality_forecast_lookup(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `airquality_history_lookup_execute()` to send, or `airquality_history_lookup` for simplest API.
 
-pub fn airquality_history_lookup_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn airquality_history_lookup_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://airquality.googleapis.com/v1/history:lookup",);
 
@@ -477,13 +487,16 @@ pub fn airquality_history_lookup(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `airquality_map_types_heatmap_tiles_lookup_heatmap_tile_execute()` to send, or `airquality_map_types_heatmap_tiles_lookup_heatmap_tile` for simplest API.
 
-pub fn airquality_map_types_heatmap_tiles_lookup_heatmap_tile_builder(
-    client: &SimpleHttpClient,
+pub fn airquality_map_types_heatmap_tiles_lookup_heatmap_tile_builder<R>(
+    client: &SimpleHttpClient<R>,
     mapType: &String,
     zoom: &String,
     x: &String,
     y: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://airquality.googleapis.com/v1/mapTypes/{}/heatmapTiles/{}/{}/{}",

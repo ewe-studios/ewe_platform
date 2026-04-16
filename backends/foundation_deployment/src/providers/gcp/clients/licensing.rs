@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,12 +27,15 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `licensing_license_assignments_delete_execute()` to send, or `licensing_license_assignments_delete` for simplest API.
 
-pub fn licensing_license_assignments_delete_builder(
-    client: &SimpleHttpClient,
+pub fn licensing_license_assignments_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     productId: &String,
     skuId: &String,
     userId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://licensing.googleapis.com/apps/licensing/v1/product/{}/sku/{}/user/{}",
@@ -194,12 +198,15 @@ pub fn licensing_license_assignments_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `licensing_license_assignments_get_execute()` to send, or `licensing_license_assignments_get` for simplest API.
 
-pub fn licensing_license_assignments_get_builder(
-    client: &SimpleHttpClient,
+pub fn licensing_license_assignments_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     productId: &String,
     skuId: &String,
     userId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://licensing.googleapis.com/apps/licensing/v1/product/{}/sku/{}/user/{}",
@@ -366,11 +373,14 @@ pub fn licensing_license_assignments_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `licensing_license_assignments_insert_execute()` to send, or `licensing_license_assignments_insert` for simplest API.
 
-pub fn licensing_license_assignments_insert_builder(
-    client: &SimpleHttpClient,
+pub fn licensing_license_assignments_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     productId: &String,
     skuId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://licensing.googleapis.com/apps/licensing/v1/product/{}/sku/{}/user",
@@ -531,13 +541,16 @@ pub fn licensing_license_assignments_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `licensing_license_assignments_list_for_product_execute()` to send, or `licensing_license_assignments_list_for_product` for simplest API.
 
-pub fn licensing_license_assignments_list_for_product_builder(
-    client: &SimpleHttpClient,
+pub fn licensing_license_assignments_list_for_product_builder<R>(
+    client: &SimpleHttpClient<R>,
     productId: &String,
     customerId: &Option<Option<String>>,
     maxResults: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://licensing.googleapis.com/apps/licensing/v1/product/{}/users",
@@ -724,14 +737,17 @@ pub fn licensing_license_assignments_list_for_product(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `licensing_license_assignments_list_for_product_and_sku_execute()` to send, or `licensing_license_assignments_list_for_product_and_sku` for simplest API.
 
-pub fn licensing_license_assignments_list_for_product_and_sku_builder(
-    client: &SimpleHttpClient,
+pub fn licensing_license_assignments_list_for_product_and_sku_builder<R>(
+    client: &SimpleHttpClient<R>,
     productId: &String,
     skuId: &String,
     customerId: &Option<Option<String>>,
     maxResults: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://licensing.googleapis.com/apps/licensing/v1/product/{}/sku/{}/users",
@@ -921,12 +937,15 @@ pub fn licensing_license_assignments_list_for_product_and_sku(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `licensing_license_assignments_patch_execute()` to send, or `licensing_license_assignments_patch` for simplest API.
 
-pub fn licensing_license_assignments_patch_builder(
-    client: &SimpleHttpClient,
+pub fn licensing_license_assignments_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     productId: &String,
     skuId: &String,
     userId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://licensing.googleapis.com/apps/licensing/v1/product/{}/sku/{}/user/{}",
@@ -1093,12 +1112,15 @@ pub fn licensing_license_assignments_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `licensing_license_assignments_update_execute()` to send, or `licensing_license_assignments_update` for simplest API.
 
-pub fn licensing_license_assignments_update_builder(
-    client: &SimpleHttpClient,
+pub fn licensing_license_assignments_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     productId: &String,
     skuId: &String,
     userId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://licensing.googleapis.com/apps/licensing/v1/product/{}/sku/{}/user/{}",

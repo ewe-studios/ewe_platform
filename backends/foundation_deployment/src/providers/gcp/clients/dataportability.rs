@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,9 +27,12 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataportability_access_type_check_execute()` to send, or `dataportability_access_type_check` for simplest API.
 
-pub fn dataportability_access_type_check_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn dataportability_access_type_check_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://dataportability.googleapis.com/v1/accessType:check",);
 
@@ -175,10 +179,13 @@ pub fn dataportability_access_type_check(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataportability_archive_jobs_cancel_execute()` to send, or `dataportability_archive_jobs_cancel` for simplest API.
 
-pub fn dataportability_archive_jobs_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn dataportability_archive_jobs_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataportability.googleapis.com/v1/archiveJobs/{}:cancel",
@@ -340,10 +347,13 @@ pub fn dataportability_archive_jobs_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataportability_archive_jobs_get_portability_archive_state_execute()` to send, or `dataportability_archive_jobs_get_portability_archive_state` for simplest API.
 
-pub fn dataportability_archive_jobs_get_portability_archive_state_builder(
-    client: &SimpleHttpClient,
+pub fn dataportability_archive_jobs_get_portability_archive_state_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataportability.googleapis.com/v1/archiveJobs/{}/portabilityArchiveState",
@@ -502,10 +512,13 @@ pub fn dataportability_archive_jobs_get_portability_archive_state(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataportability_archive_jobs_retry_execute()` to send, or `dataportability_archive_jobs_retry` for simplest API.
 
-pub fn dataportability_archive_jobs_retry_builder(
-    client: &SimpleHttpClient,
+pub fn dataportability_archive_jobs_retry_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataportability.googleapis.com/v1/archiveJobs/{}:retry",
@@ -667,9 +680,12 @@ pub fn dataportability_archive_jobs_retry(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataportability_authorization_reset_execute()` to send, or `dataportability_authorization_reset` for simplest API.
 
-pub fn dataportability_authorization_reset_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn dataportability_authorization_reset_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://dataportability.googleapis.com/v1/authorization:reset",);
 
@@ -812,9 +828,12 @@ pub fn dataportability_authorization_reset(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataportability_portability_archive_initiate_execute()` to send, or `dataportability_portability_archive_initiate` for simplest API.
 
-pub fn dataportability_portability_archive_initiate_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn dataportability_portability_archive_initiate_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://dataportability.googleapis.com/v1/portabilityArchive:initiate",);

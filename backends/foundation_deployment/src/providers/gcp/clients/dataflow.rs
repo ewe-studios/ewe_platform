@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,12 +27,15 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataflow_projects_delete_snapshots_execute()` to send, or `dataflow_projects_delete_snapshots` for simplest API.
 
-pub fn dataflow_projects_delete_snapshots_builder(
-    client: &SimpleHttpClient,
+pub fn dataflow_projects_delete_snapshots_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     location: &Option<Option<String>>,
     snapshotId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataflow.googleapis.com/v1b3/projects/{}/snapshots",
@@ -212,10 +216,13 @@ pub fn dataflow_projects_delete_snapshots(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataflow_projects_worker_messages_execute()` to send, or `dataflow_projects_worker_messages` for simplest API.
 
-pub fn dataflow_projects_worker_messages_builder(
-    client: &SimpleHttpClient,
+pub fn dataflow_projects_worker_messages_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataflow.googleapis.com/v1b3/projects/{}/WorkerMessages",
@@ -377,8 +384,8 @@ pub fn dataflow_projects_worker_messages(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataflow_projects_jobs_aggregated_execute()` to send, or `dataflow_projects_jobs_aggregated` for simplest API.
 
-pub fn dataflow_projects_jobs_aggregated_builder(
-    client: &SimpleHttpClient,
+pub fn dataflow_projects_jobs_aggregated_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     filter: &Option<Option<String>>,
     location: &Option<Option<String>>,
@@ -386,7 +393,10 @@ pub fn dataflow_projects_jobs_aggregated_builder(
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataflow.googleapis.com/v1b3/projects/{}/jobs:aggregated",
@@ -591,13 +601,16 @@ pub fn dataflow_projects_jobs_aggregated(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataflow_projects_jobs_create_execute()` to send, or `dataflow_projects_jobs_create` for simplest API.
 
-pub fn dataflow_projects_jobs_create_builder(
-    client: &SimpleHttpClient,
+pub fn dataflow_projects_jobs_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     location: &Option<Option<String>>,
     replaceJobId: &Option<Option<String>>,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataflow.googleapis.com/v1b3/projects/{}/jobs",
@@ -780,13 +793,16 @@ pub fn dataflow_projects_jobs_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataflow_projects_jobs_get_execute()` to send, or `dataflow_projects_jobs_get` for simplest API.
 
-pub fn dataflow_projects_jobs_get_builder(
-    client: &SimpleHttpClient,
+pub fn dataflow_projects_jobs_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     jobId: &String,
     location: &Option<Option<String>>,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataflow.googleapis.com/v1b3/projects/{}/jobs/{}",
@@ -966,13 +982,16 @@ pub fn dataflow_projects_jobs_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataflow_projects_jobs_get_metrics_execute()` to send, or `dataflow_projects_jobs_get_metrics` for simplest API.
 
-pub fn dataflow_projects_jobs_get_metrics_builder(
-    client: &SimpleHttpClient,
+pub fn dataflow_projects_jobs_get_metrics_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     jobId: &String,
     location: &Option<Option<String>>,
     startTime: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataflow.googleapis.com/v1b3/projects/{}/jobs/{}/metrics",
@@ -1152,8 +1171,8 @@ pub fn dataflow_projects_jobs_get_metrics(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataflow_projects_jobs_list_execute()` to send, or `dataflow_projects_jobs_list` for simplest API.
 
-pub fn dataflow_projects_jobs_list_builder(
-    client: &SimpleHttpClient,
+pub fn dataflow_projects_jobs_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     filter: &Option<Option<String>>,
     location: &Option<Option<String>>,
@@ -1161,7 +1180,10 @@ pub fn dataflow_projects_jobs_list_builder(
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataflow.googleapis.com/v1b3/projects/{}/jobs",
@@ -1366,11 +1388,14 @@ pub fn dataflow_projects_jobs_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataflow_projects_jobs_snapshot_execute()` to send, or `dataflow_projects_jobs_snapshot` for simplest API.
 
-pub fn dataflow_projects_jobs_snapshot_builder(
-    client: &SimpleHttpClient,
+pub fn dataflow_projects_jobs_snapshot_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     jobId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataflow.googleapis.com/v1b3/projects/{}/jobs/{}:snapshot",
@@ -1526,13 +1551,16 @@ pub fn dataflow_projects_jobs_snapshot(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataflow_projects_jobs_update_execute()` to send, or `dataflow_projects_jobs_update` for simplest API.
 
-pub fn dataflow_projects_jobs_update_builder(
-    client: &SimpleHttpClient,
+pub fn dataflow_projects_jobs_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     jobId: &String,
     location: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataflow.googleapis.com/v1b3/projects/{}/jobs/{}",
@@ -1712,11 +1740,14 @@ pub fn dataflow_projects_jobs_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataflow_projects_jobs_debug_get_config_execute()` to send, or `dataflow_projects_jobs_debug_get_config` for simplest API.
 
-pub fn dataflow_projects_jobs_debug_get_config_builder(
-    client: &SimpleHttpClient,
+pub fn dataflow_projects_jobs_debug_get_config_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     jobId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataflow.googleapis.com/v1b3/projects/{}/jobs/{}/debug/getConfig",
@@ -1877,11 +1908,14 @@ pub fn dataflow_projects_jobs_debug_get_config(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataflow_projects_jobs_debug_send_capture_execute()` to send, or `dataflow_projects_jobs_debug_send_capture` for simplest API.
 
-pub fn dataflow_projects_jobs_debug_send_capture_builder(
-    client: &SimpleHttpClient,
+pub fn dataflow_projects_jobs_debug_send_capture_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     jobId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataflow.googleapis.com/v1b3/projects/{}/jobs/{}/debug/sendCapture",
@@ -2042,8 +2076,8 @@ pub fn dataflow_projects_jobs_debug_send_capture(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataflow_projects_jobs_messages_list_execute()` to send, or `dataflow_projects_jobs_messages_list` for simplest API.
 
-pub fn dataflow_projects_jobs_messages_list_builder(
-    client: &SimpleHttpClient,
+pub fn dataflow_projects_jobs_messages_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     jobId: &String,
     endTime: &Option<Option<String>>,
@@ -2052,7 +2086,10 @@ pub fn dataflow_projects_jobs_messages_list_builder(
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     startTime: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataflow.googleapis.com/v1b3/projects/{}/jobs/{}/messages",
@@ -2260,11 +2297,14 @@ pub fn dataflow_projects_jobs_messages_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataflow_projects_jobs_work_items_lease_execute()` to send, or `dataflow_projects_jobs_work_items_lease` for simplest API.
 
-pub fn dataflow_projects_jobs_work_items_lease_builder(
-    client: &SimpleHttpClient,
+pub fn dataflow_projects_jobs_work_items_lease_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     jobId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataflow.googleapis.com/v1b3/projects/{}/jobs/{}/workItems:lease",
@@ -2425,11 +2465,14 @@ pub fn dataflow_projects_jobs_work_items_lease(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataflow_projects_jobs_work_items_report_status_execute()` to send, or `dataflow_projects_jobs_work_items_report_status` for simplest API.
 
-pub fn dataflow_projects_jobs_work_items_report_status_builder(
-    client: &SimpleHttpClient,
+pub fn dataflow_projects_jobs_work_items_report_status_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     jobId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataflow.googleapis.com/v1b3/projects/{}/jobs/{}/workItems:reportStatus",
@@ -2597,11 +2640,14 @@ pub fn dataflow_projects_jobs_work_items_report_status(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataflow_projects_locations_worker_messages_execute()` to send, or `dataflow_projects_locations_worker_messages` for simplest API.
 
-pub fn dataflow_projects_locations_worker_messages_builder(
-    client: &SimpleHttpClient,
+pub fn dataflow_projects_locations_worker_messages_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     location: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataflow.googleapis.com/v1b3/projects/{}/locations/{}/WorkerMessages",
@@ -2769,11 +2815,14 @@ pub fn dataflow_projects_locations_worker_messages(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataflow_projects_locations_flex_templates_launch_execute()` to send, or `dataflow_projects_locations_flex_templates_launch` for simplest API.
 
-pub fn dataflow_projects_locations_flex_templates_launch_builder(
-    client: &SimpleHttpClient,
+pub fn dataflow_projects_locations_flex_templates_launch_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     location: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataflow.googleapis.com/v1b3/projects/{}/locations/{}/flexTemplates:launch",
@@ -2941,13 +2990,16 @@ pub fn dataflow_projects_locations_flex_templates_launch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataflow_projects_locations_jobs_create_execute()` to send, or `dataflow_projects_locations_jobs_create` for simplest API.
 
-pub fn dataflow_projects_locations_jobs_create_builder(
-    client: &SimpleHttpClient,
+pub fn dataflow_projects_locations_jobs_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     location: &String,
     replaceJobId: &Option<Option<String>>,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataflow.googleapis.com/v1b3/projects/{}/locations/{}/jobs",
@@ -3127,13 +3179,16 @@ pub fn dataflow_projects_locations_jobs_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataflow_projects_locations_jobs_get_execute()` to send, or `dataflow_projects_locations_jobs_get` for simplest API.
 
-pub fn dataflow_projects_locations_jobs_get_builder(
-    client: &SimpleHttpClient,
+pub fn dataflow_projects_locations_jobs_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     location: &String,
     jobId: &String,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataflow.googleapis.com/v1b3/projects/{}/locations/{}/jobs/{}",
@@ -3310,14 +3365,17 @@ pub fn dataflow_projects_locations_jobs_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataflow_projects_locations_jobs_get_execution_details_execute()` to send, or `dataflow_projects_locations_jobs_get_execution_details` for simplest API.
 
-pub fn dataflow_projects_locations_jobs_get_execution_details_builder(
-    client: &SimpleHttpClient,
+pub fn dataflow_projects_locations_jobs_get_execution_details_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     location: &String,
     jobId: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataflow.googleapis.com/v1b3/projects/{}/locations/{}/jobs/{}/executionDetails",
@@ -3504,13 +3562,16 @@ pub fn dataflow_projects_locations_jobs_get_execution_details(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataflow_projects_locations_jobs_get_metrics_execute()` to send, or `dataflow_projects_locations_jobs_get_metrics` for simplest API.
 
-pub fn dataflow_projects_locations_jobs_get_metrics_builder(
-    client: &SimpleHttpClient,
+pub fn dataflow_projects_locations_jobs_get_metrics_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     location: &String,
     jobId: &String,
     startTime: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataflow.googleapis.com/v1b3/projects/{}/locations/{}/jobs/{}/metrics",
@@ -3687,8 +3748,8 @@ pub fn dataflow_projects_locations_jobs_get_metrics(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataflow_projects_locations_jobs_list_execute()` to send, or `dataflow_projects_locations_jobs_list` for simplest API.
 
-pub fn dataflow_projects_locations_jobs_list_builder(
-    client: &SimpleHttpClient,
+pub fn dataflow_projects_locations_jobs_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     location: &String,
     filter: &Option<Option<String>>,
@@ -3696,7 +3757,10 @@ pub fn dataflow_projects_locations_jobs_list_builder(
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataflow.googleapis.com/v1b3/projects/{}/locations/{}/jobs",
@@ -3898,12 +3962,15 @@ pub fn dataflow_projects_locations_jobs_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataflow_projects_locations_jobs_snapshot_execute()` to send, or `dataflow_projects_locations_jobs_snapshot` for simplest API.
 
-pub fn dataflow_projects_locations_jobs_snapshot_builder(
-    client: &SimpleHttpClient,
+pub fn dataflow_projects_locations_jobs_snapshot_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     location: &String,
     jobId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataflow.googleapis.com/v1b3/projects/{}/locations/{}/jobs/{}:snapshot",
@@ -4066,13 +4133,16 @@ pub fn dataflow_projects_locations_jobs_snapshot(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataflow_projects_locations_jobs_update_execute()` to send, or `dataflow_projects_locations_jobs_update` for simplest API.
 
-pub fn dataflow_projects_locations_jobs_update_builder(
-    client: &SimpleHttpClient,
+pub fn dataflow_projects_locations_jobs_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     location: &String,
     jobId: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataflow.googleapis.com/v1b3/projects/{}/locations/{}/jobs/{}",
@@ -4249,12 +4319,15 @@ pub fn dataflow_projects_locations_jobs_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataflow_projects_locations_jobs_debug_get_config_execute()` to send, or `dataflow_projects_locations_jobs_debug_get_config` for simplest API.
 
-pub fn dataflow_projects_locations_jobs_debug_get_config_builder(
-    client: &SimpleHttpClient,
+pub fn dataflow_projects_locations_jobs_debug_get_config_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     location: &String,
     jobId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataflow.googleapis.com/v1b3/projects/{}/locations/{}/jobs/{}/debug/getConfig",
@@ -4421,12 +4494,15 @@ pub fn dataflow_projects_locations_jobs_debug_get_config(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataflow_projects_locations_jobs_debug_get_worker_stacktraces_execute()` to send, or `dataflow_projects_locations_jobs_debug_get_worker_stacktraces` for simplest API.
 
-pub fn dataflow_projects_locations_jobs_debug_get_worker_stacktraces_builder(
-    client: &SimpleHttpClient,
+pub fn dataflow_projects_locations_jobs_debug_get_worker_stacktraces_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     location: &String,
     jobId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataflow.googleapis.com/v1b3/projects/{}/locations/{}/jobs/{}/debug/getWorkerStacktraces",
@@ -4599,12 +4675,15 @@ pub fn dataflow_projects_locations_jobs_debug_get_worker_stacktraces(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataflow_projects_locations_jobs_debug_send_capture_execute()` to send, or `dataflow_projects_locations_jobs_debug_send_capture` for simplest API.
 
-pub fn dataflow_projects_locations_jobs_debug_send_capture_builder(
-    client: &SimpleHttpClient,
+pub fn dataflow_projects_locations_jobs_debug_send_capture_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     location: &String,
     jobId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataflow.googleapis.com/v1b3/projects/{}/locations/{}/jobs/{}/debug/sendCapture",
@@ -4771,8 +4850,8 @@ pub fn dataflow_projects_locations_jobs_debug_send_capture(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataflow_projects_locations_jobs_messages_list_execute()` to send, or `dataflow_projects_locations_jobs_messages_list` for simplest API.
 
-pub fn dataflow_projects_locations_jobs_messages_list_builder(
-    client: &SimpleHttpClient,
+pub fn dataflow_projects_locations_jobs_messages_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     location: &String,
     jobId: &String,
@@ -4781,7 +4860,10 @@ pub fn dataflow_projects_locations_jobs_messages_list_builder(
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     startTime: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataflow.googleapis.com/v1b3/projects/{}/locations/{}/jobs/{}/messages",
@@ -4986,12 +5068,15 @@ pub fn dataflow_projects_locations_jobs_messages_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataflow_projects_locations_jobs_snapshots_list_execute()` to send, or `dataflow_projects_locations_jobs_snapshots_list` for simplest API.
 
-pub fn dataflow_projects_locations_jobs_snapshots_list_builder(
-    client: &SimpleHttpClient,
+pub fn dataflow_projects_locations_jobs_snapshots_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     location: &String,
     jobId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataflow.googleapis.com/v1b3/projects/{}/locations/{}/jobs/{}/snapshots",
@@ -5158,8 +5243,8 @@ pub fn dataflow_projects_locations_jobs_snapshots_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataflow_projects_locations_jobs_stages_get_execution_details_execute()` to send, or `dataflow_projects_locations_jobs_stages_get_execution_details` for simplest API.
 
-pub fn dataflow_projects_locations_jobs_stages_get_execution_details_builder(
-    client: &SimpleHttpClient,
+pub fn dataflow_projects_locations_jobs_stages_get_execution_details_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     location: &String,
     jobId: &String,
@@ -5168,7 +5253,10 @@ pub fn dataflow_projects_locations_jobs_stages_get_execution_details_builder(
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     startTime: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataflow.googleapis.com/v1b3/projects/{}/locations/{}/jobs/{}/stages/{}/executionDetails",
@@ -5373,12 +5461,15 @@ pub fn dataflow_projects_locations_jobs_stages_get_execution_details(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataflow_projects_locations_jobs_work_items_lease_execute()` to send, or `dataflow_projects_locations_jobs_work_items_lease` for simplest API.
 
-pub fn dataflow_projects_locations_jobs_work_items_lease_builder(
-    client: &SimpleHttpClient,
+pub fn dataflow_projects_locations_jobs_work_items_lease_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     location: &String,
     jobId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataflow.googleapis.com/v1b3/projects/{}/locations/{}/jobs/{}/workItems:lease",
@@ -5545,12 +5636,15 @@ pub fn dataflow_projects_locations_jobs_work_items_lease(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataflow_projects_locations_jobs_work_items_report_status_execute()` to send, or `dataflow_projects_locations_jobs_work_items_report_status` for simplest API.
 
-pub fn dataflow_projects_locations_jobs_work_items_report_status_builder(
-    client: &SimpleHttpClient,
+pub fn dataflow_projects_locations_jobs_work_items_report_status_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     location: &String,
     jobId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataflow.googleapis.com/v1b3/projects/{}/locations/{}/jobs/{}/workItems:reportStatus",
@@ -5723,12 +5817,15 @@ pub fn dataflow_projects_locations_jobs_work_items_report_status(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataflow_projects_locations_snapshots_delete_execute()` to send, or `dataflow_projects_locations_snapshots_delete` for simplest API.
 
-pub fn dataflow_projects_locations_snapshots_delete_builder(
-    client: &SimpleHttpClient,
+pub fn dataflow_projects_locations_snapshots_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     location: &String,
     snapshotId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataflow.googleapis.com/v1b3/projects/{}/locations/{}/snapshots/{}",
@@ -5895,12 +5992,15 @@ pub fn dataflow_projects_locations_snapshots_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataflow_projects_locations_snapshots_get_execute()` to send, or `dataflow_projects_locations_snapshots_get` for simplest API.
 
-pub fn dataflow_projects_locations_snapshots_get_builder(
-    client: &SimpleHttpClient,
+pub fn dataflow_projects_locations_snapshots_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     location: &String,
     snapshotId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataflow.googleapis.com/v1b3/projects/{}/locations/{}/snapshots/{}",
@@ -6063,12 +6163,15 @@ pub fn dataflow_projects_locations_snapshots_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataflow_projects_locations_snapshots_list_execute()` to send, or `dataflow_projects_locations_snapshots_list` for simplest API.
 
-pub fn dataflow_projects_locations_snapshots_list_builder(
-    client: &SimpleHttpClient,
+pub fn dataflow_projects_locations_snapshots_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     location: &String,
     jobId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataflow.googleapis.com/v1b3/projects/{}/locations/{}/snapshots",
@@ -6246,11 +6349,14 @@ pub fn dataflow_projects_locations_snapshots_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataflow_projects_locations_templates_create_execute()` to send, or `dataflow_projects_locations_templates_create` for simplest API.
 
-pub fn dataflow_projects_locations_templates_create_builder(
-    client: &SimpleHttpClient,
+pub fn dataflow_projects_locations_templates_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     location: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataflow.googleapis.com/v1b3/projects/{}/locations/{}/templates",
@@ -6410,13 +6516,16 @@ pub fn dataflow_projects_locations_templates_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataflow_projects_locations_templates_get_execute()` to send, or `dataflow_projects_locations_templates_get` for simplest API.
 
-pub fn dataflow_projects_locations_templates_get_builder(
-    client: &SimpleHttpClient,
+pub fn dataflow_projects_locations_templates_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     location: &String,
     gcsPath: &Option<Option<String>>,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataflow.googleapis.com/v1b3/projects/{}/locations/{}/templates:get",
@@ -6600,15 +6709,18 @@ pub fn dataflow_projects_locations_templates_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataflow_projects_locations_templates_launch_execute()` to send, or `dataflow_projects_locations_templates_launch` for simplest API.
 
-pub fn dataflow_projects_locations_templates_launch_builder(
-    client: &SimpleHttpClient,
+pub fn dataflow_projects_locations_templates_launch_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     location: &String,
     dynamicTemplate_gcsPath: &Option<Option<String>>,
     dynamicTemplate_stagingLocation: &Option<Option<String>>,
     gcsPath: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataflow.googleapis.com/v1b3/projects/{}/locations/{}/templates:launch",
@@ -6804,12 +6916,15 @@ pub fn dataflow_projects_locations_templates_launch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataflow_projects_snapshots_get_execute()` to send, or `dataflow_projects_snapshots_get` for simplest API.
 
-pub fn dataflow_projects_snapshots_get_builder(
-    client: &SimpleHttpClient,
+pub fn dataflow_projects_snapshots_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     snapshotId: &String,
     location: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataflow.googleapis.com/v1b3/projects/{}/snapshots/{}",
@@ -6983,12 +7098,15 @@ pub fn dataflow_projects_snapshots_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataflow_projects_snapshots_list_execute()` to send, or `dataflow_projects_snapshots_list` for simplest API.
 
-pub fn dataflow_projects_snapshots_list_builder(
-    client: &SimpleHttpClient,
+pub fn dataflow_projects_snapshots_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     jobId: &Option<Option<String>>,
     location: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataflow.googleapis.com/v1b3/projects/{}/snapshots",
@@ -7169,10 +7287,13 @@ pub fn dataflow_projects_snapshots_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataflow_projects_templates_create_execute()` to send, or `dataflow_projects_templates_create` for simplest API.
 
-pub fn dataflow_projects_templates_create_builder(
-    client: &SimpleHttpClient,
+pub fn dataflow_projects_templates_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataflow.googleapis.com/v1b3/projects/{}/templates",
@@ -7326,13 +7447,16 @@ pub fn dataflow_projects_templates_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataflow_projects_templates_get_execute()` to send, or `dataflow_projects_templates_get` for simplest API.
 
-pub fn dataflow_projects_templates_get_builder(
-    client: &SimpleHttpClient,
+pub fn dataflow_projects_templates_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     gcsPath: &Option<Option<String>>,
     location: &Option<Option<String>>,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataflow.googleapis.com/v1b3/projects/{}/templates:get",
@@ -7519,15 +7643,18 @@ pub fn dataflow_projects_templates_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataflow_projects_templates_launch_execute()` to send, or `dataflow_projects_templates_launch` for simplest API.
 
-pub fn dataflow_projects_templates_launch_builder(
-    client: &SimpleHttpClient,
+pub fn dataflow_projects_templates_launch_builder<R>(
+    client: &SimpleHttpClient<R>,
     projectId: &String,
     dynamicTemplate_gcsPath: &Option<Option<String>>,
     dynamicTemplate_stagingLocation: &Option<Option<String>>,
     gcsPath: &Option<Option<String>>,
     location: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://dataflow.googleapis.com/v1b3/projects/{}/templates:launch",

@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,9 +27,12 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebasedynamiclinks_managed_short_links_create_execute()` to send, or `firebasedynamiclinks_managed_short_links_create` for simplest API.
 
-pub fn firebasedynamiclinks_managed_short_links_create_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn firebasedynamiclinks_managed_short_links_create_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://firebasedynamiclinks.googleapis.com/v1/managedShortLinks:create",);
@@ -180,9 +184,12 @@ pub fn firebasedynamiclinks_managed_short_links_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebasedynamiclinks_short_links_create_execute()` to send, or `firebasedynamiclinks_short_links_create` for simplest API.
 
-pub fn firebasedynamiclinks_short_links_create_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn firebasedynamiclinks_short_links_create_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://firebasedynamiclinks.googleapis.com/v1/shortLinks",);
 
@@ -333,12 +340,15 @@ pub fn firebasedynamiclinks_short_links_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebasedynamiclinks_get_link_stats_execute()` to send, or `firebasedynamiclinks_get_link_stats` for simplest API.
 
-pub fn firebasedynamiclinks_get_link_stats_builder(
-    client: &SimpleHttpClient,
+pub fn firebasedynamiclinks_get_link_stats_builder<R>(
+    client: &SimpleHttpClient<R>,
     dynamicLink: &String,
     durationDays: &Option<Option<String>>,
     sdkVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebasedynamiclinks.googleapis.com/v1/{}/linkStats",
@@ -519,9 +529,12 @@ pub fn firebasedynamiclinks_get_link_stats(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebasedynamiclinks_install_attribution_execute()` to send, or `firebasedynamiclinks_install_attribution` for simplest API.
 
-pub fn firebasedynamiclinks_install_attribution_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn firebasedynamiclinks_install_attribution_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://firebasedynamiclinks.googleapis.com/v1/installAttribution",);
@@ -673,9 +686,12 @@ pub fn firebasedynamiclinks_install_attribution(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebasedynamiclinks_reopen_attribution_execute()` to send, or `firebasedynamiclinks_reopen_attribution` for simplest API.
 
-pub fn firebasedynamiclinks_reopen_attribution_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn firebasedynamiclinks_reopen_attribution_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://firebasedynamiclinks.googleapis.com/v1/reopenAttribution",);
 

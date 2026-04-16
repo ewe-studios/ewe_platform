@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `workstations_projects_locations_get_execute()` to send, or `workstations_projects_locations_get` for simplest API.
 
-pub fn workstations_projects_locations_get_builder(
-    client: &SimpleHttpClient,
+pub fn workstations_projects_locations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://workstations.googleapis.com/v1/projects/{}/locations/{locationsId}",
@@ -183,14 +187,17 @@ pub fn workstations_projects_locations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `workstations_projects_locations_list_execute()` to send, or `workstations_projects_locations_list` for simplest API.
 
-pub fn workstations_projects_locations_list_builder(
-    client: &SimpleHttpClient,
+pub fn workstations_projects_locations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     extraLocationTypes: &Option<Option<String>>,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://workstations.googleapis.com/v1/projects/{}/locations",
@@ -383,10 +390,13 @@ pub fn workstations_projects_locations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `workstations_projects_locations_operations_cancel_execute()` to send, or `workstations_projects_locations_operations_cancel` for simplest API.
 
-pub fn workstations_projects_locations_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn workstations_projects_locations_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://workstations.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}:cancel",
@@ -544,10 +554,13 @@ pub fn workstations_projects_locations_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `workstations_projects_locations_operations_delete_execute()` to send, or `workstations_projects_locations_operations_delete` for simplest API.
 
-pub fn workstations_projects_locations_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn workstations_projects_locations_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://workstations.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -705,10 +718,13 @@ pub fn workstations_projects_locations_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `workstations_projects_locations_operations_get_execute()` to send, or `workstations_projects_locations_operations_get` for simplest API.
 
-pub fn workstations_projects_locations_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn workstations_projects_locations_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://workstations.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -862,14 +878,17 @@ pub fn workstations_projects_locations_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `workstations_projects_locations_operations_list_execute()` to send, or `workstations_projects_locations_operations_list` for simplest API.
 
-pub fn workstations_projects_locations_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn workstations_projects_locations_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://workstations.googleapis.com/v1/projects/{}/locations/{locationsId}/operations",
@@ -1062,12 +1081,15 @@ pub fn workstations_projects_locations_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `workstations_projects_locations_workstation_clusters_create_execute()` to send, or `workstations_projects_locations_workstation_clusters_create` for simplest API.
 
-pub fn workstations_projects_locations_workstation_clusters_create_builder(
-    client: &SimpleHttpClient,
+pub fn workstations_projects_locations_workstation_clusters_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     validateOnly: &Option<Option<String>>,
     workstationClusterId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://workstations.googleapis.com/v1/projects/{}/locations/{locationsId}/workstationClusters",
@@ -1244,13 +1266,16 @@ pub fn workstations_projects_locations_workstation_clusters_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `workstations_projects_locations_workstation_clusters_delete_execute()` to send, or `workstations_projects_locations_workstation_clusters_delete` for simplest API.
 
-pub fn workstations_projects_locations_workstation_clusters_delete_builder(
-    client: &SimpleHttpClient,
+pub fn workstations_projects_locations_workstation_clusters_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     etag: &Option<Option<String>>,
     force: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://workstations.googleapis.com/v1/projects/{}/locations/{locationsId}/workstationClusters/{workstationClustersId}",
@@ -1433,10 +1458,13 @@ pub fn workstations_projects_locations_workstation_clusters_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `workstations_projects_locations_workstation_clusters_get_execute()` to send, or `workstations_projects_locations_workstation_clusters_get` for simplest API.
 
-pub fn workstations_projects_locations_workstation_clusters_get_builder(
-    client: &SimpleHttpClient,
+pub fn workstations_projects_locations_workstation_clusters_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://workstations.googleapis.com/v1/projects/{}/locations/{locationsId}/workstationClusters/{workstationClustersId}",
@@ -1595,13 +1623,16 @@ pub fn workstations_projects_locations_workstation_clusters_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `workstations_projects_locations_workstation_clusters_list_execute()` to send, or `workstations_projects_locations_workstation_clusters_list` for simplest API.
 
-pub fn workstations_projects_locations_workstation_clusters_list_builder(
-    client: &SimpleHttpClient,
+pub fn workstations_projects_locations_workstation_clusters_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://workstations.googleapis.com/v1/projects/{}/locations/{locationsId}/workstationClusters",
@@ -1792,13 +1823,16 @@ pub fn workstations_projects_locations_workstation_clusters_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `workstations_projects_locations_workstation_clusters_patch_execute()` to send, or `workstations_projects_locations_workstation_clusters_patch` for simplest API.
 
-pub fn workstations_projects_locations_workstation_clusters_patch_builder(
-    client: &SimpleHttpClient,
+pub fn workstations_projects_locations_workstation_clusters_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     allowMissing: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://workstations.googleapis.com/v1/projects/{}/locations/{locationsId}/workstationClusters/{workstationClustersId}",
@@ -1981,12 +2015,15 @@ pub fn workstations_projects_locations_workstation_clusters_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `workstations_projects_locations_workstation_clusters_workstation_configs_create_execute()` to send, or `workstations_projects_locations_workstation_clusters_workstation_configs_create` for simplest API.
 
-pub fn workstations_projects_locations_workstation_clusters_workstation_configs_create_builder(
-    client: &SimpleHttpClient,
+pub fn workstations_projects_locations_workstation_clusters_workstation_configs_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     validateOnly: &Option<Option<String>>,
     workstationConfigId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://workstations.googleapis.com/v1/projects/{}/locations/{locationsId}/workstationClusters/{workstationClustersId}/workstationConfigs",
@@ -2167,13 +2204,16 @@ pub fn workstations_projects_locations_workstation_clusters_workstation_configs_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `workstations_projects_locations_workstation_clusters_workstation_configs_delete_execute()` to send, or `workstations_projects_locations_workstation_clusters_workstation_configs_delete` for simplest API.
 
-pub fn workstations_projects_locations_workstation_clusters_workstation_configs_delete_builder(
-    client: &SimpleHttpClient,
+pub fn workstations_projects_locations_workstation_clusters_workstation_configs_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     etag: &Option<Option<String>>,
     force: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://workstations.googleapis.com/v1/projects/{}/locations/{locationsId}/workstationClusters/{workstationClustersId}/workstationConfigs/{workstationConfigsId}",
@@ -2360,10 +2400,13 @@ pub fn workstations_projects_locations_workstation_clusters_workstation_configs_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `workstations_projects_locations_workstation_clusters_workstation_configs_get_execute()` to send, or `workstations_projects_locations_workstation_clusters_workstation_configs_get` for simplest API.
 
-pub fn workstations_projects_locations_workstation_clusters_workstation_configs_get_builder(
-    client: &SimpleHttpClient,
+pub fn workstations_projects_locations_workstation_clusters_workstation_configs_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://workstations.googleapis.com/v1/projects/{}/locations/{locationsId}/workstationClusters/{workstationClustersId}/workstationConfigs/{workstationConfigsId}",
@@ -2525,11 +2568,16 @@ pub fn workstations_projects_locations_workstation_clusters_workstation_configs_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `workstations_projects_locations_workstation_clusters_workstation_configs_get_iam_policy_execute()` to send, or `workstations_projects_locations_workstation_clusters_workstation_configs_get_iam_policy` for simplest API.
 
-pub fn workstations_projects_locations_workstation_clusters_workstation_configs_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn workstations_projects_locations_workstation_clusters_workstation_configs_get_iam_policy_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://workstations.googleapis.com/v1/projects/{}/locations/{locationsId}/workstationClusters/{workstationClustersId}/workstationConfigs/{workstationConfigsId}:getIamPolicy",
@@ -2698,13 +2746,16 @@ pub fn workstations_projects_locations_workstation_clusters_workstation_configs_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `workstations_projects_locations_workstation_clusters_workstation_configs_list_execute()` to send, or `workstations_projects_locations_workstation_clusters_workstation_configs_list` for simplest API.
 
-pub fn workstations_projects_locations_workstation_clusters_workstation_configs_list_builder(
-    client: &SimpleHttpClient,
+pub fn workstations_projects_locations_workstation_clusters_workstation_configs_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://workstations.googleapis.com/v1/projects/{}/locations/{locationsId}/workstationClusters/{workstationClustersId}/workstationConfigs",
@@ -2898,12 +2949,17 @@ pub fn workstations_projects_locations_workstation_clusters_workstation_configs_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `workstations_projects_locations_workstation_clusters_workstation_configs_list_usable_execute()` to send, or `workstations_projects_locations_workstation_clusters_workstation_configs_list_usable` for simplest API.
 
-pub fn workstations_projects_locations_workstation_clusters_workstation_configs_list_usable_builder(
-    client: &SimpleHttpClient,
+pub fn workstations_projects_locations_workstation_clusters_workstation_configs_list_usable_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://workstations.googleapis.com/v1/projects/{}/locations/{locationsId}/workstationClusters/{workstationClustersId}/workstationConfigs:listUsable",
@@ -3088,13 +3144,16 @@ pub fn workstations_projects_locations_workstation_clusters_workstation_configs_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `workstations_projects_locations_workstation_clusters_workstation_configs_patch_execute()` to send, or `workstations_projects_locations_workstation_clusters_workstation_configs_patch` for simplest API.
 
-pub fn workstations_projects_locations_workstation_clusters_workstation_configs_patch_builder(
-    client: &SimpleHttpClient,
+pub fn workstations_projects_locations_workstation_clusters_workstation_configs_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     allowMissing: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://workstations.googleapis.com/v1/projects/{}/locations/{locationsId}/workstationClusters/{workstationClustersId}/workstationConfigs/{workstationConfigsId}",
@@ -3280,10 +3339,15 @@ pub fn workstations_projects_locations_workstation_clusters_workstation_configs_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `workstations_projects_locations_workstation_clusters_workstation_configs_set_iam_policy_execute()` to send, or `workstations_projects_locations_workstation_clusters_workstation_configs_set_iam_policy` for simplest API.
 
-pub fn workstations_projects_locations_workstation_clusters_workstation_configs_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn workstations_projects_locations_workstation_clusters_workstation_configs_set_iam_policy_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://workstations.googleapis.com/v1/projects/{}/locations/{locationsId}/workstationClusters/{workstationClustersId}/workstationConfigs/{workstationConfigsId}:setIamPolicy",
@@ -3439,10 +3503,15 @@ pub fn workstations_projects_locations_workstation_clusters_workstation_configs_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `workstations_projects_locations_workstation_clusters_workstation_configs_test_iam_permissions_execute()` to send, or `workstations_projects_locations_workstation_clusters_workstation_configs_test_iam_permissions` for simplest API.
 
-pub fn workstations_projects_locations_workstation_clusters_workstation_configs_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn workstations_projects_locations_workstation_clusters_workstation_configs_test_iam_permissions_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://workstations.googleapis.com/v1/projects/{}/locations/{locationsId}/workstationClusters/{workstationClustersId}/workstationConfigs/{workstationConfigsId}:testIamPermissions",
@@ -3605,12 +3674,17 @@ pub fn workstations_projects_locations_workstation_clusters_workstation_configs_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `workstations_projects_locations_workstation_clusters_workstation_configs_workstations_create_execute()` to send, or `workstations_projects_locations_workstation_clusters_workstation_configs_workstations_create` for simplest API.
 
-pub fn workstations_projects_locations_workstation_clusters_workstation_configs_workstations_create_builder(
-    client: &SimpleHttpClient,
+pub fn workstations_projects_locations_workstation_clusters_workstation_configs_workstations_create_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     validateOnly: &Option<Option<String>>,
     workstationId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://workstations.googleapis.com/v1/projects/{}/locations/{locationsId}/workstationClusters/{workstationClustersId}/workstationConfigs/{workstationConfigsId}/workstations",
@@ -3783,12 +3857,17 @@ pub fn workstations_projects_locations_workstation_clusters_workstation_configs_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `workstations_projects_locations_workstation_clusters_workstation_configs_workstations_delete_execute()` to send, or `workstations_projects_locations_workstation_clusters_workstation_configs_workstations_delete` for simplest API.
 
-pub fn workstations_projects_locations_workstation_clusters_workstation_configs_workstations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn workstations_projects_locations_workstation_clusters_workstation_configs_workstations_delete_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     etag: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://workstations.googleapis.com/v1/projects/{}/locations/{locationsId}/workstationClusters/{workstationClustersId}/workstationConfigs/{workstationConfigsId}/workstations/{workstationsId}",
@@ -3961,10 +4040,15 @@ pub fn workstations_projects_locations_workstation_clusters_workstation_configs_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `workstations_projects_locations_workstation_clusters_workstation_configs_workstations_generate_access_token_execute()` to send, or `workstations_projects_locations_workstation_clusters_workstation_configs_workstations_generate_access_token` for simplest API.
 
-pub fn workstations_projects_locations_workstation_clusters_workstation_configs_workstations_generate_access_token_builder(
-    client: &SimpleHttpClient,
+pub fn workstations_projects_locations_workstation_clusters_workstation_configs_workstations_generate_access_token_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     workstation: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://workstations.googleapis.com/v1/projects/{}/locations/{locationsId}/workstationClusters/{workstationClustersId}/workstationConfigs/{workstationConfigsId}/workstations/{workstationsId}:generateAccessToken",
@@ -4127,10 +4211,15 @@ pub fn workstations_projects_locations_workstation_clusters_workstation_configs_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `workstations_projects_locations_workstation_clusters_workstation_configs_workstations_get_execute()` to send, or `workstations_projects_locations_workstation_clusters_workstation_configs_workstations_get` for simplest API.
 
-pub fn workstations_projects_locations_workstation_clusters_workstation_configs_workstations_get_builder(
-    client: &SimpleHttpClient,
+pub fn workstations_projects_locations_workstation_clusters_workstation_configs_workstations_get_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://workstations.googleapis.com/v1/projects/{}/locations/{locationsId}/workstationClusters/{workstationClustersId}/workstationConfigs/{workstationConfigsId}/workstations/{workstationsId}",
@@ -4284,11 +4373,16 @@ pub fn workstations_projects_locations_workstation_clusters_workstation_configs_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `workstations_projects_locations_workstation_clusters_workstation_configs_workstations_get_iam_policy_execute()` to send, or `workstations_projects_locations_workstation_clusters_workstation_configs_workstations_get_iam_policy` for simplest API.
 
-pub fn workstations_projects_locations_workstation_clusters_workstation_configs_workstations_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn workstations_projects_locations_workstation_clusters_workstation_configs_workstations_get_iam_policy_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://workstations.googleapis.com/v1/projects/{}/locations/{locationsId}/workstationClusters/{workstationClustersId}/workstationConfigs/{workstationConfigsId}/workstations/{workstationsId}:getIamPolicy",
@@ -4456,13 +4550,18 @@ pub fn workstations_projects_locations_workstation_clusters_workstation_configs_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `workstations_projects_locations_workstation_clusters_workstation_configs_workstations_list_execute()` to send, or `workstations_projects_locations_workstation_clusters_workstation_configs_workstations_list` for simplest API.
 
-pub fn workstations_projects_locations_workstation_clusters_workstation_configs_workstations_list_builder(
-    client: &SimpleHttpClient,
+pub fn workstations_projects_locations_workstation_clusters_workstation_configs_workstations_list_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://workstations.googleapis.com/v1/projects/{}/locations/{locationsId}/workstationClusters/{workstationClustersId}/workstationConfigs/{workstationConfigsId}/workstations",
@@ -4643,12 +4742,17 @@ pub fn workstations_projects_locations_workstation_clusters_workstation_configs_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `workstations_projects_locations_workstation_clusters_workstation_configs_workstations_list_usable_execute()` to send, or `workstations_projects_locations_workstation_clusters_workstation_configs_workstations_list_usable` for simplest API.
 
-pub fn workstations_projects_locations_workstation_clusters_workstation_configs_workstations_list_usable_builder(
-    client: &SimpleHttpClient,
+pub fn workstations_projects_locations_workstation_clusters_workstation_configs_workstations_list_usable_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://workstations.googleapis.com/v1/projects/{}/locations/{locationsId}/workstationClusters/{workstationClustersId}/workstationConfigs/{workstationConfigsId}/workstations:listUsable",
@@ -4829,13 +4933,18 @@ pub fn workstations_projects_locations_workstation_clusters_workstation_configs_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `workstations_projects_locations_workstation_clusters_workstation_configs_workstations_patch_execute()` to send, or `workstations_projects_locations_workstation_clusters_workstation_configs_workstations_patch` for simplest API.
 
-pub fn workstations_projects_locations_workstation_clusters_workstation_configs_workstations_patch_builder(
-    client: &SimpleHttpClient,
+pub fn workstations_projects_locations_workstation_clusters_workstation_configs_workstations_patch_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     allowMissing: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://workstations.googleapis.com/v1/projects/{}/locations/{locationsId}/workstationClusters/{workstationClustersId}/workstationConfigs/{workstationConfigsId}/workstations/{workstationsId}",
@@ -5012,10 +5121,15 @@ pub fn workstations_projects_locations_workstation_clusters_workstation_configs_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `workstations_projects_locations_workstation_clusters_workstation_configs_workstations_set_iam_policy_execute()` to send, or `workstations_projects_locations_workstation_clusters_workstation_configs_workstations_set_iam_policy` for simplest API.
 
-pub fn workstations_projects_locations_workstation_clusters_workstation_configs_workstations_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn workstations_projects_locations_workstation_clusters_workstation_configs_workstations_set_iam_policy_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://workstations.googleapis.com/v1/projects/{}/locations/{locationsId}/workstationClusters/{workstationClustersId}/workstationConfigs/{workstationConfigsId}/workstations/{workstationsId}:setIamPolicy",
@@ -5170,10 +5284,15 @@ pub fn workstations_projects_locations_workstation_clusters_workstation_configs_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `workstations_projects_locations_workstation_clusters_workstation_configs_workstations_start_execute()` to send, or `workstations_projects_locations_workstation_clusters_workstation_configs_workstations_start` for simplest API.
 
-pub fn workstations_projects_locations_workstation_clusters_workstation_configs_workstations_start_builder(
-    client: &SimpleHttpClient,
+pub fn workstations_projects_locations_workstation_clusters_workstation_configs_workstations_start_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://workstations.googleapis.com/v1/projects/{}/locations/{locationsId}/workstationClusters/{workstationClustersId}/workstationConfigs/{workstationConfigsId}/workstations/{workstationsId}:start",
@@ -5327,10 +5446,15 @@ pub fn workstations_projects_locations_workstation_clusters_workstation_configs_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `workstations_projects_locations_workstation_clusters_workstation_configs_workstations_stop_execute()` to send, or `workstations_projects_locations_workstation_clusters_workstation_configs_workstations_stop` for simplest API.
 
-pub fn workstations_projects_locations_workstation_clusters_workstation_configs_workstations_stop_builder(
-    client: &SimpleHttpClient,
+pub fn workstations_projects_locations_workstation_clusters_workstation_configs_workstations_stop_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://workstations.googleapis.com/v1/projects/{}/locations/{locationsId}/workstationClusters/{workstationClustersId}/workstationConfigs/{workstationConfigsId}/workstations/{workstationsId}:stop",
@@ -5484,10 +5608,15 @@ pub fn workstations_projects_locations_workstation_clusters_workstation_configs_
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `workstations_projects_locations_workstation_clusters_workstation_configs_workstations_test_iam_permissions_execute()` to send, or `workstations_projects_locations_workstation_clusters_workstation_configs_workstations_test_iam_permissions` for simplest API.
 
-pub fn workstations_projects_locations_workstation_clusters_workstation_configs_workstations_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn workstations_projects_locations_workstation_clusters_workstation_configs_workstations_test_iam_permissions_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://workstations.googleapis.com/v1/projects/{}/locations/{locationsId}/workstationClusters/{workstationClustersId}/workstationConfigs/{workstationConfigsId}/workstations/{workstationsId}:testIamPermissions",

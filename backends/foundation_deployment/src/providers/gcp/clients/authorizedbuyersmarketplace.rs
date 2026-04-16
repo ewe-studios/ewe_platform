@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,14 +27,17 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `authorizedbuyersmarketplace_bidders_auction_packages_list_execute()` to send, or `authorizedbuyersmarketplace_bidders_auction_packages_list` for simplest API.
 
-pub fn authorizedbuyersmarketplace_bidders_auction_packages_list_builder(
-    client: &SimpleHttpClient,
+pub fn authorizedbuyersmarketplace_bidders_auction_packages_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://authorizedbuyersmarketplace.googleapis.com/v1/bidders/{}/auctionPackages",
@@ -230,14 +234,17 @@ pub fn authorizedbuyersmarketplace_bidders_auction_packages_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `authorizedbuyersmarketplace_bidders_finalized_deals_list_execute()` to send, or `authorizedbuyersmarketplace_bidders_finalized_deals_list` for simplest API.
 
-pub fn authorizedbuyersmarketplace_bidders_finalized_deals_list_builder(
-    client: &SimpleHttpClient,
+pub fn authorizedbuyersmarketplace_bidders_finalized_deals_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://authorizedbuyersmarketplace.googleapis.com/v1/bidders/{}/finalizedDeals",
@@ -434,10 +441,13 @@ pub fn authorizedbuyersmarketplace_bidders_finalized_deals_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `authorizedbuyersmarketplace_bidders_finalized_deals_set_ready_to_serve_execute()` to send, or `authorizedbuyersmarketplace_bidders_finalized_deals_set_ready_to_serve` for simplest API.
 
-pub fn authorizedbuyersmarketplace_bidders_finalized_deals_set_ready_to_serve_builder(
-    client: &SimpleHttpClient,
+pub fn authorizedbuyersmarketplace_bidders_finalized_deals_set_ready_to_serve_builder<R>(
+    client: &SimpleHttpClient<R>,
     deal: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://authorizedbuyersmarketplace.googleapis.com/v1/bidders/{}/finalizedDeals/{finalizedDealsId}:setReadyToServe",
@@ -598,10 +608,13 @@ pub fn authorizedbuyersmarketplace_bidders_finalized_deals_set_ready_to_serve(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `authorizedbuyersmarketplace_buyers_auction_packages_get_execute()` to send, or `authorizedbuyersmarketplace_buyers_auction_packages_get` for simplest API.
 
-pub fn authorizedbuyersmarketplace_buyers_auction_packages_get_builder(
-    client: &SimpleHttpClient,
+pub fn authorizedbuyersmarketplace_buyers_auction_packages_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://authorizedbuyersmarketplace.googleapis.com/v1/buyers/{}/auctionPackages/{auctionPackagesId}",
@@ -760,14 +773,17 @@ pub fn authorizedbuyersmarketplace_buyers_auction_packages_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `authorizedbuyersmarketplace_buyers_auction_packages_list_execute()` to send, or `authorizedbuyersmarketplace_buyers_auction_packages_list` for simplest API.
 
-pub fn authorizedbuyersmarketplace_buyers_auction_packages_list_builder(
-    client: &SimpleHttpClient,
+pub fn authorizedbuyersmarketplace_buyers_auction_packages_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://authorizedbuyersmarketplace.googleapis.com/v1/buyers/{}/auctionPackages",
@@ -964,10 +980,13 @@ pub fn authorizedbuyersmarketplace_buyers_auction_packages_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `authorizedbuyersmarketplace_buyers_auction_packages_subscribe_execute()` to send, or `authorizedbuyersmarketplace_buyers_auction_packages_subscribe` for simplest API.
 
-pub fn authorizedbuyersmarketplace_buyers_auction_packages_subscribe_builder(
-    client: &SimpleHttpClient,
+pub fn authorizedbuyersmarketplace_buyers_auction_packages_subscribe_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://authorizedbuyersmarketplace.googleapis.com/v1/buyers/{}/auctionPackages/{auctionPackagesId}:subscribe",
@@ -1126,10 +1145,13 @@ pub fn authorizedbuyersmarketplace_buyers_auction_packages_subscribe(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `authorizedbuyersmarketplace_buyers_auction_packages_subscribe_clients_execute()` to send, or `authorizedbuyersmarketplace_buyers_auction_packages_subscribe_clients` for simplest API.
 
-pub fn authorizedbuyersmarketplace_buyers_auction_packages_subscribe_clients_builder(
-    client: &SimpleHttpClient,
+pub fn authorizedbuyersmarketplace_buyers_auction_packages_subscribe_clients_builder<R>(
+    client: &SimpleHttpClient<R>,
     auctionPackage: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://authorizedbuyersmarketplace.googleapis.com/v1/buyers/{}/auctionPackages/{auctionPackagesId}:subscribeClients",
@@ -1290,10 +1312,13 @@ pub fn authorizedbuyersmarketplace_buyers_auction_packages_subscribe_clients(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `authorizedbuyersmarketplace_buyers_auction_packages_unsubscribe_execute()` to send, or `authorizedbuyersmarketplace_buyers_auction_packages_unsubscribe` for simplest API.
 
-pub fn authorizedbuyersmarketplace_buyers_auction_packages_unsubscribe_builder(
-    client: &SimpleHttpClient,
+pub fn authorizedbuyersmarketplace_buyers_auction_packages_unsubscribe_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://authorizedbuyersmarketplace.googleapis.com/v1/buyers/{}/auctionPackages/{auctionPackagesId}:unsubscribe",
@@ -1453,10 +1478,13 @@ pub fn authorizedbuyersmarketplace_buyers_auction_packages_unsubscribe(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `authorizedbuyersmarketplace_buyers_auction_packages_unsubscribe_clients_execute()` to send, or `authorizedbuyersmarketplace_buyers_auction_packages_unsubscribe_clients` for simplest API.
 
-pub fn authorizedbuyersmarketplace_buyers_auction_packages_unsubscribe_clients_builder(
-    client: &SimpleHttpClient,
+pub fn authorizedbuyersmarketplace_buyers_auction_packages_unsubscribe_clients_builder<R>(
+    client: &SimpleHttpClient<R>,
     auctionPackage: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://authorizedbuyersmarketplace.googleapis.com/v1/buyers/{}/auctionPackages/{auctionPackagesId}:unsubscribeClients",
@@ -1618,10 +1646,13 @@ pub fn authorizedbuyersmarketplace_buyers_auction_packages_unsubscribe_clients(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `authorizedbuyersmarketplace_buyers_clients_activate_execute()` to send, or `authorizedbuyersmarketplace_buyers_clients_activate` for simplest API.
 
-pub fn authorizedbuyersmarketplace_buyers_clients_activate_builder(
-    client: &SimpleHttpClient,
+pub fn authorizedbuyersmarketplace_buyers_clients_activate_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://authorizedbuyersmarketplace.googleapis.com/v1/buyers/{}/clients/{clientsId}:activate",
@@ -1775,10 +1806,13 @@ pub fn authorizedbuyersmarketplace_buyers_clients_activate(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `authorizedbuyersmarketplace_buyers_clients_create_execute()` to send, or `authorizedbuyersmarketplace_buyers_clients_create` for simplest API.
 
-pub fn authorizedbuyersmarketplace_buyers_clients_create_builder(
-    client: &SimpleHttpClient,
+pub fn authorizedbuyersmarketplace_buyers_clients_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://authorizedbuyersmarketplace.googleapis.com/v1/buyers/{}/clients",
@@ -1932,10 +1966,13 @@ pub fn authorizedbuyersmarketplace_buyers_clients_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `authorizedbuyersmarketplace_buyers_clients_deactivate_execute()` to send, or `authorizedbuyersmarketplace_buyers_clients_deactivate` for simplest API.
 
-pub fn authorizedbuyersmarketplace_buyers_clients_deactivate_builder(
-    client: &SimpleHttpClient,
+pub fn authorizedbuyersmarketplace_buyers_clients_deactivate_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://authorizedbuyersmarketplace.googleapis.com/v1/buyers/{}/clients/{clientsId}:deactivate",
@@ -2090,10 +2127,13 @@ pub fn authorizedbuyersmarketplace_buyers_clients_deactivate(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `authorizedbuyersmarketplace_buyers_clients_get_execute()` to send, or `authorizedbuyersmarketplace_buyers_clients_get` for simplest API.
 
-pub fn authorizedbuyersmarketplace_buyers_clients_get_builder(
-    client: &SimpleHttpClient,
+pub fn authorizedbuyersmarketplace_buyers_clients_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://authorizedbuyersmarketplace.googleapis.com/v1/buyers/{}/clients/{clientsId}",
@@ -2247,13 +2287,16 @@ pub fn authorizedbuyersmarketplace_buyers_clients_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `authorizedbuyersmarketplace_buyers_clients_list_execute()` to send, or `authorizedbuyersmarketplace_buyers_clients_list` for simplest API.
 
-pub fn authorizedbuyersmarketplace_buyers_clients_list_builder(
-    client: &SimpleHttpClient,
+pub fn authorizedbuyersmarketplace_buyers_clients_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://authorizedbuyersmarketplace.googleapis.com/v1/buyers/{}/clients",
@@ -2440,11 +2483,14 @@ pub fn authorizedbuyersmarketplace_buyers_clients_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `authorizedbuyersmarketplace_buyers_clients_patch_execute()` to send, or `authorizedbuyersmarketplace_buyers_clients_patch` for simplest API.
 
-pub fn authorizedbuyersmarketplace_buyers_clients_patch_builder(
-    client: &SimpleHttpClient,
+pub fn authorizedbuyersmarketplace_buyers_clients_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://authorizedbuyersmarketplace.googleapis.com/v1/buyers/{}/clients/{clientsId}",
@@ -2615,10 +2661,13 @@ pub fn authorizedbuyersmarketplace_buyers_clients_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `authorizedbuyersmarketplace_buyers_clients_users_activate_execute()` to send, or `authorizedbuyersmarketplace_buyers_clients_users_activate` for simplest API.
 
-pub fn authorizedbuyersmarketplace_buyers_clients_users_activate_builder(
-    client: &SimpleHttpClient,
+pub fn authorizedbuyersmarketplace_buyers_clients_users_activate_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://authorizedbuyersmarketplace.googleapis.com/v1/buyers/{}/clients/{clientsId}/users/{usersId}:activate",
@@ -2773,10 +2822,13 @@ pub fn authorizedbuyersmarketplace_buyers_clients_users_activate(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `authorizedbuyersmarketplace_buyers_clients_users_create_execute()` to send, or `authorizedbuyersmarketplace_buyers_clients_users_create` for simplest API.
 
-pub fn authorizedbuyersmarketplace_buyers_clients_users_create_builder(
-    client: &SimpleHttpClient,
+pub fn authorizedbuyersmarketplace_buyers_clients_users_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://authorizedbuyersmarketplace.googleapis.com/v1/buyers/{}/clients/{clientsId}/users",
@@ -2931,10 +2983,13 @@ pub fn authorizedbuyersmarketplace_buyers_clients_users_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `authorizedbuyersmarketplace_buyers_clients_users_deactivate_execute()` to send, or `authorizedbuyersmarketplace_buyers_clients_users_deactivate` for simplest API.
 
-pub fn authorizedbuyersmarketplace_buyers_clients_users_deactivate_builder(
-    client: &SimpleHttpClient,
+pub fn authorizedbuyersmarketplace_buyers_clients_users_deactivate_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://authorizedbuyersmarketplace.googleapis.com/v1/buyers/{}/clients/{clientsId}/users/{usersId}:deactivate",
@@ -3089,10 +3144,13 @@ pub fn authorizedbuyersmarketplace_buyers_clients_users_deactivate(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `authorizedbuyersmarketplace_buyers_clients_users_delete_execute()` to send, or `authorizedbuyersmarketplace_buyers_clients_users_delete` for simplest API.
 
-pub fn authorizedbuyersmarketplace_buyers_clients_users_delete_builder(
-    client: &SimpleHttpClient,
+pub fn authorizedbuyersmarketplace_buyers_clients_users_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://authorizedbuyersmarketplace.googleapis.com/v1/buyers/{}/clients/{clientsId}/users/{usersId}",
@@ -3247,10 +3305,13 @@ pub fn authorizedbuyersmarketplace_buyers_clients_users_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `authorizedbuyersmarketplace_buyers_clients_users_get_execute()` to send, or `authorizedbuyersmarketplace_buyers_clients_users_get` for simplest API.
 
-pub fn authorizedbuyersmarketplace_buyers_clients_users_get_builder(
-    client: &SimpleHttpClient,
+pub fn authorizedbuyersmarketplace_buyers_clients_users_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://authorizedbuyersmarketplace.googleapis.com/v1/buyers/{}/clients/{clientsId}/users/{usersId}",
@@ -3404,12 +3465,15 @@ pub fn authorizedbuyersmarketplace_buyers_clients_users_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `authorizedbuyersmarketplace_buyers_clients_users_list_execute()` to send, or `authorizedbuyersmarketplace_buyers_clients_users_list` for simplest API.
 
-pub fn authorizedbuyersmarketplace_buyers_clients_users_list_builder(
-    client: &SimpleHttpClient,
+pub fn authorizedbuyersmarketplace_buyers_clients_users_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://authorizedbuyersmarketplace.googleapis.com/v1/buyers/{}/clients/{clientsId}/users",
@@ -3590,10 +3654,13 @@ pub fn authorizedbuyersmarketplace_buyers_clients_users_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `authorizedbuyersmarketplace_buyers_finalized_deals_add_creative_execute()` to send, or `authorizedbuyersmarketplace_buyers_finalized_deals_add_creative` for simplest API.
 
-pub fn authorizedbuyersmarketplace_buyers_finalized_deals_add_creative_builder(
-    client: &SimpleHttpClient,
+pub fn authorizedbuyersmarketplace_buyers_finalized_deals_add_creative_builder<R>(
+    client: &SimpleHttpClient<R>,
     deal: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://authorizedbuyersmarketplace.googleapis.com/v1/buyers/{}/finalizedDeals/{finalizedDealsId}:addCreative",
@@ -3753,10 +3820,13 @@ pub fn authorizedbuyersmarketplace_buyers_finalized_deals_add_creative(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `authorizedbuyersmarketplace_buyers_finalized_deals_get_execute()` to send, or `authorizedbuyersmarketplace_buyers_finalized_deals_get` for simplest API.
 
-pub fn authorizedbuyersmarketplace_buyers_finalized_deals_get_builder(
-    client: &SimpleHttpClient,
+pub fn authorizedbuyersmarketplace_buyers_finalized_deals_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://authorizedbuyersmarketplace.googleapis.com/v1/buyers/{}/finalizedDeals/{finalizedDealsId}",
@@ -3915,14 +3985,17 @@ pub fn authorizedbuyersmarketplace_buyers_finalized_deals_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `authorizedbuyersmarketplace_buyers_finalized_deals_list_execute()` to send, or `authorizedbuyersmarketplace_buyers_finalized_deals_list` for simplest API.
 
-pub fn authorizedbuyersmarketplace_buyers_finalized_deals_list_builder(
-    client: &SimpleHttpClient,
+pub fn authorizedbuyersmarketplace_buyers_finalized_deals_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://authorizedbuyersmarketplace.googleapis.com/v1/buyers/{}/finalizedDeals",
@@ -4119,10 +4192,13 @@ pub fn authorizedbuyersmarketplace_buyers_finalized_deals_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `authorizedbuyersmarketplace_buyers_finalized_deals_pause_execute()` to send, or `authorizedbuyersmarketplace_buyers_finalized_deals_pause` for simplest API.
 
-pub fn authorizedbuyersmarketplace_buyers_finalized_deals_pause_builder(
-    client: &SimpleHttpClient,
+pub fn authorizedbuyersmarketplace_buyers_finalized_deals_pause_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://authorizedbuyersmarketplace.googleapis.com/v1/buyers/{}/finalizedDeals/{finalizedDealsId}:pause",
@@ -4281,10 +4357,13 @@ pub fn authorizedbuyersmarketplace_buyers_finalized_deals_pause(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `authorizedbuyersmarketplace_buyers_finalized_deals_resume_execute()` to send, or `authorizedbuyersmarketplace_buyers_finalized_deals_resume` for simplest API.
 
-pub fn authorizedbuyersmarketplace_buyers_finalized_deals_resume_builder(
-    client: &SimpleHttpClient,
+pub fn authorizedbuyersmarketplace_buyers_finalized_deals_resume_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://authorizedbuyersmarketplace.googleapis.com/v1/buyers/{}/finalizedDeals/{finalizedDealsId}:resume",
@@ -4443,10 +4522,13 @@ pub fn authorizedbuyersmarketplace_buyers_finalized_deals_resume(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `authorizedbuyersmarketplace_buyers_finalized_deals_set_ready_to_serve_execute()` to send, or `authorizedbuyersmarketplace_buyers_finalized_deals_set_ready_to_serve` for simplest API.
 
-pub fn authorizedbuyersmarketplace_buyers_finalized_deals_set_ready_to_serve_builder(
-    client: &SimpleHttpClient,
+pub fn authorizedbuyersmarketplace_buyers_finalized_deals_set_ready_to_serve_builder<R>(
+    client: &SimpleHttpClient<R>,
     deal: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://authorizedbuyersmarketplace.googleapis.com/v1/buyers/{}/finalizedDeals/{finalizedDealsId}:setReadyToServe",
@@ -4606,10 +4688,13 @@ pub fn authorizedbuyersmarketplace_buyers_finalized_deals_set_ready_to_serve(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `authorizedbuyersmarketplace_buyers_proposals_accept_execute()` to send, or `authorizedbuyersmarketplace_buyers_proposals_accept` for simplest API.
 
-pub fn authorizedbuyersmarketplace_buyers_proposals_accept_builder(
-    client: &SimpleHttpClient,
+pub fn authorizedbuyersmarketplace_buyers_proposals_accept_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://authorizedbuyersmarketplace.googleapis.com/v1/buyers/{}/proposals/{proposalsId}:accept",
@@ -4763,10 +4848,13 @@ pub fn authorizedbuyersmarketplace_buyers_proposals_accept(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `authorizedbuyersmarketplace_buyers_proposals_add_note_execute()` to send, or `authorizedbuyersmarketplace_buyers_proposals_add_note` for simplest API.
 
-pub fn authorizedbuyersmarketplace_buyers_proposals_add_note_builder(
-    client: &SimpleHttpClient,
+pub fn authorizedbuyersmarketplace_buyers_proposals_add_note_builder<R>(
+    client: &SimpleHttpClient<R>,
     proposal: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://authorizedbuyersmarketplace.googleapis.com/v1/buyers/{}/proposals/{proposalsId}:addNote",
@@ -4921,10 +5009,13 @@ pub fn authorizedbuyersmarketplace_buyers_proposals_add_note(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `authorizedbuyersmarketplace_buyers_proposals_cancel_negotiation_execute()` to send, or `authorizedbuyersmarketplace_buyers_proposals_cancel_negotiation` for simplest API.
 
-pub fn authorizedbuyersmarketplace_buyers_proposals_cancel_negotiation_builder(
-    client: &SimpleHttpClient,
+pub fn authorizedbuyersmarketplace_buyers_proposals_cancel_negotiation_builder<R>(
+    client: &SimpleHttpClient<R>,
     proposal: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://authorizedbuyersmarketplace.googleapis.com/v1/buyers/{}/proposals/{proposalsId}:cancelNegotiation",
@@ -5081,10 +5172,13 @@ pub fn authorizedbuyersmarketplace_buyers_proposals_cancel_negotiation(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `authorizedbuyersmarketplace_buyers_proposals_get_execute()` to send, or `authorizedbuyersmarketplace_buyers_proposals_get` for simplest API.
 
-pub fn authorizedbuyersmarketplace_buyers_proposals_get_builder(
-    client: &SimpleHttpClient,
+pub fn authorizedbuyersmarketplace_buyers_proposals_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://authorizedbuyersmarketplace.googleapis.com/v1/buyers/{}/proposals/{proposalsId}",
@@ -5238,13 +5332,16 @@ pub fn authorizedbuyersmarketplace_buyers_proposals_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `authorizedbuyersmarketplace_buyers_proposals_list_execute()` to send, or `authorizedbuyersmarketplace_buyers_proposals_list` for simplest API.
 
-pub fn authorizedbuyersmarketplace_buyers_proposals_list_builder(
-    client: &SimpleHttpClient,
+pub fn authorizedbuyersmarketplace_buyers_proposals_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://authorizedbuyersmarketplace.googleapis.com/v1/buyers/{}/proposals",
@@ -5431,11 +5528,14 @@ pub fn authorizedbuyersmarketplace_buyers_proposals_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `authorizedbuyersmarketplace_buyers_proposals_patch_execute()` to send, or `authorizedbuyersmarketplace_buyers_proposals_patch` for simplest API.
 
-pub fn authorizedbuyersmarketplace_buyers_proposals_patch_builder(
-    client: &SimpleHttpClient,
+pub fn authorizedbuyersmarketplace_buyers_proposals_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://authorizedbuyersmarketplace.googleapis.com/v1/buyers/{}/proposals/{proposalsId}",
@@ -5606,10 +5706,13 @@ pub fn authorizedbuyersmarketplace_buyers_proposals_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `authorizedbuyersmarketplace_buyers_proposals_send_rfp_execute()` to send, or `authorizedbuyersmarketplace_buyers_proposals_send_rfp` for simplest API.
 
-pub fn authorizedbuyersmarketplace_buyers_proposals_send_rfp_builder(
-    client: &SimpleHttpClient,
+pub fn authorizedbuyersmarketplace_buyers_proposals_send_rfp_builder<R>(
+    client: &SimpleHttpClient<R>,
     buyer: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://authorizedbuyersmarketplace.googleapis.com/v1/buyers/{}/proposals:sendRfp",
@@ -5764,10 +5867,13 @@ pub fn authorizedbuyersmarketplace_buyers_proposals_send_rfp(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `authorizedbuyersmarketplace_buyers_proposals_deals_batch_update_execute()` to send, or `authorizedbuyersmarketplace_buyers_proposals_deals_batch_update` for simplest API.
 
-pub fn authorizedbuyersmarketplace_buyers_proposals_deals_batch_update_builder(
-    client: &SimpleHttpClient,
+pub fn authorizedbuyersmarketplace_buyers_proposals_deals_batch_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://authorizedbuyersmarketplace.googleapis.com/v1/buyers/{}/proposals/{proposalsId}/deals:batchUpdate",
@@ -5928,10 +6034,13 @@ pub fn authorizedbuyersmarketplace_buyers_proposals_deals_batch_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `authorizedbuyersmarketplace_buyers_proposals_deals_get_execute()` to send, or `authorizedbuyersmarketplace_buyers_proposals_deals_get` for simplest API.
 
-pub fn authorizedbuyersmarketplace_buyers_proposals_deals_get_builder(
-    client: &SimpleHttpClient,
+pub fn authorizedbuyersmarketplace_buyers_proposals_deals_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://authorizedbuyersmarketplace.googleapis.com/v1/buyers/{}/proposals/{proposalsId}/deals/{dealsId}",
@@ -6086,12 +6195,15 @@ pub fn authorizedbuyersmarketplace_buyers_proposals_deals_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `authorizedbuyersmarketplace_buyers_proposals_deals_list_execute()` to send, or `authorizedbuyersmarketplace_buyers_proposals_deals_list` for simplest API.
 
-pub fn authorizedbuyersmarketplace_buyers_proposals_deals_list_builder(
-    client: &SimpleHttpClient,
+pub fn authorizedbuyersmarketplace_buyers_proposals_deals_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://authorizedbuyersmarketplace.googleapis.com/v1/buyers/{}/proposals/{proposalsId}/deals",
@@ -6272,11 +6384,14 @@ pub fn authorizedbuyersmarketplace_buyers_proposals_deals_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `authorizedbuyersmarketplace_buyers_proposals_deals_patch_execute()` to send, or `authorizedbuyersmarketplace_buyers_proposals_deals_patch` for simplest API.
 
-pub fn authorizedbuyersmarketplace_buyers_proposals_deals_patch_builder(
-    client: &SimpleHttpClient,
+pub fn authorizedbuyersmarketplace_buyers_proposals_deals_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://authorizedbuyersmarketplace.googleapis.com/v1/buyers/{}/proposals/{proposalsId}/deals/{dealsId}",
@@ -6447,10 +6562,13 @@ pub fn authorizedbuyersmarketplace_buyers_proposals_deals_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `authorizedbuyersmarketplace_buyers_publisher_profiles_get_execute()` to send, or `authorizedbuyersmarketplace_buyers_publisher_profiles_get` for simplest API.
 
-pub fn authorizedbuyersmarketplace_buyers_publisher_profiles_get_builder(
-    client: &SimpleHttpClient,
+pub fn authorizedbuyersmarketplace_buyers_publisher_profiles_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://authorizedbuyersmarketplace.googleapis.com/v1/buyers/{}/publisherProfiles/{publisherProfilesId}",
@@ -6609,13 +6727,16 @@ pub fn authorizedbuyersmarketplace_buyers_publisher_profiles_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `authorizedbuyersmarketplace_buyers_publisher_profiles_list_execute()` to send, or `authorizedbuyersmarketplace_buyers_publisher_profiles_list` for simplest API.
 
-pub fn authorizedbuyersmarketplace_buyers_publisher_profiles_list_builder(
-    client: &SimpleHttpClient,
+pub fn authorizedbuyersmarketplace_buyers_publisher_profiles_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://authorizedbuyersmarketplace.googleapis.com/v1/buyers/{}/publisherProfiles",

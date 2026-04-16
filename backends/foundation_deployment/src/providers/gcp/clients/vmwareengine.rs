@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmwareengine_projects_locations_get_execute()` to send, or `vmwareengine_projects_locations_get` for simplest API.
 
-pub fn vmwareengine_projects_locations_get_builder(
-    client: &SimpleHttpClient,
+pub fn vmwareengine_projects_locations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}",
@@ -183,10 +187,13 @@ pub fn vmwareengine_projects_locations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmwareengine_projects_locations_get_dns_bind_permission_execute()` to send, or `vmwareengine_projects_locations_get_dns_bind_permission` for simplest API.
 
-pub fn vmwareengine_projects_locations_get_dns_bind_permission_builder(
-    client: &SimpleHttpClient,
+pub fn vmwareengine_projects_locations_get_dns_bind_permission_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/dnsBindPermission",
@@ -345,14 +352,17 @@ pub fn vmwareengine_projects_locations_get_dns_bind_permission(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmwareengine_projects_locations_list_execute()` to send, or `vmwareengine_projects_locations_list` for simplest API.
 
-pub fn vmwareengine_projects_locations_list_builder(
-    client: &SimpleHttpClient,
+pub fn vmwareengine_projects_locations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     extraLocationTypes: &Option<Option<String>>,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmwareengine.googleapis.com/v1/projects/{}/locations",
@@ -545,10 +555,13 @@ pub fn vmwareengine_projects_locations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmwareengine_projects_locations_announcements_get_execute()` to send, or `vmwareengine_projects_locations_announcements_get` for simplest API.
 
-pub fn vmwareengine_projects_locations_announcements_get_builder(
-    client: &SimpleHttpClient,
+pub fn vmwareengine_projects_locations_announcements_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/announcements/{announcementsId}",
@@ -706,14 +719,17 @@ pub fn vmwareengine_projects_locations_announcements_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmwareengine_projects_locations_announcements_list_execute()` to send, or `vmwareengine_projects_locations_announcements_list` for simplest API.
 
-pub fn vmwareengine_projects_locations_announcements_list_builder(
-    client: &SimpleHttpClient,
+pub fn vmwareengine_projects_locations_announcements_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/announcements",
@@ -906,12 +922,15 @@ pub fn vmwareengine_projects_locations_announcements_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmwareengine_projects_locations_datastores_create_execute()` to send, or `vmwareengine_projects_locations_datastores_create` for simplest API.
 
-pub fn vmwareengine_projects_locations_datastores_create_builder(
-    client: &SimpleHttpClient,
+pub fn vmwareengine_projects_locations_datastores_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     datastoreId: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/datastores",
@@ -1088,12 +1107,15 @@ pub fn vmwareengine_projects_locations_datastores_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmwareengine_projects_locations_datastores_delete_execute()` to send, or `vmwareengine_projects_locations_datastores_delete` for simplest API.
 
-pub fn vmwareengine_projects_locations_datastores_delete_builder(
-    client: &SimpleHttpClient,
+pub fn vmwareengine_projects_locations_datastores_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     etag: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/datastores/{datastoresId}",
@@ -1270,10 +1292,13 @@ pub fn vmwareengine_projects_locations_datastores_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmwareengine_projects_locations_datastores_get_execute()` to send, or `vmwareengine_projects_locations_datastores_get` for simplest API.
 
-pub fn vmwareengine_projects_locations_datastores_get_builder(
-    client: &SimpleHttpClient,
+pub fn vmwareengine_projects_locations_datastores_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/datastores/{datastoresId}",
@@ -1427,15 +1452,18 @@ pub fn vmwareengine_projects_locations_datastores_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmwareengine_projects_locations_datastores_list_execute()` to send, or `vmwareengine_projects_locations_datastores_list` for simplest API.
 
-pub fn vmwareengine_projects_locations_datastores_list_builder(
-    client: &SimpleHttpClient,
+pub fn vmwareengine_projects_locations_datastores_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/datastores",
@@ -1634,12 +1662,15 @@ pub fn vmwareengine_projects_locations_datastores_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmwareengine_projects_locations_datastores_patch_execute()` to send, or `vmwareengine_projects_locations_datastores_patch` for simplest API.
 
-pub fn vmwareengine_projects_locations_datastores_patch_builder(
-    client: &SimpleHttpClient,
+pub fn vmwareengine_projects_locations_datastores_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/datastores/{datastoresId}",
@@ -1816,10 +1847,13 @@ pub fn vmwareengine_projects_locations_datastores_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmwareengine_projects_locations_dns_bind_permission_grant_execute()` to send, or `vmwareengine_projects_locations_dns_bind_permission_grant` for simplest API.
 
-pub fn vmwareengine_projects_locations_dns_bind_permission_grant_builder(
-    client: &SimpleHttpClient,
+pub fn vmwareengine_projects_locations_dns_bind_permission_grant_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/dnsBindPermission:grant",
@@ -1974,10 +2008,13 @@ pub fn vmwareengine_projects_locations_dns_bind_permission_grant(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmwareengine_projects_locations_dns_bind_permission_revoke_execute()` to send, or `vmwareengine_projects_locations_dns_bind_permission_revoke` for simplest API.
 
-pub fn vmwareengine_projects_locations_dns_bind_permission_revoke_builder(
-    client: &SimpleHttpClient,
+pub fn vmwareengine_projects_locations_dns_bind_permission_revoke_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/dnsBindPermission:revoke",
@@ -2132,13 +2169,16 @@ pub fn vmwareengine_projects_locations_dns_bind_permission_revoke(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmwareengine_projects_locations_network_peerings_create_execute()` to send, or `vmwareengine_projects_locations_network_peerings_create` for simplest API.
 
-pub fn vmwareengine_projects_locations_network_peerings_create_builder(
-    client: &SimpleHttpClient,
+pub fn vmwareengine_projects_locations_network_peerings_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     networkPeeringId: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/networkPeerings",
@@ -2321,11 +2361,14 @@ pub fn vmwareengine_projects_locations_network_peerings_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmwareengine_projects_locations_network_peerings_delete_execute()` to send, or `vmwareengine_projects_locations_network_peerings_delete` for simplest API.
 
-pub fn vmwareengine_projects_locations_network_peerings_delete_builder(
-    client: &SimpleHttpClient,
+pub fn vmwareengine_projects_locations_network_peerings_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/networkPeerings/{networkPeeringsId}",
@@ -2496,10 +2539,13 @@ pub fn vmwareengine_projects_locations_network_peerings_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmwareengine_projects_locations_network_peerings_get_execute()` to send, or `vmwareengine_projects_locations_network_peerings_get` for simplest API.
 
-pub fn vmwareengine_projects_locations_network_peerings_get_builder(
-    client: &SimpleHttpClient,
+pub fn vmwareengine_projects_locations_network_peerings_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/networkPeerings/{networkPeeringsId}",
@@ -2657,14 +2703,17 @@ pub fn vmwareengine_projects_locations_network_peerings_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmwareengine_projects_locations_network_peerings_list_execute()` to send, or `vmwareengine_projects_locations_network_peerings_list` for simplest API.
 
-pub fn vmwareengine_projects_locations_network_peerings_list_builder(
-    client: &SimpleHttpClient,
+pub fn vmwareengine_projects_locations_network_peerings_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/networkPeerings",
@@ -2861,13 +2910,16 @@ pub fn vmwareengine_projects_locations_network_peerings_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmwareengine_projects_locations_network_peerings_patch_execute()` to send, or `vmwareengine_projects_locations_network_peerings_patch` for simplest API.
 
-pub fn vmwareengine_projects_locations_network_peerings_patch_builder(
-    client: &SimpleHttpClient,
+pub fn vmwareengine_projects_locations_network_peerings_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/networkPeerings/{networkPeeringsId}",
@@ -3050,13 +3102,16 @@ pub fn vmwareengine_projects_locations_network_peerings_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmwareengine_projects_locations_network_peerings_peering_routes_list_execute()` to send, or `vmwareengine_projects_locations_network_peerings_peering_routes_list` for simplest API.
 
-pub fn vmwareengine_projects_locations_network_peerings_peering_routes_list_builder(
-    client: &SimpleHttpClient,
+pub fn vmwareengine_projects_locations_network_peerings_peering_routes_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/networkPeerings/{networkPeeringsId}/peeringRoutes",
@@ -3243,13 +3298,16 @@ pub fn vmwareengine_projects_locations_network_peerings_peering_routes_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmwareengine_projects_locations_network_policies_create_execute()` to send, or `vmwareengine_projects_locations_network_policies_create` for simplest API.
 
-pub fn vmwareengine_projects_locations_network_policies_create_builder(
-    client: &SimpleHttpClient,
+pub fn vmwareengine_projects_locations_network_policies_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     networkPolicyId: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/networkPolicies",
@@ -3432,11 +3490,14 @@ pub fn vmwareengine_projects_locations_network_policies_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmwareengine_projects_locations_network_policies_delete_execute()` to send, or `vmwareengine_projects_locations_network_policies_delete` for simplest API.
 
-pub fn vmwareengine_projects_locations_network_policies_delete_builder(
-    client: &SimpleHttpClient,
+pub fn vmwareengine_projects_locations_network_policies_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/networkPolicies/{networkPoliciesId}",
@@ -3607,12 +3668,15 @@ pub fn vmwareengine_projects_locations_network_policies_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmwareengine_projects_locations_network_policies_fetch_external_addresses_execute()` to send, or `vmwareengine_projects_locations_network_policies_fetch_external_addresses` for simplest API.
 
-pub fn vmwareengine_projects_locations_network_policies_fetch_external_addresses_builder(
-    client: &SimpleHttpClient,
+pub fn vmwareengine_projects_locations_network_policies_fetch_external_addresses_builder<R>(
+    client: &SimpleHttpClient<R>,
     networkPolicy: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/networkPolicies/{networkPoliciesId}:fetchExternalAddresses",
@@ -3800,10 +3864,13 @@ pub fn vmwareengine_projects_locations_network_policies_fetch_external_addresses
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmwareengine_projects_locations_network_policies_get_execute()` to send, or `vmwareengine_projects_locations_network_policies_get` for simplest API.
 
-pub fn vmwareengine_projects_locations_network_policies_get_builder(
-    client: &SimpleHttpClient,
+pub fn vmwareengine_projects_locations_network_policies_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/networkPolicies/{networkPoliciesId}",
@@ -3961,14 +4028,17 @@ pub fn vmwareengine_projects_locations_network_policies_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmwareengine_projects_locations_network_policies_list_execute()` to send, or `vmwareengine_projects_locations_network_policies_list` for simplest API.
 
-pub fn vmwareengine_projects_locations_network_policies_list_builder(
-    client: &SimpleHttpClient,
+pub fn vmwareengine_projects_locations_network_policies_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/networkPolicies",
@@ -4165,13 +4235,16 @@ pub fn vmwareengine_projects_locations_network_policies_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmwareengine_projects_locations_network_policies_patch_execute()` to send, or `vmwareengine_projects_locations_network_policies_patch` for simplest API.
 
-pub fn vmwareengine_projects_locations_network_policies_patch_builder(
-    client: &SimpleHttpClient,
+pub fn vmwareengine_projects_locations_network_policies_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/networkPolicies/{networkPoliciesId}",
@@ -4354,13 +4427,16 @@ pub fn vmwareengine_projects_locations_network_policies_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmwareengine_projects_locations_network_policies_external_access_rules_create_execute()` to send, or `vmwareengine_projects_locations_network_policies_external_access_rules_create` for simplest API.
 
-pub fn vmwareengine_projects_locations_network_policies_external_access_rules_create_builder(
-    client: &SimpleHttpClient,
+pub fn vmwareengine_projects_locations_network_policies_external_access_rules_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     externalAccessRuleId: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/networkPolicies/{networkPoliciesId}/externalAccessRules",
@@ -4546,11 +4622,14 @@ pub fn vmwareengine_projects_locations_network_policies_external_access_rules_cr
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmwareengine_projects_locations_network_policies_external_access_rules_delete_execute()` to send, or `vmwareengine_projects_locations_network_policies_external_access_rules_delete` for simplest API.
 
-pub fn vmwareengine_projects_locations_network_policies_external_access_rules_delete_builder(
-    client: &SimpleHttpClient,
+pub fn vmwareengine_projects_locations_network_policies_external_access_rules_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/networkPolicies/{networkPoliciesId}/externalAccessRules/{externalAccessRulesId}",
@@ -4724,10 +4803,13 @@ pub fn vmwareengine_projects_locations_network_policies_external_access_rules_de
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmwareengine_projects_locations_network_policies_external_access_rules_get_execute()` to send, or `vmwareengine_projects_locations_network_policies_external_access_rules_get` for simplest API.
 
-pub fn vmwareengine_projects_locations_network_policies_external_access_rules_get_builder(
-    client: &SimpleHttpClient,
+pub fn vmwareengine_projects_locations_network_policies_external_access_rules_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/networkPolicies/{networkPoliciesId}/externalAccessRules/{externalAccessRulesId}",
@@ -4889,14 +4971,17 @@ pub fn vmwareengine_projects_locations_network_policies_external_access_rules_ge
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmwareengine_projects_locations_network_policies_external_access_rules_list_execute()` to send, or `vmwareengine_projects_locations_network_policies_external_access_rules_list` for simplest API.
 
-pub fn vmwareengine_projects_locations_network_policies_external_access_rules_list_builder(
-    client: &SimpleHttpClient,
+pub fn vmwareengine_projects_locations_network_policies_external_access_rules_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/networkPolicies/{networkPoliciesId}/externalAccessRules",
@@ -5095,13 +5180,16 @@ pub fn vmwareengine_projects_locations_network_policies_external_access_rules_li
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmwareengine_projects_locations_network_policies_external_access_rules_patch_execute()` to send, or `vmwareengine_projects_locations_network_policies_external_access_rules_patch` for simplest API.
 
-pub fn vmwareengine_projects_locations_network_policies_external_access_rules_patch_builder(
-    client: &SimpleHttpClient,
+pub fn vmwareengine_projects_locations_network_policies_external_access_rules_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/networkPolicies/{networkPoliciesId}/externalAccessRules/{externalAccessRulesId}",
@@ -5286,10 +5374,13 @@ pub fn vmwareengine_projects_locations_network_policies_external_access_rules_pa
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmwareengine_projects_locations_node_types_get_execute()` to send, or `vmwareengine_projects_locations_node_types_get` for simplest API.
 
-pub fn vmwareengine_projects_locations_node_types_get_builder(
-    client: &SimpleHttpClient,
+pub fn vmwareengine_projects_locations_node_types_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/nodeTypes/{nodeTypesId}",
@@ -5443,13 +5534,16 @@ pub fn vmwareengine_projects_locations_node_types_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmwareengine_projects_locations_node_types_list_execute()` to send, or `vmwareengine_projects_locations_node_types_list` for simplest API.
 
-pub fn vmwareengine_projects_locations_node_types_list_builder(
-    client: &SimpleHttpClient,
+pub fn vmwareengine_projects_locations_node_types_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/nodeTypes",
@@ -5636,10 +5730,13 @@ pub fn vmwareengine_projects_locations_node_types_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmwareengine_projects_locations_operations_delete_execute()` to send, or `vmwareengine_projects_locations_operations_delete` for simplest API.
 
-pub fn vmwareengine_projects_locations_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn vmwareengine_projects_locations_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -5793,10 +5890,13 @@ pub fn vmwareengine_projects_locations_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmwareengine_projects_locations_operations_get_execute()` to send, or `vmwareengine_projects_locations_operations_get` for simplest API.
 
-pub fn vmwareengine_projects_locations_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn vmwareengine_projects_locations_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -5950,14 +6050,17 @@ pub fn vmwareengine_projects_locations_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmwareengine_projects_locations_operations_list_execute()` to send, or `vmwareengine_projects_locations_operations_list` for simplest API.
 
-pub fn vmwareengine_projects_locations_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn vmwareengine_projects_locations_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/operations",
@@ -6150,13 +6253,16 @@ pub fn vmwareengine_projects_locations_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmwareengine_projects_locations_private_clouds_create_execute()` to send, or `vmwareengine_projects_locations_private_clouds_create` for simplest API.
 
-pub fn vmwareengine_projects_locations_private_clouds_create_builder(
-    client: &SimpleHttpClient,
+pub fn vmwareengine_projects_locations_private_clouds_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     privateCloudId: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/privateClouds",
@@ -6339,13 +6445,16 @@ pub fn vmwareengine_projects_locations_private_clouds_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmwareengine_projects_locations_private_clouds_delete_execute()` to send, or `vmwareengine_projects_locations_private_clouds_delete` for simplest API.
 
-pub fn vmwareengine_projects_locations_private_clouds_delete_builder(
-    client: &SimpleHttpClient,
+pub fn vmwareengine_projects_locations_private_clouds_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     delayHours: &Option<Option<String>>,
     force: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/privateClouds/{privateCloudsId}",
@@ -6528,10 +6637,13 @@ pub fn vmwareengine_projects_locations_private_clouds_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmwareengine_projects_locations_private_clouds_get_execute()` to send, or `vmwareengine_projects_locations_private_clouds_get` for simplest API.
 
-pub fn vmwareengine_projects_locations_private_clouds_get_builder(
-    client: &SimpleHttpClient,
+pub fn vmwareengine_projects_locations_private_clouds_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/privateClouds/{privateCloudsId}",
@@ -6689,10 +6801,13 @@ pub fn vmwareengine_projects_locations_private_clouds_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmwareengine_projects_locations_private_clouds_get_dns_forwarding_execute()` to send, or `vmwareengine_projects_locations_private_clouds_get_dns_forwarding` for simplest API.
 
-pub fn vmwareengine_projects_locations_private_clouds_get_dns_forwarding_builder(
-    client: &SimpleHttpClient,
+pub fn vmwareengine_projects_locations_private_clouds_get_dns_forwarding_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/privateClouds/{privateCloudsId}/dnsForwarding",
@@ -6852,11 +6967,14 @@ pub fn vmwareengine_projects_locations_private_clouds_get_dns_forwarding(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmwareengine_projects_locations_private_clouds_get_iam_policy_execute()` to send, or `vmwareengine_projects_locations_private_clouds_get_iam_policy` for simplest API.
 
-pub fn vmwareengine_projects_locations_private_clouds_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn vmwareengine_projects_locations_private_clouds_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/privateClouds/{privateCloudsId}:getIamPolicy",
@@ -7027,14 +7145,17 @@ pub fn vmwareengine_projects_locations_private_clouds_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmwareengine_projects_locations_private_clouds_list_execute()` to send, or `vmwareengine_projects_locations_private_clouds_list` for simplest API.
 
-pub fn vmwareengine_projects_locations_private_clouds_list_builder(
-    client: &SimpleHttpClient,
+pub fn vmwareengine_projects_locations_private_clouds_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/privateClouds",
@@ -7227,13 +7348,16 @@ pub fn vmwareengine_projects_locations_private_clouds_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmwareengine_projects_locations_private_clouds_patch_execute()` to send, or `vmwareengine_projects_locations_private_clouds_patch` for simplest API.
 
-pub fn vmwareengine_projects_locations_private_clouds_patch_builder(
-    client: &SimpleHttpClient,
+pub fn vmwareengine_projects_locations_private_clouds_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/privateClouds/{privateCloudsId}",
@@ -7416,10 +7540,13 @@ pub fn vmwareengine_projects_locations_private_clouds_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmwareengine_projects_locations_private_clouds_private_cloud_deletion_now_execute()` to send, or `vmwareengine_projects_locations_private_clouds_private_cloud_deletion_now` for simplest API.
 
-pub fn vmwareengine_projects_locations_private_clouds_private_cloud_deletion_now_builder(
-    client: &SimpleHttpClient,
+pub fn vmwareengine_projects_locations_private_clouds_private_cloud_deletion_now_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/privateClouds/{privateCloudsId}:privateCloudDeletionNow",
@@ -7577,10 +7704,13 @@ pub fn vmwareengine_projects_locations_private_clouds_private_cloud_deletion_now
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmwareengine_projects_locations_private_clouds_reset_nsx_credentials_execute()` to send, or `vmwareengine_projects_locations_private_clouds_reset_nsx_credentials` for simplest API.
 
-pub fn vmwareengine_projects_locations_private_clouds_reset_nsx_credentials_builder(
-    client: &SimpleHttpClient,
+pub fn vmwareengine_projects_locations_private_clouds_reset_nsx_credentials_builder<R>(
+    client: &SimpleHttpClient<R>,
     privateCloud: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/privateClouds/{privateCloudsId}:resetNsxCredentials",
@@ -7737,10 +7867,13 @@ pub fn vmwareengine_projects_locations_private_clouds_reset_nsx_credentials(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmwareengine_projects_locations_private_clouds_reset_vcenter_credentials_execute()` to send, or `vmwareengine_projects_locations_private_clouds_reset_vcenter_credentials` for simplest API.
 
-pub fn vmwareengine_projects_locations_private_clouds_reset_vcenter_credentials_builder(
-    client: &SimpleHttpClient,
+pub fn vmwareengine_projects_locations_private_clouds_reset_vcenter_credentials_builder<R>(
+    client: &SimpleHttpClient<R>,
     privateCloud: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/privateClouds/{privateCloudsId}:resetVcenterCredentials",
@@ -7898,10 +8031,13 @@ pub fn vmwareengine_projects_locations_private_clouds_reset_vcenter_credentials(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmwareengine_projects_locations_private_clouds_set_iam_policy_execute()` to send, or `vmwareengine_projects_locations_private_clouds_set_iam_policy` for simplest API.
 
-pub fn vmwareengine_projects_locations_private_clouds_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn vmwareengine_projects_locations_private_clouds_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/privateClouds/{privateCloudsId}:setIamPolicy",
@@ -8058,10 +8194,13 @@ pub fn vmwareengine_projects_locations_private_clouds_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmwareengine_projects_locations_private_clouds_show_nsx_credentials_execute()` to send, or `vmwareengine_projects_locations_private_clouds_show_nsx_credentials` for simplest API.
 
-pub fn vmwareengine_projects_locations_private_clouds_show_nsx_credentials_builder(
-    client: &SimpleHttpClient,
+pub fn vmwareengine_projects_locations_private_clouds_show_nsx_credentials_builder<R>(
+    client: &SimpleHttpClient<R>,
     privateCloud: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/privateClouds/{privateCloudsId}:showNsxCredentials",
@@ -8218,11 +8357,14 @@ pub fn vmwareengine_projects_locations_private_clouds_show_nsx_credentials(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmwareengine_projects_locations_private_clouds_show_vcenter_credentials_execute()` to send, or `vmwareengine_projects_locations_private_clouds_show_vcenter_credentials` for simplest API.
 
-pub fn vmwareengine_projects_locations_private_clouds_show_vcenter_credentials_builder(
-    client: &SimpleHttpClient,
+pub fn vmwareengine_projects_locations_private_clouds_show_vcenter_credentials_builder<R>(
+    client: &SimpleHttpClient<R>,
     privateCloud: &String,
     username: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/privateClouds/{privateCloudsId}:showVcenterCredentials",
@@ -8394,10 +8536,13 @@ pub fn vmwareengine_projects_locations_private_clouds_show_vcenter_credentials(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmwareengine_projects_locations_private_clouds_test_iam_permissions_execute()` to send, or `vmwareengine_projects_locations_private_clouds_test_iam_permissions` for simplest API.
 
-pub fn vmwareengine_projects_locations_private_clouds_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn vmwareengine_projects_locations_private_clouds_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/privateClouds/{privateCloudsId}:testIamPermissions",
@@ -8562,10 +8707,13 @@ pub fn vmwareengine_projects_locations_private_clouds_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmwareengine_projects_locations_private_clouds_undelete_execute()` to send, or `vmwareengine_projects_locations_private_clouds_undelete` for simplest API.
 
-pub fn vmwareengine_projects_locations_private_clouds_undelete_builder(
-    client: &SimpleHttpClient,
+pub fn vmwareengine_projects_locations_private_clouds_undelete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/privateClouds/{privateCloudsId}:undelete",
@@ -8720,12 +8868,15 @@ pub fn vmwareengine_projects_locations_private_clouds_undelete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmwareengine_projects_locations_private_clouds_update_dns_forwarding_execute()` to send, or `vmwareengine_projects_locations_private_clouds_update_dns_forwarding` for simplest API.
 
-pub fn vmwareengine_projects_locations_private_clouds_update_dns_forwarding_builder(
-    client: &SimpleHttpClient,
+pub fn vmwareengine_projects_locations_private_clouds_update_dns_forwarding_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/privateClouds/{privateCloudsId}/dnsForwarding",
@@ -8902,13 +9053,16 @@ pub fn vmwareengine_projects_locations_private_clouds_update_dns_forwarding(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmwareengine_projects_locations_private_clouds_clusters_create_execute()` to send, or `vmwareengine_projects_locations_private_clouds_clusters_create` for simplest API.
 
-pub fn vmwareengine_projects_locations_private_clouds_clusters_create_builder(
-    client: &SimpleHttpClient,
+pub fn vmwareengine_projects_locations_private_clouds_clusters_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     clusterId: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/privateClouds/{privateCloudsId}/clusters",
@@ -9091,11 +9245,14 @@ pub fn vmwareengine_projects_locations_private_clouds_clusters_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmwareengine_projects_locations_private_clouds_clusters_delete_execute()` to send, or `vmwareengine_projects_locations_private_clouds_clusters_delete` for simplest API.
 
-pub fn vmwareengine_projects_locations_private_clouds_clusters_delete_builder(
-    client: &SimpleHttpClient,
+pub fn vmwareengine_projects_locations_private_clouds_clusters_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/privateClouds/{privateCloudsId}/clusters/{clustersId}",
@@ -9266,10 +9423,13 @@ pub fn vmwareengine_projects_locations_private_clouds_clusters_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmwareengine_projects_locations_private_clouds_clusters_get_execute()` to send, or `vmwareengine_projects_locations_private_clouds_clusters_get` for simplest API.
 
-pub fn vmwareengine_projects_locations_private_clouds_clusters_get_builder(
-    client: &SimpleHttpClient,
+pub fn vmwareengine_projects_locations_private_clouds_clusters_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/privateClouds/{privateCloudsId}/clusters/{clustersId}",
@@ -9424,11 +9584,14 @@ pub fn vmwareengine_projects_locations_private_clouds_clusters_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmwareengine_projects_locations_private_clouds_clusters_get_iam_policy_execute()` to send, or `vmwareengine_projects_locations_private_clouds_clusters_get_iam_policy` for simplest API.
 
-pub fn vmwareengine_projects_locations_private_clouds_clusters_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn vmwareengine_projects_locations_private_clouds_clusters_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/privateClouds/{privateCloudsId}/clusters/{clustersId}:getIamPolicy",
@@ -9600,14 +9763,17 @@ pub fn vmwareengine_projects_locations_private_clouds_clusters_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmwareengine_projects_locations_private_clouds_clusters_list_execute()` to send, or `vmwareengine_projects_locations_private_clouds_clusters_list` for simplest API.
 
-pub fn vmwareengine_projects_locations_private_clouds_clusters_list_builder(
-    client: &SimpleHttpClient,
+pub fn vmwareengine_projects_locations_private_clouds_clusters_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/privateClouds/{privateCloudsId}/clusters",
@@ -9800,10 +9966,13 @@ pub fn vmwareengine_projects_locations_private_clouds_clusters_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmwareengine_projects_locations_private_clouds_clusters_mount_datastore_execute()` to send, or `vmwareengine_projects_locations_private_clouds_clusters_mount_datastore` for simplest API.
 
-pub fn vmwareengine_projects_locations_private_clouds_clusters_mount_datastore_builder(
-    client: &SimpleHttpClient,
+pub fn vmwareengine_projects_locations_private_clouds_clusters_mount_datastore_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/privateClouds/{privateCloudsId}/clusters/{clustersId}:mountDatastore",
@@ -9960,13 +10129,16 @@ pub fn vmwareengine_projects_locations_private_clouds_clusters_mount_datastore(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmwareengine_projects_locations_private_clouds_clusters_patch_execute()` to send, or `vmwareengine_projects_locations_private_clouds_clusters_patch` for simplest API.
 
-pub fn vmwareengine_projects_locations_private_clouds_clusters_patch_builder(
-    client: &SimpleHttpClient,
+pub fn vmwareengine_projects_locations_private_clouds_clusters_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/privateClouds/{privateCloudsId}/clusters/{clustersId}",
@@ -10149,10 +10321,13 @@ pub fn vmwareengine_projects_locations_private_clouds_clusters_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmwareengine_projects_locations_private_clouds_clusters_set_iam_policy_execute()` to send, or `vmwareengine_projects_locations_private_clouds_clusters_set_iam_policy` for simplest API.
 
-pub fn vmwareengine_projects_locations_private_clouds_clusters_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn vmwareengine_projects_locations_private_clouds_clusters_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/privateClouds/{privateCloudsId}/clusters/{clustersId}:setIamPolicy",
@@ -10310,10 +10485,13 @@ pub fn vmwareengine_projects_locations_private_clouds_clusters_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmwareengine_projects_locations_private_clouds_clusters_test_iam_permissions_execute()` to send, or `vmwareengine_projects_locations_private_clouds_clusters_test_iam_permissions` for simplest API.
 
-pub fn vmwareengine_projects_locations_private_clouds_clusters_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn vmwareengine_projects_locations_private_clouds_clusters_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/privateClouds/{privateCloudsId}/clusters/{clustersId}:testIamPermissions",
@@ -10480,10 +10658,13 @@ pub fn vmwareengine_projects_locations_private_clouds_clusters_test_iam_permissi
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmwareengine_projects_locations_private_clouds_clusters_unmount_datastore_execute()` to send, or `vmwareengine_projects_locations_private_clouds_clusters_unmount_datastore` for simplest API.
 
-pub fn vmwareengine_projects_locations_private_clouds_clusters_unmount_datastore_builder(
-    client: &SimpleHttpClient,
+pub fn vmwareengine_projects_locations_private_clouds_clusters_unmount_datastore_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/privateClouds/{privateCloudsId}/clusters/{clustersId}:unmountDatastore",
@@ -10641,10 +10822,13 @@ pub fn vmwareengine_projects_locations_private_clouds_clusters_unmount_datastore
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmwareengine_projects_locations_private_clouds_clusters_nodes_get_execute()` to send, or `vmwareengine_projects_locations_private_clouds_clusters_nodes_get` for simplest API.
 
-pub fn vmwareengine_projects_locations_private_clouds_clusters_nodes_get_builder(
-    client: &SimpleHttpClient,
+pub fn vmwareengine_projects_locations_private_clouds_clusters_nodes_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/privateClouds/{privateCloudsId}/clusters/{clustersId}/nodes/{nodesId}",
@@ -10800,12 +10984,15 @@ pub fn vmwareengine_projects_locations_private_clouds_clusters_nodes_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmwareengine_projects_locations_private_clouds_clusters_nodes_list_execute()` to send, or `vmwareengine_projects_locations_private_clouds_clusters_nodes_list` for simplest API.
 
-pub fn vmwareengine_projects_locations_private_clouds_clusters_nodes_list_builder(
-    client: &SimpleHttpClient,
+pub fn vmwareengine_projects_locations_private_clouds_clusters_nodes_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/privateClouds/{privateCloudsId}/clusters/{clustersId}/nodes",
@@ -10986,13 +11173,16 @@ pub fn vmwareengine_projects_locations_private_clouds_clusters_nodes_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmwareengine_projects_locations_private_clouds_external_addresses_create_execute()` to send, or `vmwareengine_projects_locations_private_clouds_external_addresses_create` for simplest API.
 
-pub fn vmwareengine_projects_locations_private_clouds_external_addresses_create_builder(
-    client: &SimpleHttpClient,
+pub fn vmwareengine_projects_locations_private_clouds_external_addresses_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     externalAddressId: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/privateClouds/{privateCloudsId}/externalAddresses",
@@ -11176,11 +11366,14 @@ pub fn vmwareengine_projects_locations_private_clouds_external_addresses_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmwareengine_projects_locations_private_clouds_external_addresses_delete_execute()` to send, or `vmwareengine_projects_locations_private_clouds_external_addresses_delete` for simplest API.
 
-pub fn vmwareengine_projects_locations_private_clouds_external_addresses_delete_builder(
-    client: &SimpleHttpClient,
+pub fn vmwareengine_projects_locations_private_clouds_external_addresses_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/privateClouds/{privateCloudsId}/externalAddresses/{externalAddressesId}",
@@ -11352,10 +11545,13 @@ pub fn vmwareengine_projects_locations_private_clouds_external_addresses_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmwareengine_projects_locations_private_clouds_external_addresses_get_execute()` to send, or `vmwareengine_projects_locations_private_clouds_external_addresses_get` for simplest API.
 
-pub fn vmwareengine_projects_locations_private_clouds_external_addresses_get_builder(
-    client: &SimpleHttpClient,
+pub fn vmwareengine_projects_locations_private_clouds_external_addresses_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/privateClouds/{privateCloudsId}/externalAddresses/{externalAddressesId}",
@@ -11515,14 +11711,17 @@ pub fn vmwareengine_projects_locations_private_clouds_external_addresses_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmwareengine_projects_locations_private_clouds_external_addresses_list_execute()` to send, or `vmwareengine_projects_locations_private_clouds_external_addresses_list` for simplest API.
 
-pub fn vmwareengine_projects_locations_private_clouds_external_addresses_list_builder(
-    client: &SimpleHttpClient,
+pub fn vmwareengine_projects_locations_private_clouds_external_addresses_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/privateClouds/{privateCloudsId}/externalAddresses",
@@ -11720,13 +11919,16 @@ pub fn vmwareengine_projects_locations_private_clouds_external_addresses_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmwareengine_projects_locations_private_clouds_external_addresses_patch_execute()` to send, or `vmwareengine_projects_locations_private_clouds_external_addresses_patch` for simplest API.
 
-pub fn vmwareengine_projects_locations_private_clouds_external_addresses_patch_builder(
-    client: &SimpleHttpClient,
+pub fn vmwareengine_projects_locations_private_clouds_external_addresses_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/privateClouds/{privateCloudsId}/externalAddresses/{externalAddressesId}",
@@ -11910,12 +12112,15 @@ pub fn vmwareengine_projects_locations_private_clouds_external_addresses_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmwareengine_projects_locations_private_clouds_hcx_activation_keys_create_execute()` to send, or `vmwareengine_projects_locations_private_clouds_hcx_activation_keys_create` for simplest API.
 
-pub fn vmwareengine_projects_locations_private_clouds_hcx_activation_keys_create_builder(
-    client: &SimpleHttpClient,
+pub fn vmwareengine_projects_locations_private_clouds_hcx_activation_keys_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     hcxActivationKeyId: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/privateClouds/{privateCloudsId}/hcxActivationKeys",
@@ -12094,10 +12299,13 @@ pub fn vmwareengine_projects_locations_private_clouds_hcx_activation_keys_create
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmwareengine_projects_locations_private_clouds_hcx_activation_keys_get_execute()` to send, or `vmwareengine_projects_locations_private_clouds_hcx_activation_keys_get` for simplest API.
 
-pub fn vmwareengine_projects_locations_private_clouds_hcx_activation_keys_get_builder(
-    client: &SimpleHttpClient,
+pub fn vmwareengine_projects_locations_private_clouds_hcx_activation_keys_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/privateClouds/{privateCloudsId}/hcxActivationKeys/{hcxActivationKeysId}",
@@ -12258,11 +12466,16 @@ pub fn vmwareengine_projects_locations_private_clouds_hcx_activation_keys_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmwareengine_projects_locations_private_clouds_hcx_activation_keys_get_iam_policy_execute()` to send, or `vmwareengine_projects_locations_private_clouds_hcx_activation_keys_get_iam_policy` for simplest API.
 
-pub fn vmwareengine_projects_locations_private_clouds_hcx_activation_keys_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn vmwareengine_projects_locations_private_clouds_hcx_activation_keys_get_iam_policy_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/privateClouds/{privateCloudsId}/hcxActivationKeys/{hcxActivationKeysId}:getIamPolicy",
@@ -12439,12 +12652,15 @@ pub fn vmwareengine_projects_locations_private_clouds_hcx_activation_keys_get_ia
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmwareengine_projects_locations_private_clouds_hcx_activation_keys_list_execute()` to send, or `vmwareengine_projects_locations_private_clouds_hcx_activation_keys_list` for simplest API.
 
-pub fn vmwareengine_projects_locations_private_clouds_hcx_activation_keys_list_builder(
-    client: &SimpleHttpClient,
+pub fn vmwareengine_projects_locations_private_clouds_hcx_activation_keys_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/privateClouds/{privateCloudsId}/hcxActivationKeys",
@@ -12630,10 +12846,15 @@ pub fn vmwareengine_projects_locations_private_clouds_hcx_activation_keys_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmwareengine_projects_locations_private_clouds_hcx_activation_keys_set_iam_policy_execute()` to send, or `vmwareengine_projects_locations_private_clouds_hcx_activation_keys_set_iam_policy` for simplest API.
 
-pub fn vmwareengine_projects_locations_private_clouds_hcx_activation_keys_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn vmwareengine_projects_locations_private_clouds_hcx_activation_keys_set_iam_policy_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/privateClouds/{privateCloudsId}/hcxActivationKeys/{hcxActivationKeysId}:setIamPolicy",
@@ -12796,10 +13017,15 @@ pub fn vmwareengine_projects_locations_private_clouds_hcx_activation_keys_set_ia
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmwareengine_projects_locations_private_clouds_hcx_activation_keys_test_iam_permissions_execute()` to send, or `vmwareengine_projects_locations_private_clouds_hcx_activation_keys_test_iam_permissions` for simplest API.
 
-pub fn vmwareengine_projects_locations_private_clouds_hcx_activation_keys_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn vmwareengine_projects_locations_private_clouds_hcx_activation_keys_test_iam_permissions_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/privateClouds/{privateCloudsId}/hcxActivationKeys/{hcxActivationKeysId}:testIamPermissions",
@@ -12963,12 +13189,15 @@ pub fn vmwareengine_projects_locations_private_clouds_hcx_activation_keys_test_i
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmwareengine_projects_locations_private_clouds_logging_servers_create_execute()` to send, or `vmwareengine_projects_locations_private_clouds_logging_servers_create` for simplest API.
 
-pub fn vmwareengine_projects_locations_private_clouds_logging_servers_create_builder(
-    client: &SimpleHttpClient,
+pub fn vmwareengine_projects_locations_private_clouds_logging_servers_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     loggingServerId: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/privateClouds/{privateCloudsId}/loggingServers",
@@ -13145,11 +13374,14 @@ pub fn vmwareengine_projects_locations_private_clouds_logging_servers_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmwareengine_projects_locations_private_clouds_logging_servers_delete_execute()` to send, or `vmwareengine_projects_locations_private_clouds_logging_servers_delete` for simplest API.
 
-pub fn vmwareengine_projects_locations_private_clouds_logging_servers_delete_builder(
-    client: &SimpleHttpClient,
+pub fn vmwareengine_projects_locations_private_clouds_logging_servers_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/privateClouds/{privateCloudsId}/loggingServers/{loggingServersId}",
@@ -13320,10 +13552,13 @@ pub fn vmwareengine_projects_locations_private_clouds_logging_servers_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmwareengine_projects_locations_private_clouds_logging_servers_get_execute()` to send, or `vmwareengine_projects_locations_private_clouds_logging_servers_get` for simplest API.
 
-pub fn vmwareengine_projects_locations_private_clouds_logging_servers_get_builder(
-    client: &SimpleHttpClient,
+pub fn vmwareengine_projects_locations_private_clouds_logging_servers_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/privateClouds/{privateCloudsId}/loggingServers/{loggingServersId}",
@@ -13483,14 +13718,17 @@ pub fn vmwareengine_projects_locations_private_clouds_logging_servers_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmwareengine_projects_locations_private_clouds_logging_servers_list_execute()` to send, or `vmwareengine_projects_locations_private_clouds_logging_servers_list` for simplest API.
 
-pub fn vmwareengine_projects_locations_private_clouds_logging_servers_list_builder(
-    client: &SimpleHttpClient,
+pub fn vmwareengine_projects_locations_private_clouds_logging_servers_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/privateClouds/{privateCloudsId}/loggingServers",
@@ -13687,12 +13925,15 @@ pub fn vmwareengine_projects_locations_private_clouds_logging_servers_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmwareengine_projects_locations_private_clouds_logging_servers_patch_execute()` to send, or `vmwareengine_projects_locations_private_clouds_logging_servers_patch` for simplest API.
 
-pub fn vmwareengine_projects_locations_private_clouds_logging_servers_patch_builder(
-    client: &SimpleHttpClient,
+pub fn vmwareengine_projects_locations_private_clouds_logging_servers_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/privateClouds/{privateCloudsId}/loggingServers/{loggingServersId}",
@@ -13869,12 +14110,17 @@ pub fn vmwareengine_projects_locations_private_clouds_logging_servers_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_create_execute()` to send, or `vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_create` for simplest API.
 
-pub fn vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_create_builder(
-    client: &SimpleHttpClient,
+pub fn vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_create_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     managementDnsZoneBindingId: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/privateClouds/{privateCloudsId}/managementDnsZoneBindings",
@@ -14057,11 +14303,16 @@ pub fn vmwareengine_projects_locations_private_clouds_management_dns_zone_bindin
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_delete_execute()` to send, or `vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_delete` for simplest API.
 
-pub fn vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_delete_builder(
-    client: &SimpleHttpClient,
+pub fn vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_delete_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/privateClouds/{privateCloudsId}/managementDnsZoneBindings/{managementDnsZoneBindingsId}",
@@ -14238,10 +14489,13 @@ pub fn vmwareengine_projects_locations_private_clouds_management_dns_zone_bindin
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_get_execute()` to send, or `vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_get` for simplest API.
 
-pub fn vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_get_builder(
-    client: &SimpleHttpClient,
+pub fn vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/privateClouds/{privateCloudsId}/managementDnsZoneBindings/{managementDnsZoneBindingsId}",
@@ -14405,14 +14659,17 @@ pub fn vmwareengine_projects_locations_private_clouds_management_dns_zone_bindin
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_list_execute()` to send, or `vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_list` for simplest API.
 
-pub fn vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_list_builder(
-    client: &SimpleHttpClient,
+pub fn vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/privateClouds/{privateCloudsId}/managementDnsZoneBindings",
@@ -14615,12 +14872,17 @@ pub fn vmwareengine_projects_locations_private_clouds_management_dns_zone_bindin
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_patch_execute()` to send, or `vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_patch` for simplest API.
 
-pub fn vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_patch_builder(
-    client: &SimpleHttpClient,
+pub fn vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_patch_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/privateClouds/{privateCloudsId}/managementDnsZoneBindings/{managementDnsZoneBindingsId}",
@@ -14803,10 +15065,15 @@ pub fn vmwareengine_projects_locations_private_clouds_management_dns_zone_bindin
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_repair_execute()` to send, or `vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_repair` for simplest API.
 
-pub fn vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_repair_builder(
-    client: &SimpleHttpClient,
+pub fn vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_repair_builder<
+    R,
+>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/privateClouds/{privateCloudsId}/managementDnsZoneBindings/{managementDnsZoneBindingsId}:repair",
@@ -14968,10 +15235,13 @@ pub fn vmwareengine_projects_locations_private_clouds_management_dns_zone_bindin
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmwareengine_projects_locations_private_clouds_subnets_get_execute()` to send, or `vmwareengine_projects_locations_private_clouds_subnets_get` for simplest API.
 
-pub fn vmwareengine_projects_locations_private_clouds_subnets_get_builder(
-    client: &SimpleHttpClient,
+pub fn vmwareengine_projects_locations_private_clouds_subnets_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/privateClouds/{privateCloudsId}/subnets/{subnetsId}",
@@ -15126,12 +15396,15 @@ pub fn vmwareengine_projects_locations_private_clouds_subnets_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmwareengine_projects_locations_private_clouds_subnets_list_execute()` to send, or `vmwareengine_projects_locations_private_clouds_subnets_list` for simplest API.
 
-pub fn vmwareengine_projects_locations_private_clouds_subnets_list_builder(
-    client: &SimpleHttpClient,
+pub fn vmwareengine_projects_locations_private_clouds_subnets_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/privateClouds/{privateCloudsId}/subnets",
@@ -15312,11 +15585,14 @@ pub fn vmwareengine_projects_locations_private_clouds_subnets_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmwareengine_projects_locations_private_clouds_subnets_patch_execute()` to send, or `vmwareengine_projects_locations_private_clouds_subnets_patch` for simplest API.
 
-pub fn vmwareengine_projects_locations_private_clouds_subnets_patch_builder(
-    client: &SimpleHttpClient,
+pub fn vmwareengine_projects_locations_private_clouds_subnets_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/privateClouds/{privateCloudsId}/subnets/{subnetsId}",
@@ -15487,10 +15763,13 @@ pub fn vmwareengine_projects_locations_private_clouds_subnets_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmwareengine_projects_locations_private_clouds_upgrades_get_execute()` to send, or `vmwareengine_projects_locations_private_clouds_upgrades_get` for simplest API.
 
-pub fn vmwareengine_projects_locations_private_clouds_upgrades_get_builder(
-    client: &SimpleHttpClient,
+pub fn vmwareengine_projects_locations_private_clouds_upgrades_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/privateClouds/{privateCloudsId}/upgrades/{upgradesId}",
@@ -15645,14 +15924,17 @@ pub fn vmwareengine_projects_locations_private_clouds_upgrades_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmwareengine_projects_locations_private_clouds_upgrades_list_execute()` to send, or `vmwareengine_projects_locations_private_clouds_upgrades_list` for simplest API.
 
-pub fn vmwareengine_projects_locations_private_clouds_upgrades_list_builder(
-    client: &SimpleHttpClient,
+pub fn vmwareengine_projects_locations_private_clouds_upgrades_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/privateClouds/{privateCloudsId}/upgrades",
@@ -15845,12 +16127,15 @@ pub fn vmwareengine_projects_locations_private_clouds_upgrades_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmwareengine_projects_locations_private_clouds_upgrades_patch_execute()` to send, or `vmwareengine_projects_locations_private_clouds_upgrades_patch` for simplest API.
 
-pub fn vmwareengine_projects_locations_private_clouds_upgrades_patch_builder(
-    client: &SimpleHttpClient,
+pub fn vmwareengine_projects_locations_private_clouds_upgrades_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/privateClouds/{privateCloudsId}/upgrades/{upgradesId}",
@@ -16027,13 +16312,16 @@ pub fn vmwareengine_projects_locations_private_clouds_upgrades_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmwareengine_projects_locations_private_connections_create_execute()` to send, or `vmwareengine_projects_locations_private_connections_create` for simplest API.
 
-pub fn vmwareengine_projects_locations_private_connections_create_builder(
-    client: &SimpleHttpClient,
+pub fn vmwareengine_projects_locations_private_connections_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     privateConnectionId: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/privateConnections",
@@ -16216,11 +16504,14 @@ pub fn vmwareengine_projects_locations_private_connections_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmwareengine_projects_locations_private_connections_delete_execute()` to send, or `vmwareengine_projects_locations_private_connections_delete` for simplest API.
 
-pub fn vmwareengine_projects_locations_private_connections_delete_builder(
-    client: &SimpleHttpClient,
+pub fn vmwareengine_projects_locations_private_connections_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/privateConnections/{privateConnectionsId}",
@@ -16391,10 +16682,13 @@ pub fn vmwareengine_projects_locations_private_connections_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmwareengine_projects_locations_private_connections_get_execute()` to send, or `vmwareengine_projects_locations_private_connections_get` for simplest API.
 
-pub fn vmwareengine_projects_locations_private_connections_get_builder(
-    client: &SimpleHttpClient,
+pub fn vmwareengine_projects_locations_private_connections_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/privateConnections/{privateConnectionsId}",
@@ -16553,14 +16847,17 @@ pub fn vmwareengine_projects_locations_private_connections_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmwareengine_projects_locations_private_connections_list_execute()` to send, or `vmwareengine_projects_locations_private_connections_list` for simplest API.
 
-pub fn vmwareengine_projects_locations_private_connections_list_builder(
-    client: &SimpleHttpClient,
+pub fn vmwareengine_projects_locations_private_connections_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/privateConnections",
@@ -16757,13 +17054,16 @@ pub fn vmwareengine_projects_locations_private_connections_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmwareengine_projects_locations_private_connections_patch_execute()` to send, or `vmwareengine_projects_locations_private_connections_patch` for simplest API.
 
-pub fn vmwareengine_projects_locations_private_connections_patch_builder(
-    client: &SimpleHttpClient,
+pub fn vmwareengine_projects_locations_private_connections_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/privateConnections/{privateConnectionsId}",
@@ -16946,12 +17246,15 @@ pub fn vmwareengine_projects_locations_private_connections_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmwareengine_projects_locations_private_connections_peering_routes_list_execute()` to send, or `vmwareengine_projects_locations_private_connections_peering_routes_list` for simplest API.
 
-pub fn vmwareengine_projects_locations_private_connections_peering_routes_list_builder(
-    client: &SimpleHttpClient,
+pub fn vmwareengine_projects_locations_private_connections_peering_routes_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/privateConnections/{privateConnectionsId}/peeringRoutes",
@@ -17138,13 +17441,16 @@ pub fn vmwareengine_projects_locations_private_connections_peering_routes_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmwareengine_projects_locations_vmware_engine_networks_create_execute()` to send, or `vmwareengine_projects_locations_vmware_engine_networks_create` for simplest API.
 
-pub fn vmwareengine_projects_locations_vmware_engine_networks_create_builder(
-    client: &SimpleHttpClient,
+pub fn vmwareengine_projects_locations_vmware_engine_networks_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     requestId: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
     vmwareEngineNetworkId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/vmwareEngineNetworks",
@@ -17327,12 +17633,15 @@ pub fn vmwareengine_projects_locations_vmware_engine_networks_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmwareengine_projects_locations_vmware_engine_networks_delete_execute()` to send, or `vmwareengine_projects_locations_vmware_engine_networks_delete` for simplest API.
 
-pub fn vmwareengine_projects_locations_vmware_engine_networks_delete_builder(
-    client: &SimpleHttpClient,
+pub fn vmwareengine_projects_locations_vmware_engine_networks_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     etag: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/vmwareEngineNetworks/{vmwareEngineNetworksId}",
@@ -17509,10 +17818,13 @@ pub fn vmwareengine_projects_locations_vmware_engine_networks_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmwareengine_projects_locations_vmware_engine_networks_get_execute()` to send, or `vmwareengine_projects_locations_vmware_engine_networks_get` for simplest API.
 
-pub fn vmwareengine_projects_locations_vmware_engine_networks_get_builder(
-    client: &SimpleHttpClient,
+pub fn vmwareengine_projects_locations_vmware_engine_networks_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/vmwareEngineNetworks/{vmwareEngineNetworksId}",
@@ -17671,14 +17983,17 @@ pub fn vmwareengine_projects_locations_vmware_engine_networks_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmwareengine_projects_locations_vmware_engine_networks_list_execute()` to send, or `vmwareengine_projects_locations_vmware_engine_networks_list` for simplest API.
 
-pub fn vmwareengine_projects_locations_vmware_engine_networks_list_builder(
-    client: &SimpleHttpClient,
+pub fn vmwareengine_projects_locations_vmware_engine_networks_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/vmwareEngineNetworks",
@@ -17875,13 +18190,16 @@ pub fn vmwareengine_projects_locations_vmware_engine_networks_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmwareengine_projects_locations_vmware_engine_networks_patch_execute()` to send, or `vmwareengine_projects_locations_vmware_engine_networks_patch` for simplest API.
 
-pub fn vmwareengine_projects_locations_vmware_engine_networks_patch_builder(
-    client: &SimpleHttpClient,
+pub fn vmwareengine_projects_locations_vmware_engine_networks_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/vmwareEngineNetworks/{vmwareEngineNetworksId}",

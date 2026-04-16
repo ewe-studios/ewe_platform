@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `saasservicemgmt_projects_locations_get_execute()` to send, or `saasservicemgmt_projects_locations_get` for simplest API.
 
-pub fn saasservicemgmt_projects_locations_get_builder(
-    client: &SimpleHttpClient,
+pub fn saasservicemgmt_projects_locations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://saasservicemgmt.googleapis.com/v1/projects/{}/locations/{locationsId}",
@@ -191,14 +195,17 @@ pub fn saasservicemgmt_projects_locations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `saasservicemgmt_projects_locations_list_execute()` to send, or `saasservicemgmt_projects_locations_list` for simplest API.
 
-pub fn saasservicemgmt_projects_locations_list_builder(
-    client: &SimpleHttpClient,
+pub fn saasservicemgmt_projects_locations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     extraLocationTypes: &Option<Option<String>>,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://saasservicemgmt.googleapis.com/v1/projects/{}/locations",
@@ -391,13 +398,16 @@ pub fn saasservicemgmt_projects_locations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `saasservicemgmt_projects_locations_releases_create_execute()` to send, or `saasservicemgmt_projects_locations_releases_create` for simplest API.
 
-pub fn saasservicemgmt_projects_locations_releases_create_builder(
-    client: &SimpleHttpClient,
+pub fn saasservicemgmt_projects_locations_releases_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     releaseId: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://saasservicemgmt.googleapis.com/v1/projects/{}/locations/{locationsId}/releases",
@@ -580,13 +590,16 @@ pub fn saasservicemgmt_projects_locations_releases_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `saasservicemgmt_projects_locations_releases_delete_execute()` to send, or `saasservicemgmt_projects_locations_releases_delete` for simplest API.
 
-pub fn saasservicemgmt_projects_locations_releases_delete_builder(
-    client: &SimpleHttpClient,
+pub fn saasservicemgmt_projects_locations_releases_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     etag: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://saasservicemgmt.googleapis.com/v1/projects/{}/locations/{locationsId}/releases/{releasesId}",
@@ -769,10 +782,13 @@ pub fn saasservicemgmt_projects_locations_releases_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `saasservicemgmt_projects_locations_releases_get_execute()` to send, or `saasservicemgmt_projects_locations_releases_get` for simplest API.
 
-pub fn saasservicemgmt_projects_locations_releases_get_builder(
-    client: &SimpleHttpClient,
+pub fn saasservicemgmt_projects_locations_releases_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://saasservicemgmt.googleapis.com/v1/projects/{}/locations/{locationsId}/releases/{releasesId}",
@@ -926,14 +942,17 @@ pub fn saasservicemgmt_projects_locations_releases_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `saasservicemgmt_projects_locations_releases_list_execute()` to send, or `saasservicemgmt_projects_locations_releases_list` for simplest API.
 
-pub fn saasservicemgmt_projects_locations_releases_list_builder(
-    client: &SimpleHttpClient,
+pub fn saasservicemgmt_projects_locations_releases_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://saasservicemgmt.googleapis.com/v1/projects/{}/locations/{locationsId}/releases",
@@ -1126,13 +1145,16 @@ pub fn saasservicemgmt_projects_locations_releases_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `saasservicemgmt_projects_locations_releases_patch_execute()` to send, or `saasservicemgmt_projects_locations_releases_patch` for simplest API.
 
-pub fn saasservicemgmt_projects_locations_releases_patch_builder(
-    client: &SimpleHttpClient,
+pub fn saasservicemgmt_projects_locations_releases_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://saasservicemgmt.googleapis.com/v1/projects/{}/locations/{locationsId}/releases/{releasesId}",
@@ -1315,13 +1337,16 @@ pub fn saasservicemgmt_projects_locations_releases_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `saasservicemgmt_projects_locations_rollout_kinds_create_execute()` to send, or `saasservicemgmt_projects_locations_rollout_kinds_create` for simplest API.
 
-pub fn saasservicemgmt_projects_locations_rollout_kinds_create_builder(
-    client: &SimpleHttpClient,
+pub fn saasservicemgmt_projects_locations_rollout_kinds_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     requestId: &Option<Option<String>>,
     rolloutKindId: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://saasservicemgmt.googleapis.com/v1/projects/{}/locations/{locationsId}/rolloutKinds",
@@ -1504,13 +1529,16 @@ pub fn saasservicemgmt_projects_locations_rollout_kinds_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `saasservicemgmt_projects_locations_rollout_kinds_delete_execute()` to send, or `saasservicemgmt_projects_locations_rollout_kinds_delete` for simplest API.
 
-pub fn saasservicemgmt_projects_locations_rollout_kinds_delete_builder(
-    client: &SimpleHttpClient,
+pub fn saasservicemgmt_projects_locations_rollout_kinds_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     etag: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://saasservicemgmt.googleapis.com/v1/projects/{}/locations/{locationsId}/rolloutKinds/{rolloutKindsId}",
@@ -1693,10 +1721,13 @@ pub fn saasservicemgmt_projects_locations_rollout_kinds_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `saasservicemgmt_projects_locations_rollout_kinds_get_execute()` to send, or `saasservicemgmt_projects_locations_rollout_kinds_get` for simplest API.
 
-pub fn saasservicemgmt_projects_locations_rollout_kinds_get_builder(
-    client: &SimpleHttpClient,
+pub fn saasservicemgmt_projects_locations_rollout_kinds_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://saasservicemgmt.googleapis.com/v1/projects/{}/locations/{locationsId}/rolloutKinds/{rolloutKindsId}",
@@ -1850,14 +1881,17 @@ pub fn saasservicemgmt_projects_locations_rollout_kinds_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `saasservicemgmt_projects_locations_rollout_kinds_list_execute()` to send, or `saasservicemgmt_projects_locations_rollout_kinds_list` for simplest API.
 
-pub fn saasservicemgmt_projects_locations_rollout_kinds_list_builder(
-    client: &SimpleHttpClient,
+pub fn saasservicemgmt_projects_locations_rollout_kinds_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://saasservicemgmt.googleapis.com/v1/projects/{}/locations/{locationsId}/rolloutKinds",
@@ -2050,13 +2084,16 @@ pub fn saasservicemgmt_projects_locations_rollout_kinds_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `saasservicemgmt_projects_locations_rollout_kinds_patch_execute()` to send, or `saasservicemgmt_projects_locations_rollout_kinds_patch` for simplest API.
 
-pub fn saasservicemgmt_projects_locations_rollout_kinds_patch_builder(
-    client: &SimpleHttpClient,
+pub fn saasservicemgmt_projects_locations_rollout_kinds_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://saasservicemgmt.googleapis.com/v1/projects/{}/locations/{locationsId}/rolloutKinds/{rolloutKindsId}",
@@ -2239,13 +2276,16 @@ pub fn saasservicemgmt_projects_locations_rollout_kinds_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `saasservicemgmt_projects_locations_rollouts_create_execute()` to send, or `saasservicemgmt_projects_locations_rollouts_create` for simplest API.
 
-pub fn saasservicemgmt_projects_locations_rollouts_create_builder(
-    client: &SimpleHttpClient,
+pub fn saasservicemgmt_projects_locations_rollouts_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     requestId: &Option<Option<String>>,
     rolloutId: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://saasservicemgmt.googleapis.com/v1/projects/{}/locations/{locationsId}/rollouts",
@@ -2428,13 +2468,16 @@ pub fn saasservicemgmt_projects_locations_rollouts_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `saasservicemgmt_projects_locations_rollouts_delete_execute()` to send, or `saasservicemgmt_projects_locations_rollouts_delete` for simplest API.
 
-pub fn saasservicemgmt_projects_locations_rollouts_delete_builder(
-    client: &SimpleHttpClient,
+pub fn saasservicemgmt_projects_locations_rollouts_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     etag: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://saasservicemgmt.googleapis.com/v1/projects/{}/locations/{locationsId}/rollouts/{rolloutsId}",
@@ -2617,10 +2660,13 @@ pub fn saasservicemgmt_projects_locations_rollouts_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `saasservicemgmt_projects_locations_rollouts_get_execute()` to send, or `saasservicemgmt_projects_locations_rollouts_get` for simplest API.
 
-pub fn saasservicemgmt_projects_locations_rollouts_get_builder(
-    client: &SimpleHttpClient,
+pub fn saasservicemgmt_projects_locations_rollouts_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://saasservicemgmt.googleapis.com/v1/projects/{}/locations/{locationsId}/rollouts/{rolloutsId}",
@@ -2774,14 +2820,17 @@ pub fn saasservicemgmt_projects_locations_rollouts_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `saasservicemgmt_projects_locations_rollouts_list_execute()` to send, or `saasservicemgmt_projects_locations_rollouts_list` for simplest API.
 
-pub fn saasservicemgmt_projects_locations_rollouts_list_builder(
-    client: &SimpleHttpClient,
+pub fn saasservicemgmt_projects_locations_rollouts_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://saasservicemgmt.googleapis.com/v1/projects/{}/locations/{locationsId}/rollouts",
@@ -2974,13 +3023,16 @@ pub fn saasservicemgmt_projects_locations_rollouts_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `saasservicemgmt_projects_locations_rollouts_patch_execute()` to send, or `saasservicemgmt_projects_locations_rollouts_patch` for simplest API.
 
-pub fn saasservicemgmt_projects_locations_rollouts_patch_builder(
-    client: &SimpleHttpClient,
+pub fn saasservicemgmt_projects_locations_rollouts_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://saasservicemgmt.googleapis.com/v1/projects/{}/locations/{locationsId}/rollouts/{rolloutsId}",
@@ -3163,13 +3215,16 @@ pub fn saasservicemgmt_projects_locations_rollouts_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `saasservicemgmt_projects_locations_saas_create_execute()` to send, or `saasservicemgmt_projects_locations_saas_create` for simplest API.
 
-pub fn saasservicemgmt_projects_locations_saas_create_builder(
-    client: &SimpleHttpClient,
+pub fn saasservicemgmt_projects_locations_saas_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     requestId: &Option<Option<String>>,
     saasId: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://saasservicemgmt.googleapis.com/v1/projects/{}/locations/{locationsId}/saas",
@@ -3352,13 +3407,16 @@ pub fn saasservicemgmt_projects_locations_saas_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `saasservicemgmt_projects_locations_saas_delete_execute()` to send, or `saasservicemgmt_projects_locations_saas_delete` for simplest API.
 
-pub fn saasservicemgmt_projects_locations_saas_delete_builder(
-    client: &SimpleHttpClient,
+pub fn saasservicemgmt_projects_locations_saas_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     etag: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://saasservicemgmt.googleapis.com/v1/projects/{}/locations/{locationsId}/saas/{saasId}",
@@ -3541,10 +3599,13 @@ pub fn saasservicemgmt_projects_locations_saas_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `saasservicemgmt_projects_locations_saas_get_execute()` to send, or `saasservicemgmt_projects_locations_saas_get` for simplest API.
 
-pub fn saasservicemgmt_projects_locations_saas_get_builder(
-    client: &SimpleHttpClient,
+pub fn saasservicemgmt_projects_locations_saas_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://saasservicemgmt.googleapis.com/v1/projects/{}/locations/{locationsId}/saas/{saasId}",
@@ -3698,14 +3759,17 @@ pub fn saasservicemgmt_projects_locations_saas_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `saasservicemgmt_projects_locations_saas_list_execute()` to send, or `saasservicemgmt_projects_locations_saas_list` for simplest API.
 
-pub fn saasservicemgmt_projects_locations_saas_list_builder(
-    client: &SimpleHttpClient,
+pub fn saasservicemgmt_projects_locations_saas_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://saasservicemgmt.googleapis.com/v1/projects/{}/locations/{locationsId}/saas",
@@ -3898,13 +3962,16 @@ pub fn saasservicemgmt_projects_locations_saas_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `saasservicemgmt_projects_locations_saas_patch_execute()` to send, or `saasservicemgmt_projects_locations_saas_patch` for simplest API.
 
-pub fn saasservicemgmt_projects_locations_saas_patch_builder(
-    client: &SimpleHttpClient,
+pub fn saasservicemgmt_projects_locations_saas_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://saasservicemgmt.googleapis.com/v1/projects/{}/locations/{locationsId}/saas/{saasId}",
@@ -4087,13 +4154,16 @@ pub fn saasservicemgmt_projects_locations_saas_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `saasservicemgmt_projects_locations_tenants_create_execute()` to send, or `saasservicemgmt_projects_locations_tenants_create` for simplest API.
 
-pub fn saasservicemgmt_projects_locations_tenants_create_builder(
-    client: &SimpleHttpClient,
+pub fn saasservicemgmt_projects_locations_tenants_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     requestId: &Option<Option<String>>,
     tenantId: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://saasservicemgmt.googleapis.com/v1/projects/{}/locations/{locationsId}/tenants",
@@ -4276,13 +4346,16 @@ pub fn saasservicemgmt_projects_locations_tenants_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `saasservicemgmt_projects_locations_tenants_delete_execute()` to send, or `saasservicemgmt_projects_locations_tenants_delete` for simplest API.
 
-pub fn saasservicemgmt_projects_locations_tenants_delete_builder(
-    client: &SimpleHttpClient,
+pub fn saasservicemgmt_projects_locations_tenants_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     etag: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://saasservicemgmt.googleapis.com/v1/projects/{}/locations/{locationsId}/tenants/{tenantsId}",
@@ -4465,10 +4538,13 @@ pub fn saasservicemgmt_projects_locations_tenants_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `saasservicemgmt_projects_locations_tenants_get_execute()` to send, or `saasservicemgmt_projects_locations_tenants_get` for simplest API.
 
-pub fn saasservicemgmt_projects_locations_tenants_get_builder(
-    client: &SimpleHttpClient,
+pub fn saasservicemgmt_projects_locations_tenants_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://saasservicemgmt.googleapis.com/v1/projects/{}/locations/{locationsId}/tenants/{tenantsId}",
@@ -4622,14 +4698,17 @@ pub fn saasservicemgmt_projects_locations_tenants_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `saasservicemgmt_projects_locations_tenants_list_execute()` to send, or `saasservicemgmt_projects_locations_tenants_list` for simplest API.
 
-pub fn saasservicemgmt_projects_locations_tenants_list_builder(
-    client: &SimpleHttpClient,
+pub fn saasservicemgmt_projects_locations_tenants_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://saasservicemgmt.googleapis.com/v1/projects/{}/locations/{locationsId}/tenants",
@@ -4822,13 +4901,16 @@ pub fn saasservicemgmt_projects_locations_tenants_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `saasservicemgmt_projects_locations_tenants_patch_execute()` to send, or `saasservicemgmt_projects_locations_tenants_patch` for simplest API.
 
-pub fn saasservicemgmt_projects_locations_tenants_patch_builder(
-    client: &SimpleHttpClient,
+pub fn saasservicemgmt_projects_locations_tenants_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://saasservicemgmt.googleapis.com/v1/projects/{}/locations/{locationsId}/tenants/{tenantsId}",
@@ -5011,13 +5093,16 @@ pub fn saasservicemgmt_projects_locations_tenants_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `saasservicemgmt_projects_locations_unit_kinds_create_execute()` to send, or `saasservicemgmt_projects_locations_unit_kinds_create` for simplest API.
 
-pub fn saasservicemgmt_projects_locations_unit_kinds_create_builder(
-    client: &SimpleHttpClient,
+pub fn saasservicemgmt_projects_locations_unit_kinds_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     requestId: &Option<Option<String>>,
     unitKindId: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://saasservicemgmt.googleapis.com/v1/projects/{}/locations/{locationsId}/unitKinds",
@@ -5200,13 +5285,16 @@ pub fn saasservicemgmt_projects_locations_unit_kinds_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `saasservicemgmt_projects_locations_unit_kinds_delete_execute()` to send, or `saasservicemgmt_projects_locations_unit_kinds_delete` for simplest API.
 
-pub fn saasservicemgmt_projects_locations_unit_kinds_delete_builder(
-    client: &SimpleHttpClient,
+pub fn saasservicemgmt_projects_locations_unit_kinds_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     etag: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://saasservicemgmt.googleapis.com/v1/projects/{}/locations/{locationsId}/unitKinds/{unitKindsId}",
@@ -5389,10 +5477,13 @@ pub fn saasservicemgmt_projects_locations_unit_kinds_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `saasservicemgmt_projects_locations_unit_kinds_get_execute()` to send, or `saasservicemgmt_projects_locations_unit_kinds_get` for simplest API.
 
-pub fn saasservicemgmt_projects_locations_unit_kinds_get_builder(
-    client: &SimpleHttpClient,
+pub fn saasservicemgmt_projects_locations_unit_kinds_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://saasservicemgmt.googleapis.com/v1/projects/{}/locations/{locationsId}/unitKinds/{unitKindsId}",
@@ -5546,14 +5637,17 @@ pub fn saasservicemgmt_projects_locations_unit_kinds_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `saasservicemgmt_projects_locations_unit_kinds_list_execute()` to send, or `saasservicemgmt_projects_locations_unit_kinds_list` for simplest API.
 
-pub fn saasservicemgmt_projects_locations_unit_kinds_list_builder(
-    client: &SimpleHttpClient,
+pub fn saasservicemgmt_projects_locations_unit_kinds_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://saasservicemgmt.googleapis.com/v1/projects/{}/locations/{locationsId}/unitKinds",
@@ -5746,13 +5840,16 @@ pub fn saasservicemgmt_projects_locations_unit_kinds_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `saasservicemgmt_projects_locations_unit_kinds_patch_execute()` to send, or `saasservicemgmt_projects_locations_unit_kinds_patch` for simplest API.
 
-pub fn saasservicemgmt_projects_locations_unit_kinds_patch_builder(
-    client: &SimpleHttpClient,
+pub fn saasservicemgmt_projects_locations_unit_kinds_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://saasservicemgmt.googleapis.com/v1/projects/{}/locations/{locationsId}/unitKinds/{unitKindsId}",
@@ -5935,13 +6032,16 @@ pub fn saasservicemgmt_projects_locations_unit_kinds_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `saasservicemgmt_projects_locations_unit_operations_create_execute()` to send, or `saasservicemgmt_projects_locations_unit_operations_create` for simplest API.
 
-pub fn saasservicemgmt_projects_locations_unit_operations_create_builder(
-    client: &SimpleHttpClient,
+pub fn saasservicemgmt_projects_locations_unit_operations_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     requestId: &Option<Option<String>>,
     unitOperationId: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://saasservicemgmt.googleapis.com/v1/projects/{}/locations/{locationsId}/unitOperations",
@@ -6128,13 +6228,16 @@ pub fn saasservicemgmt_projects_locations_unit_operations_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `saasservicemgmt_projects_locations_unit_operations_delete_execute()` to send, or `saasservicemgmt_projects_locations_unit_operations_delete` for simplest API.
 
-pub fn saasservicemgmt_projects_locations_unit_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn saasservicemgmt_projects_locations_unit_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     etag: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://saasservicemgmt.googleapis.com/v1/projects/{}/locations/{locationsId}/unitOperations/{unitOperationsId}",
@@ -6317,10 +6420,13 @@ pub fn saasservicemgmt_projects_locations_unit_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `saasservicemgmt_projects_locations_unit_operations_get_execute()` to send, or `saasservicemgmt_projects_locations_unit_operations_get` for simplest API.
 
-pub fn saasservicemgmt_projects_locations_unit_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn saasservicemgmt_projects_locations_unit_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://saasservicemgmt.googleapis.com/v1/projects/{}/locations/{locationsId}/unitOperations/{unitOperationsId}",
@@ -6479,14 +6585,17 @@ pub fn saasservicemgmt_projects_locations_unit_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `saasservicemgmt_projects_locations_unit_operations_list_execute()` to send, or `saasservicemgmt_projects_locations_unit_operations_list` for simplest API.
 
-pub fn saasservicemgmt_projects_locations_unit_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn saasservicemgmt_projects_locations_unit_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://saasservicemgmt.googleapis.com/v1/projects/{}/locations/{locationsId}/unitOperations",
@@ -6683,13 +6792,16 @@ pub fn saasservicemgmt_projects_locations_unit_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `saasservicemgmt_projects_locations_unit_operations_patch_execute()` to send, or `saasservicemgmt_projects_locations_unit_operations_patch` for simplest API.
 
-pub fn saasservicemgmt_projects_locations_unit_operations_patch_builder(
-    client: &SimpleHttpClient,
+pub fn saasservicemgmt_projects_locations_unit_operations_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://saasservicemgmt.googleapis.com/v1/projects/{}/locations/{locationsId}/unitOperations/{unitOperationsId}",
@@ -6876,13 +6988,16 @@ pub fn saasservicemgmt_projects_locations_unit_operations_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `saasservicemgmt_projects_locations_units_create_execute()` to send, or `saasservicemgmt_projects_locations_units_create` for simplest API.
 
-pub fn saasservicemgmt_projects_locations_units_create_builder(
-    client: &SimpleHttpClient,
+pub fn saasservicemgmt_projects_locations_units_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     requestId: &Option<Option<String>>,
     unitId: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://saasservicemgmt.googleapis.com/v1/projects/{}/locations/{locationsId}/units",
@@ -7065,13 +7180,16 @@ pub fn saasservicemgmt_projects_locations_units_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `saasservicemgmt_projects_locations_units_delete_execute()` to send, or `saasservicemgmt_projects_locations_units_delete` for simplest API.
 
-pub fn saasservicemgmt_projects_locations_units_delete_builder(
-    client: &SimpleHttpClient,
+pub fn saasservicemgmt_projects_locations_units_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     etag: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://saasservicemgmt.googleapis.com/v1/projects/{}/locations/{locationsId}/units/{unitsId}",
@@ -7254,10 +7372,13 @@ pub fn saasservicemgmt_projects_locations_units_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `saasservicemgmt_projects_locations_units_get_execute()` to send, or `saasservicemgmt_projects_locations_units_get` for simplest API.
 
-pub fn saasservicemgmt_projects_locations_units_get_builder(
-    client: &SimpleHttpClient,
+pub fn saasservicemgmt_projects_locations_units_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://saasservicemgmt.googleapis.com/v1/projects/{}/locations/{locationsId}/units/{unitsId}",
@@ -7411,14 +7532,17 @@ pub fn saasservicemgmt_projects_locations_units_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `saasservicemgmt_projects_locations_units_list_execute()` to send, or `saasservicemgmt_projects_locations_units_list` for simplest API.
 
-pub fn saasservicemgmt_projects_locations_units_list_builder(
-    client: &SimpleHttpClient,
+pub fn saasservicemgmt_projects_locations_units_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://saasservicemgmt.googleapis.com/v1/projects/{}/locations/{locationsId}/units",
@@ -7611,13 +7735,16 @@ pub fn saasservicemgmt_projects_locations_units_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `saasservicemgmt_projects_locations_units_patch_execute()` to send, or `saasservicemgmt_projects_locations_units_patch` for simplest API.
 
-pub fn saasservicemgmt_projects_locations_units_patch_builder(
-    client: &SimpleHttpClient,
+pub fn saasservicemgmt_projects_locations_units_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://saasservicemgmt.googleapis.com/v1/projects/{}/locations/{locationsId}/units/{unitsId}",

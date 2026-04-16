@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,12 +27,15 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `blogger_blog_user_infos_get_execute()` to send, or `blogger_blog_user_infos_get` for simplest API.
 
-pub fn blogger_blog_user_infos_get_builder(
-    client: &SimpleHttpClient,
+pub fn blogger_blog_user_infos_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     userId: &String,
     blogId: &String,
     maxPosts: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://blogger.googleapis.com/v3/users/{}/blogs/{}",
@@ -205,12 +209,15 @@ pub fn blogger_blog_user_infos_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `blogger_blogs_get_execute()` to send, or `blogger_blogs_get` for simplest API.
 
-pub fn blogger_blogs_get_builder(
-    client: &SimpleHttpClient,
+pub fn blogger_blogs_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     blogId: &String,
     maxPosts: &Option<Option<String>>,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://blogger.googleapis.com/v3/blogs/{}", blogId,);
 
@@ -379,11 +386,14 @@ pub fn blogger_blogs_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `blogger_blogs_get_by_url_execute()` to send, or `blogger_blogs_get_by_url` for simplest API.
 
-pub fn blogger_blogs_get_by_url_builder(
-    client: &SimpleHttpClient,
+pub fn blogger_blogs_get_by_url_builder<R>(
+    client: &SimpleHttpClient<R>,
     url: &Option<Option<String>>,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://blogger.googleapis.com/v3/blogs/byurl",);
 
@@ -550,14 +560,17 @@ pub fn blogger_blogs_get_by_url(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `blogger_blogs_list_by_user_execute()` to send, or `blogger_blogs_list_by_user` for simplest API.
 
-pub fn blogger_blogs_list_by_user_builder(
-    client: &SimpleHttpClient,
+pub fn blogger_blogs_list_by_user_builder<R>(
+    client: &SimpleHttpClient<R>,
     userId: &String,
     fetchUserInfo: &Option<Option<String>>,
     role: &Option<Option<String>>,
     status: &Option<Option<String>>,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://blogger.googleapis.com/v3/users/{}/blogs", userId,);
 
@@ -743,12 +756,15 @@ pub fn blogger_blogs_list_by_user(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `blogger_comments_approve_execute()` to send, or `blogger_comments_approve` for simplest API.
 
-pub fn blogger_comments_approve_builder(
-    client: &SimpleHttpClient,
+pub fn blogger_comments_approve_builder<R>(
+    client: &SimpleHttpClient<R>,
     blogId: &String,
     postId: &String,
     commentId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://blogger.googleapis.com/v3/blogs/{}/posts/{}/comments/{}/approve",
@@ -907,12 +923,15 @@ pub fn blogger_comments_approve(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `blogger_comments_delete_execute()` to send, or `blogger_comments_delete` for simplest API.
 
-pub fn blogger_comments_delete_builder(
-    client: &SimpleHttpClient,
+pub fn blogger_comments_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     blogId: &String,
     postId: &String,
     commentId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://blogger.googleapis.com/v3/blogs/{}/posts/{}/comments/{}",
@@ -1068,13 +1087,16 @@ pub fn blogger_comments_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `blogger_comments_get_execute()` to send, or `blogger_comments_get` for simplest API.
 
-pub fn blogger_comments_get_builder(
-    client: &SimpleHttpClient,
+pub fn blogger_comments_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     blogId: &String,
     postId: &String,
     commentId: &String,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://blogger.googleapis.com/v3/blogs/{}/posts/{}/comments/{}",
@@ -1251,8 +1273,8 @@ pub fn blogger_comments_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `blogger_comments_list_execute()` to send, or `blogger_comments_list` for simplest API.
 
-pub fn blogger_comments_list_builder(
-    client: &SimpleHttpClient,
+pub fn blogger_comments_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     blogId: &String,
     postId: &String,
     endDate: &Option<Option<String>>,
@@ -1262,7 +1284,10 @@ pub fn blogger_comments_list_builder(
     startDate: &Option<Option<String>>,
     status: &Option<Option<String>>,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://blogger.googleapis.com/v3/blogs/{}/posts/{}/comments",
@@ -1472,8 +1497,8 @@ pub fn blogger_comments_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `blogger_comments_list_by_blog_execute()` to send, or `blogger_comments_list_by_blog` for simplest API.
 
-pub fn blogger_comments_list_by_blog_builder(
-    client: &SimpleHttpClient,
+pub fn blogger_comments_list_by_blog_builder<R>(
+    client: &SimpleHttpClient<R>,
     blogId: &String,
     endDate: &Option<Option<String>>,
     fetchBodies: &Option<Option<String>>,
@@ -1481,7 +1506,10 @@ pub fn blogger_comments_list_by_blog_builder(
     pageToken: &Option<Option<String>>,
     startDate: &Option<Option<String>>,
     status: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://blogger.googleapis.com/v3/blogs/{}/comments",
@@ -1682,12 +1710,15 @@ pub fn blogger_comments_list_by_blog(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `blogger_comments_mark_as_spam_execute()` to send, or `blogger_comments_mark_as_spam` for simplest API.
 
-pub fn blogger_comments_mark_as_spam_builder(
-    client: &SimpleHttpClient,
+pub fn blogger_comments_mark_as_spam_builder<R>(
+    client: &SimpleHttpClient<R>,
     blogId: &String,
     postId: &String,
     commentId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://blogger.googleapis.com/v3/blogs/{}/posts/{}/comments/{}/spam",
@@ -1846,12 +1877,15 @@ pub fn blogger_comments_mark_as_spam(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `blogger_comments_remove_content_execute()` to send, or `blogger_comments_remove_content` for simplest API.
 
-pub fn blogger_comments_remove_content_builder(
-    client: &SimpleHttpClient,
+pub fn blogger_comments_remove_content_builder<R>(
+    client: &SimpleHttpClient<R>,
     blogId: &String,
     postId: &String,
     commentId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://blogger.googleapis.com/v3/blogs/{}/posts/{}/comments/{}/removecontent",
@@ -2014,11 +2048,14 @@ pub fn blogger_comments_remove_content(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `blogger_page_views_get_execute()` to send, or `blogger_page_views_get` for simplest API.
 
-pub fn blogger_page_views_get_builder(
-    client: &SimpleHttpClient,
+pub fn blogger_page_views_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     blogId: &String,
     range: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://blogger.googleapis.com/v3/blogs/{}/pageviews",
@@ -2185,12 +2222,15 @@ pub fn blogger_page_views_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `blogger_pages_delete_execute()` to send, or `blogger_pages_delete` for simplest API.
 
-pub fn blogger_pages_delete_builder(
-    client: &SimpleHttpClient,
+pub fn blogger_pages_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     blogId: &String,
     pageId: &String,
     useTrash: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://blogger.googleapis.com/v3/blogs/{}/pages/{}",
@@ -2356,12 +2396,15 @@ pub fn blogger_pages_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `blogger_pages_get_execute()` to send, or `blogger_pages_get` for simplest API.
 
-pub fn blogger_pages_get_builder(
-    client: &SimpleHttpClient,
+pub fn blogger_pages_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     blogId: &String,
     pageId: &String,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://blogger.googleapis.com/v3/blogs/{}/pages/{}",
@@ -2530,11 +2573,14 @@ pub fn blogger_pages_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `blogger_pages_insert_execute()` to send, or `blogger_pages_insert` for simplest API.
 
-pub fn blogger_pages_insert_builder(
-    client: &SimpleHttpClient,
+pub fn blogger_pages_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     blogId: &String,
     isDraft: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://blogger.googleapis.com/v3/blogs/{}/pages", blogId,);
 
@@ -2698,15 +2744,18 @@ pub fn blogger_pages_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `blogger_pages_list_execute()` to send, or `blogger_pages_list` for simplest API.
 
-pub fn blogger_pages_list_builder(
-    client: &SimpleHttpClient,
+pub fn blogger_pages_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     blogId: &String,
     fetchBodies: &Option<Option<String>>,
     maxResults: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     status: &Option<Option<String>>,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://blogger.googleapis.com/v3/blogs/{}/pages", blogId,);
 
@@ -2898,13 +2947,16 @@ pub fn blogger_pages_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `blogger_pages_patch_execute()` to send, or `blogger_pages_patch` for simplest API.
 
-pub fn blogger_pages_patch_builder(
-    client: &SimpleHttpClient,
+pub fn blogger_pages_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     blogId: &String,
     pageId: &String,
     publish: &Option<Option<String>>,
     revert: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://blogger.googleapis.com/v3/blogs/{}/pages/{}",
@@ -3084,11 +3136,14 @@ pub fn blogger_pages_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `blogger_pages_publish_execute()` to send, or `blogger_pages_publish` for simplest API.
 
-pub fn blogger_pages_publish_builder(
-    client: &SimpleHttpClient,
+pub fn blogger_pages_publish_builder<R>(
+    client: &SimpleHttpClient<R>,
     blogId: &String,
     pageId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://blogger.googleapis.com/v3/blogs/{}/pages/{}/publish",
@@ -3244,11 +3299,14 @@ pub fn blogger_pages_publish(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `blogger_pages_revert_execute()` to send, or `blogger_pages_revert` for simplest API.
 
-pub fn blogger_pages_revert_builder(
-    client: &SimpleHttpClient,
+pub fn blogger_pages_revert_builder<R>(
+    client: &SimpleHttpClient<R>,
     blogId: &String,
     pageId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://blogger.googleapis.com/v3/blogs/{}/pages/{}/revert",
@@ -3404,13 +3462,16 @@ pub fn blogger_pages_revert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `blogger_pages_update_execute()` to send, or `blogger_pages_update` for simplest API.
 
-pub fn blogger_pages_update_builder(
-    client: &SimpleHttpClient,
+pub fn blogger_pages_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     blogId: &String,
     pageId: &String,
     publish: &Option<Option<String>>,
     revert: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://blogger.googleapis.com/v3/blogs/{}/pages/{}",
@@ -3590,13 +3651,16 @@ pub fn blogger_pages_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `blogger_post_user_infos_get_execute()` to send, or `blogger_post_user_infos_get` for simplest API.
 
-pub fn blogger_post_user_infos_get_builder(
-    client: &SimpleHttpClient,
+pub fn blogger_post_user_infos_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     userId: &String,
     blogId: &String,
     postId: &String,
     maxComments: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://blogger.googleapis.com/v3/users/{}/blogs/{}/posts/{}",
@@ -3777,8 +3841,8 @@ pub fn blogger_post_user_infos_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `blogger_post_user_infos_list_execute()` to send, or `blogger_post_user_infos_list` for simplest API.
 
-pub fn blogger_post_user_infos_list_builder(
-    client: &SimpleHttpClient,
+pub fn blogger_post_user_infos_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     userId: &String,
     blogId: &String,
     endDate: &Option<Option<String>>,
@@ -3790,7 +3854,10 @@ pub fn blogger_post_user_infos_list_builder(
     startDate: &Option<Option<String>>,
     status: &Option<Option<String>>,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://blogger.googleapis.com/v3/users/{}/blogs/{}/posts",
@@ -4016,12 +4083,15 @@ pub fn blogger_post_user_infos_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `blogger_posts_delete_execute()` to send, or `blogger_posts_delete` for simplest API.
 
-pub fn blogger_posts_delete_builder(
-    client: &SimpleHttpClient,
+pub fn blogger_posts_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     blogId: &String,
     postId: &String,
     useTrash: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://blogger.googleapis.com/v3/blogs/{}/posts/{}",
@@ -4187,15 +4257,18 @@ pub fn blogger_posts_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `blogger_posts_get_execute()` to send, or `blogger_posts_get` for simplest API.
 
-pub fn blogger_posts_get_builder(
-    client: &SimpleHttpClient,
+pub fn blogger_posts_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     blogId: &String,
     postId: &String,
     fetchBody: &Option<Option<String>>,
     fetchImages: &Option<Option<String>>,
     maxComments: &Option<Option<String>>,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://blogger.googleapis.com/v3/blogs/{}/posts/{}",
@@ -4387,13 +4460,16 @@ pub fn blogger_posts_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `blogger_posts_get_by_path_execute()` to send, or `blogger_posts_get_by_path` for simplest API.
 
-pub fn blogger_posts_get_by_path_builder(
-    client: &SimpleHttpClient,
+pub fn blogger_posts_get_by_path_builder<R>(
+    client: &SimpleHttpClient<R>,
     blogId: &String,
     maxComments: &Option<Option<String>>,
     path: &Option<Option<String>>,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://blogger.googleapis.com/v3/blogs/{}/posts/bypath",
@@ -4576,13 +4652,16 @@ pub fn blogger_posts_get_by_path(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `blogger_posts_insert_execute()` to send, or `blogger_posts_insert` for simplest API.
 
-pub fn blogger_posts_insert_builder(
-    client: &SimpleHttpClient,
+pub fn blogger_posts_insert_builder<R>(
+    client: &SimpleHttpClient<R>,
     blogId: &String,
     fetchBody: &Option<Option<String>>,
     fetchImages: &Option<Option<String>>,
     isDraft: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://blogger.googleapis.com/v3/blogs/{}/posts", blogId,);
 
@@ -4762,8 +4841,8 @@ pub fn blogger_posts_insert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `blogger_posts_list_execute()` to send, or `blogger_posts_list` for simplest API.
 
-pub fn blogger_posts_list_builder(
-    client: &SimpleHttpClient,
+pub fn blogger_posts_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     blogId: &String,
     endDate: &Option<Option<String>>,
     fetchBodies: &Option<Option<String>>,
@@ -4776,7 +4855,10 @@ pub fn blogger_posts_list_builder(
     startDate: &Option<Option<String>>,
     status: &Option<Option<String>>,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://blogger.googleapis.com/v3/blogs/{}/posts", blogId,);
 
@@ -5004,8 +5086,8 @@ pub fn blogger_posts_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `blogger_posts_patch_execute()` to send, or `blogger_posts_patch` for simplest API.
 
-pub fn blogger_posts_patch_builder(
-    client: &SimpleHttpClient,
+pub fn blogger_posts_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     blogId: &String,
     postId: &String,
     fetchBody: &Option<Option<String>>,
@@ -5013,7 +5095,10 @@ pub fn blogger_posts_patch_builder(
     maxComments: &Option<Option<String>>,
     publish: &Option<Option<String>>,
     revert: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://blogger.googleapis.com/v3/blogs/{}/posts/{}",
@@ -5211,12 +5296,15 @@ pub fn blogger_posts_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `blogger_posts_publish_execute()` to send, or `blogger_posts_publish` for simplest API.
 
-pub fn blogger_posts_publish_builder(
-    client: &SimpleHttpClient,
+pub fn blogger_posts_publish_builder<R>(
+    client: &SimpleHttpClient<R>,
     blogId: &String,
     postId: &String,
     publishDate: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://blogger.googleapis.com/v3/blogs/{}/posts/{}/publish",
@@ -5386,11 +5474,14 @@ pub fn blogger_posts_publish(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `blogger_posts_revert_execute()` to send, or `blogger_posts_revert` for simplest API.
 
-pub fn blogger_posts_revert_builder(
-    client: &SimpleHttpClient,
+pub fn blogger_posts_revert_builder<R>(
+    client: &SimpleHttpClient<R>,
     blogId: &String,
     postId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://blogger.googleapis.com/v3/blogs/{}/posts/{}/revert",
@@ -5546,13 +5637,16 @@ pub fn blogger_posts_revert(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `blogger_posts_search_execute()` to send, or `blogger_posts_search` for simplest API.
 
-pub fn blogger_posts_search_builder(
-    client: &SimpleHttpClient,
+pub fn blogger_posts_search_builder<R>(
+    client: &SimpleHttpClient<R>,
     blogId: &String,
     fetchBodies: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     q: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://blogger.googleapis.com/v3/blogs/{}/posts/search",
@@ -5735,8 +5829,8 @@ pub fn blogger_posts_search(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `blogger_posts_update_execute()` to send, or `blogger_posts_update` for simplest API.
 
-pub fn blogger_posts_update_builder(
-    client: &SimpleHttpClient,
+pub fn blogger_posts_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     blogId: &String,
     postId: &String,
     fetchBody: &Option<Option<String>>,
@@ -5744,7 +5838,10 @@ pub fn blogger_posts_update_builder(
     maxComments: &Option<Option<String>>,
     publish: &Option<Option<String>>,
     revert: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://blogger.googleapis.com/v3/blogs/{}/posts/{}",
@@ -5942,10 +6039,13 @@ pub fn blogger_posts_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `blogger_users_get_execute()` to send, or `blogger_users_get` for simplest API.
 
-pub fn blogger_users_get_builder(
-    client: &SimpleHttpClient,
+pub fn blogger_users_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     userId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://blogger.googleapis.com/v3/users/{}", userId,);
 

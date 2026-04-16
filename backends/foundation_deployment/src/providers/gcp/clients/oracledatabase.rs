@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `oracledatabase_projects_locations_get_execute()` to send, or `oracledatabase_projects_locations_get` for simplest API.
 
-pub fn oracledatabase_projects_locations_get_builder(
-    client: &SimpleHttpClient,
+pub fn oracledatabase_projects_locations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}",
@@ -183,14 +187,17 @@ pub fn oracledatabase_projects_locations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `oracledatabase_projects_locations_list_execute()` to send, or `oracledatabase_projects_locations_list` for simplest API.
 
-pub fn oracledatabase_projects_locations_list_builder(
-    client: &SimpleHttpClient,
+pub fn oracledatabase_projects_locations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     extraLocationTypes: &Option<Option<String>>,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://oracledatabase.googleapis.com/v1/projects/{}/locations",
@@ -383,13 +390,16 @@ pub fn oracledatabase_projects_locations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `oracledatabase_projects_locations_autonomous_database_backups_list_execute()` to send, or `oracledatabase_projects_locations_autonomous_database_backups_list` for simplest API.
 
-pub fn oracledatabase_projects_locations_autonomous_database_backups_list_builder(
-    client: &SimpleHttpClient,
+pub fn oracledatabase_projects_locations_autonomous_database_backups_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/autonomousDatabaseBackups",
@@ -580,13 +590,16 @@ pub fn oracledatabase_projects_locations_autonomous_database_backups_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `oracledatabase_projects_locations_autonomous_database_character_sets_list_execute()` to send, or `oracledatabase_projects_locations_autonomous_database_character_sets_list` for simplest API.
 
-pub fn oracledatabase_projects_locations_autonomous_database_character_sets_list_builder(
-    client: &SimpleHttpClient,
+pub fn oracledatabase_projects_locations_autonomous_database_character_sets_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/autonomousDatabaseCharacterSets",
@@ -780,12 +793,15 @@ pub fn oracledatabase_projects_locations_autonomous_database_character_sets_list
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `oracledatabase_projects_locations_autonomous_databases_create_execute()` to send, or `oracledatabase_projects_locations_autonomous_databases_create` for simplest API.
 
-pub fn oracledatabase_projects_locations_autonomous_databases_create_builder(
-    client: &SimpleHttpClient,
+pub fn oracledatabase_projects_locations_autonomous_databases_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     autonomousDatabaseId: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/autonomousDatabases",
@@ -962,11 +978,14 @@ pub fn oracledatabase_projects_locations_autonomous_databases_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `oracledatabase_projects_locations_autonomous_databases_delete_execute()` to send, or `oracledatabase_projects_locations_autonomous_databases_delete` for simplest API.
 
-pub fn oracledatabase_projects_locations_autonomous_databases_delete_builder(
-    client: &SimpleHttpClient,
+pub fn oracledatabase_projects_locations_autonomous_databases_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/autonomousDatabases/{autonomousDatabasesId}",
@@ -1137,10 +1156,13 @@ pub fn oracledatabase_projects_locations_autonomous_databases_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `oracledatabase_projects_locations_autonomous_databases_failover_execute()` to send, or `oracledatabase_projects_locations_autonomous_databases_failover` for simplest API.
 
-pub fn oracledatabase_projects_locations_autonomous_databases_failover_builder(
-    client: &SimpleHttpClient,
+pub fn oracledatabase_projects_locations_autonomous_databases_failover_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/autonomousDatabases/{autonomousDatabasesId}:failover",
@@ -1296,10 +1318,13 @@ pub fn oracledatabase_projects_locations_autonomous_databases_failover(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `oracledatabase_projects_locations_autonomous_databases_generate_wallet_execute()` to send, or `oracledatabase_projects_locations_autonomous_databases_generate_wallet` for simplest API.
 
-pub fn oracledatabase_projects_locations_autonomous_databases_generate_wallet_builder(
-    client: &SimpleHttpClient,
+pub fn oracledatabase_projects_locations_autonomous_databases_generate_wallet_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/autonomousDatabases/{autonomousDatabasesId}:generateWallet",
@@ -1464,10 +1489,13 @@ pub fn oracledatabase_projects_locations_autonomous_databases_generate_wallet(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `oracledatabase_projects_locations_autonomous_databases_get_execute()` to send, or `oracledatabase_projects_locations_autonomous_databases_get` for simplest API.
 
-pub fn oracledatabase_projects_locations_autonomous_databases_get_builder(
-    client: &SimpleHttpClient,
+pub fn oracledatabase_projects_locations_autonomous_databases_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/autonomousDatabases/{autonomousDatabasesId}",
@@ -1626,14 +1654,17 @@ pub fn oracledatabase_projects_locations_autonomous_databases_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `oracledatabase_projects_locations_autonomous_databases_list_execute()` to send, or `oracledatabase_projects_locations_autonomous_databases_list` for simplest API.
 
-pub fn oracledatabase_projects_locations_autonomous_databases_list_builder(
-    client: &SimpleHttpClient,
+pub fn oracledatabase_projects_locations_autonomous_databases_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/autonomousDatabases",
@@ -1830,12 +1861,15 @@ pub fn oracledatabase_projects_locations_autonomous_databases_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `oracledatabase_projects_locations_autonomous_databases_patch_execute()` to send, or `oracledatabase_projects_locations_autonomous_databases_patch` for simplest API.
 
-pub fn oracledatabase_projects_locations_autonomous_databases_patch_builder(
-    client: &SimpleHttpClient,
+pub fn oracledatabase_projects_locations_autonomous_databases_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/autonomousDatabases/{autonomousDatabasesId}",
@@ -2012,10 +2046,13 @@ pub fn oracledatabase_projects_locations_autonomous_databases_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `oracledatabase_projects_locations_autonomous_databases_restart_execute()` to send, or `oracledatabase_projects_locations_autonomous_databases_restart` for simplest API.
 
-pub fn oracledatabase_projects_locations_autonomous_databases_restart_builder(
-    client: &SimpleHttpClient,
+pub fn oracledatabase_projects_locations_autonomous_databases_restart_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/autonomousDatabases/{autonomousDatabasesId}:restart",
@@ -2170,10 +2207,13 @@ pub fn oracledatabase_projects_locations_autonomous_databases_restart(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `oracledatabase_projects_locations_autonomous_databases_restore_execute()` to send, or `oracledatabase_projects_locations_autonomous_databases_restore` for simplest API.
 
-pub fn oracledatabase_projects_locations_autonomous_databases_restore_builder(
-    client: &SimpleHttpClient,
+pub fn oracledatabase_projects_locations_autonomous_databases_restore_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/autonomousDatabases/{autonomousDatabasesId}:restore",
@@ -2328,10 +2368,13 @@ pub fn oracledatabase_projects_locations_autonomous_databases_restore(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `oracledatabase_projects_locations_autonomous_databases_start_execute()` to send, or `oracledatabase_projects_locations_autonomous_databases_start` for simplest API.
 
-pub fn oracledatabase_projects_locations_autonomous_databases_start_builder(
-    client: &SimpleHttpClient,
+pub fn oracledatabase_projects_locations_autonomous_databases_start_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/autonomousDatabases/{autonomousDatabasesId}:start",
@@ -2486,10 +2529,13 @@ pub fn oracledatabase_projects_locations_autonomous_databases_start(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `oracledatabase_projects_locations_autonomous_databases_stop_execute()` to send, or `oracledatabase_projects_locations_autonomous_databases_stop` for simplest API.
 
-pub fn oracledatabase_projects_locations_autonomous_databases_stop_builder(
-    client: &SimpleHttpClient,
+pub fn oracledatabase_projects_locations_autonomous_databases_stop_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/autonomousDatabases/{autonomousDatabasesId}:stop",
@@ -2644,10 +2690,13 @@ pub fn oracledatabase_projects_locations_autonomous_databases_stop(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `oracledatabase_projects_locations_autonomous_databases_switchover_execute()` to send, or `oracledatabase_projects_locations_autonomous_databases_switchover` for simplest API.
 
-pub fn oracledatabase_projects_locations_autonomous_databases_switchover_builder(
-    client: &SimpleHttpClient,
+pub fn oracledatabase_projects_locations_autonomous_databases_switchover_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/autonomousDatabases/{autonomousDatabasesId}:switchover",
@@ -2803,12 +2852,15 @@ pub fn oracledatabase_projects_locations_autonomous_databases_switchover(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `oracledatabase_projects_locations_autonomous_db_versions_list_execute()` to send, or `oracledatabase_projects_locations_autonomous_db_versions_list` for simplest API.
 
-pub fn oracledatabase_projects_locations_autonomous_db_versions_list_builder(
-    client: &SimpleHttpClient,
+pub fn oracledatabase_projects_locations_autonomous_db_versions_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/autonomousDbVersions",
@@ -2993,12 +3045,15 @@ pub fn oracledatabase_projects_locations_autonomous_db_versions_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `oracledatabase_projects_locations_cloud_exadata_infrastructures_create_execute()` to send, or `oracledatabase_projects_locations_cloud_exadata_infrastructures_create` for simplest API.
 
-pub fn oracledatabase_projects_locations_cloud_exadata_infrastructures_create_builder(
-    client: &SimpleHttpClient,
+pub fn oracledatabase_projects_locations_cloud_exadata_infrastructures_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     cloudExadataInfrastructureId: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/cloudExadataInfrastructures",
@@ -3176,12 +3231,15 @@ pub fn oracledatabase_projects_locations_cloud_exadata_infrastructures_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `oracledatabase_projects_locations_cloud_exadata_infrastructures_delete_execute()` to send, or `oracledatabase_projects_locations_cloud_exadata_infrastructures_delete` for simplest API.
 
-pub fn oracledatabase_projects_locations_cloud_exadata_infrastructures_delete_builder(
-    client: &SimpleHttpClient,
+pub fn oracledatabase_projects_locations_cloud_exadata_infrastructures_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     force: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/cloudExadataInfrastructures/{cloudExadataInfrastructuresId}",
@@ -3359,10 +3417,13 @@ pub fn oracledatabase_projects_locations_cloud_exadata_infrastructures_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `oracledatabase_projects_locations_cloud_exadata_infrastructures_get_execute()` to send, or `oracledatabase_projects_locations_cloud_exadata_infrastructures_get` for simplest API.
 
-pub fn oracledatabase_projects_locations_cloud_exadata_infrastructures_get_builder(
-    client: &SimpleHttpClient,
+pub fn oracledatabase_projects_locations_cloud_exadata_infrastructures_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/cloudExadataInfrastructures/{cloudExadataInfrastructuresId}",
@@ -3526,14 +3587,17 @@ pub fn oracledatabase_projects_locations_cloud_exadata_infrastructures_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `oracledatabase_projects_locations_cloud_exadata_infrastructures_list_execute()` to send, or `oracledatabase_projects_locations_cloud_exadata_infrastructures_list` for simplest API.
 
-pub fn oracledatabase_projects_locations_cloud_exadata_infrastructures_list_builder(
-    client: &SimpleHttpClient,
+pub fn oracledatabase_projects_locations_cloud_exadata_infrastructures_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/cloudExadataInfrastructures",
@@ -3731,12 +3795,15 @@ pub fn oracledatabase_projects_locations_cloud_exadata_infrastructures_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `oracledatabase_projects_locations_cloud_exadata_infrastructures_db_servers_list_execute()` to send, or `oracledatabase_projects_locations_cloud_exadata_infrastructures_db_servers_list` for simplest API.
 
-pub fn oracledatabase_projects_locations_cloud_exadata_infrastructures_db_servers_list_builder(
-    client: &SimpleHttpClient,
+pub fn oracledatabase_projects_locations_cloud_exadata_infrastructures_db_servers_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/cloudExadataInfrastructures/{cloudExadataInfrastructuresId}/dbServers",
@@ -3921,12 +3988,15 @@ pub fn oracledatabase_projects_locations_cloud_exadata_infrastructures_db_server
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `oracledatabase_projects_locations_cloud_vm_clusters_create_execute()` to send, or `oracledatabase_projects_locations_cloud_vm_clusters_create` for simplest API.
 
-pub fn oracledatabase_projects_locations_cloud_vm_clusters_create_builder(
-    client: &SimpleHttpClient,
+pub fn oracledatabase_projects_locations_cloud_vm_clusters_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     cloudVmClusterId: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/cloudVmClusters",
@@ -4103,12 +4173,15 @@ pub fn oracledatabase_projects_locations_cloud_vm_clusters_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `oracledatabase_projects_locations_cloud_vm_clusters_delete_execute()` to send, or `oracledatabase_projects_locations_cloud_vm_clusters_delete` for simplest API.
 
-pub fn oracledatabase_projects_locations_cloud_vm_clusters_delete_builder(
-    client: &SimpleHttpClient,
+pub fn oracledatabase_projects_locations_cloud_vm_clusters_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     force: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/cloudVmClusters/{cloudVmClustersId}",
@@ -4285,10 +4358,13 @@ pub fn oracledatabase_projects_locations_cloud_vm_clusters_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `oracledatabase_projects_locations_cloud_vm_clusters_get_execute()` to send, or `oracledatabase_projects_locations_cloud_vm_clusters_get` for simplest API.
 
-pub fn oracledatabase_projects_locations_cloud_vm_clusters_get_builder(
-    client: &SimpleHttpClient,
+pub fn oracledatabase_projects_locations_cloud_vm_clusters_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/cloudVmClusters/{cloudVmClustersId}",
@@ -4447,13 +4523,16 @@ pub fn oracledatabase_projects_locations_cloud_vm_clusters_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `oracledatabase_projects_locations_cloud_vm_clusters_list_execute()` to send, or `oracledatabase_projects_locations_cloud_vm_clusters_list` for simplest API.
 
-pub fn oracledatabase_projects_locations_cloud_vm_clusters_list_builder(
-    client: &SimpleHttpClient,
+pub fn oracledatabase_projects_locations_cloud_vm_clusters_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/cloudVmClusters",
@@ -4644,12 +4723,15 @@ pub fn oracledatabase_projects_locations_cloud_vm_clusters_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `oracledatabase_projects_locations_cloud_vm_clusters_db_nodes_list_execute()` to send, or `oracledatabase_projects_locations_cloud_vm_clusters_db_nodes_list` for simplest API.
 
-pub fn oracledatabase_projects_locations_cloud_vm_clusters_db_nodes_list_builder(
-    client: &SimpleHttpClient,
+pub fn oracledatabase_projects_locations_cloud_vm_clusters_db_nodes_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/cloudVmClusters/{cloudVmClustersId}/dbNodes",
@@ -4830,13 +4912,16 @@ pub fn oracledatabase_projects_locations_cloud_vm_clusters_db_nodes_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `oracledatabase_projects_locations_database_character_sets_list_execute()` to send, or `oracledatabase_projects_locations_database_character_sets_list` for simplest API.
 
-pub fn oracledatabase_projects_locations_database_character_sets_list_builder(
-    client: &SimpleHttpClient,
+pub fn oracledatabase_projects_locations_database_character_sets_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/databaseCharacterSets",
@@ -5027,10 +5112,13 @@ pub fn oracledatabase_projects_locations_database_character_sets_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `oracledatabase_projects_locations_databases_get_execute()` to send, or `oracledatabase_projects_locations_databases_get` for simplest API.
 
-pub fn oracledatabase_projects_locations_databases_get_builder(
-    client: &SimpleHttpClient,
+pub fn oracledatabase_projects_locations_databases_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/databases/{databasesId}",
@@ -5184,13 +5272,16 @@ pub fn oracledatabase_projects_locations_databases_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `oracledatabase_projects_locations_databases_list_execute()` to send, or `oracledatabase_projects_locations_databases_list` for simplest API.
 
-pub fn oracledatabase_projects_locations_databases_list_builder(
-    client: &SimpleHttpClient,
+pub fn oracledatabase_projects_locations_databases_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/databases",
@@ -5377,12 +5468,15 @@ pub fn oracledatabase_projects_locations_databases_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `oracledatabase_projects_locations_db_system_initial_storage_sizes_list_execute()` to send, or `oracledatabase_projects_locations_db_system_initial_storage_sizes_list` for simplest API.
 
-pub fn oracledatabase_projects_locations_db_system_initial_storage_sizes_list_builder(
-    client: &SimpleHttpClient,
+pub fn oracledatabase_projects_locations_db_system_initial_storage_sizes_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/dbSystemInitialStorageSizes",
@@ -5569,13 +5663,16 @@ pub fn oracledatabase_projects_locations_db_system_initial_storage_sizes_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `oracledatabase_projects_locations_db_system_shapes_list_execute()` to send, or `oracledatabase_projects_locations_db_system_shapes_list` for simplest API.
 
-pub fn oracledatabase_projects_locations_db_system_shapes_list_builder(
-    client: &SimpleHttpClient,
+pub fn oracledatabase_projects_locations_db_system_shapes_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/dbSystemShapes",
@@ -5766,12 +5863,15 @@ pub fn oracledatabase_projects_locations_db_system_shapes_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `oracledatabase_projects_locations_db_systems_create_execute()` to send, or `oracledatabase_projects_locations_db_systems_create` for simplest API.
 
-pub fn oracledatabase_projects_locations_db_systems_create_builder(
-    client: &SimpleHttpClient,
+pub fn oracledatabase_projects_locations_db_systems_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     dbSystemId: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/dbSystems",
@@ -5948,11 +6048,14 @@ pub fn oracledatabase_projects_locations_db_systems_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `oracledatabase_projects_locations_db_systems_delete_execute()` to send, or `oracledatabase_projects_locations_db_systems_delete` for simplest API.
 
-pub fn oracledatabase_projects_locations_db_systems_delete_builder(
-    client: &SimpleHttpClient,
+pub fn oracledatabase_projects_locations_db_systems_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/dbSystems/{dbSystemsId}",
@@ -6123,10 +6226,13 @@ pub fn oracledatabase_projects_locations_db_systems_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `oracledatabase_projects_locations_db_systems_get_execute()` to send, or `oracledatabase_projects_locations_db_systems_get` for simplest API.
 
-pub fn oracledatabase_projects_locations_db_systems_get_builder(
-    client: &SimpleHttpClient,
+pub fn oracledatabase_projects_locations_db_systems_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/dbSystems/{dbSystemsId}",
@@ -6280,14 +6386,17 @@ pub fn oracledatabase_projects_locations_db_systems_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `oracledatabase_projects_locations_db_systems_list_execute()` to send, or `oracledatabase_projects_locations_db_systems_list` for simplest API.
 
-pub fn oracledatabase_projects_locations_db_systems_list_builder(
-    client: &SimpleHttpClient,
+pub fn oracledatabase_projects_locations_db_systems_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/dbSystems",
@@ -6480,13 +6589,16 @@ pub fn oracledatabase_projects_locations_db_systems_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `oracledatabase_projects_locations_db_versions_list_execute()` to send, or `oracledatabase_projects_locations_db_versions_list` for simplest API.
 
-pub fn oracledatabase_projects_locations_db_versions_list_builder(
-    client: &SimpleHttpClient,
+pub fn oracledatabase_projects_locations_db_versions_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/dbVersions",
@@ -6673,12 +6785,15 @@ pub fn oracledatabase_projects_locations_db_versions_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `oracledatabase_projects_locations_entitlements_list_execute()` to send, or `oracledatabase_projects_locations_entitlements_list` for simplest API.
 
-pub fn oracledatabase_projects_locations_entitlements_list_builder(
-    client: &SimpleHttpClient,
+pub fn oracledatabase_projects_locations_entitlements_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/entitlements",
@@ -6859,12 +6974,15 @@ pub fn oracledatabase_projects_locations_entitlements_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `oracledatabase_projects_locations_exadb_vm_clusters_create_execute()` to send, or `oracledatabase_projects_locations_exadb_vm_clusters_create` for simplest API.
 
-pub fn oracledatabase_projects_locations_exadb_vm_clusters_create_builder(
-    client: &SimpleHttpClient,
+pub fn oracledatabase_projects_locations_exadb_vm_clusters_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     exadbVmClusterId: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/exadbVmClusters",
@@ -7041,11 +7159,14 @@ pub fn oracledatabase_projects_locations_exadb_vm_clusters_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `oracledatabase_projects_locations_exadb_vm_clusters_delete_execute()` to send, or `oracledatabase_projects_locations_exadb_vm_clusters_delete` for simplest API.
 
-pub fn oracledatabase_projects_locations_exadb_vm_clusters_delete_builder(
-    client: &SimpleHttpClient,
+pub fn oracledatabase_projects_locations_exadb_vm_clusters_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/exadbVmClusters/{exadbVmClustersId}",
@@ -7216,10 +7337,13 @@ pub fn oracledatabase_projects_locations_exadb_vm_clusters_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `oracledatabase_projects_locations_exadb_vm_clusters_get_execute()` to send, or `oracledatabase_projects_locations_exadb_vm_clusters_get` for simplest API.
 
-pub fn oracledatabase_projects_locations_exadb_vm_clusters_get_builder(
-    client: &SimpleHttpClient,
+pub fn oracledatabase_projects_locations_exadb_vm_clusters_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/exadbVmClusters/{exadbVmClustersId}",
@@ -7378,14 +7502,17 @@ pub fn oracledatabase_projects_locations_exadb_vm_clusters_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `oracledatabase_projects_locations_exadb_vm_clusters_list_execute()` to send, or `oracledatabase_projects_locations_exadb_vm_clusters_list` for simplest API.
 
-pub fn oracledatabase_projects_locations_exadb_vm_clusters_list_builder(
-    client: &SimpleHttpClient,
+pub fn oracledatabase_projects_locations_exadb_vm_clusters_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/exadbVmClusters",
@@ -7582,12 +7709,15 @@ pub fn oracledatabase_projects_locations_exadb_vm_clusters_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `oracledatabase_projects_locations_exadb_vm_clusters_patch_execute()` to send, or `oracledatabase_projects_locations_exadb_vm_clusters_patch` for simplest API.
 
-pub fn oracledatabase_projects_locations_exadb_vm_clusters_patch_builder(
-    client: &SimpleHttpClient,
+pub fn oracledatabase_projects_locations_exadb_vm_clusters_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/exadbVmClusters/{exadbVmClustersId}",
@@ -7764,10 +7894,13 @@ pub fn oracledatabase_projects_locations_exadb_vm_clusters_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `oracledatabase_projects_locations_exadb_vm_clusters_remove_virtual_machine_execute()` to send, or `oracledatabase_projects_locations_exadb_vm_clusters_remove_virtual_machine` for simplest API.
 
-pub fn oracledatabase_projects_locations_exadb_vm_clusters_remove_virtual_machine_builder(
-    client: &SimpleHttpClient,
+pub fn oracledatabase_projects_locations_exadb_vm_clusters_remove_virtual_machine_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/exadbVmClusters/{exadbVmClustersId}:removeVirtualMachine",
@@ -7925,12 +8058,15 @@ pub fn oracledatabase_projects_locations_exadb_vm_clusters_remove_virtual_machin
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `oracledatabase_projects_locations_exadb_vm_clusters_db_nodes_list_execute()` to send, or `oracledatabase_projects_locations_exadb_vm_clusters_db_nodes_list` for simplest API.
 
-pub fn oracledatabase_projects_locations_exadb_vm_clusters_db_nodes_list_builder(
-    client: &SimpleHttpClient,
+pub fn oracledatabase_projects_locations_exadb_vm_clusters_db_nodes_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/exadbVmClusters/{exadbVmClustersId}/dbNodes",
@@ -8111,12 +8247,15 @@ pub fn oracledatabase_projects_locations_exadb_vm_clusters_db_nodes_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `oracledatabase_projects_locations_exascale_db_storage_vaults_create_execute()` to send, or `oracledatabase_projects_locations_exascale_db_storage_vaults_create` for simplest API.
 
-pub fn oracledatabase_projects_locations_exascale_db_storage_vaults_create_builder(
-    client: &SimpleHttpClient,
+pub fn oracledatabase_projects_locations_exascale_db_storage_vaults_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     exascaleDbStorageVaultId: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/exascaleDbStorageVaults",
@@ -8293,11 +8432,14 @@ pub fn oracledatabase_projects_locations_exascale_db_storage_vaults_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `oracledatabase_projects_locations_exascale_db_storage_vaults_delete_execute()` to send, or `oracledatabase_projects_locations_exascale_db_storage_vaults_delete` for simplest API.
 
-pub fn oracledatabase_projects_locations_exascale_db_storage_vaults_delete_builder(
-    client: &SimpleHttpClient,
+pub fn oracledatabase_projects_locations_exascale_db_storage_vaults_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/exascaleDbStorageVaults/{exascaleDbStorageVaultsId}",
@@ -8468,10 +8610,13 @@ pub fn oracledatabase_projects_locations_exascale_db_storage_vaults_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `oracledatabase_projects_locations_exascale_db_storage_vaults_get_execute()` to send, or `oracledatabase_projects_locations_exascale_db_storage_vaults_get` for simplest API.
 
-pub fn oracledatabase_projects_locations_exascale_db_storage_vaults_get_builder(
-    client: &SimpleHttpClient,
+pub fn oracledatabase_projects_locations_exascale_db_storage_vaults_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/exascaleDbStorageVaults/{exascaleDbStorageVaultsId}",
@@ -8631,14 +8776,17 @@ pub fn oracledatabase_projects_locations_exascale_db_storage_vaults_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `oracledatabase_projects_locations_exascale_db_storage_vaults_list_execute()` to send, or `oracledatabase_projects_locations_exascale_db_storage_vaults_list` for simplest API.
 
-pub fn oracledatabase_projects_locations_exascale_db_storage_vaults_list_builder(
-    client: &SimpleHttpClient,
+pub fn oracledatabase_projects_locations_exascale_db_storage_vaults_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/exascaleDbStorageVaults",
@@ -8835,13 +8983,16 @@ pub fn oracledatabase_projects_locations_exascale_db_storage_vaults_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `oracledatabase_projects_locations_gi_versions_list_execute()` to send, or `oracledatabase_projects_locations_gi_versions_list` for simplest API.
 
-pub fn oracledatabase_projects_locations_gi_versions_list_builder(
-    client: &SimpleHttpClient,
+pub fn oracledatabase_projects_locations_gi_versions_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/giVersions",
@@ -9028,13 +9179,16 @@ pub fn oracledatabase_projects_locations_gi_versions_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `oracledatabase_projects_locations_gi_versions_minor_versions_list_execute()` to send, or `oracledatabase_projects_locations_gi_versions_minor_versions_list` for simplest API.
 
-pub fn oracledatabase_projects_locations_gi_versions_minor_versions_list_builder(
-    client: &SimpleHttpClient,
+pub fn oracledatabase_projects_locations_gi_versions_minor_versions_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/giVersions/{giVersionsId}/minorVersions",
@@ -9221,12 +9375,15 @@ pub fn oracledatabase_projects_locations_gi_versions_minor_versions_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `oracledatabase_projects_locations_odb_networks_create_execute()` to send, or `oracledatabase_projects_locations_odb_networks_create` for simplest API.
 
-pub fn oracledatabase_projects_locations_odb_networks_create_builder(
-    client: &SimpleHttpClient,
+pub fn oracledatabase_projects_locations_odb_networks_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     odbNetworkId: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/odbNetworks",
@@ -9403,11 +9560,14 @@ pub fn oracledatabase_projects_locations_odb_networks_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `oracledatabase_projects_locations_odb_networks_delete_execute()` to send, or `oracledatabase_projects_locations_odb_networks_delete` for simplest API.
 
-pub fn oracledatabase_projects_locations_odb_networks_delete_builder(
-    client: &SimpleHttpClient,
+pub fn oracledatabase_projects_locations_odb_networks_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/odbNetworks/{odbNetworksId}",
@@ -9578,10 +9738,13 @@ pub fn oracledatabase_projects_locations_odb_networks_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `oracledatabase_projects_locations_odb_networks_get_execute()` to send, or `oracledatabase_projects_locations_odb_networks_get` for simplest API.
 
-pub fn oracledatabase_projects_locations_odb_networks_get_builder(
-    client: &SimpleHttpClient,
+pub fn oracledatabase_projects_locations_odb_networks_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/odbNetworks/{odbNetworksId}",
@@ -9735,14 +9898,17 @@ pub fn oracledatabase_projects_locations_odb_networks_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `oracledatabase_projects_locations_odb_networks_list_execute()` to send, or `oracledatabase_projects_locations_odb_networks_list` for simplest API.
 
-pub fn oracledatabase_projects_locations_odb_networks_list_builder(
-    client: &SimpleHttpClient,
+pub fn oracledatabase_projects_locations_odb_networks_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/odbNetworks",
@@ -9935,12 +10101,15 @@ pub fn oracledatabase_projects_locations_odb_networks_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `oracledatabase_projects_locations_odb_networks_odb_subnets_create_execute()` to send, or `oracledatabase_projects_locations_odb_networks_odb_subnets_create` for simplest API.
 
-pub fn oracledatabase_projects_locations_odb_networks_odb_subnets_create_builder(
-    client: &SimpleHttpClient,
+pub fn oracledatabase_projects_locations_odb_networks_odb_subnets_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     odbSubnetId: &Option<Option<String>>,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/odbNetworks/{odbNetworksId}/odbSubnets",
@@ -10117,11 +10286,14 @@ pub fn oracledatabase_projects_locations_odb_networks_odb_subnets_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `oracledatabase_projects_locations_odb_networks_odb_subnets_delete_execute()` to send, or `oracledatabase_projects_locations_odb_networks_odb_subnets_delete` for simplest API.
 
-pub fn oracledatabase_projects_locations_odb_networks_odb_subnets_delete_builder(
-    client: &SimpleHttpClient,
+pub fn oracledatabase_projects_locations_odb_networks_odb_subnets_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     requestId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/odbNetworks/{odbNetworksId}/odbSubnets/{odbSubnetsId}",
@@ -10292,10 +10464,13 @@ pub fn oracledatabase_projects_locations_odb_networks_odb_subnets_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `oracledatabase_projects_locations_odb_networks_odb_subnets_get_execute()` to send, or `oracledatabase_projects_locations_odb_networks_odb_subnets_get` for simplest API.
 
-pub fn oracledatabase_projects_locations_odb_networks_odb_subnets_get_builder(
-    client: &SimpleHttpClient,
+pub fn oracledatabase_projects_locations_odb_networks_odb_subnets_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/odbNetworks/{odbNetworksId}/odbSubnets/{odbSubnetsId}",
@@ -10450,14 +10625,17 @@ pub fn oracledatabase_projects_locations_odb_networks_odb_subnets_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `oracledatabase_projects_locations_odb_networks_odb_subnets_list_execute()` to send, or `oracledatabase_projects_locations_odb_networks_odb_subnets_list` for simplest API.
 
-pub fn oracledatabase_projects_locations_odb_networks_odb_subnets_list_builder(
-    client: &SimpleHttpClient,
+pub fn oracledatabase_projects_locations_odb_networks_odb_subnets_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/odbNetworks/{odbNetworksId}/odbSubnets",
@@ -10650,10 +10828,13 @@ pub fn oracledatabase_projects_locations_odb_networks_odb_subnets_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `oracledatabase_projects_locations_operations_cancel_execute()` to send, or `oracledatabase_projects_locations_operations_cancel` for simplest API.
 
-pub fn oracledatabase_projects_locations_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn oracledatabase_projects_locations_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}:cancel",
@@ -10807,10 +10988,13 @@ pub fn oracledatabase_projects_locations_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `oracledatabase_projects_locations_operations_delete_execute()` to send, or `oracledatabase_projects_locations_operations_delete` for simplest API.
 
-pub fn oracledatabase_projects_locations_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn oracledatabase_projects_locations_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -10964,10 +11148,13 @@ pub fn oracledatabase_projects_locations_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `oracledatabase_projects_locations_operations_get_execute()` to send, or `oracledatabase_projects_locations_operations_get` for simplest API.
 
-pub fn oracledatabase_projects_locations_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn oracledatabase_projects_locations_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -11121,14 +11308,17 @@ pub fn oracledatabase_projects_locations_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `oracledatabase_projects_locations_operations_list_execute()` to send, or `oracledatabase_projects_locations_operations_list` for simplest API.
 
-pub fn oracledatabase_projects_locations_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn oracledatabase_projects_locations_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/operations",
@@ -11321,10 +11511,13 @@ pub fn oracledatabase_projects_locations_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `oracledatabase_projects_locations_pluggable_databases_get_execute()` to send, or `oracledatabase_projects_locations_pluggable_databases_get` for simplest API.
 
-pub fn oracledatabase_projects_locations_pluggable_databases_get_builder(
-    client: &SimpleHttpClient,
+pub fn oracledatabase_projects_locations_pluggable_databases_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/pluggableDatabases/{pluggableDatabasesId}",
@@ -11483,13 +11676,16 @@ pub fn oracledatabase_projects_locations_pluggable_databases_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `oracledatabase_projects_locations_pluggable_databases_list_execute()` to send, or `oracledatabase_projects_locations_pluggable_databases_list` for simplest API.
 
-pub fn oracledatabase_projects_locations_pluggable_databases_list_builder(
-    client: &SimpleHttpClient,
+pub fn oracledatabase_projects_locations_pluggable_databases_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://oracledatabase.googleapis.com/v1/projects/{}/locations/{locationsId}/pluggableDatabases",

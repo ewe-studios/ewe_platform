@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,12 +27,15 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudsupport_case_classifications_search_execute()` to send, or `cloudsupport_case_classifications_search` for simplest API.
 
-pub fn cloudsupport_case_classifications_search_builder(
-    client: &SimpleHttpClient,
+pub fn cloudsupport_case_classifications_search_builder<R>(
+    client: &SimpleHttpClient<R>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     query: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://cloudsupport.googleapis.com/v2/caseClassifications:search",);
@@ -217,10 +221,13 @@ pub fn cloudsupport_case_classifications_search(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudsupport_cases_close_execute()` to send, or `cloudsupport_cases_close` for simplest API.
 
-pub fn cloudsupport_cases_close_builder(
-    client: &SimpleHttpClient,
+pub fn cloudsupport_cases_close_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudsupport.googleapis.com/v2/{}/{v2Id1}/cases/{casesId}:close",
@@ -374,10 +381,13 @@ pub fn cloudsupport_cases_close(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudsupport_cases_create_execute()` to send, or `cloudsupport_cases_create` for simplest API.
 
-pub fn cloudsupport_cases_create_builder(
-    client: &SimpleHttpClient,
+pub fn cloudsupport_cases_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudsupport.googleapis.com/v2/{}/{v2Id1}/cases",
@@ -531,10 +541,13 @@ pub fn cloudsupport_cases_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudsupport_cases_escalate_execute()` to send, or `cloudsupport_cases_escalate` for simplest API.
 
-pub fn cloudsupport_cases_escalate_builder(
-    client: &SimpleHttpClient,
+pub fn cloudsupport_cases_escalate_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudsupport.googleapis.com/v2/{}/{v2Id1}/cases/{casesId}:escalate",
@@ -688,10 +701,13 @@ pub fn cloudsupport_cases_escalate(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudsupport_cases_get_execute()` to send, or `cloudsupport_cases_get` for simplest API.
 
-pub fn cloudsupport_cases_get_builder(
-    client: &SimpleHttpClient,
+pub fn cloudsupport_cases_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudsupport.googleapis.com/v2/{}/{v2Id1}/cases/{casesId}",
@@ -845,13 +861,16 @@ pub fn cloudsupport_cases_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudsupport_cases_list_execute()` to send, or `cloudsupport_cases_list` for simplest API.
 
-pub fn cloudsupport_cases_list_builder(
-    client: &SimpleHttpClient,
+pub fn cloudsupport_cases_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudsupport.googleapis.com/v2/{}/{v2Id1}/cases",
@@ -1038,11 +1057,14 @@ pub fn cloudsupport_cases_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudsupport_cases_patch_execute()` to send, or `cloudsupport_cases_patch` for simplest API.
 
-pub fn cloudsupport_cases_patch_builder(
-    client: &SimpleHttpClient,
+pub fn cloudsupport_cases_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudsupport.googleapis.com/v2/{}/{v2Id1}/cases/{casesId}",
@@ -1209,13 +1231,16 @@ pub fn cloudsupport_cases_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudsupport_cases_search_execute()` to send, or `cloudsupport_cases_search` for simplest API.
 
-pub fn cloudsupport_cases_search_builder(
-    client: &SimpleHttpClient,
+pub fn cloudsupport_cases_search_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     query: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudsupport.googleapis.com/v2/{}/{v2Id1}/cases:search",
@@ -1402,12 +1427,15 @@ pub fn cloudsupport_cases_search(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudsupport_cases_attachments_list_execute()` to send, or `cloudsupport_cases_attachments_list` for simplest API.
 
-pub fn cloudsupport_cases_attachments_list_builder(
-    client: &SimpleHttpClient,
+pub fn cloudsupport_cases_attachments_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudsupport.googleapis.com/v2/{}/{v2Id1}/cases/{casesId}/attachments",
@@ -1588,10 +1616,13 @@ pub fn cloudsupport_cases_attachments_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudsupport_cases_comments_create_execute()` to send, or `cloudsupport_cases_comments_create` for simplest API.
 
-pub fn cloudsupport_cases_comments_create_builder(
-    client: &SimpleHttpClient,
+pub fn cloudsupport_cases_comments_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudsupport.googleapis.com/v2/{}/{v2Id1}/cases/{casesId}/comments",
@@ -1745,12 +1776,15 @@ pub fn cloudsupport_cases_comments_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudsupport_cases_comments_list_execute()` to send, or `cloudsupport_cases_comments_list` for simplest API.
 
-pub fn cloudsupport_cases_comments_list_builder(
-    client: &SimpleHttpClient,
+pub fn cloudsupport_cases_comments_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudsupport.googleapis.com/v2/{}/{v2Id1}/cases/{casesId}/comments",
@@ -1931,10 +1965,13 @@ pub fn cloudsupport_cases_comments_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudsupport_media_download_execute()` to send, or `cloudsupport_media_download` for simplest API.
 
-pub fn cloudsupport_media_download_builder(
-    client: &SimpleHttpClient,
+pub fn cloudsupport_media_download_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudsupport.googleapis.com/v2/{}/{v2Id1}/cases/{casesId}/attachments/{attachmentsId}:download",
@@ -2088,10 +2125,13 @@ pub fn cloudsupport_media_download(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudsupport_media_upload_execute()` to send, or `cloudsupport_media_upload` for simplest API.
 
-pub fn cloudsupport_media_upload_builder(
-    client: &SimpleHttpClient,
+pub fn cloudsupport_media_upload_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://cloudsupport.googleapis.com/v2/{}/{v2Id1}/cases/{casesId}/attachments",

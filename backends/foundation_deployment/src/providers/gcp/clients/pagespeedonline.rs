@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,8 +27,8 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `pagespeedonline_pagespeedapi_runpagespeed_execute()` to send, or `pagespeedonline_pagespeedapi_runpagespeed` for simplest API.
 
-pub fn pagespeedonline_pagespeedapi_runpagespeed_builder(
-    client: &SimpleHttpClient,
+pub fn pagespeedonline_pagespeedapi_runpagespeed_builder<R>(
+    client: &SimpleHttpClient<R>,
     captchaToken: &Option<Option<String>>,
     category: &Option<Option<String>>,
     locale: &Option<Option<String>>,
@@ -35,7 +36,10 @@ pub fn pagespeedonline_pagespeedapi_runpagespeed_builder(
     url: &Option<Option<String>>,
     utm_campaign: &Option<Option<String>>,
     utm_source: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url =
         format!("https://pagespeedonline.googleapis.com/pagespeedonline/v5/runPagespeed",);

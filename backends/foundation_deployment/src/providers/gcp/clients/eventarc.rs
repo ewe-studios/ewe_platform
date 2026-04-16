@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `eventarc_projects_locations_get_execute()` to send, or `eventarc_projects_locations_get` for simplest API.
 
-pub fn eventarc_projects_locations_get_builder(
-    client: &SimpleHttpClient,
+pub fn eventarc_projects_locations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://eventarc.googleapis.com/v1/projects/{}/locations/{locationsId}",
@@ -183,10 +187,13 @@ pub fn eventarc_projects_locations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `eventarc_projects_locations_get_google_channel_config_execute()` to send, or `eventarc_projects_locations_get_google_channel_config` for simplest API.
 
-pub fn eventarc_projects_locations_get_google_channel_config_builder(
-    client: &SimpleHttpClient,
+pub fn eventarc_projects_locations_get_google_channel_config_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://eventarc.googleapis.com/v1/projects/{}/locations/{locationsId}/googleChannelConfig",
@@ -345,14 +352,17 @@ pub fn eventarc_projects_locations_get_google_channel_config(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `eventarc_projects_locations_list_execute()` to send, or `eventarc_projects_locations_list` for simplest API.
 
-pub fn eventarc_projects_locations_list_builder(
-    client: &SimpleHttpClient,
+pub fn eventarc_projects_locations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     extraLocationTypes: &Option<Option<String>>,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://eventarc.googleapis.com/v1/projects/{}/locations",
@@ -545,11 +555,14 @@ pub fn eventarc_projects_locations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `eventarc_projects_locations_update_google_channel_config_execute()` to send, or `eventarc_projects_locations_update_google_channel_config` for simplest API.
 
-pub fn eventarc_projects_locations_update_google_channel_config_builder(
-    client: &SimpleHttpClient,
+pub fn eventarc_projects_locations_update_google_channel_config_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://eventarc.googleapis.com/v1/projects/{}/locations/{locationsId}/googleChannelConfig",
@@ -724,11 +737,14 @@ pub fn eventarc_projects_locations_update_google_channel_config(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `eventarc_projects_locations_channel_connections_create_execute()` to send, or `eventarc_projects_locations_channel_connections_create` for simplest API.
 
-pub fn eventarc_projects_locations_channel_connections_create_builder(
-    client: &SimpleHttpClient,
+pub fn eventarc_projects_locations_channel_connections_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     channelConnectionId: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://eventarc.googleapis.com/v1/projects/{}/locations/{locationsId}/channelConnections",
@@ -907,10 +923,13 @@ pub fn eventarc_projects_locations_channel_connections_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `eventarc_projects_locations_channel_connections_delete_execute()` to send, or `eventarc_projects_locations_channel_connections_delete` for simplest API.
 
-pub fn eventarc_projects_locations_channel_connections_delete_builder(
-    client: &SimpleHttpClient,
+pub fn eventarc_projects_locations_channel_connections_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://eventarc.googleapis.com/v1/projects/{}/locations/{locationsId}/channelConnections/{channelConnectionsId}",
@@ -1073,10 +1092,13 @@ pub fn eventarc_projects_locations_channel_connections_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `eventarc_projects_locations_channel_connections_get_execute()` to send, or `eventarc_projects_locations_channel_connections_get` for simplest API.
 
-pub fn eventarc_projects_locations_channel_connections_get_builder(
-    client: &SimpleHttpClient,
+pub fn eventarc_projects_locations_channel_connections_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://eventarc.googleapis.com/v1/projects/{}/locations/{locationsId}/channelConnections/{channelConnectionsId}",
@@ -1234,11 +1256,14 @@ pub fn eventarc_projects_locations_channel_connections_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `eventarc_projects_locations_channel_connections_get_iam_policy_execute()` to send, or `eventarc_projects_locations_channel_connections_get_iam_policy` for simplest API.
 
-pub fn eventarc_projects_locations_channel_connections_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn eventarc_projects_locations_channel_connections_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://eventarc.googleapis.com/v1/projects/{}/locations/{locationsId}/channelConnections/{channelConnectionsId}:getIamPolicy",
@@ -1409,12 +1434,15 @@ pub fn eventarc_projects_locations_channel_connections_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `eventarc_projects_locations_channel_connections_list_execute()` to send, or `eventarc_projects_locations_channel_connections_list` for simplest API.
 
-pub fn eventarc_projects_locations_channel_connections_list_builder(
-    client: &SimpleHttpClient,
+pub fn eventarc_projects_locations_channel_connections_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://eventarc.googleapis.com/v1/projects/{}/locations/{locationsId}/channelConnections",
@@ -1599,10 +1627,13 @@ pub fn eventarc_projects_locations_channel_connections_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `eventarc_projects_locations_channel_connections_set_iam_policy_execute()` to send, or `eventarc_projects_locations_channel_connections_set_iam_policy` for simplest API.
 
-pub fn eventarc_projects_locations_channel_connections_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn eventarc_projects_locations_channel_connections_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://eventarc.googleapis.com/v1/projects/{}/locations/{locationsId}/channelConnections/{channelConnectionsId}:setIamPolicy",
@@ -1759,10 +1790,13 @@ pub fn eventarc_projects_locations_channel_connections_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `eventarc_projects_locations_channel_connections_test_iam_permissions_execute()` to send, or `eventarc_projects_locations_channel_connections_test_iam_permissions` for simplest API.
 
-pub fn eventarc_projects_locations_channel_connections_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn eventarc_projects_locations_channel_connections_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://eventarc.googleapis.com/v1/projects/{}/locations/{locationsId}/channelConnections/{channelConnectionsId}:testIamPermissions",
@@ -1927,12 +1961,15 @@ pub fn eventarc_projects_locations_channel_connections_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `eventarc_projects_locations_channels_create_execute()` to send, or `eventarc_projects_locations_channels_create` for simplest API.
 
-pub fn eventarc_projects_locations_channels_create_builder(
-    client: &SimpleHttpClient,
+pub fn eventarc_projects_locations_channels_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     channelId: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://eventarc.googleapis.com/v1/projects/{}/locations/{locationsId}/channels",
@@ -2117,11 +2154,14 @@ pub fn eventarc_projects_locations_channels_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `eventarc_projects_locations_channels_delete_execute()` to send, or `eventarc_projects_locations_channels_delete` for simplest API.
 
-pub fn eventarc_projects_locations_channels_delete_builder(
-    client: &SimpleHttpClient,
+pub fn eventarc_projects_locations_channels_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://eventarc.googleapis.com/v1/projects/{}/locations/{locationsId}/channels/{channelsId}",
@@ -2300,10 +2340,13 @@ pub fn eventarc_projects_locations_channels_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `eventarc_projects_locations_channels_get_execute()` to send, or `eventarc_projects_locations_channels_get` for simplest API.
 
-pub fn eventarc_projects_locations_channels_get_builder(
-    client: &SimpleHttpClient,
+pub fn eventarc_projects_locations_channels_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://eventarc.googleapis.com/v1/projects/{}/locations/{locationsId}/channels/{channelsId}",
@@ -2457,11 +2500,14 @@ pub fn eventarc_projects_locations_channels_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `eventarc_projects_locations_channels_get_iam_policy_execute()` to send, or `eventarc_projects_locations_channels_get_iam_policy` for simplest API.
 
-pub fn eventarc_projects_locations_channels_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn eventarc_projects_locations_channels_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://eventarc.googleapis.com/v1/projects/{}/locations/{locationsId}/channels/{channelsId}:getIamPolicy",
@@ -2632,13 +2678,16 @@ pub fn eventarc_projects_locations_channels_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `eventarc_projects_locations_channels_list_execute()` to send, or `eventarc_projects_locations_channels_list` for simplest API.
 
-pub fn eventarc_projects_locations_channels_list_builder(
-    client: &SimpleHttpClient,
+pub fn eventarc_projects_locations_channels_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://eventarc.googleapis.com/v1/projects/{}/locations/{locationsId}/channels",
@@ -2825,12 +2874,15 @@ pub fn eventarc_projects_locations_channels_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `eventarc_projects_locations_channels_patch_execute()` to send, or `eventarc_projects_locations_channels_patch` for simplest API.
 
-pub fn eventarc_projects_locations_channels_patch_builder(
-    client: &SimpleHttpClient,
+pub fn eventarc_projects_locations_channels_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://eventarc.googleapis.com/v1/projects/{}/locations/{locationsId}/channels/{channelsId}",
@@ -3015,10 +3067,13 @@ pub fn eventarc_projects_locations_channels_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `eventarc_projects_locations_channels_set_iam_policy_execute()` to send, or `eventarc_projects_locations_channels_set_iam_policy` for simplest API.
 
-pub fn eventarc_projects_locations_channels_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn eventarc_projects_locations_channels_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://eventarc.googleapis.com/v1/projects/{}/locations/{locationsId}/channels/{channelsId}:setIamPolicy",
@@ -3173,10 +3228,13 @@ pub fn eventarc_projects_locations_channels_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `eventarc_projects_locations_channels_test_iam_permissions_execute()` to send, or `eventarc_projects_locations_channels_test_iam_permissions` for simplest API.
 
-pub fn eventarc_projects_locations_channels_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn eventarc_projects_locations_channels_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://eventarc.googleapis.com/v1/projects/{}/locations/{locationsId}/channels/{channelsId}:testIamPermissions",
@@ -3339,12 +3397,15 @@ pub fn eventarc_projects_locations_channels_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `eventarc_projects_locations_enrollments_create_execute()` to send, or `eventarc_projects_locations_enrollments_create` for simplest API.
 
-pub fn eventarc_projects_locations_enrollments_create_builder(
-    client: &SimpleHttpClient,
+pub fn eventarc_projects_locations_enrollments_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     enrollmentId: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://eventarc.googleapis.com/v1/projects/{}/locations/{locationsId}/enrollments",
@@ -3529,13 +3590,16 @@ pub fn eventarc_projects_locations_enrollments_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `eventarc_projects_locations_enrollments_delete_execute()` to send, or `eventarc_projects_locations_enrollments_delete` for simplest API.
 
-pub fn eventarc_projects_locations_enrollments_delete_builder(
-    client: &SimpleHttpClient,
+pub fn eventarc_projects_locations_enrollments_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     allowMissing: &Option<Option<String>>,
     etag: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://eventarc.googleapis.com/v1/projects/{}/locations/{locationsId}/enrollments/{enrollmentsId}",
@@ -3726,10 +3790,13 @@ pub fn eventarc_projects_locations_enrollments_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `eventarc_projects_locations_enrollments_get_execute()` to send, or `eventarc_projects_locations_enrollments_get` for simplest API.
 
-pub fn eventarc_projects_locations_enrollments_get_builder(
-    client: &SimpleHttpClient,
+pub fn eventarc_projects_locations_enrollments_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://eventarc.googleapis.com/v1/projects/{}/locations/{locationsId}/enrollments/{enrollmentsId}",
@@ -3883,11 +3950,14 @@ pub fn eventarc_projects_locations_enrollments_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `eventarc_projects_locations_enrollments_get_iam_policy_execute()` to send, or `eventarc_projects_locations_enrollments_get_iam_policy` for simplest API.
 
-pub fn eventarc_projects_locations_enrollments_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn eventarc_projects_locations_enrollments_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://eventarc.googleapis.com/v1/projects/{}/locations/{locationsId}/enrollments/{enrollmentsId}:getIamPolicy",
@@ -4058,14 +4128,17 @@ pub fn eventarc_projects_locations_enrollments_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `eventarc_projects_locations_enrollments_list_execute()` to send, or `eventarc_projects_locations_enrollments_list` for simplest API.
 
-pub fn eventarc_projects_locations_enrollments_list_builder(
-    client: &SimpleHttpClient,
+pub fn eventarc_projects_locations_enrollments_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://eventarc.googleapis.com/v1/projects/{}/locations/{locationsId}/enrollments",
@@ -4258,13 +4331,16 @@ pub fn eventarc_projects_locations_enrollments_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `eventarc_projects_locations_enrollments_patch_execute()` to send, or `eventarc_projects_locations_enrollments_patch` for simplest API.
 
-pub fn eventarc_projects_locations_enrollments_patch_builder(
-    client: &SimpleHttpClient,
+pub fn eventarc_projects_locations_enrollments_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     allowMissing: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://eventarc.googleapis.com/v1/projects/{}/locations/{locationsId}/enrollments/{enrollmentsId}",
@@ -4455,10 +4531,13 @@ pub fn eventarc_projects_locations_enrollments_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `eventarc_projects_locations_enrollments_set_iam_policy_execute()` to send, or `eventarc_projects_locations_enrollments_set_iam_policy` for simplest API.
 
-pub fn eventarc_projects_locations_enrollments_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn eventarc_projects_locations_enrollments_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://eventarc.googleapis.com/v1/projects/{}/locations/{locationsId}/enrollments/{enrollmentsId}:setIamPolicy",
@@ -4613,10 +4692,13 @@ pub fn eventarc_projects_locations_enrollments_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `eventarc_projects_locations_enrollments_test_iam_permissions_execute()` to send, or `eventarc_projects_locations_enrollments_test_iam_permissions` for simplest API.
 
-pub fn eventarc_projects_locations_enrollments_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn eventarc_projects_locations_enrollments_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://eventarc.googleapis.com/v1/projects/{}/locations/{locationsId}/enrollments/{enrollmentsId}:testIamPermissions",
@@ -4781,12 +4863,15 @@ pub fn eventarc_projects_locations_enrollments_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `eventarc_projects_locations_google_api_sources_create_execute()` to send, or `eventarc_projects_locations_google_api_sources_create` for simplest API.
 
-pub fn eventarc_projects_locations_google_api_sources_create_builder(
-    client: &SimpleHttpClient,
+pub fn eventarc_projects_locations_google_api_sources_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     googleApiSourceId: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://eventarc.googleapis.com/v1/projects/{}/locations/{locationsId}/googleApiSources",
@@ -4971,13 +5056,16 @@ pub fn eventarc_projects_locations_google_api_sources_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `eventarc_projects_locations_google_api_sources_delete_execute()` to send, or `eventarc_projects_locations_google_api_sources_delete` for simplest API.
 
-pub fn eventarc_projects_locations_google_api_sources_delete_builder(
-    client: &SimpleHttpClient,
+pub fn eventarc_projects_locations_google_api_sources_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     allowMissing: &Option<Option<String>>,
     etag: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://eventarc.googleapis.com/v1/projects/{}/locations/{locationsId}/googleApiSources/{googleApiSourcesId}",
@@ -5168,10 +5256,13 @@ pub fn eventarc_projects_locations_google_api_sources_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `eventarc_projects_locations_google_api_sources_get_execute()` to send, or `eventarc_projects_locations_google_api_sources_get` for simplest API.
 
-pub fn eventarc_projects_locations_google_api_sources_get_builder(
-    client: &SimpleHttpClient,
+pub fn eventarc_projects_locations_google_api_sources_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://eventarc.googleapis.com/v1/projects/{}/locations/{locationsId}/googleApiSources/{googleApiSourcesId}",
@@ -5329,11 +5420,14 @@ pub fn eventarc_projects_locations_google_api_sources_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `eventarc_projects_locations_google_api_sources_get_iam_policy_execute()` to send, or `eventarc_projects_locations_google_api_sources_get_iam_policy` for simplest API.
 
-pub fn eventarc_projects_locations_google_api_sources_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn eventarc_projects_locations_google_api_sources_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://eventarc.googleapis.com/v1/projects/{}/locations/{locationsId}/googleApiSources/{googleApiSourcesId}:getIamPolicy",
@@ -5504,14 +5598,17 @@ pub fn eventarc_projects_locations_google_api_sources_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `eventarc_projects_locations_google_api_sources_list_execute()` to send, or `eventarc_projects_locations_google_api_sources_list` for simplest API.
 
-pub fn eventarc_projects_locations_google_api_sources_list_builder(
-    client: &SimpleHttpClient,
+pub fn eventarc_projects_locations_google_api_sources_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://eventarc.googleapis.com/v1/projects/{}/locations/{locationsId}/googleApiSources",
@@ -5708,13 +5805,16 @@ pub fn eventarc_projects_locations_google_api_sources_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `eventarc_projects_locations_google_api_sources_patch_execute()` to send, or `eventarc_projects_locations_google_api_sources_patch` for simplest API.
 
-pub fn eventarc_projects_locations_google_api_sources_patch_builder(
-    client: &SimpleHttpClient,
+pub fn eventarc_projects_locations_google_api_sources_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     allowMissing: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://eventarc.googleapis.com/v1/projects/{}/locations/{locationsId}/googleApiSources/{googleApiSourcesId}",
@@ -5905,10 +6005,13 @@ pub fn eventarc_projects_locations_google_api_sources_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `eventarc_projects_locations_google_api_sources_set_iam_policy_execute()` to send, or `eventarc_projects_locations_google_api_sources_set_iam_policy` for simplest API.
 
-pub fn eventarc_projects_locations_google_api_sources_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn eventarc_projects_locations_google_api_sources_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://eventarc.googleapis.com/v1/projects/{}/locations/{locationsId}/googleApiSources/{googleApiSourcesId}:setIamPolicy",
@@ -6065,10 +6168,13 @@ pub fn eventarc_projects_locations_google_api_sources_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `eventarc_projects_locations_google_api_sources_test_iam_permissions_execute()` to send, or `eventarc_projects_locations_google_api_sources_test_iam_permissions` for simplest API.
 
-pub fn eventarc_projects_locations_google_api_sources_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn eventarc_projects_locations_google_api_sources_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://eventarc.googleapis.com/v1/projects/{}/locations/{locationsId}/googleApiSources/{googleApiSourcesId}:testIamPermissions",
@@ -6233,12 +6339,15 @@ pub fn eventarc_projects_locations_google_api_sources_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `eventarc_projects_locations_message_buses_create_execute()` to send, or `eventarc_projects_locations_message_buses_create` for simplest API.
 
-pub fn eventarc_projects_locations_message_buses_create_builder(
-    client: &SimpleHttpClient,
+pub fn eventarc_projects_locations_message_buses_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     messageBusId: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://eventarc.googleapis.com/v1/projects/{}/locations/{locationsId}/messageBuses",
@@ -6423,13 +6532,16 @@ pub fn eventarc_projects_locations_message_buses_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `eventarc_projects_locations_message_buses_delete_execute()` to send, or `eventarc_projects_locations_message_buses_delete` for simplest API.
 
-pub fn eventarc_projects_locations_message_buses_delete_builder(
-    client: &SimpleHttpClient,
+pub fn eventarc_projects_locations_message_buses_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     allowMissing: &Option<Option<String>>,
     etag: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://eventarc.googleapis.com/v1/projects/{}/locations/{locationsId}/messageBuses/{messageBusesId}",
@@ -6620,10 +6732,13 @@ pub fn eventarc_projects_locations_message_buses_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `eventarc_projects_locations_message_buses_get_execute()` to send, or `eventarc_projects_locations_message_buses_get` for simplest API.
 
-pub fn eventarc_projects_locations_message_buses_get_builder(
-    client: &SimpleHttpClient,
+pub fn eventarc_projects_locations_message_buses_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://eventarc.googleapis.com/v1/projects/{}/locations/{locationsId}/messageBuses/{messageBusesId}",
@@ -6777,11 +6892,14 @@ pub fn eventarc_projects_locations_message_buses_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `eventarc_projects_locations_message_buses_get_iam_policy_execute()` to send, or `eventarc_projects_locations_message_buses_get_iam_policy` for simplest API.
 
-pub fn eventarc_projects_locations_message_buses_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn eventarc_projects_locations_message_buses_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://eventarc.googleapis.com/v1/projects/{}/locations/{locationsId}/messageBuses/{messageBusesId}:getIamPolicy",
@@ -6952,14 +7070,17 @@ pub fn eventarc_projects_locations_message_buses_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `eventarc_projects_locations_message_buses_list_execute()` to send, or `eventarc_projects_locations_message_buses_list` for simplest API.
 
-pub fn eventarc_projects_locations_message_buses_list_builder(
-    client: &SimpleHttpClient,
+pub fn eventarc_projects_locations_message_buses_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://eventarc.googleapis.com/v1/projects/{}/locations/{locationsId}/messageBuses",
@@ -7152,12 +7273,15 @@ pub fn eventarc_projects_locations_message_buses_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `eventarc_projects_locations_message_buses_list_enrollments_execute()` to send, or `eventarc_projects_locations_message_buses_list_enrollments` for simplest API.
 
-pub fn eventarc_projects_locations_message_buses_list_enrollments_builder(
-    client: &SimpleHttpClient,
+pub fn eventarc_projects_locations_message_buses_list_enrollments_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://eventarc.googleapis.com/v1/projects/{}/locations/{locationsId}/messageBuses/{messageBusesId}:listEnrollments",
@@ -7342,13 +7466,16 @@ pub fn eventarc_projects_locations_message_buses_list_enrollments(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `eventarc_projects_locations_message_buses_patch_execute()` to send, or `eventarc_projects_locations_message_buses_patch` for simplest API.
 
-pub fn eventarc_projects_locations_message_buses_patch_builder(
-    client: &SimpleHttpClient,
+pub fn eventarc_projects_locations_message_buses_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     allowMissing: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://eventarc.googleapis.com/v1/projects/{}/locations/{locationsId}/messageBuses/{messageBusesId}",
@@ -7539,10 +7666,13 @@ pub fn eventarc_projects_locations_message_buses_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `eventarc_projects_locations_message_buses_set_iam_policy_execute()` to send, or `eventarc_projects_locations_message_buses_set_iam_policy` for simplest API.
 
-pub fn eventarc_projects_locations_message_buses_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn eventarc_projects_locations_message_buses_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://eventarc.googleapis.com/v1/projects/{}/locations/{locationsId}/messageBuses/{messageBusesId}:setIamPolicy",
@@ -7697,10 +7827,13 @@ pub fn eventarc_projects_locations_message_buses_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `eventarc_projects_locations_message_buses_test_iam_permissions_execute()` to send, or `eventarc_projects_locations_message_buses_test_iam_permissions` for simplest API.
 
-pub fn eventarc_projects_locations_message_buses_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn eventarc_projects_locations_message_buses_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://eventarc.googleapis.com/v1/projects/{}/locations/{locationsId}/messageBuses/{messageBusesId}:testIamPermissions",
@@ -7865,10 +7998,13 @@ pub fn eventarc_projects_locations_message_buses_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `eventarc_projects_locations_operations_cancel_execute()` to send, or `eventarc_projects_locations_operations_cancel` for simplest API.
 
-pub fn eventarc_projects_locations_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn eventarc_projects_locations_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://eventarc.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}:cancel",
@@ -8022,10 +8158,13 @@ pub fn eventarc_projects_locations_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `eventarc_projects_locations_operations_delete_execute()` to send, or `eventarc_projects_locations_operations_delete` for simplest API.
 
-pub fn eventarc_projects_locations_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn eventarc_projects_locations_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://eventarc.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -8179,10 +8318,13 @@ pub fn eventarc_projects_locations_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `eventarc_projects_locations_operations_get_execute()` to send, or `eventarc_projects_locations_operations_get` for simplest API.
 
-pub fn eventarc_projects_locations_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn eventarc_projects_locations_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://eventarc.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
@@ -8344,14 +8486,17 @@ pub fn eventarc_projects_locations_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `eventarc_projects_locations_operations_list_execute()` to send, or `eventarc_projects_locations_operations_list` for simplest API.
 
-pub fn eventarc_projects_locations_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn eventarc_projects_locations_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://eventarc.googleapis.com/v1/projects/{}/locations/{locationsId}/operations",
@@ -8549,12 +8694,15 @@ pub fn eventarc_projects_locations_operations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `eventarc_projects_locations_pipelines_create_execute()` to send, or `eventarc_projects_locations_pipelines_create` for simplest API.
 
-pub fn eventarc_projects_locations_pipelines_create_builder(
-    client: &SimpleHttpClient,
+pub fn eventarc_projects_locations_pipelines_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pipelineId: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://eventarc.googleapis.com/v1/projects/{}/locations/{locationsId}/pipelines",
@@ -8739,13 +8887,16 @@ pub fn eventarc_projects_locations_pipelines_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `eventarc_projects_locations_pipelines_delete_execute()` to send, or `eventarc_projects_locations_pipelines_delete` for simplest API.
 
-pub fn eventarc_projects_locations_pipelines_delete_builder(
-    client: &SimpleHttpClient,
+pub fn eventarc_projects_locations_pipelines_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     allowMissing: &Option<Option<String>>,
     etag: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://eventarc.googleapis.com/v1/projects/{}/locations/{locationsId}/pipelines/{pipelinesId}",
@@ -8936,10 +9087,13 @@ pub fn eventarc_projects_locations_pipelines_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `eventarc_projects_locations_pipelines_get_execute()` to send, or `eventarc_projects_locations_pipelines_get` for simplest API.
 
-pub fn eventarc_projects_locations_pipelines_get_builder(
-    client: &SimpleHttpClient,
+pub fn eventarc_projects_locations_pipelines_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://eventarc.googleapis.com/v1/projects/{}/locations/{locationsId}/pipelines/{pipelinesId}",
@@ -9093,11 +9247,14 @@ pub fn eventarc_projects_locations_pipelines_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `eventarc_projects_locations_pipelines_get_iam_policy_execute()` to send, or `eventarc_projects_locations_pipelines_get_iam_policy` for simplest API.
 
-pub fn eventarc_projects_locations_pipelines_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn eventarc_projects_locations_pipelines_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://eventarc.googleapis.com/v1/projects/{}/locations/{locationsId}/pipelines/{pipelinesId}:getIamPolicy",
@@ -9268,14 +9425,17 @@ pub fn eventarc_projects_locations_pipelines_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `eventarc_projects_locations_pipelines_list_execute()` to send, or `eventarc_projects_locations_pipelines_list` for simplest API.
 
-pub fn eventarc_projects_locations_pipelines_list_builder(
-    client: &SimpleHttpClient,
+pub fn eventarc_projects_locations_pipelines_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://eventarc.googleapis.com/v1/projects/{}/locations/{locationsId}/pipelines",
@@ -9468,13 +9628,16 @@ pub fn eventarc_projects_locations_pipelines_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `eventarc_projects_locations_pipelines_patch_execute()` to send, or `eventarc_projects_locations_pipelines_patch` for simplest API.
 
-pub fn eventarc_projects_locations_pipelines_patch_builder(
-    client: &SimpleHttpClient,
+pub fn eventarc_projects_locations_pipelines_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     allowMissing: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://eventarc.googleapis.com/v1/projects/{}/locations/{locationsId}/pipelines/{pipelinesId}",
@@ -9665,10 +9828,13 @@ pub fn eventarc_projects_locations_pipelines_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `eventarc_projects_locations_pipelines_set_iam_policy_execute()` to send, or `eventarc_projects_locations_pipelines_set_iam_policy` for simplest API.
 
-pub fn eventarc_projects_locations_pipelines_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn eventarc_projects_locations_pipelines_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://eventarc.googleapis.com/v1/projects/{}/locations/{locationsId}/pipelines/{pipelinesId}:setIamPolicy",
@@ -9823,10 +9989,13 @@ pub fn eventarc_projects_locations_pipelines_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `eventarc_projects_locations_pipelines_test_iam_permissions_execute()` to send, or `eventarc_projects_locations_pipelines_test_iam_permissions` for simplest API.
 
-pub fn eventarc_projects_locations_pipelines_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn eventarc_projects_locations_pipelines_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://eventarc.googleapis.com/v1/projects/{}/locations/{locationsId}/pipelines/{pipelinesId}:testIamPermissions",
@@ -9989,10 +10158,13 @@ pub fn eventarc_projects_locations_pipelines_test_iam_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `eventarc_projects_locations_providers_get_execute()` to send, or `eventarc_projects_locations_providers_get` for simplest API.
 
-pub fn eventarc_projects_locations_providers_get_builder(
-    client: &SimpleHttpClient,
+pub fn eventarc_projects_locations_providers_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://eventarc.googleapis.com/v1/projects/{}/locations/{locationsId}/providers/{providersId}",
@@ -10146,14 +10318,17 @@ pub fn eventarc_projects_locations_providers_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `eventarc_projects_locations_providers_list_execute()` to send, or `eventarc_projects_locations_providers_list` for simplest API.
 
-pub fn eventarc_projects_locations_providers_list_builder(
-    client: &SimpleHttpClient,
+pub fn eventarc_projects_locations_providers_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://eventarc.googleapis.com/v1/projects/{}/locations/{locationsId}/providers",
@@ -10346,12 +10521,15 @@ pub fn eventarc_projects_locations_providers_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `eventarc_projects_locations_triggers_create_execute()` to send, or `eventarc_projects_locations_triggers_create` for simplest API.
 
-pub fn eventarc_projects_locations_triggers_create_builder(
-    client: &SimpleHttpClient,
+pub fn eventarc_projects_locations_triggers_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     triggerId: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://eventarc.googleapis.com/v1/projects/{}/locations/{locationsId}/triggers",
@@ -10536,13 +10714,16 @@ pub fn eventarc_projects_locations_triggers_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `eventarc_projects_locations_triggers_delete_execute()` to send, or `eventarc_projects_locations_triggers_delete` for simplest API.
 
-pub fn eventarc_projects_locations_triggers_delete_builder(
-    client: &SimpleHttpClient,
+pub fn eventarc_projects_locations_triggers_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     allowMissing: &Option<Option<String>>,
     etag: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://eventarc.googleapis.com/v1/projects/{}/locations/{locationsId}/triggers/{triggersId}",
@@ -10733,10 +10914,13 @@ pub fn eventarc_projects_locations_triggers_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `eventarc_projects_locations_triggers_get_execute()` to send, or `eventarc_projects_locations_triggers_get` for simplest API.
 
-pub fn eventarc_projects_locations_triggers_get_builder(
-    client: &SimpleHttpClient,
+pub fn eventarc_projects_locations_triggers_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://eventarc.googleapis.com/v1/projects/{}/locations/{locationsId}/triggers/{triggersId}",
@@ -10890,11 +11074,14 @@ pub fn eventarc_projects_locations_triggers_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `eventarc_projects_locations_triggers_get_iam_policy_execute()` to send, or `eventarc_projects_locations_triggers_get_iam_policy` for simplest API.
 
-pub fn eventarc_projects_locations_triggers_get_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn eventarc_projects_locations_triggers_get_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
     options_requestedPolicyVersion: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://eventarc.googleapis.com/v1/projects/{}/locations/{locationsId}/triggers/{triggersId}:getIamPolicy",
@@ -11065,14 +11252,17 @@ pub fn eventarc_projects_locations_triggers_get_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `eventarc_projects_locations_triggers_list_execute()` to send, or `eventarc_projects_locations_triggers_list` for simplest API.
 
-pub fn eventarc_projects_locations_triggers_list_builder(
-    client: &SimpleHttpClient,
+pub fn eventarc_projects_locations_triggers_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     orderBy: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://eventarc.googleapis.com/v1/projects/{}/locations/{locationsId}/triggers",
@@ -11265,13 +11455,16 @@ pub fn eventarc_projects_locations_triggers_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `eventarc_projects_locations_triggers_patch_execute()` to send, or `eventarc_projects_locations_triggers_patch` for simplest API.
 
-pub fn eventarc_projects_locations_triggers_patch_builder(
-    client: &SimpleHttpClient,
+pub fn eventarc_projects_locations_triggers_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     allowMissing: &Option<Option<String>>,
     updateMask: &Option<Option<String>>,
     validateOnly: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://eventarc.googleapis.com/v1/projects/{}/locations/{locationsId}/triggers/{triggersId}",
@@ -11462,10 +11655,13 @@ pub fn eventarc_projects_locations_triggers_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `eventarc_projects_locations_triggers_set_iam_policy_execute()` to send, or `eventarc_projects_locations_triggers_set_iam_policy` for simplest API.
 
-pub fn eventarc_projects_locations_triggers_set_iam_policy_builder(
-    client: &SimpleHttpClient,
+pub fn eventarc_projects_locations_triggers_set_iam_policy_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://eventarc.googleapis.com/v1/projects/{}/locations/{locationsId}/triggers/{triggersId}:setIamPolicy",
@@ -11620,10 +11816,13 @@ pub fn eventarc_projects_locations_triggers_set_iam_policy(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `eventarc_projects_locations_triggers_test_iam_permissions_execute()` to send, or `eventarc_projects_locations_triggers_test_iam_permissions` for simplest API.
 
-pub fn eventarc_projects_locations_triggers_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn eventarc_projects_locations_triggers_test_iam_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     resource: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://eventarc.googleapis.com/v1/projects/{}/locations/{locationsId}/triggers/{triggersId}:testIamPermissions",

@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,8 +27,8 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `search_cse_list_execute()` to send, or `search_cse_list` for simplest API.
 
-pub fn search_cse_list_builder(
-    client: &SimpleHttpClient,
+pub fn search_cse_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     c2coff: &Option<Option<String>>,
     cr: &Option<Option<String>>,
     cx: &Option<Option<String>>,
@@ -61,7 +62,10 @@ pub fn search_cse_list_builder(
     snippetLength: &Option<Option<String>>,
     sort: &Option<Option<String>>,
     start: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://customsearch.googleapis.com/customsearch/v1",);
 
@@ -418,8 +422,8 @@ pub fn search_cse_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `search_cse_siterestrict_list_execute()` to send, or `search_cse_siterestrict_list` for simplest API.
 
-pub fn search_cse_siterestrict_list_builder(
-    client: &SimpleHttpClient,
+pub fn search_cse_siterestrict_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     c2coff: &Option<Option<String>>,
     cr: &Option<Option<String>>,
     cx: &Option<Option<String>>,
@@ -453,7 +457,10 @@ pub fn search_cse_siterestrict_list_builder(
     snippetLength: &Option<Option<String>>,
     sort: &Option<Option<String>>,
     start: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://customsearch.googleapis.com/customsearch/v1/siterestrict",);
 

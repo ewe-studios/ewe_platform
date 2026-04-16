@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,11 +27,14 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebase_available_projects_list_execute()` to send, or `firebase_available_projects_list` for simplest API.
 
-pub fn firebase_available_projects_list_builder(
-    client: &SimpleHttpClient,
+pub fn firebase_available_projects_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://firebase.googleapis.com/v1beta1/availableProjects",);
 
@@ -206,10 +210,13 @@ pub fn firebase_available_projects_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebase_operations_get_execute()` to send, or `firebase_operations_get` for simplest API.
 
-pub fn firebase_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn firebase_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebase.googleapis.com/v1beta1/operations/{}",
@@ -363,10 +370,13 @@ pub fn firebase_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebase_projects_add_firebase_execute()` to send, or `firebase_projects_add_firebase` for simplest API.
 
-pub fn firebase_projects_add_firebase_builder(
-    client: &SimpleHttpClient,
+pub fn firebase_projects_add_firebase_builder<R>(
+    client: &SimpleHttpClient<R>,
     project: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebase.googleapis.com/v1beta1/projects/{}:addFirebase",
@@ -520,10 +530,13 @@ pub fn firebase_projects_add_firebase(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebase_projects_add_google_analytics_execute()` to send, or `firebase_projects_add_google_analytics` for simplest API.
 
-pub fn firebase_projects_add_google_analytics_builder(
-    client: &SimpleHttpClient,
+pub fn firebase_projects_add_google_analytics_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebase.googleapis.com/v1beta1/projects/{}:addGoogleAnalytics",
@@ -677,10 +690,13 @@ pub fn firebase_projects_add_google_analytics(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebase_projects_get_execute()` to send, or `firebase_projects_get` for simplest API.
 
-pub fn firebase_projects_get_builder(
-    client: &SimpleHttpClient,
+pub fn firebase_projects_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://firebase.googleapis.com/v1beta1/projects/{}", name,);
 
@@ -835,10 +851,13 @@ pub fn firebase_projects_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebase_projects_get_admin_sdk_config_execute()` to send, or `firebase_projects_get_admin_sdk_config` for simplest API.
 
-pub fn firebase_projects_get_admin_sdk_config_builder(
-    client: &SimpleHttpClient,
+pub fn firebase_projects_get_admin_sdk_config_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebase.googleapis.com/v1beta1/projects/{}/adminSdkConfig",
@@ -996,10 +1015,13 @@ pub fn firebase_projects_get_admin_sdk_config(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebase_projects_get_analytics_details_execute()` to send, or `firebase_projects_get_analytics_details` for simplest API.
 
-pub fn firebase_projects_get_analytics_details_builder(
-    client: &SimpleHttpClient,
+pub fn firebase_projects_get_analytics_details_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebase.googleapis.com/v1beta1/projects/{}/analyticsDetails",
@@ -1157,12 +1179,15 @@ pub fn firebase_projects_get_analytics_details(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebase_projects_list_execute()` to send, or `firebase_projects_list` for simplest API.
 
-pub fn firebase_projects_list_builder(
-    client: &SimpleHttpClient,
+pub fn firebase_projects_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     showDeleted: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://firebase.googleapis.com/v1beta1/projects",);
 
@@ -1343,11 +1368,14 @@ pub fn firebase_projects_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebase_projects_patch_execute()` to send, or `firebase_projects_patch` for simplest API.
 
-pub fn firebase_projects_patch_builder(
-    client: &SimpleHttpClient,
+pub fn firebase_projects_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://firebase.googleapis.com/v1beta1/projects/{}", name,);
 
@@ -1515,10 +1543,13 @@ pub fn firebase_projects_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebase_projects_remove_analytics_execute()` to send, or `firebase_projects_remove_analytics` for simplest API.
 
-pub fn firebase_projects_remove_analytics_builder(
-    client: &SimpleHttpClient,
+pub fn firebase_projects_remove_analytics_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebase.googleapis.com/v1beta1/projects/{}:removeAnalytics",
@@ -1672,14 +1703,17 @@ pub fn firebase_projects_remove_analytics(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebase_projects_search_apps_execute()` to send, or `firebase_projects_search_apps` for simplest API.
 
-pub fn firebase_projects_search_apps_builder(
-    client: &SimpleHttpClient,
+pub fn firebase_projects_search_apps_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     showDeleted: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebase.googleapis.com/v1beta1/projects/{}:searchApps",
@@ -1876,10 +1910,13 @@ pub fn firebase_projects_search_apps(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebase_projects_android_apps_create_execute()` to send, or `firebase_projects_android_apps_create` for simplest API.
 
-pub fn firebase_projects_android_apps_create_builder(
-    client: &SimpleHttpClient,
+pub fn firebase_projects_android_apps_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebase.googleapis.com/v1beta1/projects/{}/androidApps",
@@ -2033,10 +2070,13 @@ pub fn firebase_projects_android_apps_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebase_projects_android_apps_get_execute()` to send, or `firebase_projects_android_apps_get` for simplest API.
 
-pub fn firebase_projects_android_apps_get_builder(
-    client: &SimpleHttpClient,
+pub fn firebase_projects_android_apps_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebase.googleapis.com/v1beta1/projects/{}/androidApps/{androidAppsId}",
@@ -2190,10 +2230,13 @@ pub fn firebase_projects_android_apps_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebase_projects_android_apps_get_config_execute()` to send, or `firebase_projects_android_apps_get_config` for simplest API.
 
-pub fn firebase_projects_android_apps_get_config_builder(
-    client: &SimpleHttpClient,
+pub fn firebase_projects_android_apps_get_config_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebase.googleapis.com/v1beta1/projects/{}/androidApps/{androidAppsId}/config",
@@ -2351,13 +2394,16 @@ pub fn firebase_projects_android_apps_get_config(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebase_projects_android_apps_list_execute()` to send, or `firebase_projects_android_apps_list` for simplest API.
 
-pub fn firebase_projects_android_apps_list_builder(
-    client: &SimpleHttpClient,
+pub fn firebase_projects_android_apps_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     showDeleted: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebase.googleapis.com/v1beta1/projects/{}/androidApps",
@@ -2544,11 +2590,14 @@ pub fn firebase_projects_android_apps_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebase_projects_android_apps_patch_execute()` to send, or `firebase_projects_android_apps_patch` for simplest API.
 
-pub fn firebase_projects_android_apps_patch_builder(
-    client: &SimpleHttpClient,
+pub fn firebase_projects_android_apps_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebase.googleapis.com/v1beta1/projects/{}/androidApps/{androidAppsId}",
@@ -2716,10 +2765,13 @@ pub fn firebase_projects_android_apps_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebase_projects_android_apps_remove_execute()` to send, or `firebase_projects_android_apps_remove` for simplest API.
 
-pub fn firebase_projects_android_apps_remove_builder(
-    client: &SimpleHttpClient,
+pub fn firebase_projects_android_apps_remove_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebase.googleapis.com/v1beta1/projects/{}/androidApps/{androidAppsId}:remove",
@@ -2873,10 +2925,13 @@ pub fn firebase_projects_android_apps_remove(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebase_projects_android_apps_undelete_execute()` to send, or `firebase_projects_android_apps_undelete` for simplest API.
 
-pub fn firebase_projects_android_apps_undelete_builder(
-    client: &SimpleHttpClient,
+pub fn firebase_projects_android_apps_undelete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebase.googleapis.com/v1beta1/projects/{}/androidApps/{androidAppsId}:undelete",
@@ -3030,10 +3085,13 @@ pub fn firebase_projects_android_apps_undelete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebase_projects_android_apps_sha_create_execute()` to send, or `firebase_projects_android_apps_sha_create` for simplest API.
 
-pub fn firebase_projects_android_apps_sha_create_builder(
-    client: &SimpleHttpClient,
+pub fn firebase_projects_android_apps_sha_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebase.googleapis.com/v1beta1/projects/{}/androidApps/{androidAppsId}/sha",
@@ -3191,10 +3249,13 @@ pub fn firebase_projects_android_apps_sha_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebase_projects_android_apps_sha_delete_execute()` to send, or `firebase_projects_android_apps_sha_delete` for simplest API.
 
-pub fn firebase_projects_android_apps_sha_delete_builder(
-    client: &SimpleHttpClient,
+pub fn firebase_projects_android_apps_sha_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebase.googleapis.com/v1beta1/projects/{}/androidApps/{androidAppsId}/sha/{shaId}",
@@ -3348,10 +3409,13 @@ pub fn firebase_projects_android_apps_sha_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebase_projects_android_apps_sha_list_execute()` to send, or `firebase_projects_android_apps_sha_list` for simplest API.
 
-pub fn firebase_projects_android_apps_sha_list_builder(
-    client: &SimpleHttpClient,
+pub fn firebase_projects_android_apps_sha_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebase.googleapis.com/v1beta1/projects/{}/androidApps/{androidAppsId}/sha",
@@ -3513,12 +3577,15 @@ pub fn firebase_projects_android_apps_sha_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebase_projects_available_locations_list_execute()` to send, or `firebase_projects_available_locations_list` for simplest API.
 
-pub fn firebase_projects_available_locations_list_builder(
-    client: &SimpleHttpClient,
+pub fn firebase_projects_available_locations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebase.googleapis.com/v1beta1/projects/{}/availableLocations",
@@ -3703,10 +3770,13 @@ pub fn firebase_projects_available_locations_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebase_projects_default_location_finalize_execute()` to send, or `firebase_projects_default_location_finalize` for simplest API.
 
-pub fn firebase_projects_default_location_finalize_builder(
-    client: &SimpleHttpClient,
+pub fn firebase_projects_default_location_finalize_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebase.googleapis.com/v1beta1/projects/{}/defaultLocation:finalize",
@@ -3860,10 +3930,13 @@ pub fn firebase_projects_default_location_finalize(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebase_projects_ios_apps_create_execute()` to send, or `firebase_projects_ios_apps_create` for simplest API.
 
-pub fn firebase_projects_ios_apps_create_builder(
-    client: &SimpleHttpClient,
+pub fn firebase_projects_ios_apps_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebase.googleapis.com/v1beta1/projects/{}/iosApps",
@@ -4017,10 +4090,13 @@ pub fn firebase_projects_ios_apps_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebase_projects_ios_apps_get_execute()` to send, or `firebase_projects_ios_apps_get` for simplest API.
 
-pub fn firebase_projects_ios_apps_get_builder(
-    client: &SimpleHttpClient,
+pub fn firebase_projects_ios_apps_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebase.googleapis.com/v1beta1/projects/{}/iosApps/{iosAppsId}",
@@ -4174,10 +4250,13 @@ pub fn firebase_projects_ios_apps_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebase_projects_ios_apps_get_config_execute()` to send, or `firebase_projects_ios_apps_get_config` for simplest API.
 
-pub fn firebase_projects_ios_apps_get_config_builder(
-    client: &SimpleHttpClient,
+pub fn firebase_projects_ios_apps_get_config_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebase.googleapis.com/v1beta1/projects/{}/iosApps/{iosAppsId}/config",
@@ -4335,13 +4414,16 @@ pub fn firebase_projects_ios_apps_get_config(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebase_projects_ios_apps_list_execute()` to send, or `firebase_projects_ios_apps_list` for simplest API.
 
-pub fn firebase_projects_ios_apps_list_builder(
-    client: &SimpleHttpClient,
+pub fn firebase_projects_ios_apps_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     showDeleted: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebase.googleapis.com/v1beta1/projects/{}/iosApps",
@@ -4528,11 +4610,14 @@ pub fn firebase_projects_ios_apps_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebase_projects_ios_apps_patch_execute()` to send, or `firebase_projects_ios_apps_patch` for simplest API.
 
-pub fn firebase_projects_ios_apps_patch_builder(
-    client: &SimpleHttpClient,
+pub fn firebase_projects_ios_apps_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebase.googleapis.com/v1beta1/projects/{}/iosApps/{iosAppsId}",
@@ -4699,10 +4784,13 @@ pub fn firebase_projects_ios_apps_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebase_projects_ios_apps_remove_execute()` to send, or `firebase_projects_ios_apps_remove` for simplest API.
 
-pub fn firebase_projects_ios_apps_remove_builder(
-    client: &SimpleHttpClient,
+pub fn firebase_projects_ios_apps_remove_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebase.googleapis.com/v1beta1/projects/{}/iosApps/{iosAppsId}:remove",
@@ -4856,10 +4944,13 @@ pub fn firebase_projects_ios_apps_remove(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebase_projects_ios_apps_undelete_execute()` to send, or `firebase_projects_ios_apps_undelete` for simplest API.
 
-pub fn firebase_projects_ios_apps_undelete_builder(
-    client: &SimpleHttpClient,
+pub fn firebase_projects_ios_apps_undelete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebase.googleapis.com/v1beta1/projects/{}/iosApps/{iosAppsId}:undelete",
@@ -5013,10 +5104,13 @@ pub fn firebase_projects_ios_apps_undelete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebase_projects_web_apps_create_execute()` to send, or `firebase_projects_web_apps_create` for simplest API.
 
-pub fn firebase_projects_web_apps_create_builder(
-    client: &SimpleHttpClient,
+pub fn firebase_projects_web_apps_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebase.googleapis.com/v1beta1/projects/{}/webApps",
@@ -5170,10 +5264,13 @@ pub fn firebase_projects_web_apps_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebase_projects_web_apps_get_execute()` to send, or `firebase_projects_web_apps_get` for simplest API.
 
-pub fn firebase_projects_web_apps_get_builder(
-    client: &SimpleHttpClient,
+pub fn firebase_projects_web_apps_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebase.googleapis.com/v1beta1/projects/{}/webApps/{webAppsId}",
@@ -5327,10 +5424,13 @@ pub fn firebase_projects_web_apps_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebase_projects_web_apps_get_config_execute()` to send, or `firebase_projects_web_apps_get_config` for simplest API.
 
-pub fn firebase_projects_web_apps_get_config_builder(
-    client: &SimpleHttpClient,
+pub fn firebase_projects_web_apps_get_config_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebase.googleapis.com/v1beta1/projects/{}/webApps/{webAppsId}/config",
@@ -5488,13 +5588,16 @@ pub fn firebase_projects_web_apps_get_config(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebase_projects_web_apps_list_execute()` to send, or `firebase_projects_web_apps_list` for simplest API.
 
-pub fn firebase_projects_web_apps_list_builder(
-    client: &SimpleHttpClient,
+pub fn firebase_projects_web_apps_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     parent: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     showDeleted: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebase.googleapis.com/v1beta1/projects/{}/webApps",
@@ -5681,11 +5784,14 @@ pub fn firebase_projects_web_apps_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebase_projects_web_apps_patch_execute()` to send, or `firebase_projects_web_apps_patch` for simplest API.
 
-pub fn firebase_projects_web_apps_patch_builder(
-    client: &SimpleHttpClient,
+pub fn firebase_projects_web_apps_patch_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
     updateMask: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebase.googleapis.com/v1beta1/projects/{}/webApps/{webAppsId}",
@@ -5852,10 +5958,13 @@ pub fn firebase_projects_web_apps_patch(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebase_projects_web_apps_remove_execute()` to send, or `firebase_projects_web_apps_remove` for simplest API.
 
-pub fn firebase_projects_web_apps_remove_builder(
-    client: &SimpleHttpClient,
+pub fn firebase_projects_web_apps_remove_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebase.googleapis.com/v1beta1/projects/{}/webApps/{webAppsId}:remove",
@@ -6009,10 +6118,13 @@ pub fn firebase_projects_web_apps_remove(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebase_projects_web_apps_undelete_execute()` to send, or `firebase_projects_web_apps_undelete` for simplest API.
 
-pub fn firebase_projects_web_apps_undelete_builder(
-    client: &SimpleHttpClient,
+pub fn firebase_projects_web_apps_undelete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://firebase.googleapis.com/v1beta1/projects/{}/webApps/{webAppsId}:undelete",

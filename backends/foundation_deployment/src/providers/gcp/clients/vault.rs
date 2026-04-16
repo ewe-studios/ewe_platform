@@ -14,7 +14,8 @@ use foundation_core::valtron::{
     TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
 };
 use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
@@ -26,10 +27,13 @@ use serde::Serialize;
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vault_matters_add_permissions_execute()` to send, or `vault_matters_add_permissions` for simplest API.
 
-pub fn vault_matters_add_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn vault_matters_add_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     matterId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vault.googleapis.com/v1/matters/{}:addPermissions",
@@ -187,10 +191,13 @@ pub fn vault_matters_add_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vault_matters_close_execute()` to send, or `vault_matters_close` for simplest API.
 
-pub fn vault_matters_close_builder(
-    client: &SimpleHttpClient,
+pub fn vault_matters_close_builder<R>(
+    client: &SimpleHttpClient<R>,
     matterId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://vault.googleapis.com/v1/matters/{}:close", matterId,);
 
@@ -345,10 +352,13 @@ pub fn vault_matters_close(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vault_matters_count_execute()` to send, or `vault_matters_count` for simplest API.
 
-pub fn vault_matters_count_builder(
-    client: &SimpleHttpClient,
+pub fn vault_matters_count_builder<R>(
+    client: &SimpleHttpClient<R>,
     matterId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://vault.googleapis.com/v1/matters/{}:count", matterId,);
 
@@ -499,9 +509,12 @@ pub fn vault_matters_count(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vault_matters_create_execute()` to send, or `vault_matters_create` for simplest API.
 
-pub fn vault_matters_create_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+pub fn vault_matters_create_builder<R>(
+    client: &SimpleHttpClient<R>,
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://vault.googleapis.com/v1/matters",);
 
@@ -644,10 +657,13 @@ pub fn vault_matters_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vault_matters_delete_execute()` to send, or `vault_matters_delete` for simplest API.
 
-pub fn vault_matters_delete_builder(
-    client: &SimpleHttpClient,
+pub fn vault_matters_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     matterId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://vault.googleapis.com/v1/matters/{}", matterId,);
 
@@ -798,11 +814,14 @@ pub fn vault_matters_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vault_matters_get_execute()` to send, or `vault_matters_get` for simplest API.
 
-pub fn vault_matters_get_builder(
-    client: &SimpleHttpClient,
+pub fn vault_matters_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     matterId: &String,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://vault.googleapis.com/v1/matters/{}", matterId,);
 
@@ -966,13 +985,16 @@ pub fn vault_matters_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vault_matters_list_execute()` to send, or `vault_matters_list` for simplest API.
 
-pub fn vault_matters_list_builder(
-    client: &SimpleHttpClient,
+pub fn vault_matters_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     state: &Option<Option<String>>,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://vault.googleapis.com/v1/matters",);
 
@@ -1159,10 +1181,13 @@ pub fn vault_matters_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vault_matters_remove_permissions_execute()` to send, or `vault_matters_remove_permissions` for simplest API.
 
-pub fn vault_matters_remove_permissions_builder(
-    client: &SimpleHttpClient,
+pub fn vault_matters_remove_permissions_builder<R>(
+    client: &SimpleHttpClient<R>,
     matterId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vault.googleapis.com/v1/matters/{}:removePermissions",
@@ -1316,10 +1341,13 @@ pub fn vault_matters_remove_permissions(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vault_matters_reopen_execute()` to send, or `vault_matters_reopen` for simplest API.
 
-pub fn vault_matters_reopen_builder(
-    client: &SimpleHttpClient,
+pub fn vault_matters_reopen_builder<R>(
+    client: &SimpleHttpClient<R>,
     matterId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vault.googleapis.com/v1/matters/{}:reopen",
@@ -1477,10 +1505,13 @@ pub fn vault_matters_reopen(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vault_matters_undelete_execute()` to send, or `vault_matters_undelete` for simplest API.
 
-pub fn vault_matters_undelete_builder(
-    client: &SimpleHttpClient,
+pub fn vault_matters_undelete_builder<R>(
+    client: &SimpleHttpClient<R>,
     matterId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vault.googleapis.com/v1/matters/{}:undelete",
@@ -1634,10 +1665,13 @@ pub fn vault_matters_undelete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vault_matters_update_execute()` to send, or `vault_matters_update` for simplest API.
 
-pub fn vault_matters_update_builder(
-    client: &SimpleHttpClient,
+pub fn vault_matters_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     matterId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://vault.googleapis.com/v1/matters/{}", matterId,);
 
@@ -1788,10 +1822,13 @@ pub fn vault_matters_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vault_matters_exports_create_execute()` to send, or `vault_matters_exports_create` for simplest API.
 
-pub fn vault_matters_exports_create_builder(
-    client: &SimpleHttpClient,
+pub fn vault_matters_exports_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     matterId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vault.googleapis.com/v1/matters/{}/exports",
@@ -1945,11 +1982,14 @@ pub fn vault_matters_exports_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vault_matters_exports_delete_execute()` to send, or `vault_matters_exports_delete` for simplest API.
 
-pub fn vault_matters_exports_delete_builder(
-    client: &SimpleHttpClient,
+pub fn vault_matters_exports_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     matterId: &String,
     exportId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vault.googleapis.com/v1/matters/{}/exports/{}",
@@ -2105,11 +2145,14 @@ pub fn vault_matters_exports_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vault_matters_exports_get_execute()` to send, or `vault_matters_exports_get` for simplest API.
 
-pub fn vault_matters_exports_get_builder(
-    client: &SimpleHttpClient,
+pub fn vault_matters_exports_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     matterId: &String,
     exportId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vault.googleapis.com/v1/matters/{}/exports/{}",
@@ -2265,12 +2308,15 @@ pub fn vault_matters_exports_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vault_matters_exports_list_execute()` to send, or `vault_matters_exports_list` for simplest API.
 
-pub fn vault_matters_exports_list_builder(
-    client: &SimpleHttpClient,
+pub fn vault_matters_exports_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     matterId: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vault.googleapis.com/v1/matters/{}/exports",
@@ -2451,11 +2497,14 @@ pub fn vault_matters_exports_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vault_matters_holds_add_held_accounts_execute()` to send, or `vault_matters_holds_add_held_accounts` for simplest API.
 
-pub fn vault_matters_holds_add_held_accounts_builder(
-    client: &SimpleHttpClient,
+pub fn vault_matters_holds_add_held_accounts_builder<R>(
+    client: &SimpleHttpClient<R>,
     matterId: &String,
     holdId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vault.googleapis.com/v1/matters/{}/holds/{}:addHeldAccounts",
@@ -2616,10 +2665,13 @@ pub fn vault_matters_holds_add_held_accounts(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vault_matters_holds_create_execute()` to send, or `vault_matters_holds_create` for simplest API.
 
-pub fn vault_matters_holds_create_builder(
-    client: &SimpleHttpClient,
+pub fn vault_matters_holds_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     matterId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://vault.googleapis.com/v1/matters/{}/holds", matterId,);
 
@@ -2770,11 +2822,14 @@ pub fn vault_matters_holds_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vault_matters_holds_delete_execute()` to send, or `vault_matters_holds_delete` for simplest API.
 
-pub fn vault_matters_holds_delete_builder(
-    client: &SimpleHttpClient,
+pub fn vault_matters_holds_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     matterId: &String,
     holdId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vault.googleapis.com/v1/matters/{}/holds/{}",
@@ -2930,12 +2985,15 @@ pub fn vault_matters_holds_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vault_matters_holds_get_execute()` to send, or `vault_matters_holds_get` for simplest API.
 
-pub fn vault_matters_holds_get_builder(
-    client: &SimpleHttpClient,
+pub fn vault_matters_holds_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     matterId: &String,
     holdId: &String,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vault.googleapis.com/v1/matters/{}/holds/{}",
@@ -3105,13 +3163,16 @@ pub fn vault_matters_holds_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vault_matters_holds_list_execute()` to send, or `vault_matters_holds_list` for simplest API.
 
-pub fn vault_matters_holds_list_builder(
-    client: &SimpleHttpClient,
+pub fn vault_matters_holds_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     matterId: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     view: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://vault.googleapis.com/v1/matters/{}/holds", matterId,);
 
@@ -3295,11 +3356,14 @@ pub fn vault_matters_holds_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vault_matters_holds_remove_held_accounts_execute()` to send, or `vault_matters_holds_remove_held_accounts` for simplest API.
 
-pub fn vault_matters_holds_remove_held_accounts_builder(
-    client: &SimpleHttpClient,
+pub fn vault_matters_holds_remove_held_accounts_builder<R>(
+    client: &SimpleHttpClient<R>,
     matterId: &String,
     holdId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vault.googleapis.com/v1/matters/{}/holds/{}:removeHeldAccounts",
@@ -3464,11 +3528,14 @@ pub fn vault_matters_holds_remove_held_accounts(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vault_matters_holds_update_execute()` to send, or `vault_matters_holds_update` for simplest API.
 
-pub fn vault_matters_holds_update_builder(
-    client: &SimpleHttpClient,
+pub fn vault_matters_holds_update_builder<R>(
+    client: &SimpleHttpClient<R>,
     matterId: &String,
     holdId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vault.googleapis.com/v1/matters/{}/holds/{}",
@@ -3624,11 +3691,14 @@ pub fn vault_matters_holds_update(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vault_matters_holds_accounts_create_execute()` to send, or `vault_matters_holds_accounts_create` for simplest API.
 
-pub fn vault_matters_holds_accounts_create_builder(
-    client: &SimpleHttpClient,
+pub fn vault_matters_holds_accounts_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     matterId: &String,
     holdId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vault.googleapis.com/v1/matters/{}/holds/{}/accounts",
@@ -3785,12 +3855,15 @@ pub fn vault_matters_holds_accounts_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vault_matters_holds_accounts_delete_execute()` to send, or `vault_matters_holds_accounts_delete` for simplest API.
 
-pub fn vault_matters_holds_accounts_delete_builder(
-    client: &SimpleHttpClient,
+pub fn vault_matters_holds_accounts_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     matterId: &String,
     holdId: &String,
     accountId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vault.googleapis.com/v1/matters/{}/holds/{}/accounts/{}",
@@ -3953,11 +4026,14 @@ pub fn vault_matters_holds_accounts_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vault_matters_holds_accounts_list_execute()` to send, or `vault_matters_holds_accounts_list` for simplest API.
 
-pub fn vault_matters_holds_accounts_list_builder(
-    client: &SimpleHttpClient,
+pub fn vault_matters_holds_accounts_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     matterId: &String,
     holdId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vault.googleapis.com/v1/matters/{}/holds/{}/accounts",
@@ -4117,10 +4193,13 @@ pub fn vault_matters_holds_accounts_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vault_matters_saved_queries_create_execute()` to send, or `vault_matters_saved_queries_create` for simplest API.
 
-pub fn vault_matters_saved_queries_create_builder(
-    client: &SimpleHttpClient,
+pub fn vault_matters_saved_queries_create_builder<R>(
+    client: &SimpleHttpClient<R>,
     matterId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vault.googleapis.com/v1/matters/{}/savedQueries",
@@ -4274,11 +4353,14 @@ pub fn vault_matters_saved_queries_create(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vault_matters_saved_queries_delete_execute()` to send, or `vault_matters_saved_queries_delete` for simplest API.
 
-pub fn vault_matters_saved_queries_delete_builder(
-    client: &SimpleHttpClient,
+pub fn vault_matters_saved_queries_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     matterId: &String,
     savedQueryId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vault.googleapis.com/v1/matters/{}/savedQueries/{}",
@@ -4435,11 +4517,14 @@ pub fn vault_matters_saved_queries_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vault_matters_saved_queries_get_execute()` to send, or `vault_matters_saved_queries_get` for simplest API.
 
-pub fn vault_matters_saved_queries_get_builder(
-    client: &SimpleHttpClient,
+pub fn vault_matters_saved_queries_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     matterId: &String,
     savedQueryId: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vault.googleapis.com/v1/matters/{}/savedQueries/{}",
@@ -4596,12 +4681,15 @@ pub fn vault_matters_saved_queries_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vault_matters_saved_queries_list_execute()` to send, or `vault_matters_saved_queries_list` for simplest API.
 
-pub fn vault_matters_saved_queries_list_builder(
-    client: &SimpleHttpClient,
+pub fn vault_matters_saved_queries_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     matterId: &String,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!(
         "https://vault.googleapis.com/v1/matters/{}/savedQueries",
@@ -4782,10 +4870,13 @@ pub fn vault_matters_saved_queries_list(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vault_operations_cancel_execute()` to send, or `vault_operations_cancel` for simplest API.
 
-pub fn vault_operations_cancel_builder(
-    client: &SimpleHttpClient,
+pub fn vault_operations_cancel_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://vault.googleapis.com/v1/operations/{}:cancel", name,);
 
@@ -4936,10 +5027,13 @@ pub fn vault_operations_cancel(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vault_operations_delete_execute()` to send, or `vault_operations_delete` for simplest API.
 
-pub fn vault_operations_delete_builder(
-    client: &SimpleHttpClient,
+pub fn vault_operations_delete_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://vault.googleapis.com/v1/operations/{}", name,);
 
@@ -5090,10 +5184,13 @@ pub fn vault_operations_delete(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vault_operations_get_execute()` to send, or `vault_operations_get` for simplest API.
 
-pub fn vault_operations_get_builder(
-    client: &SimpleHttpClient,
+pub fn vault_operations_get_builder<R>(
+    client: &SimpleHttpClient<R>,
     name: &String,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://vault.googleapis.com/v1/operations/{}", name,);
 
@@ -5244,13 +5341,16 @@ pub fn vault_operations_get(
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vault_operations_list_execute()` to send, or `vault_operations_list` for simplest API.
 
-pub fn vault_operations_list_builder(
-    client: &SimpleHttpClient,
+pub fn vault_operations_list_builder<R>(
+    client: &SimpleHttpClient<R>,
     filter: &Option<Option<String>>,
     pageSize: &Option<Option<String>>,
     pageToken: &Option<Option<String>>,
     returnPartialSuccess: &Option<Option<String>>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+) -> Result<ClientRequestBuilder<R>, ApiError>
+where
+    R: DnsResolver + Clone,
+{
     // Build URL
     let endpoint_url = format!("https://vault.googleapis.com/v1/operations",);
 
