@@ -379,7 +379,7 @@ pub fn dataflow_projects_worker_messages(
 }
 
 /// GET v1b3/projects/{projectId}/jobs:aggregated
-/// List the jobs of a project across all regions. **Note:** This method doesn't support filtering the list of jobs by name.
+/// List the jobs of a project across all regions. **Note:** This method doesn''t support filtering the list of jobs by name.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataflow_projects_jobs_aggregated_execute()` to send, or `dataflow_projects_jobs_aggregated` for simplest API.
@@ -438,7 +438,7 @@ where
 }
 
 /// GET v1b3/projects/{projectId}/jobs:aggregated
-/// List the jobs of a project across all regions. **Note:** This method doesn't support filtering the list of jobs by name.
+/// List the jobs of a project across all regions. **Note:** This method doesn''t support filtering the list of jobs by name.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -512,7 +512,7 @@ pub fn dataflow_projects_jobs_aggregated_task(
 }
 
 /// GET v1b3/projects/{projectId}/jobs:aggregated
-/// List the jobs of a project across all regions. **Note:** This method doesn't support filtering the list of jobs by name.
+/// List the jobs of a project across all regions. **Note:** This method doesn''t support filtering the list of jobs by name.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -563,7 +563,7 @@ pub struct DataflowProjectsJobsAggregatedArgs {
 }
 
 /// GET v1b3/projects/{projectId}/jobs:aggregated
-/// List the jobs of a project across all regions. **Note:** This method doesn't support filtering the list of jobs by name.
+/// List the jobs of a project across all regions. **Note:** This method doesn''t support filtering the list of jobs by name.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `dataflow_projects_jobs_aggregated_builder()` + `dataflow_projects_jobs_aggregated_execute()`.
@@ -1166,7 +1166,7 @@ pub fn dataflow_projects_jobs_get_metrics(
 }
 
 /// GET v1b3/projects/{projectId}/jobs
-/// List the jobs of a project. To list the jobs of a project in a region, we recommend using projects.locations.jobs.list with a [regional endpoint] (<https://cloud.google.`com/dataflow/docs/concepts/regional-endpoints`>). To list the all jobs across all regions, use projects.jobs.aggregated. Using projects.jobs.list is not recommended, because you can only get the list of jobs that are running in us-central1. projects.locations.jobs.list and projects.jobs.list support filtering the list of jobs by name. Filtering by name isn't supported by projects.jobs.aggregated.
+/// List the jobs of a project. To list the jobs of a project in a region, we recommend using projects.locations.jobs.list with a [regional endpoint] (<https://cloud.google.`com/dataflow/docs/concepts/regional-endpoints`>). To list the all jobs across all regions, use projects.jobs.aggregated. Using projects.jobs.list is not recommended, because you can only get the list of jobs that are running in us-central1. projects.locations.jobs.list and projects.jobs.list support filtering the list of jobs by name. Filtering by name isn''t supported by projects.jobs.aggregated.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataflow_projects_jobs_list_execute()` to send, or `dataflow_projects_jobs_list` for simplest API.
@@ -1225,7 +1225,7 @@ where
 }
 
 /// GET v1b3/projects/{projectId}/jobs
-/// List the jobs of a project. To list the jobs of a project in a region, we recommend using projects.locations.jobs.list with a [regional endpoint] (<https://cloud.google.`com/dataflow/docs/concepts/regional-endpoints`>). To list the all jobs across all regions, use projects.jobs.aggregated. Using projects.jobs.list is not recommended, because you can only get the list of jobs that are running in us-central1. projects.locations.jobs.list and projects.jobs.list support filtering the list of jobs by name. Filtering by name isn't supported by projects.jobs.aggregated.
+/// List the jobs of a project. To list the jobs of a project in a region, we recommend using projects.locations.jobs.list with a [regional endpoint] (<https://cloud.google.`com/dataflow/docs/concepts/regional-endpoints`>). To list the all jobs across all regions, use projects.jobs.aggregated. Using projects.jobs.list is not recommended, because you can only get the list of jobs that are running in us-central1. projects.locations.jobs.list and projects.jobs.list support filtering the list of jobs by name. Filtering by name isn''t supported by projects.jobs.aggregated.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -1299,7 +1299,7 @@ pub fn dataflow_projects_jobs_list_task(
 }
 
 /// GET v1b3/projects/{projectId}/jobs
-/// List the jobs of a project. To list the jobs of a project in a region, we recommend using projects.locations.jobs.list with a [regional endpoint] (<https://cloud.google.`com/dataflow/docs/concepts/regional-endpoints`>). To list the all jobs across all regions, use projects.jobs.aggregated. Using projects.jobs.list is not recommended, because you can only get the list of jobs that are running in us-central1. projects.locations.jobs.list and projects.jobs.list support filtering the list of jobs by name. Filtering by name isn't supported by projects.jobs.aggregated.
+/// List the jobs of a project. To list the jobs of a project in a region, we recommend using projects.locations.jobs.list with a [regional endpoint] (<https://cloud.google.`com/dataflow/docs/concepts/regional-endpoints`>). To list the all jobs across all regions, use projects.jobs.aggregated. Using projects.jobs.list is not recommended, because you can only get the list of jobs that are running in us-central1. projects.locations.jobs.list and projects.jobs.list support filtering the list of jobs by name. Filtering by name isn''t supported by projects.jobs.aggregated.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -1350,7 +1350,7 @@ pub struct DataflowProjectsJobsListArgs {
 }
 
 /// GET v1b3/projects/{projectId}/jobs
-/// List the jobs of a project. To list the jobs of a project in a region, we recommend using projects.locations.jobs.list with a [regional endpoint] (<https://cloud.google.`com/dataflow/docs/concepts/regional-endpoints`>). To list the all jobs across all regions, use projects.jobs.aggregated. Using projects.jobs.list is not recommended, because you can only get the list of jobs that are running in us-central1. projects.locations.jobs.list and projects.jobs.list support filtering the list of jobs by name. Filtering by name isn't supported by projects.jobs.aggregated.
+/// List the jobs of a project. To list the jobs of a project in a region, we recommend using projects.locations.jobs.list with a [regional endpoint] (<https://cloud.google.`com/dataflow/docs/concepts/regional-endpoints`>). To list the all jobs across all regions, use projects.jobs.aggregated. Using projects.jobs.list is not recommended, because you can only get the list of jobs that are running in us-central1. projects.locations.jobs.list and projects.jobs.list support filtering the list of jobs by name. Filtering by name isn''t supported by projects.jobs.aggregated.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `dataflow_projects_jobs_list_builder()` + `dataflow_projects_jobs_list_execute()`.
@@ -3743,7 +3743,7 @@ pub fn dataflow_projects_locations_jobs_get_metrics(
 }
 
 /// GET v1b3/projects/{projectId}/locations/{location}/jobs
-/// List the jobs of a project. To list the jobs of a project in a region, we recommend using projects.locations.jobs.list with a [regional endpoint] (<https://cloud.google.`com/dataflow/docs/concepts/regional-endpoints`>). To list the all jobs across all regions, use projects.jobs.aggregated. Using projects.jobs.list is not recommended, because you can only get the list of jobs that are running in us-central1. projects.locations.jobs.list and projects.jobs.list support filtering the list of jobs by name. Filtering by name isn't supported by projects.jobs.aggregated.
+/// List the jobs of a project. To list the jobs of a project in a region, we recommend using projects.locations.jobs.list with a [regional endpoint] (<https://cloud.google.`com/dataflow/docs/concepts/regional-endpoints`>). To list the all jobs across all regions, use projects.jobs.aggregated. Using projects.jobs.list is not recommended, because you can only get the list of jobs that are running in us-central1. projects.locations.jobs.list and projects.jobs.list support filtering the list of jobs by name. Filtering by name isn''t supported by projects.jobs.aggregated.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataflow_projects_locations_jobs_list_execute()` to send, or `dataflow_projects_locations_jobs_list` for simplest API.
@@ -3799,7 +3799,7 @@ where
 }
 
 /// GET v1b3/projects/{projectId}/locations/{location}/jobs
-/// List the jobs of a project. To list the jobs of a project in a region, we recommend using projects.locations.jobs.list with a [regional endpoint] (<https://cloud.google.`com/dataflow/docs/concepts/regional-endpoints`>). To list the all jobs across all regions, use projects.jobs.aggregated. Using projects.jobs.list is not recommended, because you can only get the list of jobs that are running in us-central1. projects.locations.jobs.list and projects.jobs.list support filtering the list of jobs by name. Filtering by name isn't supported by projects.jobs.aggregated.
+/// List the jobs of a project. To list the jobs of a project in a region, we recommend using projects.locations.jobs.list with a [regional endpoint] (<https://cloud.google.`com/dataflow/docs/concepts/regional-endpoints`>). To list the all jobs across all regions, use projects.jobs.aggregated. Using projects.jobs.list is not recommended, because you can only get the list of jobs that are running in us-central1. projects.locations.jobs.list and projects.jobs.list support filtering the list of jobs by name. Filtering by name isn''t supported by projects.jobs.aggregated.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -3873,7 +3873,7 @@ pub fn dataflow_projects_locations_jobs_list_task(
 }
 
 /// GET v1b3/projects/{projectId}/locations/{location}/jobs
-/// List the jobs of a project. To list the jobs of a project in a region, we recommend using projects.locations.jobs.list with a [regional endpoint] (<https://cloud.google.`com/dataflow/docs/concepts/regional-endpoints`>). To list the all jobs across all regions, use projects.jobs.aggregated. Using projects.jobs.list is not recommended, because you can only get the list of jobs that are running in us-central1. projects.locations.jobs.list and projects.jobs.list support filtering the list of jobs by name. Filtering by name isn't supported by projects.jobs.aggregated.
+/// List the jobs of a project. To list the jobs of a project in a region, we recommend using projects.locations.jobs.list with a [regional endpoint] (<https://cloud.google.`com/dataflow/docs/concepts/regional-endpoints`>). To list the all jobs across all regions, use projects.jobs.aggregated. Using projects.jobs.list is not recommended, because you can only get the list of jobs that are running in us-central1. projects.locations.jobs.list and projects.jobs.list support filtering the list of jobs by name. Filtering by name isn''t supported by projects.jobs.aggregated.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -3924,7 +3924,7 @@ pub struct DataflowProjectsLocationsJobsListArgs {
 }
 
 /// GET v1b3/projects/{projectId}/locations/{location}/jobs
-/// List the jobs of a project. To list the jobs of a project in a region, we recommend using projects.locations.jobs.list with a [regional endpoint] (<https://cloud.google.`com/dataflow/docs/concepts/regional-endpoints`>). To list the all jobs across all regions, use projects.jobs.aggregated. Using projects.jobs.list is not recommended, because you can only get the list of jobs that are running in us-central1. projects.locations.jobs.list and projects.jobs.list support filtering the list of jobs by name. Filtering by name isn't supported by projects.jobs.aggregated.
+/// List the jobs of a project. To list the jobs of a project in a region, we recommend using projects.locations.jobs.list with a [regional endpoint] (<https://cloud.google.`com/dataflow/docs/concepts/regional-endpoints`>). To list the all jobs across all regions, use projects.jobs.aggregated. Using projects.jobs.list is not recommended, because you can only get the list of jobs that are running in us-central1. projects.locations.jobs.list and projects.jobs.list support filtering the list of jobs by name. Filtering by name isn''t supported by projects.jobs.aggregated.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `dataflow_projects_locations_jobs_list_builder()` + `dataflow_projects_locations_jobs_list_execute()`.

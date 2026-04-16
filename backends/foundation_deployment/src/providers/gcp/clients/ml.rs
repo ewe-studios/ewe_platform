@@ -2237,7 +2237,7 @@ pub fn ml_projects_locations_list(
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `ml_projects_locations_operations_cancel_execute()` to send, or `ml_projects_locations_operations_cancel` for simplest API.
@@ -2264,7 +2264,7 @@ where
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -2338,7 +2338,7 @@ pub fn ml_projects_locations_operations_cancel_task(
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -2377,7 +2377,7 @@ pub struct MlProjectsLocationsOperationsCancelArgs {
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `ml_projects_locations_operations_cancel_builder()` + `ml_projects_locations_operations_cancel_execute()`.
@@ -7171,7 +7171,7 @@ pub fn ml_projects_models_versions_patch(
 }
 
 /// POST v1/projects/{projectsId}/models/{modelsId}/versions/{versionsId}:setDefault
-/// Designates a version to be the default for the model. The default version is used for prediction requests made against the model that don't specify a version. The first version to be created for a model is automatically set as the default. You must make any subsequent changes to the default version setting manually using this method.
+/// Designates a version to be the default for the model. The default version is used for prediction requests made against the model that don''t specify a version. The first version to be created for a model is automatically set as the default. You must make any subsequent changes to the default version setting manually using this method.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `ml_projects_models_versions_set_default_execute()` to send, or `ml_projects_models_versions_set_default` for simplest API.
@@ -7198,7 +7198,7 @@ where
 }
 
 /// POST v1/projects/{projectsId}/models/{modelsId}/versions/{versionsId}:setDefault
-/// Designates a version to be the default for the model. The default version is used for prediction requests made against the model that don't specify a version. The first version to be created for a model is automatically set as the default. You must make any subsequent changes to the default version setting manually using this method.
+/// Designates a version to be the default for the model. The default version is used for prediction requests made against the model that don''t specify a version. The first version to be created for a model is automatically set as the default. You must make any subsequent changes to the default version setting manually using this method.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -7272,7 +7272,7 @@ pub fn ml_projects_models_versions_set_default_task(
 }
 
 /// POST v1/projects/{projectsId}/models/{modelsId}/versions/{versionsId}:setDefault
-/// Designates a version to be the default for the model. The default version is used for prediction requests made against the model that don't specify a version. The first version to be created for a model is automatically set as the default. You must make any subsequent changes to the default version setting manually using this method.
+/// Designates a version to be the default for the model. The default version is used for prediction requests made against the model that don''t specify a version. The first version to be created for a model is automatically set as the default. You must make any subsequent changes to the default version setting manually using this method.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -7311,7 +7311,7 @@ pub struct MlProjectsModelsVersionsSetDefaultArgs {
 }
 
 /// POST v1/projects/{projectsId}/models/{modelsId}/versions/{versionsId}:setDefault
-/// Designates a version to be the default for the model. The default version is used for prediction requests made against the model that don't specify a version. The first version to be created for a model is automatically set as the default. You must make any subsequent changes to the default version setting manually using this method.
+/// Designates a version to be the default for the model. The default version is used for prediction requests made against the model that don''t specify a version. The first version to be created for a model is automatically set as the default. You must make any subsequent changes to the default version setting manually using this method.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `ml_projects_models_versions_set_default_builder()` + `ml_projects_models_versions_set_default_execute()`.
@@ -7335,7 +7335,7 @@ pub fn ml_projects_models_versions_set_default(
 }
 
 /// POST v1/projects/{projectsId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `ml_projects_operations_cancel_execute()` to send, or `ml_projects_operations_cancel` for simplest API.
@@ -7362,7 +7362,7 @@ where
 }
 
 /// POST v1/projects/{projectsId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -7436,7 +7436,7 @@ pub fn ml_projects_operations_cancel_task(
 }
 
 /// POST v1/projects/{projectsId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -7475,7 +7475,7 @@ pub struct MlProjectsOperationsCancelArgs {
 }
 
 /// POST v1/projects/{projectsId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `ml_projects_operations_cancel_builder()` + `ml_projects_operations_cancel_execute()`.
@@ -7667,7 +7667,7 @@ pub fn ml_projects_operations_get(
 }
 
 /// GET v1/projects/{projectsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `ml_projects_operations_list_execute()` to send, or `ml_projects_operations_list` for simplest API.
@@ -7715,7 +7715,7 @@ where
 }
 
 /// GET v1/projects/{projectsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -7790,7 +7790,7 @@ pub fn ml_projects_operations_list_task(
 }
 
 /// GET v1/projects/{projectsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -7839,7 +7839,7 @@ pub struct MlProjectsOperationsListArgs {
 }
 
 /// GET v1/projects/{projectsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `ml_projects_operations_list_builder()` + `ml_projects_operations_list_execute()`.

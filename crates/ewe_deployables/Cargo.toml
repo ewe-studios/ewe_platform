@@ -1,0 +1,32 @@
+[package]
+name = "ewe_deployables"
+version = "0.0.1"
+description = "Ready-to-use Deployable implementations for cloud providers"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+keywords.workspace = true
+
+[dependencies]
+# Foundation crates
+foundation_core = { workspace = true }
+foundation_deployment = { workspace = true, features = ["cloudflare", "gcp", "gcp_run"] }
+foundation_db = { workspace = true }
+
+# Serde for serialization
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+# Chrono for timestamps
+chrono = { version = "0.4", features = ["serde"] }
+
+# Tracing for logging
+tracing = { workspace = true }
+
+# Thiserror for error types
+thiserror = { version = "1.0" }
+
+[lints]
+workspace = true

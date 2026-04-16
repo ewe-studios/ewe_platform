@@ -267,7 +267,7 @@ pub fn script_processes_list(
 }
 
 /// GET v1/processes:listScriptProcesses
-/// List information about a script's executed processes, such as process type and current status.
+/// List information about a script''s executed processes, such as process type and current status.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `script_processes_list_script_processes_execute()` to send, or `script_processes_list_script_processes` for simplest API.
@@ -338,7 +338,7 @@ where
 }
 
 /// GET v1/processes:listScriptProcesses
-/// List information about a script's executed processes, such as process type and current status.
+/// List information about a script''s executed processes, such as process type and current status.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -412,7 +412,7 @@ pub fn script_processes_list_script_processes_task(
 }
 
 /// GET v1/processes:listScriptProcesses
-/// List information about a script's executed processes, such as process type and current status.
+/// List information about a script''s executed processes, such as process type and current status.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -471,7 +471,7 @@ pub struct ScriptProcessesListScriptProcessesArgs {
 }
 
 /// GET v1/processes:listScriptProcesses
-/// List information about a script's executed processes, such as process type and current status.
+/// List information about a script''s executed processes, such as process type and current status.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `script_processes_list_script_processes_builder()` + `script_processes_list_script_processes_execute()`.
@@ -657,7 +657,7 @@ pub fn script_projects_create(
 }
 
 /// GET v1/projects/{scriptId}
-/// Gets a script project's metadata.
+/// Gets a script project''s metadata.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `script_projects_get_execute()` to send, or `script_projects_get` for simplest API.
@@ -681,7 +681,7 @@ where
 }
 
 /// GET v1/projects/{scriptId}
-/// Gets a script project's metadata.
+/// Gets a script project''s metadata.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -755,7 +755,7 @@ pub fn script_projects_get_task(
 }
 
 /// GET v1/projects/{scriptId}
-/// Gets a script project's metadata.
+/// Gets a script project''s metadata.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -792,7 +792,7 @@ pub struct ScriptProjectsGetArgs {
 }
 
 /// GET v1/projects/{scriptId}
-/// Gets a script project's metadata.
+/// Gets a script project''s metadata.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `script_projects_get_builder()` + `script_projects_get_execute()`.

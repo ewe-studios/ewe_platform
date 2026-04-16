@@ -175,7 +175,7 @@ pub fn content_accounts_authinfo(
 }
 
 /// POST {merchantId}/accounts/{accountId}/claimwebsite
-/// Claims the website of a Merchant Center sub-account. Merchant accounts with approved third-party CSSs aren't required to claim a website.
+/// Claims the website of a Merchant Center sub-account. Merchant accounts with approved third-party CSSs aren''t required to claim a website.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_accounts_claimwebsite_execute()` to send, or `content_accounts_claimwebsite` for simplest API.
@@ -215,7 +215,7 @@ where
 }
 
 /// POST {merchantId}/accounts/{accountId}/claimwebsite
-/// Claims the website of a Merchant Center sub-account. Merchant accounts with approved third-party CSSs aren't required to claim a website.
+/// Claims the website of a Merchant Center sub-account. Merchant accounts with approved third-party CSSs aren''t required to claim a website.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -289,7 +289,7 @@ pub fn content_accounts_claimwebsite_task(
 }
 
 /// POST {merchantId}/accounts/{accountId}/claimwebsite
-/// Claims the website of a Merchant Center sub-account. Merchant accounts with approved third-party CSSs aren't required to claim a website.
+/// Claims the website of a Merchant Center sub-account. Merchant accounts with approved third-party CSSs aren''t required to claim a website.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -334,7 +334,7 @@ pub struct ContentAccountsClaimwebsiteArgs {
 }
 
 /// POST {merchantId}/accounts/{accountId}/claimwebsite
-/// Claims the website of a Merchant Center sub-account. Merchant accounts with approved third-party CSSs aren't required to claim a website.
+/// Claims the website of a Merchant Center sub-account. Merchant accounts with approved third-party CSSs aren''t required to claim a website.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `content_accounts_claimwebsite_builder()` + `content_accounts_claimwebsite_execute()`.
@@ -12449,7 +12449,7 @@ pub fn content_localinventory_insert(
 }
 
 /// POST {merchantId}/merchantsupport/renderaccountissues
-/// Provide a list of merchant's issues with a support content and available actions. This content and actions are meant to be rendered and shown in third-party applications.
+/// Provide a list of merchant''s issues with a support content and available actions. This content and actions are meant to be rendered and shown in third-party applications.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_merchantsupport_renderaccountissues_execute()` to send, or `content_merchantsupport_renderaccountissues` for simplest API.
@@ -12492,7 +12492,7 @@ where
 }
 
 /// POST {merchantId}/merchantsupport/renderaccountissues
-/// Provide a list of merchant's issues with a support content and available actions. This content and actions are meant to be rendered and shown in third-party applications.
+/// Provide a list of merchant''s issues with a support content and available actions. This content and actions are meant to be rendered and shown in third-party applications.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -12566,7 +12566,7 @@ pub fn content_merchantsupport_renderaccountissues_task(
 }
 
 /// POST {merchantId}/merchantsupport/renderaccountissues
-/// Provide a list of merchant's issues with a support content and available actions. This content and actions are meant to be rendered and shown in third-party applications.
+/// Provide a list of merchant''s issues with a support content and available actions. This content and actions are meant to be rendered and shown in third-party applications.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -12611,7 +12611,7 @@ pub struct ContentMerchantsupportRenderaccountissuesArgs {
 }
 
 /// POST {merchantId}/merchantsupport/renderaccountissues
-/// Provide a list of merchant's issues with a support content and available actions. This content and actions are meant to be rendered and shown in third-party applications.
+/// Provide a list of merchant''s issues with a support content and available actions. This content and actions are meant to be rendered and shown in third-party applications.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `content_merchantsupport_renderaccountissues_builder()` + `content_merchantsupport_renderaccountissues_execute()`.
@@ -12642,7 +12642,7 @@ pub fn content_merchantsupport_renderaccountissues(
 }
 
 /// POST {merchantId}/merchantsupport/renderproductissues/{productId}
-/// Provide a list of issues for merchant's product with a support content and available actions. This content and actions are meant to be rendered and shown in third-party applications.
+/// Provide a list of issues for merchant''s product with a support content and available actions. This content and actions are meant to be rendered and shown in third-party applications.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_merchantsupport_renderproductissues_execute()` to send, or `content_merchantsupport_renderproductissues` for simplest API.
@@ -12687,7 +12687,7 @@ where
 }
 
 /// POST {merchantId}/merchantsupport/renderproductissues/{productId}
-/// Provide a list of issues for merchant's product with a support content and available actions. This content and actions are meant to be rendered and shown in third-party applications.
+/// Provide a list of issues for merchant''s product with a support content and available actions. This content and actions are meant to be rendered and shown in third-party applications.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -12761,7 +12761,7 @@ pub fn content_merchantsupport_renderproductissues_task(
 }
 
 /// POST {merchantId}/merchantsupport/renderproductissues/{productId}
-/// Provide a list of issues for merchant's product with a support content and available actions. This content and actions are meant to be rendered and shown in third-party applications.
+/// Provide a list of issues for merchant''s product with a support content and available actions. This content and actions are meant to be rendered and shown in third-party applications.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -12808,7 +12808,7 @@ pub struct ContentMerchantsupportRenderproductissuesArgs {
 }
 
 /// POST {merchantId}/merchantsupport/renderproductissues/{productId}
-/// Provide a list of issues for merchant's product with a support content and available actions. This content and actions are meant to be rendered and shown in third-party applications.
+/// Provide a list of issues for merchant''s product with a support content and available actions. This content and actions are meant to be rendered and shown in third-party applications.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `content_merchantsupport_renderproductissues_builder()` + `content_merchantsupport_renderproductissues_execute()`.
@@ -16939,7 +16939,7 @@ pub fn content_promotions_list(
 }
 
 /// GET {merchantId}/pubsubnotificationsettings
-/// Retrieves a Merchant Center account's pubsub notification settings.
+/// Retrieves a Merchant Center account''s pubsub notification settings.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_pubsubnotificationsettings_get_execute()` to send, or `content_pubsubnotificationsettings_get` for simplest API.
@@ -16966,7 +16966,7 @@ where
 }
 
 /// GET {merchantId}/pubsubnotificationsettings
-/// Retrieves a Merchant Center account's pubsub notification settings.
+/// Retrieves a Merchant Center account''s pubsub notification settings.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -17040,7 +17040,7 @@ pub fn content_pubsubnotificationsettings_get_task(
 }
 
 /// GET {merchantId}/pubsubnotificationsettings
-/// Retrieves a Merchant Center account's pubsub notification settings.
+/// Retrieves a Merchant Center account''s pubsub notification settings.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -17081,7 +17081,7 @@ pub struct ContentPubsubnotificationsettingsGetArgs {
 }
 
 /// GET {merchantId}/pubsubnotificationsettings
-/// Retrieves a Merchant Center account's pubsub notification settings.
+/// Retrieves a Merchant Center account''s pubsub notification settings.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `content_pubsubnotificationsettings_get_builder()` + `content_pubsubnotificationsettings_get_execute()`.
@@ -17107,7 +17107,7 @@ pub fn content_pubsubnotificationsettings_get(
 }
 
 /// PUT {merchantId}/pubsubnotificationsettings
-/// Register a Merchant Center account for pubsub notifications. Note that cloud topic name shouldn't be provided as part of the request.
+/// Register a Merchant Center account for pubsub notifications. Note that cloud topic name shouldn''t be provided as part of the request.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `content_pubsubnotificationsettings_update_execute()` to send, or `content_pubsubnotificationsettings_update` for simplest API.
@@ -17134,7 +17134,7 @@ where
 }
 
 /// PUT {merchantId}/pubsubnotificationsettings
-/// Register a Merchant Center account for pubsub notifications. Note that cloud topic name shouldn't be provided as part of the request.
+/// Register a Merchant Center account for pubsub notifications. Note that cloud topic name shouldn''t be provided as part of the request.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -17208,7 +17208,7 @@ pub fn content_pubsubnotificationsettings_update_task(
 }
 
 /// PUT {merchantId}/pubsubnotificationsettings
-/// Register a Merchant Center account for pubsub notifications. Note that cloud topic name shouldn't be provided as part of the request.
+/// Register a Merchant Center account for pubsub notifications. Note that cloud topic name shouldn''t be provided as part of the request.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -17249,7 +17249,7 @@ pub struct ContentPubsubnotificationsettingsUpdateArgs {
 }
 
 /// PUT {merchantId}/pubsubnotificationsettings
-/// Register a Merchant Center account for pubsub notifications. Note that cloud topic name shouldn't be provided as part of the request.
+/// Register a Merchant Center account for pubsub notifications. Note that cloud topic name shouldn''t be provided as part of the request.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `content_pubsubnotificationsettings_update_builder()` + `content_pubsubnotificationsettings_update_execute()`.

@@ -951,7 +951,7 @@ pub fn osconfig_folders_locations_global_policy_orchestrators_patch(
 }
 
 /// POST v2/folders/{foldersId}/locations/{locationsId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `osconfig_folders_locations_operations_cancel_execute()` to send, or `osconfig_folders_locations_operations_cancel` for simplest API.
@@ -978,7 +978,7 @@ where
 }
 
 /// POST v2/folders/{foldersId}/locations/{locationsId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -1052,7 +1052,7 @@ pub fn osconfig_folders_locations_operations_cancel_task(
 }
 
 /// POST v2/folders/{foldersId}/locations/{locationsId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -1089,7 +1089,7 @@ pub struct OsconfigFoldersLocationsOperationsCancelArgs {
 }
 
 /// POST v2/folders/{foldersId}/locations/{locationsId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `osconfig_folders_locations_operations_cancel_builder()` + `osconfig_folders_locations_operations_cancel_execute()`.
@@ -1111,7 +1111,7 @@ pub fn osconfig_folders_locations_operations_cancel(
 }
 
 /// DELETE v2/folders/{foldersId}/locations/{locationsId}/operations/{operationsId}
-/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `osconfig_folders_locations_operations_delete_execute()` to send, or `osconfig_folders_locations_operations_delete` for simplest API.
@@ -1138,7 +1138,7 @@ where
 }
 
 /// DELETE v2/folders/{foldersId}/locations/{locationsId}/operations/{operationsId}
-/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -1212,7 +1212,7 @@ pub fn osconfig_folders_locations_operations_delete_task(
 }
 
 /// DELETE v2/folders/{foldersId}/locations/{locationsId}/operations/{operationsId}
-/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -1249,7 +1249,7 @@ pub struct OsconfigFoldersLocationsOperationsDeleteArgs {
 }
 
 /// DELETE v2/folders/{foldersId}/locations/{locationsId}/operations/{operationsId}
-/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `osconfig_folders_locations_operations_delete_builder()` + `osconfig_folders_locations_operations_delete_execute()`.
@@ -1431,7 +1431,7 @@ pub fn osconfig_folders_locations_operations_get(
 }
 
 /// GET v2/folders/{foldersId}/locations/{locationsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `osconfig_folders_locations_operations_list_execute()` to send, or `osconfig_folders_locations_operations_list` for simplest API.
@@ -1482,7 +1482,7 @@ where
 }
 
 /// GET v2/folders/{foldersId}/locations/{locationsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -1556,7 +1556,7 @@ pub fn osconfig_folders_locations_operations_list_task(
 }
 
 /// GET v2/folders/{foldersId}/locations/{locationsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -1603,7 +1603,7 @@ pub struct OsconfigFoldersLocationsOperationsListArgs {
 }
 
 /// GET v2/folders/{foldersId}/locations/{locationsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `osconfig_folders_locations_operations_list_builder()` + `osconfig_folders_locations_operations_list_execute()`.
@@ -2564,7 +2564,7 @@ pub fn osconfig_organizations_locations_global_policy_orchestrators_patch(
 }
 
 /// POST v2/organizations/{organizationsId}/locations/{locationsId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `osconfig_organizations_locations_operations_cancel_execute()` to send, or `osconfig_organizations_locations_operations_cancel` for simplest API.
@@ -2591,7 +2591,7 @@ where
 }
 
 /// POST v2/organizations/{organizationsId}/locations/{locationsId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -2665,7 +2665,7 @@ pub fn osconfig_organizations_locations_operations_cancel_task(
 }
 
 /// POST v2/organizations/{organizationsId}/locations/{locationsId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -2702,7 +2702,7 @@ pub struct OsconfigOrganizationsLocationsOperationsCancelArgs {
 }
 
 /// POST v2/organizations/{organizationsId}/locations/{locationsId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `osconfig_organizations_locations_operations_cancel_builder()` + `osconfig_organizations_locations_operations_cancel_execute()`.
@@ -2724,7 +2724,7 @@ pub fn osconfig_organizations_locations_operations_cancel(
 }
 
 /// DELETE v2/organizations/{organizationsId}/locations/{locationsId}/operations/{operationsId}
-/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `osconfig_organizations_locations_operations_delete_execute()` to send, or `osconfig_organizations_locations_operations_delete` for simplest API.
@@ -2751,7 +2751,7 @@ where
 }
 
 /// DELETE v2/organizations/{organizationsId}/locations/{locationsId}/operations/{operationsId}
-/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -2825,7 +2825,7 @@ pub fn osconfig_organizations_locations_operations_delete_task(
 }
 
 /// DELETE v2/organizations/{organizationsId}/locations/{locationsId}/operations/{operationsId}
-/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -2862,7 +2862,7 @@ pub struct OsconfigOrganizationsLocationsOperationsDeleteArgs {
 }
 
 /// DELETE v2/organizations/{organizationsId}/locations/{locationsId}/operations/{operationsId}
-/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `osconfig_organizations_locations_operations_delete_builder()` + `osconfig_organizations_locations_operations_delete_execute()`.
@@ -3044,7 +3044,7 @@ pub fn osconfig_organizations_locations_operations_get(
 }
 
 /// GET v2/organizations/{organizationsId}/locations/{locationsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `osconfig_organizations_locations_operations_list_execute()` to send, or `osconfig_organizations_locations_operations_list` for simplest API.
@@ -3095,7 +3095,7 @@ where
 }
 
 /// GET v2/organizations/{organizationsId}/locations/{locationsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -3169,7 +3169,7 @@ pub fn osconfig_organizations_locations_operations_list_task(
 }
 
 /// GET v2/organizations/{organizationsId}/locations/{locationsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -3216,7 +3216,7 @@ pub struct OsconfigOrganizationsLocationsOperationsListArgs {
 }
 
 /// GET v2/organizations/{organizationsId}/locations/{locationsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `osconfig_organizations_locations_operations_list_builder()` + `osconfig_organizations_locations_operations_list_execute()`.
@@ -4176,7 +4176,7 @@ pub fn osconfig_projects_locations_global_policy_orchestrators_patch(
 }
 
 /// POST v2/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `osconfig_projects_locations_operations_cancel_execute()` to send, or `osconfig_projects_locations_operations_cancel` for simplest API.
@@ -4203,7 +4203,7 @@ where
 }
 
 /// POST v2/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -4277,7 +4277,7 @@ pub fn osconfig_projects_locations_operations_cancel_task(
 }
 
 /// POST v2/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -4314,7 +4314,7 @@ pub struct OsconfigProjectsLocationsOperationsCancelArgs {
 }
 
 /// POST v2/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `osconfig_projects_locations_operations_cancel_builder()` + `osconfig_projects_locations_operations_cancel_execute()`.
@@ -4336,7 +4336,7 @@ pub fn osconfig_projects_locations_operations_cancel(
 }
 
 /// DELETE v2/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
-/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `osconfig_projects_locations_operations_delete_execute()` to send, or `osconfig_projects_locations_operations_delete` for simplest API.
@@ -4363,7 +4363,7 @@ where
 }
 
 /// DELETE v2/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
-/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -4437,7 +4437,7 @@ pub fn osconfig_projects_locations_operations_delete_task(
 }
 
 /// DELETE v2/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
-/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -4474,7 +4474,7 @@ pub struct OsconfigProjectsLocationsOperationsDeleteArgs {
 }
 
 /// DELETE v2/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
-/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `osconfig_projects_locations_operations_delete_builder()` + `osconfig_projects_locations_operations_delete_execute()`.
@@ -4656,7 +4656,7 @@ pub fn osconfig_projects_locations_operations_get(
 }
 
 /// GET v2/projects/{projectsId}/locations/{locationsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `osconfig_projects_locations_operations_list_execute()` to send, or `osconfig_projects_locations_operations_list` for simplest API.
@@ -4707,7 +4707,7 @@ where
 }
 
 /// GET v2/projects/{projectsId}/locations/{locationsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -4781,7 +4781,7 @@ pub fn osconfig_projects_locations_operations_list_task(
 }
 
 /// GET v2/projects/{projectsId}/locations/{locationsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -4828,7 +4828,7 @@ pub struct OsconfigProjectsLocationsOperationsListArgs {
 }
 
 /// GET v2/projects/{projectsId}/locations/{locationsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `osconfig_projects_locations_operations_list_builder()` + `osconfig_projects_locations_operations_list_execute()`.

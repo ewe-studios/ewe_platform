@@ -511,7 +511,7 @@ pub fn forms_forms_get(
 }
 
 /// POST v1/forms/{formId}:setPublishSettings
-/// Updates the publish settings of a form. Legacy forms aren't supported because they don't have the publish_settings field.
+/// Updates the publish settings of a form. Legacy forms aren''t supported because they don''t have the publish_settings field.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `forms_forms_set_publish_settings_execute()` to send, or `forms_forms_set_publish_settings` for simplest API.
@@ -538,7 +538,7 @@ where
 }
 
 /// POST v1/forms/{formId}:setPublishSettings
-/// Updates the publish settings of a form. Legacy forms aren't supported because they don't have the publish_settings field.
+/// Updates the publish settings of a form. Legacy forms aren''t supported because they don''t have the publish_settings field.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -612,7 +612,7 @@ pub fn forms_forms_set_publish_settings_task(
 }
 
 /// POST v1/forms/{formId}:setPublishSettings
-/// Updates the publish settings of a form. Legacy forms aren't supported because they don't have the publish_settings field.
+/// Updates the publish settings of a form. Legacy forms aren''t supported because they don''t have the publish_settings field.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -653,7 +653,7 @@ pub struct FormsFormsSetPublishSettingsArgs {
 }
 
 /// POST v1/forms/{formId}:setPublishSettings
-/// Updates the publish settings of a form. Legacy forms aren't supported because they don't have the publish_settings field.
+/// Updates the publish settings of a form. Legacy forms aren''t supported because they don''t have the publish_settings field.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `forms_forms_set_publish_settings_builder()` + `forms_forms_set_publish_settings_execute()`.
@@ -846,7 +846,7 @@ pub fn forms_forms_responses_get(
 }
 
 /// GET v1/forms/{formId}/responses
-/// List a form's responses.
+/// List a form''s responses.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `forms_forms_responses_list_execute()` to send, or `forms_forms_responses_list` for simplest API.
@@ -890,7 +890,7 @@ where
 }
 
 /// GET v1/forms/{formId}/responses
-/// List a form's responses.
+/// List a form''s responses.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -964,7 +964,7 @@ pub fn forms_forms_responses_list_task(
 }
 
 /// GET v1/forms/{formId}/responses
-/// List a form's responses.
+/// List a form''s responses.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -1009,7 +1009,7 @@ pub struct FormsFormsResponsesListArgs {
 }
 
 /// GET v1/forms/{formId}/responses
-/// List a form's responses.
+/// List a form''s responses.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `forms_forms_responses_list_builder()` + `forms_forms_responses_list_execute()`.

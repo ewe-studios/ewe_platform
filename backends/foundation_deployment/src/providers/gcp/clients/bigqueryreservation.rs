@@ -187,7 +187,7 @@ pub fn bigqueryreservation_projects_locations_get_bi_reservation(
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}:searchAllAssignments
-/// Looks up assignments for a specified resource for a particular region. If the request is about a project: 1. Assignments created on the project will be returned if they exist. 2. Otherwise assignments created on the closest ancestor will be returned. 3. Assignments for different JobTypes will all be returned. The same logic applies if the request is about a folder. If the request is about an organization, then assignments created on the organization will be returned (organization doesn't have ancestors). Comparing to ListAssignments, there are some behavior differences: 1. permission on the assignee will be verified in this API. 2. Hierarchy lookup (project-&gt;folder-&gt;organization) happens in this API. 3. Parent here is projects/*/locations/*, instead of projects/*/locations/*reservations/*.
+/// Looks up assignments for a specified resource for a particular region. If the request is about a project: 1. Assignments created on the project will be returned if they exist. 2. Otherwise assignments created on the closest ancestor will be returned. 3. Assignments for different JobTypes will all be returned. The same logic applies if the request is about a folder. If the request is about an organization, then assignments created on the organization will be returned (organization doesn''t have ancestors). Comparing to ListAssignments, there are some behavior differences: 1. permission on the assignee will be verified in this API. 2. Hierarchy lookup (project-&gt;folder-&gt;organization) happens in this API. 3. Parent here is projects/*/locations/*, instead of projects/*/locations/*reservations/*.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigqueryreservation_projects_locations_search_all_assignments_execute()` to send, or `bigqueryreservation_projects_locations_search_all_assignments` for simplest API.
@@ -234,7 +234,7 @@ where
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}:searchAllAssignments
-/// Looks up assignments for a specified resource for a particular region. If the request is about a project: 1. Assignments created on the project will be returned if they exist. 2. Otherwise assignments created on the closest ancestor will be returned. 3. Assignments for different JobTypes will all be returned. The same logic applies if the request is about a folder. If the request is about an organization, then assignments created on the organization will be returned (organization doesn't have ancestors). Comparing to ListAssignments, there are some behavior differences: 1. permission on the assignee will be verified in this API. 2. Hierarchy lookup (project-&gt;folder-&gt;organization) happens in this API. 3. Parent here is projects/*/locations/*, instead of projects/*/locations/*reservations/*.
+/// Looks up assignments for a specified resource for a particular region. If the request is about a project: 1. Assignments created on the project will be returned if they exist. 2. Otherwise assignments created on the closest ancestor will be returned. 3. Assignments for different JobTypes will all be returned. The same logic applies if the request is about a folder. If the request is about an organization, then assignments created on the organization will be returned (organization doesn''t have ancestors). Comparing to ListAssignments, there are some behavior differences: 1. permission on the assignee will be verified in this API. 2. Hierarchy lookup (project-&gt;folder-&gt;organization) happens in this API. 3. Parent here is projects/*/locations/*, instead of projects/*/locations/*reservations/*.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -308,7 +308,7 @@ pub fn bigqueryreservation_projects_locations_search_all_assignments_task(
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}:searchAllAssignments
-/// Looks up assignments for a specified resource for a particular region. If the request is about a project: 1. Assignments created on the project will be returned if they exist. 2. Otherwise assignments created on the closest ancestor will be returned. 3. Assignments for different JobTypes will all be returned. The same logic applies if the request is about a folder. If the request is about an organization, then assignments created on the organization will be returned (organization doesn't have ancestors). Comparing to ListAssignments, there are some behavior differences: 1. permission on the assignee will be verified in this API. 2. Hierarchy lookup (project-&gt;folder-&gt;organization) happens in this API. 3. Parent here is projects/*/locations/*, instead of projects/*/locations/*reservations/*.
+/// Looks up assignments for a specified resource for a particular region. If the request is about a project: 1. Assignments created on the project will be returned if they exist. 2. Otherwise assignments created on the closest ancestor will be returned. 3. Assignments for different JobTypes will all be returned. The same logic applies if the request is about a folder. If the request is about an organization, then assignments created on the organization will be returned (organization doesn''t have ancestors). Comparing to ListAssignments, there are some behavior differences: 1. permission on the assignee will be verified in this API. 2. Hierarchy lookup (project-&gt;folder-&gt;organization) happens in this API. 3. Parent here is projects/*/locations/*, instead of projects/*/locations/*reservations/*.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -355,7 +355,7 @@ pub struct BigqueryreservationProjectsLocationsSearchAllAssignmentsArgs {
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}:searchAllAssignments
-/// Looks up assignments for a specified resource for a particular region. If the request is about a project: 1. Assignments created on the project will be returned if they exist. 2. Otherwise assignments created on the closest ancestor will be returned. 3. Assignments for different JobTypes will all be returned. The same logic applies if the request is about a folder. If the request is about an organization, then assignments created on the organization will be returned (organization doesn't have ancestors). Comparing to ListAssignments, there are some behavior differences: 1. permission on the assignee will be verified in this API. 2. Hierarchy lookup (project-&gt;folder-&gt;organization) happens in this API. 3. Parent here is projects/*/locations/*, instead of projects/*/locations/*reservations/*.
+/// Looks up assignments for a specified resource for a particular region. If the request is about a project: 1. Assignments created on the project will be returned if they exist. 2. Otherwise assignments created on the closest ancestor will be returned. 3. Assignments for different JobTypes will all be returned. The same logic applies if the request is about a folder. If the request is about an organization, then assignments created on the organization will be returned (organization doesn''t have ancestors). Comparing to ListAssignments, there are some behavior differences: 1. permission on the assignee will be verified in this API. 2. Hierarchy lookup (project-&gt;folder-&gt;organization) happens in this API. 3. Parent here is projects/*/locations/*, instead of projects/*/locations/*reservations/*.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `bigqueryreservation_projects_locations_search_all_assignments_builder()` + `bigqueryreservation_projects_locations_search_all_assignments_execute()`.
@@ -387,7 +387,7 @@ pub fn bigqueryreservation_projects_locations_search_all_assignments(
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}:searchAssignments
-/// Deprecated: Looks up assignments for a specified resource for a particular region. If the request is about a project: 1. Assignments created on the project will be returned if they exist. 2. Otherwise assignments created on the closest ancestor will be returned. 3. Assignments for different JobTypes will all be returned. The same logic applies if the request is about a folder. If the request is about an organization, then assignments created on the organization will be returned (organization doesn't have ancestors). Comparing to ListAssignments, there are some behavior differences: 1. permission on the assignee will be verified in this API. 2. Hierarchy lookup (project-&gt;folder-&gt;organization) happens in this API. 3. Parent here is projects/*/locations/*, instead of projects/*/locations/*reservations/*. **Note** "-" cannot be used for projects nor locations.
+/// Deprecated: Looks up assignments for a specified resource for a particular region. If the request is about a project: 1. Assignments created on the project will be returned if they exist. 2. Otherwise assignments created on the closest ancestor will be returned. 3. Assignments for different JobTypes will all be returned. The same logic applies if the request is about a folder. If the request is about an organization, then assignments created on the organization will be returned (organization doesn''t have ancestors). Comparing to ListAssignments, there are some behavior differences: 1. permission on the assignee will be verified in this API. 2. Hierarchy lookup (project-&gt;folder-&gt;organization) happens in this API. 3. Parent here is projects/*/locations/*, instead of projects/*/locations/*reservations/*. **Note** "-" cannot be used for projects nor locations.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigqueryreservation_projects_locations_search_assignments_execute()` to send, or `bigqueryreservation_projects_locations_search_assignments` for simplest API.
@@ -434,7 +434,7 @@ where
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}:searchAssignments
-/// Deprecated: Looks up assignments for a specified resource for a particular region. If the request is about a project: 1. Assignments created on the project will be returned if they exist. 2. Otherwise assignments created on the closest ancestor will be returned. 3. Assignments for different JobTypes will all be returned. The same logic applies if the request is about a folder. If the request is about an organization, then assignments created on the organization will be returned (organization doesn't have ancestors). Comparing to ListAssignments, there are some behavior differences: 1. permission on the assignee will be verified in this API. 2. Hierarchy lookup (project-&gt;folder-&gt;organization) happens in this API. 3. Parent here is projects/*/locations/*, instead of projects/*/locations/*reservations/*. **Note** "-" cannot be used for projects nor locations.
+/// Deprecated: Looks up assignments for a specified resource for a particular region. If the request is about a project: 1. Assignments created on the project will be returned if they exist. 2. Otherwise assignments created on the closest ancestor will be returned. 3. Assignments for different JobTypes will all be returned. The same logic applies if the request is about a folder. If the request is about an organization, then assignments created on the organization will be returned (organization doesn''t have ancestors). Comparing to ListAssignments, there are some behavior differences: 1. permission on the assignee will be verified in this API. 2. Hierarchy lookup (project-&gt;folder-&gt;organization) happens in this API. 3. Parent here is projects/*/locations/*, instead of projects/*/locations/*reservations/*. **Note** "-" cannot be used for projects nor locations.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -508,7 +508,7 @@ pub fn bigqueryreservation_projects_locations_search_assignments_task(
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}:searchAssignments
-/// Deprecated: Looks up assignments for a specified resource for a particular region. If the request is about a project: 1. Assignments created on the project will be returned if they exist. 2. Otherwise assignments created on the closest ancestor will be returned. 3. Assignments for different JobTypes will all be returned. The same logic applies if the request is about a folder. If the request is about an organization, then assignments created on the organization will be returned (organization doesn't have ancestors). Comparing to ListAssignments, there are some behavior differences: 1. permission on the assignee will be verified in this API. 2. Hierarchy lookup (project-&gt;folder-&gt;organization) happens in this API. 3. Parent here is projects/*/locations/*, instead of projects/*/locations/*reservations/*. **Note** "-" cannot be used for projects nor locations.
+/// Deprecated: Looks up assignments for a specified resource for a particular region. If the request is about a project: 1. Assignments created on the project will be returned if they exist. 2. Otherwise assignments created on the closest ancestor will be returned. 3. Assignments for different JobTypes will all be returned. The same logic applies if the request is about a folder. If the request is about an organization, then assignments created on the organization will be returned (organization doesn''t have ancestors). Comparing to ListAssignments, there are some behavior differences: 1. permission on the assignee will be verified in this API. 2. Hierarchy lookup (project-&gt;folder-&gt;organization) happens in this API. 3. Parent here is projects/*/locations/*, instead of projects/*/locations/*reservations/*. **Note** "-" cannot be used for projects nor locations.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -553,7 +553,7 @@ pub struct BigqueryreservationProjectsLocationsSearchAssignmentsArgs {
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}:searchAssignments
-/// Deprecated: Looks up assignments for a specified resource for a particular region. If the request is about a project: 1. Assignments created on the project will be returned if they exist. 2. Otherwise assignments created on the closest ancestor will be returned. 3. Assignments for different JobTypes will all be returned. The same logic applies if the request is about a folder. If the request is about an organization, then assignments created on the organization will be returned (organization doesn't have ancestors). Comparing to ListAssignments, there are some behavior differences: 1. permission on the assignee will be verified in this API. 2. Hierarchy lookup (project-&gt;folder-&gt;organization) happens in this API. 3. Parent here is projects/*/locations/*, instead of projects/*/locations/*reservations/*. **Note** "-" cannot be used for projects nor locations.
+/// Deprecated: Looks up assignments for a specified resource for a particular region. If the request is about a project: 1. Assignments created on the project will be returned if they exist. 2. Otherwise assignments created on the closest ancestor will be returned. 3. Assignments for different JobTypes will all be returned. The same logic applies if the request is about a folder. If the request is about an organization, then assignments created on the organization will be returned (organization doesn''t have ancestors). Comparing to ListAssignments, there are some behavior differences: 1. permission on the assignee will be verified in this API. 2. Hierarchy lookup (project-&gt;folder-&gt;organization) happens in this API. 3. Parent here is projects/*/locations/*, instead of projects/*/locations/*reservations/*. **Note** "-" cannot be used for projects nor locations.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `bigqueryreservation_projects_locations_search_assignments_builder()` + `bigqueryreservation_projects_locations_search_assignments_execute()`.
@@ -3375,7 +3375,7 @@ pub fn bigqueryreservation_projects_locations_reservations_get(
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/reservations/{reservationsId}:getIamPolicy
-/// Gets the access control policy for a resource. May return: * ANOT_FOUND error if the resource doesn't exist or you don't have the permission to view it. * An empty policy if the resource exists but doesn't have a set policy. Supported resources are: - Reservations - ReservationAssignments To call this method, you must have the following Google IAM permissions: - bigqueryreservation.reservations.`getIamPolicy` to get policies on reservations.
+/// Gets the access control policy for a resource. May return: * ANOT_FOUND error if the resource doesn''t exist or you don''t have the permission to view it. * An empty policy if the resource exists but doesn''t have a set policy. Supported resources are: - Reservations - ReservationAssignments To call this method, you must have the following Google IAM permissions: - bigqueryreservation.reservations.`getIamPolicy` to get policies on reservations.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigqueryreservation_projects_locations_reservations_get_iam_policy_execute()` to send, or `bigqueryreservation_projects_locations_reservations_get_iam_policy` for simplest API.
@@ -3414,7 +3414,7 @@ where
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/reservations/{reservationsId}:getIamPolicy
-/// Gets the access control policy for a resource. May return: * ANOT_FOUND error if the resource doesn't exist or you don't have the permission to view it. * An empty policy if the resource exists but doesn't have a set policy. Supported resources are: - Reservations - ReservationAssignments To call this method, you must have the following Google IAM permissions: - bigqueryreservation.reservations.`getIamPolicy` to get policies on reservations.
+/// Gets the access control policy for a resource. May return: * ANOT_FOUND error if the resource doesn''t exist or you don''t have the permission to view it. * An empty policy if the resource exists but doesn''t have a set policy. Supported resources are: - Reservations - ReservationAssignments To call this method, you must have the following Google IAM permissions: - bigqueryreservation.reservations.`getIamPolicy` to get policies on reservations.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -3488,7 +3488,7 @@ pub fn bigqueryreservation_projects_locations_reservations_get_iam_policy_task(
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/reservations/{reservationsId}:getIamPolicy
-/// Gets the access control policy for a resource. May return: * ANOT_FOUND error if the resource doesn't exist or you don't have the permission to view it. * An empty policy if the resource exists but doesn't have a set policy. Supported resources are: - Reservations - ReservationAssignments To call this method, you must have the following Google IAM permissions: - bigqueryreservation.reservations.`getIamPolicy` to get policies on reservations.
+/// Gets the access control policy for a resource. May return: * ANOT_FOUND error if the resource doesn''t exist or you don''t have the permission to view it. * An empty policy if the resource exists but doesn''t have a set policy. Supported resources are: - Reservations - ReservationAssignments To call this method, you must have the following Google IAM permissions: - bigqueryreservation.reservations.`getIamPolicy` to get policies on reservations.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -3527,7 +3527,7 @@ pub struct BigqueryreservationProjectsLocationsReservationsGetIamPolicyArgs {
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/reservations/{reservationsId}:getIamPolicy
-/// Gets the access control policy for a resource. May return: * ANOT_FOUND error if the resource doesn't exist or you don't have the permission to view it. * An empty policy if the resource exists but doesn't have a set policy. Supported resources are: - Reservations - ReservationAssignments To call this method, you must have the following Google IAM permissions: - bigqueryreservation.reservations.`getIamPolicy` to get policies on reservations.
+/// Gets the access control policy for a resource. May return: * ANOT_FOUND error if the resource doesn''t exist or you don''t have the permission to view it. * An empty policy if the resource exists but doesn''t have a set policy. Supported resources are: - Reservations - ReservationAssignments To call this method, you must have the following Google IAM permissions: - bigqueryreservation.reservations.`getIamPolicy` to get policies on reservations.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `bigqueryreservation_projects_locations_reservations_get_iam_policy_builder()` + `bigqueryreservation_projects_locations_reservations_get_iam_policy_execute()`.
@@ -4083,7 +4083,7 @@ pub fn bigqueryreservation_projects_locations_reservations_set_iam_policy(
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/reservations/{reservationsId}:testIamPermissions
-/// Gets your permissions on a resource. Returns an empty set of permissions if the resource doesn't exist. Supported resources are: - Reservations No Google IAM permissions are required to call this method.
+/// Gets your permissions on a resource. Returns an empty set of permissions if the resource doesn''t exist. Supported resources are: - Reservations No Google IAM permissions are required to call this method.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigqueryreservation_projects_locations_reservations_test_iam_permissions_execute()` to send, or `bigqueryreservation_projects_locations_reservations_test_iam_permissions` for simplest API.
@@ -4110,7 +4110,7 @@ where
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/reservations/{reservationsId}:testIamPermissions
-/// Gets your permissions on a resource. Returns an empty set of permissions if the resource doesn't exist. Supported resources are: - Reservations No Google IAM permissions are required to call this method.
+/// Gets your permissions on a resource. Returns an empty set of permissions if the resource doesn''t exist. Supported resources are: - Reservations No Google IAM permissions are required to call this method.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -4184,7 +4184,7 @@ pub fn bigqueryreservation_projects_locations_reservations_test_iam_permissions_
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/reservations/{reservationsId}:testIamPermissions
-/// Gets your permissions on a resource. Returns an empty set of permissions if the resource doesn't exist. Supported resources are: - Reservations No Google IAM permissions are required to call this method.
+/// Gets your permissions on a resource. Returns an empty set of permissions if the resource doesn''t exist. Supported resources are: - Reservations No Google IAM permissions are required to call this method.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -4226,7 +4226,7 @@ pub struct BigqueryreservationProjectsLocationsReservationsTestIamPermissionsArg
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/reservations/{reservationsId}:testIamPermissions
-/// Gets your permissions on a resource. Returns an empty set of permissions if the resource doesn't exist. Supported resources are: - Reservations No Google IAM permissions are required to call this method.
+/// Gets your permissions on a resource. Returns an empty set of permissions if the resource doesn''t exist. Supported resources are: - Reservations No Google IAM permissions are required to call this method.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `bigqueryreservation_projects_locations_reservations_test_iam_permissions_builder()` + `bigqueryreservation_projects_locations_reservations_test_iam_permissions_execute()`.
@@ -4255,7 +4255,7 @@ pub fn bigqueryreservation_projects_locations_reservations_test_iam_permissions(
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/reservations/{reservationsId}/assignments
-/// Creates an assignment object which allows the given project to submit jobs of a certain type using slots from the specified reservation. Currently a resource (project, folder, organization) can only have one assignment per each (job_type, location) combination, and that reservation will be used for all jobs of the matching type. Different assignments can be created on different levels of the projects, folders or organization hierarchy. During query execution, the assignment is looked up at the project, folder and organization levels in that order. The first assignment found is applied to the query. When creating assignments, it does not matter if other assignments exist at higher levels. Example: * The organization organizationA contains two projects, project1 and project2. * Assignments for all three entities (organizationA, project1, and project2) could all be created and mapped to the same or different reservations. "None" assignments represent an absence of the assignment. Projects assigned to None use on-demand pricing. To create a "None" assignment, use "none" as a reservation_id in the parent. Example parent: `projects/myproject/locations/US/reservations/none`. Returns google.rpc.Code.PERMISSION_DENIED if user does not have 'bigquery.admin' permissions on the project using the reservation and the project that owns this reservation. Returns google.rpc.Code.INVALID_ARGUMENT when location of the assignment does not match location of the reservation.
+/// Creates an assignment object which allows the given project to submit jobs of a certain type using slots from the specified reservation. Currently a resource (project, folder, organization) can only have one assignment per each (job_type, location) combination, and that reservation will be used for all jobs of the matching type. Different assignments can be created on different levels of the projects, folders or organization hierarchy. During query execution, the assignment is looked up at the project, folder and organization levels in that order. The first assignment found is applied to the query. When creating assignments, it does not matter if other assignments exist at higher levels. Example: * The organization organizationA contains two projects, project1 and project2. * Assignments for all three entities (organizationA, project1, and project2) could all be created and mapped to the same or different reservations. "None" assignments represent an absence of the assignment. Projects assigned to None use on-demand pricing. To create a "None" assignment, use "none" as a reservation_id in the parent. Example parent: `projects/myproject/locations/US/reservations/none`. Returns google.rpc.Code.PERMISSION_DENIED if user does not have ''bigquery.admin'' permissions on the project using the reservation and the project that owns this reservation. Returns google.rpc.Code.INVALID_ARGUMENT when location of the assignment does not match location of the reservation.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigqueryreservation_projects_locations_reservations_assignments_create_execute()` to send, or `bigqueryreservation_projects_locations_reservations_assignments_create` for simplest API.
@@ -4294,7 +4294,7 @@ where
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/reservations/{reservationsId}/assignments
-/// Creates an assignment object which allows the given project to submit jobs of a certain type using slots from the specified reservation. Currently a resource (project, folder, organization) can only have one assignment per each (job_type, location) combination, and that reservation will be used for all jobs of the matching type. Different assignments can be created on different levels of the projects, folders or organization hierarchy. During query execution, the assignment is looked up at the project, folder and organization levels in that order. The first assignment found is applied to the query. When creating assignments, it does not matter if other assignments exist at higher levels. Example: * The organization organizationA contains two projects, project1 and project2. * Assignments for all three entities (organizationA, project1, and project2) could all be created and mapped to the same or different reservations. "None" assignments represent an absence of the assignment. Projects assigned to None use on-demand pricing. To create a "None" assignment, use "none" as a reservation_id in the parent. Example parent: `projects/myproject/locations/US/reservations/none`. Returns google.rpc.Code.PERMISSION_DENIED if user does not have 'bigquery.admin' permissions on the project using the reservation and the project that owns this reservation. Returns google.rpc.Code.INVALID_ARGUMENT when location of the assignment does not match location of the reservation.
+/// Creates an assignment object which allows the given project to submit jobs of a certain type using slots from the specified reservation. Currently a resource (project, folder, organization) can only have one assignment per each (job_type, location) combination, and that reservation will be used for all jobs of the matching type. Different assignments can be created on different levels of the projects, folders or organization hierarchy. During query execution, the assignment is looked up at the project, folder and organization levels in that order. The first assignment found is applied to the query. When creating assignments, it does not matter if other assignments exist at higher levels. Example: * The organization organizationA contains two projects, project1 and project2. * Assignments for all three entities (organizationA, project1, and project2) could all be created and mapped to the same or different reservations. "None" assignments represent an absence of the assignment. Projects assigned to None use on-demand pricing. To create a "None" assignment, use "none" as a reservation_id in the parent. Example parent: `projects/myproject/locations/US/reservations/none`. Returns google.rpc.Code.PERMISSION_DENIED if user does not have ''bigquery.admin'' permissions on the project using the reservation and the project that owns this reservation. Returns google.rpc.Code.INVALID_ARGUMENT when location of the assignment does not match location of the reservation.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -4368,7 +4368,7 @@ pub fn bigqueryreservation_projects_locations_reservations_assignments_create_ta
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/reservations/{reservationsId}/assignments
-/// Creates an assignment object which allows the given project to submit jobs of a certain type using slots from the specified reservation. Currently a resource (project, folder, organization) can only have one assignment per each (job_type, location) combination, and that reservation will be used for all jobs of the matching type. Different assignments can be created on different levels of the projects, folders or organization hierarchy. During query execution, the assignment is looked up at the project, folder and organization levels in that order. The first assignment found is applied to the query. When creating assignments, it does not matter if other assignments exist at higher levels. Example: * The organization organizationA contains two projects, project1 and project2. * Assignments for all three entities (organizationA, project1, and project2) could all be created and mapped to the same or different reservations. "None" assignments represent an absence of the assignment. Projects assigned to None use on-demand pricing. To create a "None" assignment, use "none" as a reservation_id in the parent. Example parent: `projects/myproject/locations/US/reservations/none`. Returns google.rpc.Code.PERMISSION_DENIED if user does not have 'bigquery.admin' permissions on the project using the reservation and the project that owns this reservation. Returns google.rpc.Code.INVALID_ARGUMENT when location of the assignment does not match location of the reservation.
+/// Creates an assignment object which allows the given project to submit jobs of a certain type using slots from the specified reservation. Currently a resource (project, folder, organization) can only have one assignment per each (job_type, location) combination, and that reservation will be used for all jobs of the matching type. Different assignments can be created on different levels of the projects, folders or organization hierarchy. During query execution, the assignment is looked up at the project, folder and organization levels in that order. The first assignment found is applied to the query. When creating assignments, it does not matter if other assignments exist at higher levels. Example: * The organization organizationA contains two projects, project1 and project2. * Assignments for all three entities (organizationA, project1, and project2) could all be created and mapped to the same or different reservations. "None" assignments represent an absence of the assignment. Projects assigned to None use on-demand pricing. To create a "None" assignment, use "none" as a reservation_id in the parent. Example parent: `projects/myproject/locations/US/reservations/none`. Returns google.rpc.Code.PERMISSION_DENIED if user does not have ''bigquery.admin'' permissions on the project using the reservation and the project that owns this reservation. Returns google.rpc.Code.INVALID_ARGUMENT when location of the assignment does not match location of the reservation.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -4408,7 +4408,7 @@ pub struct BigqueryreservationProjectsLocationsReservationsAssignmentsCreateArgs
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/reservations/{reservationsId}/assignments
-/// Creates an assignment object which allows the given project to submit jobs of a certain type using slots from the specified reservation. Currently a resource (project, folder, organization) can only have one assignment per each (job_type, location) combination, and that reservation will be used for all jobs of the matching type. Different assignments can be created on different levels of the projects, folders or organization hierarchy. During query execution, the assignment is looked up at the project, folder and organization levels in that order. The first assignment found is applied to the query. When creating assignments, it does not matter if other assignments exist at higher levels. Example: * The organization organizationA contains two projects, project1 and project2. * Assignments for all three entities (organizationA, project1, and project2) could all be created and mapped to the same or different reservations. "None" assignments represent an absence of the assignment. Projects assigned to None use on-demand pricing. To create a "None" assignment, use "none" as a reservation_id in the parent. Example parent: `projects/myproject/locations/US/reservations/none`. Returns google.rpc.Code.PERMISSION_DENIED if user does not have 'bigquery.admin' permissions on the project using the reservation and the project that owns this reservation. Returns google.rpc.Code.INVALID_ARGUMENT when location of the assignment does not match location of the reservation.
+/// Creates an assignment object which allows the given project to submit jobs of a certain type using slots from the specified reservation. Currently a resource (project, folder, organization) can only have one assignment per each (job_type, location) combination, and that reservation will be used for all jobs of the matching type. Different assignments can be created on different levels of the projects, folders or organization hierarchy. During query execution, the assignment is looked up at the project, folder and organization levels in that order. The first assignment found is applied to the query. When creating assignments, it does not matter if other assignments exist at higher levels. Example: * The organization organizationA contains two projects, project1 and project2. * Assignments for all three entities (organizationA, project1, and project2) could all be created and mapped to the same or different reservations. "None" assignments represent an absence of the assignment. Projects assigned to None use on-demand pricing. To create a "None" assignment, use "none" as a reservation_id in the parent. Example parent: `projects/myproject/locations/US/reservations/none`. Returns google.rpc.Code.PERMISSION_DENIED if user does not have ''bigquery.admin'' permissions on the project using the reservation and the project that owns this reservation. Returns google.rpc.Code.INVALID_ARGUMENT when location of the assignment does not match location of the reservation.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `bigqueryreservation_projects_locations_reservations_assignments_create_builder()` + `bigqueryreservation_projects_locations_reservations_assignments_create_execute()`.
@@ -4434,7 +4434,7 @@ pub fn bigqueryreservation_projects_locations_reservations_assignments_create(
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/reservations/{reservationsId}/assignments/{assignmentsId}
-/// Deletes a assignment. No expansion will happen. Example: * Organization organizationA contains two projects, project1 and project2. * Reservation res1 exists and was created previously. * CreateAssignment was used previously to define the following associations between entities and reservations:  and  In this example, deletion of the  assignment won't affect the other assignment . After said deletion, queries from project1 will still use res1 while queries from project2 will switch to use on-demand mode.
+/// Deletes a assignment. No expansion will happen. Example: * Organization organizationA contains two projects, project1 and project2. * Reservation res1 exists and was created previously. * CreateAssignment was used previously to define the following associations between entities and reservations:  and  In this example, deletion of the  assignment won''t affect the other assignment . After said deletion, queries from project1 will still use res1 while queries from project2 will switch to use on-demand mode.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigqueryreservation_projects_locations_reservations_assignments_delete_execute()` to send, or `bigqueryreservation_projects_locations_reservations_assignments_delete` for simplest API.
@@ -4461,7 +4461,7 @@ where
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/reservations/{reservationsId}/assignments/{assignmentsId}
-/// Deletes a assignment. No expansion will happen. Example: * Organization organizationA contains two projects, project1 and project2. * Reservation res1 exists and was created previously. * CreateAssignment was used previously to define the following associations between entities and reservations:  and  In this example, deletion of the  assignment won't affect the other assignment . After said deletion, queries from project1 will still use res1 while queries from project2 will switch to use on-demand mode.
+/// Deletes a assignment. No expansion will happen. Example: * Organization organizationA contains two projects, project1 and project2. * Reservation res1 exists and was created previously. * CreateAssignment was used previously to define the following associations between entities and reservations:  and  In this example, deletion of the  assignment won''t affect the other assignment . After said deletion, queries from project1 will still use res1 while queries from project2 will switch to use on-demand mode.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -4535,7 +4535,7 @@ pub fn bigqueryreservation_projects_locations_reservations_assignments_delete_ta
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/reservations/{reservationsId}/assignments/{assignmentsId}
-/// Deletes a assignment. No expansion will happen. Example: * Organization organizationA contains two projects, project1 and project2. * Reservation res1 exists and was created previously. * CreateAssignment was used previously to define the following associations between entities and reservations:  and  In this example, deletion of the  assignment won't affect the other assignment . After said deletion, queries from project1 will still use res1 while queries from project2 will switch to use on-demand mode.
+/// Deletes a assignment. No expansion will happen. Example: * Organization organizationA contains two projects, project1 and project2. * Reservation res1 exists and was created previously. * CreateAssignment was used previously to define the following associations between entities and reservations:  and  In this example, deletion of the  assignment won''t affect the other assignment . After said deletion, queries from project1 will still use res1 while queries from project2 will switch to use on-demand mode.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -4573,7 +4573,7 @@ pub struct BigqueryreservationProjectsLocationsReservationsAssignmentsDeleteArgs
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/reservations/{reservationsId}/assignments/{assignmentsId}
-/// Deletes a assignment. No expansion will happen. Example: * Organization organizationA contains two projects, project1 and project2. * Reservation res1 exists and was created previously. * CreateAssignment was used previously to define the following associations between entities and reservations:  and  In this example, deletion of the  assignment won't affect the other assignment . After said deletion, queries from project1 will still use res1 while queries from project2 will switch to use on-demand mode.
+/// Deletes a assignment. No expansion will happen. Example: * Organization organizationA contains two projects, project1 and project2. * Reservation res1 exists and was created previously. * CreateAssignment was used previously to define the following associations between entities and reservations:  and  In this example, deletion of the  assignment won''t affect the other assignment . After said deletion, queries from project1 will still use res1 while queries from project2 will switch to use on-demand mode.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `bigqueryreservation_projects_locations_reservations_assignments_delete_builder()` + `bigqueryreservation_projects_locations_reservations_assignments_delete_execute()`.
@@ -4597,7 +4597,7 @@ pub fn bigqueryreservation_projects_locations_reservations_assignments_delete(
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/reservations/{reservationsId}/assignments/{assignmentsId}:getIamPolicy
-/// Gets the access control policy for a resource. May return: * ANOT_FOUND error if the resource doesn't exist or you don't have the permission to view it. * An empty policy if the resource exists but doesn't have a set policy. Supported resources are: - Reservations - ReservationAssignments To call this method, you must have the following Google IAM permissions: - bigqueryreservation.reservations.`getIamPolicy` to get policies on reservations.
+/// Gets the access control policy for a resource. May return: * ANOT_FOUND error if the resource doesn''t exist or you don''t have the permission to view it. * An empty policy if the resource exists but doesn''t have a set policy. Supported resources are: - Reservations - ReservationAssignments To call this method, you must have the following Google IAM permissions: - bigqueryreservation.reservations.`getIamPolicy` to get policies on reservations.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigqueryreservation_projects_locations_reservations_assignments_get_iam_policy_execute()` to send, or `bigqueryreservation_projects_locations_reservations_assignments_get_iam_policy` for simplest API.
@@ -4636,7 +4636,7 @@ where
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/reservations/{reservationsId}/assignments/{assignmentsId}:getIamPolicy
-/// Gets the access control policy for a resource. May return: * ANOT_FOUND error if the resource doesn't exist or you don't have the permission to view it. * An empty policy if the resource exists but doesn't have a set policy. Supported resources are: - Reservations - ReservationAssignments To call this method, you must have the following Google IAM permissions: - bigqueryreservation.reservations.`getIamPolicy` to get policies on reservations.
+/// Gets the access control policy for a resource. May return: * ANOT_FOUND error if the resource doesn''t exist or you don''t have the permission to view it. * An empty policy if the resource exists but doesn''t have a set policy. Supported resources are: - Reservations - ReservationAssignments To call this method, you must have the following Google IAM permissions: - bigqueryreservation.reservations.`getIamPolicy` to get policies on reservations.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -4710,7 +4710,7 @@ pub fn bigqueryreservation_projects_locations_reservations_assignments_get_iam_p
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/reservations/{reservationsId}/assignments/{assignmentsId}:getIamPolicy
-/// Gets the access control policy for a resource. May return: * ANOT_FOUND error if the resource doesn't exist or you don't have the permission to view it. * An empty policy if the resource exists but doesn't have a set policy. Supported resources are: - Reservations - ReservationAssignments To call this method, you must have the following Google IAM permissions: - bigqueryreservation.reservations.`getIamPolicy` to get policies on reservations.
+/// Gets the access control policy for a resource. May return: * ANOT_FOUND error if the resource doesn''t exist or you don''t have the permission to view it. * An empty policy if the resource exists but doesn''t have a set policy. Supported resources are: - Reservations - ReservationAssignments To call this method, you must have the following Google IAM permissions: - bigqueryreservation.reservations.`getIamPolicy` to get policies on reservations.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -4751,7 +4751,7 @@ pub struct BigqueryreservationProjectsLocationsReservationsAssignmentsGetIamPoli
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/reservations/{reservationsId}/assignments/{assignmentsId}:getIamPolicy
-/// Gets the access control policy for a resource. May return: * ANOT_FOUND error if the resource doesn't exist or you don't have the permission to view it. * An empty policy if the resource exists but doesn't have a set policy. Supported resources are: - Reservations - ReservationAssignments To call this method, you must have the following Google IAM permissions: - bigqueryreservation.reservations.`getIamPolicy` to get policies on reservations.
+/// Gets the access control policy for a resource. May return: * ANOT_FOUND error if the resource doesn''t exist or you don''t have the permission to view it. * An empty policy if the resource exists but doesn''t have a set policy. Supported resources are: - Reservations - ReservationAssignments To call this method, you must have the following Google IAM permissions: - bigqueryreservation.reservations.`getIamPolicy` to get policies on reservations.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `bigqueryreservation_projects_locations_reservations_assignments_get_iam_policy_builder()` + `bigqueryreservation_projects_locations_reservations_assignments_get_iam_policy_execute()`.
@@ -5473,7 +5473,7 @@ pub fn bigqueryreservation_projects_locations_reservations_assignments_set_iam_p
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/reservations/{reservationsId}/assignments/{assignmentsId}:testIamPermissions
-/// Gets your permissions on a resource. Returns an empty set of permissions if the resource doesn't exist. Supported resources are: - Reservations No Google IAM permissions are required to call this method.
+/// Gets your permissions on a resource. Returns an empty set of permissions if the resource doesn''t exist. Supported resources are: - Reservations No Google IAM permissions are required to call this method.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigqueryreservation_projects_locations_reservations_assignments_test_iam_permissions_execute()` to send, or `bigqueryreservation_projects_locations_reservations_assignments_test_iam_permissions` for simplest API.
@@ -5502,7 +5502,7 @@ where
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/reservations/{reservationsId}/assignments/{assignmentsId}:testIamPermissions
-/// Gets your permissions on a resource. Returns an empty set of permissions if the resource doesn't exist. Supported resources are: - Reservations No Google IAM permissions are required to call this method.
+/// Gets your permissions on a resource. Returns an empty set of permissions if the resource doesn''t exist. Supported resources are: - Reservations No Google IAM permissions are required to call this method.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -5576,7 +5576,7 @@ pub fn bigqueryreservation_projects_locations_reservations_assignments_test_iam_
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/reservations/{reservationsId}/assignments/{assignmentsId}:testIamPermissions
-/// Gets your permissions on a resource. Returns an empty set of permissions if the resource doesn't exist. Supported resources are: - Reservations No Google IAM permissions are required to call this method.
+/// Gets your permissions on a resource. Returns an empty set of permissions if the resource doesn''t exist. Supported resources are: - Reservations No Google IAM permissions are required to call this method.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -5620,7 +5620,7 @@ pub struct BigqueryreservationProjectsLocationsReservationsAssignmentsTestIamPer
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/reservations/{reservationsId}/assignments/{assignmentsId}:testIamPermissions
-/// Gets your permissions on a resource. Returns an empty set of permissions if the resource doesn't exist. Supported resources are: - Reservations No Google IAM permissions are required to call this method.
+/// Gets your permissions on a resource. Returns an empty set of permissions if the resource doesn''t exist. Supported resources are: - Reservations No Google IAM permissions are required to call this method.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `bigqueryreservation_projects_locations_reservations_assignments_test_iam_permissions_builder()` + `bigqueryreservation_projects_locations_reservations_assignments_test_iam_permissions_execute()`.

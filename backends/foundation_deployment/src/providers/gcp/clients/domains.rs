@@ -545,7 +545,7 @@ pub fn domains_projects_locations_operations_get(
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `domains_projects_locations_operations_list_execute()` to send, or `domains_projects_locations_operations_list` for simplest API.
@@ -596,7 +596,7 @@ where
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -670,7 +670,7 @@ pub fn domains_projects_locations_operations_list_task(
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -717,7 +717,7 @@ pub struct DomainsProjectsLocationsOperationsListArgs {
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `domains_projects_locations_operations_list_builder()` + `domains_projects_locations_operations_list_execute()`.
@@ -748,7 +748,7 @@ pub fn domains_projects_locations_operations_list(
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/registrations/{registrationsId}:configureContactSettings
-/// Updates a Registration's contact settings. Some changes require confirmation by the domain's registrant contact . Caution: Please consider carefully any changes to contact privacy settings when changing from REDACTED_CONTACT_DATA to PUBLIC_CONTACT_DATA. There may be a delay in reflecting updates you make to registrant contact information such that any changes you make to contact privacy (including from REDACTED_CONTACT_DATA to PUBLIC_CONTACT_DATA) will be applied without delay but changes to registrant contact information may take a limited time to be publicized. This means that changes to contact privacy from REDACTED_CONTACT_DATA to PUBLIC_CONTACT_DATA may make the previous registrant contact data public until the modified registrant contact details are published.
+/// Updates a Registration''s contact settings. Some changes require confirmation by the domain''s registrant contact . Caution: Please consider carefully any changes to contact privacy settings when changing from REDACTED_CONTACT_DATA to PUBLIC_CONTACT_DATA. There may be a delay in reflecting updates you make to registrant contact information such that any changes you make to contact privacy (including from REDACTED_CONTACT_DATA to PUBLIC_CONTACT_DATA) will be applied without delay but changes to registrant contact information may take a limited time to be publicized. This means that changes to contact privacy from REDACTED_CONTACT_DATA to PUBLIC_CONTACT_DATA may make the previous registrant contact data public until the modified registrant contact details are published.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `domains_projects_locations_registrations_configure_contact_settings_execute()` to send, or `domains_projects_locations_registrations_configure_contact_settings` for simplest API.
@@ -775,7 +775,7 @@ where
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/registrations/{registrationsId}:configureContactSettings
-/// Updates a Registration's contact settings. Some changes require confirmation by the domain's registrant contact . Caution: Please consider carefully any changes to contact privacy settings when changing from REDACTED_CONTACT_DATA to PUBLIC_CONTACT_DATA. There may be a delay in reflecting updates you make to registrant contact information such that any changes you make to contact privacy (including from REDACTED_CONTACT_DATA to PUBLIC_CONTACT_DATA) will be applied without delay but changes to registrant contact information may take a limited time to be publicized. This means that changes to contact privacy from REDACTED_CONTACT_DATA to PUBLIC_CONTACT_DATA may make the previous registrant contact data public until the modified registrant contact details are published.
+/// Updates a Registration''s contact settings. Some changes require confirmation by the domain''s registrant contact . Caution: Please consider carefully any changes to contact privacy settings when changing from REDACTED_CONTACT_DATA to PUBLIC_CONTACT_DATA. There may be a delay in reflecting updates you make to registrant contact information such that any changes you make to contact privacy (including from REDACTED_CONTACT_DATA to PUBLIC_CONTACT_DATA) will be applied without delay but changes to registrant contact information may take a limited time to be publicized. This means that changes to contact privacy from REDACTED_CONTACT_DATA to PUBLIC_CONTACT_DATA may make the previous registrant contact data public until the modified registrant contact details are published.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -849,7 +849,7 @@ pub fn domains_projects_locations_registrations_configure_contact_settings_task(
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/registrations/{registrationsId}:configureContactSettings
-/// Updates a Registration's contact settings. Some changes require confirmation by the domain's registrant contact . Caution: Please consider carefully any changes to contact privacy settings when changing from REDACTED_CONTACT_DATA to PUBLIC_CONTACT_DATA. There may be a delay in reflecting updates you make to registrant contact information such that any changes you make to contact privacy (including from REDACTED_CONTACT_DATA to PUBLIC_CONTACT_DATA) will be applied without delay but changes to registrant contact information may take a limited time to be publicized. This means that changes to contact privacy from REDACTED_CONTACT_DATA to PUBLIC_CONTACT_DATA may make the previous registrant contact data public until the modified registrant contact details are published.
+/// Updates a Registration''s contact settings. Some changes require confirmation by the domain''s registrant contact . Caution: Please consider carefully any changes to contact privacy settings when changing from REDACTED_CONTACT_DATA to PUBLIC_CONTACT_DATA. There may be a delay in reflecting updates you make to registrant contact information such that any changes you make to contact privacy (including from REDACTED_CONTACT_DATA to PUBLIC_CONTACT_DATA) will be applied without delay but changes to registrant contact information may take a limited time to be publicized. This means that changes to contact privacy from REDACTED_CONTACT_DATA to PUBLIC_CONTACT_DATA may make the previous registrant contact data public until the modified registrant contact details are published.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -886,7 +886,7 @@ pub struct DomainsProjectsLocationsRegistrationsConfigureContactSettingsArgs {
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/registrations/{registrationsId}:configureContactSettings
-/// Updates a Registration's contact settings. Some changes require confirmation by the domain's registrant contact . Caution: Please consider carefully any changes to contact privacy settings when changing from REDACTED_CONTACT_DATA to PUBLIC_CONTACT_DATA. There may be a delay in reflecting updates you make to registrant contact information such that any changes you make to contact privacy (including from REDACTED_CONTACT_DATA to PUBLIC_CONTACT_DATA) will be applied without delay but changes to registrant contact information may take a limited time to be publicized. This means that changes to contact privacy from REDACTED_CONTACT_DATA to PUBLIC_CONTACT_DATA may make the previous registrant contact data public until the modified registrant contact details are published.
+/// Updates a Registration''s contact settings. Some changes require confirmation by the domain''s registrant contact . Caution: Please consider carefully any changes to contact privacy settings when changing from REDACTED_CONTACT_DATA to PUBLIC_CONTACT_DATA. There may be a delay in reflecting updates you make to registrant contact information such that any changes you make to contact privacy (including from REDACTED_CONTACT_DATA to PUBLIC_CONTACT_DATA) will be applied without delay but changes to registrant contact information may take a limited time to be publicized. This means that changes to contact privacy from REDACTED_CONTACT_DATA to PUBLIC_CONTACT_DATA may make the previous registrant contact data public until the modified registrant contact details are published.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `domains_projects_locations_registrations_configure_contact_settings_builder()` + `domains_projects_locations_registrations_configure_contact_settings_execute()`.
@@ -911,7 +911,7 @@ pub fn domains_projects_locations_registrations_configure_contact_settings(
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/registrations/{registrationsId}:configureDnsSettings
-/// Updates a Registration's DNS settings.
+/// Updates a Registration''s DNS settings.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `domains_projects_locations_registrations_configure_dns_settings_execute()` to send, or `domains_projects_locations_registrations_configure_dns_settings` for simplest API.
@@ -938,7 +938,7 @@ where
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/registrations/{registrationsId}:configureDnsSettings
-/// Updates a Registration's DNS settings.
+/// Updates a Registration''s DNS settings.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -1012,7 +1012,7 @@ pub fn domains_projects_locations_registrations_configure_dns_settings_task(
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/registrations/{registrationsId}:configureDnsSettings
-/// Updates a Registration's DNS settings.
+/// Updates a Registration''s DNS settings.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -1049,7 +1049,7 @@ pub struct DomainsProjectsLocationsRegistrationsConfigureDnsSettingsArgs {
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/registrations/{registrationsId}:configureDnsSettings
-/// Updates a Registration's DNS settings.
+/// Updates a Registration''s DNS settings.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `domains_projects_locations_registrations_configure_dns_settings_builder()` + `domains_projects_locations_registrations_configure_dns_settings_execute()`.
@@ -1074,7 +1074,7 @@ pub fn domains_projects_locations_registrations_configure_dns_settings(
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/registrations/{registrationsId}:configureManagementSettings
-/// Updates a Registration's management settings.
+/// Updates a Registration''s management settings.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `domains_projects_locations_registrations_configure_management_settings_execute()` to send, or `domains_projects_locations_registrations_configure_management_settings` for simplest API.
@@ -1101,7 +1101,7 @@ where
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/registrations/{registrationsId}:configureManagementSettings
-/// Updates a Registration's management settings.
+/// Updates a Registration''s management settings.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -1175,7 +1175,7 @@ pub fn domains_projects_locations_registrations_configure_management_settings_ta
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/registrations/{registrationsId}:configureManagementSettings
-/// Updates a Registration's management settings.
+/// Updates a Registration''s management settings.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -1213,7 +1213,7 @@ pub struct DomainsProjectsLocationsRegistrationsConfigureManagementSettingsArgs 
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/registrations/{registrationsId}:configureManagementSettings
-/// Updates a Registration's management settings.
+/// Updates a Registration''s management settings.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `domains_projects_locations_registrations_configure_management_settings_builder()` + `domains_projects_locations_registrations_configure_management_settings_execute()`.
@@ -1238,7 +1238,7 @@ pub fn domains_projects_locations_registrations_configure_management_settings(
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/registrations/{registrationsId}
-/// Deletes a Registration resource. This method works on any Registration resource using [Subscription or Commitment billing](/`domains/pricing`#billing-models), provided that the resource was created at least 1 day in the past. When an active registration is successfully deleted, you can continue to use the domain in [Google Domains](<https://domains.google/>) until it expires. The calling user becomes the domain's sole owner in Google Domains, and permissions for the domain are subsequently managed there. The domain does not renew automatically unless the new owner sets up billing in Google Domains. After January 2024 you will only be able to delete Registration resources when state is one of: EXPORTED, EXPIRED,REGISTRATION_FAILED or TRANSFER_FAILED. See [Cloud Domains feature deprecation](<https://cloud.google.`com/domains/docs/deprecations/feature-deprecations`>) for more details.
+/// Deletes a Registration resource. This method works on any Registration resource using [Subscription or Commitment billing](/`domains/pricing`#billing-models), provided that the resource was created at least 1 day in the past. When an active registration is successfully deleted, you can continue to use the domain in [Google Domains](<https://domains.google/>) until it expires. The calling user becomes the domain''s sole owner in Google Domains, and permissions for the domain are subsequently managed there. The domain does not renew automatically unless the new owner sets up billing in Google Domains. After January 2024 you will only be able to delete Registration resources when state is one of: EXPORTED, EXPIRED,REGISTRATION_FAILED or TRANSFER_FAILED. See [Cloud Domains feature deprecation](<https://cloud.google.`com/domains/docs/deprecations/feature-deprecations`>) for more details.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `domains_projects_locations_registrations_delete_execute()` to send, or `domains_projects_locations_registrations_delete` for simplest API.
@@ -1265,7 +1265,7 @@ where
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/registrations/{registrationsId}
-/// Deletes a Registration resource. This method works on any Registration resource using [Subscription or Commitment billing](/`domains/pricing`#billing-models), provided that the resource was created at least 1 day in the past. When an active registration is successfully deleted, you can continue to use the domain in [Google Domains](<https://domains.google/>) until it expires. The calling user becomes the domain's sole owner in Google Domains, and permissions for the domain are subsequently managed there. The domain does not renew automatically unless the new owner sets up billing in Google Domains. After January 2024 you will only be able to delete Registration resources when state is one of: EXPORTED, EXPIRED,REGISTRATION_FAILED or TRANSFER_FAILED. See [Cloud Domains feature deprecation](<https://cloud.google.`com/domains/docs/deprecations/feature-deprecations`>) for more details.
+/// Deletes a Registration resource. This method works on any Registration resource using [Subscription or Commitment billing](/`domains/pricing`#billing-models), provided that the resource was created at least 1 day in the past. When an active registration is successfully deleted, you can continue to use the domain in [Google Domains](<https://domains.google/>) until it expires. The calling user becomes the domain''s sole owner in Google Domains, and permissions for the domain are subsequently managed there. The domain does not renew automatically unless the new owner sets up billing in Google Domains. After January 2024 you will only be able to delete Registration resources when state is one of: EXPORTED, EXPIRED,REGISTRATION_FAILED or TRANSFER_FAILED. See [Cloud Domains feature deprecation](<https://cloud.google.`com/domains/docs/deprecations/feature-deprecations`>) for more details.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -1339,7 +1339,7 @@ pub fn domains_projects_locations_registrations_delete_task(
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/registrations/{registrationsId}
-/// Deletes a Registration resource. This method works on any Registration resource using [Subscription or Commitment billing](/`domains/pricing`#billing-models), provided that the resource was created at least 1 day in the past. When an active registration is successfully deleted, you can continue to use the domain in [Google Domains](<https://domains.google/>) until it expires. The calling user becomes the domain's sole owner in Google Domains, and permissions for the domain are subsequently managed there. The domain does not renew automatically unless the new owner sets up billing in Google Domains. After January 2024 you will only be able to delete Registration resources when state is one of: EXPORTED, EXPIRED,REGISTRATION_FAILED or TRANSFER_FAILED. See [Cloud Domains feature deprecation](<https://cloud.google.`com/domains/docs/deprecations/feature-deprecations`>) for more details.
+/// Deletes a Registration resource. This method works on any Registration resource using [Subscription or Commitment billing](/`domains/pricing`#billing-models), provided that the resource was created at least 1 day in the past. When an active registration is successfully deleted, you can continue to use the domain in [Google Domains](<https://domains.google/>) until it expires. The calling user becomes the domain''s sole owner in Google Domains, and permissions for the domain are subsequently managed there. The domain does not renew automatically unless the new owner sets up billing in Google Domains. After January 2024 you will only be able to delete Registration resources when state is one of: EXPORTED, EXPIRED,REGISTRATION_FAILED or TRANSFER_FAILED. See [Cloud Domains feature deprecation](<https://cloud.google.`com/domains/docs/deprecations/feature-deprecations`>) for more details.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -1376,7 +1376,7 @@ pub struct DomainsProjectsLocationsRegistrationsDeleteArgs {
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/registrations/{registrationsId}
-/// Deletes a Registration resource. This method works on any Registration resource using [Subscription or Commitment billing](/`domains/pricing`#billing-models), provided that the resource was created at least 1 day in the past. When an active registration is successfully deleted, you can continue to use the domain in [Google Domains](<https://domains.google/>) until it expires. The calling user becomes the domain's sole owner in Google Domains, and permissions for the domain are subsequently managed there. The domain does not renew automatically unless the new owner sets up billing in Google Domains. After January 2024 you will only be able to delete Registration resources when state is one of: EXPORTED, EXPIRED,REGISTRATION_FAILED or TRANSFER_FAILED. See [Cloud Domains feature deprecation](<https://cloud.google.`com/domains/docs/deprecations/feature-deprecations`>) for more details.
+/// Deletes a Registration resource. This method works on any Registration resource using [Subscription or Commitment billing](/`domains/pricing`#billing-models), provided that the resource was created at least 1 day in the past. When an active registration is successfully deleted, you can continue to use the domain in [Google Domains](<https://domains.google/>) until it expires. The calling user becomes the domain''s sole owner in Google Domains, and permissions for the domain are subsequently managed there. The domain does not renew automatically unless the new owner sets up billing in Google Domains. After January 2024 you will only be able to delete Registration resources when state is one of: EXPORTED, EXPIRED,REGISTRATION_FAILED or TRANSFER_FAILED. See [Cloud Domains feature deprecation](<https://cloud.google.`com/domains/docs/deprecations/feature-deprecations`>) for more details.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `domains_projects_locations_registrations_delete_builder()` + `domains_projects_locations_registrations_delete_execute()`.
@@ -1398,7 +1398,7 @@ pub fn domains_projects_locations_registrations_delete(
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/registrations/{registrationsId}:export
-/// Deprecated: For more information, see [Cloud Domains feature deprecation](<https://cloud.google.`com/domains/docs/deprecations/feature-deprecations`>) Exports a Registration resource, such that it is no longer managed by Cloud Domains. When an active domain is successfully exported, you can continue to use the domain in [Google Domains](<https://domains.google/>) until it expires. The calling user becomes the domain's sole owner in Google Domains, and permissions for the domain are subsequently managed there. The domain does not renew automatically unless the new owner sets up billing in Google Domains.
+/// Deprecated: For more information, see [Cloud Domains feature deprecation](<https://cloud.google.`com/domains/docs/deprecations/feature-deprecations`>) Exports a Registration resource, such that it is no longer managed by Cloud Domains. When an active domain is successfully exported, you can continue to use the domain in [Google Domains](<https://domains.google/>) until it expires. The calling user becomes the domain''s sole owner in Google Domains, and permissions for the domain are subsequently managed there. The domain does not renew automatically unless the new owner sets up billing in Google Domains.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `domains_projects_locations_registrations_export_execute()` to send, or `domains_projects_locations_registrations_export` for simplest API.
@@ -1425,7 +1425,7 @@ where
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/registrations/{registrationsId}:export
-/// Deprecated: For more information, see [Cloud Domains feature deprecation](<https://cloud.google.`com/domains/docs/deprecations/feature-deprecations`>) Exports a Registration resource, such that it is no longer managed by Cloud Domains. When an active domain is successfully exported, you can continue to use the domain in [Google Domains](<https://domains.google/>) until it expires. The calling user becomes the domain's sole owner in Google Domains, and permissions for the domain are subsequently managed there. The domain does not renew automatically unless the new owner sets up billing in Google Domains.
+/// Deprecated: For more information, see [Cloud Domains feature deprecation](<https://cloud.google.`com/domains/docs/deprecations/feature-deprecations`>) Exports a Registration resource, such that it is no longer managed by Cloud Domains. When an active domain is successfully exported, you can continue to use the domain in [Google Domains](<https://domains.google/>) until it expires. The calling user becomes the domain''s sole owner in Google Domains, and permissions for the domain are subsequently managed there. The domain does not renew automatically unless the new owner sets up billing in Google Domains.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -1499,7 +1499,7 @@ pub fn domains_projects_locations_registrations_export_task(
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/registrations/{registrationsId}:export
-/// Deprecated: For more information, see [Cloud Domains feature deprecation](<https://cloud.google.`com/domains/docs/deprecations/feature-deprecations`>) Exports a Registration resource, such that it is no longer managed by Cloud Domains. When an active domain is successfully exported, you can continue to use the domain in [Google Domains](<https://domains.google/>) until it expires. The calling user becomes the domain's sole owner in Google Domains, and permissions for the domain are subsequently managed there. The domain does not renew automatically unless the new owner sets up billing in Google Domains.
+/// Deprecated: For more information, see [Cloud Domains feature deprecation](<https://cloud.google.`com/domains/docs/deprecations/feature-deprecations`>) Exports a Registration resource, such that it is no longer managed by Cloud Domains. When an active domain is successfully exported, you can continue to use the domain in [Google Domains](<https://domains.google/>) until it expires. The calling user becomes the domain''s sole owner in Google Domains, and permissions for the domain are subsequently managed there. The domain does not renew automatically unless the new owner sets up billing in Google Domains.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -1536,7 +1536,7 @@ pub struct DomainsProjectsLocationsRegistrationsExportArgs {
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/registrations/{registrationsId}:export
-/// Deprecated: For more information, see [Cloud Domains feature deprecation](<https://cloud.google.`com/domains/docs/deprecations/feature-deprecations`>) Exports a Registration resource, such that it is no longer managed by Cloud Domains. When an active domain is successfully exported, you can continue to use the domain in [Google Domains](<https://domains.google/>) until it expires. The calling user becomes the domain's sole owner in Google Domains, and permissions for the domain are subsequently managed there. The domain does not renew automatically unless the new owner sets up billing in Google Domains.
+/// Deprecated: For more information, see [Cloud Domains feature deprecation](<https://cloud.google.`com/domains/docs/deprecations/feature-deprecations`>) Exports a Registration resource, such that it is no longer managed by Cloud Domains. When an active domain is successfully exported, you can continue to use the domain in [Google Domains](<https://domains.google/>) until it expires. The calling user becomes the domain''s sole owner in Google Domains, and permissions for the domain are subsequently managed there. The domain does not renew automatically unless the new owner sets up billing in Google Domains.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `domains_projects_locations_registrations_export_builder()` + `domains_projects_locations_registrations_export_execute()`.
@@ -2060,7 +2060,7 @@ pub fn domains_projects_locations_registrations_import(
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/registrations/{registrationsId}:initiatePushTransfer
-/// Initiates the Push Transfer process to transfer the domain to another registrar. The process might complete instantly or might require confirmation or additional work. Check the emails sent to the email address of the registrant. The process is aborted after a timeout if it's not completed. This method is only supported for domains that have the REQUIRE_PUSH_TRANSFER property in the list of domain_properties. The domain must also be unlocked before it can be transferred to a different registrar. For more information, see [Transfer a registered domain to another registrar](<https://cloud.google.`com/domains/docs/transfer-domain-to-another-registrar`>).
+/// Initiates the Push Transfer process to transfer the domain to another registrar. The process might complete instantly or might require confirmation or additional work. Check the emails sent to the email address of the registrant. The process is aborted after a timeout if it''s not completed. This method is only supported for domains that have the REQUIRE_PUSH_TRANSFER property in the list of domain_properties. The domain must also be unlocked before it can be transferred to a different registrar. For more information, see [Transfer a registered domain to another registrar](<https://cloud.google.`com/domains/docs/transfer-domain-to-another-registrar`>).
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `domains_projects_locations_registrations_initiate_push_transfer_execute()` to send, or `domains_projects_locations_registrations_initiate_push_transfer` for simplest API.
@@ -2087,7 +2087,7 @@ where
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/registrations/{registrationsId}:initiatePushTransfer
-/// Initiates the Push Transfer process to transfer the domain to another registrar. The process might complete instantly or might require confirmation or additional work. Check the emails sent to the email address of the registrant. The process is aborted after a timeout if it's not completed. This method is only supported for domains that have the REQUIRE_PUSH_TRANSFER property in the list of domain_properties. The domain must also be unlocked before it can be transferred to a different registrar. For more information, see [Transfer a registered domain to another registrar](<https://cloud.google.`com/domains/docs/transfer-domain-to-another-registrar`>).
+/// Initiates the Push Transfer process to transfer the domain to another registrar. The process might complete instantly or might require confirmation or additional work. Check the emails sent to the email address of the registrant. The process is aborted after a timeout if it''s not completed. This method is only supported for domains that have the REQUIRE_PUSH_TRANSFER property in the list of domain_properties. The domain must also be unlocked before it can be transferred to a different registrar. For more information, see [Transfer a registered domain to another registrar](<https://cloud.google.`com/domains/docs/transfer-domain-to-another-registrar`>).
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -2161,7 +2161,7 @@ pub fn domains_projects_locations_registrations_initiate_push_transfer_task(
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/registrations/{registrationsId}:initiatePushTransfer
-/// Initiates the Push Transfer process to transfer the domain to another registrar. The process might complete instantly or might require confirmation or additional work. Check the emails sent to the email address of the registrant. The process is aborted after a timeout if it's not completed. This method is only supported for domains that have the REQUIRE_PUSH_TRANSFER property in the list of domain_properties. The domain must also be unlocked before it can be transferred to a different registrar. For more information, see [Transfer a registered domain to another registrar](<https://cloud.google.`com/domains/docs/transfer-domain-to-another-registrar`>).
+/// Initiates the Push Transfer process to transfer the domain to another registrar. The process might complete instantly or might require confirmation or additional work. Check the emails sent to the email address of the registrant. The process is aborted after a timeout if it''s not completed. This method is only supported for domains that have the REQUIRE_PUSH_TRANSFER property in the list of domain_properties. The domain must also be unlocked before it can be transferred to a different registrar. For more information, see [Transfer a registered domain to another registrar](<https://cloud.google.`com/domains/docs/transfer-domain-to-another-registrar`>).
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -2198,7 +2198,7 @@ pub struct DomainsProjectsLocationsRegistrationsInitiatePushTransferArgs {
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/registrations/{registrationsId}:initiatePushTransfer
-/// Initiates the Push Transfer process to transfer the domain to another registrar. The process might complete instantly or might require confirmation or additional work. Check the emails sent to the email address of the registrant. The process is aborted after a timeout if it's not completed. This method is only supported for domains that have the REQUIRE_PUSH_TRANSFER property in the list of domain_properties. The domain must also be unlocked before it can be transferred to a different registrar. For more information, see [Transfer a registered domain to another registrar](<https://cloud.google.`com/domains/docs/transfer-domain-to-another-registrar`>).
+/// Initiates the Push Transfer process to transfer the domain to another registrar. The process might complete instantly or might require confirmation or additional work. Check the emails sent to the email address of the registrant. The process is aborted after a timeout if it''s not completed. This method is only supported for domains that have the REQUIRE_PUSH_TRANSFER property in the list of domain_properties. The domain must also be unlocked before it can be transferred to a different registrar. For more information, see [Transfer a registered domain to another registrar](<https://cloud.google.`com/domains/docs/transfer-domain-to-another-registrar`>).
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `domains_projects_locations_registrations_initiate_push_transfer_builder()` + `domains_projects_locations_registrations_initiate_push_transfer_execute()`.
@@ -2918,7 +2918,7 @@ pub fn domains_projects_locations_registrations_renew_domain(
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/registrations/{registrationsId}:resetAuthorizationCode
-/// Resets the authorization code of the Registration to a new random string. You can call this method only after 60 days have elapsed since the initial domain registration. Domains that have the REQUIRE_PUSH_TRANSFER property in the list of domain_properties don't support authorization codes and must use the InitiatePushTransfer method to initiate the process to transfer the domain to a different registrar.
+/// Resets the authorization code of the Registration to a new random string. You can call this method only after 60 days have elapsed since the initial domain registration. Domains that have the REQUIRE_PUSH_TRANSFER property in the list of domain_properties don''t support authorization codes and must use the InitiatePushTransfer method to initiate the process to transfer the domain to a different registrar.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `domains_projects_locations_registrations_reset_authorization_code_execute()` to send, or `domains_projects_locations_registrations_reset_authorization_code` for simplest API.
@@ -2945,7 +2945,7 @@ where
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/registrations/{registrationsId}:resetAuthorizationCode
-/// Resets the authorization code of the Registration to a new random string. You can call this method only after 60 days have elapsed since the initial domain registration. Domains that have the REQUIRE_PUSH_TRANSFER property in the list of domain_properties don't support authorization codes and must use the InitiatePushTransfer method to initiate the process to transfer the domain to a different registrar.
+/// Resets the authorization code of the Registration to a new random string. You can call this method only after 60 days have elapsed since the initial domain registration. Domains that have the REQUIRE_PUSH_TRANSFER property in the list of domain_properties don''t support authorization codes and must use the InitiatePushTransfer method to initiate the process to transfer the domain to a different registrar.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -3019,7 +3019,7 @@ pub fn domains_projects_locations_registrations_reset_authorization_code_task(
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/registrations/{registrationsId}:resetAuthorizationCode
-/// Resets the authorization code of the Registration to a new random string. You can call this method only after 60 days have elapsed since the initial domain registration. Domains that have the REQUIRE_PUSH_TRANSFER property in the list of domain_properties don't support authorization codes and must use the InitiatePushTransfer method to initiate the process to transfer the domain to a different registrar.
+/// Resets the authorization code of the Registration to a new random string. You can call this method only after 60 days have elapsed since the initial domain registration. Domains that have the REQUIRE_PUSH_TRANSFER property in the list of domain_properties don''t support authorization codes and must use the InitiatePushTransfer method to initiate the process to transfer the domain to a different registrar.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -3058,7 +3058,7 @@ pub struct DomainsProjectsLocationsRegistrationsResetAuthorizationCodeArgs {
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/registrations/{registrationsId}:resetAuthorizationCode
-/// Resets the authorization code of the Registration to a new random string. You can call this method only after 60 days have elapsed since the initial domain registration. Domains that have the REQUIRE_PUSH_TRANSFER property in the list of domain_properties don't support authorization codes and must use the InitiatePushTransfer method to initiate the process to transfer the domain to a different registrar.
+/// Resets the authorization code of the Registration to a new random string. You can call this method only after 60 days have elapsed since the initial domain registration. Domains that have the REQUIRE_PUSH_TRANSFER property in the list of domain_properties don''t support authorization codes and must use the InitiatePushTransfer method to initiate the process to transfer the domain to a different registrar.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `domains_projects_locations_registrations_reset_authorization_code_builder()` + `domains_projects_locations_registrations_reset_authorization_code_execute()`.
@@ -3085,7 +3085,7 @@ pub fn domains_projects_locations_registrations_reset_authorization_code(
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/registrations/{registrationsId}:retrieveAuthorizationCode
-/// Gets the authorization code of the Registration for the purpose of transferring the domain to another registrar. You can call this method only after 60 days have elapsed since the initial domain registration. Domains that have the REQUIRE_PUSH_TRANSFER property in the list of domain_properties don't support authorization codes and must use the InitiatePushTransfer method to initiate the process to transfer the domain to a different registrar.
+/// Gets the authorization code of the Registration for the purpose of transferring the domain to another registrar. You can call this method only after 60 days have elapsed since the initial domain registration. Domains that have the REQUIRE_PUSH_TRANSFER property in the list of domain_properties don''t support authorization codes and must use the InitiatePushTransfer method to initiate the process to transfer the domain to a different registrar.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `domains_projects_locations_registrations_retrieve_authorization_code_execute()` to send, or `domains_projects_locations_registrations_retrieve_authorization_code` for simplest API.
@@ -3112,7 +3112,7 @@ where
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/registrations/{registrationsId}:retrieveAuthorizationCode
-/// Gets the authorization code of the Registration for the purpose of transferring the domain to another registrar. You can call this method only after 60 days have elapsed since the initial domain registration. Domains that have the REQUIRE_PUSH_TRANSFER property in the list of domain_properties don't support authorization codes and must use the InitiatePushTransfer method to initiate the process to transfer the domain to a different registrar.
+/// Gets the authorization code of the Registration for the purpose of transferring the domain to another registrar. You can call this method only after 60 days have elapsed since the initial domain registration. Domains that have the REQUIRE_PUSH_TRANSFER property in the list of domain_properties don''t support authorization codes and must use the InitiatePushTransfer method to initiate the process to transfer the domain to a different registrar.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -3186,7 +3186,7 @@ pub fn domains_projects_locations_registrations_retrieve_authorization_code_task
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/registrations/{registrationsId}:retrieveAuthorizationCode
-/// Gets the authorization code of the Registration for the purpose of transferring the domain to another registrar. You can call this method only after 60 days have elapsed since the initial domain registration. Domains that have the REQUIRE_PUSH_TRANSFER property in the list of domain_properties don't support authorization codes and must use the InitiatePushTransfer method to initiate the process to transfer the domain to a different registrar.
+/// Gets the authorization code of the Registration for the purpose of transferring the domain to another registrar. You can call this method only after 60 days have elapsed since the initial domain registration. Domains that have the REQUIRE_PUSH_TRANSFER property in the list of domain_properties don''t support authorization codes and must use the InitiatePushTransfer method to initiate the process to transfer the domain to a different registrar.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -3225,7 +3225,7 @@ pub struct DomainsProjectsLocationsRegistrationsRetrieveAuthorizationCodeArgs {
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/registrations/{registrationsId}:retrieveAuthorizationCode
-/// Gets the authorization code of the Registration for the purpose of transferring the domain to another registrar. You can call this method only after 60 days have elapsed since the initial domain registration. Domains that have the REQUIRE_PUSH_TRANSFER property in the list of domain_properties don't support authorization codes and must use the InitiatePushTransfer method to initiate the process to transfer the domain to a different registrar.
+/// Gets the authorization code of the Registration for the purpose of transferring the domain to another registrar. You can call this method only after 60 days have elapsed since the initial domain registration. Domains that have the REQUIRE_PUSH_TRANSFER property in the list of domain_properties don''t support authorization codes and must use the InitiatePushTransfer method to initiate the process to transfer the domain to a different registrar.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `domains_projects_locations_registrations_retrieve_authorization_code_builder()` + `domains_projects_locations_registrations_retrieve_authorization_code_execute()`.
@@ -3252,7 +3252,7 @@ pub fn domains_projects_locations_registrations_retrieve_authorization_code(
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/registrations/{registrationsId}:retrieveGoogleDomainsDnsRecords
-/// Lists the DNS records from the Google Domains DNS zone for domains that use the deprecated google_domains_dns in the Registration's dns_settings.
+/// Lists the DNS records from the Google Domains DNS zone for domains that use the deprecated google_domains_dns in the Registration''s dns_settings.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `domains_projects_locations_registrations_retrieve_google_domains_dns_records_execute()` to send, or `domains_projects_locations_registrations_retrieve_google_domains_dns_records` for simplest API.
@@ -3295,7 +3295,7 @@ where
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/registrations/{registrationsId}:retrieveGoogleDomainsDnsRecords
-/// Lists the DNS records from the Google Domains DNS zone for domains that use the deprecated google_domains_dns in the Registration's dns_settings.
+/// Lists the DNS records from the Google Domains DNS zone for domains that use the deprecated google_domains_dns in the Registration''s dns_settings.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -3370,7 +3370,7 @@ pub fn domains_projects_locations_registrations_retrieve_google_domains_dns_reco
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/registrations/{registrationsId}:retrieveGoogleDomainsDnsRecords
-/// Lists the DNS records from the Google Domains DNS zone for domains that use the deprecated google_domains_dns in the Registration's dns_settings.
+/// Lists the DNS records from the Google Domains DNS zone for domains that use the deprecated google_domains_dns in the Registration''s dns_settings.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -3416,7 +3416,7 @@ pub struct DomainsProjectsLocationsRegistrationsRetrieveGoogleDomainsDnsRecordsA
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/registrations/{registrationsId}:retrieveGoogleDomainsDnsRecords
-/// Lists the DNS records from the Google Domains DNS zone for domains that use the deprecated google_domains_dns in the Registration's dns_settings.
+/// Lists the DNS records from the Google Domains DNS zone for domains that use the deprecated google_domains_dns in the Registration''s dns_settings.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `domains_projects_locations_registrations_retrieve_google_domains_dns_records_builder()` + `domains_projects_locations_registrations_retrieve_google_domains_dns_records_execute()`.
@@ -3448,7 +3448,7 @@ pub fn domains_projects_locations_registrations_retrieve_google_domains_dns_reco
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/registrations/{registrationsId}:retrieveGoogleDomainsForwardingConfig
-/// Lists the deprecated domain and email forwarding configurations you set up in the deprecated Google Domains UI. The configuration is present only for domains with the google_domains_redirects_data_available set to `true` in the Registration's dns_settings. A forwarding configuration might not work correctly if required DNS records are not present in the domain's authoritative DNS Zone.
+/// Lists the deprecated domain and email forwarding configurations you set up in the deprecated Google Domains UI. The configuration is present only for domains with the google_domains_redirects_data_available set to `true` in the Registration''s dns_settings. A forwarding configuration might not work correctly if required DNS records are not present in the domain''s authoritative DNS Zone.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `domains_projects_locations_registrations_retrieve_google_domains_forwarding_config_execute()` to send, or `domains_projects_locations_registrations_retrieve_google_domains_forwarding_config` for simplest API.
@@ -3477,7 +3477,7 @@ where
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/registrations/{registrationsId}:retrieveGoogleDomainsForwardingConfig
-/// Lists the deprecated domain and email forwarding configurations you set up in the deprecated Google Domains UI. The configuration is present only for domains with the google_domains_redirects_data_available set to `true` in the Registration's dns_settings. A forwarding configuration might not work correctly if required DNS records are not present in the domain's authoritative DNS Zone.
+/// Lists the deprecated domain and email forwarding configurations you set up in the deprecated Google Domains UI. The configuration is present only for domains with the google_domains_redirects_data_available set to `true` in the Registration''s dns_settings. A forwarding configuration might not work correctly if required DNS records are not present in the domain''s authoritative DNS Zone.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -3552,7 +3552,7 @@ pub fn domains_projects_locations_registrations_retrieve_google_domains_forwardi
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/registrations/{registrationsId}:retrieveGoogleDomainsForwardingConfig
-/// Lists the deprecated domain and email forwarding configurations you set up in the deprecated Google Domains UI. The configuration is present only for domains with the google_domains_redirects_data_available set to `true` in the Registration's dns_settings. A forwarding configuration might not work correctly if required DNS records are not present in the domain's authoritative DNS Zone.
+/// Lists the deprecated domain and email forwarding configurations you set up in the deprecated Google Domains UI. The configuration is present only for domains with the google_domains_redirects_data_available set to `true` in the Registration''s dns_settings. A forwarding configuration might not work correctly if required DNS records are not present in the domain''s authoritative DNS Zone.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -3596,7 +3596,7 @@ pub struct DomainsProjectsLocationsRegistrationsRetrieveGoogleDomainsForwardingC
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/registrations/{registrationsId}:retrieveGoogleDomainsForwardingConfig
-/// Lists the deprecated domain and email forwarding configurations you set up in the deprecated Google Domains UI. The configuration is present only for domains with the google_domains_redirects_data_available set to `true` in the Registration's dns_settings. A forwarding configuration might not work correctly if required DNS records are not present in the domain's authoritative DNS Zone.
+/// Lists the deprecated domain and email forwarding configurations you set up in the deprecated Google Domains UI. The configuration is present only for domains with the google_domains_redirects_data_available set to `true` in the Registration''s dns_settings. A forwarding configuration might not work correctly if required DNS records are not present in the domain''s authoritative DNS Zone.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `domains_projects_locations_registrations_retrieve_google_domains_forwarding_config_builder()` + `domains_projects_locations_registrations_retrieve_google_domains_forwarding_config_execute()`.
@@ -4707,7 +4707,7 @@ pub fn domains_projects_locations_registrations_test_iam_permissions(
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/registrations:transfer
-/// Deprecated: For more information, see [Cloud Domains feature deprecation](<https://cloud.google.`com/domains/docs/deprecations/feature-deprecations`>) Transfers a domain name from another registrar to Cloud Domains. For domains already managed by [Google Domains](<https://domains.google/>), use ImportDomain instead. Before calling this method, go to the domain's current registrar to unlock the domain for transfer and retrieve the domain's transfer authorization code. Then call RetrieveTransferParameters to confirm that the domain is unlocked and to get values needed to build a call to this method. A successful call creates a Registration resource in state TRANSFER_PENDING. It can take several days to complete the transfer process. The registrant can often speed up this process by approving the transfer through the current registrar, either by clicking a link in an email from the registrar or by visiting the registrar's website. A few minutes after transfer approval, the resource transitions to state `ACTIVE`, indicating that the transfer was successful. If the transfer is rejected or the request expires without being approved, the resource can end up in state TRANSFER_FAILED. If transfer fails, you can safely delete the resource and retry the transfer.
+/// Deprecated: For more information, see [Cloud Domains feature deprecation](<https://cloud.google.`com/domains/docs/deprecations/feature-deprecations`>) Transfers a domain name from another registrar to Cloud Domains. For domains already managed by [Google Domains](<https://domains.google/>), use ImportDomain instead. Before calling this method, go to the domain''s current registrar to unlock the domain for transfer and retrieve the domain''s transfer authorization code. Then call RetrieveTransferParameters to confirm that the domain is unlocked and to get values needed to build a call to this method. A successful call creates a Registration resource in state TRANSFER_PENDING. It can take several days to complete the transfer process. The registrant can often speed up this process by approving the transfer through the current registrar, either by clicking a link in an email from the registrar or by visiting the registrar''s website. A few minutes after transfer approval, the resource transitions to state `ACTIVE`, indicating that the transfer was successful. If the transfer is rejected or the request expires without being approved, the resource can end up in state TRANSFER_FAILED. If transfer fails, you can safely delete the resource and retry the transfer.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `domains_projects_locations_registrations_transfer_execute()` to send, or `domains_projects_locations_registrations_transfer` for simplest API.
@@ -4734,7 +4734,7 @@ where
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/registrations:transfer
-/// Deprecated: For more information, see [Cloud Domains feature deprecation](<https://cloud.google.`com/domains/docs/deprecations/feature-deprecations`>) Transfers a domain name from another registrar to Cloud Domains. For domains already managed by [Google Domains](<https://domains.google/>), use ImportDomain instead. Before calling this method, go to the domain's current registrar to unlock the domain for transfer and retrieve the domain's transfer authorization code. Then call RetrieveTransferParameters to confirm that the domain is unlocked and to get values needed to build a call to this method. A successful call creates a Registration resource in state TRANSFER_PENDING. It can take several days to complete the transfer process. The registrant can often speed up this process by approving the transfer through the current registrar, either by clicking a link in an email from the registrar or by visiting the registrar's website. A few minutes after transfer approval, the resource transitions to state `ACTIVE`, indicating that the transfer was successful. If the transfer is rejected or the request expires without being approved, the resource can end up in state TRANSFER_FAILED. If transfer fails, you can safely delete the resource and retry the transfer.
+/// Deprecated: For more information, see [Cloud Domains feature deprecation](<https://cloud.google.`com/domains/docs/deprecations/feature-deprecations`>) Transfers a domain name from another registrar to Cloud Domains. For domains already managed by [Google Domains](<https://domains.google/>), use ImportDomain instead. Before calling this method, go to the domain''s current registrar to unlock the domain for transfer and retrieve the domain''s transfer authorization code. Then call RetrieveTransferParameters to confirm that the domain is unlocked and to get values needed to build a call to this method. A successful call creates a Registration resource in state TRANSFER_PENDING. It can take several days to complete the transfer process. The registrant can often speed up this process by approving the transfer through the current registrar, either by clicking a link in an email from the registrar or by visiting the registrar''s website. A few minutes after transfer approval, the resource transitions to state `ACTIVE`, indicating that the transfer was successful. If the transfer is rejected or the request expires without being approved, the resource can end up in state TRANSFER_FAILED. If transfer fails, you can safely delete the resource and retry the transfer.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -4808,7 +4808,7 @@ pub fn domains_projects_locations_registrations_transfer_task(
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/registrations:transfer
-/// Deprecated: For more information, see [Cloud Domains feature deprecation](<https://cloud.google.`com/domains/docs/deprecations/feature-deprecations`>) Transfers a domain name from another registrar to Cloud Domains. For domains already managed by [Google Domains](<https://domains.google/>), use ImportDomain instead. Before calling this method, go to the domain's current registrar to unlock the domain for transfer and retrieve the domain's transfer authorization code. Then call RetrieveTransferParameters to confirm that the domain is unlocked and to get values needed to build a call to this method. A successful call creates a Registration resource in state TRANSFER_PENDING. It can take several days to complete the transfer process. The registrant can often speed up this process by approving the transfer through the current registrar, either by clicking a link in an email from the registrar or by visiting the registrar's website. A few minutes after transfer approval, the resource transitions to state `ACTIVE`, indicating that the transfer was successful. If the transfer is rejected or the request expires without being approved, the resource can end up in state TRANSFER_FAILED. If transfer fails, you can safely delete the resource and retry the transfer.
+/// Deprecated: For more information, see [Cloud Domains feature deprecation](<https://cloud.google.`com/domains/docs/deprecations/feature-deprecations`>) Transfers a domain name from another registrar to Cloud Domains. For domains already managed by [Google Domains](<https://domains.google/>), use ImportDomain instead. Before calling this method, go to the domain''s current registrar to unlock the domain for transfer and retrieve the domain''s transfer authorization code. Then call RetrieveTransferParameters to confirm that the domain is unlocked and to get values needed to build a call to this method. A successful call creates a Registration resource in state TRANSFER_PENDING. It can take several days to complete the transfer process. The registrant can often speed up this process by approving the transfer through the current registrar, either by clicking a link in an email from the registrar or by visiting the registrar''s website. A few minutes after transfer approval, the resource transitions to state `ACTIVE`, indicating that the transfer was successful. If the transfer is rejected or the request expires without being approved, the resource can end up in state TRANSFER_FAILED. If transfer fails, you can safely delete the resource and retry the transfer.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -4845,7 +4845,7 @@ pub struct DomainsProjectsLocationsRegistrationsTransferArgs {
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/registrations:transfer
-/// Deprecated: For more information, see [Cloud Domains feature deprecation](<https://cloud.google.`com/domains/docs/deprecations/feature-deprecations`>) Transfers a domain name from another registrar to Cloud Domains. For domains already managed by [Google Domains](<https://domains.google/>), use ImportDomain instead. Before calling this method, go to the domain's current registrar to unlock the domain for transfer and retrieve the domain's transfer authorization code. Then call RetrieveTransferParameters to confirm that the domain is unlocked and to get values needed to build a call to this method. A successful call creates a Registration resource in state TRANSFER_PENDING. It can take several days to complete the transfer process. The registrant can often speed up this process by approving the transfer through the current registrar, either by clicking a link in an email from the registrar or by visiting the registrar's website. A few minutes after transfer approval, the resource transitions to state `ACTIVE`, indicating that the transfer was successful. If the transfer is rejected or the request expires without being approved, the resource can end up in state TRANSFER_FAILED. If transfer fails, you can safely delete the resource and retry the transfer.
+/// Deprecated: For more information, see [Cloud Domains feature deprecation](<https://cloud.google.`com/domains/docs/deprecations/feature-deprecations`>) Transfers a domain name from another registrar to Cloud Domains. For domains already managed by [Google Domains](<https://domains.google/>), use ImportDomain instead. Before calling this method, go to the domain''s current registrar to unlock the domain for transfer and retrieve the domain''s transfer authorization code. Then call RetrieveTransferParameters to confirm that the domain is unlocked and to get values needed to build a call to this method. A successful call creates a Registration resource in state TRANSFER_PENDING. It can take several days to complete the transfer process. The registrant can often speed up this process by approving the transfer through the current registrar, either by clicking a link in an email from the registrar or by visiting the registrar''s website. A few minutes after transfer approval, the resource transitions to state `ACTIVE`, indicating that the transfer was successful. If the transfer is rejected or the request expires without being approved, the resource can end up in state TRANSFER_FAILED. If transfer fails, you can safely delete the resource and retry the transfer.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `domains_projects_locations_registrations_transfer_builder()` + `domains_projects_locations_registrations_transfer_execute()`.

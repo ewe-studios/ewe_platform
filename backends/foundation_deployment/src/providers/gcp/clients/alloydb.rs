@@ -6401,7 +6401,7 @@ pub fn alloydb_projects_locations_clusters_users_patch(
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `alloydb_projects_locations_operations_cancel_execute()` to send, or `alloydb_projects_locations_operations_cancel` for simplest API.
@@ -6428,7 +6428,7 @@ where
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -6502,7 +6502,7 @@ pub fn alloydb_projects_locations_operations_cancel_task(
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -6539,7 +6539,7 @@ pub struct AlloydbProjectsLocationsOperationsCancelArgs {
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `alloydb_projects_locations_operations_cancel_builder()` + `alloydb_projects_locations_operations_cancel_execute()`.
@@ -6561,7 +6561,7 @@ pub fn alloydb_projects_locations_operations_cancel(
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
-/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `alloydb_projects_locations_operations_delete_execute()` to send, or `alloydb_projects_locations_operations_delete` for simplest API.
@@ -6588,7 +6588,7 @@ where
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
-/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -6662,7 +6662,7 @@ pub fn alloydb_projects_locations_operations_delete_task(
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
-/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -6699,7 +6699,7 @@ pub struct AlloydbProjectsLocationsOperationsDeleteArgs {
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
-/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `alloydb_projects_locations_operations_delete_builder()` + `alloydb_projects_locations_operations_delete_execute()`.
@@ -6881,7 +6881,7 @@ pub fn alloydb_projects_locations_operations_get(
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `alloydb_projects_locations_operations_list_execute()` to send, or `alloydb_projects_locations_operations_list` for simplest API.
@@ -6932,7 +6932,7 @@ where
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -7006,7 +7006,7 @@ pub fn alloydb_projects_locations_operations_list_task(
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -7053,7 +7053,7 @@ pub struct AlloydbProjectsLocationsOperationsListArgs {
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `alloydb_projects_locations_operations_list_builder()` + `alloydb_projects_locations_operations_list_execute()`.

@@ -615,7 +615,7 @@ pub fn safebrowsing_hash_lists_list(
 }
 
 /// GET v5/hashes:search
-/// Searches for full hashes matching the specified prefixes. This is a custom method as defined by <https://google.aip.`dev/136`> (the custom method refers to this method having a custom name within Google's general API development nomenclature; it does not refer to using a custom HTTP method).
+/// Searches for full hashes matching the specified prefixes. This is a custom method as defined by <https://google.aip.`dev/136`> (the custom method refers to this method having a custom name within Google''s general API development nomenclature; it does not refer to using a custom HTTP method).
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `safebrowsing_hashes_search_execute()` to send, or `safebrowsing_hashes_search` for simplest API.
@@ -650,7 +650,7 @@ where
 }
 
 /// GET v5/hashes:search
-/// Searches for full hashes matching the specified prefixes. This is a custom method as defined by <https://google.aip.`dev/136`> (the custom method refers to this method having a custom name within Google's general API development nomenclature; it does not refer to using a custom HTTP method).
+/// Searches for full hashes matching the specified prefixes. This is a custom method as defined by <https://google.aip.`dev/136`> (the custom method refers to this method having a custom name within Google''s general API development nomenclature; it does not refer to using a custom HTTP method).
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -725,7 +725,7 @@ pub fn safebrowsing_hashes_search_task(
 }
 
 /// GET v5/hashes:search
-/// Searches for full hashes matching the specified prefixes. This is a custom method as defined by <https://google.aip.`dev/136`> (the custom method refers to this method having a custom name within Google's general API development nomenclature; it does not refer to using a custom HTTP method).
+/// Searches for full hashes matching the specified prefixes. This is a custom method as defined by <https://google.aip.`dev/136`> (the custom method refers to this method having a custom name within Google''s general API development nomenclature; it does not refer to using a custom HTTP method).
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -766,7 +766,7 @@ pub struct SafebrowsingHashesSearchArgs {
 }
 
 /// GET v5/hashes:search
-/// Searches for full hashes matching the specified prefixes. This is a custom method as defined by <https://google.aip.`dev/136`> (the custom method refers to this method having a custom name within Google's general API development nomenclature; it does not refer to using a custom HTTP method).
+/// Searches for full hashes matching the specified prefixes. This is a custom method as defined by <https://google.aip.`dev/136`> (the custom method refers to this method having a custom name within Google''s general API development nomenclature; it does not refer to using a custom HTTP method).
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `safebrowsing_hashes_search_builder()` + `safebrowsing_hashes_search_execute()`.
@@ -792,7 +792,7 @@ pub fn safebrowsing_hashes_search(
 }
 
 /// GET v5/urls:search
-/// Searches for URLs matching known threats. Each URL and it's host-suffix and path-prefix expressions (up to a limited depth) are checked. This means that the response may contain URLs that were not included in the request, but are expressions of the requested URLs.
+/// Searches for URLs matching known threats. Each URL and it''s host-suffix and path-prefix expressions (up to a limited depth) are checked. This means that the response may contain URLs that were not included in the request, but are expressions of the requested URLs.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `safebrowsing_urls_search_execute()` to send, or `safebrowsing_urls_search` for simplest API.
@@ -827,7 +827,7 @@ where
 }
 
 /// GET v5/urls:search
-/// Searches for URLs matching known threats. Each URL and it's host-suffix and path-prefix expressions (up to a limited depth) are checked. This means that the response may contain URLs that were not included in the request, but are expressions of the requested URLs.
+/// Searches for URLs matching known threats. Each URL and it''s host-suffix and path-prefix expressions (up to a limited depth) are checked. This means that the response may contain URLs that were not included in the request, but are expressions of the requested URLs.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -902,7 +902,7 @@ pub fn safebrowsing_urls_search_task(
 }
 
 /// GET v5/urls:search
-/// Searches for URLs matching known threats. Each URL and it's host-suffix and path-prefix expressions (up to a limited depth) are checked. This means that the response may contain URLs that were not included in the request, but are expressions of the requested URLs.
+/// Searches for URLs matching known threats. Each URL and it''s host-suffix and path-prefix expressions (up to a limited depth) are checked. This means that the response may contain URLs that were not included in the request, but are expressions of the requested URLs.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -943,7 +943,7 @@ pub struct SafebrowsingUrlsSearchArgs {
 }
 
 /// GET v5/urls:search
-/// Searches for URLs matching known threats. Each URL and it's host-suffix and path-prefix expressions (up to a limited depth) are checked. This means that the response may contain URLs that were not included in the request, but are expressions of the requested URLs.
+/// Searches for URLs matching known threats. Each URL and it''s host-suffix and path-prefix expressions (up to a limited depth) are checked. This means that the response may contain URLs that were not included in the request, but are expressions of the requested URLs.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `safebrowsing_urls_search_builder()` + `safebrowsing_urls_search_execute()`.

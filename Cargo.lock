@@ -1480,6 +1480,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "ewe_deployables"
+version = "0.0.1"
+dependencies = [
+ "chrono",
+ "foundation_core",
+ "foundation_db",
+ "foundation_deployment",
+ "serde",
+ "serde_json",
+ "thiserror 1.0.69",
+ "tracing",
+]
+
+[[package]]
 name = "ewe_devserver"
 version = "0.0.2"
 dependencies = [

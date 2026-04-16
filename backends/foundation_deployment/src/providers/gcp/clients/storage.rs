@@ -12497,7 +12497,7 @@ pub fn storage_objects_move(
 }
 
 /// PATCH b/{bucket}/o/{object}
-/// Patches an object's metadata.
+/// Patches an object''s metadata.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `storage_objects_patch_execute()` to send, or `storage_objects_patch` for simplest API.
@@ -12569,7 +12569,7 @@ where
 }
 
 /// PATCH b/{bucket}/o/{object}
-/// Patches an object's metadata.
+/// Patches an object''s metadata.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -12643,7 +12643,7 @@ pub fn storage_objects_patch_task(
 }
 
 /// PATCH b/{bucket}/o/{object}
-/// Patches an object's metadata.
+/// Patches an object''s metadata.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -12700,7 +12700,7 @@ pub struct StorageObjectsPatchArgs {
 }
 
 /// PATCH b/{bucket}/o/{object}
-/// Patches an object's metadata.
+/// Patches an object''s metadata.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `storage_objects_patch_builder()` + `storage_objects_patch_execute()`.
@@ -13665,7 +13665,7 @@ pub fn storage_objects_test_iam_permissions(
 }
 
 /// PUT b/{bucket}/o/{object}
-/// Updates an object's metadata.
+/// Updates an object''s metadata.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `storage_objects_update_execute()` to send, or `storage_objects_update` for simplest API.
@@ -13737,7 +13737,7 @@ where
 }
 
 /// PUT b/{bucket}/o/{object}
-/// Updates an object's metadata.
+/// Updates an object''s metadata.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -13811,7 +13811,7 @@ pub fn storage_objects_update_task(
 }
 
 /// PUT b/{bucket}/o/{object}
-/// Updates an object's metadata.
+/// Updates an object''s metadata.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -13868,7 +13868,7 @@ pub struct StorageObjectsUpdateArgs {
 }
 
 /// PUT b/{bucket}/o/{object}
-/// Updates an object's metadata.
+/// Updates an object''s metadata.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `storage_objects_update_builder()` + `storage_objects_update_execute()`.
@@ -15205,7 +15205,7 @@ pub fn storage_projects_hmac_keys_delete(
 }
 
 /// GET projects/{projectId}/hmacKeys/{accessId}
-/// Retrieves an HMAC key's metadata
+/// Retrieves an HMAC key''s metadata
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `storage_projects_hmac_keys_get_execute()` to send, or `storage_projects_hmac_keys_get` for simplest API.
@@ -15245,7 +15245,7 @@ where
 }
 
 /// GET projects/{projectId}/hmacKeys/{accessId}
-/// Retrieves an HMAC key's metadata
+/// Retrieves an HMAC key''s metadata
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -15319,7 +15319,7 @@ pub fn storage_projects_hmac_keys_get_task(
 }
 
 /// GET projects/{projectId}/hmacKeys/{accessId}
-/// Retrieves an HMAC key's metadata
+/// Retrieves an HMAC key''s metadata
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -15362,7 +15362,7 @@ pub struct StorageProjectsHmacKeysGetArgs {
 }
 
 /// GET projects/{projectId}/hmacKeys/{accessId}
-/// Retrieves an HMAC key's metadata
+/// Retrieves an HMAC key''s metadata
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `storage_projects_hmac_keys_get_builder()` + `storage_projects_hmac_keys_get_execute()`.
@@ -15787,7 +15787,7 @@ pub fn storage_projects_hmac_keys_update(
 }
 
 /// GET projects/{projectId}/serviceAccount
-/// Get the email address of this project's Google Cloud Storage service account.
+/// Get the email address of this project''s Google Cloud Storage service account.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `storage_projects_service_account_get_execute()` to send, or `storage_projects_service_account_get` for simplest API.
@@ -15826,7 +15826,7 @@ where
 }
 
 /// GET projects/{projectId}/serviceAccount
-/// Get the email address of this project's Google Cloud Storage service account.
+/// Get the email address of this project''s Google Cloud Storage service account.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -15900,7 +15900,7 @@ pub fn storage_projects_service_account_get_task(
 }
 
 /// GET projects/{projectId}/serviceAccount
-/// Get the email address of this project's Google Cloud Storage service account.
+/// Get the email address of this project''s Google Cloud Storage service account.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -15941,7 +15941,7 @@ pub struct StorageProjectsServiceAccountGetArgs {
 }
 
 /// GET projects/{projectId}/serviceAccount
-/// Get the email address of this project's Google Cloud Storage service account.
+/// Get the email address of this project''s Google Cloud Storage service account.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `storage_projects_service_account_get_builder()` + `storage_projects_service_account_get_execute()`.

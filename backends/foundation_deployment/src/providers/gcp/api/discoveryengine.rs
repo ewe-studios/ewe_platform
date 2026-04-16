@@ -131,16 +131,16 @@ use crate::providers::gcp::clients::discoveryengine::{
     discoveryengine_projects_locations_collections_engines_assistants_list_builder, discoveryengine_projects_locations_collections_engines_assistants_list_task,
     discoveryengine_projects_locations_collections_engines_assistants_patch_builder, discoveryengine_projects_locations_collections_engines_assistants_patch_task,
     discoveryengine_projects_locations_collections_engines_assistants_stream_assist_builder, discoveryengine_projects_locations_collections_engines_assistants_stream_assist_task,
-    discoveryengine_projects_locations_collections_engines_assistants_agents_a2_a_v1_get_card_builder, discoveryengine_projects_locations_collections_engines_assistants_agents_a2_a_v1_get_card_task,
-    discoveryengine_projects_locations_collections_engines_assistants_agents_a2_a_v1_message_send_builder, discoveryengine_projects_locations_collections_engines_assistants_agents_a2_a_v1_message_send_task,
-    discoveryengine_projects_locations_collections_engines_assistants_agents_a2_a_v1_message_stream_builder, discoveryengine_projects_locations_collections_engines_assistants_agents_a2_a_v1_message_stream_task,
-    discoveryengine_projects_locations_collections_engines_assistants_agents_a2_a_v1_tasks_cancel_builder, discoveryengine_projects_locations_collections_engines_assistants_agents_a2_a_v1_tasks_cancel_task,
-    discoveryengine_projects_locations_collections_engines_assistants_agents_a2_a_v1_tasks_get_builder, discoveryengine_projects_locations_collections_engines_assistants_agents_a2_a_v1_tasks_get_task,
-    discoveryengine_projects_locations_collections_engines_assistants_agents_a2_a_v1_tasks_subscribe_builder, discoveryengine_projects_locations_collections_engines_assistants_agents_a2_a_v1_tasks_subscribe_task,
-    discoveryengine_projects_locations_collections_engines_assistants_agents_a2_a_v1_tasks_push_notification_configs_create_builder, discoveryengine_projects_locations_collections_engines_assistants_agents_a2_a_v1_tasks_push_notification_configs_create_task,
-    discoveryengine_projects_locations_collections_engines_assistants_agents_a2_a_v1_tasks_push_notification_configs_delete_builder, discoveryengine_projects_locations_collections_engines_assistants_agents_a2_a_v1_tasks_push_notification_configs_delete_task,
-    discoveryengine_projects_locations_collections_engines_assistants_agents_a2_a_v1_tasks_push_notification_configs_get_builder, discoveryengine_projects_locations_collections_engines_assistants_agents_a2_a_v1_tasks_push_notification_configs_get_task,
-    discoveryengine_projects_locations_collections_engines_assistants_agents_a2_a_v1_tasks_push_notification_configs_list_builder, discoveryengine_projects_locations_collections_engines_assistants_agents_a2_a_v1_tasks_push_notification_configs_list_task,
+    discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_get_card_builder, discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_get_card_task,
+    discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_message_send_builder, discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_message_send_task,
+    discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_message_stream_builder, discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_message_stream_task,
+    discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_tasks_cancel_builder, discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_tasks_cancel_task,
+    discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_tasks_get_builder, discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_tasks_get_task,
+    discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_tasks_subscribe_builder, discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_tasks_subscribe_task,
+    discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_tasks_push_notification_configs_create_builder, discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_tasks_push_notification_configs_create_task,
+    discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_tasks_push_notification_configs_delete_builder, discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_tasks_push_notification_configs_delete_task,
+    discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_tasks_push_notification_configs_get_builder, discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_tasks_push_notification_configs_get_task,
+    discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_tasks_push_notification_configs_list_builder, discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_tasks_push_notification_configs_list_task,
     discoveryengine_projects_locations_collections_engines_assistants_agents_operations_get_builder, discoveryengine_projects_locations_collections_engines_assistants_agents_operations_get_task,
     discoveryengine_projects_locations_collections_engines_completion_config_complete_query_builder, discoveryengine_projects_locations_collections_engines_completion_config_complete_query_task,
     discoveryengine_projects_locations_collections_engines_controls_create_builder, discoveryengine_projects_locations_collections_engines_controls_create_task,
@@ -5578,7 +5578,7 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
-    /// Discoveryengine projects locations collections engines assistants agents a2 a v1 get card.
+    /// Discoveryengine projects locations collections engines assistants agents a2a v1 get card.
     ///
     /// Read-only operation - no state tracking.
     ///
@@ -5593,7 +5593,7 @@ where
     /// # Errors
     ///
     /// Returns ProviderError if the API request fails.
-    pub fn discoveryengine_projects_locations_collections_engines_assistants_agents_a2_a_v1_get_card(
+    pub fn discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_get_card(
         &self,
         args: &DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2AV1GetCardArgs,
     ) -> Result<
@@ -5604,19 +5604,19 @@ where
         + 'static,
         ProviderError<ApiError>,
     > {
-        let builder = discoveryengine_projects_locations_collections_engines_assistants_agents_a2_a_v1_get_card_builder(
+        let builder = discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_get_card_builder(
             &self.http_client,
             &args.tenant,
         )
         .map_err(ProviderError::Api)?;
 
-        let task = discoveryengine_projects_locations_collections_engines_assistants_agents_a2_a_v1_get_card_task(builder)
+        let task = discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_get_card_task(builder)
             .map_err(ProviderError::Api)?;
 
         execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
-    /// Discoveryengine projects locations collections engines assistants agents a2 a v1 message send.
+    /// Discoveryengine projects locations collections engines assistants agents a2a v1 message send.
     ///
     /// Automatically stores the result in the state store on success.
     ///
@@ -5631,7 +5631,7 @@ where
     /// # Errors
     ///
     /// Returns ProviderError if the API request or state storage fails.
-    pub fn discoveryengine_projects_locations_collections_engines_assistants_agents_a2_a_v1_message_send(
+    pub fn discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_message_send(
         &self,
         args: &DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2AV1MessageSendArgs,
     ) -> Result<
@@ -5642,13 +5642,13 @@ where
         + 'static,
         ProviderError<ApiError>,
     > {
-        let builder = discoveryengine_projects_locations_collections_engines_assistants_agents_a2_a_v1_message_send_builder(
+        let builder = discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_message_send_builder(
             &self.http_client,
             &args.tenant,
         )
         .map_err(ProviderError::Api)?;
 
-        let task = discoveryengine_projects_locations_collections_engines_assistants_agents_a2_a_v1_message_send_task(builder)
+        let task = discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_message_send_task(builder)
             .map_err(ProviderError::Api)?;
 
         let state_store = self.client.state_store.clone();
@@ -5659,7 +5659,7 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
-    /// Discoveryengine projects locations collections engines assistants agents a2 a v1 message stream.
+    /// Discoveryengine projects locations collections engines assistants agents a2a v1 message stream.
     ///
     /// Automatically stores the result in the state store on success.
     ///
@@ -5674,7 +5674,7 @@ where
     /// # Errors
     ///
     /// Returns ProviderError if the API request or state storage fails.
-    pub fn discoveryengine_projects_locations_collections_engines_assistants_agents_a2_a_v1_message_stream(
+    pub fn discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_message_stream(
         &self,
         args: &DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2AV1MessageStreamArgs,
     ) -> Result<
@@ -5685,13 +5685,13 @@ where
         + 'static,
         ProviderError<ApiError>,
     > {
-        let builder = discoveryengine_projects_locations_collections_engines_assistants_agents_a2_a_v1_message_stream_builder(
+        let builder = discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_message_stream_builder(
             &self.http_client,
             &args.tenant,
         )
         .map_err(ProviderError::Api)?;
 
-        let task = discoveryengine_projects_locations_collections_engines_assistants_agents_a2_a_v1_message_stream_task(builder)
+        let task = discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_message_stream_task(builder)
             .map_err(ProviderError::Api)?;
 
         let state_store = self.client.state_store.clone();
@@ -5702,7 +5702,7 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
-    /// Discoveryengine projects locations collections engines assistants agents a2 a v1 tasks cancel.
+    /// Discoveryengine projects locations collections engines assistants agents a2a v1 tasks cancel.
     ///
     /// Automatically stores the result in the state store on success.
     ///
@@ -5717,7 +5717,7 @@ where
     /// # Errors
     ///
     /// Returns ProviderError if the API request or state storage fails.
-    pub fn discoveryengine_projects_locations_collections_engines_assistants_agents_a2_a_v1_tasks_cancel(
+    pub fn discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_tasks_cancel(
         &self,
         args: &DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2AV1TasksCancelArgs,
     ) -> Result<
@@ -5728,14 +5728,14 @@ where
         + 'static,
         ProviderError<ApiError>,
     > {
-        let builder = discoveryengine_projects_locations_collections_engines_assistants_agents_a2_a_v1_tasks_cancel_builder(
+        let builder = discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_tasks_cancel_builder(
             &self.http_client,
             &args.tenant,
             &args.name,
         )
         .map_err(ProviderError::Api)?;
 
-        let task = discoveryengine_projects_locations_collections_engines_assistants_agents_a2_a_v1_tasks_cancel_task(builder)
+        let task = discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_tasks_cancel_task(builder)
             .map_err(ProviderError::Api)?;
 
         let state_store = self.client.state_store.clone();
@@ -5746,7 +5746,7 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
-    /// Discoveryengine projects locations collections engines assistants agents a2 a v1 tasks get.
+    /// Discoveryengine projects locations collections engines assistants agents a2a v1 tasks get.
     ///
     /// Read-only operation - no state tracking.
     ///
@@ -5761,7 +5761,7 @@ where
     /// # Errors
     ///
     /// Returns ProviderError if the API request fails.
-    pub fn discoveryengine_projects_locations_collections_engines_assistants_agents_a2_a_v1_tasks_get(
+    pub fn discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_tasks_get(
         &self,
         args: &DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2AV1TasksGetArgs,
     ) -> Result<
@@ -5772,7 +5772,7 @@ where
         + 'static,
         ProviderError<ApiError>,
     > {
-        let builder = discoveryengine_projects_locations_collections_engines_assistants_agents_a2_a_v1_tasks_get_builder(
+        let builder = discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_tasks_get_builder(
             &self.http_client,
             &args.tenant,
             &args.name,
@@ -5780,13 +5780,13 @@ where
         )
         .map_err(ProviderError::Api)?;
 
-        let task = discoveryengine_projects_locations_collections_engines_assistants_agents_a2_a_v1_tasks_get_task(builder)
+        let task = discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_tasks_get_task(builder)
             .map_err(ProviderError::Api)?;
 
         execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
-    /// Discoveryengine projects locations collections engines assistants agents a2 a v1 tasks subscribe.
+    /// Discoveryengine projects locations collections engines assistants agents a2a v1 tasks subscribe.
     ///
     /// Read-only operation - no state tracking.
     ///
@@ -5801,7 +5801,7 @@ where
     /// # Errors
     ///
     /// Returns ProviderError if the API request fails.
-    pub fn discoveryengine_projects_locations_collections_engines_assistants_agents_a2_a_v1_tasks_subscribe(
+    pub fn discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_tasks_subscribe(
         &self,
         args: &DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2AV1TasksSubscribeArgs,
     ) -> Result<
@@ -5812,20 +5812,20 @@ where
         + 'static,
         ProviderError<ApiError>,
     > {
-        let builder = discoveryengine_projects_locations_collections_engines_assistants_agents_a2_a_v1_tasks_subscribe_builder(
+        let builder = discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_tasks_subscribe_builder(
             &self.http_client,
             &args.tenant,
             &args.name,
         )
         .map_err(ProviderError::Api)?;
 
-        let task = discoveryengine_projects_locations_collections_engines_assistants_agents_a2_a_v1_tasks_subscribe_task(builder)
+        let task = discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_tasks_subscribe_task(builder)
             .map_err(ProviderError::Api)?;
 
         execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
-    /// Discoveryengine projects locations collections engines assistants agents a2 a v1 tasks push notification configs create.
+    /// Discoveryengine projects locations collections engines assistants agents a2a v1 tasks push notification configs create.
     ///
     /// Automatically stores the result in the state store on success.
     ///
@@ -5840,7 +5840,7 @@ where
     /// # Errors
     ///
     /// Returns ProviderError if the API request or state storage fails.
-    pub fn discoveryengine_projects_locations_collections_engines_assistants_agents_a2_a_v1_tasks_push_notification_configs_create(
+    pub fn discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_tasks_push_notification_configs_create(
         &self,
         args: &DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2AV1TasksPushNotificationConfigsCreateArgs,
     ) -> Result<
@@ -5851,7 +5851,7 @@ where
         + 'static,
         ProviderError<ApiError>,
     > {
-        let builder = discoveryengine_projects_locations_collections_engines_assistants_agents_a2_a_v1_tasks_push_notification_configs_create_builder(
+        let builder = discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_tasks_push_notification_configs_create_builder(
             &self.http_client,
             &args.tenant,
             &args.parent,
@@ -5859,7 +5859,7 @@ where
         )
         .map_err(ProviderError::Api)?;
 
-        let task = discoveryengine_projects_locations_collections_engines_assistants_agents_a2_a_v1_tasks_push_notification_configs_create_task(builder)
+        let task = discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_tasks_push_notification_configs_create_task(builder)
             .map_err(ProviderError::Api)?;
 
         let state_store = self.client.state_store.clone();
@@ -5870,7 +5870,7 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
-    /// Discoveryengine projects locations collections engines assistants agents a2 a v1 tasks push notification configs delete.
+    /// Discoveryengine projects locations collections engines assistants agents a2a v1 tasks push notification configs delete.
     ///
     /// Automatically stores the result in the state store on success.
     ///
@@ -5885,7 +5885,7 @@ where
     /// # Errors
     ///
     /// Returns ProviderError if the API request or state storage fails.
-    pub fn discoveryengine_projects_locations_collections_engines_assistants_agents_a2_a_v1_tasks_push_notification_configs_delete(
+    pub fn discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_tasks_push_notification_configs_delete(
         &self,
         args: &DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2AV1TasksPushNotificationConfigsDeleteArgs,
     ) -> Result<
@@ -5896,14 +5896,14 @@ where
         + 'static,
         ProviderError<ApiError>,
     > {
-        let builder = discoveryengine_projects_locations_collections_engines_assistants_agents_a2_a_v1_tasks_push_notification_configs_delete_builder(
+        let builder = discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_tasks_push_notification_configs_delete_builder(
             &self.http_client,
             &args.tenant,
             &args.name,
         )
         .map_err(ProviderError::Api)?;
 
-        let task = discoveryengine_projects_locations_collections_engines_assistants_agents_a2_a_v1_tasks_push_notification_configs_delete_task(builder)
+        let task = discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_tasks_push_notification_configs_delete_task(builder)
             .map_err(ProviderError::Api)?;
 
         let state_store = self.client.state_store.clone();
@@ -5914,7 +5914,7 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
-    /// Discoveryengine projects locations collections engines assistants agents a2 a v1 tasks push notification configs get.
+    /// Discoveryengine projects locations collections engines assistants agents a2a v1 tasks push notification configs get.
     ///
     /// Read-only operation - no state tracking.
     ///
@@ -5929,7 +5929,7 @@ where
     /// # Errors
     ///
     /// Returns ProviderError if the API request fails.
-    pub fn discoveryengine_projects_locations_collections_engines_assistants_agents_a2_a_v1_tasks_push_notification_configs_get(
+    pub fn discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_tasks_push_notification_configs_get(
         &self,
         args: &DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2AV1TasksPushNotificationConfigsGetArgs,
     ) -> Result<
@@ -5940,20 +5940,20 @@ where
         + 'static,
         ProviderError<ApiError>,
     > {
-        let builder = discoveryengine_projects_locations_collections_engines_assistants_agents_a2_a_v1_tasks_push_notification_configs_get_builder(
+        let builder = discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_tasks_push_notification_configs_get_builder(
             &self.http_client,
             &args.tenant,
             &args.name,
         )
         .map_err(ProviderError::Api)?;
 
-        let task = discoveryengine_projects_locations_collections_engines_assistants_agents_a2_a_v1_tasks_push_notification_configs_get_task(builder)
+        let task = discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_tasks_push_notification_configs_get_task(builder)
             .map_err(ProviderError::Api)?;
 
         execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
-    /// Discoveryengine projects locations collections engines assistants agents a2 a v1 tasks push notification configs list.
+    /// Discoveryengine projects locations collections engines assistants agents a2a v1 tasks push notification configs list.
     ///
     /// Read-only operation - no state tracking.
     ///
@@ -5968,7 +5968,7 @@ where
     /// # Errors
     ///
     /// Returns ProviderError if the API request fails.
-    pub fn discoveryengine_projects_locations_collections_engines_assistants_agents_a2_a_v1_tasks_push_notification_configs_list(
+    pub fn discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_tasks_push_notification_configs_list(
         &self,
         args: &DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2AV1TasksPushNotificationConfigsListArgs,
     ) -> Result<
@@ -5979,7 +5979,7 @@ where
         + 'static,
         ProviderError<ApiError>,
     > {
-        let builder = discoveryengine_projects_locations_collections_engines_assistants_agents_a2_a_v1_tasks_push_notification_configs_list_builder(
+        let builder = discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_tasks_push_notification_configs_list_builder(
             &self.http_client,
             &args.tenant,
             &args.parent,
@@ -5988,7 +5988,7 @@ where
         )
         .map_err(ProviderError::Api)?;
 
-        let task = discoveryengine_projects_locations_collections_engines_assistants_agents_a2_a_v1_tasks_push_notification_configs_list_task(builder)
+        let task = discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_tasks_push_notification_configs_list_task(builder)
             .map_err(ProviderError::Api)?;
 
         execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))

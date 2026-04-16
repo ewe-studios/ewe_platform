@@ -2137,7 +2137,7 @@ pub fn cloudcontrolspartner_organizations_locations_customers_workloads_violatio
 }
 
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/customers/{customersId}/workloads/{workloadsId}/violations
-/// Lists Violations for a workload Callers may also choose to read across multiple Customers or for a single customer as per [AIP-159](<https://google.aip.`dev/159`>) by using '-' (the hyphen or dash character) as a wildcard character instead of {customer} & {workload}. Format: `organizations/{organization}/locations/{location}/customers/{customer}/workloads/{workload}`
+/// Lists Violations for a workload Callers may also choose to read across multiple Customers or for a single customer as per [AIP-159](<https://google.aip.`dev/159`>) by using ''-'' (the hyphen or dash character) as a wildcard character instead of {customer} & {workload}. Format: `organizations/{organization}/locations/{location}/customers/{customer}/workloads/{workload}`
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudcontrolspartner_organizations_locations_customers_workloads_violations_list_execute()` to send, or `cloudcontrolspartner_organizations_locations_customers_workloads_violations_list` for simplest API.
@@ -2196,7 +2196,7 @@ where
 }
 
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/customers/{customersId}/workloads/{workloadsId}/violations
-/// Lists Violations for a workload Callers may also choose to read across multiple Customers or for a single customer as per [AIP-159](<https://google.aip.`dev/159`>) by using '-' (the hyphen or dash character) as a wildcard character instead of {customer} & {workload}. Format: `organizations/{organization}/locations/{location}/customers/{customer}/workloads/{workload}`
+/// Lists Violations for a workload Callers may also choose to read across multiple Customers or for a single customer as per [AIP-159](<https://google.aip.`dev/159`>) by using ''-'' (the hyphen or dash character) as a wildcard character instead of {customer} & {workload}. Format: `organizations/{organization}/locations/{location}/customers/{customer}/workloads/{workload}`
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -2270,7 +2270,7 @@ pub fn cloudcontrolspartner_organizations_locations_customers_workloads_violatio
 }
 
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/customers/{customersId}/workloads/{workloadsId}/violations
-/// Lists Violations for a workload Callers may also choose to read across multiple Customers or for a single customer as per [AIP-159](<https://google.aip.`dev/159`>) by using '-' (the hyphen or dash character) as a wildcard character instead of {customer} & {workload}. Format: `organizations/{organization}/locations/{location}/customers/{customer}/workloads/{workload}`
+/// Lists Violations for a workload Callers may also choose to read across multiple Customers or for a single customer as per [AIP-159](<https://google.aip.`dev/159`>) by using ''-'' (the hyphen or dash character) as a wildcard character instead of {customer} & {workload}. Format: `organizations/{organization}/locations/{location}/customers/{customer}/workloads/{workload}`
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -2324,7 +2324,7 @@ pub struct CloudcontrolspartnerOrganizationsLocationsCustomersWorkloadsViolation
 }
 
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/customers/{customersId}/workloads/{workloadsId}/violations
-/// Lists Violations for a workload Callers may also choose to read across multiple Customers or for a single customer as per [AIP-159](<https://google.aip.`dev/159`>) by using '-' (the hyphen or dash character) as a wildcard character instead of {customer} & {workload}. Format: `organizations/{organization}/locations/{location}/customers/{customer}/workloads/{workload}`
+/// Lists Violations for a workload Callers may also choose to read across multiple Customers or for a single customer as per [AIP-159](<https://google.aip.`dev/159`>) by using ''-'' (the hyphen or dash character) as a wildcard character instead of {customer} & {workload}. Format: `organizations/{organization}/locations/{location}/customers/{customer}/workloads/{workload}`
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `cloudcontrolspartner_organizations_locations_customers_workloads_violations_list_builder()` + `cloudcontrolspartner_organizations_locations_customers_workloads_violations_list_execute()`.

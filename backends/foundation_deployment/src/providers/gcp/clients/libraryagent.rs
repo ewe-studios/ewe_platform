@@ -900,7 +900,7 @@ pub fn libraryagent_shelves_books_list(
 }
 
 /// POST v1/shelves/{shelvesId}/books/{booksId}:return
-/// Return a book to the library. Returns the book if it is returned to the library successfully. Returns error if the book does not belong to the library or the users didn't borrow before.
+/// Return a book to the library. Returns the book if it is returned to the library successfully. Returns error if the book does not belong to the library or the users didn''t borrow before.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `libraryagent_shelves_books_return_execute()` to send, or `libraryagent_shelves_books_return` for simplest API.
@@ -927,7 +927,7 @@ where
 }
 
 /// POST v1/shelves/{shelvesId}/books/{booksId}:return
-/// Return a book to the library. Returns the book if it is returned to the library successfully. Returns error if the book does not belong to the library or the users didn't borrow before.
+/// Return a book to the library. Returns the book if it is returned to the library successfully. Returns error if the book does not belong to the library or the users didn''t borrow before.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -1001,7 +1001,7 @@ pub fn libraryagent_shelves_books_return_task(
 }
 
 /// POST v1/shelves/{shelvesId}/books/{booksId}:return
-/// Return a book to the library. Returns the book if it is returned to the library successfully. Returns error if the book does not belong to the library or the users didn't borrow before.
+/// Return a book to the library. Returns the book if it is returned to the library successfully. Returns error if the book does not belong to the library or the users didn''t borrow before.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -1042,7 +1042,7 @@ pub struct LibraryagentShelvesBooksReturnArgs {
 }
 
 /// POST v1/shelves/{shelvesId}/books/{booksId}:return
-/// Return a book to the library. Returns the book if it is returned to the library successfully. Returns error if the book does not belong to the library or the users didn't borrow before.
+/// Return a book to the library. Returns the book if it is returned to the library successfully. Returns error if the book does not belong to the library or the users didn''t borrow before.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `libraryagent_shelves_books_return_builder()` + `libraryagent_shelves_books_return_execute()`.

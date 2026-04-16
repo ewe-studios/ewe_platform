@@ -678,7 +678,7 @@ pub fn chromewebstore_publishers_items_publish(
 }
 
 /// POST v2/publishers/{publishersId}/items/{itemsId}:setPublishedDeployPercentage
-/// Set a higher target deploy percentage for the item's published revision. This will be updated without the item being submitted for review. This is only available to items with over 10,000 seven-day active users.
+/// Set a higher target deploy percentage for the item''s published revision. This will be updated without the item being submitted for review. This is only available to items with over 10,000 seven-day active users.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `chromewebstore_publishers_items_set_published_deploy_percentage_execute()` to send, or `chromewebstore_publishers_items_set_published_deploy_percentage` for simplest API.
@@ -705,7 +705,7 @@ where
 }
 
 /// POST v2/publishers/{publishersId}/items/{itemsId}:setPublishedDeployPercentage
-/// Set a higher target deploy percentage for the item's published revision. This will be updated without the item being submitted for review. This is only available to items with over 10,000 seven-day active users.
+/// Set a higher target deploy percentage for the item''s published revision. This will be updated without the item being submitted for review. This is only available to items with over 10,000 seven-day active users.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -779,7 +779,7 @@ pub fn chromewebstore_publishers_items_set_published_deploy_percentage_task(
 }
 
 /// POST v2/publishers/{publishersId}/items/{itemsId}:setPublishedDeployPercentage
-/// Set a higher target deploy percentage for the item's published revision. This will be updated without the item being submitted for review. This is only available to items with over 10,000 seven-day active users.
+/// Set a higher target deploy percentage for the item''s published revision. This will be updated without the item being submitted for review. This is only available to items with over 10,000 seven-day active users.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -820,7 +820,7 @@ pub struct ChromewebstorePublishersItemsSetPublishedDeployPercentageArgs {
 }
 
 /// POST v2/publishers/{publishersId}/items/{itemsId}:setPublishedDeployPercentage
-/// Set a higher target deploy percentage for the item's published revision. This will be updated without the item being submitted for review. This is only available to items with over 10,000 seven-day active users.
+/// Set a higher target deploy percentage for the item''s published revision. This will be updated without the item being submitted for review. This is only available to items with over 10,000 seven-day active users.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `chromewebstore_publishers_items_set_published_deploy_percentage_builder()` + `chromewebstore_publishers_items_set_published_deploy_percentage_execute()`.

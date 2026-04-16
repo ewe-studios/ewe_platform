@@ -22,7 +22,7 @@ use foundation_macros::JsonHash;
 use serde::Serialize;
 
 /// GET userprofiles/{userprofilesId}/accountActiveAdSummaries/{accountActiveAdSummariesId}
-/// Gets the account's active ad summary by account ID.
+/// Gets the account''s active ad summary by account ID.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_account_active_ad_summaries_get_execute()` to send, or `dfareporting_account_active_ad_summaries_get` for simplest API.
@@ -51,7 +51,7 @@ where
 }
 
 /// GET userprofiles/{userprofilesId}/accountActiveAdSummaries/{accountActiveAdSummariesId}
-/// Gets the account's active ad summary by account ID.
+/// Gets the account''s active ad summary by account ID.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -125,7 +125,7 @@ pub fn dfareporting_account_active_ad_summaries_get_task(
 }
 
 /// GET userprofiles/{userprofilesId}/accountActiveAdSummaries/{accountActiveAdSummariesId}
-/// Gets the account's active ad summary by account ID.
+/// Gets the account''s active ad summary by account ID.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -166,7 +166,7 @@ pub struct DfareportingAccountActiveAdSummariesGetArgs {
 }
 
 /// GET userprofiles/{userprofilesId}/accountActiveAdSummaries/{accountActiveAdSummariesId}
-/// Gets the account's active ad summary by account ID.
+/// Gets the account''s active ad summary by account ID.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `dfareporting_account_active_ad_summaries_get_builder()` + `dfareporting_account_active_ad_summaries_get_execute()`.
@@ -18374,7 +18374,7 @@ pub fn dfareporting_dynamic_targeting_keys_delete(
 }
 
 /// POST userprofiles/{userprofilesId}/dynamicTargetingKeys
-/// Inserts a new dynamic targeting key. Keys must be created at the advertiser level before being assigned to the advertiser's ads, creatives, or placements. There is a maximum of 1000 keys per advertiser, out of which a maximum of 20 keys can be assigned per ad, creative, or placement.
+/// Inserts a new dynamic targeting key. Keys must be created at the advertiser level before being assigned to the advertiser''s ads, creatives, or placements. There is a maximum of 1000 keys per advertiser, out of which a maximum of 20 keys can be assigned per ad, creative, or placement.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dfareporting_dynamic_targeting_keys_insert_execute()` to send, or `dfareporting_dynamic_targeting_keys_insert` for simplest API.
@@ -18401,7 +18401,7 @@ where
 }
 
 /// POST userprofiles/{userprofilesId}/dynamicTargetingKeys
-/// Inserts a new dynamic targeting key. Keys must be created at the advertiser level before being assigned to the advertiser's ads, creatives, or placements. There is a maximum of 1000 keys per advertiser, out of which a maximum of 20 keys can be assigned per ad, creative, or placement.
+/// Inserts a new dynamic targeting key. Keys must be created at the advertiser level before being assigned to the advertiser''s ads, creatives, or placements. There is a maximum of 1000 keys per advertiser, out of which a maximum of 20 keys can be assigned per ad, creative, or placement.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -18475,7 +18475,7 @@ pub fn dfareporting_dynamic_targeting_keys_insert_task(
 }
 
 /// POST userprofiles/{userprofilesId}/dynamicTargetingKeys
-/// Inserts a new dynamic targeting key. Keys must be created at the advertiser level before being assigned to the advertiser's ads, creatives, or placements. There is a maximum of 1000 keys per advertiser, out of which a maximum of 20 keys can be assigned per ad, creative, or placement.
+/// Inserts a new dynamic targeting key. Keys must be created at the advertiser level before being assigned to the advertiser''s ads, creatives, or placements. There is a maximum of 1000 keys per advertiser, out of which a maximum of 20 keys can be assigned per ad, creative, or placement.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -18514,7 +18514,7 @@ pub struct DfareportingDynamicTargetingKeysInsertArgs {
 }
 
 /// POST userprofiles/{userprofilesId}/dynamicTargetingKeys
-/// Inserts a new dynamic targeting key. Keys must be created at the advertiser level before being assigned to the advertiser's ads, creatives, or placements. There is a maximum of 1000 keys per advertiser, out of which a maximum of 20 keys can be assigned per ad, creative, or placement.
+/// Inserts a new dynamic targeting key. Keys must be created at the advertiser level before being assigned to the advertiser''s ads, creatives, or placements. There is a maximum of 1000 keys per advertiser, out of which a maximum of 20 keys can be assigned per ad, creative, or placement.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `dfareporting_dynamic_targeting_keys_insert_builder()` + `dfareporting_dynamic_targeting_keys_insert_execute()`.

@@ -870,7 +870,7 @@ pub fn adsense_accounts_adclients_get(
 }
 
 /// GET v2/accounts/{accountsId}/adclients/{adclientsId}/adcode
-/// Gets the AdSense code for a given ad client. This returns what was previously known as the 'auto ad code'. This is only supported for ad clients with a product_code of AFC. For more information, see [About the AdSense code](<https://support.google.`com/adsense/answer/9274634`>).
+/// Gets the AdSense code for a given ad client. This returns what was previously known as the ''auto ad code''. This is only supported for ad clients with a product_code of AFC. For more information, see [About the AdSense code](<https://support.google.`com/adsense/answer/9274634`>).
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `adsense_accounts_adclients_get_adcode_execute()` to send, or `adsense_accounts_adclients_get_adcode` for simplest API.
@@ -897,7 +897,7 @@ where
 }
 
 /// GET v2/accounts/{accountsId}/adclients/{adclientsId}/adcode
-/// Gets the AdSense code for a given ad client. This returns what was previously known as the 'auto ad code'. This is only supported for ad clients with a product_code of AFC. For more information, see [About the AdSense code](<https://support.google.`com/adsense/answer/9274634`>).
+/// Gets the AdSense code for a given ad client. This returns what was previously known as the ''auto ad code''. This is only supported for ad clients with a product_code of AFC. For more information, see [About the AdSense code](<https://support.google.`com/adsense/answer/9274634`>).
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -971,7 +971,7 @@ pub fn adsense_accounts_adclients_get_adcode_task(
 }
 
 /// GET v2/accounts/{accountsId}/adclients/{adclientsId}/adcode
-/// Gets the AdSense code for a given ad client. This returns what was previously known as the 'auto ad code'. This is only supported for ad clients with a product_code of AFC. For more information, see [About the AdSense code](<https://support.google.`com/adsense/answer/9274634`>).
+/// Gets the AdSense code for a given ad client. This returns what was previously known as the ''auto ad code''. This is only supported for ad clients with a product_code of AFC. For more information, see [About the AdSense code](<https://support.google.`com/adsense/answer/9274634`>).
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -1010,7 +1010,7 @@ pub struct AdsenseAccountsAdclientsGetAdcodeArgs {
 }
 
 /// GET v2/accounts/{accountsId}/adclients/{adclientsId}/adcode
-/// Gets the AdSense code for a given ad client. This returns what was previously known as the 'auto ad code'. This is only supported for ad clients with a product_code of AFC. For more information, see [About the AdSense code](<https://support.google.`com/adsense/answer/9274634`>).
+/// Gets the AdSense code for a given ad client. This returns what was previously known as the ''auto ad code''. This is only supported for ad clients with a product_code of AFC. For more information, see [About the AdSense code](<https://support.google.`com/adsense/answer/9274634`>).
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `adsense_accounts_adclients_get_adcode_builder()` + `adsense_accounts_adclients_get_adcode_execute()`.

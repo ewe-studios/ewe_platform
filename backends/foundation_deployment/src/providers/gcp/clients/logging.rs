@@ -1565,7 +1565,7 @@ pub fn logging_billing_accounts_locations_list(
 }
 
 /// POST v2/billingAccounts/{billingAccountsId}/locations/{locationsId}/buckets
-/// Creates a log bucket that can be used to store log entries. After a bucket has been created, the bucket's location cannot be changed.
+/// Creates a log bucket that can be used to store log entries. After a bucket has been created, the bucket''s location cannot be changed.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_billing_accounts_locations_buckets_create_execute()` to send, or `logging_billing_accounts_locations_buckets_create` for simplest API.
@@ -1604,7 +1604,7 @@ where
 }
 
 /// POST v2/billingAccounts/{billingAccountsId}/locations/{locationsId}/buckets
-/// Creates a log bucket that can be used to store log entries. After a bucket has been created, the bucket's location cannot be changed.
+/// Creates a log bucket that can be used to store log entries. After a bucket has been created, the bucket''s location cannot be changed.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -1678,7 +1678,7 @@ pub fn logging_billing_accounts_locations_buckets_create_task(
 }
 
 /// POST v2/billingAccounts/{billingAccountsId}/locations/{locationsId}/buckets
-/// Creates a log bucket that can be used to store log entries. After a bucket has been created, the bucket's location cannot be changed.
+/// Creates a log bucket that can be used to store log entries. After a bucket has been created, the bucket''s location cannot be changed.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -1717,7 +1717,7 @@ pub struct LoggingBillingAccountsLocationsBucketsCreateArgs {
 }
 
 /// POST v2/billingAccounts/{billingAccountsId}/locations/{locationsId}/buckets
-/// Creates a log bucket that can be used to store log entries. After a bucket has been created, the bucket's location cannot be changed.
+/// Creates a log bucket that can be used to store log entries. After a bucket has been created, the bucket''s location cannot be changed.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `logging_billing_accounts_locations_buckets_create_builder()` + `logging_billing_accounts_locations_buckets_create_execute()`.
@@ -1743,7 +1743,7 @@ pub fn logging_billing_accounts_locations_buckets_create(
 }
 
 /// POST v2/billingAccounts/{billingAccountsId}/locations/{locationsId}/buckets:createAsync
-/// Creates a log bucket asynchronously that can be used to store log entries.After a bucket has been created, the bucket's location cannot be changed.
+/// Creates a log bucket asynchronously that can be used to store log entries.After a bucket has been created, the bucket''s location cannot be changed.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_billing_accounts_locations_buckets_create_async_execute()` to send, or `logging_billing_accounts_locations_buckets_create_async` for simplest API.
@@ -1782,7 +1782,7 @@ where
 }
 
 /// POST v2/billingAccounts/{billingAccountsId}/locations/{locationsId}/buckets:createAsync
-/// Creates a log bucket asynchronously that can be used to store log entries.After a bucket has been created, the bucket's location cannot be changed.
+/// Creates a log bucket asynchronously that can be used to store log entries.After a bucket has been created, the bucket''s location cannot be changed.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -1856,7 +1856,7 @@ pub fn logging_billing_accounts_locations_buckets_create_async_task(
 }
 
 /// POST v2/billingAccounts/{billingAccountsId}/locations/{locationsId}/buckets:createAsync
-/// Creates a log bucket asynchronously that can be used to store log entries.After a bucket has been created, the bucket's location cannot be changed.
+/// Creates a log bucket asynchronously that can be used to store log entries.After a bucket has been created, the bucket''s location cannot be changed.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -1895,7 +1895,7 @@ pub struct LoggingBillingAccountsLocationsBucketsCreateAsyncArgs {
 }
 
 /// POST v2/billingAccounts/{billingAccountsId}/locations/{locationsId}/buckets:createAsync
-/// Creates a log bucket asynchronously that can be used to store log entries.After a bucket has been created, the bucket's location cannot be changed.
+/// Creates a log bucket asynchronously that can be used to store log entries.After a bucket has been created, the bucket''s location cannot be changed.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `logging_billing_accounts_locations_buckets_create_async_builder()` + `logging_billing_accounts_locations_buckets_create_async_execute()`.
@@ -1921,7 +1921,7 @@ pub fn logging_billing_accounts_locations_buckets_create_async(
 }
 
 /// DELETE v2/billingAccounts/{billingAccountsId}/locations/{locationsId}/buckets/{bucketsId}
-/// Deletes a log bucket.Changes the bucket's lifecycle_state to the DELETE_REQUESTED state. After 7 days, the bucket will be purged and all log entries in the bucket will be permanently deleted.
+/// Deletes a log bucket.Changes the bucket''s lifecycle_state to the DELETE_REQUESTED state. After 7 days, the bucket will be purged and all log entries in the bucket will be permanently deleted.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_billing_accounts_locations_buckets_delete_execute()` to send, or `logging_billing_accounts_locations_buckets_delete` for simplest API.
@@ -1948,7 +1948,7 @@ where
 }
 
 /// DELETE v2/billingAccounts/{billingAccountsId}/locations/{locationsId}/buckets/{bucketsId}
-/// Deletes a log bucket.Changes the bucket's lifecycle_state to the DELETE_REQUESTED state. After 7 days, the bucket will be purged and all log entries in the bucket will be permanently deleted.
+/// Deletes a log bucket.Changes the bucket''s lifecycle_state to the DELETE_REQUESTED state. After 7 days, the bucket will be purged and all log entries in the bucket will be permanently deleted.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -2022,7 +2022,7 @@ pub fn logging_billing_accounts_locations_buckets_delete_task(
 }
 
 /// DELETE v2/billingAccounts/{billingAccountsId}/locations/{locationsId}/buckets/{bucketsId}
-/// Deletes a log bucket.Changes the bucket's lifecycle_state to the DELETE_REQUESTED state. After 7 days, the bucket will be purged and all log entries in the bucket will be permanently deleted.
+/// Deletes a log bucket.Changes the bucket''s lifecycle_state to the DELETE_REQUESTED state. After 7 days, the bucket will be purged and all log entries in the bucket will be permanently deleted.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -2059,7 +2059,7 @@ pub struct LoggingBillingAccountsLocationsBucketsDeleteArgs {
 }
 
 /// DELETE v2/billingAccounts/{billingAccountsId}/locations/{locationsId}/buckets/{bucketsId}
-/// Deletes a log bucket.Changes the bucket's lifecycle_state to the DELETE_REQUESTED state. After 7 days, the bucket will be purged and all log entries in the bucket will be permanently deleted.
+/// Deletes a log bucket.Changes the bucket''s lifecycle_state to the DELETE_REQUESTED state. After 7 days, the bucket will be purged and all log entries in the bucket will be permanently deleted.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `logging_billing_accounts_locations_buckets_delete_builder()` + `logging_billing_accounts_locations_buckets_delete_execute()`.
@@ -2430,7 +2430,7 @@ pub fn logging_billing_accounts_locations_buckets_list(
 }
 
 /// PATCH v2/billingAccounts/{billingAccountsId}/locations/{locationsId}/buckets/{bucketsId}
-/// Updates a log bucket.If the bucket has a lifecycle_state of DELETE_REQUESTED, then FAILED_PRECONDITION will be returned.After a bucket has been created, the bucket's location cannot be changed.
+/// Updates a log bucket.If the bucket has a lifecycle_state of DELETE_REQUESTED, then FAILED_PRECONDITION will be returned.After a bucket has been created, the bucket''s location cannot be changed.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_billing_accounts_locations_buckets_patch_execute()` to send, or `logging_billing_accounts_locations_buckets_patch` for simplest API.
@@ -2469,7 +2469,7 @@ where
 }
 
 /// PATCH v2/billingAccounts/{billingAccountsId}/locations/{locationsId}/buckets/{bucketsId}
-/// Updates a log bucket.If the bucket has a lifecycle_state of DELETE_REQUESTED, then FAILED_PRECONDITION will be returned.After a bucket has been created, the bucket's location cannot be changed.
+/// Updates a log bucket.If the bucket has a lifecycle_state of DELETE_REQUESTED, then FAILED_PRECONDITION will be returned.After a bucket has been created, the bucket''s location cannot be changed.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -2543,7 +2543,7 @@ pub fn logging_billing_accounts_locations_buckets_patch_task(
 }
 
 /// PATCH v2/billingAccounts/{billingAccountsId}/locations/{locationsId}/buckets/{bucketsId}
-/// Updates a log bucket.If the bucket has a lifecycle_state of DELETE_REQUESTED, then FAILED_PRECONDITION will be returned.After a bucket has been created, the bucket's location cannot be changed.
+/// Updates a log bucket.If the bucket has a lifecycle_state of DELETE_REQUESTED, then FAILED_PRECONDITION will be returned.After a bucket has been created, the bucket''s location cannot be changed.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -2582,7 +2582,7 @@ pub struct LoggingBillingAccountsLocationsBucketsPatchArgs {
 }
 
 /// PATCH v2/billingAccounts/{billingAccountsId}/locations/{locationsId}/buckets/{bucketsId}
-/// Updates a log bucket.If the bucket has a lifecycle_state of DELETE_REQUESTED, then FAILED_PRECONDITION will be returned.After a bucket has been created, the bucket's location cannot be changed.
+/// Updates a log bucket.If the bucket has a lifecycle_state of DELETE_REQUESTED, then FAILED_PRECONDITION will be returned.After a bucket has been created, the bucket''s location cannot be changed.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `logging_billing_accounts_locations_buckets_patch_builder()` + `logging_billing_accounts_locations_buckets_patch_execute()`.
@@ -2768,7 +2768,7 @@ pub fn logging_billing_accounts_locations_buckets_undelete(
 }
 
 /// POST v2/billingAccounts/{billingAccountsId}/locations/{locationsId}/buckets/{bucketsId}:updateAsync
-/// Updates a log bucket asynchronously.If the bucket has a lifecycle_state of DELETE_REQUESTED, then FAILED_PRECONDITION will be returned.After a bucket has been created, the bucket's location cannot be changed.
+/// Updates a log bucket asynchronously.If the bucket has a lifecycle_state of DELETE_REQUESTED, then FAILED_PRECONDITION will be returned.After a bucket has been created, the bucket''s location cannot be changed.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_billing_accounts_locations_buckets_update_async_execute()` to send, or `logging_billing_accounts_locations_buckets_update_async` for simplest API.
@@ -2807,7 +2807,7 @@ where
 }
 
 /// POST v2/billingAccounts/{billingAccountsId}/locations/{locationsId}/buckets/{bucketsId}:updateAsync
-/// Updates a log bucket asynchronously.If the bucket has a lifecycle_state of DELETE_REQUESTED, then FAILED_PRECONDITION will be returned.After a bucket has been created, the bucket's location cannot be changed.
+/// Updates a log bucket asynchronously.If the bucket has a lifecycle_state of DELETE_REQUESTED, then FAILED_PRECONDITION will be returned.After a bucket has been created, the bucket''s location cannot be changed.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -2881,7 +2881,7 @@ pub fn logging_billing_accounts_locations_buckets_update_async_task(
 }
 
 /// POST v2/billingAccounts/{billingAccountsId}/locations/{locationsId}/buckets/{bucketsId}:updateAsync
-/// Updates a log bucket asynchronously.If the bucket has a lifecycle_state of DELETE_REQUESTED, then FAILED_PRECONDITION will be returned.After a bucket has been created, the bucket's location cannot be changed.
+/// Updates a log bucket asynchronously.If the bucket has a lifecycle_state of DELETE_REQUESTED, then FAILED_PRECONDITION will be returned.After a bucket has been created, the bucket''s location cannot be changed.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -2920,7 +2920,7 @@ pub struct LoggingBillingAccountsLocationsBucketsUpdateAsyncArgs {
 }
 
 /// POST v2/billingAccounts/{billingAccountsId}/locations/{locationsId}/buckets/{bucketsId}:updateAsync
-/// Updates a log bucket asynchronously.If the bucket has a lifecycle_state of DELETE_REQUESTED, then FAILED_PRECONDITION will be returned.After a bucket has been created, the bucket's location cannot be changed.
+/// Updates a log bucket asynchronously.If the bucket has a lifecycle_state of DELETE_REQUESTED, then FAILED_PRECONDITION will be returned.After a bucket has been created, the bucket''s location cannot be changed.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `logging_billing_accounts_locations_buckets_update_async_builder()` + `logging_billing_accounts_locations_buckets_update_async_execute()`.
@@ -4696,7 +4696,7 @@ pub fn logging_billing_accounts_locations_buckets_views_logs_list(
 }
 
 /// POST v2/billingAccounts/{billingAccountsId}/locations/{locationsId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_billing_accounts_locations_operations_cancel_execute()` to send, or `logging_billing_accounts_locations_operations_cancel` for simplest API.
@@ -4723,7 +4723,7 @@ where
 }
 
 /// POST v2/billingAccounts/{billingAccountsId}/locations/{locationsId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -4797,7 +4797,7 @@ pub fn logging_billing_accounts_locations_operations_cancel_task(
 }
 
 /// POST v2/billingAccounts/{billingAccountsId}/locations/{locationsId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -4834,7 +4834,7 @@ pub struct LoggingBillingAccountsLocationsOperationsCancelArgs {
 }
 
 /// POST v2/billingAccounts/{billingAccountsId}/locations/{locationsId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `logging_billing_accounts_locations_operations_cancel_builder()` + `logging_billing_accounts_locations_operations_cancel_execute()`.
@@ -5016,7 +5016,7 @@ pub fn logging_billing_accounts_locations_operations_get(
 }
 
 /// GET v2/billingAccounts/{billingAccountsId}/locations/{locationsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_billing_accounts_locations_operations_list_execute()` to send, or `logging_billing_accounts_locations_operations_list` for simplest API.
@@ -5067,7 +5067,7 @@ where
 }
 
 /// GET v2/billingAccounts/{billingAccountsId}/locations/{locationsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -5141,7 +5141,7 @@ pub fn logging_billing_accounts_locations_operations_list_task(
 }
 
 /// GET v2/billingAccounts/{billingAccountsId}/locations/{locationsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -5188,7 +5188,7 @@ pub struct LoggingBillingAccountsLocationsOperationsListArgs {
 }
 
 /// GET v2/billingAccounts/{billingAccountsId}/locations/{locationsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `logging_billing_accounts_locations_operations_list_builder()` + `logging_billing_accounts_locations_operations_list_execute()`.
@@ -6644,7 +6644,7 @@ pub fn logging_billing_accounts_logs_list(
 }
 
 /// POST v2/billingAccounts/{billingAccountsId}/sinks
-/// Creates a sink that exports specified log entries to a destination. The export begins upon ingress, unless the sink's writer_identity is not permitted to write to the destination. A sink can export log entries only from the resource owning the sink.
+/// Creates a sink that exports specified log entries to a destination. The export begins upon ingress, unless the sink''s writer_identity is not permitted to write to the destination. A sink can export log entries only from the resource owning the sink.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_billing_accounts_sinks_create_execute()` to send, or `logging_billing_accounts_sinks_create` for simplest API.
@@ -6687,7 +6687,7 @@ where
 }
 
 /// POST v2/billingAccounts/{billingAccountsId}/sinks
-/// Creates a sink that exports specified log entries to a destination. The export begins upon ingress, unless the sink's writer_identity is not permitted to write to the destination. A sink can export log entries only from the resource owning the sink.
+/// Creates a sink that exports specified log entries to a destination. The export begins upon ingress, unless the sink''s writer_identity is not permitted to write to the destination. A sink can export log entries only from the resource owning the sink.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -6761,7 +6761,7 @@ pub fn logging_billing_accounts_sinks_create_task(
 }
 
 /// POST v2/billingAccounts/{billingAccountsId}/sinks
-/// Creates a sink that exports specified log entries to a destination. The export begins upon ingress, unless the sink's writer_identity is not permitted to write to the destination. A sink can export log entries only from the resource owning the sink.
+/// Creates a sink that exports specified log entries to a destination. The export begins upon ingress, unless the sink''s writer_identity is not permitted to write to the destination. A sink can export log entries only from the resource owning the sink.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -6802,7 +6802,7 @@ pub struct LoggingBillingAccountsSinksCreateArgs {
 }
 
 /// POST v2/billingAccounts/{billingAccountsId}/sinks
-/// Creates a sink that exports specified log entries to a destination. The export begins upon ingress, unless the sink's writer_identity is not permitted to write to the destination. A sink can export log entries only from the resource owning the sink.
+/// Creates a sink that exports specified log entries to a destination. The export begins upon ingress, unless the sink''s writer_identity is not permitted to write to the destination. A sink can export log entries only from the resource owning the sink.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `logging_billing_accounts_sinks_create_builder()` + `logging_billing_accounts_sinks_create_execute()`.
@@ -9508,7 +9508,7 @@ pub fn logging_folders_get_settings(
 }
 
 /// PATCH v2/folders/{foldersId}/settings
-/// Updates the settings for the given resource. This method applies to all feature configurations for organization and folders.UpdateSettings fails when any of the following are `true`: The value of storage_location either isn't supported by Logging or violates the location OrgPolicy. The default_sink_config field is set, but it has an unspecified filter write mode. The value of kms_key_name is invalid. The associated service account doesn't have the required `roles/cloudkms`.`cryptoKeyEncrypterDecrypter` role assigned for the key. Access to the key is disabled.See Configure default settings for organizations and folders (<https://docs.cloud.google.`com/logging/docs/default-settings`>) for more information.
+/// Updates the settings for the given resource. This method applies to all feature configurations for organization and folders.UpdateSettings fails when any of the following are `true`: The value of storage_location either isn''t supported by Logging or violates the location OrgPolicy. The default_sink_config field is set, but it has an unspecified filter write mode. The value of kms_key_name is invalid. The associated service account doesn''t have the required `roles/cloudkms`.`cryptoKeyEncrypterDecrypter` role assigned for the key. Access to the key is disabled.See Configure default settings for organizations and folders (<https://docs.cloud.google.`com/logging/docs/default-settings`>) for more information.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_folders_update_settings_execute()` to send, or `logging_folders_update_settings` for simplest API.
@@ -9547,7 +9547,7 @@ where
 }
 
 /// PATCH v2/folders/{foldersId}/settings
-/// Updates the settings for the given resource. This method applies to all feature configurations for organization and folders.UpdateSettings fails when any of the following are `true`: The value of storage_location either isn't supported by Logging or violates the location OrgPolicy. The default_sink_config field is set, but it has an unspecified filter write mode. The value of kms_key_name is invalid. The associated service account doesn't have the required `roles/cloudkms`.`cryptoKeyEncrypterDecrypter` role assigned for the key. Access to the key is disabled.See Configure default settings for organizations and folders (<https://docs.cloud.google.`com/logging/docs/default-settings`>) for more information.
+/// Updates the settings for the given resource. This method applies to all feature configurations for organization and folders.UpdateSettings fails when any of the following are `true`: The value of storage_location either isn''t supported by Logging or violates the location OrgPolicy. The default_sink_config field is set, but it has an unspecified filter write mode. The value of kms_key_name is invalid. The associated service account doesn''t have the required `roles/cloudkms`.`cryptoKeyEncrypterDecrypter` role assigned for the key. Access to the key is disabled.See Configure default settings for organizations and folders (<https://docs.cloud.google.`com/logging/docs/default-settings`>) for more information.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -9621,7 +9621,7 @@ pub fn logging_folders_update_settings_task(
 }
 
 /// PATCH v2/folders/{foldersId}/settings
-/// Updates the settings for the given resource. This method applies to all feature configurations for organization and folders.UpdateSettings fails when any of the following are `true`: The value of storage_location either isn't supported by Logging or violates the location OrgPolicy. The default_sink_config field is set, but it has an unspecified filter write mode. The value of kms_key_name is invalid. The associated service account doesn't have the required `roles/cloudkms`.`cryptoKeyEncrypterDecrypter` role assigned for the key. Access to the key is disabled.See Configure default settings for organizations and folders (<https://docs.cloud.google.`com/logging/docs/default-settings`>) for more information.
+/// Updates the settings for the given resource. This method applies to all feature configurations for organization and folders.UpdateSettings fails when any of the following are `true`: The value of storage_location either isn''t supported by Logging or violates the location OrgPolicy. The default_sink_config field is set, but it has an unspecified filter write mode. The value of kms_key_name is invalid. The associated service account doesn''t have the required `roles/cloudkms`.`cryptoKeyEncrypterDecrypter` role assigned for the key. Access to the key is disabled.See Configure default settings for organizations and folders (<https://docs.cloud.google.`com/logging/docs/default-settings`>) for more information.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -9660,7 +9660,7 @@ pub struct LoggingFoldersUpdateSettingsArgs {
 }
 
 /// PATCH v2/folders/{foldersId}/settings
-/// Updates the settings for the given resource. This method applies to all feature configurations for organization and folders.UpdateSettings fails when any of the following are `true`: The value of storage_location either isn't supported by Logging or violates the location OrgPolicy. The default_sink_config field is set, but it has an unspecified filter write mode. The value of kms_key_name is invalid. The associated service account doesn't have the required `roles/cloudkms`.`cryptoKeyEncrypterDecrypter` role assigned for the key. Access to the key is disabled.See Configure default settings for organizations and folders (<https://docs.cloud.google.`com/logging/docs/default-settings`>) for more information.
+/// Updates the settings for the given resource. This method applies to all feature configurations for organization and folders.UpdateSettings fails when any of the following are `true`: The value of storage_location either isn''t supported by Logging or violates the location OrgPolicy. The default_sink_config field is set, but it has an unspecified filter write mode. The value of kms_key_name is invalid. The associated service account doesn''t have the required `roles/cloudkms`.`cryptoKeyEncrypterDecrypter` role assigned for the key. Access to the key is disabled.See Configure default settings for organizations and folders (<https://docs.cloud.google.`com/logging/docs/default-settings`>) for more information.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `logging_folders_update_settings_builder()` + `logging_folders_update_settings_execute()`.
@@ -10900,7 +10900,7 @@ pub fn logging_folders_locations_list(
 }
 
 /// POST v2/folders/{foldersId}/locations/{locationsId}/buckets
-/// Creates a log bucket that can be used to store log entries. After a bucket has been created, the bucket's location cannot be changed.
+/// Creates a log bucket that can be used to store log entries. After a bucket has been created, the bucket''s location cannot be changed.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_folders_locations_buckets_create_execute()` to send, or `logging_folders_locations_buckets_create` for simplest API.
@@ -10939,7 +10939,7 @@ where
 }
 
 /// POST v2/folders/{foldersId}/locations/{locationsId}/buckets
-/// Creates a log bucket that can be used to store log entries. After a bucket has been created, the bucket's location cannot be changed.
+/// Creates a log bucket that can be used to store log entries. After a bucket has been created, the bucket''s location cannot be changed.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -11013,7 +11013,7 @@ pub fn logging_folders_locations_buckets_create_task(
 }
 
 /// POST v2/folders/{foldersId}/locations/{locationsId}/buckets
-/// Creates a log bucket that can be used to store log entries. After a bucket has been created, the bucket's location cannot be changed.
+/// Creates a log bucket that can be used to store log entries. After a bucket has been created, the bucket''s location cannot be changed.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -11052,7 +11052,7 @@ pub struct LoggingFoldersLocationsBucketsCreateArgs {
 }
 
 /// POST v2/folders/{foldersId}/locations/{locationsId}/buckets
-/// Creates a log bucket that can be used to store log entries. After a bucket has been created, the bucket's location cannot be changed.
+/// Creates a log bucket that can be used to store log entries. After a bucket has been created, the bucket''s location cannot be changed.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `logging_folders_locations_buckets_create_builder()` + `logging_folders_locations_buckets_create_execute()`.
@@ -11075,7 +11075,7 @@ pub fn logging_folders_locations_buckets_create(
 }
 
 /// POST v2/folders/{foldersId}/locations/{locationsId}/buckets:createAsync
-/// Creates a log bucket asynchronously that can be used to store log entries.After a bucket has been created, the bucket's location cannot be changed.
+/// Creates a log bucket asynchronously that can be used to store log entries.After a bucket has been created, the bucket''s location cannot be changed.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_folders_locations_buckets_create_async_execute()` to send, or `logging_folders_locations_buckets_create_async` for simplest API.
@@ -11114,7 +11114,7 @@ where
 }
 
 /// POST v2/folders/{foldersId}/locations/{locationsId}/buckets:createAsync
-/// Creates a log bucket asynchronously that can be used to store log entries.After a bucket has been created, the bucket's location cannot be changed.
+/// Creates a log bucket asynchronously that can be used to store log entries.After a bucket has been created, the bucket''s location cannot be changed.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -11188,7 +11188,7 @@ pub fn logging_folders_locations_buckets_create_async_task(
 }
 
 /// POST v2/folders/{foldersId}/locations/{locationsId}/buckets:createAsync
-/// Creates a log bucket asynchronously that can be used to store log entries.After a bucket has been created, the bucket's location cannot be changed.
+/// Creates a log bucket asynchronously that can be used to store log entries.After a bucket has been created, the bucket''s location cannot be changed.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -11227,7 +11227,7 @@ pub struct LoggingFoldersLocationsBucketsCreateAsyncArgs {
 }
 
 /// POST v2/folders/{foldersId}/locations/{locationsId}/buckets:createAsync
-/// Creates a log bucket asynchronously that can be used to store log entries.After a bucket has been created, the bucket's location cannot be changed.
+/// Creates a log bucket asynchronously that can be used to store log entries.After a bucket has been created, the bucket''s location cannot be changed.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `logging_folders_locations_buckets_create_async_builder()` + `logging_folders_locations_buckets_create_async_execute()`.
@@ -11253,7 +11253,7 @@ pub fn logging_folders_locations_buckets_create_async(
 }
 
 /// DELETE v2/folders/{foldersId}/locations/{locationsId}/buckets/{bucketsId}
-/// Deletes a log bucket.Changes the bucket's lifecycle_state to the DELETE_REQUESTED state. After 7 days, the bucket will be purged and all log entries in the bucket will be permanently deleted.
+/// Deletes a log bucket.Changes the bucket''s lifecycle_state to the DELETE_REQUESTED state. After 7 days, the bucket will be purged and all log entries in the bucket will be permanently deleted.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_folders_locations_buckets_delete_execute()` to send, or `logging_folders_locations_buckets_delete` for simplest API.
@@ -11280,7 +11280,7 @@ where
 }
 
 /// DELETE v2/folders/{foldersId}/locations/{locationsId}/buckets/{bucketsId}
-/// Deletes a log bucket.Changes the bucket's lifecycle_state to the DELETE_REQUESTED state. After 7 days, the bucket will be purged and all log entries in the bucket will be permanently deleted.
+/// Deletes a log bucket.Changes the bucket''s lifecycle_state to the DELETE_REQUESTED state. After 7 days, the bucket will be purged and all log entries in the bucket will be permanently deleted.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -11354,7 +11354,7 @@ pub fn logging_folders_locations_buckets_delete_task(
 }
 
 /// DELETE v2/folders/{foldersId}/locations/{locationsId}/buckets/{bucketsId}
-/// Deletes a log bucket.Changes the bucket's lifecycle_state to the DELETE_REQUESTED state. After 7 days, the bucket will be purged and all log entries in the bucket will be permanently deleted.
+/// Deletes a log bucket.Changes the bucket''s lifecycle_state to the DELETE_REQUESTED state. After 7 days, the bucket will be purged and all log entries in the bucket will be permanently deleted.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -11391,7 +11391,7 @@ pub struct LoggingFoldersLocationsBucketsDeleteArgs {
 }
 
 /// DELETE v2/folders/{foldersId}/locations/{locationsId}/buckets/{bucketsId}
-/// Deletes a log bucket.Changes the bucket's lifecycle_state to the DELETE_REQUESTED state. After 7 days, the bucket will be purged and all log entries in the bucket will be permanently deleted.
+/// Deletes a log bucket.Changes the bucket''s lifecycle_state to the DELETE_REQUESTED state. After 7 days, the bucket will be purged and all log entries in the bucket will be permanently deleted.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `logging_folders_locations_buckets_delete_builder()` + `logging_folders_locations_buckets_delete_execute()`.
@@ -11762,7 +11762,7 @@ pub fn logging_folders_locations_buckets_list(
 }
 
 /// PATCH v2/folders/{foldersId}/locations/{locationsId}/buckets/{bucketsId}
-/// Updates a log bucket.If the bucket has a lifecycle_state of DELETE_REQUESTED, then FAILED_PRECONDITION will be returned.After a bucket has been created, the bucket's location cannot be changed.
+/// Updates a log bucket.If the bucket has a lifecycle_state of DELETE_REQUESTED, then FAILED_PRECONDITION will be returned.After a bucket has been created, the bucket''s location cannot be changed.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_folders_locations_buckets_patch_execute()` to send, or `logging_folders_locations_buckets_patch` for simplest API.
@@ -11801,7 +11801,7 @@ where
 }
 
 /// PATCH v2/folders/{foldersId}/locations/{locationsId}/buckets/{bucketsId}
-/// Updates a log bucket.If the bucket has a lifecycle_state of DELETE_REQUESTED, then FAILED_PRECONDITION will be returned.After a bucket has been created, the bucket's location cannot be changed.
+/// Updates a log bucket.If the bucket has a lifecycle_state of DELETE_REQUESTED, then FAILED_PRECONDITION will be returned.After a bucket has been created, the bucket''s location cannot be changed.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -11875,7 +11875,7 @@ pub fn logging_folders_locations_buckets_patch_task(
 }
 
 /// PATCH v2/folders/{foldersId}/locations/{locationsId}/buckets/{bucketsId}
-/// Updates a log bucket.If the bucket has a lifecycle_state of DELETE_REQUESTED, then FAILED_PRECONDITION will be returned.After a bucket has been created, the bucket's location cannot be changed.
+/// Updates a log bucket.If the bucket has a lifecycle_state of DELETE_REQUESTED, then FAILED_PRECONDITION will be returned.After a bucket has been created, the bucket''s location cannot be changed.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -11914,7 +11914,7 @@ pub struct LoggingFoldersLocationsBucketsPatchArgs {
 }
 
 /// PATCH v2/folders/{foldersId}/locations/{locationsId}/buckets/{bucketsId}
-/// Updates a log bucket.If the bucket has a lifecycle_state of DELETE_REQUESTED, then FAILED_PRECONDITION will be returned.After a bucket has been created, the bucket's location cannot be changed.
+/// Updates a log bucket.If the bucket has a lifecycle_state of DELETE_REQUESTED, then FAILED_PRECONDITION will be returned.After a bucket has been created, the bucket''s location cannot be changed.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `logging_folders_locations_buckets_patch_builder()` + `logging_folders_locations_buckets_patch_execute()`.
@@ -12097,7 +12097,7 @@ pub fn logging_folders_locations_buckets_undelete(
 }
 
 /// POST v2/folders/{foldersId}/locations/{locationsId}/buckets/{bucketsId}:updateAsync
-/// Updates a log bucket asynchronously.If the bucket has a lifecycle_state of DELETE_REQUESTED, then FAILED_PRECONDITION will be returned.After a bucket has been created, the bucket's location cannot be changed.
+/// Updates a log bucket asynchronously.If the bucket has a lifecycle_state of DELETE_REQUESTED, then FAILED_PRECONDITION will be returned.After a bucket has been created, the bucket''s location cannot be changed.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_folders_locations_buckets_update_async_execute()` to send, or `logging_folders_locations_buckets_update_async` for simplest API.
@@ -12136,7 +12136,7 @@ where
 }
 
 /// POST v2/folders/{foldersId}/locations/{locationsId}/buckets/{bucketsId}:updateAsync
-/// Updates a log bucket asynchronously.If the bucket has a lifecycle_state of DELETE_REQUESTED, then FAILED_PRECONDITION will be returned.After a bucket has been created, the bucket's location cannot be changed.
+/// Updates a log bucket asynchronously.If the bucket has a lifecycle_state of DELETE_REQUESTED, then FAILED_PRECONDITION will be returned.After a bucket has been created, the bucket''s location cannot be changed.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -12210,7 +12210,7 @@ pub fn logging_folders_locations_buckets_update_async_task(
 }
 
 /// POST v2/folders/{foldersId}/locations/{locationsId}/buckets/{bucketsId}:updateAsync
-/// Updates a log bucket asynchronously.If the bucket has a lifecycle_state of DELETE_REQUESTED, then FAILED_PRECONDITION will be returned.After a bucket has been created, the bucket's location cannot be changed.
+/// Updates a log bucket asynchronously.If the bucket has a lifecycle_state of DELETE_REQUESTED, then FAILED_PRECONDITION will be returned.After a bucket has been created, the bucket''s location cannot be changed.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -12249,7 +12249,7 @@ pub struct LoggingFoldersLocationsBucketsUpdateAsyncArgs {
 }
 
 /// POST v2/folders/{foldersId}/locations/{locationsId}/buckets/{bucketsId}:updateAsync
-/// Updates a log bucket asynchronously.If the bucket has a lifecycle_state of DELETE_REQUESTED, then FAILED_PRECONDITION will be returned.After a bucket has been created, the bucket's location cannot be changed.
+/// Updates a log bucket asynchronously.If the bucket has a lifecycle_state of DELETE_REQUESTED, then FAILED_PRECONDITION will be returned.After a bucket has been created, the bucket''s location cannot be changed.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `logging_folders_locations_buckets_update_async_builder()` + `logging_folders_locations_buckets_update_async_execute()`.
@@ -15372,7 +15372,7 @@ pub fn logging_folders_locations_log_scopes_patch(
 }
 
 /// POST v2/folders/{foldersId}/locations/{locationsId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_folders_locations_operations_cancel_execute()` to send, or `logging_folders_locations_operations_cancel` for simplest API.
@@ -15399,7 +15399,7 @@ where
 }
 
 /// POST v2/folders/{foldersId}/locations/{locationsId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -15473,7 +15473,7 @@ pub fn logging_folders_locations_operations_cancel_task(
 }
 
 /// POST v2/folders/{foldersId}/locations/{locationsId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -15510,7 +15510,7 @@ pub struct LoggingFoldersLocationsOperationsCancelArgs {
 }
 
 /// POST v2/folders/{foldersId}/locations/{locationsId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `logging_folders_locations_operations_cancel_builder()` + `logging_folders_locations_operations_cancel_execute()`.
@@ -15692,7 +15692,7 @@ pub fn logging_folders_locations_operations_get(
 }
 
 /// GET v2/folders/{foldersId}/locations/{locationsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_folders_locations_operations_list_execute()` to send, or `logging_folders_locations_operations_list` for simplest API.
@@ -15743,7 +15743,7 @@ where
 }
 
 /// GET v2/folders/{foldersId}/locations/{locationsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -15817,7 +15817,7 @@ pub fn logging_folders_locations_operations_list_task(
 }
 
 /// GET v2/folders/{foldersId}/locations/{locationsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -15864,7 +15864,7 @@ pub struct LoggingFoldersLocationsOperationsListArgs {
 }
 
 /// GET v2/folders/{foldersId}/locations/{locationsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `logging_folders_locations_operations_list_builder()` + `logging_folders_locations_operations_list_execute()`.
@@ -17316,7 +17316,7 @@ pub fn logging_folders_logs_list(
 }
 
 /// POST v2/folders/{foldersId}/sinks
-/// Creates a sink that exports specified log entries to a destination. The export begins upon ingress, unless the sink's writer_identity is not permitted to write to the destination. A sink can export log entries only from the resource owning the sink.
+/// Creates a sink that exports specified log entries to a destination. The export begins upon ingress, unless the sink''s writer_identity is not permitted to write to the destination. A sink can export log entries only from the resource owning the sink.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_folders_sinks_create_execute()` to send, or `logging_folders_sinks_create` for simplest API.
@@ -17356,7 +17356,7 @@ where
 }
 
 /// POST v2/folders/{foldersId}/sinks
-/// Creates a sink that exports specified log entries to a destination. The export begins upon ingress, unless the sink's writer_identity is not permitted to write to the destination. A sink can export log entries only from the resource owning the sink.
+/// Creates a sink that exports specified log entries to a destination. The export begins upon ingress, unless the sink''s writer_identity is not permitted to write to the destination. A sink can export log entries only from the resource owning the sink.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -17430,7 +17430,7 @@ pub fn logging_folders_sinks_create_task(
 }
 
 /// POST v2/folders/{foldersId}/sinks
-/// Creates a sink that exports specified log entries to a destination. The export begins upon ingress, unless the sink's writer_identity is not permitted to write to the destination. A sink can export log entries only from the resource owning the sink.
+/// Creates a sink that exports specified log entries to a destination. The export begins upon ingress, unless the sink''s writer_identity is not permitted to write to the destination. A sink can export log entries only from the resource owning the sink.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -17471,7 +17471,7 @@ pub struct LoggingFoldersSinksCreateArgs {
 }
 
 /// POST v2/folders/{foldersId}/sinks
-/// Creates a sink that exports specified log entries to a destination. The export begins upon ingress, unless the sink's writer_identity is not permitted to write to the destination. A sink can export log entries only from the resource owning the sink.
+/// Creates a sink that exports specified log entries to a destination. The export begins upon ingress, unless the sink''s writer_identity is not permitted to write to the destination. A sink can export log entries only from the resource owning the sink.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `logging_folders_sinks_create_builder()` + `logging_folders_sinks_create_execute()`.
@@ -18758,7 +18758,7 @@ pub fn logging_locations_list(
 }
 
 /// POST v2/{v2Id}/{v2Id1}/locations/{locationsId}/buckets
-/// Creates a log bucket that can be used to store log entries. After a bucket has been created, the bucket's location cannot be changed.
+/// Creates a log bucket that can be used to store log entries. After a bucket has been created, the bucket''s location cannot be changed.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_locations_buckets_create_execute()` to send, or `logging_locations_buckets_create` for simplest API.
@@ -18797,7 +18797,7 @@ where
 }
 
 /// POST v2/{v2Id}/{v2Id1}/locations/{locationsId}/buckets
-/// Creates a log bucket that can be used to store log entries. After a bucket has been created, the bucket's location cannot be changed.
+/// Creates a log bucket that can be used to store log entries. After a bucket has been created, the bucket''s location cannot be changed.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -18871,7 +18871,7 @@ pub fn logging_locations_buckets_create_task(
 }
 
 /// POST v2/{v2Id}/{v2Id1}/locations/{locationsId}/buckets
-/// Creates a log bucket that can be used to store log entries. After a bucket has been created, the bucket's location cannot be changed.
+/// Creates a log bucket that can be used to store log entries. After a bucket has been created, the bucket''s location cannot be changed.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -18910,7 +18910,7 @@ pub struct LoggingLocationsBucketsCreateArgs {
 }
 
 /// POST v2/{v2Id}/{v2Id1}/locations/{locationsId}/buckets
-/// Creates a log bucket that can be used to store log entries. After a bucket has been created, the bucket's location cannot be changed.
+/// Creates a log bucket that can be used to store log entries. After a bucket has been created, the bucket''s location cannot be changed.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `logging_locations_buckets_create_builder()` + `logging_locations_buckets_create_execute()`.
@@ -18932,7 +18932,7 @@ pub fn logging_locations_buckets_create(
 }
 
 /// POST v2/{v2Id}/{v2Id1}/locations/{locationsId}/buckets:createAsync
-/// Creates a log bucket asynchronously that can be used to store log entries.After a bucket has been created, the bucket's location cannot be changed.
+/// Creates a log bucket asynchronously that can be used to store log entries.After a bucket has been created, the bucket''s location cannot be changed.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_locations_buckets_create_async_execute()` to send, or `logging_locations_buckets_create_async` for simplest API.
@@ -18971,7 +18971,7 @@ where
 }
 
 /// POST v2/{v2Id}/{v2Id1}/locations/{locationsId}/buckets:createAsync
-/// Creates a log bucket asynchronously that can be used to store log entries.After a bucket has been created, the bucket's location cannot be changed.
+/// Creates a log bucket asynchronously that can be used to store log entries.After a bucket has been created, the bucket''s location cannot be changed.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -19045,7 +19045,7 @@ pub fn logging_locations_buckets_create_async_task(
 }
 
 /// POST v2/{v2Id}/{v2Id1}/locations/{locationsId}/buckets:createAsync
-/// Creates a log bucket asynchronously that can be used to store log entries.After a bucket has been created, the bucket's location cannot be changed.
+/// Creates a log bucket asynchronously that can be used to store log entries.After a bucket has been created, the bucket''s location cannot be changed.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -19084,7 +19084,7 @@ pub struct LoggingLocationsBucketsCreateAsyncArgs {
 }
 
 /// POST v2/{v2Id}/{v2Id1}/locations/{locationsId}/buckets:createAsync
-/// Creates a log bucket asynchronously that can be used to store log entries.After a bucket has been created, the bucket's location cannot be changed.
+/// Creates a log bucket asynchronously that can be used to store log entries.After a bucket has been created, the bucket''s location cannot be changed.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `logging_locations_buckets_create_async_builder()` + `logging_locations_buckets_create_async_execute()`.
@@ -19107,7 +19107,7 @@ pub fn logging_locations_buckets_create_async(
 }
 
 /// DELETE v2/{v2Id}/{v2Id1}/locations/{locationsId}/buckets/{bucketsId}
-/// Deletes a log bucket.Changes the bucket's lifecycle_state to the DELETE_REQUESTED state. After 7 days, the bucket will be purged and all log entries in the bucket will be permanently deleted.
+/// Deletes a log bucket.Changes the bucket''s lifecycle_state to the DELETE_REQUESTED state. After 7 days, the bucket will be purged and all log entries in the bucket will be permanently deleted.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_locations_buckets_delete_execute()` to send, or `logging_locations_buckets_delete` for simplest API.
@@ -19134,7 +19134,7 @@ where
 }
 
 /// DELETE v2/{v2Id}/{v2Id1}/locations/{locationsId}/buckets/{bucketsId}
-/// Deletes a log bucket.Changes the bucket's lifecycle_state to the DELETE_REQUESTED state. After 7 days, the bucket will be purged and all log entries in the bucket will be permanently deleted.
+/// Deletes a log bucket.Changes the bucket''s lifecycle_state to the DELETE_REQUESTED state. After 7 days, the bucket will be purged and all log entries in the bucket will be permanently deleted.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -19208,7 +19208,7 @@ pub fn logging_locations_buckets_delete_task(
 }
 
 /// DELETE v2/{v2Id}/{v2Id1}/locations/{locationsId}/buckets/{bucketsId}
-/// Deletes a log bucket.Changes the bucket's lifecycle_state to the DELETE_REQUESTED state. After 7 days, the bucket will be purged and all log entries in the bucket will be permanently deleted.
+/// Deletes a log bucket.Changes the bucket''s lifecycle_state to the DELETE_REQUESTED state. After 7 days, the bucket will be purged and all log entries in the bucket will be permanently deleted.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -19245,7 +19245,7 @@ pub struct LoggingLocationsBucketsDeleteArgs {
 }
 
 /// DELETE v2/{v2Id}/{v2Id1}/locations/{locationsId}/buckets/{bucketsId}
-/// Deletes a log bucket.Changes the bucket's lifecycle_state to the DELETE_REQUESTED state. After 7 days, the bucket will be purged and all log entries in the bucket will be permanently deleted.
+/// Deletes a log bucket.Changes the bucket''s lifecycle_state to the DELETE_REQUESTED state. After 7 days, the bucket will be purged and all log entries in the bucket will be permanently deleted.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `logging_locations_buckets_delete_builder()` + `logging_locations_buckets_delete_execute()`.
@@ -19616,7 +19616,7 @@ pub fn logging_locations_buckets_list(
 }
 
 /// PATCH v2/{v2Id}/{v2Id1}/locations/{locationsId}/buckets/{bucketsId}
-/// Updates a log bucket.If the bucket has a lifecycle_state of DELETE_REQUESTED, then FAILED_PRECONDITION will be returned.After a bucket has been created, the bucket's location cannot be changed.
+/// Updates a log bucket.If the bucket has a lifecycle_state of DELETE_REQUESTED, then FAILED_PRECONDITION will be returned.After a bucket has been created, the bucket''s location cannot be changed.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_locations_buckets_patch_execute()` to send, or `logging_locations_buckets_patch` for simplest API.
@@ -19655,7 +19655,7 @@ where
 }
 
 /// PATCH v2/{v2Id}/{v2Id1}/locations/{locationsId}/buckets/{bucketsId}
-/// Updates a log bucket.If the bucket has a lifecycle_state of DELETE_REQUESTED, then FAILED_PRECONDITION will be returned.After a bucket has been created, the bucket's location cannot be changed.
+/// Updates a log bucket.If the bucket has a lifecycle_state of DELETE_REQUESTED, then FAILED_PRECONDITION will be returned.After a bucket has been created, the bucket''s location cannot be changed.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -19729,7 +19729,7 @@ pub fn logging_locations_buckets_patch_task(
 }
 
 /// PATCH v2/{v2Id}/{v2Id1}/locations/{locationsId}/buckets/{bucketsId}
-/// Updates a log bucket.If the bucket has a lifecycle_state of DELETE_REQUESTED, then FAILED_PRECONDITION will be returned.After a bucket has been created, the bucket's location cannot be changed.
+/// Updates a log bucket.If the bucket has a lifecycle_state of DELETE_REQUESTED, then FAILED_PRECONDITION will be returned.After a bucket has been created, the bucket''s location cannot be changed.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -19768,7 +19768,7 @@ pub struct LoggingLocationsBucketsPatchArgs {
 }
 
 /// PATCH v2/{v2Id}/{v2Id1}/locations/{locationsId}/buckets/{bucketsId}
-/// Updates a log bucket.If the bucket has a lifecycle_state of DELETE_REQUESTED, then FAILED_PRECONDITION will be returned.After a bucket has been created, the bucket's location cannot be changed.
+/// Updates a log bucket.If the bucket has a lifecycle_state of DELETE_REQUESTED, then FAILED_PRECONDITION will be returned.After a bucket has been created, the bucket''s location cannot be changed.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `logging_locations_buckets_patch_builder()` + `logging_locations_buckets_patch_execute()`.
@@ -19950,7 +19950,7 @@ pub fn logging_locations_buckets_undelete(
 }
 
 /// POST v2/{v2Id}/{v2Id1}/locations/{locationsId}/buckets/{bucketsId}:updateAsync
-/// Updates a log bucket asynchronously.If the bucket has a lifecycle_state of DELETE_REQUESTED, then FAILED_PRECONDITION will be returned.After a bucket has been created, the bucket's location cannot be changed.
+/// Updates a log bucket asynchronously.If the bucket has a lifecycle_state of DELETE_REQUESTED, then FAILED_PRECONDITION will be returned.After a bucket has been created, the bucket''s location cannot be changed.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_locations_buckets_update_async_execute()` to send, or `logging_locations_buckets_update_async` for simplest API.
@@ -19989,7 +19989,7 @@ where
 }
 
 /// POST v2/{v2Id}/{v2Id1}/locations/{locationsId}/buckets/{bucketsId}:updateAsync
-/// Updates a log bucket asynchronously.If the bucket has a lifecycle_state of DELETE_REQUESTED, then FAILED_PRECONDITION will be returned.After a bucket has been created, the bucket's location cannot be changed.
+/// Updates a log bucket asynchronously.If the bucket has a lifecycle_state of DELETE_REQUESTED, then FAILED_PRECONDITION will be returned.After a bucket has been created, the bucket''s location cannot be changed.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -20063,7 +20063,7 @@ pub fn logging_locations_buckets_update_async_task(
 }
 
 /// POST v2/{v2Id}/{v2Id1}/locations/{locationsId}/buckets/{bucketsId}:updateAsync
-/// Updates a log bucket asynchronously.If the bucket has a lifecycle_state of DELETE_REQUESTED, then FAILED_PRECONDITION will be returned.After a bucket has been created, the bucket's location cannot be changed.
+/// Updates a log bucket asynchronously.If the bucket has a lifecycle_state of DELETE_REQUESTED, then FAILED_PRECONDITION will be returned.After a bucket has been created, the bucket''s location cannot be changed.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -20102,7 +20102,7 @@ pub struct LoggingLocationsBucketsUpdateAsyncArgs {
 }
 
 /// POST v2/{v2Id}/{v2Id1}/locations/{locationsId}/buckets/{bucketsId}:updateAsync
-/// Updates a log bucket asynchronously.If the bucket has a lifecycle_state of DELETE_REQUESTED, then FAILED_PRECONDITION will be returned.After a bucket has been created, the bucket's location cannot be changed.
+/// Updates a log bucket asynchronously.If the bucket has a lifecycle_state of DELETE_REQUESTED, then FAILED_PRECONDITION will be returned.After a bucket has been created, the bucket''s location cannot be changed.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `logging_locations_buckets_update_async_builder()` + `logging_locations_buckets_update_async_execute()`.
@@ -22157,7 +22157,7 @@ pub fn logging_locations_buckets_views_test_iam_permissions(
 }
 
 /// POST v2/{v2Id}/{v2Id1}/locations/{locationsId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_locations_operations_cancel_execute()` to send, or `logging_locations_operations_cancel` for simplest API.
@@ -22184,7 +22184,7 @@ where
 }
 
 /// POST v2/{v2Id}/{v2Id1}/locations/{locationsId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -22258,7 +22258,7 @@ pub fn logging_locations_operations_cancel_task(
 }
 
 /// POST v2/{v2Id}/{v2Id1}/locations/{locationsId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -22295,7 +22295,7 @@ pub struct LoggingLocationsOperationsCancelArgs {
 }
 
 /// POST v2/{v2Id}/{v2Id1}/locations/{locationsId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `logging_locations_operations_cancel_builder()` + `logging_locations_operations_cancel_execute()`.
@@ -22477,7 +22477,7 @@ pub fn logging_locations_operations_get(
 }
 
 /// GET v2/{v2Id}/{v2Id1}/locations/{locationsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_locations_operations_list_execute()` to send, or `logging_locations_operations_list` for simplest API.
@@ -22528,7 +22528,7 @@ where
 }
 
 /// GET v2/{v2Id}/{v2Id1}/locations/{locationsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -22602,7 +22602,7 @@ pub fn logging_locations_operations_list_task(
 }
 
 /// GET v2/{v2Id}/{v2Id1}/locations/{locationsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -22649,7 +22649,7 @@ pub struct LoggingLocationsOperationsListArgs {
 }
 
 /// GET v2/{v2Id}/{v2Id1}/locations/{locationsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `logging_locations_operations_list_builder()` + `logging_locations_operations_list_execute()`.
@@ -23543,7 +23543,7 @@ pub fn logging_organizations_get_settings(
 }
 
 /// PATCH v2/organizations/{organizationsId}/cmekSettings
-/// Updates the Log Router CMEK settings for the given resource.Note: CMEK for the Log Router can currently only be configured for Google Cloud organizations. Once configured, it applies to all projects and folders in the Google Cloud organization.UpdateCmekSettings fails when any of the following are `true`: The value of kms_key_name is invalid. The associated service account doesn't have the required `roles/cloudkms`.`cryptoKeyEncrypterDecrypter` role assigned for the key. Access to the key is disabled.See Configure CMEK for Cloud Logging (<https://docs.cloud.google.`com/logging/docs/routing/managed-encryption`>) for more information.
+/// Updates the Log Router CMEK settings for the given resource.Note: CMEK for the Log Router can currently only be configured for Google Cloud organizations. Once configured, it applies to all projects and folders in the Google Cloud organization.UpdateCmekSettings fails when any of the following are `true`: The value of kms_key_name is invalid. The associated service account doesn''t have the required `roles/cloudkms`.`cryptoKeyEncrypterDecrypter` role assigned for the key. Access to the key is disabled.See Configure CMEK for Cloud Logging (<https://docs.cloud.google.`com/logging/docs/routing/managed-encryption`>) for more information.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_organizations_update_cmek_settings_execute()` to send, or `logging_organizations_update_cmek_settings` for simplest API.
@@ -23582,7 +23582,7 @@ where
 }
 
 /// PATCH v2/organizations/{organizationsId}/cmekSettings
-/// Updates the Log Router CMEK settings for the given resource.Note: CMEK for the Log Router can currently only be configured for Google Cloud organizations. Once configured, it applies to all projects and folders in the Google Cloud organization.UpdateCmekSettings fails when any of the following are `true`: The value of kms_key_name is invalid. The associated service account doesn't have the required `roles/cloudkms`.`cryptoKeyEncrypterDecrypter` role assigned for the key. Access to the key is disabled.See Configure CMEK for Cloud Logging (<https://docs.cloud.google.`com/logging/docs/routing/managed-encryption`>) for more information.
+/// Updates the Log Router CMEK settings for the given resource.Note: CMEK for the Log Router can currently only be configured for Google Cloud organizations. Once configured, it applies to all projects and folders in the Google Cloud organization.UpdateCmekSettings fails when any of the following are `true`: The value of kms_key_name is invalid. The associated service account doesn''t have the required `roles/cloudkms`.`cryptoKeyEncrypterDecrypter` role assigned for the key. Access to the key is disabled.See Configure CMEK for Cloud Logging (<https://docs.cloud.google.`com/logging/docs/routing/managed-encryption`>) for more information.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -23656,7 +23656,7 @@ pub fn logging_organizations_update_cmek_settings_task(
 }
 
 /// PATCH v2/organizations/{organizationsId}/cmekSettings
-/// Updates the Log Router CMEK settings for the given resource.Note: CMEK for the Log Router can currently only be configured for Google Cloud organizations. Once configured, it applies to all projects and folders in the Google Cloud organization.UpdateCmekSettings fails when any of the following are `true`: The value of kms_key_name is invalid. The associated service account doesn't have the required `roles/cloudkms`.`cryptoKeyEncrypterDecrypter` role assigned for the key. Access to the key is disabled.See Configure CMEK for Cloud Logging (<https://docs.cloud.google.`com/logging/docs/routing/managed-encryption`>) for more information.
+/// Updates the Log Router CMEK settings for the given resource.Note: CMEK for the Log Router can currently only be configured for Google Cloud organizations. Once configured, it applies to all projects and folders in the Google Cloud organization.UpdateCmekSettings fails when any of the following are `true`: The value of kms_key_name is invalid. The associated service account doesn''t have the required `roles/cloudkms`.`cryptoKeyEncrypterDecrypter` role assigned for the key. Access to the key is disabled.See Configure CMEK for Cloud Logging (<https://docs.cloud.google.`com/logging/docs/routing/managed-encryption`>) for more information.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -23697,7 +23697,7 @@ pub struct LoggingOrganizationsUpdateCmekSettingsArgs {
 }
 
 /// PATCH v2/organizations/{organizationsId}/cmekSettings
-/// Updates the Log Router CMEK settings for the given resource.Note: CMEK for the Log Router can currently only be configured for Google Cloud organizations. Once configured, it applies to all projects and folders in the Google Cloud organization.UpdateCmekSettings fails when any of the following are `true`: The value of kms_key_name is invalid. The associated service account doesn't have the required `roles/cloudkms`.`cryptoKeyEncrypterDecrypter` role assigned for the key. Access to the key is disabled.See Configure CMEK for Cloud Logging (<https://docs.cloud.google.`com/logging/docs/routing/managed-encryption`>) for more information.
+/// Updates the Log Router CMEK settings for the given resource.Note: CMEK for the Log Router can currently only be configured for Google Cloud organizations. Once configured, it applies to all projects and folders in the Google Cloud organization.UpdateCmekSettings fails when any of the following are `true`: The value of kms_key_name is invalid. The associated service account doesn''t have the required `roles/cloudkms`.`cryptoKeyEncrypterDecrypter` role assigned for the key. Access to the key is disabled.See Configure CMEK for Cloud Logging (<https://docs.cloud.google.`com/logging/docs/routing/managed-encryption`>) for more information.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `logging_organizations_update_cmek_settings_builder()` + `logging_organizations_update_cmek_settings_execute()`.
@@ -23722,7 +23722,7 @@ pub fn logging_organizations_update_cmek_settings(
 }
 
 /// PATCH v2/organizations/{organizationsId}/settings
-/// Updates the settings for the given resource. This method applies to all feature configurations for organization and folders.UpdateSettings fails when any of the following are `true`: The value of storage_location either isn't supported by Logging or violates the location OrgPolicy. The default_sink_config field is set, but it has an unspecified filter write mode. The value of kms_key_name is invalid. The associated service account doesn't have the required `roles/cloudkms`.`cryptoKeyEncrypterDecrypter` role assigned for the key. Access to the key is disabled.See Configure default settings for organizations and folders (<https://docs.cloud.google.`com/logging/docs/default-settings`>) for more information.
+/// Updates the settings for the given resource. This method applies to all feature configurations for organization and folders.UpdateSettings fails when any of the following are `true`: The value of storage_location either isn''t supported by Logging or violates the location OrgPolicy. The default_sink_config field is set, but it has an unspecified filter write mode. The value of kms_key_name is invalid. The associated service account doesn''t have the required `roles/cloudkms`.`cryptoKeyEncrypterDecrypter` role assigned for the key. Access to the key is disabled.See Configure default settings for organizations and folders (<https://docs.cloud.google.`com/logging/docs/default-settings`>) for more information.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_organizations_update_settings_execute()` to send, or `logging_organizations_update_settings` for simplest API.
@@ -23761,7 +23761,7 @@ where
 }
 
 /// PATCH v2/organizations/{organizationsId}/settings
-/// Updates the settings for the given resource. This method applies to all feature configurations for organization and folders.UpdateSettings fails when any of the following are `true`: The value of storage_location either isn't supported by Logging or violates the location OrgPolicy. The default_sink_config field is set, but it has an unspecified filter write mode. The value of kms_key_name is invalid. The associated service account doesn't have the required `roles/cloudkms`.`cryptoKeyEncrypterDecrypter` role assigned for the key. Access to the key is disabled.See Configure default settings for organizations and folders (<https://docs.cloud.google.`com/logging/docs/default-settings`>) for more information.
+/// Updates the settings for the given resource. This method applies to all feature configurations for organization and folders.UpdateSettings fails when any of the following are `true`: The value of storage_location either isn''t supported by Logging or violates the location OrgPolicy. The default_sink_config field is set, but it has an unspecified filter write mode. The value of kms_key_name is invalid. The associated service account doesn''t have the required `roles/cloudkms`.`cryptoKeyEncrypterDecrypter` role assigned for the key. Access to the key is disabled.See Configure default settings for organizations and folders (<https://docs.cloud.google.`com/logging/docs/default-settings`>) for more information.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -23835,7 +23835,7 @@ pub fn logging_organizations_update_settings_task(
 }
 
 /// PATCH v2/organizations/{organizationsId}/settings
-/// Updates the settings for the given resource. This method applies to all feature configurations for organization and folders.UpdateSettings fails when any of the following are `true`: The value of storage_location either isn't supported by Logging or violates the location OrgPolicy. The default_sink_config field is set, but it has an unspecified filter write mode. The value of kms_key_name is invalid. The associated service account doesn't have the required `roles/cloudkms`.`cryptoKeyEncrypterDecrypter` role assigned for the key. Access to the key is disabled.See Configure default settings for organizations and folders (<https://docs.cloud.google.`com/logging/docs/default-settings`>) for more information.
+/// Updates the settings for the given resource. This method applies to all feature configurations for organization and folders.UpdateSettings fails when any of the following are `true`: The value of storage_location either isn''t supported by Logging or violates the location OrgPolicy. The default_sink_config field is set, but it has an unspecified filter write mode. The value of kms_key_name is invalid. The associated service account doesn''t have the required `roles/cloudkms`.`cryptoKeyEncrypterDecrypter` role assigned for the key. Access to the key is disabled.See Configure default settings for organizations and folders (<https://docs.cloud.google.`com/logging/docs/default-settings`>) for more information.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -23874,7 +23874,7 @@ pub struct LoggingOrganizationsUpdateSettingsArgs {
 }
 
 /// PATCH v2/organizations/{organizationsId}/settings
-/// Updates the settings for the given resource. This method applies to all feature configurations for organization and folders.UpdateSettings fails when any of the following are `true`: The value of storage_location either isn't supported by Logging or violates the location OrgPolicy. The default_sink_config field is set, but it has an unspecified filter write mode. The value of kms_key_name is invalid. The associated service account doesn't have the required `roles/cloudkms`.`cryptoKeyEncrypterDecrypter` role assigned for the key. Access to the key is disabled.See Configure default settings for organizations and folders (<https://docs.cloud.google.`com/logging/docs/default-settings`>) for more information.
+/// Updates the settings for the given resource. This method applies to all feature configurations for organization and folders.UpdateSettings fails when any of the following are `true`: The value of storage_location either isn''t supported by Logging or violates the location OrgPolicy. The default_sink_config field is set, but it has an unspecified filter write mode. The value of kms_key_name is invalid. The associated service account doesn''t have the required `roles/cloudkms`.`cryptoKeyEncrypterDecrypter` role assigned for the key. Access to the key is disabled.See Configure default settings for organizations and folders (<https://docs.cloud.google.`com/logging/docs/default-settings`>) for more information.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `logging_organizations_update_settings_builder()` + `logging_organizations_update_settings_execute()`.
@@ -25116,7 +25116,7 @@ pub fn logging_organizations_locations_list(
 }
 
 /// POST v2/organizations/{organizationsId}/locations/{locationsId}/buckets
-/// Creates a log bucket that can be used to store log entries. After a bucket has been created, the bucket's location cannot be changed.
+/// Creates a log bucket that can be used to store log entries. After a bucket has been created, the bucket''s location cannot be changed.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_organizations_locations_buckets_create_execute()` to send, or `logging_organizations_locations_buckets_create` for simplest API.
@@ -25155,7 +25155,7 @@ where
 }
 
 /// POST v2/organizations/{organizationsId}/locations/{locationsId}/buckets
-/// Creates a log bucket that can be used to store log entries. After a bucket has been created, the bucket's location cannot be changed.
+/// Creates a log bucket that can be used to store log entries. After a bucket has been created, the bucket''s location cannot be changed.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -25229,7 +25229,7 @@ pub fn logging_organizations_locations_buckets_create_task(
 }
 
 /// POST v2/organizations/{organizationsId}/locations/{locationsId}/buckets
-/// Creates a log bucket that can be used to store log entries. After a bucket has been created, the bucket's location cannot be changed.
+/// Creates a log bucket that can be used to store log entries. After a bucket has been created, the bucket''s location cannot be changed.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -25268,7 +25268,7 @@ pub struct LoggingOrganizationsLocationsBucketsCreateArgs {
 }
 
 /// POST v2/organizations/{organizationsId}/locations/{locationsId}/buckets
-/// Creates a log bucket that can be used to store log entries. After a bucket has been created, the bucket's location cannot be changed.
+/// Creates a log bucket that can be used to store log entries. After a bucket has been created, the bucket''s location cannot be changed.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `logging_organizations_locations_buckets_create_builder()` + `logging_organizations_locations_buckets_create_execute()`.
@@ -25294,7 +25294,7 @@ pub fn logging_organizations_locations_buckets_create(
 }
 
 /// POST v2/organizations/{organizationsId}/locations/{locationsId}/buckets:createAsync
-/// Creates a log bucket asynchronously that can be used to store log entries.After a bucket has been created, the bucket's location cannot be changed.
+/// Creates a log bucket asynchronously that can be used to store log entries.After a bucket has been created, the bucket''s location cannot be changed.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_organizations_locations_buckets_create_async_execute()` to send, or `logging_organizations_locations_buckets_create_async` for simplest API.
@@ -25333,7 +25333,7 @@ where
 }
 
 /// POST v2/organizations/{organizationsId}/locations/{locationsId}/buckets:createAsync
-/// Creates a log bucket asynchronously that can be used to store log entries.After a bucket has been created, the bucket's location cannot be changed.
+/// Creates a log bucket asynchronously that can be used to store log entries.After a bucket has been created, the bucket''s location cannot be changed.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -25407,7 +25407,7 @@ pub fn logging_organizations_locations_buckets_create_async_task(
 }
 
 /// POST v2/organizations/{organizationsId}/locations/{locationsId}/buckets:createAsync
-/// Creates a log bucket asynchronously that can be used to store log entries.After a bucket has been created, the bucket's location cannot be changed.
+/// Creates a log bucket asynchronously that can be used to store log entries.After a bucket has been created, the bucket''s location cannot be changed.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -25446,7 +25446,7 @@ pub struct LoggingOrganizationsLocationsBucketsCreateAsyncArgs {
 }
 
 /// POST v2/organizations/{organizationsId}/locations/{locationsId}/buckets:createAsync
-/// Creates a log bucket asynchronously that can be used to store log entries.After a bucket has been created, the bucket's location cannot be changed.
+/// Creates a log bucket asynchronously that can be used to store log entries.After a bucket has been created, the bucket''s location cannot be changed.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `logging_organizations_locations_buckets_create_async_builder()` + `logging_organizations_locations_buckets_create_async_execute()`.
@@ -25472,7 +25472,7 @@ pub fn logging_organizations_locations_buckets_create_async(
 }
 
 /// DELETE v2/organizations/{organizationsId}/locations/{locationsId}/buckets/{bucketsId}
-/// Deletes a log bucket.Changes the bucket's lifecycle_state to the DELETE_REQUESTED state. After 7 days, the bucket will be purged and all log entries in the bucket will be permanently deleted.
+/// Deletes a log bucket.Changes the bucket''s lifecycle_state to the DELETE_REQUESTED state. After 7 days, the bucket will be purged and all log entries in the bucket will be permanently deleted.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_organizations_locations_buckets_delete_execute()` to send, or `logging_organizations_locations_buckets_delete` for simplest API.
@@ -25499,7 +25499,7 @@ where
 }
 
 /// DELETE v2/organizations/{organizationsId}/locations/{locationsId}/buckets/{bucketsId}
-/// Deletes a log bucket.Changes the bucket's lifecycle_state to the DELETE_REQUESTED state. After 7 days, the bucket will be purged and all log entries in the bucket will be permanently deleted.
+/// Deletes a log bucket.Changes the bucket''s lifecycle_state to the DELETE_REQUESTED state. After 7 days, the bucket will be purged and all log entries in the bucket will be permanently deleted.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -25573,7 +25573,7 @@ pub fn logging_organizations_locations_buckets_delete_task(
 }
 
 /// DELETE v2/organizations/{organizationsId}/locations/{locationsId}/buckets/{bucketsId}
-/// Deletes a log bucket.Changes the bucket's lifecycle_state to the DELETE_REQUESTED state. After 7 days, the bucket will be purged and all log entries in the bucket will be permanently deleted.
+/// Deletes a log bucket.Changes the bucket''s lifecycle_state to the DELETE_REQUESTED state. After 7 days, the bucket will be purged and all log entries in the bucket will be permanently deleted.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -25610,7 +25610,7 @@ pub struct LoggingOrganizationsLocationsBucketsDeleteArgs {
 }
 
 /// DELETE v2/organizations/{organizationsId}/locations/{locationsId}/buckets/{bucketsId}
-/// Deletes a log bucket.Changes the bucket's lifecycle_state to the DELETE_REQUESTED state. After 7 days, the bucket will be purged and all log entries in the bucket will be permanently deleted.
+/// Deletes a log bucket.Changes the bucket''s lifecycle_state to the DELETE_REQUESTED state. After 7 days, the bucket will be purged and all log entries in the bucket will be permanently deleted.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `logging_organizations_locations_buckets_delete_builder()` + `logging_organizations_locations_buckets_delete_execute()`.
@@ -25981,7 +25981,7 @@ pub fn logging_organizations_locations_buckets_list(
 }
 
 /// PATCH v2/organizations/{organizationsId}/locations/{locationsId}/buckets/{bucketsId}
-/// Updates a log bucket.If the bucket has a lifecycle_state of DELETE_REQUESTED, then FAILED_PRECONDITION will be returned.After a bucket has been created, the bucket's location cannot be changed.
+/// Updates a log bucket.If the bucket has a lifecycle_state of DELETE_REQUESTED, then FAILED_PRECONDITION will be returned.After a bucket has been created, the bucket''s location cannot be changed.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_organizations_locations_buckets_patch_execute()` to send, or `logging_organizations_locations_buckets_patch` for simplest API.
@@ -26020,7 +26020,7 @@ where
 }
 
 /// PATCH v2/organizations/{organizationsId}/locations/{locationsId}/buckets/{bucketsId}
-/// Updates a log bucket.If the bucket has a lifecycle_state of DELETE_REQUESTED, then FAILED_PRECONDITION will be returned.After a bucket has been created, the bucket's location cannot be changed.
+/// Updates a log bucket.If the bucket has a lifecycle_state of DELETE_REQUESTED, then FAILED_PRECONDITION will be returned.After a bucket has been created, the bucket''s location cannot be changed.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -26094,7 +26094,7 @@ pub fn logging_organizations_locations_buckets_patch_task(
 }
 
 /// PATCH v2/organizations/{organizationsId}/locations/{locationsId}/buckets/{bucketsId}
-/// Updates a log bucket.If the bucket has a lifecycle_state of DELETE_REQUESTED, then FAILED_PRECONDITION will be returned.After a bucket has been created, the bucket's location cannot be changed.
+/// Updates a log bucket.If the bucket has a lifecycle_state of DELETE_REQUESTED, then FAILED_PRECONDITION will be returned.After a bucket has been created, the bucket''s location cannot be changed.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -26133,7 +26133,7 @@ pub struct LoggingOrganizationsLocationsBucketsPatchArgs {
 }
 
 /// PATCH v2/organizations/{organizationsId}/locations/{locationsId}/buckets/{bucketsId}
-/// Updates a log bucket.If the bucket has a lifecycle_state of DELETE_REQUESTED, then FAILED_PRECONDITION will be returned.After a bucket has been created, the bucket's location cannot be changed.
+/// Updates a log bucket.If the bucket has a lifecycle_state of DELETE_REQUESTED, then FAILED_PRECONDITION will be returned.After a bucket has been created, the bucket''s location cannot be changed.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `logging_organizations_locations_buckets_patch_builder()` + `logging_organizations_locations_buckets_patch_execute()`.
@@ -26319,7 +26319,7 @@ pub fn logging_organizations_locations_buckets_undelete(
 }
 
 /// POST v2/organizations/{organizationsId}/locations/{locationsId}/buckets/{bucketsId}:updateAsync
-/// Updates a log bucket asynchronously.If the bucket has a lifecycle_state of DELETE_REQUESTED, then FAILED_PRECONDITION will be returned.After a bucket has been created, the bucket's location cannot be changed.
+/// Updates a log bucket asynchronously.If the bucket has a lifecycle_state of DELETE_REQUESTED, then FAILED_PRECONDITION will be returned.After a bucket has been created, the bucket''s location cannot be changed.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_organizations_locations_buckets_update_async_execute()` to send, or `logging_organizations_locations_buckets_update_async` for simplest API.
@@ -26358,7 +26358,7 @@ where
 }
 
 /// POST v2/organizations/{organizationsId}/locations/{locationsId}/buckets/{bucketsId}:updateAsync
-/// Updates a log bucket asynchronously.If the bucket has a lifecycle_state of DELETE_REQUESTED, then FAILED_PRECONDITION will be returned.After a bucket has been created, the bucket's location cannot be changed.
+/// Updates a log bucket asynchronously.If the bucket has a lifecycle_state of DELETE_REQUESTED, then FAILED_PRECONDITION will be returned.After a bucket has been created, the bucket''s location cannot be changed.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -26432,7 +26432,7 @@ pub fn logging_organizations_locations_buckets_update_async_task(
 }
 
 /// POST v2/organizations/{organizationsId}/locations/{locationsId}/buckets/{bucketsId}:updateAsync
-/// Updates a log bucket asynchronously.If the bucket has a lifecycle_state of DELETE_REQUESTED, then FAILED_PRECONDITION will be returned.After a bucket has been created, the bucket's location cannot be changed.
+/// Updates a log bucket asynchronously.If the bucket has a lifecycle_state of DELETE_REQUESTED, then FAILED_PRECONDITION will be returned.After a bucket has been created, the bucket''s location cannot be changed.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -26471,7 +26471,7 @@ pub struct LoggingOrganizationsLocationsBucketsUpdateAsyncArgs {
 }
 
 /// POST v2/organizations/{organizationsId}/locations/{locationsId}/buckets/{bucketsId}:updateAsync
-/// Updates a log bucket asynchronously.If the bucket has a lifecycle_state of DELETE_REQUESTED, then FAILED_PRECONDITION will be returned.After a bucket has been created, the bucket's location cannot be changed.
+/// Updates a log bucket asynchronously.If the bucket has a lifecycle_state of DELETE_REQUESTED, then FAILED_PRECONDITION will be returned.After a bucket has been created, the bucket''s location cannot be changed.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `logging_organizations_locations_buckets_update_async_builder()` + `logging_organizations_locations_buckets_update_async_execute()`.
@@ -29607,7 +29607,7 @@ pub fn logging_organizations_locations_log_scopes_patch(
 }
 
 /// POST v2/organizations/{organizationsId}/locations/{locationsId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_organizations_locations_operations_cancel_execute()` to send, or `logging_organizations_locations_operations_cancel` for simplest API.
@@ -29634,7 +29634,7 @@ where
 }
 
 /// POST v2/organizations/{organizationsId}/locations/{locationsId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -29708,7 +29708,7 @@ pub fn logging_organizations_locations_operations_cancel_task(
 }
 
 /// POST v2/organizations/{organizationsId}/locations/{locationsId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -29745,7 +29745,7 @@ pub struct LoggingOrganizationsLocationsOperationsCancelArgs {
 }
 
 /// POST v2/organizations/{organizationsId}/locations/{locationsId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `logging_organizations_locations_operations_cancel_builder()` + `logging_organizations_locations_operations_cancel_execute()`.
@@ -29927,7 +29927,7 @@ pub fn logging_organizations_locations_operations_get(
 }
 
 /// GET v2/organizations/{organizationsId}/locations/{locationsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_organizations_locations_operations_list_execute()` to send, or `logging_organizations_locations_operations_list` for simplest API.
@@ -29978,7 +29978,7 @@ where
 }
 
 /// GET v2/organizations/{organizationsId}/locations/{locationsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -30052,7 +30052,7 @@ pub fn logging_organizations_locations_operations_list_task(
 }
 
 /// GET v2/organizations/{organizationsId}/locations/{locationsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -30099,7 +30099,7 @@ pub struct LoggingOrganizationsLocationsOperationsListArgs {
 }
 
 /// GET v2/organizations/{organizationsId}/locations/{locationsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `logging_organizations_locations_operations_list_builder()` + `logging_organizations_locations_operations_list_execute()`.
@@ -31554,7 +31554,7 @@ pub fn logging_organizations_logs_list(
 }
 
 /// POST v2/organizations/{organizationsId}/sinks
-/// Creates a sink that exports specified log entries to a destination. The export begins upon ingress, unless the sink's writer_identity is not permitted to write to the destination. A sink can export log entries only from the resource owning the sink.
+/// Creates a sink that exports specified log entries to a destination. The export begins upon ingress, unless the sink''s writer_identity is not permitted to write to the destination. A sink can export log entries only from the resource owning the sink.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_organizations_sinks_create_execute()` to send, or `logging_organizations_sinks_create` for simplest API.
@@ -31597,7 +31597,7 @@ where
 }
 
 /// POST v2/organizations/{organizationsId}/sinks
-/// Creates a sink that exports specified log entries to a destination. The export begins upon ingress, unless the sink's writer_identity is not permitted to write to the destination. A sink can export log entries only from the resource owning the sink.
+/// Creates a sink that exports specified log entries to a destination. The export begins upon ingress, unless the sink''s writer_identity is not permitted to write to the destination. A sink can export log entries only from the resource owning the sink.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -31671,7 +31671,7 @@ pub fn logging_organizations_sinks_create_task(
 }
 
 /// POST v2/organizations/{organizationsId}/sinks
-/// Creates a sink that exports specified log entries to a destination. The export begins upon ingress, unless the sink's writer_identity is not permitted to write to the destination. A sink can export log entries only from the resource owning the sink.
+/// Creates a sink that exports specified log entries to a destination. The export begins upon ingress, unless the sink''s writer_identity is not permitted to write to the destination. A sink can export log entries only from the resource owning the sink.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -31712,7 +31712,7 @@ pub struct LoggingOrganizationsSinksCreateArgs {
 }
 
 /// POST v2/organizations/{organizationsId}/sinks
-/// Creates a sink that exports specified log entries to a destination. The export begins upon ingress, unless the sink's writer_identity is not permitted to write to the destination. A sink can export log entries only from the resource owning the sink.
+/// Creates a sink that exports specified log entries to a destination. The export begins upon ingress, unless the sink''s writer_identity is not permitted to write to the destination. A sink can export log entries only from the resource owning the sink.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `logging_organizations_sinks_create_builder()` + `logging_organizations_sinks_create_execute()`.
@@ -34181,7 +34181,7 @@ pub fn logging_projects_locations_list(
 }
 
 /// POST v2/projects/{projectsId}/locations/{locationsId}/buckets
-/// Creates a log bucket that can be used to store log entries. After a bucket has been created, the bucket's location cannot be changed.
+/// Creates a log bucket that can be used to store log entries. After a bucket has been created, the bucket''s location cannot be changed.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_projects_locations_buckets_create_execute()` to send, or `logging_projects_locations_buckets_create` for simplest API.
@@ -34220,7 +34220,7 @@ where
 }
 
 /// POST v2/projects/{projectsId}/locations/{locationsId}/buckets
-/// Creates a log bucket that can be used to store log entries. After a bucket has been created, the bucket's location cannot be changed.
+/// Creates a log bucket that can be used to store log entries. After a bucket has been created, the bucket''s location cannot be changed.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -34294,7 +34294,7 @@ pub fn logging_projects_locations_buckets_create_task(
 }
 
 /// POST v2/projects/{projectsId}/locations/{locationsId}/buckets
-/// Creates a log bucket that can be used to store log entries. After a bucket has been created, the bucket's location cannot be changed.
+/// Creates a log bucket that can be used to store log entries. After a bucket has been created, the bucket''s location cannot be changed.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -34333,7 +34333,7 @@ pub struct LoggingProjectsLocationsBucketsCreateArgs {
 }
 
 /// POST v2/projects/{projectsId}/locations/{locationsId}/buckets
-/// Creates a log bucket that can be used to store log entries. After a bucket has been created, the bucket's location cannot be changed.
+/// Creates a log bucket that can be used to store log entries. After a bucket has been created, the bucket''s location cannot be changed.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `logging_projects_locations_buckets_create_builder()` + `logging_projects_locations_buckets_create_execute()`.
@@ -34356,7 +34356,7 @@ pub fn logging_projects_locations_buckets_create(
 }
 
 /// POST v2/projects/{projectsId}/locations/{locationsId}/buckets:createAsync
-/// Creates a log bucket asynchronously that can be used to store log entries.After a bucket has been created, the bucket's location cannot be changed.
+/// Creates a log bucket asynchronously that can be used to store log entries.After a bucket has been created, the bucket''s location cannot be changed.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_projects_locations_buckets_create_async_execute()` to send, or `logging_projects_locations_buckets_create_async` for simplest API.
@@ -34395,7 +34395,7 @@ where
 }
 
 /// POST v2/projects/{projectsId}/locations/{locationsId}/buckets:createAsync
-/// Creates a log bucket asynchronously that can be used to store log entries.After a bucket has been created, the bucket's location cannot be changed.
+/// Creates a log bucket asynchronously that can be used to store log entries.After a bucket has been created, the bucket''s location cannot be changed.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -34469,7 +34469,7 @@ pub fn logging_projects_locations_buckets_create_async_task(
 }
 
 /// POST v2/projects/{projectsId}/locations/{locationsId}/buckets:createAsync
-/// Creates a log bucket asynchronously that can be used to store log entries.After a bucket has been created, the bucket's location cannot be changed.
+/// Creates a log bucket asynchronously that can be used to store log entries.After a bucket has been created, the bucket''s location cannot be changed.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -34508,7 +34508,7 @@ pub struct LoggingProjectsLocationsBucketsCreateAsyncArgs {
 }
 
 /// POST v2/projects/{projectsId}/locations/{locationsId}/buckets:createAsync
-/// Creates a log bucket asynchronously that can be used to store log entries.After a bucket has been created, the bucket's location cannot be changed.
+/// Creates a log bucket asynchronously that can be used to store log entries.After a bucket has been created, the bucket''s location cannot be changed.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `logging_projects_locations_buckets_create_async_builder()` + `logging_projects_locations_buckets_create_async_execute()`.
@@ -34534,7 +34534,7 @@ pub fn logging_projects_locations_buckets_create_async(
 }
 
 /// DELETE v2/projects/{projectsId}/locations/{locationsId}/buckets/{bucketsId}
-/// Deletes a log bucket.Changes the bucket's lifecycle_state to the DELETE_REQUESTED state. After 7 days, the bucket will be purged and all log entries in the bucket will be permanently deleted.
+/// Deletes a log bucket.Changes the bucket''s lifecycle_state to the DELETE_REQUESTED state. After 7 days, the bucket will be purged and all log entries in the bucket will be permanently deleted.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_projects_locations_buckets_delete_execute()` to send, or `logging_projects_locations_buckets_delete` for simplest API.
@@ -34561,7 +34561,7 @@ where
 }
 
 /// DELETE v2/projects/{projectsId}/locations/{locationsId}/buckets/{bucketsId}
-/// Deletes a log bucket.Changes the bucket's lifecycle_state to the DELETE_REQUESTED state. After 7 days, the bucket will be purged and all log entries in the bucket will be permanently deleted.
+/// Deletes a log bucket.Changes the bucket''s lifecycle_state to the DELETE_REQUESTED state. After 7 days, the bucket will be purged and all log entries in the bucket will be permanently deleted.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -34635,7 +34635,7 @@ pub fn logging_projects_locations_buckets_delete_task(
 }
 
 /// DELETE v2/projects/{projectsId}/locations/{locationsId}/buckets/{bucketsId}
-/// Deletes a log bucket.Changes the bucket's lifecycle_state to the DELETE_REQUESTED state. After 7 days, the bucket will be purged and all log entries in the bucket will be permanently deleted.
+/// Deletes a log bucket.Changes the bucket''s lifecycle_state to the DELETE_REQUESTED state. After 7 days, the bucket will be purged and all log entries in the bucket will be permanently deleted.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -34672,7 +34672,7 @@ pub struct LoggingProjectsLocationsBucketsDeleteArgs {
 }
 
 /// DELETE v2/projects/{projectsId}/locations/{locationsId}/buckets/{bucketsId}
-/// Deletes a log bucket.Changes the bucket's lifecycle_state to the DELETE_REQUESTED state. After 7 days, the bucket will be purged and all log entries in the bucket will be permanently deleted.
+/// Deletes a log bucket.Changes the bucket''s lifecycle_state to the DELETE_REQUESTED state. After 7 days, the bucket will be purged and all log entries in the bucket will be permanently deleted.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `logging_projects_locations_buckets_delete_builder()` + `logging_projects_locations_buckets_delete_execute()`.
@@ -35043,7 +35043,7 @@ pub fn logging_projects_locations_buckets_list(
 }
 
 /// PATCH v2/projects/{projectsId}/locations/{locationsId}/buckets/{bucketsId}
-/// Updates a log bucket.If the bucket has a lifecycle_state of DELETE_REQUESTED, then FAILED_PRECONDITION will be returned.After a bucket has been created, the bucket's location cannot be changed.
+/// Updates a log bucket.If the bucket has a lifecycle_state of DELETE_REQUESTED, then FAILED_PRECONDITION will be returned.After a bucket has been created, the bucket''s location cannot be changed.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_projects_locations_buckets_patch_execute()` to send, or `logging_projects_locations_buckets_patch` for simplest API.
@@ -35082,7 +35082,7 @@ where
 }
 
 /// PATCH v2/projects/{projectsId}/locations/{locationsId}/buckets/{bucketsId}
-/// Updates a log bucket.If the bucket has a lifecycle_state of DELETE_REQUESTED, then FAILED_PRECONDITION will be returned.After a bucket has been created, the bucket's location cannot be changed.
+/// Updates a log bucket.If the bucket has a lifecycle_state of DELETE_REQUESTED, then FAILED_PRECONDITION will be returned.After a bucket has been created, the bucket''s location cannot be changed.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -35156,7 +35156,7 @@ pub fn logging_projects_locations_buckets_patch_task(
 }
 
 /// PATCH v2/projects/{projectsId}/locations/{locationsId}/buckets/{bucketsId}
-/// Updates a log bucket.If the bucket has a lifecycle_state of DELETE_REQUESTED, then FAILED_PRECONDITION will be returned.After a bucket has been created, the bucket's location cannot be changed.
+/// Updates a log bucket.If the bucket has a lifecycle_state of DELETE_REQUESTED, then FAILED_PRECONDITION will be returned.After a bucket has been created, the bucket''s location cannot be changed.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -35195,7 +35195,7 @@ pub struct LoggingProjectsLocationsBucketsPatchArgs {
 }
 
 /// PATCH v2/projects/{projectsId}/locations/{locationsId}/buckets/{bucketsId}
-/// Updates a log bucket.If the bucket has a lifecycle_state of DELETE_REQUESTED, then FAILED_PRECONDITION will be returned.After a bucket has been created, the bucket's location cannot be changed.
+/// Updates a log bucket.If the bucket has a lifecycle_state of DELETE_REQUESTED, then FAILED_PRECONDITION will be returned.After a bucket has been created, the bucket''s location cannot be changed.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `logging_projects_locations_buckets_patch_builder()` + `logging_projects_locations_buckets_patch_execute()`.
@@ -35378,7 +35378,7 @@ pub fn logging_projects_locations_buckets_undelete(
 }
 
 /// POST v2/projects/{projectsId}/locations/{locationsId}/buckets/{bucketsId}:updateAsync
-/// Updates a log bucket asynchronously.If the bucket has a lifecycle_state of DELETE_REQUESTED, then FAILED_PRECONDITION will be returned.After a bucket has been created, the bucket's location cannot be changed.
+/// Updates a log bucket asynchronously.If the bucket has a lifecycle_state of DELETE_REQUESTED, then FAILED_PRECONDITION will be returned.After a bucket has been created, the bucket''s location cannot be changed.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_projects_locations_buckets_update_async_execute()` to send, or `logging_projects_locations_buckets_update_async` for simplest API.
@@ -35417,7 +35417,7 @@ where
 }
 
 /// POST v2/projects/{projectsId}/locations/{locationsId}/buckets/{bucketsId}:updateAsync
-/// Updates a log bucket asynchronously.If the bucket has a lifecycle_state of DELETE_REQUESTED, then FAILED_PRECONDITION will be returned.After a bucket has been created, the bucket's location cannot be changed.
+/// Updates a log bucket asynchronously.If the bucket has a lifecycle_state of DELETE_REQUESTED, then FAILED_PRECONDITION will be returned.After a bucket has been created, the bucket''s location cannot be changed.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -35491,7 +35491,7 @@ pub fn logging_projects_locations_buckets_update_async_task(
 }
 
 /// POST v2/projects/{projectsId}/locations/{locationsId}/buckets/{bucketsId}:updateAsync
-/// Updates a log bucket asynchronously.If the bucket has a lifecycle_state of DELETE_REQUESTED, then FAILED_PRECONDITION will be returned.After a bucket has been created, the bucket's location cannot be changed.
+/// Updates a log bucket asynchronously.If the bucket has a lifecycle_state of DELETE_REQUESTED, then FAILED_PRECONDITION will be returned.After a bucket has been created, the bucket''s location cannot be changed.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -35530,7 +35530,7 @@ pub struct LoggingProjectsLocationsBucketsUpdateAsyncArgs {
 }
 
 /// POST v2/projects/{projectsId}/locations/{locationsId}/buckets/{bucketsId}:updateAsync
-/// Updates a log bucket asynchronously.If the bucket has a lifecycle_state of DELETE_REQUESTED, then FAILED_PRECONDITION will be returned.After a bucket has been created, the bucket's location cannot be changed.
+/// Updates a log bucket asynchronously.If the bucket has a lifecycle_state of DELETE_REQUESTED, then FAILED_PRECONDITION will be returned.After a bucket has been created, the bucket''s location cannot be changed.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `logging_projects_locations_buckets_update_async_builder()` + `logging_projects_locations_buckets_update_async_execute()`.
@@ -38659,7 +38659,7 @@ pub fn logging_projects_locations_log_scopes_patch(
 }
 
 /// POST v2/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_projects_locations_operations_cancel_execute()` to send, or `logging_projects_locations_operations_cancel` for simplest API.
@@ -38686,7 +38686,7 @@ where
 }
 
 /// POST v2/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -38760,7 +38760,7 @@ pub fn logging_projects_locations_operations_cancel_task(
 }
 
 /// POST v2/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -38797,7 +38797,7 @@ pub struct LoggingProjectsLocationsOperationsCancelArgs {
 }
 
 /// POST v2/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `logging_projects_locations_operations_cancel_builder()` + `logging_projects_locations_operations_cancel_execute()`.
@@ -38979,7 +38979,7 @@ pub fn logging_projects_locations_operations_get(
 }
 
 /// GET v2/projects/{projectsId}/locations/{locationsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_projects_locations_operations_list_execute()` to send, or `logging_projects_locations_operations_list` for simplest API.
@@ -39030,7 +39030,7 @@ where
 }
 
 /// GET v2/projects/{projectsId}/locations/{locationsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -39104,7 +39104,7 @@ pub fn logging_projects_locations_operations_list_task(
 }
 
 /// GET v2/projects/{projectsId}/locations/{locationsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -39151,7 +39151,7 @@ pub struct LoggingProjectsLocationsOperationsListArgs {
 }
 
 /// GET v2/projects/{projectsId}/locations/{locationsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `logging_projects_locations_operations_list_builder()` + `logging_projects_locations_operations_list_execute()`.
@@ -41432,7 +41432,7 @@ pub fn logging_projects_metrics_update(
 }
 
 /// POST v2/projects/{projectsId}/sinks
-/// Creates a sink that exports specified log entries to a destination. The export begins upon ingress, unless the sink's writer_identity is not permitted to write to the destination. A sink can export log entries only from the resource owning the sink.
+/// Creates a sink that exports specified log entries to a destination. The export begins upon ingress, unless the sink''s writer_identity is not permitted to write to the destination. A sink can export log entries only from the resource owning the sink.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_projects_sinks_create_execute()` to send, or `logging_projects_sinks_create` for simplest API.
@@ -41475,7 +41475,7 @@ where
 }
 
 /// POST v2/projects/{projectsId}/sinks
-/// Creates a sink that exports specified log entries to a destination. The export begins upon ingress, unless the sink's writer_identity is not permitted to write to the destination. A sink can export log entries only from the resource owning the sink.
+/// Creates a sink that exports specified log entries to a destination. The export begins upon ingress, unless the sink''s writer_identity is not permitted to write to the destination. A sink can export log entries only from the resource owning the sink.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -41549,7 +41549,7 @@ pub fn logging_projects_sinks_create_task(
 }
 
 /// POST v2/projects/{projectsId}/sinks
-/// Creates a sink that exports specified log entries to a destination. The export begins upon ingress, unless the sink's writer_identity is not permitted to write to the destination. A sink can export log entries only from the resource owning the sink.
+/// Creates a sink that exports specified log entries to a destination. The export begins upon ingress, unless the sink''s writer_identity is not permitted to write to the destination. A sink can export log entries only from the resource owning the sink.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -41590,7 +41590,7 @@ pub struct LoggingProjectsSinksCreateArgs {
 }
 
 /// POST v2/projects/{projectsId}/sinks
-/// Creates a sink that exports specified log entries to a destination. The export begins upon ingress, unless the sink's writer_identity is not permitted to write to the destination. A sink can export log entries only from the resource owning the sink.
+/// Creates a sink that exports specified log entries to a destination. The export begins upon ingress, unless the sink''s writer_identity is not permitted to write to the destination. A sink can export log entries only from the resource owning the sink.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `logging_projects_sinks_create_builder()` + `logging_projects_sinks_create_execute()`.
@@ -42517,7 +42517,7 @@ pub fn logging_projects_sinks_update(
 }
 
 /// POST v2/{v2Id}/{v2Id1}/sinks
-/// Creates a sink that exports specified log entries to a destination. The export begins upon ingress, unless the sink's writer_identity is not permitted to write to the destination. A sink can export log entries only from the resource owning the sink.
+/// Creates a sink that exports specified log entries to a destination. The export begins upon ingress, unless the sink''s writer_identity is not permitted to write to the destination. A sink can export log entries only from the resource owning the sink.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_sinks_create_execute()` to send, or `logging_sinks_create` for simplest API.
@@ -42557,7 +42557,7 @@ where
 }
 
 /// POST v2/{v2Id}/{v2Id1}/sinks
-/// Creates a sink that exports specified log entries to a destination. The export begins upon ingress, unless the sink's writer_identity is not permitted to write to the destination. A sink can export log entries only from the resource owning the sink.
+/// Creates a sink that exports specified log entries to a destination. The export begins upon ingress, unless the sink''s writer_identity is not permitted to write to the destination. A sink can export log entries only from the resource owning the sink.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -42631,7 +42631,7 @@ pub fn logging_sinks_create_task(
 }
 
 /// POST v2/{v2Id}/{v2Id1}/sinks
-/// Creates a sink that exports specified log entries to a destination. The export begins upon ingress, unless the sink's writer_identity is not permitted to write to the destination. A sink can export log entries only from the resource owning the sink.
+/// Creates a sink that exports specified log entries to a destination. The export begins upon ingress, unless the sink''s writer_identity is not permitted to write to the destination. A sink can export log entries only from the resource owning the sink.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -42672,7 +42672,7 @@ pub struct LoggingSinksCreateArgs {
 }
 
 /// POST v2/{v2Id}/{v2Id1}/sinks
-/// Creates a sink that exports specified log entries to a destination. The export begins upon ingress, unless the sink's writer_identity is not permitted to write to the destination. A sink can export log entries only from the resource owning the sink.
+/// Creates a sink that exports specified log entries to a destination. The export begins upon ingress, unless the sink''s writer_identity is not permitted to write to the destination. A sink can export log entries only from the resource owning the sink.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `logging_sinks_create_builder()` + `logging_sinks_create_execute()`.
@@ -43728,7 +43728,7 @@ pub fn logging_get_settings(
 }
 
 /// PATCH v2/{v2Id}/{v2Id1}/cmekSettings
-/// Updates the Log Router CMEK settings for the given resource.Note: CMEK for the Log Router can currently only be configured for Google Cloud organizations. Once configured, it applies to all projects and folders in the Google Cloud organization.UpdateCmekSettings fails when any of the following are `true`: The value of kms_key_name is invalid. The associated service account doesn't have the required `roles/cloudkms`.`cryptoKeyEncrypterDecrypter` role assigned for the key. Access to the key is disabled.See Configure CMEK for Cloud Logging (<https://docs.cloud.google.`com/logging/docs/routing/managed-encryption`>) for more information.
+/// Updates the Log Router CMEK settings for the given resource.Note: CMEK for the Log Router can currently only be configured for Google Cloud organizations. Once configured, it applies to all projects and folders in the Google Cloud organization.UpdateCmekSettings fails when any of the following are `true`: The value of kms_key_name is invalid. The associated service account doesn''t have the required `roles/cloudkms`.`cryptoKeyEncrypterDecrypter` role assigned for the key. Access to the key is disabled.See Configure CMEK for Cloud Logging (<https://docs.cloud.google.`com/logging/docs/routing/managed-encryption`>) for more information.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_update_cmek_settings_execute()` to send, or `logging_update_cmek_settings` for simplest API.
@@ -43767,7 +43767,7 @@ where
 }
 
 /// PATCH v2/{v2Id}/{v2Id1}/cmekSettings
-/// Updates the Log Router CMEK settings for the given resource.Note: CMEK for the Log Router can currently only be configured for Google Cloud organizations. Once configured, it applies to all projects and folders in the Google Cloud organization.UpdateCmekSettings fails when any of the following are `true`: The value of kms_key_name is invalid. The associated service account doesn't have the required `roles/cloudkms`.`cryptoKeyEncrypterDecrypter` role assigned for the key. Access to the key is disabled.See Configure CMEK for Cloud Logging (<https://docs.cloud.google.`com/logging/docs/routing/managed-encryption`>) for more information.
+/// Updates the Log Router CMEK settings for the given resource.Note: CMEK for the Log Router can currently only be configured for Google Cloud organizations. Once configured, it applies to all projects and folders in the Google Cloud organization.UpdateCmekSettings fails when any of the following are `true`: The value of kms_key_name is invalid. The associated service account doesn''t have the required `roles/cloudkms`.`cryptoKeyEncrypterDecrypter` role assigned for the key. Access to the key is disabled.See Configure CMEK for Cloud Logging (<https://docs.cloud.google.`com/logging/docs/routing/managed-encryption`>) for more information.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -43841,7 +43841,7 @@ pub fn logging_update_cmek_settings_task(
 }
 
 /// PATCH v2/{v2Id}/{v2Id1}/cmekSettings
-/// Updates the Log Router CMEK settings for the given resource.Note: CMEK for the Log Router can currently only be configured for Google Cloud organizations. Once configured, it applies to all projects and folders in the Google Cloud organization.UpdateCmekSettings fails when any of the following are `true`: The value of kms_key_name is invalid. The associated service account doesn't have the required `roles/cloudkms`.`cryptoKeyEncrypterDecrypter` role assigned for the key. Access to the key is disabled.See Configure CMEK for Cloud Logging (<https://docs.cloud.google.`com/logging/docs/routing/managed-encryption`>) for more information.
+/// Updates the Log Router CMEK settings for the given resource.Note: CMEK for the Log Router can currently only be configured for Google Cloud organizations. Once configured, it applies to all projects and folders in the Google Cloud organization.UpdateCmekSettings fails when any of the following are `true`: The value of kms_key_name is invalid. The associated service account doesn''t have the required `roles/cloudkms`.`cryptoKeyEncrypterDecrypter` role assigned for the key. Access to the key is disabled.See Configure CMEK for Cloud Logging (<https://docs.cloud.google.`com/logging/docs/routing/managed-encryption`>) for more information.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -43882,7 +43882,7 @@ pub struct LoggingUpdateCmekSettingsArgs {
 }
 
 /// PATCH v2/{v2Id}/{v2Id1}/cmekSettings
-/// Updates the Log Router CMEK settings for the given resource.Note: CMEK for the Log Router can currently only be configured for Google Cloud organizations. Once configured, it applies to all projects and folders in the Google Cloud organization.UpdateCmekSettings fails when any of the following are `true`: The value of kms_key_name is invalid. The associated service account doesn't have the required `roles/cloudkms`.`cryptoKeyEncrypterDecrypter` role assigned for the key. Access to the key is disabled.See Configure CMEK for Cloud Logging (<https://docs.cloud.google.`com/logging/docs/routing/managed-encryption`>) for more information.
+/// Updates the Log Router CMEK settings for the given resource.Note: CMEK for the Log Router can currently only be configured for Google Cloud organizations. Once configured, it applies to all projects and folders in the Google Cloud organization.UpdateCmekSettings fails when any of the following are `true`: The value of kms_key_name is invalid. The associated service account doesn''t have the required `roles/cloudkms`.`cryptoKeyEncrypterDecrypter` role assigned for the key. Access to the key is disabled.See Configure CMEK for Cloud Logging (<https://docs.cloud.google.`com/logging/docs/routing/managed-encryption`>) for more information.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `logging_update_cmek_settings_builder()` + `logging_update_cmek_settings_execute()`.
@@ -43906,7 +43906,7 @@ pub fn logging_update_cmek_settings(
 }
 
 /// PATCH v2/{v2Id}/{v2Id1}/settings
-/// Updates the settings for the given resource. This method applies to all feature configurations for organization and folders.UpdateSettings fails when any of the following are `true`: The value of storage_location either isn't supported by Logging or violates the location OrgPolicy. The default_sink_config field is set, but it has an unspecified filter write mode. The value of kms_key_name is invalid. The associated service account doesn't have the required `roles/cloudkms`.`cryptoKeyEncrypterDecrypter` role assigned for the key. Access to the key is disabled.See Configure default settings for organizations and folders (<https://docs.cloud.google.`com/logging/docs/default-settings`>) for more information.
+/// Updates the settings for the given resource. This method applies to all feature configurations for organization and folders.UpdateSettings fails when any of the following are `true`: The value of storage_location either isn''t supported by Logging or violates the location OrgPolicy. The default_sink_config field is set, but it has an unspecified filter write mode. The value of kms_key_name is invalid. The associated service account doesn''t have the required `roles/cloudkms`.`cryptoKeyEncrypterDecrypter` role assigned for the key. Access to the key is disabled.See Configure default settings for organizations and folders (<https://docs.cloud.google.`com/logging/docs/default-settings`>) for more information.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `logging_update_settings_execute()` to send, or `logging_update_settings` for simplest API.
@@ -43945,7 +43945,7 @@ where
 }
 
 /// PATCH v2/{v2Id}/{v2Id1}/settings
-/// Updates the settings for the given resource. This method applies to all feature configurations for organization and folders.UpdateSettings fails when any of the following are `true`: The value of storage_location either isn't supported by Logging or violates the location OrgPolicy. The default_sink_config field is set, but it has an unspecified filter write mode. The value of kms_key_name is invalid. The associated service account doesn't have the required `roles/cloudkms`.`cryptoKeyEncrypterDecrypter` role assigned for the key. Access to the key is disabled.See Configure default settings for organizations and folders (<https://docs.cloud.google.`com/logging/docs/default-settings`>) for more information.
+/// Updates the settings for the given resource. This method applies to all feature configurations for organization and folders.UpdateSettings fails when any of the following are `true`: The value of storage_location either isn''t supported by Logging or violates the location OrgPolicy. The default_sink_config field is set, but it has an unspecified filter write mode. The value of kms_key_name is invalid. The associated service account doesn''t have the required `roles/cloudkms`.`cryptoKeyEncrypterDecrypter` role assigned for the key. Access to the key is disabled.See Configure default settings for organizations and folders (<https://docs.cloud.google.`com/logging/docs/default-settings`>) for more information.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -44019,7 +44019,7 @@ pub fn logging_update_settings_task(
 }
 
 /// PATCH v2/{v2Id}/{v2Id1}/settings
-/// Updates the settings for the given resource. This method applies to all feature configurations for organization and folders.UpdateSettings fails when any of the following are `true`: The value of storage_location either isn't supported by Logging or violates the location OrgPolicy. The default_sink_config field is set, but it has an unspecified filter write mode. The value of kms_key_name is invalid. The associated service account doesn't have the required `roles/cloudkms`.`cryptoKeyEncrypterDecrypter` role assigned for the key. Access to the key is disabled.See Configure default settings for organizations and folders (<https://docs.cloud.google.`com/logging/docs/default-settings`>) for more information.
+/// Updates the settings for the given resource. This method applies to all feature configurations for organization and folders.UpdateSettings fails when any of the following are `true`: The value of storage_location either isn''t supported by Logging or violates the location OrgPolicy. The default_sink_config field is set, but it has an unspecified filter write mode. The value of kms_key_name is invalid. The associated service account doesn''t have the required `roles/cloudkms`.`cryptoKeyEncrypterDecrypter` role assigned for the key. Access to the key is disabled.See Configure default settings for organizations and folders (<https://docs.cloud.google.`com/logging/docs/default-settings`>) for more information.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -44058,7 +44058,7 @@ pub struct LoggingUpdateSettingsArgs {
 }
 
 /// PATCH v2/{v2Id}/{v2Id1}/settings
-/// Updates the settings for the given resource. This method applies to all feature configurations for organization and folders.UpdateSettings fails when any of the following are `true`: The value of storage_location either isn't supported by Logging or violates the location OrgPolicy. The default_sink_config field is set, but it has an unspecified filter write mode. The value of kms_key_name is invalid. The associated service account doesn't have the required `roles/cloudkms`.`cryptoKeyEncrypterDecrypter` role assigned for the key. Access to the key is disabled.See Configure default settings for organizations and folders (<https://docs.cloud.google.`com/logging/docs/default-settings`>) for more information.
+/// Updates the settings for the given resource. This method applies to all feature configurations for organization and folders.UpdateSettings fails when any of the following are `true`: The value of storage_location either isn''t supported by Logging or violates the location OrgPolicy. The default_sink_config field is set, but it has an unspecified filter write mode. The value of kms_key_name is invalid. The associated service account doesn''t have the required `roles/cloudkms`.`cryptoKeyEncrypterDecrypter` role assigned for the key. Access to the key is disabled.See Configure default settings for organizations and folders (<https://docs.cloud.google.`com/logging/docs/default-settings`>) for more information.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `logging_update_settings_builder()` + `logging_update_settings_execute()`.

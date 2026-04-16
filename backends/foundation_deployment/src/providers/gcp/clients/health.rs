@@ -22,7 +22,7 @@ use foundation_macros::JsonHash;
 use serde::Serialize;
 
 /// GET v4/users/{usersId}/identity
-/// Gets the user's identity. It includes the legacy Fitbit user ID and the Google user ID and it can be used by migrating clients to map identifiers between the two systems.
+/// Gets the user''s identity. It includes the legacy Fitbit user ID and the Google user ID and it can be used by migrating clients to map identifiers between the two systems.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `health_users_get_identity_execute()` to send, or `health_users_get_identity` for simplest API.
@@ -46,7 +46,7 @@ where
 }
 
 /// GET v4/users/{usersId}/identity
-/// Gets the user's identity. It includes the legacy Fitbit user ID and the Google user ID and it can be used by migrating clients to map identifiers between the two systems.
+/// Gets the user''s identity. It includes the legacy Fitbit user ID and the Google user ID and it can be used by migrating clients to map identifiers between the two systems.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -120,7 +120,7 @@ pub fn health_users_get_identity_task(
 }
 
 /// GET v4/users/{usersId}/identity
-/// Gets the user's identity. It includes the legacy Fitbit user ID and the Google user ID and it can be used by migrating clients to map identifiers between the two systems.
+/// Gets the user''s identity. It includes the legacy Fitbit user ID and the Google user ID and it can be used by migrating clients to map identifiers between the two systems.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -157,7 +157,7 @@ pub struct HealthUsersGetIdentityArgs {
 }
 
 /// GET v4/users/{usersId}/identity
-/// Gets the user's identity. It includes the legacy Fitbit user ID and the Google user ID and it can be used by migrating clients to map identifiers between the two systems.
+/// Gets the user''s identity. It includes the legacy Fitbit user ID and the Google user ID and it can be used by migrating clients to map identifiers between the two systems.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `health_users_get_identity_builder()` + `health_users_get_identity_execute()`.
@@ -493,7 +493,7 @@ pub fn health_users_get_settings(
 }
 
 /// PATCH v4/users/{usersId}/profile
-/// Updates the user's profile details.
+/// Updates the user''s profile details.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `health_users_update_profile_execute()` to send, or `health_users_update_profile` for simplest API.
@@ -529,7 +529,7 @@ where
 }
 
 /// PATCH v4/users/{usersId}/profile
-/// Updates the user's profile details.
+/// Updates the user''s profile details.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -603,7 +603,7 @@ pub fn health_users_update_profile_task(
 }
 
 /// PATCH v4/users/{usersId}/profile
-/// Updates the user's profile details.
+/// Updates the user''s profile details.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -642,7 +642,7 @@ pub struct HealthUsersUpdateProfileArgs {
 }
 
 /// PATCH v4/users/{usersId}/profile
-/// Updates the user's profile details.
+/// Updates the user''s profile details.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `health_users_update_profile_builder()` + `health_users_update_profile_execute()`.
@@ -664,7 +664,7 @@ pub fn health_users_update_profile(
 }
 
 /// PATCH v4/users/{usersId}/settings
-/// Updates the user's settings details.
+/// Updates the user''s settings details.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `health_users_update_settings_execute()` to send, or `health_users_update_settings` for simplest API.
@@ -700,7 +700,7 @@ where
 }
 
 /// PATCH v4/users/{usersId}/settings
-/// Updates the user's settings details.
+/// Updates the user''s settings details.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -774,7 +774,7 @@ pub fn health_users_update_settings_task(
 }
 
 /// PATCH v4/users/{usersId}/settings
-/// Updates the user's settings details.
+/// Updates the user''s settings details.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -813,7 +813,7 @@ pub struct HealthUsersUpdateSettingsArgs {
 }
 
 /// PATCH v4/users/{usersId}/settings
-/// Updates the user's settings details.
+/// Updates the user''s settings details.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `health_users_update_settings_builder()` + `health_users_update_settings_execute()`.

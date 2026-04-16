@@ -536,7 +536,7 @@ pub fn meet_conference_records_participants_get(
 }
 
 /// GET v2/conferenceRecords/{conferenceRecordsId}/participants
-/// Lists the participants in a conference record. By default, ordered by join time and in descending order. This API supports fields as standard parameters like every other API. However, when the fields request parameter is omitted, this API defaults to 'participants/*, next_page_token'.
+/// Lists the participants in a conference record. By default, ordered by join time and in descending order. This API supports fields as standard parameters like every other API. However, when the fields request parameter is omitted, this API defaults to ''participants/*, next_page_token''.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `meet_conference_records_participants_list_execute()` to send, or `meet_conference_records_participants_list` for simplest API.
@@ -583,7 +583,7 @@ where
 }
 
 /// GET v2/conferenceRecords/{conferenceRecordsId}/participants
-/// Lists the participants in a conference record. By default, ordered by join time and in descending order. This API supports fields as standard parameters like every other API. However, when the fields request parameter is omitted, this API defaults to 'participants/*, next_page_token'.
+/// Lists the participants in a conference record. By default, ordered by join time and in descending order. This API supports fields as standard parameters like every other API. However, when the fields request parameter is omitted, this API defaults to ''participants/*, next_page_token''.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -657,7 +657,7 @@ pub fn meet_conference_records_participants_list_task(
 }
 
 /// GET v2/conferenceRecords/{conferenceRecordsId}/participants
-/// Lists the participants in a conference record. By default, ordered by join time and in descending order. This API supports fields as standard parameters like every other API. However, when the fields request parameter is omitted, this API defaults to 'participants/*, next_page_token'.
+/// Lists the participants in a conference record. By default, ordered by join time and in descending order. This API supports fields as standard parameters like every other API. However, when the fields request parameter is omitted, this API defaults to ''participants/*, next_page_token''.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -702,7 +702,7 @@ pub struct MeetConferenceRecordsParticipantsListArgs {
 }
 
 /// GET v2/conferenceRecords/{conferenceRecordsId}/participants
-/// Lists the participants in a conference record. By default, ordered by join time and in descending order. This API supports fields as standard parameters like every other API. However, when the fields request parameter is omitted, this API defaults to 'participants/*, next_page_token'.
+/// Lists the participants in a conference record. By default, ordered by join time and in descending order. This API supports fields as standard parameters like every other API. However, when the fields request parameter is omitted, this API defaults to ''participants/*, next_page_token''.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `meet_conference_records_participants_list_builder()` + `meet_conference_records_participants_list_execute()`.
@@ -897,7 +897,7 @@ pub fn meet_conference_records_participants_participant_sessions_get(
 }
 
 /// GET v2/conferenceRecords/{conferenceRecordsId}/participants/{participantsId}/participantSessions
-/// Lists the participant sessions of a participant in a conference record. By default, ordered by join time and in descending order. This API supports fields as standard parameters like every other API. However, when the fields request parameter is omitted this API defaults to 'participantsessions/*, next_page_token'.
+/// Lists the participant sessions of a participant in a conference record. By default, ordered by join time and in descending order. This API supports fields as standard parameters like every other API. However, when the fields request parameter is omitted this API defaults to ''participantsessions/*, next_page_token''.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `meet_conference_records_participants_participant_sessions_list_execute()` to send, or `meet_conference_records_participants_participant_sessions_list` for simplest API.
@@ -944,7 +944,7 @@ where
 }
 
 /// GET v2/conferenceRecords/{conferenceRecordsId}/participants/{participantsId}/participantSessions
-/// Lists the participant sessions of a participant in a conference record. By default, ordered by join time and in descending order. This API supports fields as standard parameters like every other API. However, when the fields request parameter is omitted this API defaults to 'participantsessions/*, next_page_token'.
+/// Lists the participant sessions of a participant in a conference record. By default, ordered by join time and in descending order. This API supports fields as standard parameters like every other API. However, when the fields request parameter is omitted this API defaults to ''participantsessions/*, next_page_token''.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -1018,7 +1018,7 @@ pub fn meet_conference_records_participants_participant_sessions_list_task(
 }
 
 /// GET v2/conferenceRecords/{conferenceRecordsId}/participants/{participantsId}/participantSessions
-/// Lists the participant sessions of a participant in a conference record. By default, ordered by join time and in descending order. This API supports fields as standard parameters like every other API. However, when the fields request parameter is omitted this API defaults to 'participantsessions/*, next_page_token'.
+/// Lists the participant sessions of a participant in a conference record. By default, ordered by join time and in descending order. This API supports fields as standard parameters like every other API. However, when the fields request parameter is omitted this API defaults to ''participantsessions/*, next_page_token''.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -1065,7 +1065,7 @@ pub struct MeetConferenceRecordsParticipantsParticipantSessionsListArgs {
 }
 
 /// GET v2/conferenceRecords/{conferenceRecordsId}/participants/{participantsId}/participantSessions
-/// Lists the participant sessions of a participant in a conference record. By default, ordered by join time and in descending order. This API supports fields as standard parameters like every other API. However, when the fields request parameter is omitted this API defaults to 'participantsessions/*, next_page_token'.
+/// Lists the participant sessions of a participant in a conference record. By default, ordered by join time and in descending order. This API supports fields as standard parameters like every other API. However, when the fields request parameter is omitted this API defaults to ''participantsessions/*, next_page_token''.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `meet_conference_records_participants_participant_sessions_list_builder()` + `meet_conference_records_participants_participant_sessions_list_execute()`.
@@ -2649,7 +2649,7 @@ pub fn meet_spaces_create(
 }
 
 /// POST v2/spaces/{spacesId}:endActiveConference
-/// Ends an active conference (if there's one). For an example, see [End active conference](<https://developers.google.`com/workspace/meet/api/guides/meeting-spaces`#end-active-conference>).
+/// Ends an active conference (if there''s one). For an example, see [End active conference](<https://developers.google.`com/workspace/meet/api/guides/meeting-spaces`#end-active-conference>).
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `meet_spaces_end_active_conference_execute()` to send, or `meet_spaces_end_active_conference` for simplest API.
@@ -2676,7 +2676,7 @@ where
 }
 
 /// POST v2/spaces/{spacesId}:endActiveConference
-/// Ends an active conference (if there's one). For an example, see [End active conference](<https://developers.google.`com/workspace/meet/api/guides/meeting-spaces`#end-active-conference>).
+/// Ends an active conference (if there''s one). For an example, see [End active conference](<https://developers.google.`com/workspace/meet/api/guides/meeting-spaces`#end-active-conference>).
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -2750,7 +2750,7 @@ pub fn meet_spaces_end_active_conference_task(
 }
 
 /// POST v2/spaces/{spacesId}:endActiveConference
-/// Ends an active conference (if there's one). For an example, see [End active conference](<https://developers.google.`com/workspace/meet/api/guides/meeting-spaces`#end-active-conference>).
+/// Ends an active conference (if there''s one). For an example, see [End active conference](<https://developers.google.`com/workspace/meet/api/guides/meeting-spaces`#end-active-conference>).
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -2787,7 +2787,7 @@ pub struct MeetSpacesEndActiveConferenceArgs {
 }
 
 /// POST v2/spaces/{spacesId}:endActiveConference
-/// Ends an active conference (if there's one). For an example, see [End active conference](<https://developers.google.`com/workspace/meet/api/guides/meeting-spaces`#end-active-conference>).
+/// Ends an active conference (if there''s one). For an example, see [End active conference](<https://developers.google.`com/workspace/meet/api/guides/meeting-spaces`#end-active-conference>).
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `meet_spaces_end_active_conference_builder()` + `meet_spaces_end_active_conference_execute()`.

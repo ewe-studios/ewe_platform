@@ -851,7 +851,7 @@ pub fn webmasters_sitemaps_submit(
 }
 
 /// PUT webmasters/v3/sites/{siteUrl}
-/// Adds a site to the set of the user's sites in Search Console.
+/// Adds a site to the set of the user''s sites in Search Console.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `webmasters_sites_add_execute()` to send, or `webmasters_sites_add` for simplest API.
@@ -878,7 +878,7 @@ where
 }
 
 /// PUT webmasters/v3/sites/{siteUrl}
-/// Adds a site to the set of the user's sites in Search Console.
+/// Adds a site to the set of the user''s sites in Search Console.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -949,7 +949,7 @@ pub fn webmasters_sites_add_task(
 }
 
 /// PUT webmasters/v3/sites/{siteUrl}
-/// Adds a site to the set of the user's sites in Search Console.
+/// Adds a site to the set of the user''s sites in Search Console.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -986,7 +986,7 @@ pub struct WebmastersSitesAddArgs {
 }
 
 /// PUT webmasters/v3/sites/{siteUrl}
-/// Adds a site to the set of the user's sites in Search Console.
+/// Adds a site to the set of the user''s sites in Search Console.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `webmasters_sites_add_builder()` + `webmasters_sites_add_execute()`.
@@ -1008,7 +1008,7 @@ pub fn webmasters_sites_add(
 }
 
 /// DELETE webmasters/v3/sites/{siteUrl}
-/// Removes a site from the set of the user's Search Console sites.
+/// Removes a site from the set of the user''s Search Console sites.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `webmasters_sites_delete_execute()` to send, or `webmasters_sites_delete` for simplest API.
@@ -1035,7 +1035,7 @@ where
 }
 
 /// DELETE webmasters/v3/sites/{siteUrl}
-/// Removes a site from the set of the user's Search Console sites.
+/// Removes a site from the set of the user''s Search Console sites.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -1106,7 +1106,7 @@ pub fn webmasters_sites_delete_task(
 }
 
 /// DELETE webmasters/v3/sites/{siteUrl}
-/// Removes a site from the set of the user's Search Console sites.
+/// Removes a site from the set of the user''s Search Console sites.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -1143,7 +1143,7 @@ pub struct WebmastersSitesDeleteArgs {
 }
 
 /// DELETE webmasters/v3/sites/{siteUrl}
-/// Removes a site from the set of the user's Search Console sites.
+/// Removes a site from the set of the user''s Search Console sites.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `webmasters_sites_delete_builder()` + `webmasters_sites_delete_execute()`.
@@ -1325,7 +1325,7 @@ pub fn webmasters_sites_get(
 }
 
 /// GET webmasters/v3/sites
-/// Lists the user's Search Console sites.
+/// Lists the user''s Search Console sites.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `webmasters_sites_list_execute()` to send, or `webmasters_sites_list` for simplest API.
@@ -1348,7 +1348,7 @@ where
 }
 
 /// GET webmasters/v3/sites
-/// Lists the user's Search Console sites.
+/// Lists the user''s Search Console sites.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -1422,7 +1422,7 @@ pub fn webmasters_sites_list_task(
 }
 
 /// GET webmasters/v3/sites
-/// Lists the user's Search Console sites.
+/// Lists the user''s Search Console sites.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -1454,7 +1454,7 @@ pub fn webmasters_sites_list_execute(
 }
 
 /// GET webmasters/v3/sites
-/// Lists the user's Search Console sites.
+/// Lists the user''s Search Console sites.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `webmasters_sites_list_builder()` + `webmasters_sites_list_execute()`.

@@ -534,7 +534,7 @@ pub fn connectors_projects_locations_connections_exchange_auth_code(
 }
 
 /// POST v2/projects/{projectsId}/locations/{locationsId}/connections/{connectionsId}:executeSqlQuery
-/// Executes a SQL statement specified in the body of the request. An example of this SQL statement in the case of Salesforce connector would be 'select * from Account a, Order o where a.Id = o.AccountId'.
+/// Executes a SQL statement specified in the body of the request. An example of this SQL statement in the case of Salesforce connector would be ''select * from Account a, Order o where a.Id = o.AccountId''.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `connectors_projects_locations_connections_execute_sql_query_execute()` to send, or `connectors_projects_locations_connections_execute_sql_query` for simplest API.
@@ -561,7 +561,7 @@ where
 }
 
 /// POST v2/projects/{projectsId}/locations/{locationsId}/connections/{connectionsId}:executeSqlQuery
-/// Executes a SQL statement specified in the body of the request. An example of this SQL statement in the case of Salesforce connector would be 'select * from Account a, Order o where a.Id = o.AccountId'.
+/// Executes a SQL statement specified in the body of the request. An example of this SQL statement in the case of Salesforce connector would be ''select * from Account a, Order o where a.Id = o.AccountId''.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -635,7 +635,7 @@ pub fn connectors_projects_locations_connections_execute_sql_query_task(
 }
 
 /// POST v2/projects/{projectsId}/locations/{locationsId}/connections/{connectionsId}:executeSqlQuery
-/// Executes a SQL statement specified in the body of the request. An example of this SQL statement in the case of Salesforce connector would be 'select * from Account a, Order o where a.Id = o.AccountId'.
+/// Executes a SQL statement specified in the body of the request. An example of this SQL statement in the case of Salesforce connector would be ''select * from Account a, Order o where a.Id = o.AccountId''.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -674,7 +674,7 @@ pub struct ConnectorsProjectsLocationsConnectionsExecuteSqlQueryArgs {
 }
 
 /// POST v2/projects/{projectsId}/locations/{locationsId}/connections/{connectionsId}:executeSqlQuery
-/// Executes a SQL statement specified in the body of the request. An example of this SQL statement in the case of Salesforce connector would be 'select * from Account a, Order o where a.Id = o.AccountId'.
+/// Executes a SQL statement specified in the body of the request. An example of this SQL statement in the case of Salesforce connector would be ''select * from Account a, Order o where a.Id = o.AccountId''.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `connectors_projects_locations_connections_execute_sql_query_builder()` + `connectors_projects_locations_connections_execute_sql_query_execute()`.
@@ -3045,7 +3045,7 @@ pub fn connectors_projects_locations_connections_entity_types_entities_get(
 }
 
 /// GET v2/projects/{projectsId}/locations/{locationsId}/connections/{connectionsId}/entityTypes/{entityTypesId}/entities
-/// Lists entity rows of a particular entity type contained in the request. Note: 1. Currently, only max of one 'sort_by' column is supported. 2. If no 'sort_by' column is provided, the primary key of the table is used. If zero or more than one primary key is available, we default to the unpaginated list entities logic which only returns the first page. 3. The values of the 'sort_by' columns must uniquely identify an entity row, otherwise undefined behaviors may be observed during pagination. 4. Since transactions are not supported, any updates, inserts or deletes during pagination can lead to stale data being returned or other unexpected behaviors.
+/// Lists entity rows of a particular entity type contained in the request. Note: 1. Currently, only max of one ''sort_by'' column is supported. 2. If no ''sort_by'' column is provided, the primary key of the table is used. If zero or more than one primary key is available, we default to the unpaginated list entities logic which only returns the first page. 3. The values of the ''sort_by'' columns must uniquely identify an entity row, otherwise undefined behaviors may be observed during pagination. 4. Since transactions are not supported, any updates, inserts or deletes during pagination can lead to stale data being returned or other unexpected behaviors.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `connectors_projects_locations_connections_entity_types_entities_list_execute()` to send, or `connectors_projects_locations_connections_entity_types_entities_list` for simplest API.
@@ -3104,7 +3104,7 @@ where
 }
 
 /// GET v2/projects/{projectsId}/locations/{locationsId}/connections/{connectionsId}/entityTypes/{entityTypesId}/entities
-/// Lists entity rows of a particular entity type contained in the request. Note: 1. Currently, only max of one 'sort_by' column is supported. 2. If no 'sort_by' column is provided, the primary key of the table is used. If zero or more than one primary key is available, we default to the unpaginated list entities logic which only returns the first page. 3. The values of the 'sort_by' columns must uniquely identify an entity row, otherwise undefined behaviors may be observed during pagination. 4. Since transactions are not supported, any updates, inserts or deletes during pagination can lead to stale data being returned or other unexpected behaviors.
+/// Lists entity rows of a particular entity type contained in the request. Note: 1. Currently, only max of one ''sort_by'' column is supported. 2. If no ''sort_by'' column is provided, the primary key of the table is used. If zero or more than one primary key is available, we default to the unpaginated list entities logic which only returns the first page. 3. The values of the ''sort_by'' columns must uniquely identify an entity row, otherwise undefined behaviors may be observed during pagination. 4. Since transactions are not supported, any updates, inserts or deletes during pagination can lead to stale data being returned or other unexpected behaviors.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -3178,7 +3178,7 @@ pub fn connectors_projects_locations_connections_entity_types_entities_list_task
 }
 
 /// GET v2/projects/{projectsId}/locations/{locationsId}/connections/{connectionsId}/entityTypes/{entityTypesId}/entities
-/// Lists entity rows of a particular entity type contained in the request. Note: 1. Currently, only max of one 'sort_by' column is supported. 2. If no 'sort_by' column is provided, the primary key of the table is used. If zero or more than one primary key is available, we default to the unpaginated list entities logic which only returns the first page. 3. The values of the 'sort_by' columns must uniquely identify an entity row, otherwise undefined behaviors may be observed during pagination. 4. Since transactions are not supported, any updates, inserts or deletes during pagination can lead to stale data being returned or other unexpected behaviors.
+/// Lists entity rows of a particular entity type contained in the request. Note: 1. Currently, only max of one ''sort_by'' column is supported. 2. If no ''sort_by'' column is provided, the primary key of the table is used. If zero or more than one primary key is available, we default to the unpaginated list entities logic which only returns the first page. 3. The values of the ''sort_by'' columns must uniquely identify an entity row, otherwise undefined behaviors may be observed during pagination. 4. Since transactions are not supported, any updates, inserts or deletes during pagination can lead to stale data being returned or other unexpected behaviors.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -3229,7 +3229,7 @@ pub struct ConnectorsProjectsLocationsConnectionsEntityTypesEntitiesListArgs {
 }
 
 /// GET v2/projects/{projectsId}/locations/{locationsId}/connections/{connectionsId}/entityTypes/{entityTypesId}/entities
-/// Lists entity rows of a particular entity type contained in the request. Note: 1. Currently, only max of one 'sort_by' column is supported. 2. If no 'sort_by' column is provided, the primary key of the table is used. If zero or more than one primary key is available, we default to the unpaginated list entities logic which only returns the first page. 3. The values of the 'sort_by' columns must uniquely identify an entity row, otherwise undefined behaviors may be observed during pagination. 4. Since transactions are not supported, any updates, inserts or deletes during pagination can lead to stale data being returned or other unexpected behaviors.
+/// Lists entity rows of a particular entity type contained in the request. Note: 1. Currently, only max of one ''sort_by'' column is supported. 2. If no ''sort_by'' column is provided, the primary key of the table is used. If zero or more than one primary key is available, we default to the unpaginated list entities logic which only returns the first page. 3. The values of the ''sort_by'' columns must uniquely identify an entity row, otherwise undefined behaviors may be observed during pagination. 4. Since transactions are not supported, any updates, inserts or deletes during pagination can lead to stale data being returned or other unexpected behaviors.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `connectors_projects_locations_connections_entity_types_entities_list_builder()` + `connectors_projects_locations_connections_entity_types_entities_list_execute()`.

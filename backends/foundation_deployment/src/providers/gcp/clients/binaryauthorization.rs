@@ -182,7 +182,7 @@ pub fn binaryauthorization_projects_get_policy(
 }
 
 /// PUT v1/projects/{projectsId}/policy
-/// Creates or updates a project's policy, and returns a copy of the new policy. A policy is always updated as a whole, to avoid race conditions with concurrent policy enforcement (or management!) requests. Returns NOT_FOUND if the project does not exist, INVALID_ARGUMENT if the request is malformed.
+/// Creates or updates a project''s policy, and returns a copy of the new policy. A policy is always updated as a whole, to avoid race conditions with concurrent policy enforcement (or management!) requests. Returns NOT_FOUND if the project does not exist, INVALID_ARGUMENT if the request is malformed.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `binaryauthorization_projects_update_policy_execute()` to send, or `binaryauthorization_projects_update_policy` for simplest API.
@@ -209,7 +209,7 @@ where
 }
 
 /// PUT v1/projects/{projectsId}/policy
-/// Creates or updates a project's policy, and returns a copy of the new policy. A policy is always updated as a whole, to avoid race conditions with concurrent policy enforcement (or management!) requests. Returns NOT_FOUND if the project does not exist, INVALID_ARGUMENT if the request is malformed.
+/// Creates or updates a project''s policy, and returns a copy of the new policy. A policy is always updated as a whole, to avoid race conditions with concurrent policy enforcement (or management!) requests. Returns NOT_FOUND if the project does not exist, INVALID_ARGUMENT if the request is malformed.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -283,7 +283,7 @@ pub fn binaryauthorization_projects_update_policy_task(
 }
 
 /// PUT v1/projects/{projectsId}/policy
-/// Creates or updates a project's policy, and returns a copy of the new policy. A policy is always updated as a whole, to avoid race conditions with concurrent policy enforcement (or management!) requests. Returns NOT_FOUND if the project does not exist, INVALID_ARGUMENT if the request is malformed.
+/// Creates or updates a project''s policy, and returns a copy of the new policy. A policy is always updated as a whole, to avoid race conditions with concurrent policy enforcement (or management!) requests. Returns NOT_FOUND if the project does not exist, INVALID_ARGUMENT if the request is malformed.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -320,7 +320,7 @@ pub struct BinaryauthorizationProjectsUpdatePolicyArgs {
 }
 
 /// PUT v1/projects/{projectsId}/policy
-/// Creates or updates a project's policy, and returns a copy of the new policy. A policy is always updated as a whole, to avoid race conditions with concurrent policy enforcement (or management!) requests. Returns NOT_FOUND if the project does not exist, INVALID_ARGUMENT if the request is malformed.
+/// Creates or updates a project''s policy, and returns a copy of the new policy. A policy is always updated as a whole, to avoid race conditions with concurrent policy enforcement (or management!) requests. Returns NOT_FOUND if the project does not exist, INVALID_ARGUMENT if the request is malformed.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `binaryauthorization_projects_update_policy_builder()` + `binaryauthorization_projects_update_policy_execute()`.
@@ -1871,7 +1871,7 @@ pub fn binaryauthorization_projects_attestors_validate_attestation_occurrence(
 }
 
 /// POST v1/projects/{projectsId}/platforms/gke/policies/{policiesId}:evaluate
-/// Evaluates a Kubernetes object versus a GKE platform policy. Returns NOT_FOUND if the policy doesn't exist, INVALID_ARGUMENT if the policy or request is malformed and PERMISSION_DENIED if the client does not have sufficient permissions.
+/// Evaluates a Kubernetes object versus a GKE platform policy. Returns NOT_FOUND if the policy doesn''t exist, INVALID_ARGUMENT if the policy or request is malformed and PERMISSION_DENIED if the client does not have sufficient permissions.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `binaryauthorization_projects_platforms_gke_policies_evaluate_execute()` to send, or `binaryauthorization_projects_platforms_gke_policies_evaluate` for simplest API.
@@ -1898,7 +1898,7 @@ where
 }
 
 /// POST v1/projects/{projectsId}/platforms/gke/policies/{policiesId}:evaluate
-/// Evaluates a Kubernetes object versus a GKE platform policy. Returns NOT_FOUND if the policy doesn't exist, INVALID_ARGUMENT if the policy or request is malformed and PERMISSION_DENIED if the client does not have sufficient permissions.
+/// Evaluates a Kubernetes object versus a GKE platform policy. Returns NOT_FOUND if the policy doesn''t exist, INVALID_ARGUMENT if the policy or request is malformed and PERMISSION_DENIED if the client does not have sufficient permissions.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -1972,7 +1972,7 @@ pub fn binaryauthorization_projects_platforms_gke_policies_evaluate_task(
 }
 
 /// POST v1/projects/{projectsId}/platforms/gke/policies/{policiesId}:evaluate
-/// Evaluates a Kubernetes object versus a GKE platform policy. Returns NOT_FOUND if the policy doesn't exist, INVALID_ARGUMENT if the policy or request is malformed and PERMISSION_DENIED if the client does not have sufficient permissions.
+/// Evaluates a Kubernetes object versus a GKE platform policy. Returns NOT_FOUND if the policy doesn''t exist, INVALID_ARGUMENT if the policy or request is malformed and PERMISSION_DENIED if the client does not have sufficient permissions.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -2011,7 +2011,7 @@ pub struct BinaryauthorizationProjectsPlatformsGkePoliciesEvaluateArgs {
 }
 
 /// POST v1/projects/{projectsId}/platforms/gke/policies/{policiesId}:evaluate
-/// Evaluates a Kubernetes object versus a GKE platform policy. Returns NOT_FOUND if the policy doesn't exist, INVALID_ARGUMENT if the policy or request is malformed and PERMISSION_DENIED if the client does not have sufficient permissions.
+/// Evaluates a Kubernetes object versus a GKE platform policy. Returns NOT_FOUND if the policy doesn''t exist, INVALID_ARGUMENT if the policy or request is malformed and PERMISSION_DENIED if the client does not have sufficient permissions.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `binaryauthorization_projects_platforms_gke_policies_evaluate_builder()` + `binaryauthorization_projects_platforms_gke_policies_evaluate_execute()`.
@@ -2036,7 +2036,7 @@ pub fn binaryauthorization_projects_platforms_gke_policies_evaluate(
 }
 
 /// POST v1/projects/{projectsId}/platforms/{platformsId}/policies
-/// Creates a platform policy, and returns a copy of it. Returns NOT_FOUND if the project or platform doesn't exist, INVALID_ARGUMENT if the request is malformed, ALREADY_EXISTS if the policy already exists, and INVALID_ARGUMENT if the policy contains a platform-specific policy that does not match the platform value specified in the URL.
+/// Creates a platform policy, and returns a copy of it. Returns NOT_FOUND if the project or platform doesn''t exist, INVALID_ARGUMENT if the request is malformed, ALREADY_EXISTS if the policy already exists, and INVALID_ARGUMENT if the policy contains a platform-specific policy that does not match the platform value specified in the URL.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `binaryauthorization_projects_platforms_policies_create_execute()` to send, or `binaryauthorization_projects_platforms_policies_create` for simplest API.
@@ -2075,7 +2075,7 @@ where
 }
 
 /// POST v1/projects/{projectsId}/platforms/{platformsId}/policies
-/// Creates a platform policy, and returns a copy of it. Returns NOT_FOUND if the project or platform doesn't exist, INVALID_ARGUMENT if the request is malformed, ALREADY_EXISTS if the policy already exists, and INVALID_ARGUMENT if the policy contains a platform-specific policy that does not match the platform value specified in the URL.
+/// Creates a platform policy, and returns a copy of it. Returns NOT_FOUND if the project or platform doesn''t exist, INVALID_ARGUMENT if the request is malformed, ALREADY_EXISTS if the policy already exists, and INVALID_ARGUMENT if the policy contains a platform-specific policy that does not match the platform value specified in the URL.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -2149,7 +2149,7 @@ pub fn binaryauthorization_projects_platforms_policies_create_task(
 }
 
 /// POST v1/projects/{projectsId}/platforms/{platformsId}/policies
-/// Creates a platform policy, and returns a copy of it. Returns NOT_FOUND if the project or platform doesn't exist, INVALID_ARGUMENT if the request is malformed, ALREADY_EXISTS if the policy already exists, and INVALID_ARGUMENT if the policy contains a platform-specific policy that does not match the platform value specified in the URL.
+/// Creates a platform policy, and returns a copy of it. Returns NOT_FOUND if the project or platform doesn''t exist, INVALID_ARGUMENT if the request is malformed, ALREADY_EXISTS if the policy already exists, and INVALID_ARGUMENT if the policy contains a platform-specific policy that does not match the platform value specified in the URL.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -2190,7 +2190,7 @@ pub struct BinaryauthorizationProjectsPlatformsPoliciesCreateArgs {
 }
 
 /// POST v1/projects/{projectsId}/platforms/{platformsId}/policies
-/// Creates a platform policy, and returns a copy of it. Returns NOT_FOUND if the project or platform doesn't exist, INVALID_ARGUMENT if the request is malformed, ALREADY_EXISTS if the policy already exists, and INVALID_ARGUMENT if the policy contains a platform-specific policy that does not match the platform value specified in the URL.
+/// Creates a platform policy, and returns a copy of it. Returns NOT_FOUND if the project or platform doesn''t exist, INVALID_ARGUMENT if the request is malformed, ALREADY_EXISTS if the policy already exists, and INVALID_ARGUMENT if the policy contains a platform-specific policy that does not match the platform value specified in the URL.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `binaryauthorization_projects_platforms_policies_create_builder()` + `binaryauthorization_projects_platforms_policies_create_execute()`.
@@ -2218,7 +2218,7 @@ pub fn binaryauthorization_projects_platforms_policies_create(
 }
 
 /// DELETE v1/projects/{projectsId}/platforms/{platformsId}/policies/{policiesId}
-/// Deletes a platform policy. Returns NOT_FOUND if the policy doesn't exist.
+/// Deletes a platform policy. Returns NOT_FOUND if the policy doesn''t exist.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `binaryauthorization_projects_platforms_policies_delete_execute()` to send, or `binaryauthorization_projects_platforms_policies_delete` for simplest API.
@@ -2257,7 +2257,7 @@ where
 }
 
 /// DELETE v1/projects/{projectsId}/platforms/{platformsId}/policies/{policiesId}
-/// Deletes a platform policy. Returns NOT_FOUND if the policy doesn't exist.
+/// Deletes a platform policy. Returns NOT_FOUND if the policy doesn''t exist.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -2331,7 +2331,7 @@ pub fn binaryauthorization_projects_platforms_policies_delete_task(
 }
 
 /// DELETE v1/projects/{projectsId}/platforms/{platformsId}/policies/{policiesId}
-/// Deletes a platform policy. Returns NOT_FOUND if the policy doesn't exist.
+/// Deletes a platform policy. Returns NOT_FOUND if the policy doesn''t exist.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -2370,7 +2370,7 @@ pub struct BinaryauthorizationProjectsPlatformsPoliciesDeleteArgs {
 }
 
 /// DELETE v1/projects/{projectsId}/platforms/{platformsId}/policies/{policiesId}
-/// Deletes a platform policy. Returns NOT_FOUND if the policy doesn't exist.
+/// Deletes a platform policy. Returns NOT_FOUND if the policy doesn''t exist.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `binaryauthorization_projects_platforms_policies_delete_builder()` + `binaryauthorization_projects_platforms_policies_delete_execute()`.
@@ -2394,7 +2394,7 @@ pub fn binaryauthorization_projects_platforms_policies_delete(
 }
 
 /// GET v1/projects/{projectsId}/platforms/{platformsId}/policies/{policiesId}
-/// Gets a platform policy. Returns NOT_FOUND if the policy doesn't exist.
+/// Gets a platform policy. Returns NOT_FOUND if the policy doesn''t exist.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `binaryauthorization_projects_platforms_policies_get_execute()` to send, or `binaryauthorization_projects_platforms_policies_get` for simplest API.
@@ -2421,7 +2421,7 @@ where
 }
 
 /// GET v1/projects/{projectsId}/platforms/{platformsId}/policies/{policiesId}
-/// Gets a platform policy. Returns NOT_FOUND if the policy doesn't exist.
+/// Gets a platform policy. Returns NOT_FOUND if the policy doesn''t exist.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -2495,7 +2495,7 @@ pub fn binaryauthorization_projects_platforms_policies_get_task(
 }
 
 /// GET v1/projects/{projectsId}/platforms/{platformsId}/policies/{policiesId}
-/// Gets a platform policy. Returns NOT_FOUND if the policy doesn't exist.
+/// Gets a platform policy. Returns NOT_FOUND if the policy doesn''t exist.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -2534,7 +2534,7 @@ pub struct BinaryauthorizationProjectsPlatformsPoliciesGetArgs {
 }
 
 /// GET v1/projects/{projectsId}/platforms/{platformsId}/policies/{policiesId}
-/// Gets a platform policy. Returns NOT_FOUND if the policy doesn't exist.
+/// Gets a platform policy. Returns NOT_FOUND if the policy doesn''t exist.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `binaryauthorization_projects_platforms_policies_get_builder()` + `binaryauthorization_projects_platforms_policies_get_execute()`.
@@ -2558,7 +2558,7 @@ pub fn binaryauthorization_projects_platforms_policies_get(
 }
 
 /// GET v1/projects/{projectsId}/platforms/{platformsId}/policies
-/// Lists platform policies owned by a project in the specified platform. Returns INVALID_ARGUMENT if the project or the platform doesn't exist.
+/// Lists platform policies owned by a project in the specified platform. Returns INVALID_ARGUMENT if the project or the platform doesn''t exist.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `binaryauthorization_projects_platforms_policies_list_execute()` to send, or `binaryauthorization_projects_platforms_policies_list` for simplest API.
@@ -2601,7 +2601,7 @@ where
 }
 
 /// GET v1/projects/{projectsId}/platforms/{platformsId}/policies
-/// Lists platform policies owned by a project in the specified platform. Returns INVALID_ARGUMENT if the project or the platform doesn't exist.
+/// Lists platform policies owned by a project in the specified platform. Returns INVALID_ARGUMENT if the project or the platform doesn''t exist.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -2675,7 +2675,7 @@ pub fn binaryauthorization_projects_platforms_policies_list_task(
 }
 
 /// GET v1/projects/{projectsId}/platforms/{platformsId}/policies
-/// Lists platform policies owned by a project in the specified platform. Returns INVALID_ARGUMENT if the project or the platform doesn't exist.
+/// Lists platform policies owned by a project in the specified platform. Returns INVALID_ARGUMENT if the project or the platform doesn''t exist.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -2720,7 +2720,7 @@ pub struct BinaryauthorizationProjectsPlatformsPoliciesListArgs {
 }
 
 /// GET v1/projects/{projectsId}/platforms/{platformsId}/policies
-/// Lists platform policies owned by a project in the specified platform. Returns INVALID_ARGUMENT if the project or the platform doesn't exist.
+/// Lists platform policies owned by a project in the specified platform. Returns INVALID_ARGUMENT if the project or the platform doesn''t exist.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `binaryauthorization_projects_platforms_policies_list_builder()` + `binaryauthorization_projects_platforms_policies_list_execute()`.
@@ -2751,7 +2751,7 @@ pub fn binaryauthorization_projects_platforms_policies_list(
 }
 
 /// PUT v1/projects/{projectsId}/platforms/{platformsId}/policies/{policiesId}
-/// Replaces a platform policy. Returns NOT_FOUND if the policy doesn't exist.
+/// Replaces a platform policy. Returns NOT_FOUND if the policy doesn''t exist.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `binaryauthorization_projects_platforms_policies_replace_platform_policy_execute()` to send, or `binaryauthorization_projects_platforms_policies_replace_platform_policy` for simplest API.
@@ -2778,7 +2778,7 @@ where
 }
 
 /// PUT v1/projects/{projectsId}/platforms/{platformsId}/policies/{policiesId}
-/// Replaces a platform policy. Returns NOT_FOUND if the policy doesn't exist.
+/// Replaces a platform policy. Returns NOT_FOUND if the policy doesn''t exist.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -2852,7 +2852,7 @@ pub fn binaryauthorization_projects_platforms_policies_replace_platform_policy_t
 }
 
 /// PUT v1/projects/{projectsId}/platforms/{platformsId}/policies/{policiesId}
-/// Replaces a platform policy. Returns NOT_FOUND if the policy doesn't exist.
+/// Replaces a platform policy. Returns NOT_FOUND if the policy doesn''t exist.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -2892,7 +2892,7 @@ pub struct BinaryauthorizationProjectsPlatformsPoliciesReplacePlatformPolicyArgs
 }
 
 /// PUT v1/projects/{projectsId}/platforms/{platformsId}/policies/{policiesId}
-/// Replaces a platform policy. Returns NOT_FOUND if the policy doesn't exist.
+/// Replaces a platform policy. Returns NOT_FOUND if the policy doesn''t exist.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `binaryauthorization_projects_platforms_policies_replace_platform_policy_builder()` + `binaryauthorization_projects_platforms_policies_replace_platform_policy_execute()`.

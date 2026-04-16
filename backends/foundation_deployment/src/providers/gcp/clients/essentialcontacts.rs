@@ -929,7 +929,7 @@ pub fn essentialcontacts_folders_contacts_list(
 }
 
 /// PATCH v1/folders/{foldersId}/contacts/{contactsId}
-/// Updates a contact. Note: A contact's email address cannot be changed.
+/// Updates a contact. Note: A contact''s email address cannot be changed.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `essentialcontacts_folders_contacts_patch_execute()` to send, or `essentialcontacts_folders_contacts_patch` for simplest API.
@@ -968,7 +968,7 @@ where
 }
 
 /// PATCH v1/folders/{foldersId}/contacts/{contactsId}
-/// Updates a contact. Note: A contact's email address cannot be changed.
+/// Updates a contact. Note: A contact''s email address cannot be changed.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -1042,7 +1042,7 @@ pub fn essentialcontacts_folders_contacts_patch_task(
 }
 
 /// PATCH v1/folders/{foldersId}/contacts/{contactsId}
-/// Updates a contact. Note: A contact's email address cannot be changed.
+/// Updates a contact. Note: A contact''s email address cannot be changed.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -1085,7 +1085,7 @@ pub struct EssentialcontactsFoldersContactsPatchArgs {
 }
 
 /// PATCH v1/folders/{foldersId}/contacts/{contactsId}
-/// Updates a contact. Note: A contact's email address cannot be changed.
+/// Updates a contact. Note: A contact''s email address cannot be changed.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `essentialcontacts_folders_contacts_patch_builder()` + `essentialcontacts_folders_contacts_patch_execute()`.
@@ -2184,7 +2184,7 @@ pub fn essentialcontacts_organizations_contacts_list(
 }
 
 /// PATCH v1/organizations/{organizationsId}/contacts/{contactsId}
-/// Updates a contact. Note: A contact's email address cannot be changed.
+/// Updates a contact. Note: A contact''s email address cannot be changed.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `essentialcontacts_organizations_contacts_patch_execute()` to send, or `essentialcontacts_organizations_contacts_patch` for simplest API.
@@ -2223,7 +2223,7 @@ where
 }
 
 /// PATCH v1/organizations/{organizationsId}/contacts/{contactsId}
-/// Updates a contact. Note: A contact's email address cannot be changed.
+/// Updates a contact. Note: A contact''s email address cannot be changed.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -2297,7 +2297,7 @@ pub fn essentialcontacts_organizations_contacts_patch_task(
 }
 
 /// PATCH v1/organizations/{organizationsId}/contacts/{contactsId}
-/// Updates a contact. Note: A contact's email address cannot be changed.
+/// Updates a contact. Note: A contact''s email address cannot be changed.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -2340,7 +2340,7 @@ pub struct EssentialcontactsOrganizationsContactsPatchArgs {
 }
 
 /// PATCH v1/organizations/{organizationsId}/contacts/{contactsId}
-/// Updates a contact. Note: A contact's email address cannot be changed.
+/// Updates a contact. Note: A contact''s email address cannot be changed.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `essentialcontacts_organizations_contacts_patch_builder()` + `essentialcontacts_organizations_contacts_patch_execute()`.
@@ -3442,7 +3442,7 @@ pub fn essentialcontacts_projects_contacts_list(
 }
 
 /// PATCH v1/projects/{projectsId}/contacts/{contactsId}
-/// Updates a contact. Note: A contact's email address cannot be changed.
+/// Updates a contact. Note: A contact''s email address cannot be changed.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `essentialcontacts_projects_contacts_patch_execute()` to send, or `essentialcontacts_projects_contacts_patch` for simplest API.
@@ -3481,7 +3481,7 @@ where
 }
 
 /// PATCH v1/projects/{projectsId}/contacts/{contactsId}
-/// Updates a contact. Note: A contact's email address cannot be changed.
+/// Updates a contact. Note: A contact''s email address cannot be changed.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -3555,7 +3555,7 @@ pub fn essentialcontacts_projects_contacts_patch_task(
 }
 
 /// PATCH v1/projects/{projectsId}/contacts/{contactsId}
-/// Updates a contact. Note: A contact's email address cannot be changed.
+/// Updates a contact. Note: A contact''s email address cannot be changed.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -3598,7 +3598,7 @@ pub struct EssentialcontactsProjectsContactsPatchArgs {
 }
 
 /// PATCH v1/projects/{projectsId}/contacts/{contactsId}
-/// Updates a contact. Note: A contact's email address cannot be changed.
+/// Updates a contact. Note: A contact''s email address cannot be changed.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `essentialcontacts_projects_contacts_patch_builder()` + `essentialcontacts_projects_contacts_patch_execute()`.

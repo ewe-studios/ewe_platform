@@ -2996,7 +2996,7 @@ pub fn bigquerydatatransfer_projects_locations_transfer_configs_schedule_runs(
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/transferConfigs/{transferConfigsId}:startManualRuns
-/// Manually initiates transfer runs. You can schedule these runs in two ways: 1. For a specific point in time using the 'requested_run_time' parameter. 2. For a period between 'start_time' (inclusive) and 'end_time' (exclusive). If scheduling a single run, it is set to execute immediately (schedule_time equals the current time). When scheduling multiple runs within a time range, the first run starts now, and subsequent runs are delayed by 15 seconds each.
+/// Manually initiates transfer runs. You can schedule these runs in two ways: 1. For a specific point in time using the ''requested_run_time'' parameter. 2. For a period between ''start_time'' (inclusive) and ''end_time'' (exclusive). If scheduling a single run, it is set to execute immediately (schedule_time equals the current time). When scheduling multiple runs within a time range, the first run starts now, and subsequent runs are delayed by 15 seconds each.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigquerydatatransfer_projects_locations_transfer_configs_start_manual_runs_execute()` to send, or `bigquerydatatransfer_projects_locations_transfer_configs_start_manual_runs` for simplest API.
@@ -3023,7 +3023,7 @@ where
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/transferConfigs/{transferConfigsId}:startManualRuns
-/// Manually initiates transfer runs. You can schedule these runs in two ways: 1. For a specific point in time using the 'requested_run_time' parameter. 2. For a period between 'start_time' (inclusive) and 'end_time' (exclusive). If scheduling a single run, it is set to execute immediately (schedule_time equals the current time). When scheduling multiple runs within a time range, the first run starts now, and subsequent runs are delayed by 15 seconds each.
+/// Manually initiates transfer runs. You can schedule these runs in two ways: 1. For a specific point in time using the ''requested_run_time'' parameter. 2. For a period between ''start_time'' (inclusive) and ''end_time'' (exclusive). If scheduling a single run, it is set to execute immediately (schedule_time equals the current time). When scheduling multiple runs within a time range, the first run starts now, and subsequent runs are delayed by 15 seconds each.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -3097,7 +3097,7 @@ pub fn bigquerydatatransfer_projects_locations_transfer_configs_start_manual_run
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/transferConfigs/{transferConfigsId}:startManualRuns
-/// Manually initiates transfer runs. You can schedule these runs in two ways: 1. For a specific point in time using the 'requested_run_time' parameter. 2. For a period between 'start_time' (inclusive) and 'end_time' (exclusive). If scheduling a single run, it is set to execute immediately (schedule_time equals the current time). When scheduling multiple runs within a time range, the first run starts now, and subsequent runs are delayed by 15 seconds each.
+/// Manually initiates transfer runs. You can schedule these runs in two ways: 1. For a specific point in time using the ''requested_run_time'' parameter. 2. For a period between ''start_time'' (inclusive) and ''end_time'' (exclusive). If scheduling a single run, it is set to execute immediately (schedule_time equals the current time). When scheduling multiple runs within a time range, the first run starts now, and subsequent runs are delayed by 15 seconds each.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -3139,7 +3139,7 @@ pub struct BigquerydatatransferProjectsLocationsTransferConfigsStartManualRunsAr
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/transferConfigs/{transferConfigsId}:startManualRuns
-/// Manually initiates transfer runs. You can schedule these runs in two ways: 1. For a specific point in time using the 'requested_run_time' parameter. 2. For a period between 'start_time' (inclusive) and 'end_time' (exclusive). If scheduling a single run, it is set to execute immediately (schedule_time equals the current time). When scheduling multiple runs within a time range, the first run starts now, and subsequent runs are delayed by 15 seconds each.
+/// Manually initiates transfer runs. You can schedule these runs in two ways: 1. For a specific point in time using the ''requested_run_time'' parameter. 2. For a period between ''start_time'' (inclusive) and ''end_time'' (exclusive). If scheduling a single run, it is set to execute immediately (schedule_time equals the current time). When scheduling multiple runs within a time range, the first run starts now, and subsequent runs are delayed by 15 seconds each.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `bigquerydatatransfer_projects_locations_transfer_configs_start_manual_runs_builder()` + `bigquerydatatransfer_projects_locations_transfer_configs_start_manual_runs_execute()`.
@@ -5367,7 +5367,7 @@ pub fn bigquerydatatransfer_projects_transfer_configs_schedule_runs(
 }
 
 /// POST v1/projects/{projectsId}/transferConfigs/{transferConfigsId}:startManualRuns
-/// Manually initiates transfer runs. You can schedule these runs in two ways: 1. For a specific point in time using the 'requested_run_time' parameter. 2. For a period between 'start_time' (inclusive) and 'end_time' (exclusive). If scheduling a single run, it is set to execute immediately (schedule_time equals the current time). When scheduling multiple runs within a time range, the first run starts now, and subsequent runs are delayed by 15 seconds each.
+/// Manually initiates transfer runs. You can schedule these runs in two ways: 1. For a specific point in time using the ''requested_run_time'' parameter. 2. For a period between ''start_time'' (inclusive) and ''end_time'' (exclusive). If scheduling a single run, it is set to execute immediately (schedule_time equals the current time). When scheduling multiple runs within a time range, the first run starts now, and subsequent runs are delayed by 15 seconds each.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigquerydatatransfer_projects_transfer_configs_start_manual_runs_execute()` to send, or `bigquerydatatransfer_projects_transfer_configs_start_manual_runs` for simplest API.
@@ -5394,7 +5394,7 @@ where
 }
 
 /// POST v1/projects/{projectsId}/transferConfigs/{transferConfigsId}:startManualRuns
-/// Manually initiates transfer runs. You can schedule these runs in two ways: 1. For a specific point in time using the 'requested_run_time' parameter. 2. For a period between 'start_time' (inclusive) and 'end_time' (exclusive). If scheduling a single run, it is set to execute immediately (schedule_time equals the current time). When scheduling multiple runs within a time range, the first run starts now, and subsequent runs are delayed by 15 seconds each.
+/// Manually initiates transfer runs. You can schedule these runs in two ways: 1. For a specific point in time using the ''requested_run_time'' parameter. 2. For a period between ''start_time'' (inclusive) and ''end_time'' (exclusive). If scheduling a single run, it is set to execute immediately (schedule_time equals the current time). When scheduling multiple runs within a time range, the first run starts now, and subsequent runs are delayed by 15 seconds each.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -5468,7 +5468,7 @@ pub fn bigquerydatatransfer_projects_transfer_configs_start_manual_runs_task(
 }
 
 /// POST v1/projects/{projectsId}/transferConfigs/{transferConfigsId}:startManualRuns
-/// Manually initiates transfer runs. You can schedule these runs in two ways: 1. For a specific point in time using the 'requested_run_time' parameter. 2. For a period between 'start_time' (inclusive) and 'end_time' (exclusive). If scheduling a single run, it is set to execute immediately (schedule_time equals the current time). When scheduling multiple runs within a time range, the first run starts now, and subsequent runs are delayed by 15 seconds each.
+/// Manually initiates transfer runs. You can schedule these runs in two ways: 1. For a specific point in time using the ''requested_run_time'' parameter. 2. For a period between ''start_time'' (inclusive) and ''end_time'' (exclusive). If scheduling a single run, it is set to execute immediately (schedule_time equals the current time). When scheduling multiple runs within a time range, the first run starts now, and subsequent runs are delayed by 15 seconds each.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -5509,7 +5509,7 @@ pub struct BigquerydatatransferProjectsTransferConfigsStartManualRunsArgs {
 }
 
 /// POST v1/projects/{projectsId}/transferConfigs/{transferConfigsId}:startManualRuns
-/// Manually initiates transfer runs. You can schedule these runs in two ways: 1. For a specific point in time using the 'requested_run_time' parameter. 2. For a period between 'start_time' (inclusive) and 'end_time' (exclusive). If scheduling a single run, it is set to execute immediately (schedule_time equals the current time). When scheduling multiple runs within a time range, the first run starts now, and subsequent runs are delayed by 15 seconds each.
+/// Manually initiates transfer runs. You can schedule these runs in two ways: 1. For a specific point in time using the ''requested_run_time'' parameter. 2. For a period between ''start_time'' (inclusive) and ''end_time'' (exclusive). If scheduling a single run, it is set to execute immediately (schedule_time equals the current time). When scheduling multiple runs within a time range, the first run starts now, and subsequent runs are delayed by 15 seconds each.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `bigquerydatatransfer_projects_transfer_configs_start_manual_runs_builder()` + `bigquerydatatransfer_projects_transfer_configs_start_manual_runs_execute()`.

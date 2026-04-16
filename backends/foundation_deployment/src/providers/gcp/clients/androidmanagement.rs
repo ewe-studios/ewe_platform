@@ -2121,7 +2121,7 @@ pub fn androidmanagement_enterprises_devices_patch(
 }
 
 /// POST v1/enterprises/{enterprisesId}/devices/{devicesId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidmanagement_enterprises_devices_operations_cancel_execute()` to send, or `androidmanagement_enterprises_devices_operations_cancel` for simplest API.
@@ -2148,7 +2148,7 @@ where
 }
 
 /// POST v1/enterprises/{enterprisesId}/devices/{devicesId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -2222,7 +2222,7 @@ pub fn androidmanagement_enterprises_devices_operations_cancel_task(
 }
 
 /// POST v1/enterprises/{enterprisesId}/devices/{devicesId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -2259,7 +2259,7 @@ pub struct AndroidmanagementEnterprisesDevicesOperationsCancelArgs {
 }
 
 /// POST v1/enterprises/{enterprisesId}/devices/{devicesId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `androidmanagement_enterprises_devices_operations_cancel_builder()` + `androidmanagement_enterprises_devices_operations_cancel_execute()`.
@@ -2442,7 +2442,7 @@ pub fn androidmanagement_enterprises_devices_operations_get(
 }
 
 /// GET v1/enterprises/{enterprisesId}/devices/{devicesId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidmanagement_enterprises_devices_operations_list_execute()` to send, or `androidmanagement_enterprises_devices_operations_list` for simplest API.
@@ -2493,7 +2493,7 @@ where
 }
 
 /// GET v1/enterprises/{enterprisesId}/devices/{devicesId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -2567,7 +2567,7 @@ pub fn androidmanagement_enterprises_devices_operations_list_task(
 }
 
 /// GET v1/enterprises/{enterprisesId}/devices/{devicesId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -2614,7 +2614,7 @@ pub struct AndroidmanagementEnterprisesDevicesOperationsListArgs {
 }
 
 /// GET v1/enterprises/{enterprisesId}/devices/{devicesId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `androidmanagement_enterprises_devices_operations_list_builder()` + `androidmanagement_enterprises_devices_operations_list_execute()`.
@@ -2645,7 +2645,7 @@ pub fn androidmanagement_enterprises_devices_operations_list(
 }
 
 /// POST v1/enterprises/{enterprisesId}/enrollmentTokens
-/// Creates an enrollment token for a given enterprise. It's up to the caller's responsibility to manage the lifecycle of newly created tokens and deleting them when they're not intended to be used anymore.
+/// Creates an enrollment token for a given enterprise. It''s up to the caller''s responsibility to manage the lifecycle of newly created tokens and deleting them when they''re not intended to be used anymore.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidmanagement_enterprises_enrollment_tokens_create_execute()` to send, or `androidmanagement_enterprises_enrollment_tokens_create` for simplest API.
@@ -2672,7 +2672,7 @@ where
 }
 
 /// POST v1/enterprises/{enterprisesId}/enrollmentTokens
-/// Creates an enrollment token for a given enterprise. It's up to the caller's responsibility to manage the lifecycle of newly created tokens and deleting them when they're not intended to be used anymore.
+/// Creates an enrollment token for a given enterprise. It''s up to the caller''s responsibility to manage the lifecycle of newly created tokens and deleting them when they''re not intended to be used anymore.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -2746,7 +2746,7 @@ pub fn androidmanagement_enterprises_enrollment_tokens_create_task(
 }
 
 /// POST v1/enterprises/{enterprisesId}/enrollmentTokens
-/// Creates an enrollment token for a given enterprise. It's up to the caller's responsibility to manage the lifecycle of newly created tokens and deleting them when they're not intended to be used anymore.
+/// Creates an enrollment token for a given enterprise. It''s up to the caller''s responsibility to manage the lifecycle of newly created tokens and deleting them when they''re not intended to be used anymore.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -2785,7 +2785,7 @@ pub struct AndroidmanagementEnterprisesEnrollmentTokensCreateArgs {
 }
 
 /// POST v1/enterprises/{enterprisesId}/enrollmentTokens
-/// Creates an enrollment token for a given enterprise. It's up to the caller's responsibility to manage the lifecycle of newly created tokens and deleting them when they're not intended to be used anymore.
+/// Creates an enrollment token for a given enterprise. It''s up to the caller''s responsibility to manage the lifecycle of newly created tokens and deleting them when they''re not intended to be used anymore.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `androidmanagement_enterprises_enrollment_tokens_create_builder()` + `androidmanagement_enterprises_enrollment_tokens_create_execute()`.
@@ -2971,7 +2971,7 @@ pub fn androidmanagement_enterprises_enrollment_tokens_delete(
 }
 
 /// GET v1/enterprises/{enterprisesId}/enrollmentTokens/{enrollmentTokensId}
-/// Gets an active, unexpired enrollment token. A partial view of the enrollment token is returned. Only the following fields are populated: name, `expirationTimestamp`, `allowPersonalUsage`, value, `qrCode`. This method is meant to help manage active enrollment tokens lifecycle. For security reasons, it's recommended to delete active enrollment tokens as soon as they're not intended to be used anymore.
+/// Gets an active, unexpired enrollment token. A partial view of the enrollment token is returned. Only the following fields are populated: name, `expirationTimestamp`, `allowPersonalUsage`, value, `qrCode`. This method is meant to help manage active enrollment tokens lifecycle. For security reasons, it''s recommended to delete active enrollment tokens as soon as they''re not intended to be used anymore.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidmanagement_enterprises_enrollment_tokens_get_execute()` to send, or `androidmanagement_enterprises_enrollment_tokens_get` for simplest API.
@@ -2998,7 +2998,7 @@ where
 }
 
 /// GET v1/enterprises/{enterprisesId}/enrollmentTokens/{enrollmentTokensId}
-/// Gets an active, unexpired enrollment token. A partial view of the enrollment token is returned. Only the following fields are populated: name, `expirationTimestamp`, `allowPersonalUsage`, value, `qrCode`. This method is meant to help manage active enrollment tokens lifecycle. For security reasons, it's recommended to delete active enrollment tokens as soon as they're not intended to be used anymore.
+/// Gets an active, unexpired enrollment token. A partial view of the enrollment token is returned. Only the following fields are populated: name, `expirationTimestamp`, `allowPersonalUsage`, value, `qrCode`. This method is meant to help manage active enrollment tokens lifecycle. For security reasons, it''s recommended to delete active enrollment tokens as soon as they''re not intended to be used anymore.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -3072,7 +3072,7 @@ pub fn androidmanagement_enterprises_enrollment_tokens_get_task(
 }
 
 /// GET v1/enterprises/{enterprisesId}/enrollmentTokens/{enrollmentTokensId}
-/// Gets an active, unexpired enrollment token. A partial view of the enrollment token is returned. Only the following fields are populated: name, `expirationTimestamp`, `allowPersonalUsage`, value, `qrCode`. This method is meant to help manage active enrollment tokens lifecycle. For security reasons, it's recommended to delete active enrollment tokens as soon as they're not intended to be used anymore.
+/// Gets an active, unexpired enrollment token. A partial view of the enrollment token is returned. Only the following fields are populated: name, `expirationTimestamp`, `allowPersonalUsage`, value, `qrCode`. This method is meant to help manage active enrollment tokens lifecycle. For security reasons, it''s recommended to delete active enrollment tokens as soon as they''re not intended to be used anymore.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -3111,7 +3111,7 @@ pub struct AndroidmanagementEnterprisesEnrollmentTokensGetArgs {
 }
 
 /// GET v1/enterprises/{enterprisesId}/enrollmentTokens/{enrollmentTokensId}
-/// Gets an active, unexpired enrollment token. A partial view of the enrollment token is returned. Only the following fields are populated: name, `expirationTimestamp`, `allowPersonalUsage`, value, `qrCode`. This method is meant to help manage active enrollment tokens lifecycle. For security reasons, it's recommended to delete active enrollment tokens as soon as they're not intended to be used anymore.
+/// Gets an active, unexpired enrollment token. A partial view of the enrollment token is returned. Only the following fields are populated: name, `expirationTimestamp`, `allowPersonalUsage`, value, `qrCode`. This method is meant to help manage active enrollment tokens lifecycle. For security reasons, it''s recommended to delete active enrollment tokens as soon as they''re not intended to be used anymore.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `androidmanagement_enterprises_enrollment_tokens_get_builder()` + `androidmanagement_enterprises_enrollment_tokens_get_execute()`.
@@ -3135,7 +3135,7 @@ pub fn androidmanagement_enterprises_enrollment_tokens_get(
 }
 
 /// GET v1/enterprises/{enterprisesId}/enrollmentTokens
-/// Lists active, unexpired enrollment tokens for a given enterprise. The list items contain only a partial view of EnrollmentToken object. Only the following fields are populated: name, `expirationTimestamp`, `allowPersonalUsage`, value, `qrCode`. This method is meant to help manage active enrollment tokens lifecycle. For security reasons, it's recommended to delete active enrollment tokens as soon as they're not intended to be used anymore.
+/// Lists active, unexpired enrollment tokens for a given enterprise. The list items contain only a partial view of EnrollmentToken object. Only the following fields are populated: name, `expirationTimestamp`, `allowPersonalUsage`, value, `qrCode`. This method is meant to help manage active enrollment tokens lifecycle. For security reasons, it''s recommended to delete active enrollment tokens as soon as they''re not intended to be used anymore.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidmanagement_enterprises_enrollment_tokens_list_execute()` to send, or `androidmanagement_enterprises_enrollment_tokens_list` for simplest API.
@@ -3178,7 +3178,7 @@ where
 }
 
 /// GET v1/enterprises/{enterprisesId}/enrollmentTokens
-/// Lists active, unexpired enrollment tokens for a given enterprise. The list items contain only a partial view of EnrollmentToken object. Only the following fields are populated: name, `expirationTimestamp`, `allowPersonalUsage`, value, `qrCode`. This method is meant to help manage active enrollment tokens lifecycle. For security reasons, it's recommended to delete active enrollment tokens as soon as they're not intended to be used anymore.
+/// Lists active, unexpired enrollment tokens for a given enterprise. The list items contain only a partial view of EnrollmentToken object. Only the following fields are populated: name, `expirationTimestamp`, `allowPersonalUsage`, value, `qrCode`. This method is meant to help manage active enrollment tokens lifecycle. For security reasons, it''s recommended to delete active enrollment tokens as soon as they''re not intended to be used anymore.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -3252,7 +3252,7 @@ pub fn androidmanagement_enterprises_enrollment_tokens_list_task(
 }
 
 /// GET v1/enterprises/{enterprisesId}/enrollmentTokens
-/// Lists active, unexpired enrollment tokens for a given enterprise. The list items contain only a partial view of EnrollmentToken object. Only the following fields are populated: name, `expirationTimestamp`, `allowPersonalUsage`, value, `qrCode`. This method is meant to help manage active enrollment tokens lifecycle. For security reasons, it's recommended to delete active enrollment tokens as soon as they're not intended to be used anymore.
+/// Lists active, unexpired enrollment tokens for a given enterprise. The list items contain only a partial view of EnrollmentToken object. Only the following fields are populated: name, `expirationTimestamp`, `allowPersonalUsage`, value, `qrCode`. This method is meant to help manage active enrollment tokens lifecycle. For security reasons, it''s recommended to delete active enrollment tokens as soon as they''re not intended to be used anymore.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -3297,7 +3297,7 @@ pub struct AndroidmanagementEnterprisesEnrollmentTokensListArgs {
 }
 
 /// GET v1/enterprises/{enterprisesId}/enrollmentTokens
-/// Lists active, unexpired enrollment tokens for a given enterprise. The list items contain only a partial view of EnrollmentToken object. Only the following fields are populated: name, `expirationTimestamp`, `allowPersonalUsage`, value, `qrCode`. This method is meant to help manage active enrollment tokens lifecycle. For security reasons, it's recommended to delete active enrollment tokens as soon as they're not intended to be used anymore.
+/// Lists active, unexpired enrollment tokens for a given enterprise. The list items contain only a partial view of EnrollmentToken object. Only the following fields are populated: name, `expirationTimestamp`, `allowPersonalUsage`, value, `qrCode`. This method is meant to help manage active enrollment tokens lifecycle. For security reasons, it''s recommended to delete active enrollment tokens as soon as they''re not intended to be used anymore.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `androidmanagement_enterprises_enrollment_tokens_list_builder()` + `androidmanagement_enterprises_enrollment_tokens_list_execute()`.
@@ -3328,7 +3328,7 @@ pub fn androidmanagement_enterprises_enrollment_tokens_list(
 }
 
 /// POST v1/enterprises/{enterprisesId}/migrationTokens
-/// Creates a migration token, to migrate an existing device from being managed by the EMM's Device Policy Controller (DPC) to being managed by the Android Management API. See the guide (<https://developers.google.`com/android/management/dpc-migration`>) for more details.
+/// Creates a migration token, to migrate an existing device from being managed by the EMM''s Device Policy Controller (DPC) to being managed by the Android Management API. See the guide (<https://developers.google.`com/android/management/dpc-migration`>) for more details.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidmanagement_enterprises_migration_tokens_create_execute()` to send, or `androidmanagement_enterprises_migration_tokens_create` for simplest API.
@@ -3355,7 +3355,7 @@ where
 }
 
 /// POST v1/enterprises/{enterprisesId}/migrationTokens
-/// Creates a migration token, to migrate an existing device from being managed by the EMM's Device Policy Controller (DPC) to being managed by the Android Management API. See the guide (<https://developers.google.`com/android/management/dpc-migration`>) for more details.
+/// Creates a migration token, to migrate an existing device from being managed by the EMM''s Device Policy Controller (DPC) to being managed by the Android Management API. See the guide (<https://developers.google.`com/android/management/dpc-migration`>) for more details.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -3429,7 +3429,7 @@ pub fn androidmanagement_enterprises_migration_tokens_create_task(
 }
 
 /// POST v1/enterprises/{enterprisesId}/migrationTokens
-/// Creates a migration token, to migrate an existing device from being managed by the EMM's Device Policy Controller (DPC) to being managed by the Android Management API. See the guide (<https://developers.google.`com/android/management/dpc-migration`>) for more details.
+/// Creates a migration token, to migrate an existing device from being managed by the EMM''s Device Policy Controller (DPC) to being managed by the Android Management API. See the guide (<https://developers.google.`com/android/management/dpc-migration`>) for more details.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -3468,7 +3468,7 @@ pub struct AndroidmanagementEnterprisesMigrationTokensCreateArgs {
 }
 
 /// POST v1/enterprises/{enterprisesId}/migrationTokens
-/// Creates a migration token, to migrate an existing device from being managed by the EMM's Device Policy Controller (DPC) to being managed by the Android Management API. See the guide (<https://developers.google.`com/android/management/dpc-migration`>) for more details.
+/// Creates a migration token, to migrate an existing device from being managed by the EMM''s Device Policy Controller (DPC) to being managed by the Android Management API. See the guide (<https://developers.google.`com/android/management/dpc-migration`>) for more details.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `androidmanagement_enterprises_migration_tokens_create_builder()` + `androidmanagement_enterprises_migration_tokens_create_execute()`.

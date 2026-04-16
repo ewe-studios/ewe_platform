@@ -871,7 +871,7 @@ pub fn translate_projects_locations_adaptive_mt_translate(
 }
 
 /// POST v3/projects/{projectsId}/locations/{locationsId}:batchTranslateDocument
-/// Translates a large volume of document in asynchronous batch mode. This function provides real-time output as the inputs are being processed. If caller cancels a request, the partial results (for an input file, it's all or nothing) may still be available on the specified output location. This call returns immediately and you can use google.longrunning.Operation.name to poll the status of the call.
+/// Translates a large volume of document in asynchronous batch mode. This function provides real-time output as the inputs are being processed. If caller cancels a request, the partial results (for an input file, it''s all or nothing) may still be available on the specified output location. This call returns immediately and you can use google.longrunning.Operation.name to poll the status of the call.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `translate_projects_locations_batch_translate_document_execute()` to send, or `translate_projects_locations_batch_translate_document` for simplest API.
@@ -898,7 +898,7 @@ where
 }
 
 /// POST v3/projects/{projectsId}/locations/{locationsId}:batchTranslateDocument
-/// Translates a large volume of document in asynchronous batch mode. This function provides real-time output as the inputs are being processed. If caller cancels a request, the partial results (for an input file, it's all or nothing) may still be available on the specified output location. This call returns immediately and you can use google.longrunning.Operation.name to poll the status of the call.
+/// Translates a large volume of document in asynchronous batch mode. This function provides real-time output as the inputs are being processed. If caller cancels a request, the partial results (for an input file, it''s all or nothing) may still be available on the specified output location. This call returns immediately and you can use google.longrunning.Operation.name to poll the status of the call.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -972,7 +972,7 @@ pub fn translate_projects_locations_batch_translate_document_task(
 }
 
 /// POST v3/projects/{projectsId}/locations/{locationsId}:batchTranslateDocument
-/// Translates a large volume of document in asynchronous batch mode. This function provides real-time output as the inputs are being processed. If caller cancels a request, the partial results (for an input file, it's all or nothing) may still be available on the specified output location. This call returns immediately and you can use google.longrunning.Operation.name to poll the status of the call.
+/// Translates a large volume of document in asynchronous batch mode. This function provides real-time output as the inputs are being processed. If caller cancels a request, the partial results (for an input file, it''s all or nothing) may still be available on the specified output location. This call returns immediately and you can use google.longrunning.Operation.name to poll the status of the call.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -1009,7 +1009,7 @@ pub struct TranslateProjectsLocationsBatchTranslateDocumentArgs {
 }
 
 /// POST v3/projects/{projectsId}/locations/{locationsId}:batchTranslateDocument
-/// Translates a large volume of document in asynchronous batch mode. This function provides real-time output as the inputs are being processed. If caller cancels a request, the partial results (for an input file, it's all or nothing) may still be available on the specified output location. This call returns immediately and you can use google.longrunning.Operation.name to poll the status of the call.
+/// Translates a large volume of document in asynchronous batch mode. This function provides real-time output as the inputs are being processed. If caller cancels a request, the partial results (for an input file, it''s all or nothing) may still be available on the specified output location. This call returns immediately and you can use google.longrunning.Operation.name to poll the status of the call.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `translate_projects_locations_batch_translate_document_builder()` + `translate_projects_locations_batch_translate_document_execute()`.
@@ -1032,7 +1032,7 @@ pub fn translate_projects_locations_batch_translate_document(
 }
 
 /// POST v3/projects/{projectsId}/locations/{locationsId}:batchTranslateText
-/// Translates a large volume of text in asynchronous batch mode. This function provides real-time output as the inputs are being processed. If caller cancels a request, the partial results (for an input file, it's all or nothing) may still be available on the specified output location. This call returns immediately and you can use google.longrunning.Operation.name to poll the status of the call.
+/// Translates a large volume of text in asynchronous batch mode. This function provides real-time output as the inputs are being processed. If caller cancels a request, the partial results (for an input file, it''s all or nothing) may still be available on the specified output location. This call returns immediately and you can use google.longrunning.Operation.name to poll the status of the call.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `translate_projects_locations_batch_translate_text_execute()` to send, or `translate_projects_locations_batch_translate_text` for simplest API.
@@ -1059,7 +1059,7 @@ where
 }
 
 /// POST v3/projects/{projectsId}/locations/{locationsId}:batchTranslateText
-/// Translates a large volume of text in asynchronous batch mode. This function provides real-time output as the inputs are being processed. If caller cancels a request, the partial results (for an input file, it's all or nothing) may still be available on the specified output location. This call returns immediately and you can use google.longrunning.Operation.name to poll the status of the call.
+/// Translates a large volume of text in asynchronous batch mode. This function provides real-time output as the inputs are being processed. If caller cancels a request, the partial results (for an input file, it''s all or nothing) may still be available on the specified output location. This call returns immediately and you can use google.longrunning.Operation.name to poll the status of the call.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -1133,7 +1133,7 @@ pub fn translate_projects_locations_batch_translate_text_task(
 }
 
 /// POST v3/projects/{projectsId}/locations/{locationsId}:batchTranslateText
-/// Translates a large volume of text in asynchronous batch mode. This function provides real-time output as the inputs are being processed. If caller cancels a request, the partial results (for an input file, it's all or nothing) may still be available on the specified output location. This call returns immediately and you can use google.longrunning.Operation.name to poll the status of the call.
+/// Translates a large volume of text in asynchronous batch mode. This function provides real-time output as the inputs are being processed. If caller cancels a request, the partial results (for an input file, it''s all or nothing) may still be available on the specified output location. This call returns immediately and you can use google.longrunning.Operation.name to poll the status of the call.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -1170,7 +1170,7 @@ pub struct TranslateProjectsLocationsBatchTranslateTextArgs {
 }
 
 /// POST v3/projects/{projectsId}/locations/{locationsId}:batchTranslateText
-/// Translates a large volume of text in asynchronous batch mode. This function provides real-time output as the inputs are being processed. If caller cancels a request, the partial results (for an input file, it's all or nothing) may still be available on the specified output location. This call returns immediately and you can use google.longrunning.Operation.name to poll the status of the call.
+/// Translates a large volume of text in asynchronous batch mode. This function provides real-time output as the inputs are being processed. If caller cancels a request, the partial results (for an input file, it''s all or nothing) may still be available on the specified output location. This call returns immediately and you can use google.longrunning.Operation.name to poll the status of the call.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `translate_projects_locations_batch_translate_text_builder()` + `translate_projects_locations_batch_translate_text_execute()`.
@@ -4658,7 +4658,7 @@ pub fn translate_projects_locations_datasets_delete(
 }
 
 /// POST v3/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}:exportData
-/// Exports dataset's data to the provided output location.
+/// Exports dataset''s data to the provided output location.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `translate_projects_locations_datasets_export_data_execute()` to send, or `translate_projects_locations_datasets_export_data` for simplest API.
@@ -4685,7 +4685,7 @@ where
 }
 
 /// POST v3/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}:exportData
-/// Exports dataset's data to the provided output location.
+/// Exports dataset''s data to the provided output location.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -4759,7 +4759,7 @@ pub fn translate_projects_locations_datasets_export_data_task(
 }
 
 /// POST v3/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}:exportData
-/// Exports dataset's data to the provided output location.
+/// Exports dataset''s data to the provided output location.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -4796,7 +4796,7 @@ pub struct TranslateProjectsLocationsDatasetsExportDataArgs {
 }
 
 /// POST v3/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}:exportData
-/// Exports dataset's data to the provided output location.
+/// Exports dataset''s data to the provided output location.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `translate_projects_locations_datasets_export_data_builder()` + `translate_projects_locations_datasets_export_data_execute()`.
@@ -5523,7 +5523,7 @@ pub fn translate_projects_locations_datasets_examples_list(
 }
 
 /// POST v3/projects/{projectsId}/locations/{locationsId}/glossaries
-/// Creates a glossary and returns the long-running operation. Returns NOT_FOUND, if the project doesn't exist.
+/// Creates a glossary and returns the long-running operation. Returns NOT_FOUND, if the project doesn''t exist.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `translate_projects_locations_glossaries_create_execute()` to send, or `translate_projects_locations_glossaries_create` for simplest API.
@@ -5550,7 +5550,7 @@ where
 }
 
 /// POST v3/projects/{projectsId}/locations/{locationsId}/glossaries
-/// Creates a glossary and returns the long-running operation. Returns NOT_FOUND, if the project doesn't exist.
+/// Creates a glossary and returns the long-running operation. Returns NOT_FOUND, if the project doesn''t exist.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -5624,7 +5624,7 @@ pub fn translate_projects_locations_glossaries_create_task(
 }
 
 /// POST v3/projects/{projectsId}/locations/{locationsId}/glossaries
-/// Creates a glossary and returns the long-running operation. Returns NOT_FOUND, if the project doesn't exist.
+/// Creates a glossary and returns the long-running operation. Returns NOT_FOUND, if the project doesn''t exist.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -5661,7 +5661,7 @@ pub struct TranslateProjectsLocationsGlossariesCreateArgs {
 }
 
 /// POST v3/projects/{projectsId}/locations/{locationsId}/glossaries
-/// Creates a glossary and returns the long-running operation. Returns NOT_FOUND, if the project doesn't exist.
+/// Creates a glossary and returns the long-running operation. Returns NOT_FOUND, if the project doesn''t exist.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `translate_projects_locations_glossaries_create_builder()` + `translate_projects_locations_glossaries_create_execute()`.
@@ -5683,7 +5683,7 @@ pub fn translate_projects_locations_glossaries_create(
 }
 
 /// DELETE v3/projects/{projectsId}/locations/{locationsId}/glossaries/{glossariesId}
-/// Deletes a glossary, or cancels glossary construction if the glossary isn't created yet. Returns NOT_FOUND, if the glossary doesn't exist.
+/// Deletes a glossary, or cancels glossary construction if the glossary isn''t created yet. Returns NOT_FOUND, if the glossary doesn''t exist.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `translate_projects_locations_glossaries_delete_execute()` to send, or `translate_projects_locations_glossaries_delete` for simplest API.
@@ -5710,7 +5710,7 @@ where
 }
 
 /// DELETE v3/projects/{projectsId}/locations/{locationsId}/glossaries/{glossariesId}
-/// Deletes a glossary, or cancels glossary construction if the glossary isn't created yet. Returns NOT_FOUND, if the glossary doesn't exist.
+/// Deletes a glossary, or cancels glossary construction if the glossary isn''t created yet. Returns NOT_FOUND, if the glossary doesn''t exist.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -5784,7 +5784,7 @@ pub fn translate_projects_locations_glossaries_delete_task(
 }
 
 /// DELETE v3/projects/{projectsId}/locations/{locationsId}/glossaries/{glossariesId}
-/// Deletes a glossary, or cancels glossary construction if the glossary isn't created yet. Returns NOT_FOUND, if the glossary doesn't exist.
+/// Deletes a glossary, or cancels glossary construction if the glossary isn''t created yet. Returns NOT_FOUND, if the glossary doesn''t exist.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -5821,7 +5821,7 @@ pub struct TranslateProjectsLocationsGlossariesDeleteArgs {
 }
 
 /// DELETE v3/projects/{projectsId}/locations/{locationsId}/glossaries/{glossariesId}
-/// Deletes a glossary, or cancels glossary construction if the glossary isn't created yet. Returns NOT_FOUND, if the glossary doesn't exist.
+/// Deletes a glossary, or cancels glossary construction if the glossary isn''t created yet. Returns NOT_FOUND, if the glossary doesn''t exist.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `translate_projects_locations_glossaries_delete_builder()` + `translate_projects_locations_glossaries_delete_execute()`.
@@ -5843,7 +5843,7 @@ pub fn translate_projects_locations_glossaries_delete(
 }
 
 /// GET v3/projects/{projectsId}/locations/{locationsId}/glossaries/{glossariesId}
-/// Gets a glossary. Returns NOT_FOUND, if the glossary doesn't exist.
+/// Gets a glossary. Returns NOT_FOUND, if the glossary doesn''t exist.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `translate_projects_locations_glossaries_get_execute()` to send, or `translate_projects_locations_glossaries_get` for simplest API.
@@ -5870,7 +5870,7 @@ where
 }
 
 /// GET v3/projects/{projectsId}/locations/{locationsId}/glossaries/{glossariesId}
-/// Gets a glossary. Returns NOT_FOUND, if the glossary doesn't exist.
+/// Gets a glossary. Returns NOT_FOUND, if the glossary doesn''t exist.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -5944,7 +5944,7 @@ pub fn translate_projects_locations_glossaries_get_task(
 }
 
 /// GET v3/projects/{projectsId}/locations/{locationsId}/glossaries/{glossariesId}
-/// Gets a glossary. Returns NOT_FOUND, if the glossary doesn't exist.
+/// Gets a glossary. Returns NOT_FOUND, if the glossary doesn''t exist.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -5981,7 +5981,7 @@ pub struct TranslateProjectsLocationsGlossariesGetArgs {
 }
 
 /// GET v3/projects/{projectsId}/locations/{locationsId}/glossaries/{glossariesId}
-/// Gets a glossary. Returns NOT_FOUND, if the glossary doesn't exist.
+/// Gets a glossary. Returns NOT_FOUND, if the glossary doesn''t exist.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `translate_projects_locations_glossaries_get_builder()` + `translate_projects_locations_glossaries_get_execute()`.
@@ -6003,7 +6003,7 @@ pub fn translate_projects_locations_glossaries_get(
 }
 
 /// GET v3/projects/{projectsId}/locations/{locationsId}/glossaries
-/// Lists glossaries in a project. Returns NOT_FOUND, if the project doesn't exist.
+/// Lists glossaries in a project. Returns NOT_FOUND, if the project doesn''t exist.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `translate_projects_locations_glossaries_list_execute()` to send, or `translate_projects_locations_glossaries_list` for simplest API.
@@ -6050,7 +6050,7 @@ where
 }
 
 /// GET v3/projects/{projectsId}/locations/{locationsId}/glossaries
-/// Lists glossaries in a project. Returns NOT_FOUND, if the project doesn't exist.
+/// Lists glossaries in a project. Returns NOT_FOUND, if the project doesn''t exist.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -6124,7 +6124,7 @@ pub fn translate_projects_locations_glossaries_list_task(
 }
 
 /// GET v3/projects/{projectsId}/locations/{locationsId}/glossaries
-/// Lists glossaries in a project. Returns NOT_FOUND, if the project doesn't exist.
+/// Lists glossaries in a project. Returns NOT_FOUND, if the project doesn''t exist.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -6169,7 +6169,7 @@ pub struct TranslateProjectsLocationsGlossariesListArgs {
 }
 
 /// GET v3/projects/{projectsId}/locations/{locationsId}/glossaries
-/// Lists glossaries in a project. Returns NOT_FOUND, if the project doesn't exist.
+/// Lists glossaries in a project. Returns NOT_FOUND, if the project doesn''t exist.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `translate_projects_locations_glossaries_list_builder()` + `translate_projects_locations_glossaries_list_execute()`.
@@ -6199,7 +6199,7 @@ pub fn translate_projects_locations_glossaries_list(
 }
 
 /// PATCH v3/projects/{projectsId}/locations/{locationsId}/glossaries/{glossariesId}
-/// Updates a glossary. A LRO is used since the update can be async if the glossary's entry file is updated.
+/// Updates a glossary. A LRO is used since the update can be async if the glossary''s entry file is updated.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `translate_projects_locations_glossaries_patch_execute()` to send, or `translate_projects_locations_glossaries_patch` for simplest API.
@@ -6238,7 +6238,7 @@ where
 }
 
 /// PATCH v3/projects/{projectsId}/locations/{locationsId}/glossaries/{glossariesId}
-/// Updates a glossary. A LRO is used since the update can be async if the glossary's entry file is updated.
+/// Updates a glossary. A LRO is used since the update can be async if the glossary''s entry file is updated.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -6312,7 +6312,7 @@ pub fn translate_projects_locations_glossaries_patch_task(
 }
 
 /// PATCH v3/projects/{projectsId}/locations/{locationsId}/glossaries/{glossariesId}
-/// Updates a glossary. A LRO is used since the update can be async if the glossary's entry file is updated.
+/// Updates a glossary. A LRO is used since the update can be async if the glossary''s entry file is updated.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -6351,7 +6351,7 @@ pub struct TranslateProjectsLocationsGlossariesPatchArgs {
 }
 
 /// PATCH v3/projects/{projectsId}/locations/{locationsId}/glossaries/{glossariesId}
-/// Updates a glossary. A LRO is used since the update can be async if the glossary's entry file is updated.
+/// Updates a glossary. A LRO is used since the update can be async if the glossary''s entry file is updated.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `translate_projects_locations_glossaries_patch_builder()` + `translate_projects_locations_glossaries_patch_execute()`.
@@ -7905,7 +7905,7 @@ pub fn translate_projects_locations_models_list(
 }
 
 /// POST v3/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `translate_projects_locations_operations_cancel_execute()` to send, or `translate_projects_locations_operations_cancel` for simplest API.
@@ -7932,7 +7932,7 @@ where
 }
 
 /// POST v3/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -8006,7 +8006,7 @@ pub fn translate_projects_locations_operations_cancel_task(
 }
 
 /// POST v3/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -8043,7 +8043,7 @@ pub struct TranslateProjectsLocationsOperationsCancelArgs {
 }
 
 /// POST v3/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `translate_projects_locations_operations_cancel_builder()` + `translate_projects_locations_operations_cancel_execute()`.
@@ -8065,7 +8065,7 @@ pub fn translate_projects_locations_operations_cancel(
 }
 
 /// DELETE v3/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
-/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `translate_projects_locations_operations_delete_execute()` to send, or `translate_projects_locations_operations_delete` for simplest API.
@@ -8092,7 +8092,7 @@ where
 }
 
 /// DELETE v3/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
-/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -8166,7 +8166,7 @@ pub fn translate_projects_locations_operations_delete_task(
 }
 
 /// DELETE v3/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
-/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -8203,7 +8203,7 @@ pub struct TranslateProjectsLocationsOperationsDeleteArgs {
 }
 
 /// DELETE v3/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
-/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `translate_projects_locations_operations_delete_builder()` + `translate_projects_locations_operations_delete_execute()`.
@@ -8385,7 +8385,7 @@ pub fn translate_projects_locations_operations_get(
 }
 
 /// GET v3/projects/{projectsId}/locations/{locationsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `translate_projects_locations_operations_list_execute()` to send, or `translate_projects_locations_operations_list` for simplest API.
@@ -8436,7 +8436,7 @@ where
 }
 
 /// GET v3/projects/{projectsId}/locations/{locationsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -8510,7 +8510,7 @@ pub fn translate_projects_locations_operations_list_task(
 }
 
 /// GET v3/projects/{projectsId}/locations/{locationsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -8557,7 +8557,7 @@ pub struct TranslateProjectsLocationsOperationsListArgs {
 }
 
 /// GET v3/projects/{projectsId}/locations/{locationsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `translate_projects_locations_operations_list_builder()` + `translate_projects_locations_operations_list_execute()`.

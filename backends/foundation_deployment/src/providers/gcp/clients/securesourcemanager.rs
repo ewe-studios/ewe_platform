@@ -1630,7 +1630,7 @@ pub fn securesourcemanager_projects_locations_instances_test_iam_permissions(
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securesourcemanager_projects_locations_operations_cancel_execute()` to send, or `securesourcemanager_projects_locations_operations_cancel` for simplest API.
@@ -1657,7 +1657,7 @@ where
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -1731,7 +1731,7 @@ pub fn securesourcemanager_projects_locations_operations_cancel_task(
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -1768,7 +1768,7 @@ pub struct SecuresourcemanagerProjectsLocationsOperationsCancelArgs {
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `securesourcemanager_projects_locations_operations_cancel_builder()` + `securesourcemanager_projects_locations_operations_cancel_execute()`.
@@ -1791,7 +1791,7 @@ pub fn securesourcemanager_projects_locations_operations_cancel(
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
-/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securesourcemanager_projects_locations_operations_delete_execute()` to send, or `securesourcemanager_projects_locations_operations_delete` for simplest API.
@@ -1818,7 +1818,7 @@ where
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
-/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -1892,7 +1892,7 @@ pub fn securesourcemanager_projects_locations_operations_delete_task(
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
-/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -1929,7 +1929,7 @@ pub struct SecuresourcemanagerProjectsLocationsOperationsDeleteArgs {
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
-/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `securesourcemanager_projects_locations_operations_delete_builder()` + `securesourcemanager_projects_locations_operations_delete_execute()`.
@@ -2113,7 +2113,7 @@ pub fn securesourcemanager_projects_locations_operations_get(
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securesourcemanager_projects_locations_operations_list_execute()` to send, or `securesourcemanager_projects_locations_operations_list` for simplest API.
@@ -2164,7 +2164,7 @@ where
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -2238,7 +2238,7 @@ pub fn securesourcemanager_projects_locations_operations_list_task(
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -2285,7 +2285,7 @@ pub struct SecuresourcemanagerProjectsLocationsOperationsListArgs {
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `securesourcemanager_projects_locations_operations_list_builder()` + `securesourcemanager_projects_locations_operations_list_execute()`.
@@ -8639,7 +8639,7 @@ pub fn securesourcemanager_projects_locations_repositories_pull_requests_list(
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/pullRequests/{pullRequestsId}:listFileDiffs
-/// Lists a pull request's file diffs.
+/// Lists a pull request''s file diffs.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securesourcemanager_projects_locations_repositories_pull_requests_list_file_diffs_execute()` to send, or `securesourcemanager_projects_locations_repositories_pull_requests_list_file_diffs` for simplest API.
@@ -8684,7 +8684,7 @@ where
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/pullRequests/{pullRequestsId}:listFileDiffs
-/// Lists a pull request's file diffs.
+/// Lists a pull request''s file diffs.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -8758,7 +8758,7 @@ pub fn securesourcemanager_projects_locations_repositories_pull_requests_list_fi
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/pullRequests/{pullRequestsId}:listFileDiffs
-/// Lists a pull request's file diffs.
+/// Lists a pull request''s file diffs.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -8806,7 +8806,7 @@ pub struct SecuresourcemanagerProjectsLocationsRepositoriesPullRequestsListFileD
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/pullRequests/{pullRequestsId}:listFileDiffs
-/// Lists a pull request's file diffs.
+/// Lists a pull request''s file diffs.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `securesourcemanager_projects_locations_repositories_pull_requests_list_file_diffs_builder()` + `securesourcemanager_projects_locations_repositories_pull_requests_list_file_diffs_execute()`.
@@ -9508,7 +9508,7 @@ pub fn securesourcemanager_projects_locations_repositories_pull_requests_pull_re
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/pullRequests/{pullRequestsId}/pullRequestComments
-/// Creates a pull request comment. This function is used to create a single PullRequestComment of type Comment, or a single PullRequestComment of type Code that's replying to another PullRequestComment of type Code. Use BatchCreatePullRequestComments to create multiple PullRequestComments for code reviews.
+/// Creates a pull request comment. This function is used to create a single PullRequestComment of type Comment, or a single PullRequestComment of type Code that''s replying to another PullRequestComment of type Code. Use BatchCreatePullRequestComments to create multiple PullRequestComments for code reviews.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securesourcemanager_projects_locations_repositories_pull_requests_pull_request_comments_create_execute()` to send, or `securesourcemanager_projects_locations_repositories_pull_requests_pull_request_comments_create` for simplest API.
@@ -9537,7 +9537,7 @@ where
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/pullRequests/{pullRequestsId}/pullRequestComments
-/// Creates a pull request comment. This function is used to create a single PullRequestComment of type Comment, or a single PullRequestComment of type Code that's replying to another PullRequestComment of type Code. Use BatchCreatePullRequestComments to create multiple PullRequestComments for code reviews.
+/// Creates a pull request comment. This function is used to create a single PullRequestComment of type Comment, or a single PullRequestComment of type Code that''s replying to another PullRequestComment of type Code. Use BatchCreatePullRequestComments to create multiple PullRequestComments for code reviews.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -9611,7 +9611,7 @@ pub fn securesourcemanager_projects_locations_repositories_pull_requests_pull_re
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/pullRequests/{pullRequestsId}/pullRequestComments
-/// Creates a pull request comment. This function is used to create a single PullRequestComment of type Comment, or a single PullRequestComment of type Code that's replying to another PullRequestComment of type Code. Use BatchCreatePullRequestComments to create multiple PullRequestComments for code reviews.
+/// Creates a pull request comment. This function is used to create a single PullRequestComment of type Comment, or a single PullRequestComment of type Code that''s replying to another PullRequestComment of type Code. Use BatchCreatePullRequestComments to create multiple PullRequestComments for code reviews.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -9649,7 +9649,7 @@ pub struct SecuresourcemanagerProjectsLocationsRepositoriesPullRequestsPullReque
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/pullRequests/{pullRequestsId}/pullRequestComments
-/// Creates a pull request comment. This function is used to create a single PullRequestComment of type Comment, or a single PullRequestComment of type Code that's replying to another PullRequestComment of type Code. Use BatchCreatePullRequestComments to create multiple PullRequestComments for code reviews.
+/// Creates a pull request comment. This function is used to create a single PullRequestComment of type Comment, or a single PullRequestComment of type Code that''s replying to another PullRequestComment of type Code. Use BatchCreatePullRequestComments to create multiple PullRequestComments for code reviews.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `securesourcemanager_projects_locations_repositories_pull_requests_pull_request_comments_create_builder()` + `securesourcemanager_projects_locations_repositories_pull_requests_pull_request_comments_create_execute()`.

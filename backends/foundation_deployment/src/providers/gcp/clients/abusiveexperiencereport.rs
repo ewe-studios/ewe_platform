@@ -22,7 +22,7 @@ use foundation_macros::JsonHash;
 use serde::Serialize;
 
 /// GET v1/sites/{sitesId}
-/// Gets a site's Abusive Experience Report summary.
+/// Gets a site''s Abusive Experience Report summary.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `abusiveexperiencereport_sites_get_execute()` to send, or `abusiveexperiencereport_sites_get` for simplest API.
@@ -49,7 +49,7 @@ where
 }
 
 /// GET v1/sites/{sitesId}
-/// Gets a site's Abusive Experience Report summary.
+/// Gets a site''s Abusive Experience Report summary.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -123,7 +123,7 @@ pub fn abusiveexperiencereport_sites_get_task(
 }
 
 /// GET v1/sites/{sitesId}
-/// Gets a site's Abusive Experience Report summary.
+/// Gets a site''s Abusive Experience Report summary.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -162,7 +162,7 @@ pub struct AbusiveexperiencereportSitesGetArgs {
 }
 
 /// GET v1/sites/{sitesId}
-/// Gets a site's Abusive Experience Report summary.
+/// Gets a site''s Abusive Experience Report summary.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `abusiveexperiencereport_sites_get_builder()` + `abusiveexperiencereport_sites_get_execute()`.

@@ -222,7 +222,7 @@ pub fn spanner_projects_instance_config_operations_list(
 }
 
 /// POST v1/projects/{projectsId}/instanceConfigs
-/// Creates an instance configuration and begins preparing it to be used. The returned long-running operation can be used to track the progress of preparing the new instance configuration. The instance configuration name is assigned by the caller. If the named instance configuration already exists, CreateInstanceConfig returns ALREADY_EXISTS. Immediately after the request returns: * The instance configuration is readable via the API, with all requested attributes. The instance configuration's reconciling field is set to `true`. Its state is CREATING. While the operation is pending: * Cancelling the operation renders the instance configuration immediately unreadable via the API. * Except for deleting the creating resource, all other attempts to modify the instance configuration are rejected. Upon completion of the returned operation: * Instances can be created using the instance configuration. * The instance configuration's reconciling field becomes `false`. Its state becomes READY. The returned long-running operation will have a name of the format /operations/ and can be used to track creation of the instance configuration. The metadata field type is CreateInstanceConfigMetadata. The response field type is InstanceConfig, if successful. Authorization requires spanner.`instanceConfigs`.create permission on the resource parent.
+/// Creates an instance configuration and begins preparing it to be used. The returned long-running operation can be used to track the progress of preparing the new instance configuration. The instance configuration name is assigned by the caller. If the named instance configuration already exists, CreateInstanceConfig returns ALREADY_EXISTS. Immediately after the request returns: * The instance configuration is readable via the API, with all requested attributes. The instance configuration''s reconciling field is set to `true`. Its state is CREATING. While the operation is pending: * Cancelling the operation renders the instance configuration immediately unreadable via the API. * Except for deleting the creating resource, all other attempts to modify the instance configuration are rejected. Upon completion of the returned operation: * Instances can be created using the instance configuration. * The instance configuration''s reconciling field becomes `false`. Its state becomes READY. The returned long-running operation will have a name of the format /operations/ and can be used to track creation of the instance configuration. The metadata field type is CreateInstanceConfigMetadata. The response field type is InstanceConfig, if successful. Authorization requires spanner.`instanceConfigs`.create permission on the resource parent.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instance_configs_create_execute()` to send, or `spanner_projects_instance_configs_create` for simplest API.
@@ -249,7 +249,7 @@ where
 }
 
 /// POST v1/projects/{projectsId}/instanceConfigs
-/// Creates an instance configuration and begins preparing it to be used. The returned long-running operation can be used to track the progress of preparing the new instance configuration. The instance configuration name is assigned by the caller. If the named instance configuration already exists, CreateInstanceConfig returns ALREADY_EXISTS. Immediately after the request returns: * The instance configuration is readable via the API, with all requested attributes. The instance configuration's reconciling field is set to `true`. Its state is CREATING. While the operation is pending: * Cancelling the operation renders the instance configuration immediately unreadable via the API. * Except for deleting the creating resource, all other attempts to modify the instance configuration are rejected. Upon completion of the returned operation: * Instances can be created using the instance configuration. * The instance configuration's reconciling field becomes `false`. Its state becomes READY. The returned long-running operation will have a name of the format /operations/ and can be used to track creation of the instance configuration. The metadata field type is CreateInstanceConfigMetadata. The response field type is InstanceConfig, if successful. Authorization requires spanner.`instanceConfigs`.create permission on the resource parent.
+/// Creates an instance configuration and begins preparing it to be used. The returned long-running operation can be used to track the progress of preparing the new instance configuration. The instance configuration name is assigned by the caller. If the named instance configuration already exists, CreateInstanceConfig returns ALREADY_EXISTS. Immediately after the request returns: * The instance configuration is readable via the API, with all requested attributes. The instance configuration''s reconciling field is set to `true`. Its state is CREATING. While the operation is pending: * Cancelling the operation renders the instance configuration immediately unreadable via the API. * Except for deleting the creating resource, all other attempts to modify the instance configuration are rejected. Upon completion of the returned operation: * Instances can be created using the instance configuration. * The instance configuration''s reconciling field becomes `false`. Its state becomes READY. The returned long-running operation will have a name of the format /operations/ and can be used to track creation of the instance configuration. The metadata field type is CreateInstanceConfigMetadata. The response field type is InstanceConfig, if successful. Authorization requires spanner.`instanceConfigs`.create permission on the resource parent.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -323,7 +323,7 @@ pub fn spanner_projects_instance_configs_create_task(
 }
 
 /// POST v1/projects/{projectsId}/instanceConfigs
-/// Creates an instance configuration and begins preparing it to be used. The returned long-running operation can be used to track the progress of preparing the new instance configuration. The instance configuration name is assigned by the caller. If the named instance configuration already exists, CreateInstanceConfig returns ALREADY_EXISTS. Immediately after the request returns: * The instance configuration is readable via the API, with all requested attributes. The instance configuration's reconciling field is set to `true`. Its state is CREATING. While the operation is pending: * Cancelling the operation renders the instance configuration immediately unreadable via the API. * Except for deleting the creating resource, all other attempts to modify the instance configuration are rejected. Upon completion of the returned operation: * Instances can be created using the instance configuration. * The instance configuration's reconciling field becomes `false`. Its state becomes READY. The returned long-running operation will have a name of the format /operations/ and can be used to track creation of the instance configuration. The metadata field type is CreateInstanceConfigMetadata. The response field type is InstanceConfig, if successful. Authorization requires spanner.`instanceConfigs`.create permission on the resource parent.
+/// Creates an instance configuration and begins preparing it to be used. The returned long-running operation can be used to track the progress of preparing the new instance configuration. The instance configuration name is assigned by the caller. If the named instance configuration already exists, CreateInstanceConfig returns ALREADY_EXISTS. Immediately after the request returns: * The instance configuration is readable via the API, with all requested attributes. The instance configuration''s reconciling field is set to `true`. Its state is CREATING. While the operation is pending: * Cancelling the operation renders the instance configuration immediately unreadable via the API. * Except for deleting the creating resource, all other attempts to modify the instance configuration are rejected. Upon completion of the returned operation: * Instances can be created using the instance configuration. * The instance configuration''s reconciling field becomes `false`. Its state becomes READY. The returned long-running operation will have a name of the format /operations/ and can be used to track creation of the instance configuration. The metadata field type is CreateInstanceConfigMetadata. The response field type is InstanceConfig, if successful. Authorization requires spanner.`instanceConfigs`.create permission on the resource parent.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -360,7 +360,7 @@ pub struct SpannerProjectsInstanceConfigsCreateArgs {
 }
 
 /// POST v1/projects/{projectsId}/instanceConfigs
-/// Creates an instance configuration and begins preparing it to be used. The returned long-running operation can be used to track the progress of preparing the new instance configuration. The instance configuration name is assigned by the caller. If the named instance configuration already exists, CreateInstanceConfig returns ALREADY_EXISTS. Immediately after the request returns: * The instance configuration is readable via the API, with all requested attributes. The instance configuration's reconciling field is set to `true`. Its state is CREATING. While the operation is pending: * Cancelling the operation renders the instance configuration immediately unreadable via the API. * Except for deleting the creating resource, all other attempts to modify the instance configuration are rejected. Upon completion of the returned operation: * Instances can be created using the instance configuration. * The instance configuration's reconciling field becomes `false`. Its state becomes READY. The returned long-running operation will have a name of the format /operations/ and can be used to track creation of the instance configuration. The metadata field type is CreateInstanceConfigMetadata. The response field type is InstanceConfig, if successful. Authorization requires spanner.`instanceConfigs`.create permission on the resource parent.
+/// Creates an instance configuration and begins preparing it to be used. The returned long-running operation can be used to track the progress of preparing the new instance configuration. The instance configuration name is assigned by the caller. If the named instance configuration already exists, CreateInstanceConfig returns ALREADY_EXISTS. Immediately after the request returns: * The instance configuration is readable via the API, with all requested attributes. The instance configuration''s reconciling field is set to `true`. Its state is CREATING. While the operation is pending: * Cancelling the operation renders the instance configuration immediately unreadable via the API. * Except for deleting the creating resource, all other attempts to modify the instance configuration are rejected. Upon completion of the returned operation: * Instances can be created using the instance configuration. * The instance configuration''s reconciling field becomes `false`. Its state becomes READY. The returned long-running operation will have a name of the format /operations/ and can be used to track creation of the instance configuration. The metadata field type is CreateInstanceConfigMetadata. The response field type is InstanceConfig, if successful. Authorization requires spanner.`instanceConfigs`.create permission on the resource parent.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `spanner_projects_instance_configs_create_builder()` + `spanner_projects_instance_configs_create_execute()`.
@@ -924,7 +924,7 @@ pub fn spanner_projects_instance_configs_list(
 }
 
 /// PATCH v1/projects/{projectsId}/instanceConfigs/{instanceConfigsId}
-/// Updates an instance configuration. The returned long-running operation can be used to track the progress of updating the instance. If the named instance configuration does not exist, returns NOT_FOUND. Only user-managed configurations can be updated. Immediately after the request returns: * The instance configuration's reconciling field is set to `true`. While the operation is pending: * Cancelling the operation sets its metadata's cancel_time. The operation is guaranteed to succeed at undoing all changes, after which point it terminates with a CANCELLED status. * All other attempts to modify the instance configuration are rejected. * Reading the instance configuration via the API continues to give the pre-request values. Upon completion of the returned operation: * Creating instances using the instance configuration uses the new values. * The new values of the instance configuration are readable via the API. * The instance configuration's reconciling field becomes `false`. The returned long-running operation will have a name of the format /operations/ and can be used to track the instance configuration modification. The metadata field type is UpdateInstanceConfigMetadata. The response field type is InstanceConfig, if successful. Authorization requires spanner.`instanceConfigs`.update permission on the resource name.
+/// Updates an instance configuration. The returned long-running operation can be used to track the progress of updating the instance. If the named instance configuration does not exist, returns NOT_FOUND. Only user-managed configurations can be updated. Immediately after the request returns: * The instance configuration''s reconciling field is set to `true`. While the operation is pending: * Cancelling the operation sets its metadata''s cancel_time. The operation is guaranteed to succeed at undoing all changes, after which point it terminates with a CANCELLED status. * All other attempts to modify the instance configuration are rejected. * Reading the instance configuration via the API continues to give the pre-request values. Upon completion of the returned operation: * Creating instances using the instance configuration uses the new values. * The new values of the instance configuration are readable via the API. * The instance configuration''s reconciling field becomes `false`. The returned long-running operation will have a name of the format /operations/ and can be used to track the instance configuration modification. The metadata field type is UpdateInstanceConfigMetadata. The response field type is InstanceConfig, if successful. Authorization requires spanner.`instanceConfigs`.update permission on the resource name.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instance_configs_patch_execute()` to send, or `spanner_projects_instance_configs_patch` for simplest API.
@@ -951,7 +951,7 @@ where
 }
 
 /// PATCH v1/projects/{projectsId}/instanceConfigs/{instanceConfigsId}
-/// Updates an instance configuration. The returned long-running operation can be used to track the progress of updating the instance. If the named instance configuration does not exist, returns NOT_FOUND. Only user-managed configurations can be updated. Immediately after the request returns: * The instance configuration's reconciling field is set to `true`. While the operation is pending: * Cancelling the operation sets its metadata's cancel_time. The operation is guaranteed to succeed at undoing all changes, after which point it terminates with a CANCELLED status. * All other attempts to modify the instance configuration are rejected. * Reading the instance configuration via the API continues to give the pre-request values. Upon completion of the returned operation: * Creating instances using the instance configuration uses the new values. * The new values of the instance configuration are readable via the API. * The instance configuration's reconciling field becomes `false`. The returned long-running operation will have a name of the format /operations/ and can be used to track the instance configuration modification. The metadata field type is UpdateInstanceConfigMetadata. The response field type is InstanceConfig, if successful. Authorization requires spanner.`instanceConfigs`.update permission on the resource name.
+/// Updates an instance configuration. The returned long-running operation can be used to track the progress of updating the instance. If the named instance configuration does not exist, returns NOT_FOUND. Only user-managed configurations can be updated. Immediately after the request returns: * The instance configuration''s reconciling field is set to `true`. While the operation is pending: * Cancelling the operation sets its metadata''s cancel_time. The operation is guaranteed to succeed at undoing all changes, after which point it terminates with a CANCELLED status. * All other attempts to modify the instance configuration are rejected. * Reading the instance configuration via the API continues to give the pre-request values. Upon completion of the returned operation: * Creating instances using the instance configuration uses the new values. * The new values of the instance configuration are readable via the API. * The instance configuration''s reconciling field becomes `false`. The returned long-running operation will have a name of the format /operations/ and can be used to track the instance configuration modification. The metadata field type is UpdateInstanceConfigMetadata. The response field type is InstanceConfig, if successful. Authorization requires spanner.`instanceConfigs`.update permission on the resource name.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -1025,7 +1025,7 @@ pub fn spanner_projects_instance_configs_patch_task(
 }
 
 /// PATCH v1/projects/{projectsId}/instanceConfigs/{instanceConfigsId}
-/// Updates an instance configuration. The returned long-running operation can be used to track the progress of updating the instance. If the named instance configuration does not exist, returns NOT_FOUND. Only user-managed configurations can be updated. Immediately after the request returns: * The instance configuration's reconciling field is set to `true`. While the operation is pending: * Cancelling the operation sets its metadata's cancel_time. The operation is guaranteed to succeed at undoing all changes, after which point it terminates with a CANCELLED status. * All other attempts to modify the instance configuration are rejected. * Reading the instance configuration via the API continues to give the pre-request values. Upon completion of the returned operation: * Creating instances using the instance configuration uses the new values. * The new values of the instance configuration are readable via the API. * The instance configuration's reconciling field becomes `false`. The returned long-running operation will have a name of the format /operations/ and can be used to track the instance configuration modification. The metadata field type is UpdateInstanceConfigMetadata. The response field type is InstanceConfig, if successful. Authorization requires spanner.`instanceConfigs`.update permission on the resource name.
+/// Updates an instance configuration. The returned long-running operation can be used to track the progress of updating the instance. If the named instance configuration does not exist, returns NOT_FOUND. Only user-managed configurations can be updated. Immediately after the request returns: * The instance configuration''s reconciling field is set to `true`. While the operation is pending: * Cancelling the operation sets its metadata''s cancel_time. The operation is guaranteed to succeed at undoing all changes, after which point it terminates with a CANCELLED status. * All other attempts to modify the instance configuration are rejected. * Reading the instance configuration via the API continues to give the pre-request values. Upon completion of the returned operation: * Creating instances using the instance configuration uses the new values. * The new values of the instance configuration are readable via the API. * The instance configuration''s reconciling field becomes `false`. The returned long-running operation will have a name of the format /operations/ and can be used to track the instance configuration modification. The metadata field type is UpdateInstanceConfigMetadata. The response field type is InstanceConfig, if successful. Authorization requires spanner.`instanceConfigs`.update permission on the resource name.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -1062,7 +1062,7 @@ pub struct SpannerProjectsInstanceConfigsPatchArgs {
 }
 
 /// PATCH v1/projects/{projectsId}/instanceConfigs/{instanceConfigsId}
-/// Updates an instance configuration. The returned long-running operation can be used to track the progress of updating the instance. If the named instance configuration does not exist, returns NOT_FOUND. Only user-managed configurations can be updated. Immediately after the request returns: * The instance configuration's reconciling field is set to `true`. While the operation is pending: * Cancelling the operation sets its metadata's cancel_time. The operation is guaranteed to succeed at undoing all changes, after which point it terminates with a CANCELLED status. * All other attempts to modify the instance configuration are rejected. * Reading the instance configuration via the API continues to give the pre-request values. Upon completion of the returned operation: * Creating instances using the instance configuration uses the new values. * The new values of the instance configuration are readable via the API. * The instance configuration's reconciling field becomes `false`. The returned long-running operation will have a name of the format /operations/ and can be used to track the instance configuration modification. The metadata field type is UpdateInstanceConfigMetadata. The response field type is InstanceConfig, if successful. Authorization requires spanner.`instanceConfigs`.update permission on the resource name.
+/// Updates an instance configuration. The returned long-running operation can be used to track the progress of updating the instance. If the named instance configuration does not exist, returns NOT_FOUND. Only user-managed configurations can be updated. Immediately after the request returns: * The instance configuration''s reconciling field is set to `true`. While the operation is pending: * Cancelling the operation sets its metadata''s cancel_time. The operation is guaranteed to succeed at undoing all changes, after which point it terminates with a CANCELLED status. * All other attempts to modify the instance configuration are rejected. * Reading the instance configuration via the API continues to give the pre-request values. Upon completion of the returned operation: * Creating instances using the instance configuration uses the new values. * The new values of the instance configuration are readable via the API. * The instance configuration''s reconciling field becomes `false`. The returned long-running operation will have a name of the format /operations/ and can be used to track the instance configuration modification. The metadata field type is UpdateInstanceConfigMetadata. The response field type is InstanceConfig, if successful. Authorization requires spanner.`instanceConfigs`.update permission on the resource name.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `spanner_projects_instance_configs_patch_builder()` + `spanner_projects_instance_configs_patch_execute()`.
@@ -1084,7 +1084,7 @@ pub fn spanner_projects_instance_configs_patch(
 }
 
 /// POST v1/projects/{projectsId}/instanceConfigs/{instanceConfigsId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instance_configs_operations_cancel_execute()` to send, or `spanner_projects_instance_configs_operations_cancel` for simplest API.
@@ -1111,7 +1111,7 @@ where
 }
 
 /// POST v1/projects/{projectsId}/instanceConfigs/{instanceConfigsId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -1185,7 +1185,7 @@ pub fn spanner_projects_instance_configs_operations_cancel_task(
 }
 
 /// POST v1/projects/{projectsId}/instanceConfigs/{instanceConfigsId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -1222,7 +1222,7 @@ pub struct SpannerProjectsInstanceConfigsOperationsCancelArgs {
 }
 
 /// POST v1/projects/{projectsId}/instanceConfigs/{instanceConfigsId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `spanner_projects_instance_configs_operations_cancel_builder()` + `spanner_projects_instance_configs_operations_cancel_execute()`.
@@ -1244,7 +1244,7 @@ pub fn spanner_projects_instance_configs_operations_cancel(
 }
 
 /// DELETE v1/projects/{projectsId}/instanceConfigs/{instanceConfigsId}/operations/{operationsId}
-/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instance_configs_operations_delete_execute()` to send, or `spanner_projects_instance_configs_operations_delete` for simplest API.
@@ -1271,7 +1271,7 @@ where
 }
 
 /// DELETE v1/projects/{projectsId}/instanceConfigs/{instanceConfigsId}/operations/{operationsId}
-/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -1345,7 +1345,7 @@ pub fn spanner_projects_instance_configs_operations_delete_task(
 }
 
 /// DELETE v1/projects/{projectsId}/instanceConfigs/{instanceConfigsId}/operations/{operationsId}
-/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -1382,7 +1382,7 @@ pub struct SpannerProjectsInstanceConfigsOperationsDeleteArgs {
 }
 
 /// DELETE v1/projects/{projectsId}/instanceConfigs/{instanceConfigsId}/operations/{operationsId}
-/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `spanner_projects_instance_configs_operations_delete_builder()` + `spanner_projects_instance_configs_operations_delete_execute()`.
@@ -1564,7 +1564,7 @@ pub fn spanner_projects_instance_configs_operations_get(
 }
 
 /// GET v1/projects/{projectsId}/instanceConfigs/{instanceConfigsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instance_configs_operations_list_execute()` to send, or `spanner_projects_instance_configs_operations_list` for simplest API.
@@ -1615,7 +1615,7 @@ where
 }
 
 /// GET v1/projects/{projectsId}/instanceConfigs/{instanceConfigsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -1689,7 +1689,7 @@ pub fn spanner_projects_instance_configs_operations_list_task(
 }
 
 /// GET v1/projects/{projectsId}/instanceConfigs/{instanceConfigsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -1736,7 +1736,7 @@ pub struct SpannerProjectsInstanceConfigsOperationsListArgs {
 }
 
 /// GET v1/projects/{projectsId}/instanceConfigs/{instanceConfigsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `spanner_projects_instance_configs_operations_list_builder()` + `spanner_projects_instance_configs_operations_list_execute()`.
@@ -1767,7 +1767,7 @@ pub fn spanner_projects_instance_configs_operations_list(
 }
 
 /// POST v1/projects/{projectsId}/instanceConfigs/{instanceConfigsId}/ssdCaches/{ssdCachesId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instance_configs_ssd_caches_operations_cancel_execute()` to send, or `spanner_projects_instance_configs_ssd_caches_operations_cancel` for simplest API.
@@ -1794,7 +1794,7 @@ where
 }
 
 /// POST v1/projects/{projectsId}/instanceConfigs/{instanceConfigsId}/ssdCaches/{ssdCachesId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -1868,7 +1868,7 @@ pub fn spanner_projects_instance_configs_ssd_caches_operations_cancel_task(
 }
 
 /// POST v1/projects/{projectsId}/instanceConfigs/{instanceConfigsId}/ssdCaches/{ssdCachesId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -1905,7 +1905,7 @@ pub struct SpannerProjectsInstanceConfigsSsdCachesOperationsCancelArgs {
 }
 
 /// POST v1/projects/{projectsId}/instanceConfigs/{instanceConfigsId}/ssdCaches/{ssdCachesId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `spanner_projects_instance_configs_ssd_caches_operations_cancel_builder()` + `spanner_projects_instance_configs_ssd_caches_operations_cancel_execute()`.
@@ -1928,7 +1928,7 @@ pub fn spanner_projects_instance_configs_ssd_caches_operations_cancel(
 }
 
 /// DELETE v1/projects/{projectsId}/instanceConfigs/{instanceConfigsId}/ssdCaches/{ssdCachesId}/operations/{operationsId}
-/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instance_configs_ssd_caches_operations_delete_execute()` to send, or `spanner_projects_instance_configs_ssd_caches_operations_delete` for simplest API.
@@ -1955,7 +1955,7 @@ where
 }
 
 /// DELETE v1/projects/{projectsId}/instanceConfigs/{instanceConfigsId}/ssdCaches/{ssdCachesId}/operations/{operationsId}
-/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -2029,7 +2029,7 @@ pub fn spanner_projects_instance_configs_ssd_caches_operations_delete_task(
 }
 
 /// DELETE v1/projects/{projectsId}/instanceConfigs/{instanceConfigsId}/ssdCaches/{ssdCachesId}/operations/{operationsId}
-/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -2066,7 +2066,7 @@ pub struct SpannerProjectsInstanceConfigsSsdCachesOperationsDeleteArgs {
 }
 
 /// DELETE v1/projects/{projectsId}/instanceConfigs/{instanceConfigsId}/ssdCaches/{ssdCachesId}/operations/{operationsId}
-/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `spanner_projects_instance_configs_ssd_caches_operations_delete_builder()` + `spanner_projects_instance_configs_ssd_caches_operations_delete_execute()`.
@@ -2250,7 +2250,7 @@ pub fn spanner_projects_instance_configs_ssd_caches_operations_get(
 }
 
 /// GET v1/projects/{projectsId}/instanceConfigs/{instanceConfigsId}/ssdCaches/{ssdCachesId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instance_configs_ssd_caches_operations_list_execute()` to send, or `spanner_projects_instance_configs_ssd_caches_operations_list` for simplest API.
@@ -2301,7 +2301,7 @@ where
 }
 
 /// GET v1/projects/{projectsId}/instanceConfigs/{instanceConfigsId}/ssdCaches/{ssdCachesId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -2375,7 +2375,7 @@ pub fn spanner_projects_instance_configs_ssd_caches_operations_list_task(
 }
 
 /// GET v1/projects/{projectsId}/instanceConfigs/{instanceConfigsId}/ssdCaches/{ssdCachesId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -2422,7 +2422,7 @@ pub struct SpannerProjectsInstanceConfigsSsdCachesOperationsListArgs {
 }
 
 /// GET v1/projects/{projectsId}/instanceConfigs/{instanceConfigsId}/ssdCaches/{ssdCachesId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `spanner_projects_instance_configs_ssd_caches_operations_list_builder()` + `spanner_projects_instance_configs_ssd_caches_operations_list_execute()`.
@@ -2453,7 +2453,7 @@ pub fn spanner_projects_instance_configs_ssd_caches_operations_list(
 }
 
 /// POST v1/projects/{projectsId}/instances
-/// Creates an instance and begins preparing it to begin serving. The returned long-running operation can be used to track the progress of preparing the new instance. The instance name is assigned by the caller. If the named instance already exists, CreateInstance returns ALREADY_EXISTS. Immediately upon completion of this request: * The instance is readable via the API, with all requested attributes but no allocated resources. Its state is CREATING. Until completion of the returned operation: * Cancelling the operation renders the instance immediately unreadable via the API. * The instance can be deleted. * All other attempts to modify the instance are rejected. Upon completion of the returned operation: * Billing for all successfully-allocated resources begins (some types may have lower than the requested levels). * Databases can be created in the instance. * The instance's allocated resource levels are readable via the API. * The instance's state becomes READY. The returned long-running operation will have a name of the format /operations/ and can be used to track creation of the instance. The metadata field type is CreateInstanceMetadata. The response field type is Instance, if successful.
+/// Creates an instance and begins preparing it to begin serving. The returned long-running operation can be used to track the progress of preparing the new instance. The instance name is assigned by the caller. If the named instance already exists, CreateInstance returns ALREADY_EXISTS. Immediately upon completion of this request: * The instance is readable via the API, with all requested attributes but no allocated resources. Its state is CREATING. Until completion of the returned operation: * Cancelling the operation renders the instance immediately unreadable via the API. * The instance can be deleted. * All other attempts to modify the instance are rejected. Upon completion of the returned operation: * Billing for all successfully-allocated resources begins (some types may have lower than the requested levels). * Databases can be created in the instance. * The instance''s allocated resource levels are readable via the API. * The instance''s state becomes READY. The returned long-running operation will have a name of the format /operations/ and can be used to track creation of the instance. The metadata field type is CreateInstanceMetadata. The response field type is Instance, if successful.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instances_create_execute()` to send, or `spanner_projects_instances_create` for simplest API.
@@ -2480,7 +2480,7 @@ where
 }
 
 /// POST v1/projects/{projectsId}/instances
-/// Creates an instance and begins preparing it to begin serving. The returned long-running operation can be used to track the progress of preparing the new instance. The instance name is assigned by the caller. If the named instance already exists, CreateInstance returns ALREADY_EXISTS. Immediately upon completion of this request: * The instance is readable via the API, with all requested attributes but no allocated resources. Its state is CREATING. Until completion of the returned operation: * Cancelling the operation renders the instance immediately unreadable via the API. * The instance can be deleted. * All other attempts to modify the instance are rejected. Upon completion of the returned operation: * Billing for all successfully-allocated resources begins (some types may have lower than the requested levels). * Databases can be created in the instance. * The instance's allocated resource levels are readable via the API. * The instance's state becomes READY. The returned long-running operation will have a name of the format /operations/ and can be used to track creation of the instance. The metadata field type is CreateInstanceMetadata. The response field type is Instance, if successful.
+/// Creates an instance and begins preparing it to begin serving. The returned long-running operation can be used to track the progress of preparing the new instance. The instance name is assigned by the caller. If the named instance already exists, CreateInstance returns ALREADY_EXISTS. Immediately upon completion of this request: * The instance is readable via the API, with all requested attributes but no allocated resources. Its state is CREATING. Until completion of the returned operation: * Cancelling the operation renders the instance immediately unreadable via the API. * The instance can be deleted. * All other attempts to modify the instance are rejected. Upon completion of the returned operation: * Billing for all successfully-allocated resources begins (some types may have lower than the requested levels). * Databases can be created in the instance. * The instance''s allocated resource levels are readable via the API. * The instance''s state becomes READY. The returned long-running operation will have a name of the format /operations/ and can be used to track creation of the instance. The metadata field type is CreateInstanceMetadata. The response field type is Instance, if successful.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -2554,7 +2554,7 @@ pub fn spanner_projects_instances_create_task(
 }
 
 /// POST v1/projects/{projectsId}/instances
-/// Creates an instance and begins preparing it to begin serving. The returned long-running operation can be used to track the progress of preparing the new instance. The instance name is assigned by the caller. If the named instance already exists, CreateInstance returns ALREADY_EXISTS. Immediately upon completion of this request: * The instance is readable via the API, with all requested attributes but no allocated resources. Its state is CREATING. Until completion of the returned operation: * Cancelling the operation renders the instance immediately unreadable via the API. * The instance can be deleted. * All other attempts to modify the instance are rejected. Upon completion of the returned operation: * Billing for all successfully-allocated resources begins (some types may have lower than the requested levels). * Databases can be created in the instance. * The instance's allocated resource levels are readable via the API. * The instance's state becomes READY. The returned long-running operation will have a name of the format /operations/ and can be used to track creation of the instance. The metadata field type is CreateInstanceMetadata. The response field type is Instance, if successful.
+/// Creates an instance and begins preparing it to begin serving. The returned long-running operation can be used to track the progress of preparing the new instance. The instance name is assigned by the caller. If the named instance already exists, CreateInstance returns ALREADY_EXISTS. Immediately upon completion of this request: * The instance is readable via the API, with all requested attributes but no allocated resources. Its state is CREATING. Until completion of the returned operation: * Cancelling the operation renders the instance immediately unreadable via the API. * The instance can be deleted. * All other attempts to modify the instance are rejected. Upon completion of the returned operation: * Billing for all successfully-allocated resources begins (some types may have lower than the requested levels). * Databases can be created in the instance. * The instance''s allocated resource levels are readable via the API. * The instance''s state becomes READY. The returned long-running operation will have a name of the format /operations/ and can be used to track creation of the instance. The metadata field type is CreateInstanceMetadata. The response field type is Instance, if successful.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -2591,7 +2591,7 @@ pub struct SpannerProjectsInstancesCreateArgs {
 }
 
 /// POST v1/projects/{projectsId}/instances
-/// Creates an instance and begins preparing it to begin serving. The returned long-running operation can be used to track the progress of preparing the new instance. The instance name is assigned by the caller. If the named instance already exists, CreateInstance returns ALREADY_EXISTS. Immediately upon completion of this request: * The instance is readable via the API, with all requested attributes but no allocated resources. Its state is CREATING. Until completion of the returned operation: * Cancelling the operation renders the instance immediately unreadable via the API. * The instance can be deleted. * All other attempts to modify the instance are rejected. Upon completion of the returned operation: * Billing for all successfully-allocated resources begins (some types may have lower than the requested levels). * Databases can be created in the instance. * The instance's allocated resource levels are readable via the API. * The instance's state becomes READY. The returned long-running operation will have a name of the format /operations/ and can be used to track creation of the instance. The metadata field type is CreateInstanceMetadata. The response field type is Instance, if successful.
+/// Creates an instance and begins preparing it to begin serving. The returned long-running operation can be used to track the progress of preparing the new instance. The instance name is assigned by the caller. If the named instance already exists, CreateInstance returns ALREADY_EXISTS. Immediately upon completion of this request: * The instance is readable via the API, with all requested attributes but no allocated resources. Its state is CREATING. Until completion of the returned operation: * Cancelling the operation renders the instance immediately unreadable via the API. * The instance can be deleted. * All other attempts to modify the instance are rejected. Upon completion of the returned operation: * Billing for all successfully-allocated resources begins (some types may have lower than the requested levels). * Databases can be created in the instance. * The instance''s allocated resource levels are readable via the API. * The instance''s state becomes READY. The returned long-running operation will have a name of the format /operations/ and can be used to track creation of the instance. The metadata field type is CreateInstanceMetadata. The response field type is Instance, if successful.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `spanner_projects_instances_create_builder()` + `spanner_projects_instances_create_execute()`.
@@ -2613,7 +2613,7 @@ pub fn spanner_projects_instances_create(
 }
 
 /// DELETE v1/projects/{projectsId}/instances/{instancesId}
-/// Deletes an instance. Immediately upon completion of the request: * Billing ceases for all of the instance's reserved resources. Soon afterward: * The instance and *all of its databases* immediately and irrevocably disappear from the API. All data in the databases is permanently deleted.
+/// Deletes an instance. Immediately upon completion of the request: * Billing ceases for all of the instance''s reserved resources. Soon afterward: * The instance and *all of its databases* immediately and irrevocably disappear from the API. All data in the databases is permanently deleted.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instances_delete_execute()` to send, or `spanner_projects_instances_delete` for simplest API.
@@ -2640,7 +2640,7 @@ where
 }
 
 /// DELETE v1/projects/{projectsId}/instances/{instancesId}
-/// Deletes an instance. Immediately upon completion of the request: * Billing ceases for all of the instance's reserved resources. Soon afterward: * The instance and *all of its databases* immediately and irrevocably disappear from the API. All data in the databases is permanently deleted.
+/// Deletes an instance. Immediately upon completion of the request: * Billing ceases for all of the instance''s reserved resources. Soon afterward: * The instance and *all of its databases* immediately and irrevocably disappear from the API. All data in the databases is permanently deleted.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -2714,7 +2714,7 @@ pub fn spanner_projects_instances_delete_task(
 }
 
 /// DELETE v1/projects/{projectsId}/instances/{instancesId}
-/// Deletes an instance. Immediately upon completion of the request: * Billing ceases for all of the instance's reserved resources. Soon afterward: * The instance and *all of its databases* immediately and irrevocably disappear from the API. All data in the databases is permanently deleted.
+/// Deletes an instance. Immediately upon completion of the request: * Billing ceases for all of the instance''s reserved resources. Soon afterward: * The instance and *all of its databases* immediately and irrevocably disappear from the API. All data in the databases is permanently deleted.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -2751,7 +2751,7 @@ pub struct SpannerProjectsInstancesDeleteArgs {
 }
 
 /// DELETE v1/projects/{projectsId}/instances/{instancesId}
-/// Deletes an instance. Immediately upon completion of the request: * Billing ceases for all of the instance's reserved resources. Soon afterward: * The instance and *all of its databases* immediately and irrevocably disappear from the API. All data in the databases is permanently deleted.
+/// Deletes an instance. Immediately upon completion of the request: * Billing ceases for all of the instance''s reserved resources. Soon afterward: * The instance and *all of its databases* immediately and irrevocably disappear from the API. All data in the databases is permanently deleted.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `spanner_projects_instances_delete_builder()` + `spanner_projects_instances_delete_execute()`.
@@ -3310,7 +3310,7 @@ pub fn spanner_projects_instances_list(
 }
 
 /// POST v1/projects/{projectsId}/instances/{instancesId}:move
-/// Moves an instance to the target instance configuration. You can use the returned long-running operation to track the progress of moving the instance. MoveInstance returns FAILED_PRECONDITION if the instance meets any of the following criteria: * Is undergoing a move to a different instance configuration * Has backups * Has an ongoing update * Contains any CMEK-enabled databases * Is a free trial instance While the operation is pending: * All other attempts to modify the instance, including changes to its compute capacity, are rejected. * The following database and backup admin operations are rejected: * DatabaseAdmin.CreateDatabase * DatabaseAdmin.UpdateDatabaseDdl (disabled if default_leader is specified in the request.) * DatabaseAdmin.RestoreDatabase * DatabaseAdmin.CreateBackup * DatabaseAdmin.CopyBackup * Both the source and target instance configurations are subject to hourly compute and storage charges. * The instance might experience higher read-write latencies and a higher transaction abort rate. However, moving an instance doesn't cause any downtime. The returned long-running operation has a name of the format /operations/ and can be used to track the move instance operation. The metadata field type is MoveInstanceMetadata. The response field type is Instance, if successful. Cancelling the operation sets its metadata's cancel_time. Cancellation is not immediate because it involves moving any data previously moved to the target instance configuration back to the original instance configuration. You can use this operation to track the progress of the cancellation. Upon successful completion of the cancellation, the operation terminates with CANCELLED status. If not cancelled, upon completion of the returned operation: * The instance successfully moves to the target instance configuration. * You are billed for compute and storage in target instance configuration. Authorization requires the spanner.instances.update permission on the resource instance. For more details, see [Move an instance](<https://cloud.google.`com/spanner/docs/move-instance`>).
+/// Moves an instance to the target instance configuration. You can use the returned long-running operation to track the progress of moving the instance. MoveInstance returns FAILED_PRECONDITION if the instance meets any of the following criteria: * Is undergoing a move to a different instance configuration * Has backups * Has an ongoing update * Contains any CMEK-enabled databases * Is a free trial instance While the operation is pending: * All other attempts to modify the instance, including changes to its compute capacity, are rejected. * The following database and backup admin operations are rejected: * DatabaseAdmin.CreateDatabase * DatabaseAdmin.UpdateDatabaseDdl (disabled if default_leader is specified in the request.) * DatabaseAdmin.RestoreDatabase * DatabaseAdmin.CreateBackup * DatabaseAdmin.CopyBackup * Both the source and target instance configurations are subject to hourly compute and storage charges. * The instance might experience higher read-write latencies and a higher transaction abort rate. However, moving an instance doesn''t cause any downtime. The returned long-running operation has a name of the format /operations/ and can be used to track the move instance operation. The metadata field type is MoveInstanceMetadata. The response field type is Instance, if successful. Cancelling the operation sets its metadata''s cancel_time. Cancellation is not immediate because it involves moving any data previously moved to the target instance configuration back to the original instance configuration. You can use this operation to track the progress of the cancellation. Upon successful completion of the cancellation, the operation terminates with CANCELLED status. If not cancelled, upon completion of the returned operation: * The instance successfully moves to the target instance configuration. * You are billed for compute and storage in target instance configuration. Authorization requires the spanner.instances.update permission on the resource instance. For more details, see [Move an instance](<https://cloud.google.`com/spanner/docs/move-instance`>).
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instances_move_execute()` to send, or `spanner_projects_instances_move` for simplest API.
@@ -3337,7 +3337,7 @@ where
 }
 
 /// POST v1/projects/{projectsId}/instances/{instancesId}:move
-/// Moves an instance to the target instance configuration. You can use the returned long-running operation to track the progress of moving the instance. MoveInstance returns FAILED_PRECONDITION if the instance meets any of the following criteria: * Is undergoing a move to a different instance configuration * Has backups * Has an ongoing update * Contains any CMEK-enabled databases * Is a free trial instance While the operation is pending: * All other attempts to modify the instance, including changes to its compute capacity, are rejected. * The following database and backup admin operations are rejected: * DatabaseAdmin.CreateDatabase * DatabaseAdmin.UpdateDatabaseDdl (disabled if default_leader is specified in the request.) * DatabaseAdmin.RestoreDatabase * DatabaseAdmin.CreateBackup * DatabaseAdmin.CopyBackup * Both the source and target instance configurations are subject to hourly compute and storage charges. * The instance might experience higher read-write latencies and a higher transaction abort rate. However, moving an instance doesn't cause any downtime. The returned long-running operation has a name of the format /operations/ and can be used to track the move instance operation. The metadata field type is MoveInstanceMetadata. The response field type is Instance, if successful. Cancelling the operation sets its metadata's cancel_time. Cancellation is not immediate because it involves moving any data previously moved to the target instance configuration back to the original instance configuration. You can use this operation to track the progress of the cancellation. Upon successful completion of the cancellation, the operation terminates with CANCELLED status. If not cancelled, upon completion of the returned operation: * The instance successfully moves to the target instance configuration. * You are billed for compute and storage in target instance configuration. Authorization requires the spanner.instances.update permission on the resource instance. For more details, see [Move an instance](<https://cloud.google.`com/spanner/docs/move-instance`>).
+/// Moves an instance to the target instance configuration. You can use the returned long-running operation to track the progress of moving the instance. MoveInstance returns FAILED_PRECONDITION if the instance meets any of the following criteria: * Is undergoing a move to a different instance configuration * Has backups * Has an ongoing update * Contains any CMEK-enabled databases * Is a free trial instance While the operation is pending: * All other attempts to modify the instance, including changes to its compute capacity, are rejected. * The following database and backup admin operations are rejected: * DatabaseAdmin.CreateDatabase * DatabaseAdmin.UpdateDatabaseDdl (disabled if default_leader is specified in the request.) * DatabaseAdmin.RestoreDatabase * DatabaseAdmin.CreateBackup * DatabaseAdmin.CopyBackup * Both the source and target instance configurations are subject to hourly compute and storage charges. * The instance might experience higher read-write latencies and a higher transaction abort rate. However, moving an instance doesn''t cause any downtime. The returned long-running operation has a name of the format /operations/ and can be used to track the move instance operation. The metadata field type is MoveInstanceMetadata. The response field type is Instance, if successful. Cancelling the operation sets its metadata''s cancel_time. Cancellation is not immediate because it involves moving any data previously moved to the target instance configuration back to the original instance configuration. You can use this operation to track the progress of the cancellation. Upon successful completion of the cancellation, the operation terminates with CANCELLED status. If not cancelled, upon completion of the returned operation: * The instance successfully moves to the target instance configuration. * You are billed for compute and storage in target instance configuration. Authorization requires the spanner.instances.update permission on the resource instance. For more details, see [Move an instance](<https://cloud.google.`com/spanner/docs/move-instance`>).
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -3411,7 +3411,7 @@ pub fn spanner_projects_instances_move_task(
 }
 
 /// POST v1/projects/{projectsId}/instances/{instancesId}:move
-/// Moves an instance to the target instance configuration. You can use the returned long-running operation to track the progress of moving the instance. MoveInstance returns FAILED_PRECONDITION if the instance meets any of the following criteria: * Is undergoing a move to a different instance configuration * Has backups * Has an ongoing update * Contains any CMEK-enabled databases * Is a free trial instance While the operation is pending: * All other attempts to modify the instance, including changes to its compute capacity, are rejected. * The following database and backup admin operations are rejected: * DatabaseAdmin.CreateDatabase * DatabaseAdmin.UpdateDatabaseDdl (disabled if default_leader is specified in the request.) * DatabaseAdmin.RestoreDatabase * DatabaseAdmin.CreateBackup * DatabaseAdmin.CopyBackup * Both the source and target instance configurations are subject to hourly compute and storage charges. * The instance might experience higher read-write latencies and a higher transaction abort rate. However, moving an instance doesn't cause any downtime. The returned long-running operation has a name of the format /operations/ and can be used to track the move instance operation. The metadata field type is MoveInstanceMetadata. The response field type is Instance, if successful. Cancelling the operation sets its metadata's cancel_time. Cancellation is not immediate because it involves moving any data previously moved to the target instance configuration back to the original instance configuration. You can use this operation to track the progress of the cancellation. Upon successful completion of the cancellation, the operation terminates with CANCELLED status. If not cancelled, upon completion of the returned operation: * The instance successfully moves to the target instance configuration. * You are billed for compute and storage in target instance configuration. Authorization requires the spanner.instances.update permission on the resource instance. For more details, see [Move an instance](<https://cloud.google.`com/spanner/docs/move-instance`>).
+/// Moves an instance to the target instance configuration. You can use the returned long-running operation to track the progress of moving the instance. MoveInstance returns FAILED_PRECONDITION if the instance meets any of the following criteria: * Is undergoing a move to a different instance configuration * Has backups * Has an ongoing update * Contains any CMEK-enabled databases * Is a free trial instance While the operation is pending: * All other attempts to modify the instance, including changes to its compute capacity, are rejected. * The following database and backup admin operations are rejected: * DatabaseAdmin.CreateDatabase * DatabaseAdmin.UpdateDatabaseDdl (disabled if default_leader is specified in the request.) * DatabaseAdmin.RestoreDatabase * DatabaseAdmin.CreateBackup * DatabaseAdmin.CopyBackup * Both the source and target instance configurations are subject to hourly compute and storage charges. * The instance might experience higher read-write latencies and a higher transaction abort rate. However, moving an instance doesn''t cause any downtime. The returned long-running operation has a name of the format /operations/ and can be used to track the move instance operation. The metadata field type is MoveInstanceMetadata. The response field type is Instance, if successful. Cancelling the operation sets its metadata''s cancel_time. Cancellation is not immediate because it involves moving any data previously moved to the target instance configuration back to the original instance configuration. You can use this operation to track the progress of the cancellation. Upon successful completion of the cancellation, the operation terminates with CANCELLED status. If not cancelled, upon completion of the returned operation: * The instance successfully moves to the target instance configuration. * You are billed for compute and storage in target instance configuration. Authorization requires the spanner.instances.update permission on the resource instance. For more details, see [Move an instance](<https://cloud.google.`com/spanner/docs/move-instance`>).
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -3448,7 +3448,7 @@ pub struct SpannerProjectsInstancesMoveArgs {
 }
 
 /// POST v1/projects/{projectsId}/instances/{instancesId}:move
-/// Moves an instance to the target instance configuration. You can use the returned long-running operation to track the progress of moving the instance. MoveInstance returns FAILED_PRECONDITION if the instance meets any of the following criteria: * Is undergoing a move to a different instance configuration * Has backups * Has an ongoing update * Contains any CMEK-enabled databases * Is a free trial instance While the operation is pending: * All other attempts to modify the instance, including changes to its compute capacity, are rejected. * The following database and backup admin operations are rejected: * DatabaseAdmin.CreateDatabase * DatabaseAdmin.UpdateDatabaseDdl (disabled if default_leader is specified in the request.) * DatabaseAdmin.RestoreDatabase * DatabaseAdmin.CreateBackup * DatabaseAdmin.CopyBackup * Both the source and target instance configurations are subject to hourly compute and storage charges. * The instance might experience higher read-write latencies and a higher transaction abort rate. However, moving an instance doesn't cause any downtime. The returned long-running operation has a name of the format /operations/ and can be used to track the move instance operation. The metadata field type is MoveInstanceMetadata. The response field type is Instance, if successful. Cancelling the operation sets its metadata's cancel_time. Cancellation is not immediate because it involves moving any data previously moved to the target instance configuration back to the original instance configuration. You can use this operation to track the progress of the cancellation. Upon successful completion of the cancellation, the operation terminates with CANCELLED status. If not cancelled, upon completion of the returned operation: * The instance successfully moves to the target instance configuration. * You are billed for compute and storage in target instance configuration. Authorization requires the spanner.instances.update permission on the resource instance. For more details, see [Move an instance](<https://cloud.google.`com/spanner/docs/move-instance`>).
+/// Moves an instance to the target instance configuration. You can use the returned long-running operation to track the progress of moving the instance. MoveInstance returns FAILED_PRECONDITION if the instance meets any of the following criteria: * Is undergoing a move to a different instance configuration * Has backups * Has an ongoing update * Contains any CMEK-enabled databases * Is a free trial instance While the operation is pending: * All other attempts to modify the instance, including changes to its compute capacity, are rejected. * The following database and backup admin operations are rejected: * DatabaseAdmin.CreateDatabase * DatabaseAdmin.UpdateDatabaseDdl (disabled if default_leader is specified in the request.) * DatabaseAdmin.RestoreDatabase * DatabaseAdmin.CreateBackup * DatabaseAdmin.CopyBackup * Both the source and target instance configurations are subject to hourly compute and storage charges. * The instance might experience higher read-write latencies and a higher transaction abort rate. However, moving an instance doesn''t cause any downtime. The returned long-running operation has a name of the format /operations/ and can be used to track the move instance operation. The metadata field type is MoveInstanceMetadata. The response field type is Instance, if successful. Cancelling the operation sets its metadata''s cancel_time. Cancellation is not immediate because it involves moving any data previously moved to the target instance configuration back to the original instance configuration. You can use this operation to track the progress of the cancellation. Upon successful completion of the cancellation, the operation terminates with CANCELLED status. If not cancelled, upon completion of the returned operation: * The instance successfully moves to the target instance configuration. * You are billed for compute and storage in target instance configuration. Authorization requires the spanner.instances.update permission on the resource instance. For more details, see [Move an instance](<https://cloud.google.`com/spanner/docs/move-instance`>).
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `spanner_projects_instances_move_builder()` + `spanner_projects_instances_move_execute()`.
@@ -3470,7 +3470,7 @@ pub fn spanner_projects_instances_move(
 }
 
 /// PATCH v1/projects/{projectsId}/instances/{instancesId}
-/// Updates an instance, and begins allocating or releasing resources as requested. The returned long-running operation can be used to track the progress of updating the instance. If the named instance does not exist, returns NOT_FOUND. Immediately upon completion of this request: * For resource types for which a decrease in the instance's allocation has been requested, billing is based on the newly-requested level. Until completion of the returned operation: * Cancelling the operation sets its metadata's cancel_time, and begins restoring resources to their pre-request values. The operation is guaranteed to succeed at undoing all resource changes, after which point it terminates with a CANCELLED status. * All other attempts to modify the instance are rejected. * Reading the instance via the API continues to give the pre-request resource levels. Upon completion of the returned operation: * Billing begins for all successfully-allocated resources (some types may have lower than the requested levels). * All newly-reserved resources are available for serving the instance's tables. * The instance's new resource levels are readable via the API. The returned long-running operation will have a name of the format /operations/ and can be used to track the instance modification. The metadata field type is UpdateInstanceMetadata. The response field type is Instance, if successful. Authorization requires spanner.instances.update permission on the resource name.
+/// Updates an instance, and begins allocating or releasing resources as requested. The returned long-running operation can be used to track the progress of updating the instance. If the named instance does not exist, returns NOT_FOUND. Immediately upon completion of this request: * For resource types for which a decrease in the instance''s allocation has been requested, billing is based on the newly-requested level. Until completion of the returned operation: * Cancelling the operation sets its metadata''s cancel_time, and begins restoring resources to their pre-request values. The operation is guaranteed to succeed at undoing all resource changes, after which point it terminates with a CANCELLED status. * All other attempts to modify the instance are rejected. * Reading the instance via the API continues to give the pre-request resource levels. Upon completion of the returned operation: * Billing begins for all successfully-allocated resources (some types may have lower than the requested levels). * All newly-reserved resources are available for serving the instance''s tables. * The instance''s new resource levels are readable via the API. The returned long-running operation will have a name of the format /operations/ and can be used to track the instance modification. The metadata field type is UpdateInstanceMetadata. The response field type is Instance, if successful. Authorization requires spanner.instances.update permission on the resource name.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instances_patch_execute()` to send, or `spanner_projects_instances_patch` for simplest API.
@@ -3497,7 +3497,7 @@ where
 }
 
 /// PATCH v1/projects/{projectsId}/instances/{instancesId}
-/// Updates an instance, and begins allocating or releasing resources as requested. The returned long-running operation can be used to track the progress of updating the instance. If the named instance does not exist, returns NOT_FOUND. Immediately upon completion of this request: * For resource types for which a decrease in the instance's allocation has been requested, billing is based on the newly-requested level. Until completion of the returned operation: * Cancelling the operation sets its metadata's cancel_time, and begins restoring resources to their pre-request values. The operation is guaranteed to succeed at undoing all resource changes, after which point it terminates with a CANCELLED status. * All other attempts to modify the instance are rejected. * Reading the instance via the API continues to give the pre-request resource levels. Upon completion of the returned operation: * Billing begins for all successfully-allocated resources (some types may have lower than the requested levels). * All newly-reserved resources are available for serving the instance's tables. * The instance's new resource levels are readable via the API. The returned long-running operation will have a name of the format /operations/ and can be used to track the instance modification. The metadata field type is UpdateInstanceMetadata. The response field type is Instance, if successful. Authorization requires spanner.instances.update permission on the resource name.
+/// Updates an instance, and begins allocating or releasing resources as requested. The returned long-running operation can be used to track the progress of updating the instance. If the named instance does not exist, returns NOT_FOUND. Immediately upon completion of this request: * For resource types for which a decrease in the instance''s allocation has been requested, billing is based on the newly-requested level. Until completion of the returned operation: * Cancelling the operation sets its metadata''s cancel_time, and begins restoring resources to their pre-request values. The operation is guaranteed to succeed at undoing all resource changes, after which point it terminates with a CANCELLED status. * All other attempts to modify the instance are rejected. * Reading the instance via the API continues to give the pre-request resource levels. Upon completion of the returned operation: * Billing begins for all successfully-allocated resources (some types may have lower than the requested levels). * All newly-reserved resources are available for serving the instance''s tables. * The instance''s new resource levels are readable via the API. The returned long-running operation will have a name of the format /operations/ and can be used to track the instance modification. The metadata field type is UpdateInstanceMetadata. The response field type is Instance, if successful. Authorization requires spanner.instances.update permission on the resource name.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -3571,7 +3571,7 @@ pub fn spanner_projects_instances_patch_task(
 }
 
 /// PATCH v1/projects/{projectsId}/instances/{instancesId}
-/// Updates an instance, and begins allocating or releasing resources as requested. The returned long-running operation can be used to track the progress of updating the instance. If the named instance does not exist, returns NOT_FOUND. Immediately upon completion of this request: * For resource types for which a decrease in the instance's allocation has been requested, billing is based on the newly-requested level. Until completion of the returned operation: * Cancelling the operation sets its metadata's cancel_time, and begins restoring resources to their pre-request values. The operation is guaranteed to succeed at undoing all resource changes, after which point it terminates with a CANCELLED status. * All other attempts to modify the instance are rejected. * Reading the instance via the API continues to give the pre-request resource levels. Upon completion of the returned operation: * Billing begins for all successfully-allocated resources (some types may have lower than the requested levels). * All newly-reserved resources are available for serving the instance's tables. * The instance's new resource levels are readable via the API. The returned long-running operation will have a name of the format /operations/ and can be used to track the instance modification. The metadata field type is UpdateInstanceMetadata. The response field type is Instance, if successful. Authorization requires spanner.instances.update permission on the resource name.
+/// Updates an instance, and begins allocating or releasing resources as requested. The returned long-running operation can be used to track the progress of updating the instance. If the named instance does not exist, returns NOT_FOUND. Immediately upon completion of this request: * For resource types for which a decrease in the instance''s allocation has been requested, billing is based on the newly-requested level. Until completion of the returned operation: * Cancelling the operation sets its metadata''s cancel_time, and begins restoring resources to their pre-request values. The operation is guaranteed to succeed at undoing all resource changes, after which point it terminates with a CANCELLED status. * All other attempts to modify the instance are rejected. * Reading the instance via the API continues to give the pre-request resource levels. Upon completion of the returned operation: * Billing begins for all successfully-allocated resources (some types may have lower than the requested levels). * All newly-reserved resources are available for serving the instance''s tables. * The instance''s new resource levels are readable via the API. The returned long-running operation will have a name of the format /operations/ and can be used to track the instance modification. The metadata field type is UpdateInstanceMetadata. The response field type is Instance, if successful. Authorization requires spanner.instances.update permission on the resource name.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -3608,7 +3608,7 @@ pub struct SpannerProjectsInstancesPatchArgs {
 }
 
 /// PATCH v1/projects/{projectsId}/instances/{instancesId}
-/// Updates an instance, and begins allocating or releasing resources as requested. The returned long-running operation can be used to track the progress of updating the instance. If the named instance does not exist, returns NOT_FOUND. Immediately upon completion of this request: * For resource types for which a decrease in the instance's allocation has been requested, billing is based on the newly-requested level. Until completion of the returned operation: * Cancelling the operation sets its metadata's cancel_time, and begins restoring resources to their pre-request values. The operation is guaranteed to succeed at undoing all resource changes, after which point it terminates with a CANCELLED status. * All other attempts to modify the instance are rejected. * Reading the instance via the API continues to give the pre-request resource levels. Upon completion of the returned operation: * Billing begins for all successfully-allocated resources (some types may have lower than the requested levels). * All newly-reserved resources are available for serving the instance's tables. * The instance's new resource levels are readable via the API. The returned long-running operation will have a name of the format /operations/ and can be used to track the instance modification. The metadata field type is UpdateInstanceMetadata. The response field type is Instance, if successful. Authorization requires spanner.instances.update permission on the resource name.
+/// Updates an instance, and begins allocating or releasing resources as requested. The returned long-running operation can be used to track the progress of updating the instance. If the named instance does not exist, returns NOT_FOUND. Immediately upon completion of this request: * For resource types for which a decrease in the instance''s allocation has been requested, billing is based on the newly-requested level. Until completion of the returned operation: * Cancelling the operation sets its metadata''s cancel_time, and begins restoring resources to their pre-request values. The operation is guaranteed to succeed at undoing all resource changes, after which point it terminates with a CANCELLED status. * All other attempts to modify the instance are rejected. * Reading the instance via the API continues to give the pre-request resource levels. Upon completion of the returned operation: * Billing begins for all successfully-allocated resources (some types may have lower than the requested levels). * All newly-reserved resources are available for serving the instance''s tables. * The instance''s new resource levels are readable via the API. The returned long-running operation will have a name of the format /operations/ and can be used to track the instance modification. The metadata field type is UpdateInstanceMetadata. The response field type is Instance, if successful. Authorization requires spanner.instances.update permission on the resource name.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `spanner_projects_instances_patch_builder()` + `spanner_projects_instances_patch_execute()`.
@@ -5699,7 +5699,7 @@ pub fn spanner_projects_instances_backups_test_iam_permissions(
 }
 
 /// POST v1/projects/{projectsId}/instances/{instancesId}/backups/{backupsId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instances_backups_operations_cancel_execute()` to send, or `spanner_projects_instances_backups_operations_cancel` for simplest API.
@@ -5726,7 +5726,7 @@ where
 }
 
 /// POST v1/projects/{projectsId}/instances/{instancesId}/backups/{backupsId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -5800,7 +5800,7 @@ pub fn spanner_projects_instances_backups_operations_cancel_task(
 }
 
 /// POST v1/projects/{projectsId}/instances/{instancesId}/backups/{backupsId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -5837,7 +5837,7 @@ pub struct SpannerProjectsInstancesBackupsOperationsCancelArgs {
 }
 
 /// POST v1/projects/{projectsId}/instances/{instancesId}/backups/{backupsId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `spanner_projects_instances_backups_operations_cancel_builder()` + `spanner_projects_instances_backups_operations_cancel_execute()`.
@@ -5859,7 +5859,7 @@ pub fn spanner_projects_instances_backups_operations_cancel(
 }
 
 /// DELETE v1/projects/{projectsId}/instances/{instancesId}/backups/{backupsId}/operations/{operationsId}
-/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instances_backups_operations_delete_execute()` to send, or `spanner_projects_instances_backups_operations_delete` for simplest API.
@@ -5886,7 +5886,7 @@ where
 }
 
 /// DELETE v1/projects/{projectsId}/instances/{instancesId}/backups/{backupsId}/operations/{operationsId}
-/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -5960,7 +5960,7 @@ pub fn spanner_projects_instances_backups_operations_delete_task(
 }
 
 /// DELETE v1/projects/{projectsId}/instances/{instancesId}/backups/{backupsId}/operations/{operationsId}
-/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -5997,7 +5997,7 @@ pub struct SpannerProjectsInstancesBackupsOperationsDeleteArgs {
 }
 
 /// DELETE v1/projects/{projectsId}/instances/{instancesId}/backups/{backupsId}/operations/{operationsId}
-/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `spanner_projects_instances_backups_operations_delete_builder()` + `spanner_projects_instances_backups_operations_delete_execute()`.
@@ -6179,7 +6179,7 @@ pub fn spanner_projects_instances_backups_operations_get(
 }
 
 /// GET v1/projects/{projectsId}/instances/{instancesId}/backups/{backupsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instances_backups_operations_list_execute()` to send, or `spanner_projects_instances_backups_operations_list` for simplest API.
@@ -6230,7 +6230,7 @@ where
 }
 
 /// GET v1/projects/{projectsId}/instances/{instancesId}/backups/{backupsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -6304,7 +6304,7 @@ pub fn spanner_projects_instances_backups_operations_list_task(
 }
 
 /// GET v1/projects/{projectsId}/instances/{instancesId}/backups/{backupsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -6351,7 +6351,7 @@ pub struct SpannerProjectsInstancesBackupsOperationsListArgs {
 }
 
 /// GET v1/projects/{projectsId}/instances/{instancesId}/backups/{backupsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `spanner_projects_instances_backups_operations_list_builder()` + `spanner_projects_instances_backups_operations_list_execute()`.
@@ -8094,7 +8094,7 @@ pub fn spanner_projects_instances_databases_list(
 }
 
 /// PATCH v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}
-/// Updates a Cloud Spanner database. The returned long-running operation can be used to track the progress of updating the database. If the named database does not exist, returns NOT_FOUND. While the operation is pending: * The database's reconciling field is set to `true`. * Cancelling the operation is best-effort. If the cancellation succeeds, the operation metadata's cancel_time is set, the updates are reverted, and the operation terminates with a CANCELLED status. * New UpdateDatabase requests will return a FAILED_PRECONDITION error until the pending operation is done (returns successfully or with error). * Reading the database via the API continues to give the pre-request values. Upon completion of the returned operation: * The new values are in effect and readable via the API. * The database's reconciling field becomes `false`. The returned long-running operation will have a name of the format `projects//instances//databases//operations/` and can be used to track the database modification. The metadata field type is UpdateDatabaseMetadata. The response field type is Database, if successful.
+/// Updates a Cloud Spanner database. The returned long-running operation can be used to track the progress of updating the database. If the named database does not exist, returns NOT_FOUND. While the operation is pending: * The database''s reconciling field is set to `true`. * Cancelling the operation is best-effort. If the cancellation succeeds, the operation metadata''s cancel_time is set, the updates are reverted, and the operation terminates with a CANCELLED status. * New UpdateDatabase requests will return a FAILED_PRECONDITION error until the pending operation is done (returns successfully or with error). * Reading the database via the API continues to give the pre-request values. Upon completion of the returned operation: * The new values are in effect and readable via the API. * The database''s reconciling field becomes `false`. The returned long-running operation will have a name of the format `projects//instances//databases//operations/` and can be used to track the database modification. The metadata field type is UpdateDatabaseMetadata. The response field type is Database, if successful.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instances_databases_patch_execute()` to send, or `spanner_projects_instances_databases_patch` for simplest API.
@@ -8133,7 +8133,7 @@ where
 }
 
 /// PATCH v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}
-/// Updates a Cloud Spanner database. The returned long-running operation can be used to track the progress of updating the database. If the named database does not exist, returns NOT_FOUND. While the operation is pending: * The database's reconciling field is set to `true`. * Cancelling the operation is best-effort. If the cancellation succeeds, the operation metadata's cancel_time is set, the updates are reverted, and the operation terminates with a CANCELLED status. * New UpdateDatabase requests will return a FAILED_PRECONDITION error until the pending operation is done (returns successfully or with error). * Reading the database via the API continues to give the pre-request values. Upon completion of the returned operation: * The new values are in effect and readable via the API. * The database's reconciling field becomes `false`. The returned long-running operation will have a name of the format `projects//instances//databases//operations/` and can be used to track the database modification. The metadata field type is UpdateDatabaseMetadata. The response field type is Database, if successful.
+/// Updates a Cloud Spanner database. The returned long-running operation can be used to track the progress of updating the database. If the named database does not exist, returns NOT_FOUND. While the operation is pending: * The database''s reconciling field is set to `true`. * Cancelling the operation is best-effort. If the cancellation succeeds, the operation metadata''s cancel_time is set, the updates are reverted, and the operation terminates with a CANCELLED status. * New UpdateDatabase requests will return a FAILED_PRECONDITION error until the pending operation is done (returns successfully or with error). * Reading the database via the API continues to give the pre-request values. Upon completion of the returned operation: * The new values are in effect and readable via the API. * The database''s reconciling field becomes `false`. The returned long-running operation will have a name of the format `projects//instances//databases//operations/` and can be used to track the database modification. The metadata field type is UpdateDatabaseMetadata. The response field type is Database, if successful.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -8207,7 +8207,7 @@ pub fn spanner_projects_instances_databases_patch_task(
 }
 
 /// PATCH v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}
-/// Updates a Cloud Spanner database. The returned long-running operation can be used to track the progress of updating the database. If the named database does not exist, returns NOT_FOUND. While the operation is pending: * The database's reconciling field is set to `true`. * Cancelling the operation is best-effort. If the cancellation succeeds, the operation metadata's cancel_time is set, the updates are reverted, and the operation terminates with a CANCELLED status. * New UpdateDatabase requests will return a FAILED_PRECONDITION error until the pending operation is done (returns successfully or with error). * Reading the database via the API continues to give the pre-request values. Upon completion of the returned operation: * The new values are in effect and readable via the API. * The database's reconciling field becomes `false`. The returned long-running operation will have a name of the format `projects//instances//databases//operations/` and can be used to track the database modification. The metadata field type is UpdateDatabaseMetadata. The response field type is Database, if successful.
+/// Updates a Cloud Spanner database. The returned long-running operation can be used to track the progress of updating the database. If the named database does not exist, returns NOT_FOUND. While the operation is pending: * The database''s reconciling field is set to `true`. * Cancelling the operation is best-effort. If the cancellation succeeds, the operation metadata''s cancel_time is set, the updates are reverted, and the operation terminates with a CANCELLED status. * New UpdateDatabase requests will return a FAILED_PRECONDITION error until the pending operation is done (returns successfully or with error). * Reading the database via the API continues to give the pre-request values. Upon completion of the returned operation: * The new values are in effect and readable via the API. * The database''s reconciling field becomes `false`. The returned long-running operation will have a name of the format `projects//instances//databases//operations/` and can be used to track the database modification. The metadata field type is UpdateDatabaseMetadata. The response field type is Database, if successful.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -8246,7 +8246,7 @@ pub struct SpannerProjectsInstancesDatabasesPatchArgs {
 }
 
 /// PATCH v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}
-/// Updates a Cloud Spanner database. The returned long-running operation can be used to track the progress of updating the database. If the named database does not exist, returns NOT_FOUND. While the operation is pending: * The database's reconciling field is set to `true`. * Cancelling the operation is best-effort. If the cancellation succeeds, the operation metadata's cancel_time is set, the updates are reverted, and the operation terminates with a CANCELLED status. * New UpdateDatabase requests will return a FAILED_PRECONDITION error until the pending operation is done (returns successfully or with error). * Reading the database via the API continues to give the pre-request values. Upon completion of the returned operation: * The new values are in effect and readable via the API. * The database's reconciling field becomes `false`. The returned long-running operation will have a name of the format `projects//instances//databases//operations/` and can be used to track the database modification. The metadata field type is UpdateDatabaseMetadata. The response field type is Database, if successful.
+/// Updates a Cloud Spanner database. The returned long-running operation can be used to track the progress of updating the database. If the named database does not exist, returns NOT_FOUND. While the operation is pending: * The database''s reconciling field is set to `true`. * Cancelling the operation is best-effort. If the cancellation succeeds, the operation metadata''s cancel_time is set, the updates are reverted, and the operation terminates with a CANCELLED status. * New UpdateDatabase requests will return a FAILED_PRECONDITION error until the pending operation is done (returns successfully or with error). * Reading the database via the API continues to give the pre-request values. Upon completion of the returned operation: * The new values are in effect and readable via the API. * The database''s reconciling field becomes `false`. The returned long-running operation will have a name of the format `projects//instances//databases//operations/` and can be used to track the database modification. The metadata field type is UpdateDatabaseMetadata. The response field type is Database, if successful.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `spanner_projects_instances_databases_patch_builder()` + `spanner_projects_instances_databases_patch_execute()`.
@@ -10662,7 +10662,7 @@ pub fn spanner_projects_instances_databases_database_roles_test_iam_permissions(
 }
 
 /// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instances_databases_operations_cancel_execute()` to send, or `spanner_projects_instances_databases_operations_cancel` for simplest API.
@@ -10689,7 +10689,7 @@ where
 }
 
 /// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -10763,7 +10763,7 @@ pub fn spanner_projects_instances_databases_operations_cancel_task(
 }
 
 /// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -10800,7 +10800,7 @@ pub struct SpannerProjectsInstancesDatabasesOperationsCancelArgs {
 }
 
 /// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `spanner_projects_instances_databases_operations_cancel_builder()` + `spanner_projects_instances_databases_operations_cancel_execute()`.
@@ -10823,7 +10823,7 @@ pub fn spanner_projects_instances_databases_operations_cancel(
 }
 
 /// DELETE v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/operations/{operationsId}
-/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instances_databases_operations_delete_execute()` to send, or `spanner_projects_instances_databases_operations_delete` for simplest API.
@@ -10850,7 +10850,7 @@ where
 }
 
 /// DELETE v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/operations/{operationsId}
-/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -10924,7 +10924,7 @@ pub fn spanner_projects_instances_databases_operations_delete_task(
 }
 
 /// DELETE v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/operations/{operationsId}
-/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -10961,7 +10961,7 @@ pub struct SpannerProjectsInstancesDatabasesOperationsDeleteArgs {
 }
 
 /// DELETE v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/operations/{operationsId}
-/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `spanner_projects_instances_databases_operations_delete_builder()` + `spanner_projects_instances_databases_operations_delete_execute()`.
@@ -11144,7 +11144,7 @@ pub fn spanner_projects_instances_databases_operations_get(
 }
 
 /// GET v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instances_databases_operations_list_execute()` to send, or `spanner_projects_instances_databases_operations_list` for simplest API.
@@ -11195,7 +11195,7 @@ where
 }
 
 /// GET v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -11269,7 +11269,7 @@ pub fn spanner_projects_instances_databases_operations_list_task(
 }
 
 /// GET v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -11316,7 +11316,7 @@ pub struct SpannerProjectsInstancesDatabasesOperationsListArgs {
 }
 
 /// GET v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `spanner_projects_instances_databases_operations_list_builder()` + `spanner_projects_instances_databases_operations_list_execute()`.
@@ -11846,7 +11846,7 @@ pub fn spanner_projects_instances_databases_sessions_batch_create(
 }
 
 /// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}:batchWrite
-/// Batches the supplied mutation groups in a collection of efficient transactions. All mutations in a group are committed atomically. However, mutations across groups can be committed non-atomically in an unspecified order and thus, they must be independent of each other. Partial failure is possible, that is, some groups might have been committed successfully, while some might have failed. The results of individual batches are streamed into the response as the batches are applied. BatchWrite requests are not replay protected, meaning that each mutation group can be applied more than once. Replays of non-idempotent mutations can have undesirable effects. For example, replays of an insert mutation can produce an already exists error or if you use generated or commit timestamp-based keys, it can result in additional rows being added to the mutation's table. We recommend structuring your mutation groups to be idempotent to avoid this issue.
+/// Batches the supplied mutation groups in a collection of efficient transactions. All mutations in a group are committed atomically. However, mutations across groups can be committed non-atomically in an unspecified order and thus, they must be independent of each other. Partial failure is possible, that is, some groups might have been committed successfully, while some might have failed. The results of individual batches are streamed into the response as the batches are applied. BatchWrite requests are not replay protected, meaning that each mutation group can be applied more than once. Replays of non-idempotent mutations can have undesirable effects. For example, replays of an insert mutation can produce an already exists error or if you use generated or commit timestamp-based keys, it can result in additional rows being added to the mutation''s table. We recommend structuring your mutation groups to be idempotent to avoid this issue.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instances_databases_sessions_batch_write_execute()` to send, or `spanner_projects_instances_databases_sessions_batch_write` for simplest API.
@@ -11873,7 +11873,7 @@ where
 }
 
 /// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}:batchWrite
-/// Batches the supplied mutation groups in a collection of efficient transactions. All mutations in a group are committed atomically. However, mutations across groups can be committed non-atomically in an unspecified order and thus, they must be independent of each other. Partial failure is possible, that is, some groups might have been committed successfully, while some might have failed. The results of individual batches are streamed into the response as the batches are applied. BatchWrite requests are not replay protected, meaning that each mutation group can be applied more than once. Replays of non-idempotent mutations can have undesirable effects. For example, replays of an insert mutation can produce an already exists error or if you use generated or commit timestamp-based keys, it can result in additional rows being added to the mutation's table. We recommend structuring your mutation groups to be idempotent to avoid this issue.
+/// Batches the supplied mutation groups in a collection of efficient transactions. All mutations in a group are committed atomically. However, mutations across groups can be committed non-atomically in an unspecified order and thus, they must be independent of each other. Partial failure is possible, that is, some groups might have been committed successfully, while some might have failed. The results of individual batches are streamed into the response as the batches are applied. BatchWrite requests are not replay protected, meaning that each mutation group can be applied more than once. Replays of non-idempotent mutations can have undesirable effects. For example, replays of an insert mutation can produce an already exists error or if you use generated or commit timestamp-based keys, it can result in additional rows being added to the mutation''s table. We recommend structuring your mutation groups to be idempotent to avoid this issue.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -11947,7 +11947,7 @@ pub fn spanner_projects_instances_databases_sessions_batch_write_task(
 }
 
 /// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}:batchWrite
-/// Batches the supplied mutation groups in a collection of efficient transactions. All mutations in a group are committed atomically. However, mutations across groups can be committed non-atomically in an unspecified order and thus, they must be independent of each other. Partial failure is possible, that is, some groups might have been committed successfully, while some might have failed. The results of individual batches are streamed into the response as the batches are applied. BatchWrite requests are not replay protected, meaning that each mutation group can be applied more than once. Replays of non-idempotent mutations can have undesirable effects. For example, replays of an insert mutation can produce an already exists error or if you use generated or commit timestamp-based keys, it can result in additional rows being added to the mutation's table. We recommend structuring your mutation groups to be idempotent to avoid this issue.
+/// Batches the supplied mutation groups in a collection of efficient transactions. All mutations in a group are committed atomically. However, mutations across groups can be committed non-atomically in an unspecified order and thus, they must be independent of each other. Partial failure is possible, that is, some groups might have been committed successfully, while some might have failed. The results of individual batches are streamed into the response as the batches are applied. BatchWrite requests are not replay protected, meaning that each mutation group can be applied more than once. Replays of non-idempotent mutations can have undesirable effects. For example, replays of an insert mutation can produce an already exists error or if you use generated or commit timestamp-based keys, it can result in additional rows being added to the mutation''s table. We recommend structuring your mutation groups to be idempotent to avoid this issue.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -11986,7 +11986,7 @@ pub struct SpannerProjectsInstancesDatabasesSessionsBatchWriteArgs {
 }
 
 /// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}:batchWrite
-/// Batches the supplied mutation groups in a collection of efficient transactions. All mutations in a group are committed atomically. However, mutations across groups can be committed non-atomically in an unspecified order and thus, they must be independent of each other. Partial failure is possible, that is, some groups might have been committed successfully, while some might have failed. The results of individual batches are streamed into the response as the batches are applied. BatchWrite requests are not replay protected, meaning that each mutation group can be applied more than once. Replays of non-idempotent mutations can have undesirable effects. For example, replays of an insert mutation can produce an already exists error or if you use generated or commit timestamp-based keys, it can result in additional rows being added to the mutation's table. We recommend structuring your mutation groups to be idempotent to avoid this issue.
+/// Batches the supplied mutation groups in a collection of efficient transactions. All mutations in a group are committed atomically. However, mutations across groups can be committed non-atomically in an unspecified order and thus, they must be independent of each other. Partial failure is possible, that is, some groups might have been committed successfully, while some might have failed. The results of individual batches are streamed into the response as the batches are applied. BatchWrite requests are not replay protected, meaning that each mutation group can be applied more than once. Replays of non-idempotent mutations can have undesirable effects. For example, replays of an insert mutation can produce an already exists error or if you use generated or commit timestamp-based keys, it can result in additional rows being added to the mutation''s table. We recommend structuring your mutation groups to be idempotent to avoid this issue.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `spanner_projects_instances_databases_sessions_batch_write_builder()` + `spanner_projects_instances_databases_sessions_batch_write_execute()`.
@@ -12339,7 +12339,7 @@ pub fn spanner_projects_instances_databases_sessions_commit(
 }
 
 /// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/sessions
-/// Creates a new session. A session can be used to perform transactions that read `and/or` modify data in a Cloud Spanner database. Sessions are meant to be reused for many consecutive transactions. Sessions can only execute one transaction at a time. To execute multiple concurrent read-`write/write-only` transactions, create multiple sessions. Note that standalone reads and queries use a transaction internally, and count toward the one transaction limit. Active sessions use additional server resources, so it's a good idea to delete idle and unneeded sessions. Aside from explicit deletes, Cloud Spanner can delete sessions when no operations are sent for more than an hour. If a session is deleted, requests to it return NOT_FOUND. Idle sessions can be kept alive by sending a trivial SQL query periodically, for example, "SELECT 1".
+/// Creates a new session. A session can be used to perform transactions that read `and/or` modify data in a Cloud Spanner database. Sessions are meant to be reused for many consecutive transactions. Sessions can only execute one transaction at a time. To execute multiple concurrent read-`write/write-only` transactions, create multiple sessions. Note that standalone reads and queries use a transaction internally, and count toward the one transaction limit. Active sessions use additional server resources, so it''s a good idea to delete idle and unneeded sessions. Aside from explicit deletes, Cloud Spanner can delete sessions when no operations are sent for more than an hour. If a session is deleted, requests to it return NOT_FOUND. Idle sessions can be kept alive by sending a trivial SQL query periodically, for example, "SELECT 1".
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instances_databases_sessions_create_execute()` to send, or `spanner_projects_instances_databases_sessions_create` for simplest API.
@@ -12366,7 +12366,7 @@ where
 }
 
 /// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/sessions
-/// Creates a new session. A session can be used to perform transactions that read `and/or` modify data in a Cloud Spanner database. Sessions are meant to be reused for many consecutive transactions. Sessions can only execute one transaction at a time. To execute multiple concurrent read-`write/write-only` transactions, create multiple sessions. Note that standalone reads and queries use a transaction internally, and count toward the one transaction limit. Active sessions use additional server resources, so it's a good idea to delete idle and unneeded sessions. Aside from explicit deletes, Cloud Spanner can delete sessions when no operations are sent for more than an hour. If a session is deleted, requests to it return NOT_FOUND. Idle sessions can be kept alive by sending a trivial SQL query periodically, for example, "SELECT 1".
+/// Creates a new session. A session can be used to perform transactions that read `and/or` modify data in a Cloud Spanner database. Sessions are meant to be reused for many consecutive transactions. Sessions can only execute one transaction at a time. To execute multiple concurrent read-`write/write-only` transactions, create multiple sessions. Note that standalone reads and queries use a transaction internally, and count toward the one transaction limit. Active sessions use additional server resources, so it''s a good idea to delete idle and unneeded sessions. Aside from explicit deletes, Cloud Spanner can delete sessions when no operations are sent for more than an hour. If a session is deleted, requests to it return NOT_FOUND. Idle sessions can be kept alive by sending a trivial SQL query periodically, for example, "SELECT 1".
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -12440,7 +12440,7 @@ pub fn spanner_projects_instances_databases_sessions_create_task(
 }
 
 /// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/sessions
-/// Creates a new session. A session can be used to perform transactions that read `and/or` modify data in a Cloud Spanner database. Sessions are meant to be reused for many consecutive transactions. Sessions can only execute one transaction at a time. To execute multiple concurrent read-`write/write-only` transactions, create multiple sessions. Note that standalone reads and queries use a transaction internally, and count toward the one transaction limit. Active sessions use additional server resources, so it's a good idea to delete idle and unneeded sessions. Aside from explicit deletes, Cloud Spanner can delete sessions when no operations are sent for more than an hour. If a session is deleted, requests to it return NOT_FOUND. Idle sessions can be kept alive by sending a trivial SQL query periodically, for example, "SELECT 1".
+/// Creates a new session. A session can be used to perform transactions that read `and/or` modify data in a Cloud Spanner database. Sessions are meant to be reused for many consecutive transactions. Sessions can only execute one transaction at a time. To execute multiple concurrent read-`write/write-only` transactions, create multiple sessions. Note that standalone reads and queries use a transaction internally, and count toward the one transaction limit. Active sessions use additional server resources, so it''s a good idea to delete idle and unneeded sessions. Aside from explicit deletes, Cloud Spanner can delete sessions when no operations are sent for more than an hour. If a session is deleted, requests to it return NOT_FOUND. Idle sessions can be kept alive by sending a trivial SQL query periodically, for example, "SELECT 1".
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -12477,7 +12477,7 @@ pub struct SpannerProjectsInstancesDatabasesSessionsCreateArgs {
 }
 
 /// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/sessions
-/// Creates a new session. A session can be used to perform transactions that read `and/or` modify data in a Cloud Spanner database. Sessions are meant to be reused for many consecutive transactions. Sessions can only execute one transaction at a time. To execute multiple concurrent read-`write/write-only` transactions, create multiple sessions. Note that standalone reads and queries use a transaction internally, and count toward the one transaction limit. Active sessions use additional server resources, so it's a good idea to delete idle and unneeded sessions. Aside from explicit deletes, Cloud Spanner can delete sessions when no operations are sent for more than an hour. If a session is deleted, requests to it return NOT_FOUND. Idle sessions can be kept alive by sending a trivial SQL query periodically, for example, "SELECT 1".
+/// Creates a new session. A session can be used to perform transactions that read `and/or` modify data in a Cloud Spanner database. Sessions are meant to be reused for many consecutive transactions. Sessions can only execute one transaction at a time. To execute multiple concurrent read-`write/write-only` transactions, create multiple sessions. Note that standalone reads and queries use a transaction internally, and count toward the one transaction limit. Active sessions use additional server resources, so it''s a good idea to delete idle and unneeded sessions. Aside from explicit deletes, Cloud Spanner can delete sessions when no operations are sent for more than an hour. If a session is deleted, requests to it return NOT_FOUND. Idle sessions can be kept alive by sending a trivial SQL query periodically, for example, "SELECT 1".
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `spanner_projects_instances_databases_sessions_create_builder()` + `spanner_projects_instances_databases_sessions_create_execute()`.
@@ -12827,7 +12827,7 @@ pub fn spanner_projects_instances_databases_sessions_execute_batch_dml(
 }
 
 /// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}:executeSql
-/// Executes an SQL statement, returning all results in a single reply. This method can't be used to return a result set larger than 10 MiB; if the query yields more data than that, the query fails with a FAILED_PRECONDITION error. Operations inside read-write transactions might return ABORTED. If this occurs, the application should restart the transaction from the beginning. See Transaction for more details. Larger result sets can be fetched in streaming fashion by calling ExecuteStreamingSql instead. The query string can be SQL or [Graph Query Language (GQL)](<https://cloud.google.`com/spanner/docs/reference/standard-sql/graph-intro`>).
+/// Executes an SQL statement, returning all results in a single reply. This method can''t be used to return a result set larger than 10 MiB; if the query yields more data than that, the query fails with a FAILED_PRECONDITION error. Operations inside read-write transactions might return ABORTED. If this occurs, the application should restart the transaction from the beginning. See Transaction for more details. Larger result sets can be fetched in streaming fashion by calling ExecuteStreamingSql instead. The query string can be SQL or [Graph Query Language (GQL)](<https://cloud.google.`com/spanner/docs/reference/standard-sql/graph-intro`>).
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instances_databases_sessions_execute_sql_execute()` to send, or `spanner_projects_instances_databases_sessions_execute_sql` for simplest API.
@@ -12854,7 +12854,7 @@ where
 }
 
 /// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}:executeSql
-/// Executes an SQL statement, returning all results in a single reply. This method can't be used to return a result set larger than 10 MiB; if the query yields more data than that, the query fails with a FAILED_PRECONDITION error. Operations inside read-write transactions might return ABORTED. If this occurs, the application should restart the transaction from the beginning. See Transaction for more details. Larger result sets can be fetched in streaming fashion by calling ExecuteStreamingSql instead. The query string can be SQL or [Graph Query Language (GQL)](<https://cloud.google.`com/spanner/docs/reference/standard-sql/graph-intro`>).
+/// Executes an SQL statement, returning all results in a single reply. This method can''t be used to return a result set larger than 10 MiB; if the query yields more data than that, the query fails with a FAILED_PRECONDITION error. Operations inside read-write transactions might return ABORTED. If this occurs, the application should restart the transaction from the beginning. See Transaction for more details. Larger result sets can be fetched in streaming fashion by calling ExecuteStreamingSql instead. The query string can be SQL or [Graph Query Language (GQL)](<https://cloud.google.`com/spanner/docs/reference/standard-sql/graph-intro`>).
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -12928,7 +12928,7 @@ pub fn spanner_projects_instances_databases_sessions_execute_sql_task(
 }
 
 /// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}:executeSql
-/// Executes an SQL statement, returning all results in a single reply. This method can't be used to return a result set larger than 10 MiB; if the query yields more data than that, the query fails with a FAILED_PRECONDITION error. Operations inside read-write transactions might return ABORTED. If this occurs, the application should restart the transaction from the beginning. See Transaction for more details. Larger result sets can be fetched in streaming fashion by calling ExecuteStreamingSql instead. The query string can be SQL or [Graph Query Language (GQL)](<https://cloud.google.`com/spanner/docs/reference/standard-sql/graph-intro`>).
+/// Executes an SQL statement, returning all results in a single reply. This method can''t be used to return a result set larger than 10 MiB; if the query yields more data than that, the query fails with a FAILED_PRECONDITION error. Operations inside read-write transactions might return ABORTED. If this occurs, the application should restart the transaction from the beginning. See Transaction for more details. Larger result sets can be fetched in streaming fashion by calling ExecuteStreamingSql instead. The query string can be SQL or [Graph Query Language (GQL)](<https://cloud.google.`com/spanner/docs/reference/standard-sql/graph-intro`>).
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -12965,7 +12965,7 @@ pub struct SpannerProjectsInstancesDatabasesSessionsExecuteSqlArgs {
 }
 
 /// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}:executeSql
-/// Executes an SQL statement, returning all results in a single reply. This method can't be used to return a result set larger than 10 MiB; if the query yields more data than that, the query fails with a FAILED_PRECONDITION error. Operations inside read-write transactions might return ABORTED. If this occurs, the application should restart the transaction from the beginning. See Transaction for more details. Larger result sets can be fetched in streaming fashion by calling ExecuteStreamingSql instead. The query string can be SQL or [Graph Query Language (GQL)](<https://cloud.google.`com/spanner/docs/reference/standard-sql/graph-intro`>).
+/// Executes an SQL statement, returning all results in a single reply. This method can''t be used to return a result set larger than 10 MiB; if the query yields more data than that, the query fails with a FAILED_PRECONDITION error. Operations inside read-write transactions might return ABORTED. If this occurs, the application should restart the transaction from the beginning. See Transaction for more details. Larger result sets can be fetched in streaming fashion by calling ExecuteStreamingSql instead. The query string can be SQL or [Graph Query Language (GQL)](<https://cloud.google.`com/spanner/docs/reference/standard-sql/graph-intro`>).
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `spanner_projects_instances_databases_sessions_execute_sql_builder()` + `spanner_projects_instances_databases_sessions_execute_sql_execute()`.
@@ -13155,7 +13155,7 @@ pub fn spanner_projects_instances_databases_sessions_execute_streaming_sql(
 }
 
 /// GET v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}
-/// Gets a session. Returns NOT_FOUND if the session doesn't exist. This is mainly useful for determining whether a session is still alive.
+/// Gets a session. Returns NOT_FOUND if the session doesn''t exist. This is mainly useful for determining whether a session is still alive.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instances_databases_sessions_get_execute()` to send, or `spanner_projects_instances_databases_sessions_get` for simplest API.
@@ -13182,7 +13182,7 @@ where
 }
 
 /// GET v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}
-/// Gets a session. Returns NOT_FOUND if the session doesn't exist. This is mainly useful for determining whether a session is still alive.
+/// Gets a session. Returns NOT_FOUND if the session doesn''t exist. This is mainly useful for determining whether a session is still alive.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -13256,7 +13256,7 @@ pub fn spanner_projects_instances_databases_sessions_get_task(
 }
 
 /// GET v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}
-/// Gets a session. Returns NOT_FOUND if the session doesn't exist. This is mainly useful for determining whether a session is still alive.
+/// Gets a session. Returns NOT_FOUND if the session doesn''t exist. This is mainly useful for determining whether a session is still alive.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -13293,7 +13293,7 @@ pub struct SpannerProjectsInstancesDatabasesSessionsGetArgs {
 }
 
 /// GET v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}
-/// Gets a session. Returns NOT_FOUND if the session doesn't exist. This is mainly useful for determining whether a session is still alive.
+/// Gets a session. Returns NOT_FOUND if the session doesn''t exist. This is mainly useful for determining whether a session is still alive.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `spanner_projects_instances_databases_sessions_get_builder()` + `spanner_projects_instances_databases_sessions_get_execute()`.
@@ -13511,7 +13511,7 @@ pub fn spanner_projects_instances_databases_sessions_list(
 }
 
 /// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}:partitionQuery
-/// Creates a set of partition tokens that can be used to execute a query operation in parallel. Each of the returned partition tokens can be used by ExecuteStreamingSql to specify a subset of the query result to read. The same session and read-only transaction must be used by the PartitionQueryRequest used to create the partition tokens and the ExecuteSqlRequests that use the partition tokens. Partition tokens become invalid when the session used to create them is deleted, is idle for too long, begins a new transaction, or becomes too old. When any of these happen, it isn't possible to resume the query, and the whole operation must be restarted from the beginning.
+/// Creates a set of partition tokens that can be used to execute a query operation in parallel. Each of the returned partition tokens can be used by ExecuteStreamingSql to specify a subset of the query result to read. The same session and read-only transaction must be used by the PartitionQueryRequest used to create the partition tokens and the ExecuteSqlRequests that use the partition tokens. Partition tokens become invalid when the session used to create them is deleted, is idle for too long, begins a new transaction, or becomes too old. When any of these happen, it isn''t possible to resume the query, and the whole operation must be restarted from the beginning.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instances_databases_sessions_partition_query_execute()` to send, or `spanner_projects_instances_databases_sessions_partition_query` for simplest API.
@@ -13538,7 +13538,7 @@ where
 }
 
 /// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}:partitionQuery
-/// Creates a set of partition tokens that can be used to execute a query operation in parallel. Each of the returned partition tokens can be used by ExecuteStreamingSql to specify a subset of the query result to read. The same session and read-only transaction must be used by the PartitionQueryRequest used to create the partition tokens and the ExecuteSqlRequests that use the partition tokens. Partition tokens become invalid when the session used to create them is deleted, is idle for too long, begins a new transaction, or becomes too old. When any of these happen, it isn't possible to resume the query, and the whole operation must be restarted from the beginning.
+/// Creates a set of partition tokens that can be used to execute a query operation in parallel. Each of the returned partition tokens can be used by ExecuteStreamingSql to specify a subset of the query result to read. The same session and read-only transaction must be used by the PartitionQueryRequest used to create the partition tokens and the ExecuteSqlRequests that use the partition tokens. Partition tokens become invalid when the session used to create them is deleted, is idle for too long, begins a new transaction, or becomes too old. When any of these happen, it isn''t possible to resume the query, and the whole operation must be restarted from the beginning.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -13612,7 +13612,7 @@ pub fn spanner_projects_instances_databases_sessions_partition_query_task(
 }
 
 /// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}:partitionQuery
-/// Creates a set of partition tokens that can be used to execute a query operation in parallel. Each of the returned partition tokens can be used by ExecuteStreamingSql to specify a subset of the query result to read. The same session and read-only transaction must be used by the PartitionQueryRequest used to create the partition tokens and the ExecuteSqlRequests that use the partition tokens. Partition tokens become invalid when the session used to create them is deleted, is idle for too long, begins a new transaction, or becomes too old. When any of these happen, it isn't possible to resume the query, and the whole operation must be restarted from the beginning.
+/// Creates a set of partition tokens that can be used to execute a query operation in parallel. Each of the returned partition tokens can be used by ExecuteStreamingSql to specify a subset of the query result to read. The same session and read-only transaction must be used by the PartitionQueryRequest used to create the partition tokens and the ExecuteSqlRequests that use the partition tokens. Partition tokens become invalid when the session used to create them is deleted, is idle for too long, begins a new transaction, or becomes too old. When any of these happen, it isn''t possible to resume the query, and the whole operation must be restarted from the beginning.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -13651,7 +13651,7 @@ pub struct SpannerProjectsInstancesDatabasesSessionsPartitionQueryArgs {
 }
 
 /// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}:partitionQuery
-/// Creates a set of partition tokens that can be used to execute a query operation in parallel. Each of the returned partition tokens can be used by ExecuteStreamingSql to specify a subset of the query result to read. The same session and read-only transaction must be used by the PartitionQueryRequest used to create the partition tokens and the ExecuteSqlRequests that use the partition tokens. Partition tokens become invalid when the session used to create them is deleted, is idle for too long, begins a new transaction, or becomes too old. When any of these happen, it isn't possible to resume the query, and the whole operation must be restarted from the beginning.
+/// Creates a set of partition tokens that can be used to execute a query operation in parallel. Each of the returned partition tokens can be used by ExecuteStreamingSql to specify a subset of the query result to read. The same session and read-only transaction must be used by the PartitionQueryRequest used to create the partition tokens and the ExecuteSqlRequests that use the partition tokens. Partition tokens become invalid when the session used to create them is deleted, is idle for too long, begins a new transaction, or becomes too old. When any of these happen, it isn''t possible to resume the query, and the whole operation must be restarted from the beginning.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `spanner_projects_instances_databases_sessions_partition_query_builder()` + `spanner_projects_instances_databases_sessions_partition_query_execute()`.
@@ -13678,7 +13678,7 @@ pub fn spanner_projects_instances_databases_sessions_partition_query(
 }
 
 /// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}:partitionRead
-/// Creates a set of partition tokens that can be used to execute a read operation in parallel. Each of the returned partition tokens can be used by StreamingRead to specify a subset of the read result to read. The same session and read-only transaction must be used by the PartitionReadRequest used to create the partition tokens and the ReadRequests that use the partition tokens. There are no ordering guarantees on rows returned among the returned partition tokens, or even within each individual StreamingRead call issued with a partition_token. Partition tokens become invalid when the session used to create them is deleted, is idle for too long, begins a new transaction, or becomes too old. When any of these happen, it isn't possible to resume the read, and the whole operation must be restarted from the beginning.
+/// Creates a set of partition tokens that can be used to execute a read operation in parallel. Each of the returned partition tokens can be used by StreamingRead to specify a subset of the read result to read. The same session and read-only transaction must be used by the PartitionReadRequest used to create the partition tokens and the ReadRequests that use the partition tokens. There are no ordering guarantees on rows returned among the returned partition tokens, or even within each individual StreamingRead call issued with a partition_token. Partition tokens become invalid when the session used to create them is deleted, is idle for too long, begins a new transaction, or becomes too old. When any of these happen, it isn''t possible to resume the read, and the whole operation must be restarted from the beginning.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instances_databases_sessions_partition_read_execute()` to send, or `spanner_projects_instances_databases_sessions_partition_read` for simplest API.
@@ -13705,7 +13705,7 @@ where
 }
 
 /// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}:partitionRead
-/// Creates a set of partition tokens that can be used to execute a read operation in parallel. Each of the returned partition tokens can be used by StreamingRead to specify a subset of the read result to read. The same session and read-only transaction must be used by the PartitionReadRequest used to create the partition tokens and the ReadRequests that use the partition tokens. There are no ordering guarantees on rows returned among the returned partition tokens, or even within each individual StreamingRead call issued with a partition_token. Partition tokens become invalid when the session used to create them is deleted, is idle for too long, begins a new transaction, or becomes too old. When any of these happen, it isn't possible to resume the read, and the whole operation must be restarted from the beginning.
+/// Creates a set of partition tokens that can be used to execute a read operation in parallel. Each of the returned partition tokens can be used by StreamingRead to specify a subset of the read result to read. The same session and read-only transaction must be used by the PartitionReadRequest used to create the partition tokens and the ReadRequests that use the partition tokens. There are no ordering guarantees on rows returned among the returned partition tokens, or even within each individual StreamingRead call issued with a partition_token. Partition tokens become invalid when the session used to create them is deleted, is idle for too long, begins a new transaction, or becomes too old. When any of these happen, it isn''t possible to resume the read, and the whole operation must be restarted from the beginning.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -13779,7 +13779,7 @@ pub fn spanner_projects_instances_databases_sessions_partition_read_task(
 }
 
 /// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}:partitionRead
-/// Creates a set of partition tokens that can be used to execute a read operation in parallel. Each of the returned partition tokens can be used by StreamingRead to specify a subset of the read result to read. The same session and read-only transaction must be used by the PartitionReadRequest used to create the partition tokens and the ReadRequests that use the partition tokens. There are no ordering guarantees on rows returned among the returned partition tokens, or even within each individual StreamingRead call issued with a partition_token. Partition tokens become invalid when the session used to create them is deleted, is idle for too long, begins a new transaction, or becomes too old. When any of these happen, it isn't possible to resume the read, and the whole operation must be restarted from the beginning.
+/// Creates a set of partition tokens that can be used to execute a read operation in parallel. Each of the returned partition tokens can be used by StreamingRead to specify a subset of the read result to read. The same session and read-only transaction must be used by the PartitionReadRequest used to create the partition tokens and the ReadRequests that use the partition tokens. There are no ordering guarantees on rows returned among the returned partition tokens, or even within each individual StreamingRead call issued with a partition_token. Partition tokens become invalid when the session used to create them is deleted, is idle for too long, begins a new transaction, or becomes too old. When any of these happen, it isn''t possible to resume the read, and the whole operation must be restarted from the beginning.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -13818,7 +13818,7 @@ pub struct SpannerProjectsInstancesDatabasesSessionsPartitionReadArgs {
 }
 
 /// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}:partitionRead
-/// Creates a set of partition tokens that can be used to execute a read operation in parallel. Each of the returned partition tokens can be used by StreamingRead to specify a subset of the read result to read. The same session and read-only transaction must be used by the PartitionReadRequest used to create the partition tokens and the ReadRequests that use the partition tokens. There are no ordering guarantees on rows returned among the returned partition tokens, or even within each individual StreamingRead call issued with a partition_token. Partition tokens become invalid when the session used to create them is deleted, is idle for too long, begins a new transaction, or becomes too old. When any of these happen, it isn't possible to resume the read, and the whole operation must be restarted from the beginning.
+/// Creates a set of partition tokens that can be used to execute a read operation in parallel. Each of the returned partition tokens can be used by StreamingRead to specify a subset of the read result to read. The same session and read-only transaction must be used by the PartitionReadRequest used to create the partition tokens and the ReadRequests that use the partition tokens. There are no ordering guarantees on rows returned among the returned partition tokens, or even within each individual StreamingRead call issued with a partition_token. Partition tokens become invalid when the session used to create them is deleted, is idle for too long, begins a new transaction, or becomes too old. When any of these happen, it isn''t possible to resume the read, and the whole operation must be restarted from the beginning.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `spanner_projects_instances_databases_sessions_partition_read_builder()` + `spanner_projects_instances_databases_sessions_partition_read_execute()`.
@@ -13845,7 +13845,7 @@ pub fn spanner_projects_instances_databases_sessions_partition_read(
 }
 
 /// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}:read
-/// Reads rows from the database using key lookups and scans, as a simple `key/value` style alternative to ExecuteSql. This method can't be used to return a result set larger than 10 MiB; if the read matches more data than that, the read fails with a FAILED_PRECONDITION error. Reads inside read-write transactions might return ABORTED. If this occurs, the application should restart the transaction from the beginning. See Transaction for more details. Larger result sets can be yielded in streaming fashion by calling StreamingRead instead.
+/// Reads rows from the database using key lookups and scans, as a simple `key/value` style alternative to ExecuteSql. This method can''t be used to return a result set larger than 10 MiB; if the read matches more data than that, the read fails with a FAILED_PRECONDITION error. Reads inside read-write transactions might return ABORTED. If this occurs, the application should restart the transaction from the beginning. See Transaction for more details. Larger result sets can be yielded in streaming fashion by calling StreamingRead instead.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instances_databases_sessions_read_execute()` to send, or `spanner_projects_instances_databases_sessions_read` for simplest API.
@@ -13872,7 +13872,7 @@ where
 }
 
 /// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}:read
-/// Reads rows from the database using key lookups and scans, as a simple `key/value` style alternative to ExecuteSql. This method can't be used to return a result set larger than 10 MiB; if the read matches more data than that, the read fails with a FAILED_PRECONDITION error. Reads inside read-write transactions might return ABORTED. If this occurs, the application should restart the transaction from the beginning. See Transaction for more details. Larger result sets can be yielded in streaming fashion by calling StreamingRead instead.
+/// Reads rows from the database using key lookups and scans, as a simple `key/value` style alternative to ExecuteSql. This method can''t be used to return a result set larger than 10 MiB; if the read matches more data than that, the read fails with a FAILED_PRECONDITION error. Reads inside read-write transactions might return ABORTED. If this occurs, the application should restart the transaction from the beginning. See Transaction for more details. Larger result sets can be yielded in streaming fashion by calling StreamingRead instead.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -13946,7 +13946,7 @@ pub fn spanner_projects_instances_databases_sessions_read_task(
 }
 
 /// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}:read
-/// Reads rows from the database using key lookups and scans, as a simple `key/value` style alternative to ExecuteSql. This method can't be used to return a result set larger than 10 MiB; if the read matches more data than that, the read fails with a FAILED_PRECONDITION error. Reads inside read-write transactions might return ABORTED. If this occurs, the application should restart the transaction from the beginning. See Transaction for more details. Larger result sets can be yielded in streaming fashion by calling StreamingRead instead.
+/// Reads rows from the database using key lookups and scans, as a simple `key/value` style alternative to ExecuteSql. This method can''t be used to return a result set larger than 10 MiB; if the read matches more data than that, the read fails with a FAILED_PRECONDITION error. Reads inside read-write transactions might return ABORTED. If this occurs, the application should restart the transaction from the beginning. See Transaction for more details. Larger result sets can be yielded in streaming fashion by calling StreamingRead instead.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -13983,7 +13983,7 @@ pub struct SpannerProjectsInstancesDatabasesSessionsReadArgs {
 }
 
 /// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}:read
-/// Reads rows from the database using key lookups and scans, as a simple `key/value` style alternative to ExecuteSql. This method can't be used to return a result set larger than 10 MiB; if the read matches more data than that, the read fails with a FAILED_PRECONDITION error. Reads inside read-write transactions might return ABORTED. If this occurs, the application should restart the transaction from the beginning. See Transaction for more details. Larger result sets can be yielded in streaming fashion by calling StreamingRead instead.
+/// Reads rows from the database using key lookups and scans, as a simple `key/value` style alternative to ExecuteSql. This method can''t be used to return a result set larger than 10 MiB; if the read matches more data than that, the read fails with a FAILED_PRECONDITION error. Reads inside read-write transactions might return ABORTED. If this occurs, the application should restart the transaction from the beginning. See Transaction for more details. Larger result sets can be yielded in streaming fashion by calling StreamingRead instead.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `spanner_projects_instances_databases_sessions_read_builder()` + `spanner_projects_instances_databases_sessions_read_execute()`.
@@ -14006,7 +14006,7 @@ pub fn spanner_projects_instances_databases_sessions_read(
 }
 
 /// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}:rollback
-/// Rolls back a transaction, releasing any locks it holds. It's a good idea to call this for any transaction that includes one or more Read or ExecuteSql requests and ultimately decides not to commit. Rollback returns `OK` if it successfully aborts the transaction, the transaction was already aborted, or the transaction isn't found. Rollback never returns ABORTED.
+/// Rolls back a transaction, releasing any locks it holds. It''s a good idea to call this for any transaction that includes one or more Read or ExecuteSql requests and ultimately decides not to commit. Rollback returns `OK` if it successfully aborts the transaction, the transaction was already aborted, or the transaction isn''t found. Rollback never returns ABORTED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instances_databases_sessions_rollback_execute()` to send, or `spanner_projects_instances_databases_sessions_rollback` for simplest API.
@@ -14033,7 +14033,7 @@ where
 }
 
 /// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}:rollback
-/// Rolls back a transaction, releasing any locks it holds. It's a good idea to call this for any transaction that includes one or more Read or ExecuteSql requests and ultimately decides not to commit. Rollback returns `OK` if it successfully aborts the transaction, the transaction was already aborted, or the transaction isn't found. Rollback never returns ABORTED.
+/// Rolls back a transaction, releasing any locks it holds. It''s a good idea to call this for any transaction that includes one or more Read or ExecuteSql requests and ultimately decides not to commit. Rollback returns `OK` if it successfully aborts the transaction, the transaction was already aborted, or the transaction isn''t found. Rollback never returns ABORTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -14107,7 +14107,7 @@ pub fn spanner_projects_instances_databases_sessions_rollback_task(
 }
 
 /// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}:rollback
-/// Rolls back a transaction, releasing any locks it holds. It's a good idea to call this for any transaction that includes one or more Read or ExecuteSql requests and ultimately decides not to commit. Rollback returns `OK` if it successfully aborts the transaction, the transaction was already aborted, or the transaction isn't found. Rollback never returns ABORTED.
+/// Rolls back a transaction, releasing any locks it holds. It''s a good idea to call this for any transaction that includes one or more Read or ExecuteSql requests and ultimately decides not to commit. Rollback returns `OK` if it successfully aborts the transaction, the transaction was already aborted, or the transaction isn''t found. Rollback never returns ABORTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -14144,7 +14144,7 @@ pub struct SpannerProjectsInstancesDatabasesSessionsRollbackArgs {
 }
 
 /// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}:rollback
-/// Rolls back a transaction, releasing any locks it holds. It's a good idea to call this for any transaction that includes one or more Read or ExecuteSql requests and ultimately decides not to commit. Rollback returns `OK` if it successfully aborts the transaction, the transaction was already aborted, or the transaction isn't found. Rollback never returns ABORTED.
+/// Rolls back a transaction, releasing any locks it holds. It''s a good idea to call this for any transaction that includes one or more Read or ExecuteSql requests and ultimately decides not to commit. Rollback returns `OK` if it successfully aborts the transaction, the transaction was already aborted, or the transaction isn''t found. Rollback never returns ABORTED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `spanner_projects_instances_databases_sessions_rollback_builder()` + `spanner_projects_instances_databases_sessions_rollback_execute()`.
@@ -14542,7 +14542,7 @@ pub fn spanner_projects_instances_instance_partition_operations_list(
 }
 
 /// POST v1/projects/{projectsId}/instances/{instancesId}/instancePartitions
-/// Creates an instance partition and begins preparing it to be used. The returned long-running operation can be used to track the progress of preparing the new instance partition. The instance partition name is assigned by the caller. If the named instance partition already exists, CreateInstancePartition returns ALREADY_EXISTS. Immediately upon completion of this request: * The instance partition is readable via the API, with all requested attributes but no allocated resources. Its state is CREATING. Until completion of the returned operation: * Cancelling the operation renders the instance partition immediately unreadable via the API. * The instance partition can be deleted. * All other attempts to modify the instance partition are rejected. Upon completion of the returned operation: * Billing for all successfully-allocated resources begins (some types may have lower than the requested levels). * Databases can start using this instance partition. * The instance partition's allocated resource levels are readable via the API. * The instance partition's state becomes READY. The returned long-running operation will have a name of the format /operations/ and can be used to track creation of the instance partition. The metadata field type is CreateInstancePartitionMetadata. The response field type is InstancePartition, if successful.
+/// Creates an instance partition and begins preparing it to be used. The returned long-running operation can be used to track the progress of preparing the new instance partition. The instance partition name is assigned by the caller. If the named instance partition already exists, CreateInstancePartition returns ALREADY_EXISTS. Immediately upon completion of this request: * The instance partition is readable via the API, with all requested attributes but no allocated resources. Its state is CREATING. Until completion of the returned operation: * Cancelling the operation renders the instance partition immediately unreadable via the API. * The instance partition can be deleted. * All other attempts to modify the instance partition are rejected. Upon completion of the returned operation: * Billing for all successfully-allocated resources begins (some types may have lower than the requested levels). * Databases can start using this instance partition. * The instance partition''s allocated resource levels are readable via the API. * The instance partition''s state becomes READY. The returned long-running operation will have a name of the format /operations/ and can be used to track creation of the instance partition. The metadata field type is CreateInstancePartitionMetadata. The response field type is InstancePartition, if successful.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instances_instance_partitions_create_execute()` to send, or `spanner_projects_instances_instance_partitions_create` for simplest API.
@@ -14569,7 +14569,7 @@ where
 }
 
 /// POST v1/projects/{projectsId}/instances/{instancesId}/instancePartitions
-/// Creates an instance partition and begins preparing it to be used. The returned long-running operation can be used to track the progress of preparing the new instance partition. The instance partition name is assigned by the caller. If the named instance partition already exists, CreateInstancePartition returns ALREADY_EXISTS. Immediately upon completion of this request: * The instance partition is readable via the API, with all requested attributes but no allocated resources. Its state is CREATING. Until completion of the returned operation: * Cancelling the operation renders the instance partition immediately unreadable via the API. * The instance partition can be deleted. * All other attempts to modify the instance partition are rejected. Upon completion of the returned operation: * Billing for all successfully-allocated resources begins (some types may have lower than the requested levels). * Databases can start using this instance partition. * The instance partition's allocated resource levels are readable via the API. * The instance partition's state becomes READY. The returned long-running operation will have a name of the format /operations/ and can be used to track creation of the instance partition. The metadata field type is CreateInstancePartitionMetadata. The response field type is InstancePartition, if successful.
+/// Creates an instance partition and begins preparing it to be used. The returned long-running operation can be used to track the progress of preparing the new instance partition. The instance partition name is assigned by the caller. If the named instance partition already exists, CreateInstancePartition returns ALREADY_EXISTS. Immediately upon completion of this request: * The instance partition is readable via the API, with all requested attributes but no allocated resources. Its state is CREATING. Until completion of the returned operation: * Cancelling the operation renders the instance partition immediately unreadable via the API. * The instance partition can be deleted. * All other attempts to modify the instance partition are rejected. Upon completion of the returned operation: * Billing for all successfully-allocated resources begins (some types may have lower than the requested levels). * Databases can start using this instance partition. * The instance partition''s allocated resource levels are readable via the API. * The instance partition''s state becomes READY. The returned long-running operation will have a name of the format /operations/ and can be used to track creation of the instance partition. The metadata field type is CreateInstancePartitionMetadata. The response field type is InstancePartition, if successful.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -14643,7 +14643,7 @@ pub fn spanner_projects_instances_instance_partitions_create_task(
 }
 
 /// POST v1/projects/{projectsId}/instances/{instancesId}/instancePartitions
-/// Creates an instance partition and begins preparing it to be used. The returned long-running operation can be used to track the progress of preparing the new instance partition. The instance partition name is assigned by the caller. If the named instance partition already exists, CreateInstancePartition returns ALREADY_EXISTS. Immediately upon completion of this request: * The instance partition is readable via the API, with all requested attributes but no allocated resources. Its state is CREATING. Until completion of the returned operation: * Cancelling the operation renders the instance partition immediately unreadable via the API. * The instance partition can be deleted. * All other attempts to modify the instance partition are rejected. Upon completion of the returned operation: * Billing for all successfully-allocated resources begins (some types may have lower than the requested levels). * Databases can start using this instance partition. * The instance partition's allocated resource levels are readable via the API. * The instance partition's state becomes READY. The returned long-running operation will have a name of the format /operations/ and can be used to track creation of the instance partition. The metadata field type is CreateInstancePartitionMetadata. The response field type is InstancePartition, if successful.
+/// Creates an instance partition and begins preparing it to be used. The returned long-running operation can be used to track the progress of preparing the new instance partition. The instance partition name is assigned by the caller. If the named instance partition already exists, CreateInstancePartition returns ALREADY_EXISTS. Immediately upon completion of this request: * The instance partition is readable via the API, with all requested attributes but no allocated resources. Its state is CREATING. Until completion of the returned operation: * Cancelling the operation renders the instance partition immediately unreadable via the API. * The instance partition can be deleted. * All other attempts to modify the instance partition are rejected. Upon completion of the returned operation: * Billing for all successfully-allocated resources begins (some types may have lower than the requested levels). * Databases can start using this instance partition. * The instance partition''s allocated resource levels are readable via the API. * The instance partition''s state becomes READY. The returned long-running operation will have a name of the format /operations/ and can be used to track creation of the instance partition. The metadata field type is CreateInstancePartitionMetadata. The response field type is InstancePartition, if successful.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -14680,7 +14680,7 @@ pub struct SpannerProjectsInstancesInstancePartitionsCreateArgs {
 }
 
 /// POST v1/projects/{projectsId}/instances/{instancesId}/instancePartitions
-/// Creates an instance partition and begins preparing it to be used. The returned long-running operation can be used to track the progress of preparing the new instance partition. The instance partition name is assigned by the caller. If the named instance partition already exists, CreateInstancePartition returns ALREADY_EXISTS. Immediately upon completion of this request: * The instance partition is readable via the API, with all requested attributes but no allocated resources. Its state is CREATING. Until completion of the returned operation: * Cancelling the operation renders the instance partition immediately unreadable via the API. * The instance partition can be deleted. * All other attempts to modify the instance partition are rejected. Upon completion of the returned operation: * Billing for all successfully-allocated resources begins (some types may have lower than the requested levels). * Databases can start using this instance partition. * The instance partition's allocated resource levels are readable via the API. * The instance partition's state becomes READY. The returned long-running operation will have a name of the format /operations/ and can be used to track creation of the instance partition. The metadata field type is CreateInstancePartitionMetadata. The response field type is InstancePartition, if successful.
+/// Creates an instance partition and begins preparing it to be used. The returned long-running operation can be used to track the progress of preparing the new instance partition. The instance partition name is assigned by the caller. If the named instance partition already exists, CreateInstancePartition returns ALREADY_EXISTS. Immediately upon completion of this request: * The instance partition is readable via the API, with all requested attributes but no allocated resources. Its state is CREATING. Until completion of the returned operation: * Cancelling the operation renders the instance partition immediately unreadable via the API. * The instance partition can be deleted. * All other attempts to modify the instance partition are rejected. Upon completion of the returned operation: * Billing for all successfully-allocated resources begins (some types may have lower than the requested levels). * Databases can start using this instance partition. * The instance partition''s allocated resource levels are readable via the API. * The instance partition''s state becomes READY. The returned long-running operation will have a name of the format /operations/ and can be used to track creation of the instance partition. The metadata field type is CreateInstancePartitionMetadata. The response field type is InstancePartition, if successful.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `spanner_projects_instances_instance_partitions_create_builder()` + `spanner_projects_instances_instance_partitions_create_execute()`.
@@ -15243,7 +15243,7 @@ pub fn spanner_projects_instances_instance_partitions_list(
 }
 
 /// PATCH v1/projects/{projectsId}/instances/{instancesId}/instancePartitions/{instancePartitionsId}
-/// Updates an instance partition, and begins allocating or releasing resources as requested. The returned long-running operation can be used to track the progress of updating the instance partition. If the named instance partition does not exist, returns NOT_FOUND. Immediately upon completion of this request: * For resource types for which a decrease in the instance partition's allocation has been requested, billing is based on the newly-requested level. Until completion of the returned operation: * Cancelling the operation sets its metadata's cancel_time, and begins restoring resources to their pre-request values. The operation is guaranteed to succeed at undoing all resource changes, after which point it terminates with a CANCELLED status. * All other attempts to modify the instance partition are rejected. * Reading the instance partition via the API continues to give the pre-request resource levels. Upon completion of the returned operation: * Billing begins for all successfully-allocated resources (some types may have lower than the requested levels). * All newly-reserved resources are available for serving the instance partition's tables. * The instance partition's new resource levels are readable via the API. The returned long-running operation will have a name of the format /operations/ and can be used to track the instance partition modification. The metadata field type is UpdateInstancePartitionMetadata. The response field type is InstancePartition, if successful. Authorization requires spanner.`instancePartitions`.update permission on the resource name.
+/// Updates an instance partition, and begins allocating or releasing resources as requested. The returned long-running operation can be used to track the progress of updating the instance partition. If the named instance partition does not exist, returns NOT_FOUND. Immediately upon completion of this request: * For resource types for which a decrease in the instance partition''s allocation has been requested, billing is based on the newly-requested level. Until completion of the returned operation: * Cancelling the operation sets its metadata''s cancel_time, and begins restoring resources to their pre-request values. The operation is guaranteed to succeed at undoing all resource changes, after which point it terminates with a CANCELLED status. * All other attempts to modify the instance partition are rejected. * Reading the instance partition via the API continues to give the pre-request resource levels. Upon completion of the returned operation: * Billing begins for all successfully-allocated resources (some types may have lower than the requested levels). * All newly-reserved resources are available for serving the instance partition''s tables. * The instance partition''s new resource levels are readable via the API. The returned long-running operation will have a name of the format /operations/ and can be used to track the instance partition modification. The metadata field type is UpdateInstancePartitionMetadata. The response field type is InstancePartition, if successful. Authorization requires spanner.`instancePartitions`.update permission on the resource name.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instances_instance_partitions_patch_execute()` to send, or `spanner_projects_instances_instance_partitions_patch` for simplest API.
@@ -15270,7 +15270,7 @@ where
 }
 
 /// PATCH v1/projects/{projectsId}/instances/{instancesId}/instancePartitions/{instancePartitionsId}
-/// Updates an instance partition, and begins allocating or releasing resources as requested. The returned long-running operation can be used to track the progress of updating the instance partition. If the named instance partition does not exist, returns NOT_FOUND. Immediately upon completion of this request: * For resource types for which a decrease in the instance partition's allocation has been requested, billing is based on the newly-requested level. Until completion of the returned operation: * Cancelling the operation sets its metadata's cancel_time, and begins restoring resources to their pre-request values. The operation is guaranteed to succeed at undoing all resource changes, after which point it terminates with a CANCELLED status. * All other attempts to modify the instance partition are rejected. * Reading the instance partition via the API continues to give the pre-request resource levels. Upon completion of the returned operation: * Billing begins for all successfully-allocated resources (some types may have lower than the requested levels). * All newly-reserved resources are available for serving the instance partition's tables. * The instance partition's new resource levels are readable via the API. The returned long-running operation will have a name of the format /operations/ and can be used to track the instance partition modification. The metadata field type is UpdateInstancePartitionMetadata. The response field type is InstancePartition, if successful. Authorization requires spanner.`instancePartitions`.update permission on the resource name.
+/// Updates an instance partition, and begins allocating or releasing resources as requested. The returned long-running operation can be used to track the progress of updating the instance partition. If the named instance partition does not exist, returns NOT_FOUND. Immediately upon completion of this request: * For resource types for which a decrease in the instance partition''s allocation has been requested, billing is based on the newly-requested level. Until completion of the returned operation: * Cancelling the operation sets its metadata''s cancel_time, and begins restoring resources to their pre-request values. The operation is guaranteed to succeed at undoing all resource changes, after which point it terminates with a CANCELLED status. * All other attempts to modify the instance partition are rejected. * Reading the instance partition via the API continues to give the pre-request resource levels. Upon completion of the returned operation: * Billing begins for all successfully-allocated resources (some types may have lower than the requested levels). * All newly-reserved resources are available for serving the instance partition''s tables. * The instance partition''s new resource levels are readable via the API. The returned long-running operation will have a name of the format /operations/ and can be used to track the instance partition modification. The metadata field type is UpdateInstancePartitionMetadata. The response field type is InstancePartition, if successful. Authorization requires spanner.`instancePartitions`.update permission on the resource name.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -15344,7 +15344,7 @@ pub fn spanner_projects_instances_instance_partitions_patch_task(
 }
 
 /// PATCH v1/projects/{projectsId}/instances/{instancesId}/instancePartitions/{instancePartitionsId}
-/// Updates an instance partition, and begins allocating or releasing resources as requested. The returned long-running operation can be used to track the progress of updating the instance partition. If the named instance partition does not exist, returns NOT_FOUND. Immediately upon completion of this request: * For resource types for which a decrease in the instance partition's allocation has been requested, billing is based on the newly-requested level. Until completion of the returned operation: * Cancelling the operation sets its metadata's cancel_time, and begins restoring resources to their pre-request values. The operation is guaranteed to succeed at undoing all resource changes, after which point it terminates with a CANCELLED status. * All other attempts to modify the instance partition are rejected. * Reading the instance partition via the API continues to give the pre-request resource levels. Upon completion of the returned operation: * Billing begins for all successfully-allocated resources (some types may have lower than the requested levels). * All newly-reserved resources are available for serving the instance partition's tables. * The instance partition's new resource levels are readable via the API. The returned long-running operation will have a name of the format /operations/ and can be used to track the instance partition modification. The metadata field type is UpdateInstancePartitionMetadata. The response field type is InstancePartition, if successful. Authorization requires spanner.`instancePartitions`.update permission on the resource name.
+/// Updates an instance partition, and begins allocating or releasing resources as requested. The returned long-running operation can be used to track the progress of updating the instance partition. If the named instance partition does not exist, returns NOT_FOUND. Immediately upon completion of this request: * For resource types for which a decrease in the instance partition''s allocation has been requested, billing is based on the newly-requested level. Until completion of the returned operation: * Cancelling the operation sets its metadata''s cancel_time, and begins restoring resources to their pre-request values. The operation is guaranteed to succeed at undoing all resource changes, after which point it terminates with a CANCELLED status. * All other attempts to modify the instance partition are rejected. * Reading the instance partition via the API continues to give the pre-request resource levels. Upon completion of the returned operation: * Billing begins for all successfully-allocated resources (some types may have lower than the requested levels). * All newly-reserved resources are available for serving the instance partition''s tables. * The instance partition''s new resource levels are readable via the API. The returned long-running operation will have a name of the format /operations/ and can be used to track the instance partition modification. The metadata field type is UpdateInstancePartitionMetadata. The response field type is InstancePartition, if successful. Authorization requires spanner.`instancePartitions`.update permission on the resource name.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -15381,7 +15381,7 @@ pub struct SpannerProjectsInstancesInstancePartitionsPatchArgs {
 }
 
 /// PATCH v1/projects/{projectsId}/instances/{instancesId}/instancePartitions/{instancePartitionsId}
-/// Updates an instance partition, and begins allocating or releasing resources as requested. The returned long-running operation can be used to track the progress of updating the instance partition. If the named instance partition does not exist, returns NOT_FOUND. Immediately upon completion of this request: * For resource types for which a decrease in the instance partition's allocation has been requested, billing is based on the newly-requested level. Until completion of the returned operation: * Cancelling the operation sets its metadata's cancel_time, and begins restoring resources to their pre-request values. The operation is guaranteed to succeed at undoing all resource changes, after which point it terminates with a CANCELLED status. * All other attempts to modify the instance partition are rejected. * Reading the instance partition via the API continues to give the pre-request resource levels. Upon completion of the returned operation: * Billing begins for all successfully-allocated resources (some types may have lower than the requested levels). * All newly-reserved resources are available for serving the instance partition's tables. * The instance partition's new resource levels are readable via the API. The returned long-running operation will have a name of the format /operations/ and can be used to track the instance partition modification. The metadata field type is UpdateInstancePartitionMetadata. The response field type is InstancePartition, if successful. Authorization requires spanner.`instancePartitions`.update permission on the resource name.
+/// Updates an instance partition, and begins allocating or releasing resources as requested. The returned long-running operation can be used to track the progress of updating the instance partition. If the named instance partition does not exist, returns NOT_FOUND. Immediately upon completion of this request: * For resource types for which a decrease in the instance partition''s allocation has been requested, billing is based on the newly-requested level. Until completion of the returned operation: * Cancelling the operation sets its metadata''s cancel_time, and begins restoring resources to their pre-request values. The operation is guaranteed to succeed at undoing all resource changes, after which point it terminates with a CANCELLED status. * All other attempts to modify the instance partition are rejected. * Reading the instance partition via the API continues to give the pre-request resource levels. Upon completion of the returned operation: * Billing begins for all successfully-allocated resources (some types may have lower than the requested levels). * All newly-reserved resources are available for serving the instance partition''s tables. * The instance partition''s new resource levels are readable via the API. The returned long-running operation will have a name of the format /operations/ and can be used to track the instance partition modification. The metadata field type is UpdateInstancePartitionMetadata. The response field type is InstancePartition, if successful. Authorization requires spanner.`instancePartitions`.update permission on the resource name.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `spanner_projects_instances_instance_partitions_patch_builder()` + `spanner_projects_instances_instance_partitions_patch_execute()`.
@@ -15403,7 +15403,7 @@ pub fn spanner_projects_instances_instance_partitions_patch(
 }
 
 /// POST v1/projects/{projectsId}/instances/{instancesId}/instancePartitions/{instancePartitionsId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instances_instance_partitions_operations_cancel_execute()` to send, or `spanner_projects_instances_instance_partitions_operations_cancel` for simplest API.
@@ -15430,7 +15430,7 @@ where
 }
 
 /// POST v1/projects/{projectsId}/instances/{instancesId}/instancePartitions/{instancePartitionsId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -15504,7 +15504,7 @@ pub fn spanner_projects_instances_instance_partitions_operations_cancel_task(
 }
 
 /// POST v1/projects/{projectsId}/instances/{instancesId}/instancePartitions/{instancePartitionsId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -15541,7 +15541,7 @@ pub struct SpannerProjectsInstancesInstancePartitionsOperationsCancelArgs {
 }
 
 /// POST v1/projects/{projectsId}/instances/{instancesId}/instancePartitions/{instancePartitionsId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `spanner_projects_instances_instance_partitions_operations_cancel_builder()` + `spanner_projects_instances_instance_partitions_operations_cancel_execute()`.
@@ -15565,7 +15565,7 @@ pub fn spanner_projects_instances_instance_partitions_operations_cancel(
 }
 
 /// DELETE v1/projects/{projectsId}/instances/{instancesId}/instancePartitions/{instancePartitionsId}/operations/{operationsId}
-/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instances_instance_partitions_operations_delete_execute()` to send, or `spanner_projects_instances_instance_partitions_operations_delete` for simplest API.
@@ -15592,7 +15592,7 @@ where
 }
 
 /// DELETE v1/projects/{projectsId}/instances/{instancesId}/instancePartitions/{instancePartitionsId}/operations/{operationsId}
-/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -15666,7 +15666,7 @@ pub fn spanner_projects_instances_instance_partitions_operations_delete_task(
 }
 
 /// DELETE v1/projects/{projectsId}/instances/{instancesId}/instancePartitions/{instancePartitionsId}/operations/{operationsId}
-/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -15703,7 +15703,7 @@ pub struct SpannerProjectsInstancesInstancePartitionsOperationsDeleteArgs {
 }
 
 /// DELETE v1/projects/{projectsId}/instances/{instancesId}/instancePartitions/{instancePartitionsId}/operations/{operationsId}
-/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `spanner_projects_instances_instance_partitions_operations_delete_builder()` + `spanner_projects_instances_instance_partitions_operations_delete_execute()`.
@@ -15888,7 +15888,7 @@ pub fn spanner_projects_instances_instance_partitions_operations_get(
 }
 
 /// GET v1/projects/{projectsId}/instances/{instancesId}/instancePartitions/{instancePartitionsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instances_instance_partitions_operations_list_execute()` to send, or `spanner_projects_instances_instance_partitions_operations_list` for simplest API.
@@ -15939,7 +15939,7 @@ where
 }
 
 /// GET v1/projects/{projectsId}/instances/{instancesId}/instancePartitions/{instancePartitionsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -16013,7 +16013,7 @@ pub fn spanner_projects_instances_instance_partitions_operations_list_task(
 }
 
 /// GET v1/projects/{projectsId}/instances/{instancesId}/instancePartitions/{instancePartitionsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -16060,7 +16060,7 @@ pub struct SpannerProjectsInstancesInstancePartitionsOperationsListArgs {
 }
 
 /// GET v1/projects/{projectsId}/instances/{instancesId}/instancePartitions/{instancePartitionsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `spanner_projects_instances_instance_partitions_operations_list_builder()` + `spanner_projects_instances_instance_partitions_operations_list_execute()`.
@@ -16091,7 +16091,7 @@ pub fn spanner_projects_instances_instance_partitions_operations_list(
 }
 
 /// POST v1/projects/{projectsId}/instances/{instancesId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instances_operations_cancel_execute()` to send, or `spanner_projects_instances_operations_cancel` for simplest API.
@@ -16118,7 +16118,7 @@ where
 }
 
 /// POST v1/projects/{projectsId}/instances/{instancesId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -16192,7 +16192,7 @@ pub fn spanner_projects_instances_operations_cancel_task(
 }
 
 /// POST v1/projects/{projectsId}/instances/{instancesId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -16229,7 +16229,7 @@ pub struct SpannerProjectsInstancesOperationsCancelArgs {
 }
 
 /// POST v1/projects/{projectsId}/instances/{instancesId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `spanner_projects_instances_operations_cancel_builder()` + `spanner_projects_instances_operations_cancel_execute()`.
@@ -16251,7 +16251,7 @@ pub fn spanner_projects_instances_operations_cancel(
 }
 
 /// DELETE v1/projects/{projectsId}/instances/{instancesId}/operations/{operationsId}
-/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instances_operations_delete_execute()` to send, or `spanner_projects_instances_operations_delete` for simplest API.
@@ -16278,7 +16278,7 @@ where
 }
 
 /// DELETE v1/projects/{projectsId}/instances/{instancesId}/operations/{operationsId}
-/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -16352,7 +16352,7 @@ pub fn spanner_projects_instances_operations_delete_task(
 }
 
 /// DELETE v1/projects/{projectsId}/instances/{instancesId}/operations/{operationsId}
-/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -16389,7 +16389,7 @@ pub struct SpannerProjectsInstancesOperationsDeleteArgs {
 }
 
 /// DELETE v1/projects/{projectsId}/instances/{instancesId}/operations/{operationsId}
-/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `spanner_projects_instances_operations_delete_builder()` + `spanner_projects_instances_operations_delete_execute()`.
@@ -16571,7 +16571,7 @@ pub fn spanner_projects_instances_operations_get(
 }
 
 /// GET v1/projects/{projectsId}/instances/{instancesId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `spanner_projects_instances_operations_list_execute()` to send, or `spanner_projects_instances_operations_list` for simplest API.
@@ -16622,7 +16622,7 @@ where
 }
 
 /// GET v1/projects/{projectsId}/instances/{instancesId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -16696,7 +16696,7 @@ pub fn spanner_projects_instances_operations_list_task(
 }
 
 /// GET v1/projects/{projectsId}/instances/{instancesId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -16743,7 +16743,7 @@ pub struct SpannerProjectsInstancesOperationsListArgs {
 }
 
 /// GET v1/projects/{projectsId}/instances/{instancesId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `spanner_projects_instances_operations_list_builder()` + `spanner_projects_instances_operations_list_execute()`.

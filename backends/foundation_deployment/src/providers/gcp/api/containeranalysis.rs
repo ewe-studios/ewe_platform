@@ -33,7 +33,7 @@ use crate::providers::gcp::clients::containeranalysis::{
     containeranalysis_projects_locations_occurrences_patch_builder, containeranalysis_projects_locations_occurrences_patch_task,
     containeranalysis_projects_locations_occurrences_set_iam_policy_builder, containeranalysis_projects_locations_occurrences_set_iam_policy_task,
     containeranalysis_projects_locations_occurrences_test_iam_permissions_builder, containeranalysis_projects_locations_occurrences_test_iam_permissions_task,
-    containeranalysis_projects_locations_resources_export_s_b_o_m_builder, containeranalysis_projects_locations_resources_export_s_b_o_m_task,
+    containeranalysis_projects_locations_resources_export_sbom_builder, containeranalysis_projects_locations_resources_export_sbom_task,
     containeranalysis_projects_notes_batch_create_builder, containeranalysis_projects_notes_batch_create_task,
     containeranalysis_projects_notes_create_builder, containeranalysis_projects_notes_create_task,
     containeranalysis_projects_notes_delete_builder, containeranalysis_projects_notes_delete_task,
@@ -55,7 +55,7 @@ use crate::providers::gcp::clients::containeranalysis::{
     containeranalysis_projects_occurrences_patch_builder, containeranalysis_projects_occurrences_patch_task,
     containeranalysis_projects_occurrences_set_iam_policy_builder, containeranalysis_projects_occurrences_set_iam_policy_task,
     containeranalysis_projects_occurrences_test_iam_permissions_builder, containeranalysis_projects_occurrences_test_iam_permissions_task,
-    containeranalysis_projects_resources_export_s_b_o_m_builder, containeranalysis_projects_resources_export_s_b_o_m_task,
+    containeranalysis_projects_resources_export_sbom_builder, containeranalysis_projects_resources_export_sbom_task,
 };
 use crate::providers::gcp::clients::types::{ApiError, ApiPending};
 use crate::providers::gcp::clients::containeranalysis::BatchCreateNotesResponse;
@@ -91,7 +91,7 @@ use crate::providers::gcp::clients::containeranalysis::ContaineranalysisProjects
 use crate::providers::gcp::clients::containeranalysis::ContaineranalysisProjectsLocationsOccurrencesPatchArgs;
 use crate::providers::gcp::clients::containeranalysis::ContaineranalysisProjectsLocationsOccurrencesSetIamPolicyArgs;
 use crate::providers::gcp::clients::containeranalysis::ContaineranalysisProjectsLocationsOccurrencesTestIamPermissionsArgs;
-use crate::providers::gcp::clients::containeranalysis::ContaineranalysisProjectsLocationsResourcesExportSBOMArgs;
+use crate::providers::gcp::clients::containeranalysis::ContaineranalysisProjectsLocationsResourcesExportSbomArgs;
 use crate::providers::gcp::clients::containeranalysis::ContaineranalysisProjectsNotesBatchCreateArgs;
 use crate::providers::gcp::clients::containeranalysis::ContaineranalysisProjectsNotesCreateArgs;
 use crate::providers::gcp::clients::containeranalysis::ContaineranalysisProjectsNotesDeleteArgs;
@@ -113,7 +113,7 @@ use crate::providers::gcp::clients::containeranalysis::ContaineranalysisProjects
 use crate::providers::gcp::clients::containeranalysis::ContaineranalysisProjectsOccurrencesPatchArgs;
 use crate::providers::gcp::clients::containeranalysis::ContaineranalysisProjectsOccurrencesSetIamPolicyArgs;
 use crate::providers::gcp::clients::containeranalysis::ContaineranalysisProjectsOccurrencesTestIamPermissionsArgs;
-use crate::providers::gcp::clients::containeranalysis::ContaineranalysisProjectsResourcesExportSBOMArgs;
+use crate::providers::gcp::clients::containeranalysis::ContaineranalysisProjectsResourcesExportSbomArgs;
 use crate::provider_client::{ProviderClient, ProviderError};
 use foundation_core::valtron::{execute, StreamIterator};
 use foundation_core::wire::simple_http::client::{SimpleHttpClient, DnsResolver};
@@ -1029,7 +1029,7 @@ where
         execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
-    /// Containeranalysis projects locations resources export s b o m.
+    /// Containeranalysis projects locations resources export sbom.
     ///
     /// Read-only operation - no state tracking.
     ///
@@ -1044,9 +1044,9 @@ where
     /// # Errors
     ///
     /// Returns ProviderError if the API request fails.
-    pub fn containeranalysis_projects_locations_resources_export_s_b_o_m(
+    pub fn containeranalysis_projects_locations_resources_export_sbom(
         &self,
-        args: &ContaineranalysisProjectsLocationsResourcesExportSBOMArgs,
+        args: &ContaineranalysisProjectsLocationsResourcesExportSbomArgs,
     ) -> Result<
         impl StreamIterator<
             D = Result<ExportSBOMResponse, ProviderError<ApiError>>,
@@ -1055,13 +1055,13 @@ where
         + 'static,
         ProviderError<ApiError>,
     > {
-        let builder = containeranalysis_projects_locations_resources_export_s_b_o_m_builder(
+        let builder = containeranalysis_projects_locations_resources_export_sbom_builder(
             &self.http_client,
             &args.name,
         )
         .map_err(ProviderError::Api)?;
 
-        let task = containeranalysis_projects_locations_resources_export_s_b_o_m_task(builder)
+        let task = containeranalysis_projects_locations_resources_export_sbom_task(builder)
             .map_err(ProviderError::Api)?;
 
         execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
@@ -1931,7 +1931,7 @@ where
         execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
-    /// Containeranalysis projects resources export s b o m.
+    /// Containeranalysis projects resources export sbom.
     ///
     /// Read-only operation - no state tracking.
     ///
@@ -1946,9 +1946,9 @@ where
     /// # Errors
     ///
     /// Returns ProviderError if the API request fails.
-    pub fn containeranalysis_projects_resources_export_s_b_o_m(
+    pub fn containeranalysis_projects_resources_export_sbom(
         &self,
-        args: &ContaineranalysisProjectsResourcesExportSBOMArgs,
+        args: &ContaineranalysisProjectsResourcesExportSbomArgs,
     ) -> Result<
         impl StreamIterator<
             D = Result<ExportSBOMResponse, ProviderError<ApiError>>,
@@ -1957,13 +1957,13 @@ where
         + 'static,
         ProviderError<ApiError>,
     > {
-        let builder = containeranalysis_projects_resources_export_s_b_o_m_builder(
+        let builder = containeranalysis_projects_resources_export_sbom_builder(
             &self.http_client,
             &args.name,
         )
         .map_err(ProviderError::Api)?;
 
-        let task = containeranalysis_projects_resources_export_s_b_o_m_task(builder)
+        let task = containeranalysis_projects_resources_export_sbom_task(builder)
             .map_err(ProviderError::Api)?;
 
         execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))

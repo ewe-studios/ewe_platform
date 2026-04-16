@@ -658,7 +658,7 @@ pub fn keep_notes_get(
 }
 
 /// GET v1/notes
-/// Lists notes. Every list call returns a page of results with page_size as the upper bound of returned items. A page_size of zero allows the server to choose the upper bound. The ListNotesResponse contains at most page_size entries. If there are more things left to list, it provides a next_page_token value. (Page tokens are opaque values.) To get the next page of results, copy the result's next_page_token into the next request's page_token. Repeat until the next_page_token returned with a page of results is empty. ListNotes return consistent results in the face of concurrent changes, or signals that it cannot with an ABORTED error.
+/// Lists notes. Every list call returns a page of results with page_size as the upper bound of returned items. A page_size of zero allows the server to choose the upper bound. The ListNotesResponse contains at most page_size entries. If there are more things left to list, it provides a next_page_token value. (Page tokens are opaque values.) To get the next page of results, copy the result''s next_page_token into the next request''s page_token. Repeat until the next_page_token returned with a page of results is empty. ListNotes return consistent results in the face of concurrent changes, or signals that it cannot with an ABORTED error.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `keep_notes_list_execute()` to send, or `keep_notes_list` for simplest API.
@@ -701,7 +701,7 @@ where
 }
 
 /// GET v1/notes
-/// Lists notes. Every list call returns a page of results with page_size as the upper bound of returned items. A page_size of zero allows the server to choose the upper bound. The ListNotesResponse contains at most page_size entries. If there are more things left to list, it provides a next_page_token value. (Page tokens are opaque values.) To get the next page of results, copy the result's next_page_token into the next request's page_token. Repeat until the next_page_token returned with a page of results is empty. ListNotes return consistent results in the face of concurrent changes, or signals that it cannot with an ABORTED error.
+/// Lists notes. Every list call returns a page of results with page_size as the upper bound of returned items. A page_size of zero allows the server to choose the upper bound. The ListNotesResponse contains at most page_size entries. If there are more things left to list, it provides a next_page_token value. (Page tokens are opaque values.) To get the next page of results, copy the result''s next_page_token into the next request''s page_token. Repeat until the next_page_token returned with a page of results is empty. ListNotes return consistent results in the face of concurrent changes, or signals that it cannot with an ABORTED error.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -775,7 +775,7 @@ pub fn keep_notes_list_task(
 }
 
 /// GET v1/notes
-/// Lists notes. Every list call returns a page of results with page_size as the upper bound of returned items. A page_size of zero allows the server to choose the upper bound. The ListNotesResponse contains at most page_size entries. If there are more things left to list, it provides a next_page_token value. (Page tokens are opaque values.) To get the next page of results, copy the result's next_page_token into the next request's page_token. Repeat until the next_page_token returned with a page of results is empty. ListNotes return consistent results in the face of concurrent changes, or signals that it cannot with an ABORTED error.
+/// Lists notes. Every list call returns a page of results with page_size as the upper bound of returned items. A page_size of zero allows the server to choose the upper bound. The ListNotesResponse contains at most page_size entries. If there are more things left to list, it provides a next_page_token value. (Page tokens are opaque values.) To get the next page of results, copy the result''s next_page_token into the next request''s page_token. Repeat until the next_page_token returned with a page of results is empty. ListNotes return consistent results in the face of concurrent changes, or signals that it cannot with an ABORTED error.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -818,7 +818,7 @@ pub struct KeepNotesListArgs {
 }
 
 /// GET v1/notes
-/// Lists notes. Every list call returns a page of results with page_size as the upper bound of returned items. A page_size of zero allows the server to choose the upper bound. The ListNotesResponse contains at most page_size entries. If there are more things left to list, it provides a next_page_token value. (Page tokens are opaque values.) To get the next page of results, copy the result's next_page_token into the next request's page_token. Repeat until the next_page_token returned with a page of results is empty. ListNotes return consistent results in the face of concurrent changes, or signals that it cannot with an ABORTED error.
+/// Lists notes. Every list call returns a page of results with page_size as the upper bound of returned items. A page_size of zero allows the server to choose the upper bound. The ListNotesResponse contains at most page_size entries. If there are more things left to list, it provides a next_page_token value. (Page tokens are opaque values.) To get the next page of results, copy the result''s next_page_token into the next request''s page_token. Repeat until the next_page_token returned with a page of results is empty. ListNotes return consistent results in the face of concurrent changes, or signals that it cannot with an ABORTED error.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `keep_notes_list_builder()` + `keep_notes_list_execute()`.
@@ -1010,7 +1010,7 @@ pub fn keep_notes_permissions_batch_create(
 }
 
 /// POST v1/notes/{notesId}/permissions:batchDelete
-/// Deletes one or more permissions on the note. The specified entities will immediately lose access. A permission with the OWNER role can't be removed. If removing a permission fails, then the entire request fails and no changes are made. Returns a 400 bad request error if a specified permission does not exist on the note.
+/// Deletes one or more permissions on the note. The specified entities will immediately lose access. A permission with the OWNER role can''t be removed. If removing a permission fails, then the entire request fails and no changes are made. Returns a 400 bad request error if a specified permission does not exist on the note.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `keep_notes_permissions_batch_delete_execute()` to send, or `keep_notes_permissions_batch_delete` for simplest API.
@@ -1037,7 +1037,7 @@ where
 }
 
 /// POST v1/notes/{notesId}/permissions:batchDelete
-/// Deletes one or more permissions on the note. The specified entities will immediately lose access. A permission with the OWNER role can't be removed. If removing a permission fails, then the entire request fails and no changes are made. Returns a 400 bad request error if a specified permission does not exist on the note.
+/// Deletes one or more permissions on the note. The specified entities will immediately lose access. A permission with the OWNER role can''t be removed. If removing a permission fails, then the entire request fails and no changes are made. Returns a 400 bad request error if a specified permission does not exist on the note.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -1111,7 +1111,7 @@ pub fn keep_notes_permissions_batch_delete_task(
 }
 
 /// POST v1/notes/{notesId}/permissions:batchDelete
-/// Deletes one or more permissions on the note. The specified entities will immediately lose access. A permission with the OWNER role can't be removed. If removing a permission fails, then the entire request fails and no changes are made. Returns a 400 bad request error if a specified permission does not exist on the note.
+/// Deletes one or more permissions on the note. The specified entities will immediately lose access. A permission with the OWNER role can''t be removed. If removing a permission fails, then the entire request fails and no changes are made. Returns a 400 bad request error if a specified permission does not exist on the note.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -1148,7 +1148,7 @@ pub struct KeepNotesPermissionsBatchDeleteArgs {
 }
 
 /// POST v1/notes/{notesId}/permissions:batchDelete
-/// Deletes one or more permissions on the note. The specified entities will immediately lose access. A permission with the OWNER role can't be removed. If removing a permission fails, then the entire request fails and no changes are made. Returns a 400 bad request error if a specified permission does not exist on the note.
+/// Deletes one or more permissions on the note. The specified entities will immediately lose access. A permission with the OWNER role can''t be removed. If removing a permission fails, then the entire request fails and no changes are made. Returns a 400 bad request error if a specified permission does not exist on the note.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `keep_notes_permissions_batch_delete_builder()` + `keep_notes_permissions_batch_delete_execute()`.

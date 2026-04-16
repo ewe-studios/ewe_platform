@@ -742,7 +742,7 @@ pub fn container_projects_locations_clusters_complete_ip_rotation(
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/clusters
-/// Creates a cluster, consisting of the specified number and type of Google Compute Engine instances. By default, the cluster is created in the project's [default network](<https://cloud.google.`com/compute/docs/networks-and-firewalls`#networks>). One firewall is added for the cluster. After cluster creation, the kubelet creates routes for each node to allow the containers on that node to communicate with all other instances in the cluster. Finally, an entry is added to the project's global metadata indicating which CIDR range the cluster is using.
+/// Creates a cluster, consisting of the specified number and type of Google Compute Engine instances. By default, the cluster is created in the project''s [default network](<https://cloud.google.`com/compute/docs/networks-and-firewalls`#networks>). One firewall is added for the cluster. After cluster creation, the kubelet creates routes for each node to allow the containers on that node to communicate with all other instances in the cluster. Finally, an entry is added to the project''s global metadata indicating which CIDR range the cluster is using.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `container_projects_locations_clusters_create_execute()` to send, or `container_projects_locations_clusters_create` for simplest API.
@@ -769,7 +769,7 @@ where
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/clusters
-/// Creates a cluster, consisting of the specified number and type of Google Compute Engine instances. By default, the cluster is created in the project's [default network](<https://cloud.google.`com/compute/docs/networks-and-firewalls`#networks>). One firewall is added for the cluster. After cluster creation, the kubelet creates routes for each node to allow the containers on that node to communicate with all other instances in the cluster. Finally, an entry is added to the project's global metadata indicating which CIDR range the cluster is using.
+/// Creates a cluster, consisting of the specified number and type of Google Compute Engine instances. By default, the cluster is created in the project''s [default network](<https://cloud.google.`com/compute/docs/networks-and-firewalls`#networks>). One firewall is added for the cluster. After cluster creation, the kubelet creates routes for each node to allow the containers on that node to communicate with all other instances in the cluster. Finally, an entry is added to the project''s global metadata indicating which CIDR range the cluster is using.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -843,7 +843,7 @@ pub fn container_projects_locations_clusters_create_task(
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/clusters
-/// Creates a cluster, consisting of the specified number and type of Google Compute Engine instances. By default, the cluster is created in the project's [default network](<https://cloud.google.`com/compute/docs/networks-and-firewalls`#networks>). One firewall is added for the cluster. After cluster creation, the kubelet creates routes for each node to allow the containers on that node to communicate with all other instances in the cluster. Finally, an entry is added to the project's global metadata indicating which CIDR range the cluster is using.
+/// Creates a cluster, consisting of the specified number and type of Google Compute Engine instances. By default, the cluster is created in the project''s [default network](<https://cloud.google.`com/compute/docs/networks-and-firewalls`#networks>). One firewall is added for the cluster. After cluster creation, the kubelet creates routes for each node to allow the containers on that node to communicate with all other instances in the cluster. Finally, an entry is added to the project''s global metadata indicating which CIDR range the cluster is using.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -880,7 +880,7 @@ pub struct ContainerProjectsLocationsClustersCreateArgs {
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/clusters
-/// Creates a cluster, consisting of the specified number and type of Google Compute Engine instances. By default, the cluster is created in the project's [default network](<https://cloud.google.`com/compute/docs/networks-and-firewalls`#networks>). One firewall is added for the cluster. After cluster creation, the kubelet creates routes for each node to allow the containers on that node to communicate with all other instances in the cluster. Finally, an entry is added to the project's global metadata indicating which CIDR range the cluster is using.
+/// Creates a cluster, consisting of the specified number and type of Google Compute Engine instances. By default, the cluster is created in the project''s [default network](<https://cloud.google.`com/compute/docs/networks-and-firewalls`#networks>). One firewall is added for the cluster. After cluster creation, the kubelet creates routes for each node to allow the containers on that node to communicate with all other instances in the cluster. Finally, an entry is added to the project''s global metadata indicating which CIDR range the cluster is using.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `container_projects_locations_clusters_create_builder()` + `container_projects_locations_clusters_create_execute()`.
@@ -902,7 +902,7 @@ pub fn container_projects_locations_clusters_create(
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}
-/// Deletes the cluster, including the Kubernetes endpoint and all worker nodes. Firewalls and routes that were configured during cluster creation are also deleted. Other Google Compute Engine resources that might be in use by the cluster, such as load balancer resources, are not deleted if they weren't present when the cluster was initially created.
+/// Deletes the cluster, including the Kubernetes endpoint and all worker nodes. Firewalls and routes that were configured during cluster creation are also deleted. Other Google Compute Engine resources that might be in use by the cluster, such as load balancer resources, are not deleted if they weren''t present when the cluster was initially created.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `container_projects_locations_clusters_delete_execute()` to send, or `container_projects_locations_clusters_delete` for simplest API.
@@ -949,7 +949,7 @@ where
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}
-/// Deletes the cluster, including the Kubernetes endpoint and all worker nodes. Firewalls and routes that were configured during cluster creation are also deleted. Other Google Compute Engine resources that might be in use by the cluster, such as load balancer resources, are not deleted if they weren't present when the cluster was initially created.
+/// Deletes the cluster, including the Kubernetes endpoint and all worker nodes. Firewalls and routes that were configured during cluster creation are also deleted. Other Google Compute Engine resources that might be in use by the cluster, such as load balancer resources, are not deleted if they weren''t present when the cluster was initially created.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -1023,7 +1023,7 @@ pub fn container_projects_locations_clusters_delete_task(
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}
-/// Deletes the cluster, including the Kubernetes endpoint and all worker nodes. Firewalls and routes that were configured during cluster creation are also deleted. Other Google Compute Engine resources that might be in use by the cluster, such as load balancer resources, are not deleted if they weren't present when the cluster was initially created.
+/// Deletes the cluster, including the Kubernetes endpoint and all worker nodes. Firewalls and routes that were configured during cluster creation are also deleted. Other Google Compute Engine resources that might be in use by the cluster, such as load balancer resources, are not deleted if they weren''t present when the cluster was initially created.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -1066,7 +1066,7 @@ pub struct ContainerProjectsLocationsClustersDeleteArgs {
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}
-/// Deletes the cluster, including the Kubernetes endpoint and all worker nodes. Firewalls and routes that were configured during cluster creation are also deleted. Other Google Compute Engine resources that might be in use by the cluster, such as load balancer resources, are not deleted if they weren't present when the cluster was initially created.
+/// Deletes the cluster, including the Kubernetes endpoint and all worker nodes. Firewalls and routes that were configured during cluster creation are also deleted. Other Google Compute Engine resources that might be in use by the cluster, such as load balancer resources, are not deleted if they weren''t present when the cluster was initially created.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `container_projects_locations_clusters_delete_builder()` + `container_projects_locations_clusters_delete_execute()`.
@@ -6894,7 +6894,7 @@ pub fn container_projects_zones_clusters_complete_ip_rotation(
 }
 
 /// POST v1/projects/{projectId}/zones/{zone}/clusters
-/// Creates a cluster, consisting of the specified number and type of Google Compute Engine instances. By default, the cluster is created in the project's [default network](<https://cloud.google.`com/compute/docs/networks-and-firewalls`#networks>). One firewall is added for the cluster. After cluster creation, the kubelet creates routes for each node to allow the containers on that node to communicate with all other instances in the cluster. Finally, an entry is added to the project's global metadata indicating which CIDR range the cluster is using.
+/// Creates a cluster, consisting of the specified number and type of Google Compute Engine instances. By default, the cluster is created in the project''s [default network](<https://cloud.google.`com/compute/docs/networks-and-firewalls`#networks>). One firewall is added for the cluster. After cluster creation, the kubelet creates routes for each node to allow the containers on that node to communicate with all other instances in the cluster. Finally, an entry is added to the project''s global metadata indicating which CIDR range the cluster is using.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `container_projects_zones_clusters_create_execute()` to send, or `container_projects_zones_clusters_create` for simplest API.
@@ -6922,7 +6922,7 @@ where
 }
 
 /// POST v1/projects/{projectId}/zones/{zone}/clusters
-/// Creates a cluster, consisting of the specified number and type of Google Compute Engine instances. By default, the cluster is created in the project's [default network](<https://cloud.google.`com/compute/docs/networks-and-firewalls`#networks>). One firewall is added for the cluster. After cluster creation, the kubelet creates routes for each node to allow the containers on that node to communicate with all other instances in the cluster. Finally, an entry is added to the project's global metadata indicating which CIDR range the cluster is using.
+/// Creates a cluster, consisting of the specified number and type of Google Compute Engine instances. By default, the cluster is created in the project''s [default network](<https://cloud.google.`com/compute/docs/networks-and-firewalls`#networks>). One firewall is added for the cluster. After cluster creation, the kubelet creates routes for each node to allow the containers on that node to communicate with all other instances in the cluster. Finally, an entry is added to the project''s global metadata indicating which CIDR range the cluster is using.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -6996,7 +6996,7 @@ pub fn container_projects_zones_clusters_create_task(
 }
 
 /// POST v1/projects/{projectId}/zones/{zone}/clusters
-/// Creates a cluster, consisting of the specified number and type of Google Compute Engine instances. By default, the cluster is created in the project's [default network](<https://cloud.google.`com/compute/docs/networks-and-firewalls`#networks>). One firewall is added for the cluster. After cluster creation, the kubelet creates routes for each node to allow the containers on that node to communicate with all other instances in the cluster. Finally, an entry is added to the project's global metadata indicating which CIDR range the cluster is using.
+/// Creates a cluster, consisting of the specified number and type of Google Compute Engine instances. By default, the cluster is created in the project''s [default network](<https://cloud.google.`com/compute/docs/networks-and-firewalls`#networks>). One firewall is added for the cluster. After cluster creation, the kubelet creates routes for each node to allow the containers on that node to communicate with all other instances in the cluster. Finally, an entry is added to the project''s global metadata indicating which CIDR range the cluster is using.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -7035,7 +7035,7 @@ pub struct ContainerProjectsZonesClustersCreateArgs {
 }
 
 /// POST v1/projects/{projectId}/zones/{zone}/clusters
-/// Creates a cluster, consisting of the specified number and type of Google Compute Engine instances. By default, the cluster is created in the project's [default network](<https://cloud.google.`com/compute/docs/networks-and-firewalls`#networks>). One firewall is added for the cluster. After cluster creation, the kubelet creates routes for each node to allow the containers on that node to communicate with all other instances in the cluster. Finally, an entry is added to the project's global metadata indicating which CIDR range the cluster is using.
+/// Creates a cluster, consisting of the specified number and type of Google Compute Engine instances. By default, the cluster is created in the project''s [default network](<https://cloud.google.`com/compute/docs/networks-and-firewalls`#networks>). One firewall is added for the cluster. After cluster creation, the kubelet creates routes for each node to allow the containers on that node to communicate with all other instances in the cluster. Finally, an entry is added to the project''s global metadata indicating which CIDR range the cluster is using.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `container_projects_zones_clusters_create_builder()` + `container_projects_zones_clusters_create_execute()`.
@@ -7058,7 +7058,7 @@ pub fn container_projects_zones_clusters_create(
 }
 
 /// DELETE v1/projects/{projectId}/zones/{zone}/clusters/{clusterId}
-/// Deletes the cluster, including the Kubernetes endpoint and all worker nodes. Firewalls and routes that were configured during cluster creation are also deleted. Other Google Compute Engine resources that might be in use by the cluster, such as load balancer resources, are not deleted if they weren't present when the cluster was initially created.
+/// Deletes the cluster, including the Kubernetes endpoint and all worker nodes. Firewalls and routes that were configured during cluster creation are also deleted. Other Google Compute Engine resources that might be in use by the cluster, such as load balancer resources, are not deleted if they weren''t present when the cluster was initially created.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `container_projects_zones_clusters_delete_execute()` to send, or `container_projects_zones_clusters_delete` for simplest API.
@@ -7099,7 +7099,7 @@ where
 }
 
 /// DELETE v1/projects/{projectId}/zones/{zone}/clusters/{clusterId}
-/// Deletes the cluster, including the Kubernetes endpoint and all worker nodes. Firewalls and routes that were configured during cluster creation are also deleted. Other Google Compute Engine resources that might be in use by the cluster, such as load balancer resources, are not deleted if they weren't present when the cluster was initially created.
+/// Deletes the cluster, including the Kubernetes endpoint and all worker nodes. Firewalls and routes that were configured during cluster creation are also deleted. Other Google Compute Engine resources that might be in use by the cluster, such as load balancer resources, are not deleted if they weren''t present when the cluster was initially created.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -7173,7 +7173,7 @@ pub fn container_projects_zones_clusters_delete_task(
 }
 
 /// DELETE v1/projects/{projectId}/zones/{zone}/clusters/{clusterId}
-/// Deletes the cluster, including the Kubernetes endpoint and all worker nodes. Firewalls and routes that were configured during cluster creation are also deleted. Other Google Compute Engine resources that might be in use by the cluster, such as load balancer resources, are not deleted if they weren't present when the cluster was initially created.
+/// Deletes the cluster, including the Kubernetes endpoint and all worker nodes. Firewalls and routes that were configured during cluster creation are also deleted. Other Google Compute Engine resources that might be in use by the cluster, such as load balancer resources, are not deleted if they weren''t present when the cluster was initially created.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -7216,7 +7216,7 @@ pub struct ContainerProjectsZonesClustersDeleteArgs {
 }
 
 /// DELETE v1/projects/{projectId}/zones/{zone}/clusters/{clusterId}
-/// Deletes the cluster, including the Kubernetes endpoint and all worker nodes. Firewalls and routes that were configured during cluster creation are also deleted. Other Google Compute Engine resources that might be in use by the cluster, such as load balancer resources, are not deleted if they weren't present when the cluster was initially created.
+/// Deletes the cluster, including the Kubernetes endpoint and all worker nodes. Firewalls and routes that were configured during cluster creation are also deleted. Other Google Compute Engine resources that might be in use by the cluster, such as load balancer resources, are not deleted if they weren''t present when the cluster was initially created.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `container_projects_zones_clusters_delete_builder()` + `container_projects_zones_clusters_delete_execute()`.

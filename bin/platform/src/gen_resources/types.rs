@@ -11,7 +11,6 @@
 //! - API-level: `gcp_compute`, `gcp_run`, etc. in each {api}.rs file
 //! - Dependencies: Cross-API type references tracked and both flags included
 
-use regex::Regex;
 use std::borrow::Cow;
 use std::collections::{BTreeSet, HashMap};
 use std::fmt::Write;
@@ -22,7 +21,11 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
 // Import from foundation_openapi to avoid duplication
-use foundation_openapi::spec::Schema;
+use foundation_openapi::{
+    spec::Schema,
+    to_pascal_case, to_snake_case, sanitize_field_name,
+    sanitize_doc_comment,
+};
 
 /// Endpoint info for codegen - simplified from foundation_openapi::EndpointInfo.
 #[derive(Debug, Clone)]
@@ -148,52 +151,6 @@ fn write_fmt_error(_e: std::fmt::Error) -> GenResourceError {
         path: "generated mod.rs".to_string(),
         source: std::io::Error::other("fmt error"),
     }
-}
-
-/// Sanitize a description string for use as a rustdoc comment.
-///
-/// This function:
-/// 1. Converts HTML tags like `<code>` to backticks
-/// 2. Wraps code-like patterns in backticks (paths, types, values)
-/// 3. Converts bare URLs to angle-bracket links
-/// 4. Escapes stray angle brackets not in URLs or backticks
-/// 5. Truncates to first line for field-level comments (if `first_line_only` is true)
-fn sanitize_doc_comment(description: &str, first_line_only: bool) -> String {
-    if description.is_empty() {
-        return String::new();
-    }
-
-    let mut result = description.to_string();
-
-    // 1. Strip ALL backticks to avoid issues with rustdoc parsing
-    // We don't re-add backticks because unbalanced backticks or backticks
-    // containing special characters (like single quotes) break rustdoc
-    result = result.replace('`', "");
-
-    // 2. Escape single quotes to prevent them being interpreted as character literals
-    // This is necessary for examples like: timestamp('2020-10-01T00:00:00Z')
-    result = result.replace('\'', "''");
-
-    // 3. Escape angle brackets using HTML entities to prevent them being
-    // interpreted as generics in rustdoc
-    result = result.replace('<', "&lt;").replace('>', "&gt;");
-
-    // 4. Convert HTML <code> tags to plain text (no backticks)
-    let code_tag_re = Regex::new(r"<code>([^<]+)</code>").unwrap();
-    result = code_tag_re.replace_all(&result, "$1").to_string();
-
-    // 5. Remove other HTML tags but keep content
-    let html_tag_re = Regex::new(r"</?[^>]+>").unwrap();
-    result = html_tag_re.replace_all(&result, "").to_string();
-
-    // 6. For field comments, use only first line
-    if first_line_only {
-        if let Some(first) = result.lines().next() {
-            result = first.to_string();
-        }
-    }
-
-    result
 }
 
 // ---------------------------------------------------------------------------
@@ -595,7 +552,7 @@ impl ResourceGenerator {
             }
         }
 
-        let rust_name = self.to_pascal_case(schema_name);
+        let rust_name = to_pascal_case(schema_name);
         // Rename types that conflict with Rust built-ins and keywords
         let rust_name = match rust_name.as_str() {
             "Option" => "ApiOption".to_string(),
@@ -615,7 +572,7 @@ impl ResourceGenerator {
         let mut fields = Vec::new();
         let mut seen_field_names: std::collections::HashSet<String> = std::collections::HashSet::new();
         for (field_name, field_schema) in properties {
-            let snake_case_name = self.to_snake_case(&field_name);
+            let snake_case_name = sanitize_field_name(&field_name);
 
             // Skip duplicate fields (same snake_case name)
             if seen_field_names.contains(&snake_case_name) {
@@ -732,7 +689,7 @@ impl ResourceGenerator {
         // Also handle GCP Discovery refs like "#/schemas/Foo"
         let ref_name = ref_name.trim_start_matches("#/schemas/");
         if object_schemas.contains(ref_name) {
-            let ty = self.to_pascal_case(ref_name);
+            let ty = to_pascal_case(ref_name);
             // Rename types that conflict with Rust built-ins
             match ty.as_str() {
                 "Option" => "ApiOption".to_string(),
@@ -749,96 +706,6 @@ impl ResourceGenerator {
             }
         } else {
             "serde_json::Value".to_string()
-        }
-    }
-
-    /// Convert OpenAPI identifier to snake_case Rust field name.
-    fn to_snake_case(&self, name: &str) -> String {
-        // Split on non-alphanumeric, camelCase boundaries, and underscores
-        let mut parts = Vec::new();
-        let mut current = String::new();
-
-        let chars: Vec<char> = name.chars().collect();
-        for i in 0..chars.len() {
-            let c = chars[i];
-            if !c.is_alphanumeric() {
-                // Non-alphanumeric = word boundary
-                if !current.is_empty() {
-                    parts.push(current.clone());
-                    current.clear();
-                }
-            } else if c.is_uppercase() {
-                // camelCase boundary: start new word on uppercase
-                if !current.is_empty() {
-                    // Check if this is an acronym (e.g., "URL" in "getURLPath")
-                    let next_is_lower = i + 1 < chars.len() && chars[i + 1].is_lowercase();
-                    if next_is_lower || current.chars().last().is_some_and(|p| p.is_lowercase()) {
-                        parts.push(current.clone());
-                        current.clear();
-                    }
-                }
-                current.push(c.to_ascii_lowercase());
-            } else {
-                current.push(c.to_ascii_lowercase());
-            }
-        }
-        if !current.is_empty() {
-            parts.push(current);
-        }
-
-        let result = parts.join("_");
-
-        // Handle Rust keywords and numeric starting characters
-        let escaped = Self::escape_keyword(&result);
-
-        // Prepend "field_" if starts with digit (more semantic than just "_")
-        // e.g., "1" -> "field_1", "24" -> "field_24"
-        if escaped.chars().next().is_some_and(|c| c.is_ascii_digit()) {
-            format!("field_{}", escaped)
-        } else {
-            escaped
-        }
-    }
-
-    /// Convert OpenAPI identifier to PascalCase Rust type name.
-    fn to_pascal_case(&self, name: &str) -> String {
-        // First get snake_case parts
-        let snake = self.to_snake_case(name);
-        let pascal: String = snake
-            .split('_')
-            .filter(|s| !s.is_empty())
-            .map(|part| {
-                let mut chars = part.chars();
-                match chars.next() {
-                    Some(first) => {
-                        let upper: String = first.to_uppercase().collect();
-                        upper + chars.as_str()
-                    }
-                    None => String::new(),
-                }
-            })
-            .collect();
-
-        if pascal.is_empty() {
-            "Unknown".to_string()
-        } else {
-            pascal
-        }
-    }
-
-    /// Escape Rust keywords by appending underscore.
-    fn escape_keyword(name: &str) -> String {
-        match name {
-            // Strict keywords
-            "as" | "break" | "const" | "continue" | "crate" | "else" | "enum" | "extern"
-            | "false" | "fn" | "for" | "if" | "impl" | "in" | "let" | "loop" | "match"
-            | "mod" | "move" | "mut" | "pub" | "ref" | "return" | "self" | "Self"
-            | "static" | "struct" | "super" | "trait" | "true" | "type" | "unsafe"
-            | "use" | "where" | "while" | "async" | "await" | "dyn"
-            // Reserved/weak keywords
-            | "abstract" | "become" | "box" | "do" | "final" | "macro" | "override" | "priv"
-            | "typeof" | "unsized" | "virtual" | "yield" => format!("{name}_"),
-            _ => name.to_string(),
         }
     }
 
@@ -953,7 +820,7 @@ impl ResourceGenerator {
             generated_count += 1;
 
             // Generate Args type name from operation_id
-            let args_type = format!("{}Args", self.to_pascal_case(&endpoint.operation_id));
+            let args_type = format!("{}Args", to_pascal_case(&endpoint.operation_id));
 
             // Build resource kind: e.g., "prisma_postgres::ComputeservicesGetResponse"
             let resource_kind = format!("{}::{}", provider_prefix, response_type);
@@ -975,7 +842,7 @@ impl ResourceGenerator {
                 }
                 write!(out, "\"")?;
                 for param in &endpoint.path_params {
-                    let param_name = self.to_snake_case(param);
+                    let param_name = to_snake_case(param);
                     write!(out, ", input.{}", param_name)?;
                 }
                 writeln!(out, ")")?;

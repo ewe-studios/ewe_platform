@@ -48,5 +48,8 @@ pub use api_catalog::{
     ApiCatalog, ApiInfo, ApiCatalogBuilder,
     discover_providers, has_sub_apis,
     to_pascal_case, to_snake_case, to_sentence_case,
+    sanitize_identifier, path_to_fn_suffix, operation_id_to_fn_name,
+    escape_rust_keyword, escape_rust_keyword_with_underscore,
+    sanitize_field_name, to_pascal_case_from_any, sanitize_doc_comment,
 };
 pub use classifier::OperationTypeClassifier;

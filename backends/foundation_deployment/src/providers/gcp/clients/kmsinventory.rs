@@ -433,7 +433,7 @@ pub fn kmsinventory_projects_crypto_keys_list(
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/keyRings/{keyRingsId}/cryptoKeys/{cryptoKeysId}/protectedResourcesSummary
-/// Returns aggregate information about the resources protected by the given Cloud KMS CryptoKey. By default, summary of resources within the same Cloud organization as the key will be returned, which requires the KMS organization service account to be configured(refer <https://docs.cloud.google.`com/kms/docs/view-key-usage`#required-roles>). If the KMS organization service account is not configured or key's project is not part of an organization, set fallback_scope to FALLBACK_SCOPE_PROJECT to retrieve a summary of protected resources within the key's project.
+/// Returns aggregate information about the resources protected by the given Cloud KMS CryptoKey. By default, summary of resources within the same Cloud organization as the key will be returned, which requires the KMS organization service account to be configured(refer <https://docs.cloud.google.`com/kms/docs/view-key-usage`#required-roles>). If the KMS organization service account is not configured or key''s project is not part of an organization, set fallback_scope to FALLBACK_SCOPE_PROJECT to retrieve a summary of protected resources within the key''s project.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `kmsinventory_projects_locations_key_rings_crypto_keys_get_protected_resources_summary_execute()` to send, or `kmsinventory_projects_locations_key_rings_crypto_keys_get_protected_resources_summary` for simplest API.
@@ -474,7 +474,7 @@ where
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/keyRings/{keyRingsId}/cryptoKeys/{cryptoKeysId}/protectedResourcesSummary
-/// Returns aggregate information about the resources protected by the given Cloud KMS CryptoKey. By default, summary of resources within the same Cloud organization as the key will be returned, which requires the KMS organization service account to be configured(refer <https://docs.cloud.google.`com/kms/docs/view-key-usage`#required-roles>). If the KMS organization service account is not configured or key's project is not part of an organization, set fallback_scope to FALLBACK_SCOPE_PROJECT to retrieve a summary of protected resources within the key's project.
+/// Returns aggregate information about the resources protected by the given Cloud KMS CryptoKey. By default, summary of resources within the same Cloud organization as the key will be returned, which requires the KMS organization service account to be configured(refer <https://docs.cloud.google.`com/kms/docs/view-key-usage`#required-roles>). If the KMS organization service account is not configured or key''s project is not part of an organization, set fallback_scope to FALLBACK_SCOPE_PROJECT to retrieve a summary of protected resources within the key''s project.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -552,7 +552,7 @@ pub fn kmsinventory_projects_locations_key_rings_crypto_keys_get_protected_resou
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/keyRings/{keyRingsId}/cryptoKeys/{cryptoKeysId}/protectedResourcesSummary
-/// Returns aggregate information about the resources protected by the given Cloud KMS CryptoKey. By default, summary of resources within the same Cloud organization as the key will be returned, which requires the KMS organization service account to be configured(refer <https://docs.cloud.google.`com/kms/docs/view-key-usage`#required-roles>). If the KMS organization service account is not configured or key's project is not part of an organization, set fallback_scope to FALLBACK_SCOPE_PROJECT to retrieve a summary of protected resources within the key's project.
+/// Returns aggregate information about the resources protected by the given Cloud KMS CryptoKey. By default, summary of resources within the same Cloud organization as the key will be returned, which requires the KMS organization service account to be configured(refer <https://docs.cloud.google.`com/kms/docs/view-key-usage`#required-roles>). If the KMS organization service account is not configured or key''s project is not part of an organization, set fallback_scope to FALLBACK_SCOPE_PROJECT to retrieve a summary of protected resources within the key''s project.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -598,7 +598,7 @@ pub struct KmsinventoryProjectsLocationsKeyRingsCryptoKeysGetProtectedResourcesS
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/keyRings/{keyRingsId}/cryptoKeys/{cryptoKeysId}/protectedResourcesSummary
-/// Returns aggregate information about the resources protected by the given Cloud KMS CryptoKey. By default, summary of resources within the same Cloud organization as the key will be returned, which requires the KMS organization service account to be configured(refer <https://docs.cloud.google.`com/kms/docs/view-key-usage`#required-roles>). If the KMS organization service account is not configured or key's project is not part of an organization, set fallback_scope to FALLBACK_SCOPE_PROJECT to retrieve a summary of protected resources within the key's project.
+/// Returns aggregate information about the resources protected by the given Cloud KMS CryptoKey. By default, summary of resources within the same Cloud organization as the key will be returned, which requires the KMS organization service account to be configured(refer <https://docs.cloud.google.`com/kms/docs/view-key-usage`#required-roles>). If the KMS organization service account is not configured or key''s project is not part of an organization, set fallback_scope to FALLBACK_SCOPE_PROJECT to retrieve a summary of protected resources within the key''s project.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `kmsinventory_projects_locations_key_rings_crypto_keys_get_protected_resources_summary_builder()` + `kmsinventory_projects_locations_key_rings_crypto_keys_get_protected_resources_summary_execute()`.

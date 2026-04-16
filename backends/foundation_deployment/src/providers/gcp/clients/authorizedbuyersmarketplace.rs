@@ -436,7 +436,7 @@ pub fn authorizedbuyersmarketplace_bidders_finalized_deals_list(
 }
 
 /// POST v1/bidders/{biddersId}/finalizedDeals/{finalizedDealsId}:setReadyToServe
-/// Sets the given finalized deal as ready to serve. By default, deals are set as ready to serve as soon as they're finalized. If you want to opt out of the default behavior, and manually indicate that deals are ready to serve, ask your Technical Account Manager to add you to the allowlist. If you choose to use this method, finalized deals belonging to the bidder and its child seats don't start serving until after you call `setReadyToServe`, and after the deals become active. For example, you can use this method to delay receiving bid requests until your creative is ready. In addition, bidders can use the URL path "/v1/`bidders/{`accountId`}/`finalizedDeals`/{`dealId`}`" to set ready to serve for the finalized deals belong to itself, its child seats and all their clients. This method only applies to programmatic guaranteed deals.
+/// Sets the given finalized deal as ready to serve. By default, deals are set as ready to serve as soon as they''re finalized. If you want to opt out of the default behavior, and manually indicate that deals are ready to serve, ask your Technical Account Manager to add you to the allowlist. If you choose to use this method, finalized deals belonging to the bidder and its child seats don''t start serving until after you call `setReadyToServe`, and after the deals become active. For example, you can use this method to delay receiving bid requests until your creative is ready. In addition, bidders can use the URL path "/v1/`bidders/{`accountId`}/`finalizedDeals`/{`dealId`}`" to set ready to serve for the finalized deals belong to itself, its child seats and all their clients. This method only applies to programmatic guaranteed deals.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `authorizedbuyersmarketplace_bidders_finalized_deals_set_ready_to_serve_execute()` to send, or `authorizedbuyersmarketplace_bidders_finalized_deals_set_ready_to_serve` for simplest API.
@@ -463,7 +463,7 @@ where
 }
 
 /// POST v1/bidders/{biddersId}/finalizedDeals/{finalizedDealsId}:setReadyToServe
-/// Sets the given finalized deal as ready to serve. By default, deals are set as ready to serve as soon as they're finalized. If you want to opt out of the default behavior, and manually indicate that deals are ready to serve, ask your Technical Account Manager to add you to the allowlist. If you choose to use this method, finalized deals belonging to the bidder and its child seats don't start serving until after you call `setReadyToServe`, and after the deals become active. For example, you can use this method to delay receiving bid requests until your creative is ready. In addition, bidders can use the URL path "/v1/`bidders/{`accountId`}/`finalizedDeals`/{`dealId`}`" to set ready to serve for the finalized deals belong to itself, its child seats and all their clients. This method only applies to programmatic guaranteed deals.
+/// Sets the given finalized deal as ready to serve. By default, deals are set as ready to serve as soon as they''re finalized. If you want to opt out of the default behavior, and manually indicate that deals are ready to serve, ask your Technical Account Manager to add you to the allowlist. If you choose to use this method, finalized deals belonging to the bidder and its child seats don''t start serving until after you call `setReadyToServe`, and after the deals become active. For example, you can use this method to delay receiving bid requests until your creative is ready. In addition, bidders can use the URL path "/v1/`bidders/{`accountId`}/`finalizedDeals`/{`dealId`}`" to set ready to serve for the finalized deals belong to itself, its child seats and all their clients. This method only applies to programmatic guaranteed deals.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -537,7 +537,7 @@ pub fn authorizedbuyersmarketplace_bidders_finalized_deals_set_ready_to_serve_ta
 }
 
 /// POST v1/bidders/{biddersId}/finalizedDeals/{finalizedDealsId}:setReadyToServe
-/// Sets the given finalized deal as ready to serve. By default, deals are set as ready to serve as soon as they're finalized. If you want to opt out of the default behavior, and manually indicate that deals are ready to serve, ask your Technical Account Manager to add you to the allowlist. If you choose to use this method, finalized deals belonging to the bidder and its child seats don't start serving until after you call `setReadyToServe`, and after the deals become active. For example, you can use this method to delay receiving bid requests until your creative is ready. In addition, bidders can use the URL path "/v1/`bidders/{`accountId`}/`finalizedDeals`/{`dealId`}`" to set ready to serve for the finalized deals belong to itself, its child seats and all their clients. This method only applies to programmatic guaranteed deals.
+/// Sets the given finalized deal as ready to serve. By default, deals are set as ready to serve as soon as they''re finalized. If you want to opt out of the default behavior, and manually indicate that deals are ready to serve, ask your Technical Account Manager to add you to the allowlist. If you choose to use this method, finalized deals belonging to the bidder and its child seats don''t start serving until after you call `setReadyToServe`, and after the deals become active. For example, you can use this method to delay receiving bid requests until your creative is ready. In addition, bidders can use the URL path "/v1/`bidders/{`accountId`}/`finalizedDeals`/{`dealId`}`" to set ready to serve for the finalized deals belong to itself, its child seats and all their clients. This method only applies to programmatic guaranteed deals.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -577,7 +577,7 @@ pub struct AuthorizedbuyersmarketplaceBiddersFinalizedDealsSetReadyToServeArgs {
 }
 
 /// POST v1/bidders/{biddersId}/finalizedDeals/{finalizedDealsId}:setReadyToServe
-/// Sets the given finalized deal as ready to serve. By default, deals are set as ready to serve as soon as they're finalized. If you want to opt out of the default behavior, and manually indicate that deals are ready to serve, ask your Technical Account Manager to add you to the allowlist. If you choose to use this method, finalized deals belonging to the bidder and its child seats don't start serving until after you call `setReadyToServe`, and after the deals become active. For example, you can use this method to delay receiving bid requests until your creative is ready. In addition, bidders can use the URL path "/v1/`bidders/{`accountId`}/`finalizedDeals`/{`dealId`}`" to set ready to serve for the finalized deals belong to itself, its child seats and all their clients. This method only applies to programmatic guaranteed deals.
+/// Sets the given finalized deal as ready to serve. By default, deals are set as ready to serve as soon as they''re finalized. If you want to opt out of the default behavior, and manually indicate that deals are ready to serve, ask your Technical Account Manager to add you to the allowlist. If you choose to use this method, finalized deals belonging to the bidder and its child seats don''t start serving until after you call `setReadyToServe`, and after the deals become active. For example, you can use this method to delay receiving bid requests until your creative is ready. In addition, bidders can use the URL path "/v1/`bidders/{`accountId`}/`finalizedDeals`/{`dealId`}`" to set ready to serve for the finalized deals belong to itself, its child seats and all their clients. This method only applies to programmatic guaranteed deals.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `authorizedbuyersmarketplace_bidders_finalized_deals_set_ready_to_serve_builder()` + `authorizedbuyersmarketplace_bidders_finalized_deals_set_ready_to_serve_execute()`.
@@ -3139,7 +3139,7 @@ pub fn authorizedbuyersmarketplace_buyers_clients_users_deactivate(
 }
 
 /// DELETE v1/buyers/{buyersId}/clients/{clientsId}/users/{usersId}
-/// Deletes an existing client user. The client user will lose access to the Authorized Buyers UI. Note that if a client user is deleted, the user's access to the UI can't be restored unless a new client user is created and activated.
+/// Deletes an existing client user. The client user will lose access to the Authorized Buyers UI. Note that if a client user is deleted, the user''s access to the UI can''t be restored unless a new client user is created and activated.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `authorizedbuyersmarketplace_buyers_clients_users_delete_execute()` to send, or `authorizedbuyersmarketplace_buyers_clients_users_delete` for simplest API.
@@ -3166,7 +3166,7 @@ where
 }
 
 /// DELETE v1/buyers/{buyersId}/clients/{clientsId}/users/{usersId}
-/// Deletes an existing client user. The client user will lose access to the Authorized Buyers UI. Note that if a client user is deleted, the user's access to the UI can't be restored unless a new client user is created and activated.
+/// Deletes an existing client user. The client user will lose access to the Authorized Buyers UI. Note that if a client user is deleted, the user''s access to the UI can''t be restored unless a new client user is created and activated.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -3240,7 +3240,7 @@ pub fn authorizedbuyersmarketplace_buyers_clients_users_delete_task(
 }
 
 /// DELETE v1/buyers/{buyersId}/clients/{clientsId}/users/{usersId}
-/// Deletes an existing client user. The client user will lose access to the Authorized Buyers UI. Note that if a client user is deleted, the user's access to the UI can't be restored unless a new client user is created and activated.
+/// Deletes an existing client user. The client user will lose access to the Authorized Buyers UI. Note that if a client user is deleted, the user''s access to the UI can''t be restored unless a new client user is created and activated.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -3277,7 +3277,7 @@ pub struct AuthorizedbuyersmarketplaceBuyersClientsUsersDeleteArgs {
 }
 
 /// DELETE v1/buyers/{buyersId}/clients/{clientsId}/users/{usersId}
-/// Deletes an existing client user. The client user will lose access to the Authorized Buyers UI. Note that if a client user is deleted, the user's access to the UI can't be restored unless a new client user is created and activated.
+/// Deletes an existing client user. The client user will lose access to the Authorized Buyers UI. Note that if a client user is deleted, the user''s access to the UI can''t be restored unless a new client user is created and activated.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `authorizedbuyersmarketplace_buyers_clients_users_delete_builder()` + `authorizedbuyersmarketplace_buyers_clients_users_delete_execute()`.
@@ -3649,7 +3649,7 @@ pub fn authorizedbuyersmarketplace_buyers_clients_users_list(
 }
 
 /// POST v1/buyers/{buyersId}/finalizedDeals/{finalizedDealsId}:addCreative
-/// Add creative to be used in the bidding process for a finalized deal. For programmatic guaranteed deals, it's recommended that you associate at least one approved creative with the deal before calling SetReadyToServe, to help reduce the number of bid responses filtered because they don't contain approved creatives. Creatives successfully added to a deal can be found in the Realtime-bidding Creatives API creative.deal_ids. This method only applies to programmatic guaranteed deals. Maximum number of 1000 creatives can be added to a finalized deal.
+/// Add creative to be used in the bidding process for a finalized deal. For programmatic guaranteed deals, it''s recommended that you associate at least one approved creative with the deal before calling SetReadyToServe, to help reduce the number of bid responses filtered because they don''t contain approved creatives. Creatives successfully added to a deal can be found in the Realtime-bidding Creatives API creative.deal_ids. This method only applies to programmatic guaranteed deals. Maximum number of 1000 creatives can be added to a finalized deal.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `authorizedbuyersmarketplace_buyers_finalized_deals_add_creative_execute()` to send, or `authorizedbuyersmarketplace_buyers_finalized_deals_add_creative` for simplest API.
@@ -3676,7 +3676,7 @@ where
 }
 
 /// POST v1/buyers/{buyersId}/finalizedDeals/{finalizedDealsId}:addCreative
-/// Add creative to be used in the bidding process for a finalized deal. For programmatic guaranteed deals, it's recommended that you associate at least one approved creative with the deal before calling SetReadyToServe, to help reduce the number of bid responses filtered because they don't contain approved creatives. Creatives successfully added to a deal can be found in the Realtime-bidding Creatives API creative.deal_ids. This method only applies to programmatic guaranteed deals. Maximum number of 1000 creatives can be added to a finalized deal.
+/// Add creative to be used in the bidding process for a finalized deal. For programmatic guaranteed deals, it''s recommended that you associate at least one approved creative with the deal before calling SetReadyToServe, to help reduce the number of bid responses filtered because they don''t contain approved creatives. Creatives successfully added to a deal can be found in the Realtime-bidding Creatives API creative.deal_ids. This method only applies to programmatic guaranteed deals. Maximum number of 1000 creatives can be added to a finalized deal.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -3750,7 +3750,7 @@ pub fn authorizedbuyersmarketplace_buyers_finalized_deals_add_creative_task(
 }
 
 /// POST v1/buyers/{buyersId}/finalizedDeals/{finalizedDealsId}:addCreative
-/// Add creative to be used in the bidding process for a finalized deal. For programmatic guaranteed deals, it's recommended that you associate at least one approved creative with the deal before calling SetReadyToServe, to help reduce the number of bid responses filtered because they don't contain approved creatives. Creatives successfully added to a deal can be found in the Realtime-bidding Creatives API creative.deal_ids. This method only applies to programmatic guaranteed deals. Maximum number of 1000 creatives can be added to a finalized deal.
+/// Add creative to be used in the bidding process for a finalized deal. For programmatic guaranteed deals, it''s recommended that you associate at least one approved creative with the deal before calling SetReadyToServe, to help reduce the number of bid responses filtered because they don''t contain approved creatives. Creatives successfully added to a deal can be found in the Realtime-bidding Creatives API creative.deal_ids. This method only applies to programmatic guaranteed deals. Maximum number of 1000 creatives can be added to a finalized deal.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -3789,7 +3789,7 @@ pub struct AuthorizedbuyersmarketplaceBuyersFinalizedDealsAddCreativeArgs {
 }
 
 /// POST v1/buyers/{buyersId}/finalizedDeals/{finalizedDealsId}:addCreative
-/// Add creative to be used in the bidding process for a finalized deal. For programmatic guaranteed deals, it's recommended that you associate at least one approved creative with the deal before calling SetReadyToServe, to help reduce the number of bid responses filtered because they don't contain approved creatives. Creatives successfully added to a deal can be found in the Realtime-bidding Creatives API creative.deal_ids. This method only applies to programmatic guaranteed deals. Maximum number of 1000 creatives can be added to a finalized deal.
+/// Add creative to be used in the bidding process for a finalized deal. For programmatic guaranteed deals, it''s recommended that you associate at least one approved creative with the deal before calling SetReadyToServe, to help reduce the number of bid responses filtered because they don''t contain approved creatives. Creatives successfully added to a deal can be found in the Realtime-bidding Creatives API creative.deal_ids. This method only applies to programmatic guaranteed deals. Maximum number of 1000 creatives can be added to a finalized deal.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `authorizedbuyersmarketplace_buyers_finalized_deals_add_creative_builder()` + `authorizedbuyersmarketplace_buyers_finalized_deals_add_creative_execute()`.
@@ -4517,7 +4517,7 @@ pub fn authorizedbuyersmarketplace_buyers_finalized_deals_resume(
 }
 
 /// POST v1/buyers/{buyersId}/finalizedDeals/{finalizedDealsId}:setReadyToServe
-/// Sets the given finalized deal as ready to serve. By default, deals are set as ready to serve as soon as they're finalized. If you want to opt out of the default behavior, and manually indicate that deals are ready to serve, ask your Technical Account Manager to add you to the allowlist. If you choose to use this method, finalized deals belonging to the bidder and its child seats don't start serving until after you call `setReadyToServe`, and after the deals become active. For example, you can use this method to delay receiving bid requests until your creative is ready. In addition, bidders can use the URL path "/v1/`bidders/{`accountId`}/`finalizedDeals`/{`dealId`}`" to set ready to serve for the finalized deals belong to itself, its child seats and all their clients. This method only applies to programmatic guaranteed deals.
+/// Sets the given finalized deal as ready to serve. By default, deals are set as ready to serve as soon as they''re finalized. If you want to opt out of the default behavior, and manually indicate that deals are ready to serve, ask your Technical Account Manager to add you to the allowlist. If you choose to use this method, finalized deals belonging to the bidder and its child seats don''t start serving until after you call `setReadyToServe`, and after the deals become active. For example, you can use this method to delay receiving bid requests until your creative is ready. In addition, bidders can use the URL path "/v1/`bidders/{`accountId`}/`finalizedDeals`/{`dealId`}`" to set ready to serve for the finalized deals belong to itself, its child seats and all their clients. This method only applies to programmatic guaranteed deals.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `authorizedbuyersmarketplace_buyers_finalized_deals_set_ready_to_serve_execute()` to send, or `authorizedbuyersmarketplace_buyers_finalized_deals_set_ready_to_serve` for simplest API.
@@ -4544,7 +4544,7 @@ where
 }
 
 /// POST v1/buyers/{buyersId}/finalizedDeals/{finalizedDealsId}:setReadyToServe
-/// Sets the given finalized deal as ready to serve. By default, deals are set as ready to serve as soon as they're finalized. If you want to opt out of the default behavior, and manually indicate that deals are ready to serve, ask your Technical Account Manager to add you to the allowlist. If you choose to use this method, finalized deals belonging to the bidder and its child seats don't start serving until after you call `setReadyToServe`, and after the deals become active. For example, you can use this method to delay receiving bid requests until your creative is ready. In addition, bidders can use the URL path "/v1/`bidders/{`accountId`}/`finalizedDeals`/{`dealId`}`" to set ready to serve for the finalized deals belong to itself, its child seats and all their clients. This method only applies to programmatic guaranteed deals.
+/// Sets the given finalized deal as ready to serve. By default, deals are set as ready to serve as soon as they''re finalized. If you want to opt out of the default behavior, and manually indicate that deals are ready to serve, ask your Technical Account Manager to add you to the allowlist. If you choose to use this method, finalized deals belonging to the bidder and its child seats don''t start serving until after you call `setReadyToServe`, and after the deals become active. For example, you can use this method to delay receiving bid requests until your creative is ready. In addition, bidders can use the URL path "/v1/`bidders/{`accountId`}/`finalizedDeals`/{`dealId`}`" to set ready to serve for the finalized deals belong to itself, its child seats and all their clients. This method only applies to programmatic guaranteed deals.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -4618,7 +4618,7 @@ pub fn authorizedbuyersmarketplace_buyers_finalized_deals_set_ready_to_serve_tas
 }
 
 /// POST v1/buyers/{buyersId}/finalizedDeals/{finalizedDealsId}:setReadyToServe
-/// Sets the given finalized deal as ready to serve. By default, deals are set as ready to serve as soon as they're finalized. If you want to opt out of the default behavior, and manually indicate that deals are ready to serve, ask your Technical Account Manager to add you to the allowlist. If you choose to use this method, finalized deals belonging to the bidder and its child seats don't start serving until after you call `setReadyToServe`, and after the deals become active. For example, you can use this method to delay receiving bid requests until your creative is ready. In addition, bidders can use the URL path "/v1/`bidders/{`accountId`}/`finalizedDeals`/{`dealId`}`" to set ready to serve for the finalized deals belong to itself, its child seats and all their clients. This method only applies to programmatic guaranteed deals.
+/// Sets the given finalized deal as ready to serve. By default, deals are set as ready to serve as soon as they''re finalized. If you want to opt out of the default behavior, and manually indicate that deals are ready to serve, ask your Technical Account Manager to add you to the allowlist. If you choose to use this method, finalized deals belonging to the bidder and its child seats don''t start serving until after you call `setReadyToServe`, and after the deals become active. For example, you can use this method to delay receiving bid requests until your creative is ready. In addition, bidders can use the URL path "/v1/`bidders/{`accountId`}/`finalizedDeals`/{`dealId`}`" to set ready to serve for the finalized deals belong to itself, its child seats and all their clients. This method only applies to programmatic guaranteed deals.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -4657,7 +4657,7 @@ pub struct AuthorizedbuyersmarketplaceBuyersFinalizedDealsSetReadyToServeArgs {
 }
 
 /// POST v1/buyers/{buyersId}/finalizedDeals/{finalizedDealsId}:setReadyToServe
-/// Sets the given finalized deal as ready to serve. By default, deals are set as ready to serve as soon as they're finalized. If you want to opt out of the default behavior, and manually indicate that deals are ready to serve, ask your Technical Account Manager to add you to the allowlist. If you choose to use this method, finalized deals belonging to the bidder and its child seats don't start serving until after you call `setReadyToServe`, and after the deals become active. For example, you can use this method to delay receiving bid requests until your creative is ready. In addition, bidders can use the URL path "/v1/`bidders/{`accountId`}/`finalizedDeals`/{`dealId`}`" to set ready to serve for the finalized deals belong to itself, its child seats and all their clients. This method only applies to programmatic guaranteed deals.
+/// Sets the given finalized deal as ready to serve. By default, deals are set as ready to serve as soon as they''re finalized. If you want to opt out of the default behavior, and manually indicate that deals are ready to serve, ask your Technical Account Manager to add you to the allowlist. If you choose to use this method, finalized deals belonging to the bidder and its child seats don''t start serving until after you call `setReadyToServe`, and after the deals become active. For example, you can use this method to delay receiving bid requests until your creative is ready. In addition, bidders can use the URL path "/v1/`bidders/{`accountId`}/`finalizedDeals`/{`dealId`}`" to set ready to serve for the finalized deals belong to itself, its child seats and all their clients. This method only applies to programmatic guaranteed deals.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `authorizedbuyersmarketplace_buyers_finalized_deals_set_ready_to_serve_builder()` + `authorizedbuyersmarketplace_buyers_finalized_deals_set_ready_to_serve_execute()`.
@@ -4843,7 +4843,7 @@ pub fn authorizedbuyersmarketplace_buyers_proposals_accept(
 }
 
 /// POST v1/buyers/{buyersId}/proposals/{proposalsId}:addNote
-/// Creates a note for this proposal and sends to the seller. This method is not supported for proposals with DealType set to 'PRIVATE_AUCTION'.
+/// Creates a note for this proposal and sends to the seller. This method is not supported for proposals with DealType set to ''PRIVATE_AUCTION''.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `authorizedbuyersmarketplace_buyers_proposals_add_note_execute()` to send, or `authorizedbuyersmarketplace_buyers_proposals_add_note` for simplest API.
@@ -4870,7 +4870,7 @@ where
 }
 
 /// POST v1/buyers/{buyersId}/proposals/{proposalsId}:addNote
-/// Creates a note for this proposal and sends to the seller. This method is not supported for proposals with DealType set to 'PRIVATE_AUCTION'.
+/// Creates a note for this proposal and sends to the seller. This method is not supported for proposals with DealType set to ''PRIVATE_AUCTION''.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -4944,7 +4944,7 @@ pub fn authorizedbuyersmarketplace_buyers_proposals_add_note_task(
 }
 
 /// POST v1/buyers/{buyersId}/proposals/{proposalsId}:addNote
-/// Creates a note for this proposal and sends to the seller. This method is not supported for proposals with DealType set to 'PRIVATE_AUCTION'.
+/// Creates a note for this proposal and sends to the seller. This method is not supported for proposals with DealType set to ''PRIVATE_AUCTION''.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -4981,7 +4981,7 @@ pub struct AuthorizedbuyersmarketplaceBuyersProposalsAddNoteArgs {
 }
 
 /// POST v1/buyers/{buyersId}/proposals/{proposalsId}:addNote
-/// Creates a note for this proposal and sends to the seller. This method is not supported for proposals with DealType set to 'PRIVATE_AUCTION'.
+/// Creates a note for this proposal and sends to the seller. This method is not supported for proposals with DealType set to ''PRIVATE_AUCTION''.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `authorizedbuyersmarketplace_buyers_proposals_add_note_builder()` + `authorizedbuyersmarketplace_buyers_proposals_add_note_execute()`.
@@ -5004,7 +5004,7 @@ pub fn authorizedbuyersmarketplace_buyers_proposals_add_note(
 }
 
 /// POST v1/buyers/{buyersId}/proposals/{proposalsId}:cancelNegotiation
-/// Cancels an ongoing negotiation on a proposal. This does not cancel or end serving for the deals if the proposal has been finalized. If the proposal has not been finalized before, calling this method will set the Proposal.state to TERMINATED and increment the Proposal.proposal_revision. If the proposal has been finalized before and is under renegotiation now, calling this method will reset the Proposal.state to FINALIZED and increment the Proposal.proposal_revision. This method does not support private auction proposals whose Proposal.deal_type is 'PRIVATE_AUCTION'.
+/// Cancels an ongoing negotiation on a proposal. This does not cancel or end serving for the deals if the proposal has been finalized. If the proposal has not been finalized before, calling this method will set the Proposal.state to TERMINATED and increment the Proposal.proposal_revision. If the proposal has been finalized before and is under renegotiation now, calling this method will reset the Proposal.state to FINALIZED and increment the Proposal.proposal_revision. This method does not support private auction proposals whose Proposal.deal_type is ''PRIVATE_AUCTION''.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `authorizedbuyersmarketplace_buyers_proposals_cancel_negotiation_execute()` to send, or `authorizedbuyersmarketplace_buyers_proposals_cancel_negotiation` for simplest API.
@@ -5031,7 +5031,7 @@ where
 }
 
 /// POST v1/buyers/{buyersId}/proposals/{proposalsId}:cancelNegotiation
-/// Cancels an ongoing negotiation on a proposal. This does not cancel or end serving for the deals if the proposal has been finalized. If the proposal has not been finalized before, calling this method will set the Proposal.state to TERMINATED and increment the Proposal.proposal_revision. If the proposal has been finalized before and is under renegotiation now, calling this method will reset the Proposal.state to FINALIZED and increment the Proposal.proposal_revision. This method does not support private auction proposals whose Proposal.deal_type is 'PRIVATE_AUCTION'.
+/// Cancels an ongoing negotiation on a proposal. This does not cancel or end serving for the deals if the proposal has been finalized. If the proposal has not been finalized before, calling this method will set the Proposal.state to TERMINATED and increment the Proposal.proposal_revision. If the proposal has been finalized before and is under renegotiation now, calling this method will reset the Proposal.state to FINALIZED and increment the Proposal.proposal_revision. This method does not support private auction proposals whose Proposal.deal_type is ''PRIVATE_AUCTION''.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -5105,7 +5105,7 @@ pub fn authorizedbuyersmarketplace_buyers_proposals_cancel_negotiation_task(
 }
 
 /// POST v1/buyers/{buyersId}/proposals/{proposalsId}:cancelNegotiation
-/// Cancels an ongoing negotiation on a proposal. This does not cancel or end serving for the deals if the proposal has been finalized. If the proposal has not been finalized before, calling this method will set the Proposal.state to TERMINATED and increment the Proposal.proposal_revision. If the proposal has been finalized before and is under renegotiation now, calling this method will reset the Proposal.state to FINALIZED and increment the Proposal.proposal_revision. This method does not support private auction proposals whose Proposal.deal_type is 'PRIVATE_AUCTION'.
+/// Cancels an ongoing negotiation on a proposal. This does not cancel or end serving for the deals if the proposal has been finalized. If the proposal has not been finalized before, calling this method will set the Proposal.state to TERMINATED and increment the Proposal.proposal_revision. If the proposal has been finalized before and is under renegotiation now, calling this method will reset the Proposal.state to FINALIZED and increment the Proposal.proposal_revision. This method does not support private auction proposals whose Proposal.deal_type is ''PRIVATE_AUCTION''.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -5142,7 +5142,7 @@ pub struct AuthorizedbuyersmarketplaceBuyersProposalsCancelNegotiationArgs {
 }
 
 /// POST v1/buyers/{buyersId}/proposals/{proposalsId}:cancelNegotiation
-/// Cancels an ongoing negotiation on a proposal. This does not cancel or end serving for the deals if the proposal has been finalized. If the proposal has not been finalized before, calling this method will set the Proposal.state to TERMINATED and increment the Proposal.proposal_revision. If the proposal has been finalized before and is under renegotiation now, calling this method will reset the Proposal.state to FINALIZED and increment the Proposal.proposal_revision. This method does not support private auction proposals whose Proposal.deal_type is 'PRIVATE_AUCTION'.
+/// Cancels an ongoing negotiation on a proposal. This does not cancel or end serving for the deals if the proposal has been finalized. If the proposal has not been finalized before, calling this method will set the Proposal.state to TERMINATED and increment the Proposal.proposal_revision. If the proposal has been finalized before and is under renegotiation now, calling this method will reset the Proposal.state to FINALIZED and increment the Proposal.proposal_revision. This method does not support private auction proposals whose Proposal.deal_type is ''PRIVATE_AUCTION''.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `authorizedbuyersmarketplace_buyers_proposals_cancel_negotiation_builder()` + `authorizedbuyersmarketplace_buyers_proposals_cancel_negotiation_execute()`.
@@ -5523,7 +5523,7 @@ pub fn authorizedbuyersmarketplace_buyers_proposals_list(
 }
 
 /// PATCH v1/buyers/{buyersId}/proposals/{proposalsId}
-/// Updates the proposal at the given revision number. If the revision number in the request is behind the latest one kept in the server, an error message will be returned. See FieldMask for how to use FieldMask. Only fields specified in the UpdateProposalRequest.update_mask will be updated; Fields noted as 'Immutable' or 'Output only' yet specified in the UpdateProposalRequest.update_mask will be ignored and left unchanged. Updating a private auction proposal is only allowed for buyer private data, all other fields are immutable.
+/// Updates the proposal at the given revision number. If the revision number in the request is behind the latest one kept in the server, an error message will be returned. See FieldMask for how to use FieldMask. Only fields specified in the UpdateProposalRequest.update_mask will be updated; Fields noted as ''Immutable'' or ''Output only'' yet specified in the UpdateProposalRequest.update_mask will be ignored and left unchanged. Updating a private auction proposal is only allowed for buyer private data, all other fields are immutable.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `authorizedbuyersmarketplace_buyers_proposals_patch_execute()` to send, or `authorizedbuyersmarketplace_buyers_proposals_patch` for simplest API.
@@ -5562,7 +5562,7 @@ where
 }
 
 /// PATCH v1/buyers/{buyersId}/proposals/{proposalsId}
-/// Updates the proposal at the given revision number. If the revision number in the request is behind the latest one kept in the server, an error message will be returned. See FieldMask for how to use FieldMask. Only fields specified in the UpdateProposalRequest.update_mask will be updated; Fields noted as 'Immutable' or 'Output only' yet specified in the UpdateProposalRequest.update_mask will be ignored and left unchanged. Updating a private auction proposal is only allowed for buyer private data, all other fields are immutable.
+/// Updates the proposal at the given revision number. If the revision number in the request is behind the latest one kept in the server, an error message will be returned. See FieldMask for how to use FieldMask. Only fields specified in the UpdateProposalRequest.update_mask will be updated; Fields noted as ''Immutable'' or ''Output only'' yet specified in the UpdateProposalRequest.update_mask will be ignored and left unchanged. Updating a private auction proposal is only allowed for buyer private data, all other fields are immutable.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -5636,7 +5636,7 @@ pub fn authorizedbuyersmarketplace_buyers_proposals_patch_task(
 }
 
 /// PATCH v1/buyers/{buyersId}/proposals/{proposalsId}
-/// Updates the proposal at the given revision number. If the revision number in the request is behind the latest one kept in the server, an error message will be returned. See FieldMask for how to use FieldMask. Only fields specified in the UpdateProposalRequest.update_mask will be updated; Fields noted as 'Immutable' or 'Output only' yet specified in the UpdateProposalRequest.update_mask will be ignored and left unchanged. Updating a private auction proposal is only allowed for buyer private data, all other fields are immutable.
+/// Updates the proposal at the given revision number. If the revision number in the request is behind the latest one kept in the server, an error message will be returned. See FieldMask for how to use FieldMask. Only fields specified in the UpdateProposalRequest.update_mask will be updated; Fields noted as ''Immutable'' or ''Output only'' yet specified in the UpdateProposalRequest.update_mask will be ignored and left unchanged. Updating a private auction proposal is only allowed for buyer private data, all other fields are immutable.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -5675,7 +5675,7 @@ pub struct AuthorizedbuyersmarketplaceBuyersProposalsPatchArgs {
 }
 
 /// PATCH v1/buyers/{buyersId}/proposals/{proposalsId}
-/// Updates the proposal at the given revision number. If the revision number in the request is behind the latest one kept in the server, an error message will be returned. See FieldMask for how to use FieldMask. Only fields specified in the UpdateProposalRequest.update_mask will be updated; Fields noted as 'Immutable' or 'Output only' yet specified in the UpdateProposalRequest.update_mask will be ignored and left unchanged. Updating a private auction proposal is only allowed for buyer private data, all other fields are immutable.
+/// Updates the proposal at the given revision number. If the revision number in the request is behind the latest one kept in the server, an error message will be returned. See FieldMask for how to use FieldMask. Only fields specified in the UpdateProposalRequest.update_mask will be updated; Fields noted as ''Immutable'' or ''Output only'' yet specified in the UpdateProposalRequest.update_mask will be ignored and left unchanged. Updating a private auction proposal is only allowed for buyer private data, all other fields are immutable.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `authorizedbuyersmarketplace_buyers_proposals_patch_builder()` + `authorizedbuyersmarketplace_buyers_proposals_patch_execute()`.
@@ -6722,7 +6722,7 @@ pub fn authorizedbuyersmarketplace_buyers_publisher_profiles_get(
 }
 
 /// GET v1/buyers/{buyersId}/publisherProfiles
-/// Lists publisher profiles. The returned publisher profiles aren't in any defined order. The order of the results might change. A new publisher profile can appear in any place in the list of returned results.
+/// Lists publisher profiles. The returned publisher profiles aren''t in any defined order. The order of the results might change. A new publisher profile can appear in any place in the list of returned results.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `authorizedbuyersmarketplace_buyers_publisher_profiles_list_execute()` to send, or `authorizedbuyersmarketplace_buyers_publisher_profiles_list` for simplest API.
@@ -6769,7 +6769,7 @@ where
 }
 
 /// GET v1/buyers/{buyersId}/publisherProfiles
-/// Lists publisher profiles. The returned publisher profiles aren't in any defined order. The order of the results might change. A new publisher profile can appear in any place in the list of returned results.
+/// Lists publisher profiles. The returned publisher profiles aren''t in any defined order. The order of the results might change. A new publisher profile can appear in any place in the list of returned results.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -6843,7 +6843,7 @@ pub fn authorizedbuyersmarketplace_buyers_publisher_profiles_list_task(
 }
 
 /// GET v1/buyers/{buyersId}/publisherProfiles
-/// Lists publisher profiles. The returned publisher profiles aren't in any defined order. The order of the results might change. A new publisher profile can appear in any place in the list of returned results.
+/// Lists publisher profiles. The returned publisher profiles aren''t in any defined order. The order of the results might change. A new publisher profile can appear in any place in the list of returned results.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -6890,7 +6890,7 @@ pub struct AuthorizedbuyersmarketplaceBuyersPublisherProfilesListArgs {
 }
 
 /// GET v1/buyers/{buyersId}/publisherProfiles
-/// Lists publisher profiles. The returned publisher profiles aren't in any defined order. The order of the results might change. A new publisher profile can appear in any place in the list of returned results.
+/// Lists publisher profiles. The returned publisher profiles aren''t in any defined order. The order of the results might change. A new publisher profile can appear in any place in the list of returned results.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `authorizedbuyersmarketplace_buyers_publisher_profiles_list_builder()` + `authorizedbuyersmarketplace_buyers_publisher_profiles_list_execute()`.

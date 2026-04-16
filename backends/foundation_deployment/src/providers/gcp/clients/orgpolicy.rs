@@ -730,7 +730,7 @@ pub fn orgpolicy_folders_policies_get(
 }
 
 /// GET v2/folders/{foldersId}/policies/{policiesId}:getEffectivePolicy
-/// Gets the effective policy on a resource. This is the result of merging policies in the resource hierarchy and evaluating conditions. The returned policy will not have an ETag or condition set because it is an evaluated policy across multiple resources. Subtrees of Resource Manager resource hierarchy with 'under:' prefix will not be expanded.
+/// Gets the effective policy on a resource. This is the result of merging policies in the resource hierarchy and evaluating conditions. The returned policy will not have an ETag or condition set because it is an evaluated policy across multiple resources. Subtrees of Resource Manager resource hierarchy with ''under:'' prefix will not be expanded.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `orgpolicy_folders_policies_get_effective_policy_execute()` to send, or `orgpolicy_folders_policies_get_effective_policy` for simplest API.
@@ -757,7 +757,7 @@ where
 }
 
 /// GET v2/folders/{foldersId}/policies/{policiesId}:getEffectivePolicy
-/// Gets the effective policy on a resource. This is the result of merging policies in the resource hierarchy and evaluating conditions. The returned policy will not have an ETag or condition set because it is an evaluated policy across multiple resources. Subtrees of Resource Manager resource hierarchy with 'under:' prefix will not be expanded.
+/// Gets the effective policy on a resource. This is the result of merging policies in the resource hierarchy and evaluating conditions. The returned policy will not have an ETag or condition set because it is an evaluated policy across multiple resources. Subtrees of Resource Manager resource hierarchy with ''under:'' prefix will not be expanded.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -831,7 +831,7 @@ pub fn orgpolicy_folders_policies_get_effective_policy_task(
 }
 
 /// GET v2/folders/{foldersId}/policies/{policiesId}:getEffectivePolicy
-/// Gets the effective policy on a resource. This is the result of merging policies in the resource hierarchy and evaluating conditions. The returned policy will not have an ETag or condition set because it is an evaluated policy across multiple resources. Subtrees of Resource Manager resource hierarchy with 'under:' prefix will not be expanded.
+/// Gets the effective policy on a resource. This is the result of merging policies in the resource hierarchy and evaluating conditions. The returned policy will not have an ETag or condition set because it is an evaluated policy across multiple resources. Subtrees of Resource Manager resource hierarchy with ''under:'' prefix will not be expanded.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -872,7 +872,7 @@ pub struct OrgpolicyFoldersPoliciesGetEffectivePolicyArgs {
 }
 
 /// GET v2/folders/{foldersId}/policies/{policiesId}:getEffectivePolicy
-/// Gets the effective policy on a resource. This is the result of merging policies in the resource hierarchy and evaluating conditions. The returned policy will not have an ETag or condition set because it is an evaluated policy across multiple resources. Subtrees of Resource Manager resource hierarchy with 'under:' prefix will not be expanded.
+/// Gets the effective policy on a resource. This is the result of merging policies in the resource hierarchy and evaluating conditions. The returned policy will not have an ETag or condition set because it is an evaluated policy across multiple resources. Subtrees of Resource Manager resource hierarchy with ''under:'' prefix will not be expanded.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `orgpolicy_folders_policies_get_effective_policy_builder()` + `orgpolicy_folders_policies_get_effective_policy_execute()`.
@@ -1092,7 +1092,7 @@ pub fn orgpolicy_folders_policies_list(
 }
 
 /// PATCH v2/folders/{foldersId}/policies/{policiesId}
-/// Updates a policy. Returns a google.rpc.Status with google.rpc.Code.NOT_FOUND if the constraint or the policy doesn't exist. Returns a google.rpc.Status with google.rpc.Code.ABORTED if the ETag supplied in the request doesn't match the persisted ETag of the policy. Note: the supplied policy will perform a full overwrite of all fields.
+/// Updates a policy. Returns a google.rpc.Status with google.rpc.Code.NOT_FOUND if the constraint or the policy doesn''t exist. Returns a google.rpc.Status with google.rpc.Code.ABORTED if the ETag supplied in the request doesn''t match the persisted ETag of the policy. Note: the supplied policy will perform a full overwrite of all fields.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `orgpolicy_folders_policies_patch_execute()` to send, or `orgpolicy_folders_policies_patch` for simplest API.
@@ -1131,7 +1131,7 @@ where
 }
 
 /// PATCH v2/folders/{foldersId}/policies/{policiesId}
-/// Updates a policy. Returns a google.rpc.Status with google.rpc.Code.NOT_FOUND if the constraint or the policy doesn't exist. Returns a google.rpc.Status with google.rpc.Code.ABORTED if the ETag supplied in the request doesn't match the persisted ETag of the policy. Note: the supplied policy will perform a full overwrite of all fields.
+/// Updates a policy. Returns a google.rpc.Status with google.rpc.Code.NOT_FOUND if the constraint or the policy doesn''t exist. Returns a google.rpc.Status with google.rpc.Code.ABORTED if the ETag supplied in the request doesn''t match the persisted ETag of the policy. Note: the supplied policy will perform a full overwrite of all fields.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -1205,7 +1205,7 @@ pub fn orgpolicy_folders_policies_patch_task(
 }
 
 /// PATCH v2/folders/{foldersId}/policies/{policiesId}
-/// Updates a policy. Returns a google.rpc.Status with google.rpc.Code.NOT_FOUND if the constraint or the policy doesn't exist. Returns a google.rpc.Status with google.rpc.Code.ABORTED if the ETag supplied in the request doesn't match the persisted ETag of the policy. Note: the supplied policy will perform a full overwrite of all fields.
+/// Updates a policy. Returns a google.rpc.Status with google.rpc.Code.NOT_FOUND if the constraint or the policy doesn''t exist. Returns a google.rpc.Status with google.rpc.Code.ABORTED if the ETag supplied in the request doesn''t match the persisted ETag of the policy. Note: the supplied policy will perform a full overwrite of all fields.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -1248,7 +1248,7 @@ pub struct OrgpolicyFoldersPoliciesPatchArgs {
 }
 
 /// PATCH v2/folders/{foldersId}/policies/{policiesId}
-/// Updates a policy. Returns a google.rpc.Status with google.rpc.Code.NOT_FOUND if the constraint or the policy doesn't exist. Returns a google.rpc.Status with google.rpc.Code.ABORTED if the ETag supplied in the request doesn't match the persisted ETag of the policy. Note: the supplied policy will perform a full overwrite of all fields.
+/// Updates a policy. Returns a google.rpc.Status with google.rpc.Code.NOT_FOUND if the constraint or the policy doesn''t exist. Returns a google.rpc.Status with google.rpc.Code.ABORTED if the ETag supplied in the request doesn''t match the persisted ETag of the policy. Note: the supplied policy will perform a full overwrite of all fields.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `orgpolicy_folders_policies_patch_builder()` + `orgpolicy_folders_policies_patch_execute()`.
@@ -2847,7 +2847,7 @@ pub fn orgpolicy_organizations_policies_get(
 }
 
 /// GET v2/organizations/{organizationsId}/policies/{policiesId}:getEffectivePolicy
-/// Gets the effective policy on a resource. This is the result of merging policies in the resource hierarchy and evaluating conditions. The returned policy will not have an ETag or condition set because it is an evaluated policy across multiple resources. Subtrees of Resource Manager resource hierarchy with 'under:' prefix will not be expanded.
+/// Gets the effective policy on a resource. This is the result of merging policies in the resource hierarchy and evaluating conditions. The returned policy will not have an ETag or condition set because it is an evaluated policy across multiple resources. Subtrees of Resource Manager resource hierarchy with ''under:'' prefix will not be expanded.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `orgpolicy_organizations_policies_get_effective_policy_execute()` to send, or `orgpolicy_organizations_policies_get_effective_policy` for simplest API.
@@ -2874,7 +2874,7 @@ where
 }
 
 /// GET v2/organizations/{organizationsId}/policies/{policiesId}:getEffectivePolicy
-/// Gets the effective policy on a resource. This is the result of merging policies in the resource hierarchy and evaluating conditions. The returned policy will not have an ETag or condition set because it is an evaluated policy across multiple resources. Subtrees of Resource Manager resource hierarchy with 'under:' prefix will not be expanded.
+/// Gets the effective policy on a resource. This is the result of merging policies in the resource hierarchy and evaluating conditions. The returned policy will not have an ETag or condition set because it is an evaluated policy across multiple resources. Subtrees of Resource Manager resource hierarchy with ''under:'' prefix will not be expanded.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -2948,7 +2948,7 @@ pub fn orgpolicy_organizations_policies_get_effective_policy_task(
 }
 
 /// GET v2/organizations/{organizationsId}/policies/{policiesId}:getEffectivePolicy
-/// Gets the effective policy on a resource. This is the result of merging policies in the resource hierarchy and evaluating conditions. The returned policy will not have an ETag or condition set because it is an evaluated policy across multiple resources. Subtrees of Resource Manager resource hierarchy with 'under:' prefix will not be expanded.
+/// Gets the effective policy on a resource. This is the result of merging policies in the resource hierarchy and evaluating conditions. The returned policy will not have an ETag or condition set because it is an evaluated policy across multiple resources. Subtrees of Resource Manager resource hierarchy with ''under:'' prefix will not be expanded.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -2989,7 +2989,7 @@ pub struct OrgpolicyOrganizationsPoliciesGetEffectivePolicyArgs {
 }
 
 /// GET v2/organizations/{organizationsId}/policies/{policiesId}:getEffectivePolicy
-/// Gets the effective policy on a resource. This is the result of merging policies in the resource hierarchy and evaluating conditions. The returned policy will not have an ETag or condition set because it is an evaluated policy across multiple resources. Subtrees of Resource Manager resource hierarchy with 'under:' prefix will not be expanded.
+/// Gets the effective policy on a resource. This is the result of merging policies in the resource hierarchy and evaluating conditions. The returned policy will not have an ETag or condition set because it is an evaluated policy across multiple resources. Subtrees of Resource Manager resource hierarchy with ''under:'' prefix will not be expanded.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `orgpolicy_organizations_policies_get_effective_policy_builder()` + `orgpolicy_organizations_policies_get_effective_policy_execute()`.
@@ -3210,7 +3210,7 @@ pub fn orgpolicy_organizations_policies_list(
 }
 
 /// PATCH v2/organizations/{organizationsId}/policies/{policiesId}
-/// Updates a policy. Returns a google.rpc.Status with google.rpc.Code.NOT_FOUND if the constraint or the policy doesn't exist. Returns a google.rpc.Status with google.rpc.Code.ABORTED if the ETag supplied in the request doesn't match the persisted ETag of the policy. Note: the supplied policy will perform a full overwrite of all fields.
+/// Updates a policy. Returns a google.rpc.Status with google.rpc.Code.NOT_FOUND if the constraint or the policy doesn''t exist. Returns a google.rpc.Status with google.rpc.Code.ABORTED if the ETag supplied in the request doesn''t match the persisted ETag of the policy. Note: the supplied policy will perform a full overwrite of all fields.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `orgpolicy_organizations_policies_patch_execute()` to send, or `orgpolicy_organizations_policies_patch` for simplest API.
@@ -3249,7 +3249,7 @@ where
 }
 
 /// PATCH v2/organizations/{organizationsId}/policies/{policiesId}
-/// Updates a policy. Returns a google.rpc.Status with google.rpc.Code.NOT_FOUND if the constraint or the policy doesn't exist. Returns a google.rpc.Status with google.rpc.Code.ABORTED if the ETag supplied in the request doesn't match the persisted ETag of the policy. Note: the supplied policy will perform a full overwrite of all fields.
+/// Updates a policy. Returns a google.rpc.Status with google.rpc.Code.NOT_FOUND if the constraint or the policy doesn''t exist. Returns a google.rpc.Status with google.rpc.Code.ABORTED if the ETag supplied in the request doesn''t match the persisted ETag of the policy. Note: the supplied policy will perform a full overwrite of all fields.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -3323,7 +3323,7 @@ pub fn orgpolicy_organizations_policies_patch_task(
 }
 
 /// PATCH v2/organizations/{organizationsId}/policies/{policiesId}
-/// Updates a policy. Returns a google.rpc.Status with google.rpc.Code.NOT_FOUND if the constraint or the policy doesn't exist. Returns a google.rpc.Status with google.rpc.Code.ABORTED if the ETag supplied in the request doesn't match the persisted ETag of the policy. Note: the supplied policy will perform a full overwrite of all fields.
+/// Updates a policy. Returns a google.rpc.Status with google.rpc.Code.NOT_FOUND if the constraint or the policy doesn''t exist. Returns a google.rpc.Status with google.rpc.Code.ABORTED if the ETag supplied in the request doesn''t match the persisted ETag of the policy. Note: the supplied policy will perform a full overwrite of all fields.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -3366,7 +3366,7 @@ pub struct OrgpolicyOrganizationsPoliciesPatchArgs {
 }
 
 /// PATCH v2/organizations/{organizationsId}/policies/{policiesId}
-/// Updates a policy. Returns a google.rpc.Status with google.rpc.Code.NOT_FOUND if the constraint or the policy doesn't exist. Returns a google.rpc.Status with google.rpc.Code.ABORTED if the ETag supplied in the request doesn't match the persisted ETag of the policy. Note: the supplied policy will perform a full overwrite of all fields.
+/// Updates a policy. Returns a google.rpc.Status with google.rpc.Code.NOT_FOUND if the constraint or the policy doesn''t exist. Returns a google.rpc.Status with google.rpc.Code.ABORTED if the ETag supplied in the request doesn''t match the persisted ETag of the policy. Note: the supplied policy will perform a full overwrite of all fields.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `orgpolicy_organizations_policies_patch_builder()` + `orgpolicy_organizations_policies_patch_execute()`.
@@ -4101,7 +4101,7 @@ pub fn orgpolicy_projects_policies_get(
 }
 
 /// GET v2/projects/{projectsId}/policies/{policiesId}:getEffectivePolicy
-/// Gets the effective policy on a resource. This is the result of merging policies in the resource hierarchy and evaluating conditions. The returned policy will not have an ETag or condition set because it is an evaluated policy across multiple resources. Subtrees of Resource Manager resource hierarchy with 'under:' prefix will not be expanded.
+/// Gets the effective policy on a resource. This is the result of merging policies in the resource hierarchy and evaluating conditions. The returned policy will not have an ETag or condition set because it is an evaluated policy across multiple resources. Subtrees of Resource Manager resource hierarchy with ''under:'' prefix will not be expanded.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `orgpolicy_projects_policies_get_effective_policy_execute()` to send, or `orgpolicy_projects_policies_get_effective_policy` for simplest API.
@@ -4128,7 +4128,7 @@ where
 }
 
 /// GET v2/projects/{projectsId}/policies/{policiesId}:getEffectivePolicy
-/// Gets the effective policy on a resource. This is the result of merging policies in the resource hierarchy and evaluating conditions. The returned policy will not have an ETag or condition set because it is an evaluated policy across multiple resources. Subtrees of Resource Manager resource hierarchy with 'under:' prefix will not be expanded.
+/// Gets the effective policy on a resource. This is the result of merging policies in the resource hierarchy and evaluating conditions. The returned policy will not have an ETag or condition set because it is an evaluated policy across multiple resources. Subtrees of Resource Manager resource hierarchy with ''under:'' prefix will not be expanded.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -4202,7 +4202,7 @@ pub fn orgpolicy_projects_policies_get_effective_policy_task(
 }
 
 /// GET v2/projects/{projectsId}/policies/{policiesId}:getEffectivePolicy
-/// Gets the effective policy on a resource. This is the result of merging policies in the resource hierarchy and evaluating conditions. The returned policy will not have an ETag or condition set because it is an evaluated policy across multiple resources. Subtrees of Resource Manager resource hierarchy with 'under:' prefix will not be expanded.
+/// Gets the effective policy on a resource. This is the result of merging policies in the resource hierarchy and evaluating conditions. The returned policy will not have an ETag or condition set because it is an evaluated policy across multiple resources. Subtrees of Resource Manager resource hierarchy with ''under:'' prefix will not be expanded.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -4243,7 +4243,7 @@ pub struct OrgpolicyProjectsPoliciesGetEffectivePolicyArgs {
 }
 
 /// GET v2/projects/{projectsId}/policies/{policiesId}:getEffectivePolicy
-/// Gets the effective policy on a resource. This is the result of merging policies in the resource hierarchy and evaluating conditions. The returned policy will not have an ETag or condition set because it is an evaluated policy across multiple resources. Subtrees of Resource Manager resource hierarchy with 'under:' prefix will not be expanded.
+/// Gets the effective policy on a resource. This is the result of merging policies in the resource hierarchy and evaluating conditions. The returned policy will not have an ETag or condition set because it is an evaluated policy across multiple resources. Subtrees of Resource Manager resource hierarchy with ''under:'' prefix will not be expanded.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `orgpolicy_projects_policies_get_effective_policy_builder()` + `orgpolicy_projects_policies_get_effective_policy_execute()`.
@@ -4463,7 +4463,7 @@ pub fn orgpolicy_projects_policies_list(
 }
 
 /// PATCH v2/projects/{projectsId}/policies/{policiesId}
-/// Updates a policy. Returns a google.rpc.Status with google.rpc.Code.NOT_FOUND if the constraint or the policy doesn't exist. Returns a google.rpc.Status with google.rpc.Code.ABORTED if the ETag supplied in the request doesn't match the persisted ETag of the policy. Note: the supplied policy will perform a full overwrite of all fields.
+/// Updates a policy. Returns a google.rpc.Status with google.rpc.Code.NOT_FOUND if the constraint or the policy doesn''t exist. Returns a google.rpc.Status with google.rpc.Code.ABORTED if the ETag supplied in the request doesn''t match the persisted ETag of the policy. Note: the supplied policy will perform a full overwrite of all fields.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `orgpolicy_projects_policies_patch_execute()` to send, or `orgpolicy_projects_policies_patch` for simplest API.
@@ -4502,7 +4502,7 @@ where
 }
 
 /// PATCH v2/projects/{projectsId}/policies/{policiesId}
-/// Updates a policy. Returns a google.rpc.Status with google.rpc.Code.NOT_FOUND if the constraint or the policy doesn't exist. Returns a google.rpc.Status with google.rpc.Code.ABORTED if the ETag supplied in the request doesn't match the persisted ETag of the policy. Note: the supplied policy will perform a full overwrite of all fields.
+/// Updates a policy. Returns a google.rpc.Status with google.rpc.Code.NOT_FOUND if the constraint or the policy doesn''t exist. Returns a google.rpc.Status with google.rpc.Code.ABORTED if the ETag supplied in the request doesn''t match the persisted ETag of the policy. Note: the supplied policy will perform a full overwrite of all fields.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -4576,7 +4576,7 @@ pub fn orgpolicy_projects_policies_patch_task(
 }
 
 /// PATCH v2/projects/{projectsId}/policies/{policiesId}
-/// Updates a policy. Returns a google.rpc.Status with google.rpc.Code.NOT_FOUND if the constraint or the policy doesn't exist. Returns a google.rpc.Status with google.rpc.Code.ABORTED if the ETag supplied in the request doesn't match the persisted ETag of the policy. Note: the supplied policy will perform a full overwrite of all fields.
+/// Updates a policy. Returns a google.rpc.Status with google.rpc.Code.NOT_FOUND if the constraint or the policy doesn''t exist. Returns a google.rpc.Status with google.rpc.Code.ABORTED if the ETag supplied in the request doesn''t match the persisted ETag of the policy. Note: the supplied policy will perform a full overwrite of all fields.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -4619,7 +4619,7 @@ pub struct OrgpolicyProjectsPoliciesPatchArgs {
 }
 
 /// PATCH v2/projects/{projectsId}/policies/{policiesId}
-/// Updates a policy. Returns a google.rpc.Status with google.rpc.Code.NOT_FOUND if the constraint or the policy doesn't exist. Returns a google.rpc.Status with google.rpc.Code.ABORTED if the ETag supplied in the request doesn't match the persisted ETag of the policy. Note: the supplied policy will perform a full overwrite of all fields.
+/// Updates a policy. Returns a google.rpc.Status with google.rpc.Code.NOT_FOUND if the constraint or the policy doesn''t exist. Returns a google.rpc.Status with google.rpc.Code.ABORTED if the ETag supplied in the request doesn''t match the persisted ETag of the policy. Note: the supplied policy will perform a full overwrite of all fields.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `orgpolicy_projects_policies_patch_builder()` + `orgpolicy_projects_policies_patch_execute()`.

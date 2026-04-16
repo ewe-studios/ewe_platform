@@ -3082,7 +3082,7 @@ pub fn datamigration_projects_locations_conversion_workspaces_describe_conversio
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/conversionWorkspaces/{conversionWorkspacesId}:describeDatabaseEntities
-/// Describes the database entities tree for a specific conversion workspace and a specific tree type. Database entities are not resources like conversion workspaces or mapping rules, and they can't be created, updated or deleted. Instead, they are simple data objects describing the structure of the client database.
+/// Describes the database entities tree for a specific conversion workspace and a specific tree type. Database entities are not resources like conversion workspaces or mapping rules, and they can''t be created, updated or deleted. Instead, they are simple data objects describing the structure of the client database.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datamigration_projects_locations_conversion_workspaces_describe_database_entities_execute()` to send, or `datamigration_projects_locations_conversion_workspaces_describe_database_entities` for simplest API.
@@ -3147,7 +3147,7 @@ where
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/conversionWorkspaces/{conversionWorkspacesId}:describeDatabaseEntities
-/// Describes the database entities tree for a specific conversion workspace and a specific tree type. Database entities are not resources like conversion workspaces or mapping rules, and they can't be created, updated or deleted. Instead, they are simple data objects describing the structure of the client database.
+/// Describes the database entities tree for a specific conversion workspace and a specific tree type. Database entities are not resources like conversion workspaces or mapping rules, and they can''t be created, updated or deleted. Instead, they are simple data objects describing the structure of the client database.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -3221,7 +3221,7 @@ pub fn datamigration_projects_locations_conversion_workspaces_describe_database_
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/conversionWorkspaces/{conversionWorkspacesId}:describeDatabaseEntities
-/// Describes the database entities tree for a specific conversion workspace and a specific tree type. Database entities are not resources like conversion workspaces or mapping rules, and they can't be created, updated or deleted. Instead, they are simple data objects describing the structure of the client database.
+/// Describes the database entities tree for a specific conversion workspace and a specific tree type. Database entities are not resources like conversion workspaces or mapping rules, and they can''t be created, updated or deleted. Instead, they are simple data objects describing the structure of the client database.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -3279,7 +3279,7 @@ pub struct DatamigrationProjectsLocationsConversionWorkspacesDescribeDatabaseEnt
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/conversionWorkspaces/{conversionWorkspacesId}:describeDatabaseEntities
-/// Describes the database entities tree for a specific conversion workspace and a specific tree type. Database entities are not resources like conversion workspaces or mapping rules, and they can't be created, updated or deleted. Instead, they are simple data objects describing the structure of the client database.
+/// Describes the database entities tree for a specific conversion workspace and a specific tree type. Database entities are not resources like conversion workspaces or mapping rules, and they can''t be created, updated or deleted. Instead, they are simple data objects describing the structure of the client database.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `datamigration_projects_locations_conversion_workspaces_describe_database_entities_builder()` + `datamigration_projects_locations_conversion_workspaces_describe_database_entities_execute()`.
@@ -4208,7 +4208,7 @@ pub fn datamigration_projects_locations_conversion_workspaces_rollback(
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/conversionWorkspaces/{conversionWorkspacesId}:searchBackgroundJobs
-/// S`earches/lists` the background jobs for a specific conversion workspace. The background jobs are not resources like conversion workspaces or mapping rules, and they can't be created, updated or deleted. Instead, they are a way to expose the data plane jobs log.
+/// S`earches/lists` the background jobs for a specific conversion workspace. The background jobs are not resources like conversion workspaces or mapping rules, and they can''t be created, updated or deleted. Instead, they are a way to expose the data plane jobs log.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datamigration_projects_locations_conversion_workspaces_search_background_jobs_execute()` to send, or `datamigration_projects_locations_conversion_workspaces_search_background_jobs` for simplest API.
@@ -4255,7 +4255,7 @@ where
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/conversionWorkspaces/{conversionWorkspacesId}:searchBackgroundJobs
-/// S`earches/lists` the background jobs for a specific conversion workspace. The background jobs are not resources like conversion workspaces or mapping rules, and they can't be created, updated or deleted. Instead, they are a way to expose the data plane jobs log.
+/// S`earches/lists` the background jobs for a specific conversion workspace. The background jobs are not resources like conversion workspaces or mapping rules, and they can''t be created, updated or deleted. Instead, they are a way to expose the data plane jobs log.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -4329,7 +4329,7 @@ pub fn datamigration_projects_locations_conversion_workspaces_search_background_
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/conversionWorkspaces/{conversionWorkspacesId}:searchBackgroundJobs
-/// S`earches/lists` the background jobs for a specific conversion workspace. The background jobs are not resources like conversion workspaces or mapping rules, and they can't be created, updated or deleted. Instead, they are a way to expose the data plane jobs log.
+/// S`earches/lists` the background jobs for a specific conversion workspace. The background jobs are not resources like conversion workspaces or mapping rules, and they can''t be created, updated or deleted. Instead, they are a way to expose the data plane jobs log.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -4378,7 +4378,7 @@ pub struct DatamigrationProjectsLocationsConversionWorkspacesSearchBackgroundJob
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/conversionWorkspaces/{conversionWorkspacesId}:searchBackgroundJobs
-/// S`earches/lists` the background jobs for a specific conversion workspace. The background jobs are not resources like conversion workspaces or mapping rules, and they can't be created, updated or deleted. Instead, they are a way to expose the data plane jobs log.
+/// S`earches/lists` the background jobs for a specific conversion workspace. The background jobs are not resources like conversion workspaces or mapping rules, and they can''t be created, updated or deleted. Instead, they are a way to expose the data plane jobs log.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `datamigration_projects_locations_conversion_workspaces_search_background_jobs_builder()` + `datamigration_projects_locations_conversion_workspaces_search_background_jobs_execute()`.
@@ -9890,7 +9890,7 @@ pub fn datamigration_projects_locations_migration_jobs_objects_test_iam_permissi
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datamigration_projects_locations_operations_cancel_execute()` to send, or `datamigration_projects_locations_operations_cancel` for simplest API.
@@ -9917,7 +9917,7 @@ where
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -9991,7 +9991,7 @@ pub fn datamigration_projects_locations_operations_cancel_task(
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -10028,7 +10028,7 @@ pub struct DatamigrationProjectsLocationsOperationsCancelArgs {
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `datamigration_projects_locations_operations_cancel_builder()` + `datamigration_projects_locations_operations_cancel_execute()`.
@@ -10050,7 +10050,7 @@ pub fn datamigration_projects_locations_operations_cancel(
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
-/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datamigration_projects_locations_operations_delete_execute()` to send, or `datamigration_projects_locations_operations_delete` for simplest API.
@@ -10077,7 +10077,7 @@ where
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
-/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -10151,7 +10151,7 @@ pub fn datamigration_projects_locations_operations_delete_task(
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
-/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -10188,7 +10188,7 @@ pub struct DatamigrationProjectsLocationsOperationsDeleteArgs {
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
-/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `datamigration_projects_locations_operations_delete_builder()` + `datamigration_projects_locations_operations_delete_execute()`.
@@ -10370,7 +10370,7 @@ pub fn datamigration_projects_locations_operations_get(
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datamigration_projects_locations_operations_list_execute()` to send, or `datamigration_projects_locations_operations_list` for simplest API.
@@ -10421,7 +10421,7 @@ where
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -10495,7 +10495,7 @@ pub fn datamigration_projects_locations_operations_list_task(
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -10542,7 +10542,7 @@ pub struct DatamigrationProjectsLocationsOperationsListArgs {
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `datamigration_projects_locations_operations_list_builder()` + `datamigration_projects_locations_operations_list_execute()`.

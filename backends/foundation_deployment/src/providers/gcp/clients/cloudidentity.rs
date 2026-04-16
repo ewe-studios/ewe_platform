@@ -182,7 +182,7 @@ pub fn cloudidentity_customers_userinvitations_cancel(
 }
 
 /// GET v1/customers/{customersId}/userinvitations/{userinvitationsId}
-/// Retrieves a UserInvitation resource. **Note:** New consumer accounts with the customer's verified domain created within the previous 48 hours will not appear in the result. This delay also applies to newly-verified domains.
+/// Retrieves a UserInvitation resource. **Note:** New consumer accounts with the customer''s verified domain created within the previous 48 hours will not appear in the result. This delay also applies to newly-verified domains.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudidentity_customers_userinvitations_get_execute()` to send, or `cloudidentity_customers_userinvitations_get` for simplest API.
@@ -209,7 +209,7 @@ where
 }
 
 /// GET v1/customers/{customersId}/userinvitations/{userinvitationsId}
-/// Retrieves a UserInvitation resource. **Note:** New consumer accounts with the customer's verified domain created within the previous 48 hours will not appear in the result. This delay also applies to newly-verified domains.
+/// Retrieves a UserInvitation resource. **Note:** New consumer accounts with the customer''s verified domain created within the previous 48 hours will not appear in the result. This delay also applies to newly-verified domains.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -283,7 +283,7 @@ pub fn cloudidentity_customers_userinvitations_get_task(
 }
 
 /// GET v1/customers/{customersId}/userinvitations/{userinvitationsId}
-/// Retrieves a UserInvitation resource. **Note:** New consumer accounts with the customer's verified domain created within the previous 48 hours will not appear in the result. This delay also applies to newly-verified domains.
+/// Retrieves a UserInvitation resource. **Note:** New consumer accounts with the customer''s verified domain created within the previous 48 hours will not appear in the result. This delay also applies to newly-verified domains.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -322,7 +322,7 @@ pub struct CloudidentityCustomersUserinvitationsGetArgs {
 }
 
 /// GET v1/customers/{customersId}/userinvitations/{userinvitationsId}
-/// Retrieves a UserInvitation resource. **Note:** New consumer accounts with the customer's verified domain created within the previous 48 hours will not appear in the result. This delay also applies to newly-verified domains.
+/// Retrieves a UserInvitation resource. **Note:** New consumer accounts with the customer''s verified domain created within the previous 48 hours will not appear in the result. This delay also applies to newly-verified domains.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `cloudidentity_customers_userinvitations_get_builder()` + `cloudidentity_customers_userinvitations_get_execute()`.
@@ -346,7 +346,7 @@ pub fn cloudidentity_customers_userinvitations_get(
 }
 
 /// GET v1/customers/{customersId}/userinvitations/{userinvitationsId}:isInvitableUser
-/// Verifies whether a user account is eligible to receive a UserInvitation (is an unmanaged account). Eligibility is based on the following criteria: * the email address is a consumer account and it's the primary email address of the account, and * the domain of the email address matches an existing verified Google Workspace or Cloud Identity domain If both conditions are met, the user is eligible. **Note:** This method is not supported for Workspace Essentials customers.
+/// Verifies whether a user account is eligible to receive a UserInvitation (is an unmanaged account). Eligibility is based on the following criteria: * the email address is a consumer account and it''s the primary email address of the account, and * the domain of the email address matches an existing verified Google Workspace or Cloud Identity domain If both conditions are met, the user is eligible. **Note:** This method is not supported for Workspace Essentials customers.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudidentity_customers_userinvitations_is_invitable_user_execute()` to send, or `cloudidentity_customers_userinvitations_is_invitable_user` for simplest API.
@@ -373,7 +373,7 @@ where
 }
 
 /// GET v1/customers/{customersId}/userinvitations/{userinvitationsId}:isInvitableUser
-/// Verifies whether a user account is eligible to receive a UserInvitation (is an unmanaged account). Eligibility is based on the following criteria: * the email address is a consumer account and it's the primary email address of the account, and * the domain of the email address matches an existing verified Google Workspace or Cloud Identity domain If both conditions are met, the user is eligible. **Note:** This method is not supported for Workspace Essentials customers.
+/// Verifies whether a user account is eligible to receive a UserInvitation (is an unmanaged account). Eligibility is based on the following criteria: * the email address is a consumer account and it''s the primary email address of the account, and * the domain of the email address matches an existing verified Google Workspace or Cloud Identity domain If both conditions are met, the user is eligible. **Note:** This method is not supported for Workspace Essentials customers.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -447,7 +447,7 @@ pub fn cloudidentity_customers_userinvitations_is_invitable_user_task(
 }
 
 /// GET v1/customers/{customersId}/userinvitations/{userinvitationsId}:isInvitableUser
-/// Verifies whether a user account is eligible to receive a UserInvitation (is an unmanaged account). Eligibility is based on the following criteria: * the email address is a consumer account and it's the primary email address of the account, and * the domain of the email address matches an existing verified Google Workspace or Cloud Identity domain If both conditions are met, the user is eligible. **Note:** This method is not supported for Workspace Essentials customers.
+/// Verifies whether a user account is eligible to receive a UserInvitation (is an unmanaged account). Eligibility is based on the following criteria: * the email address is a consumer account and it''s the primary email address of the account, and * the domain of the email address matches an existing verified Google Workspace or Cloud Identity domain If both conditions are met, the user is eligible. **Note:** This method is not supported for Workspace Essentials customers.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -486,7 +486,7 @@ pub struct CloudidentityCustomersUserinvitationsIsInvitableUserArgs {
 }
 
 /// GET v1/customers/{customersId}/userinvitations/{userinvitationsId}:isInvitableUser
-/// Verifies whether a user account is eligible to receive a UserInvitation (is an unmanaged account). Eligibility is based on the following criteria: * the email address is a consumer account and it's the primary email address of the account, and * the domain of the email address matches an existing verified Google Workspace or Cloud Identity domain If both conditions are met, the user is eligible. **Note:** This method is not supported for Workspace Essentials customers.
+/// Verifies whether a user account is eligible to receive a UserInvitation (is an unmanaged account). Eligibility is based on the following criteria: * the email address is a consumer account and it''s the primary email address of the account, and * the domain of the email address matches an existing verified Google Workspace or Cloud Identity domain If both conditions are met, the user is eligible. **Note:** This method is not supported for Workspace Essentials customers.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `cloudidentity_customers_userinvitations_is_invitable_user_builder()` + `cloudidentity_customers_userinvitations_is_invitable_user_execute()`.
@@ -511,7 +511,7 @@ pub fn cloudidentity_customers_userinvitations_is_invitable_user(
 }
 
 /// GET v1/customers/{customersId}/userinvitations
-/// Retrieves a list of UserInvitation resources. **Note:** New consumer accounts with the customer's verified domain created within the previous 48 hours will not appear in the result. This delay also applies to newly-verified domains.
+/// Retrieves a list of UserInvitation resources. **Note:** New consumer accounts with the customer''s verified domain created within the previous 48 hours will not appear in the result. This delay also applies to newly-verified domains.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudidentity_customers_userinvitations_list_execute()` to send, or `cloudidentity_customers_userinvitations_list` for simplest API.
@@ -562,7 +562,7 @@ where
 }
 
 /// GET v1/customers/{customersId}/userinvitations
-/// Retrieves a list of UserInvitation resources. **Note:** New consumer accounts with the customer's verified domain created within the previous 48 hours will not appear in the result. This delay also applies to newly-verified domains.
+/// Retrieves a list of UserInvitation resources. **Note:** New consumer accounts with the customer''s verified domain created within the previous 48 hours will not appear in the result. This delay also applies to newly-verified domains.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -636,7 +636,7 @@ pub fn cloudidentity_customers_userinvitations_list_task(
 }
 
 /// GET v1/customers/{customersId}/userinvitations
-/// Retrieves a list of UserInvitation resources. **Note:** New consumer accounts with the customer's verified domain created within the previous 48 hours will not appear in the result. This delay also applies to newly-verified domains.
+/// Retrieves a list of UserInvitation resources. **Note:** New consumer accounts with the customer''s verified domain created within the previous 48 hours will not appear in the result. This delay also applies to newly-verified domains.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -685,7 +685,7 @@ pub struct CloudidentityCustomersUserinvitationsListArgs {
 }
 
 /// GET v1/customers/{customersId}/userinvitations
-/// Retrieves a list of UserInvitation resources. **Note:** New consumer accounts with the customer's verified domain created within the previous 48 hours will not appear in the result. This delay also applies to newly-verified domains.
+/// Retrieves a list of UserInvitation resources. **Note:** New consumer accounts with the customer''s verified domain created within the previous 48 hours will not appear in the result. This delay also applies to newly-verified domains.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `cloudidentity_customers_userinvitations_list_builder()` + `cloudidentity_customers_userinvitations_list_execute()`.
@@ -2414,7 +2414,7 @@ pub fn cloudidentity_devices_device_users_cancel_wipe(
 }
 
 /// DELETE v1/devices/{devicesId}/deviceUsers/{deviceUsersId}
-/// Deletes the specified DeviceUser. This also revokes the user's access to device data.
+/// Deletes the specified DeviceUser. This also revokes the user''s access to device data.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudidentity_devices_device_users_delete_execute()` to send, or `cloudidentity_devices_device_users_delete` for simplest API.
@@ -2453,7 +2453,7 @@ where
 }
 
 /// DELETE v1/devices/{devicesId}/deviceUsers/{deviceUsersId}
-/// Deletes the specified DeviceUser. This also revokes the user's access to device data.
+/// Deletes the specified DeviceUser. This also revokes the user''s access to device data.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -2527,7 +2527,7 @@ pub fn cloudidentity_devices_device_users_delete_task(
 }
 
 /// DELETE v1/devices/{devicesId}/deviceUsers/{deviceUsersId}
-/// Deletes the specified DeviceUser. This also revokes the user's access to device data.
+/// Deletes the specified DeviceUser. This also revokes the user''s access to device data.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -2566,7 +2566,7 @@ pub struct CloudidentityDevicesDeviceUsersDeleteArgs {
 }
 
 /// DELETE v1/devices/{devicesId}/deviceUsers/{deviceUsersId}
-/// Deletes the specified DeviceUser. This also revokes the user's access to device data.
+/// Deletes the specified DeviceUser. This also revokes the user''s access to device data.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `cloudidentity_devices_device_users_delete_builder()` + `cloudidentity_devices_device_users_delete_execute()`.
@@ -2997,7 +2997,7 @@ pub fn cloudidentity_devices_device_users_list(
 }
 
 /// GET v1/devices/{devicesId}/deviceUsers:lookup
-/// Looks up resource names of the DeviceUsers associated with the caller's credentials, as well as the properties provided in the request. This method must be called with end-user credentials with the scope: <https://www.googleapis.`com/auth/cloud-identity`.devices.lookup> If multiple properties are provided, only DeviceUsers having all of these properties are considered as matches - i.e. the query behaves like an AND. Different platforms require different amounts of information from the caller to ensure that the DeviceUser is uniquely identified. - iOS: If either the partner or ios_device_id field is provided, then both fields are required. - Android: Specifying the android_id field is required. - Desktop: Specifying the raw_resource_id field is required.
+/// Looks up resource names of the DeviceUsers associated with the caller''s credentials, as well as the properties provided in the request. This method must be called with end-user credentials with the scope: <https://www.googleapis.`com/auth/cloud-identity`.devices.lookup> If multiple properties are provided, only DeviceUsers having all of these properties are considered as matches - i.e. the query behaves like an AND. Different platforms require different amounts of information from the caller to ensure that the DeviceUser is uniquely identified. - iOS: If either the partner or ios_device_id field is provided, then both fields are required. - Android: Specifying the android_id field is required. - Desktop: Specifying the raw_resource_id field is required.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudidentity_devices_device_users_lookup_execute()` to send, or `cloudidentity_devices_device_users_lookup` for simplest API.
@@ -3060,7 +3060,7 @@ where
 }
 
 /// GET v1/devices/{devicesId}/deviceUsers:lookup
-/// Looks up resource names of the DeviceUsers associated with the caller's credentials, as well as the properties provided in the request. This method must be called with end-user credentials with the scope: <https://www.googleapis.`com/auth/cloud-identity`.devices.lookup> If multiple properties are provided, only DeviceUsers having all of these properties are considered as matches - i.e. the query behaves like an AND. Different platforms require different amounts of information from the caller to ensure that the DeviceUser is uniquely identified. - iOS: If either the partner or ios_device_id field is provided, then both fields are required. - Android: Specifying the android_id field is required. - Desktop: Specifying the raw_resource_id field is required.
+/// Looks up resource names of the DeviceUsers associated with the caller''s credentials, as well as the properties provided in the request. This method must be called with end-user credentials with the scope: <https://www.googleapis.`com/auth/cloud-identity`.devices.lookup> If multiple properties are provided, only DeviceUsers having all of these properties are considered as matches - i.e. the query behaves like an AND. Different platforms require different amounts of information from the caller to ensure that the DeviceUser is uniquely identified. - iOS: If either the partner or ios_device_id field is provided, then both fields are required. - Android: Specifying the android_id field is required. - Desktop: Specifying the raw_resource_id field is required.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -3138,7 +3138,7 @@ pub fn cloudidentity_devices_device_users_lookup_task(
 }
 
 /// GET v1/devices/{devicesId}/deviceUsers:lookup
-/// Looks up resource names of the DeviceUsers associated with the caller's credentials, as well as the properties provided in the request. This method must be called with end-user credentials with the scope: <https://www.googleapis.`com/auth/cloud-identity`.devices.lookup> If multiple properties are provided, only DeviceUsers having all of these properties are considered as matches - i.e. the query behaves like an AND. Different platforms require different amounts of information from the caller to ensure that the DeviceUser is uniquely identified. - iOS: If either the partner or ios_device_id field is provided, then both fields are required. - Android: Specifying the android_id field is required. - Desktop: Specifying the raw_resource_id field is required.
+/// Looks up resource names of the DeviceUsers associated with the caller''s credentials, as well as the properties provided in the request. This method must be called with end-user credentials with the scope: <https://www.googleapis.`com/auth/cloud-identity`.devices.lookup> If multiple properties are provided, only DeviceUsers having all of these properties are considered as matches - i.e. the query behaves like an AND. Different platforms require different amounts of information from the caller to ensure that the DeviceUser is uniquely identified. - iOS: If either the partner or ios_device_id field is provided, then both fields are required. - Android: Specifying the android_id field is required. - Desktop: Specifying the raw_resource_id field is required.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -3196,7 +3196,7 @@ pub struct CloudidentityDevicesDeviceUsersLookupArgs {
 }
 
 /// GET v1/devices/{devicesId}/deviceUsers:lookup
-/// Looks up resource names of the DeviceUsers associated with the caller's credentials, as well as the properties provided in the request. This method must be called with end-user credentials with the scope: <https://www.googleapis.`com/auth/cloud-identity`.devices.lookup> If multiple properties are provided, only DeviceUsers having all of these properties are considered as matches - i.e. the query behaves like an AND. Different platforms require different amounts of information from the caller to ensure that the DeviceUser is uniquely identified. - iOS: If either the partner or ios_device_id field is provided, then both fields are required. - Android: Specifying the android_id field is required. - Desktop: Specifying the raw_resource_id field is required.
+/// Looks up resource names of the DeviceUsers associated with the caller''s credentials, as well as the properties provided in the request. This method must be called with end-user credentials with the scope: <https://www.googleapis.`com/auth/cloud-identity`.devices.lookup> If multiple properties are provided, only DeviceUsers having all of these properties are considered as matches - i.e. the query behaves like an AND. Different platforms require different amounts of information from the caller to ensure that the DeviceUser is uniquely identified. - iOS: If either the partner or ios_device_id field is provided, then both fields are required. - Android: Specifying the android_id field is required. - Desktop: Specifying the raw_resource_id field is required.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `cloudidentity_devices_device_users_lookup_builder()` + `cloudidentity_devices_device_users_lookup_execute()`.
@@ -3235,7 +3235,7 @@ pub fn cloudidentity_devices_device_users_lookup(
 }
 
 /// POST v1/devices/{devicesId}/deviceUsers/{deviceUsersId}:wipe
-/// Wipes the user's account on a device. Other data on the device that is not associated with the user's work account is not affected. For example, if a Gmail app is installed on a device that is used for personal and work purposes, and the user is logged in to the Gmail app with their personal account as well as their work account, wiping the "`deviceUser`" by their work administrator will not affect their personal account within Gmail or other apps such as Photos.
+/// Wipes the user''s account on a device. Other data on the device that is not associated with the user''s work account is not affected. For example, if a Gmail app is installed on a device that is used for personal and work purposes, and the user is logged in to the Gmail app with their personal account as well as their work account, wiping the "`deviceUser`" by their work administrator will not affect their personal account within Gmail or other apps such as Photos.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudidentity_devices_device_users_wipe_execute()` to send, or `cloudidentity_devices_device_users_wipe` for simplest API.
@@ -3262,7 +3262,7 @@ where
 }
 
 /// POST v1/devices/{devicesId}/deviceUsers/{deviceUsersId}:wipe
-/// Wipes the user's account on a device. Other data on the device that is not associated with the user's work account is not affected. For example, if a Gmail app is installed on a device that is used for personal and work purposes, and the user is logged in to the Gmail app with their personal account as well as their work account, wiping the "`deviceUser`" by their work administrator will not affect their personal account within Gmail or other apps such as Photos.
+/// Wipes the user''s account on a device. Other data on the device that is not associated with the user''s work account is not affected. For example, if a Gmail app is installed on a device that is used for personal and work purposes, and the user is logged in to the Gmail app with their personal account as well as their work account, wiping the "`deviceUser`" by their work administrator will not affect their personal account within Gmail or other apps such as Photos.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -3336,7 +3336,7 @@ pub fn cloudidentity_devices_device_users_wipe_task(
 }
 
 /// POST v1/devices/{devicesId}/deviceUsers/{deviceUsersId}:wipe
-/// Wipes the user's account on a device. Other data on the device that is not associated with the user's work account is not affected. For example, if a Gmail app is installed on a device that is used for personal and work purposes, and the user is logged in to the Gmail app with their personal account as well as their work account, wiping the "`deviceUser`" by their work administrator will not affect their personal account within Gmail or other apps such as Photos.
+/// Wipes the user''s account on a device. Other data on the device that is not associated with the user''s work account is not affected. For example, if a Gmail app is installed on a device that is used for personal and work purposes, and the user is logged in to the Gmail app with their personal account as well as their work account, wiping the "`deviceUser`" by their work administrator will not affect their personal account within Gmail or other apps such as Photos.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -3373,7 +3373,7 @@ pub struct CloudidentityDevicesDeviceUsersWipeArgs {
 }
 
 /// POST v1/devices/{devicesId}/deviceUsers/{deviceUsersId}:wipe
-/// Wipes the user's account on a device. Other data on the device that is not associated with the user's work account is not affected. For example, if a Gmail app is installed on a device that is used for personal and work purposes, and the user is logged in to the Gmail app with their personal account as well as their work account, wiping the "`deviceUser`" by their work administrator will not affect their personal account within Gmail or other apps such as Photos.
+/// Wipes the user''s account on a device. Other data on the device that is not associated with the user''s work account is not affected. For example, if a Gmail app is installed on a device that is used for personal and work purposes, and the user is logged in to the Gmail app with their personal account as well as their work account, wiping the "`deviceUser`" by their work administrator will not affect their personal account within Gmail or other apps such as Photos.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `cloudidentity_devices_device_users_wipe_builder()` + `cloudidentity_devices_device_users_wipe_execute()`.

@@ -1670,7 +1670,7 @@ pub fn recommendationengine_projects_locations_catalogs_event_stores_operations_
 }
 
 /// GET v1beta1/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/eventStores/{eventStoresId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `recommendationengine_projects_locations_catalogs_event_stores_operations_list_execute()` to send, or `recommendationengine_projects_locations_catalogs_event_stores_operations_list` for simplest API.
@@ -1721,7 +1721,7 @@ where
 }
 
 /// GET v1beta1/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/eventStores/{eventStoresId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -1796,7 +1796,7 @@ pub fn recommendationengine_projects_locations_catalogs_event_stores_operations_
 }
 
 /// GET v1beta1/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/eventStores/{eventStoresId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -1847,7 +1847,7 @@ pub struct RecommendationengineProjectsLocationsCatalogsEventStoresOperationsLis
 }
 
 /// GET v1beta1/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/eventStores/{eventStoresId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `recommendationengine_projects_locations_catalogs_event_stores_operations_list_builder()` + `recommendationengine_projects_locations_catalogs_event_stores_operations_list_execute()`.
@@ -3385,7 +3385,7 @@ pub fn recommendationengine_projects_locations_catalogs_event_stores_user_events
 }
 
 /// POST v1beta1/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/eventStores/{eventStoresId}/userEvents:rejoin
-/// Triggers a user event rejoin operation with latest catalog data. Events will not be annotated with detailed catalog information if catalog item is missing at the time the user event is ingested, and these events are stored as unjoined events with a limited usage on training and serving. This API can be used to trigger a 'join' operation on specified events with latest version of catalog items. It can also be used to correct events joined with wrong catalog items.
+/// Triggers a user event rejoin operation with latest catalog data. Events will not be annotated with detailed catalog information if catalog item is missing at the time the user event is ingested, and these events are stored as unjoined events with a limited usage on training and serving. This API can be used to trigger a ''join'' operation on specified events with latest version of catalog items. It can also be used to correct events joined with wrong catalog items.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `recommendationengine_projects_locations_catalogs_event_stores_user_events_rejoin_execute()` to send, or `recommendationengine_projects_locations_catalogs_event_stores_user_events_rejoin` for simplest API.
@@ -3412,7 +3412,7 @@ where
 }
 
 /// POST v1beta1/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/eventStores/{eventStoresId}/userEvents:rejoin
-/// Triggers a user event rejoin operation with latest catalog data. Events will not be annotated with detailed catalog information if catalog item is missing at the time the user event is ingested, and these events are stored as unjoined events with a limited usage on training and serving. This API can be used to trigger a 'join' operation on specified events with latest version of catalog items. It can also be used to correct events joined with wrong catalog items.
+/// Triggers a user event rejoin operation with latest catalog data. Events will not be annotated with detailed catalog information if catalog item is missing at the time the user event is ingested, and these events are stored as unjoined events with a limited usage on training and serving. This API can be used to trigger a ''join'' operation on specified events with latest version of catalog items. It can also be used to correct events joined with wrong catalog items.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -3486,7 +3486,7 @@ pub fn recommendationengine_projects_locations_catalogs_event_stores_user_events
 }
 
 /// POST v1beta1/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/eventStores/{eventStoresId}/userEvents:rejoin
-/// Triggers a user event rejoin operation with latest catalog data. Events will not be annotated with detailed catalog information if catalog item is missing at the time the user event is ingested, and these events are stored as unjoined events with a limited usage on training and serving. This API can be used to trigger a 'join' operation on specified events with latest version of catalog items. It can also be used to correct events joined with wrong catalog items.
+/// Triggers a user event rejoin operation with latest catalog data. Events will not be annotated with detailed catalog information if catalog item is missing at the time the user event is ingested, and these events are stored as unjoined events with a limited usage on training and serving. This API can be used to trigger a ''join'' operation on specified events with latest version of catalog items. It can also be used to correct events joined with wrong catalog items.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -3530,7 +3530,7 @@ pub struct RecommendationengineProjectsLocationsCatalogsEventStoresUserEventsRej
 }
 
 /// POST v1beta1/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/eventStores/{eventStoresId}/userEvents:rejoin
-/// Triggers a user event rejoin operation with latest catalog data. Events will not be annotated with detailed catalog information if catalog item is missing at the time the user event is ingested, and these events are stored as unjoined events with a limited usage on training and serving. This API can be used to trigger a 'join' operation on specified events with latest version of catalog items. It can also be used to correct events joined with wrong catalog items.
+/// Triggers a user event rejoin operation with latest catalog data. Events will not be annotated with detailed catalog information if catalog item is missing at the time the user event is ingested, and these events are stored as unjoined events with a limited usage on training and serving. This API can be used to trigger a ''join'' operation on specified events with latest version of catalog items. It can also be used to correct events joined with wrong catalog items.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `recommendationengine_projects_locations_catalogs_event_stores_user_events_rejoin_builder()` + `recommendationengine_projects_locations_catalogs_event_stores_user_events_rejoin_execute()`.
@@ -3908,7 +3908,7 @@ pub fn recommendationengine_projects_locations_catalogs_operations_get(
 }
 
 /// GET v1beta1/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `recommendationengine_projects_locations_catalogs_operations_list_execute()` to send, or `recommendationengine_projects_locations_catalogs_operations_list` for simplest API.
@@ -3959,7 +3959,7 @@ where
 }
 
 /// GET v1beta1/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -4034,7 +4034,7 @@ pub fn recommendationengine_projects_locations_catalogs_operations_list_task(
 }
 
 /// GET v1beta1/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -4083,7 +4083,7 @@ pub struct RecommendationengineProjectsLocationsCatalogsOperationsListArgs {
 }
 
 /// GET v1beta1/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `recommendationengine_projects_locations_catalogs_operations_list_builder()` + `recommendationengine_projects_locations_catalogs_operations_list_execute()`.

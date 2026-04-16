@@ -22,7 +22,7 @@ use foundation_macros::JsonHash;
 use serde::Serialize;
 
 /// DELETE tasks/v1/users/@me/lists/{tasklist}
-/// Deletes the authenticated user's specified task list. If the list contains assigned tasks, both the assigned tasks and the original tasks in the assignment surface (Docs, Chat Spaces) are deleted.
+/// Deletes the authenticated user''s specified task list. If the list contains assigned tasks, both the assigned tasks and the original tasks in the assignment surface (Docs, Chat Spaces) are deleted.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tasks_tasklists_delete_execute()` to send, or `tasks_tasklists_delete` for simplest API.
@@ -49,7 +49,7 @@ where
 }
 
 /// DELETE tasks/v1/users/@me/lists/{tasklist}
-/// Deletes the authenticated user's specified task list. If the list contains assigned tasks, both the assigned tasks and the original tasks in the assignment surface (Docs, Chat Spaces) are deleted.
+/// Deletes the authenticated user''s specified task list. If the list contains assigned tasks, both the assigned tasks and the original tasks in the assignment surface (Docs, Chat Spaces) are deleted.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -120,7 +120,7 @@ pub fn tasks_tasklists_delete_task(
 }
 
 /// DELETE tasks/v1/users/@me/lists/{tasklist}
-/// Deletes the authenticated user's specified task list. If the list contains assigned tasks, both the assigned tasks and the original tasks in the assignment surface (Docs, Chat Spaces) are deleted.
+/// Deletes the authenticated user''s specified task list. If the list contains assigned tasks, both the assigned tasks and the original tasks in the assignment surface (Docs, Chat Spaces) are deleted.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -157,7 +157,7 @@ pub struct TasksTasklistsDeleteArgs {
 }
 
 /// DELETE tasks/v1/users/@me/lists/{tasklist}
-/// Deletes the authenticated user's specified task list. If the list contains assigned tasks, both the assigned tasks and the original tasks in the assignment surface (Docs, Chat Spaces) are deleted.
+/// Deletes the authenticated user''s specified task list. If the list contains assigned tasks, both the assigned tasks and the original tasks in the assignment surface (Docs, Chat Spaces) are deleted.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `tasks_tasklists_delete_builder()` + `tasks_tasklists_delete_execute()`.
@@ -179,7 +179,7 @@ pub fn tasks_tasklists_delete(
 }
 
 /// GET tasks/v1/users/@me/lists/{tasklist}
-/// Returns the authenticated user's specified task list.
+/// Returns the authenticated user''s specified task list.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tasks_tasklists_get_execute()` to send, or `tasks_tasklists_get` for simplest API.
@@ -206,7 +206,7 @@ where
 }
 
 /// GET tasks/v1/users/@me/lists/{tasklist}
-/// Returns the authenticated user's specified task list.
+/// Returns the authenticated user''s specified task list.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -280,7 +280,7 @@ pub fn tasks_tasklists_get_task(
 }
 
 /// GET tasks/v1/users/@me/lists/{tasklist}
-/// Returns the authenticated user's specified task list.
+/// Returns the authenticated user''s specified task list.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -317,7 +317,7 @@ pub struct TasksTasklistsGetArgs {
 }
 
 /// GET tasks/v1/users/@me/lists/{tasklist}
-/// Returns the authenticated user's specified task list.
+/// Returns the authenticated user''s specified task list.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `tasks_tasklists_get_builder()` + `tasks_tasklists_get_execute()`.
@@ -339,7 +339,7 @@ pub fn tasks_tasklists_get(
 }
 
 /// POST tasks/v1/users/@me/lists
-/// Creates a new task list and adds it to the authenticated user's task lists. A user can have up to 2000 lists at a time.
+/// Creates a new task list and adds it to the authenticated user''s task lists. A user can have up to 2000 lists at a time.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tasks_tasklists_insert_execute()` to send, or `tasks_tasklists_insert` for simplest API.
@@ -362,7 +362,7 @@ where
 }
 
 /// POST tasks/v1/users/@me/lists
-/// Creates a new task list and adds it to the authenticated user's task lists. A user can have up to 2000 lists at a time.
+/// Creates a new task list and adds it to the authenticated user''s task lists. A user can have up to 2000 lists at a time.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -436,7 +436,7 @@ pub fn tasks_tasklists_insert_task(
 }
 
 /// POST tasks/v1/users/@me/lists
-/// Creates a new task list and adds it to the authenticated user's task lists. A user can have up to 2000 lists at a time.
+/// Creates a new task list and adds it to the authenticated user''s task lists. A user can have up to 2000 lists at a time.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -466,7 +466,7 @@ pub fn tasks_tasklists_insert_execute(
 }
 
 /// POST tasks/v1/users/@me/lists
-/// Creates a new task list and adds it to the authenticated user's task lists. A user can have up to 2000 lists at a time.
+/// Creates a new task list and adds it to the authenticated user''s task lists. A user can have up to 2000 lists at a time.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `tasks_tasklists_insert_builder()` + `tasks_tasklists_insert_execute()`.
@@ -487,7 +487,7 @@ pub fn tasks_tasklists_insert(
 }
 
 /// GET tasks/v1/users/@me/lists
-/// Returns all the authenticated user's task lists. A user can have up to 2000 lists at a time.
+/// Returns all the authenticated user''s task lists. A user can have up to 2000 lists at a time.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tasks_tasklists_list_execute()` to send, or `tasks_tasklists_list` for simplest API.
@@ -526,7 +526,7 @@ where
 }
 
 /// GET tasks/v1/users/@me/lists
-/// Returns all the authenticated user's task lists. A user can have up to 2000 lists at a time.
+/// Returns all the authenticated user''s task lists. A user can have up to 2000 lists at a time.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -600,7 +600,7 @@ pub fn tasks_tasklists_list_task(
 }
 
 /// GET tasks/v1/users/@me/lists
-/// Returns all the authenticated user's task lists. A user can have up to 2000 lists at a time.
+/// Returns all the authenticated user''s task lists. A user can have up to 2000 lists at a time.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -639,7 +639,7 @@ pub struct TasksTasklistsListArgs {
 }
 
 /// GET tasks/v1/users/@me/lists
-/// Returns all the authenticated user's task lists. A user can have up to 2000 lists at a time.
+/// Returns all the authenticated user''s task lists. A user can have up to 2000 lists at a time.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `tasks_tasklists_list_builder()` + `tasks_tasklists_list_execute()`.
@@ -661,7 +661,7 @@ pub fn tasks_tasklists_list(
 }
 
 /// PATCH tasks/v1/users/@me/lists/{tasklist}
-/// Updates the authenticated user's specified task list. This method supports patch semantics.
+/// Updates the authenticated user''s specified task list. This method supports patch semantics.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tasks_tasklists_patch_execute()` to send, or `tasks_tasklists_patch` for simplest API.
@@ -688,7 +688,7 @@ where
 }
 
 /// PATCH tasks/v1/users/@me/lists/{tasklist}
-/// Updates the authenticated user's specified task list. This method supports patch semantics.
+/// Updates the authenticated user''s specified task list. This method supports patch semantics.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -762,7 +762,7 @@ pub fn tasks_tasklists_patch_task(
 }
 
 /// PATCH tasks/v1/users/@me/lists/{tasklist}
-/// Updates the authenticated user's specified task list. This method supports patch semantics.
+/// Updates the authenticated user''s specified task list. This method supports patch semantics.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -799,7 +799,7 @@ pub struct TasksTasklistsPatchArgs {
 }
 
 /// PATCH tasks/v1/users/@me/lists/{tasklist}
-/// Updates the authenticated user's specified task list. This method supports patch semantics.
+/// Updates the authenticated user''s specified task list. This method supports patch semantics.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `tasks_tasklists_patch_builder()` + `tasks_tasklists_patch_execute()`.
@@ -821,7 +821,7 @@ pub fn tasks_tasklists_patch(
 }
 
 /// PUT tasks/v1/users/@me/lists/{tasklist}
-/// Updates the authenticated user's specified task list.
+/// Updates the authenticated user''s specified task list.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tasks_tasklists_update_execute()` to send, or `tasks_tasklists_update` for simplest API.
@@ -848,7 +848,7 @@ where
 }
 
 /// PUT tasks/v1/users/@me/lists/{tasklist}
-/// Updates the authenticated user's specified task list.
+/// Updates the authenticated user''s specified task list.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -922,7 +922,7 @@ pub fn tasks_tasklists_update_task(
 }
 
 /// PUT tasks/v1/users/@me/lists/{tasklist}
-/// Updates the authenticated user's specified task list.
+/// Updates the authenticated user''s specified task list.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -959,7 +959,7 @@ pub struct TasksTasklistsUpdateArgs {
 }
 
 /// PUT tasks/v1/users/@me/lists/{tasklist}
-/// Updates the authenticated user's specified task list.
+/// Updates the authenticated user''s specified task list.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `tasks_tasklists_update_builder()` + `tasks_tasklists_update_execute()`.
@@ -981,7 +981,7 @@ pub fn tasks_tasklists_update(
 }
 
 /// POST tasks/v1/lists/{tasklist}/clear
-/// Clears all completed tasks from the specified task list. The affected tasks will be marked as 'hidden' and no longer be returned by default when retrieving all tasks for a task list.
+/// Clears all completed tasks from the specified task list. The affected tasks will be marked as ''hidden'' and no longer be returned by default when retrieving all tasks for a task list.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tasks_tasks_clear_execute()` to send, or `tasks_tasks_clear` for simplest API.
@@ -1008,7 +1008,7 @@ where
 }
 
 /// POST tasks/v1/lists/{tasklist}/clear
-/// Clears all completed tasks from the specified task list. The affected tasks will be marked as 'hidden' and no longer be returned by default when retrieving all tasks for a task list.
+/// Clears all completed tasks from the specified task list. The affected tasks will be marked as ''hidden'' and no longer be returned by default when retrieving all tasks for a task list.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -1079,7 +1079,7 @@ pub fn tasks_tasks_clear_task(
 }
 
 /// POST tasks/v1/lists/{tasklist}/clear
-/// Clears all completed tasks from the specified task list. The affected tasks will be marked as 'hidden' and no longer be returned by default when retrieving all tasks for a task list.
+/// Clears all completed tasks from the specified task list. The affected tasks will be marked as ''hidden'' and no longer be returned by default when retrieving all tasks for a task list.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -1116,7 +1116,7 @@ pub struct TasksTasksClearArgs {
 }
 
 /// POST tasks/v1/lists/{tasklist}/clear
-/// Clears all completed tasks from the specified task list. The affected tasks will be marked as 'hidden' and no longer be returned by default when retrieving all tasks for a task list.
+/// Clears all completed tasks from the specified task list. The affected tasks will be marked as ''hidden'' and no longer be returned by default when retrieving all tasks for a task list.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `tasks_tasks_clear_builder()` + `tasks_tasks_clear_execute()`.
@@ -1641,7 +1641,7 @@ pub fn tasks_tasks_insert(
 }
 
 /// GET tasks/v1/lists/{tasklist}/tasks
-/// Returns all tasks in the specified task list. Doesn't return assigned tasks by default (from Docs, Chat Spaces). A user can have up to 20,000 non-hidden tasks per list and up to 100,000 tasks in total at a time.
+/// Returns all tasks in the specified task list. Doesn''t return assigned tasks by default (from Docs, Chat Spaces). A user can have up to 20,000 non-hidden tasks per list and up to 100,000 tasks in total at a time.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tasks_tasks_list_execute()` to send, or `tasks_tasks_list` for simplest API.
@@ -1720,7 +1720,7 @@ where
 }
 
 /// GET tasks/v1/lists/{tasklist}/tasks
-/// Returns all tasks in the specified task list. Doesn't return assigned tasks by default (from Docs, Chat Spaces). A user can have up to 20,000 non-hidden tasks per list and up to 100,000 tasks in total at a time.
+/// Returns all tasks in the specified task list. Doesn''t return assigned tasks by default (from Docs, Chat Spaces). A user can have up to 20,000 non-hidden tasks per list and up to 100,000 tasks in total at a time.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -1794,7 +1794,7 @@ pub fn tasks_tasks_list_task(
 }
 
 /// GET tasks/v1/lists/{tasklist}/tasks
-/// Returns all tasks in the specified task list. Doesn't return assigned tasks by default (from Docs, Chat Spaces). A user can have up to 20,000 non-hidden tasks per list and up to 100,000 tasks in total at a time.
+/// Returns all tasks in the specified task list. Doesn''t return assigned tasks by default (from Docs, Chat Spaces). A user can have up to 20,000 non-hidden tasks per list and up to 100,000 tasks in total at a time.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -1853,7 +1853,7 @@ pub struct TasksTasksListArgs {
 }
 
 /// GET tasks/v1/lists/{tasklist}/tasks
-/// Returns all tasks in the specified task list. Doesn't return assigned tasks by default (from Docs, Chat Spaces). A user can have up to 20,000 non-hidden tasks per list and up to 100,000 tasks in total at a time.
+/// Returns all tasks in the specified task list. Doesn''t return assigned tasks by default (from Docs, Chat Spaces). A user can have up to 20,000 non-hidden tasks per list and up to 100,000 tasks in total at a time.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `tasks_tasks_list_builder()` + `tasks_tasks_list_execute()`.

@@ -22,7 +22,7 @@ use foundation_macros::JsonHash;
 use serde::Serialize;
 
 /// POST v3/iam:troubleshoot
-/// Checks whether a principal has a specific permission for a specific resource, and explains why the principal does or doesn't have that permission.
+/// Checks whether a principal has a specific permission for a specific resource, and explains why the principal does or doesn''t have that permission.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `policytroubleshooter_iam_troubleshoot_execute()` to send, or `policytroubleshooter_iam_troubleshoot` for simplest API.
@@ -45,7 +45,7 @@ where
 }
 
 /// POST v3/iam:troubleshoot
-/// Checks whether a principal has a specific permission for a specific resource, and explains why the principal does or doesn't have that permission.
+/// Checks whether a principal has a specific permission for a specific resource, and explains why the principal does or doesn''t have that permission.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -123,7 +123,7 @@ pub fn policytroubleshooter_iam_troubleshoot_task(
 }
 
 /// POST v3/iam:troubleshoot
-/// Checks whether a principal has a specific permission for a specific resource, and explains why the principal does or doesn't have that permission.
+/// Checks whether a principal has a specific permission for a specific resource, and explains why the principal does or doesn''t have that permission.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -160,7 +160,7 @@ pub fn policytroubleshooter_iam_troubleshoot_execute(
 }
 
 /// POST v3/iam:troubleshoot
-/// Checks whether a principal has a specific permission for a specific resource, and explains why the principal does or doesn't have that permission.
+/// Checks whether a principal has a specific permission for a specific resource, and explains why the principal does or doesn''t have that permission.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `policytroubleshooter_iam_troubleshoot_builder()` + `policytroubleshooter_iam_troubleshoot_execute()`.

@@ -1232,7 +1232,7 @@ pub fn jobs_projects_tenants_patch(
 }
 
 /// POST v4/projects/{projectsId}/tenants/{tenantsId}/clientEvents
-/// Report events issued when end user interacts with customer's application that uses Cloud Talent Solution. You may inspect the created events in [self service tools](<https://console.cloud.google.`com/talent-solution/overview`>). [Learn more](<https://cloud.google.`com/talent-solution/docs/management-tools`>) about self service tools.
+/// Report events issued when end user interacts with customer''s application that uses Cloud Talent Solution. You may inspect the created events in [self service tools](<https://console.cloud.google.`com/talent-solution/overview`>). [Learn more](<https://cloud.google.`com/talent-solution/docs/management-tools`>) about self service tools.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `jobs_projects_tenants_client_events_create_execute()` to send, or `jobs_projects_tenants_client_events_create` for simplest API.
@@ -1259,7 +1259,7 @@ where
 }
 
 /// POST v4/projects/{projectsId}/tenants/{tenantsId}/clientEvents
-/// Report events issued when end user interacts with customer's application that uses Cloud Talent Solution. You may inspect the created events in [self service tools](<https://console.cloud.google.`com/talent-solution/overview`>). [Learn more](<https://cloud.google.`com/talent-solution/docs/management-tools`>) about self service tools.
+/// Report events issued when end user interacts with customer''s application that uses Cloud Talent Solution. You may inspect the created events in [self service tools](<https://console.cloud.google.`com/talent-solution/overview`>). [Learn more](<https://cloud.google.`com/talent-solution/docs/management-tools`>) about self service tools.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -1333,7 +1333,7 @@ pub fn jobs_projects_tenants_client_events_create_task(
 }
 
 /// POST v4/projects/{projectsId}/tenants/{tenantsId}/clientEvents
-/// Report events issued when end user interacts with customer's application that uses Cloud Talent Solution. You may inspect the created events in [self service tools](<https://console.cloud.google.`com/talent-solution/overview`>). [Learn more](<https://cloud.google.`com/talent-solution/docs/management-tools`>) about self service tools.
+/// Report events issued when end user interacts with customer''s application that uses Cloud Talent Solution. You may inspect the created events in [self service tools](<https://console.cloud.google.`com/talent-solution/overview`>). [Learn more](<https://cloud.google.`com/talent-solution/docs/management-tools`>) about self service tools.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -1370,7 +1370,7 @@ pub struct JobsProjectsTenantsClientEventsCreateArgs {
 }
 
 /// POST v4/projects/{projectsId}/tenants/{tenantsId}/clientEvents
-/// Report events issued when end user interacts with customer's application that uses Cloud Talent Solution. You may inspect the created events in [self service tools](<https://console.cloud.google.`com/talent-solution/overview`>). [Learn more](<https://cloud.google.`com/talent-solution/docs/management-tools`>) about self service tools.
+/// Report events issued when end user interacts with customer''s application that uses Cloud Talent Solution. You may inspect the created events in [self service tools](<https://console.cloud.google.`com/talent-solution/overview`>). [Learn more](<https://cloud.google.`com/talent-solution/docs/management-tools`>) about self service tools.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `jobs_projects_tenants_client_events_create_builder()` + `jobs_projects_tenants_client_events_create_execute()`.

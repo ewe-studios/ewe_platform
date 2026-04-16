@@ -3720,7 +3720,7 @@ pub fn youtube_comments_list(
 }
 
 /// POST youtube/v3/comments/markAsSpam
-/// Expresses the caller's opinion that one or more comments should be flagged as spam.
+/// Expresses the caller''s opinion that one or more comments should be flagged as spam.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `youtube_comments_mark_as_spam_execute()` to send, or `youtube_comments_mark_as_spam` for simplest API.
@@ -3755,7 +3755,7 @@ where
 }
 
 /// POST youtube/v3/comments/markAsSpam
-/// Expresses the caller's opinion that one or more comments should be flagged as spam.
+/// Expresses the caller''s opinion that one or more comments should be flagged as spam.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -3826,7 +3826,7 @@ pub fn youtube_comments_mark_as_spam_task(
 }
 
 /// POST youtube/v3/comments/markAsSpam
-/// Expresses the caller's opinion that one or more comments should be flagged as spam.
+/// Expresses the caller''s opinion that one or more comments should be flagged as spam.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -3863,7 +3863,7 @@ pub struct YoutubeCommentsMarkAsSpamArgs {
 }
 
 /// POST youtube/v3/comments/markAsSpam
-/// Expresses the caller's opinion that one or more comments should be flagged as spam.
+/// Expresses the caller''s opinion that one or more comments should be flagged as spam.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `youtube_comments_mark_as_spam_builder()` + `youtube_comments_mark_as_spam_execute()`.
@@ -13103,7 +13103,7 @@ pub fn youtube_third_party_links_update(
 }
 
 /// POST youtube/v3/thumbnails/set
-/// As this is not an insert in a strict sense (it supports `uploading/setting` of a thumbnail for multiple videos, which doesn't result in creation of a single resource), I use a custom verb here.
+/// As this is not an insert in a strict sense (it supports `uploading/setting` of a thumbnail for multiple videos, which doesn''t result in creation of a single resource), I use a custom verb here.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `youtube_thumbnails_set_execute()` to send, or `youtube_thumbnails_set` for simplest API.
@@ -13142,7 +13142,7 @@ where
 }
 
 /// POST youtube/v3/thumbnails/set
-/// As this is not an insert in a strict sense (it supports `uploading/setting` of a thumbnail for multiple videos, which doesn't result in creation of a single resource), I use a custom verb here.
+/// As this is not an insert in a strict sense (it supports `uploading/setting` of a thumbnail for multiple videos, which doesn''t result in creation of a single resource), I use a custom verb here.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -13216,7 +13216,7 @@ pub fn youtube_thumbnails_set_task(
 }
 
 /// POST youtube/v3/thumbnails/set
-/// As this is not an insert in a strict sense (it supports `uploading/setting` of a thumbnail for multiple videos, which doesn't result in creation of a single resource), I use a custom verb here.
+/// As this is not an insert in a strict sense (it supports `uploading/setting` of a thumbnail for multiple videos, which doesn''t result in creation of a single resource), I use a custom verb here.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -13257,7 +13257,7 @@ pub struct YoutubeThumbnailsSetArgs {
 }
 
 /// POST youtube/v3/thumbnails/set
-/// As this is not an insert in a strict sense (it supports `uploading/setting` of a thumbnail for multiple videos, which doesn't result in creation of a single resource), I use a custom verb here.
+/// As this is not an insert in a strict sense (it supports `uploading/setting` of a thumbnail for multiple videos, which doesn''t result in creation of a single resource), I use a custom verb here.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `youtube_thumbnails_set_builder()` + `youtube_thumbnails_set_execute()`.

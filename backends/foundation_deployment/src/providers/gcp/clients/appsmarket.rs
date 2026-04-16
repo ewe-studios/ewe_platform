@@ -22,7 +22,7 @@ use foundation_macros::JsonHash;
 use serde::Serialize;
 
 /// GET appsmarket/v2/customerLicense/{applicationId}/{customerId}
-/// Gets the customer's licensing status to determine if they have access to a given app. For more information, see [Getting app installation and licensing details](<https://developers.google.`com/workspace/marketplace/example-calls-marketplace-api`>).
+/// Gets the customer''s licensing status to determine if they have access to a given app. For more information, see [Getting app installation and licensing details](<https://developers.google.`com/workspace/marketplace/example-calls-marketplace-api`>).
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `appsmarket_customer_license_get_execute()` to send, or `appsmarket_customer_license_get` for simplest API.
@@ -50,7 +50,7 @@ where
 }
 
 /// GET appsmarket/v2/customerLicense/{applicationId}/{customerId}
-/// Gets the customer's licensing status to determine if they have access to a given app. For more information, see [Getting app installation and licensing details](<https://developers.google.`com/workspace/marketplace/example-calls-marketplace-api`>).
+/// Gets the customer''s licensing status to determine if they have access to a given app. For more information, see [Getting app installation and licensing details](<https://developers.google.`com/workspace/marketplace/example-calls-marketplace-api`>).
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -124,7 +124,7 @@ pub fn appsmarket_customer_license_get_task(
 }
 
 /// GET appsmarket/v2/customerLicense/{applicationId}/{customerId}
-/// Gets the customer's licensing status to determine if they have access to a given app. For more information, see [Getting app installation and licensing details](<https://developers.google.`com/workspace/marketplace/example-calls-marketplace-api`>).
+/// Gets the customer''s licensing status to determine if they have access to a given app. For more information, see [Getting app installation and licensing details](<https://developers.google.`com/workspace/marketplace/example-calls-marketplace-api`>).
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -165,7 +165,7 @@ pub struct AppsmarketCustomerLicenseGetArgs {
 }
 
 /// GET appsmarket/v2/customerLicense/{applicationId}/{customerId}
-/// Gets the customer's licensing status to determine if they have access to a given app. For more information, see [Getting app installation and licensing details](<https://developers.google.`com/workspace/marketplace/example-calls-marketplace-api`>).
+/// Gets the customer''s licensing status to determine if they have access to a given app. For more information, see [Getting app installation and licensing details](<https://developers.google.`com/workspace/marketplace/example-calls-marketplace-api`>).
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `appsmarket_customer_license_get_builder()` + `appsmarket_customer_license_get_execute()`.
@@ -190,7 +190,7 @@ pub fn appsmarket_customer_license_get(
 }
 
 /// GET appsmarket/v2/userLicense/{applicationId}/{userId}
-/// Gets the user's licensing status to determine if they have permission to use a given app. For more information, see [Getting app installation and licensing details](<https://developers.google.`com/workspace/marketplace/example-calls-marketplace-api`>).
+/// Gets the user''s licensing status to determine if they have permission to use a given app. For more information, see [Getting app installation and licensing details](<https://developers.google.`com/workspace/marketplace/example-calls-marketplace-api`>).
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `appsmarket_user_license_get_execute()` to send, or `appsmarket_user_license_get` for simplest API.
@@ -218,7 +218,7 @@ where
 }
 
 /// GET appsmarket/v2/userLicense/{applicationId}/{userId}
-/// Gets the user's licensing status to determine if they have permission to use a given app. For more information, see [Getting app installation and licensing details](<https://developers.google.`com/workspace/marketplace/example-calls-marketplace-api`>).
+/// Gets the user''s licensing status to determine if they have permission to use a given app. For more information, see [Getting app installation and licensing details](<https://developers.google.`com/workspace/marketplace/example-calls-marketplace-api`>).
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -292,7 +292,7 @@ pub fn appsmarket_user_license_get_task(
 }
 
 /// GET appsmarket/v2/userLicense/{applicationId}/{userId}
-/// Gets the user's licensing status to determine if they have permission to use a given app. For more information, see [Getting app installation and licensing details](<https://developers.google.`com/workspace/marketplace/example-calls-marketplace-api`>).
+/// Gets the user''s licensing status to determine if they have permission to use a given app. For more information, see [Getting app installation and licensing details](<https://developers.google.`com/workspace/marketplace/example-calls-marketplace-api`>).
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -331,7 +331,7 @@ pub struct AppsmarketUserLicenseGetArgs {
 }
 
 /// GET appsmarket/v2/userLicense/{applicationId}/{userId}
-/// Gets the user's licensing status to determine if they have permission to use a given app. For more information, see [Getting app installation and licensing details](<https://developers.google.`com/workspace/marketplace/example-calls-marketplace-api`>).
+/// Gets the user''s licensing status to determine if they have permission to use a given app. For more information, see [Getting app installation and licensing details](<https://developers.google.`com/workspace/marketplace/example-calls-marketplace-api`>).
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `appsmarket_user_license_get_builder()` + `appsmarket_user_license_get_execute()`.

@@ -791,7 +791,7 @@ pub fn games_achievements_increment(
 }
 
 /// GET games/v1/players/{playerId}/achievements
-/// Lists the progress for all your application's achievements for the currently authenticated player.
+/// Lists the progress for all your application''s achievements for the currently authenticated player.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `games_achievements_list_execute()` to send, or `games_achievements_list` for simplest API.
@@ -842,7 +842,7 @@ where
 }
 
 /// GET games/v1/players/{playerId}/achievements
-/// Lists the progress for all your application's achievements for the currently authenticated player.
+/// Lists the progress for all your application''s achievements for the currently authenticated player.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -916,7 +916,7 @@ pub fn games_achievements_list_task(
 }
 
 /// GET games/v1/players/{playerId}/achievements
-/// Lists the progress for all your application's achievements for the currently authenticated player.
+/// Lists the progress for all your application''s achievements for the currently authenticated player.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -965,7 +965,7 @@ pub struct GamesAchievementsListArgs {
 }
 
 /// GET games/v1/players/{playerId}/achievements
-/// Lists the progress for all your application's achievements for the currently authenticated player.
+/// Lists the progress for all your application''s achievements for the currently authenticated player.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `games_achievements_list_builder()` + `games_achievements_list_execute()`.
@@ -5134,7 +5134,7 @@ pub fn games_recall_retrieve_tokens(
 }
 
 /// POST games/v1/recall:unlinkPersona
-/// Delete a Recall token linking the PGS Player principal identified by the Recall session and an in-game account identified either by the 'persona' or by the token value.
+/// Delete a Recall token linking the PGS Player principal identified by the Recall session and an in-game account identified either by the ''persona'' or by the token value.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `games_recall_unlink_persona_execute()` to send, or `games_recall_unlink_persona` for simplest API.
@@ -5157,7 +5157,7 @@ where
 }
 
 /// POST games/v1/recall:unlinkPersona
-/// Delete a Recall token linking the PGS Player principal identified by the Recall session and an in-game account identified either by the 'persona' or by the token value.
+/// Delete a Recall token linking the PGS Player principal identified by the Recall session and an in-game account identified either by the ''persona'' or by the token value.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -5231,7 +5231,7 @@ pub fn games_recall_unlink_persona_task(
 }
 
 /// POST games/v1/recall:unlinkPersona
-/// Delete a Recall token linking the PGS Player principal identified by the Recall session and an in-game account identified either by the 'persona' or by the token value.
+/// Delete a Recall token linking the PGS Player principal identified by the Recall session and an in-game account identified either by the ''persona'' or by the token value.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -5263,7 +5263,7 @@ pub fn games_recall_unlink_persona_execute(
 }
 
 /// POST games/v1/recall:unlinkPersona
-/// Delete a Recall token linking the PGS Player principal identified by the Recall session and an in-game account identified either by the 'persona' or by the token value.
+/// Delete a Recall token linking the PGS Player principal identified by the Recall session and an in-game account identified either by the ''persona'' or by the token value.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `games_recall_unlink_persona_builder()` + `games_recall_unlink_persona_execute()`.
@@ -5458,7 +5458,7 @@ pub fn games_revisions_check(
 }
 
 /// GET games/v1/players/{playerId}/leaderboards/{leaderboardId}/scores/{timeSpan}
-/// Get high scores, and optionally ranks, in leaderboards for the currently authenticated player. For a specific time span, `leaderboardId` can be set to ALL to retrieve data for all leaderboards in a given time span. NOTE: You cannot ask for 'ALL' leaderboards and 'ALL' `timeSpans` in the same request; only one parameter may be set to 'ALL'.
+/// Get high scores, and optionally ranks, in leaderboards for the currently authenticated player. For a specific time span, `leaderboardId` can be set to ALL to retrieve data for all leaderboards in a given time span. NOTE: You cannot ask for ''ALL'' leaderboards and ''ALL'' `timeSpans` in the same request; only one parameter may be set to ''ALL''.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `games_scores_get_execute()` to send, or `games_scores_get` for simplest API.
@@ -5511,7 +5511,7 @@ where
 }
 
 /// GET games/v1/players/{playerId}/leaderboards/{leaderboardId}/scores/{timeSpan}
-/// Get high scores, and optionally ranks, in leaderboards for the currently authenticated player. For a specific time span, `leaderboardId` can be set to ALL to retrieve data for all leaderboards in a given time span. NOTE: You cannot ask for 'ALL' leaderboards and 'ALL' `timeSpans` in the same request; only one parameter may be set to 'ALL'.
+/// Get high scores, and optionally ranks, in leaderboards for the currently authenticated player. For a specific time span, `leaderboardId` can be set to ALL to retrieve data for all leaderboards in a given time span. NOTE: You cannot ask for ''ALL'' leaderboards and ''ALL'' `timeSpans` in the same request; only one parameter may be set to ''ALL''.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -5585,7 +5585,7 @@ pub fn games_scores_get_task(
 }
 
 /// GET games/v1/players/{playerId}/leaderboards/{leaderboardId}/scores/{timeSpan}
-/// Get high scores, and optionally ranks, in leaderboards for the currently authenticated player. For a specific time span, `leaderboardId` can be set to ALL to retrieve data for all leaderboards in a given time span. NOTE: You cannot ask for 'ALL' leaderboards and 'ALL' `timeSpans` in the same request; only one parameter may be set to 'ALL'.
+/// Get high scores, and optionally ranks, in leaderboards for the currently authenticated player. For a specific time span, `leaderboardId` can be set to ALL to retrieve data for all leaderboards in a given time span. NOTE: You cannot ask for ''ALL'' leaderboards and ''ALL'' `timeSpans` in the same request; only one parameter may be set to ''ALL''.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -5638,7 +5638,7 @@ pub struct GamesScoresGetArgs {
 }
 
 /// GET games/v1/players/{playerId}/leaderboards/{leaderboardId}/scores/{timeSpan}
-/// Get high scores, and optionally ranks, in leaderboards for the currently authenticated player. For a specific time span, `leaderboardId` can be set to ALL to retrieve data for all leaderboards in a given time span. NOTE: You cannot ask for 'ALL' leaderboards and 'ALL' `timeSpans` in the same request; only one parameter may be set to 'ALL'.
+/// Get high scores, and optionally ranks, in leaderboards for the currently authenticated player. For a specific time span, `leaderboardId` can be set to ALL to retrieve data for all leaderboards in a given time span. NOTE: You cannot ask for ''ALL'' leaderboards and ''ALL'' `timeSpans` in the same request; only one parameter may be set to ''ALL''.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `games_scores_get_builder()` + `games_scores_get_execute()`.
@@ -5880,7 +5880,7 @@ pub fn games_scores_list(
 }
 
 /// GET games/v1/leaderboards/{leaderboardId}/window/{collection}
-/// Lists the scores in a leaderboard around (and including) a player's score.
+/// Lists the scores in a leaderboard around (and including) a player''s score.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `games_scores_list_window_execute()` to send, or `games_scores_list_window` for simplest API.
@@ -5940,7 +5940,7 @@ where
 }
 
 /// GET games/v1/leaderboards/{leaderboardId}/window/{collection}
-/// Lists the scores in a leaderboard around (and including) a player's score.
+/// Lists the scores in a leaderboard around (and including) a player''s score.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -6014,7 +6014,7 @@ pub fn games_scores_list_window_task(
 }
 
 /// GET games/v1/leaderboards/{leaderboardId}/window/{collection}
-/// Lists the scores in a leaderboard around (and including) a player's score.
+/// Lists the scores in a leaderboard around (and including) a player''s score.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -6067,7 +6067,7 @@ pub struct GamesScoresListWindowArgs {
 }
 
 /// GET games/v1/leaderboards/{leaderboardId}/window/{collection}
-/// Lists the scores in a leaderboard around (and including) a player's score.
+/// Lists the scores in a leaderboard around (and including) a player''s score.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `games_scores_list_window_builder()` + `games_scores_list_window_execute()`.

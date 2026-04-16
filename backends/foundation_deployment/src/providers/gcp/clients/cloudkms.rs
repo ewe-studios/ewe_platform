@@ -354,7 +354,7 @@ pub fn cloudkms_folders_get_kaj_policy_config(
 }
 
 /// PATCH v1/folders/{foldersId}/autokeyConfig
-/// Updates the AutokeyConfig for a folder or a project. The caller must have both cloudkms.`autokeyConfigs`.update permission on the parent folder and cloudkms.`cryptoKeys`.`setIamPolicy` permission on the provided key project. A KeyHandle creation in the folder's descendant projects will use this configuration to determine where to create the resulting CryptoKey.
+/// Updates the AutokeyConfig for a folder or a project. The caller must have both cloudkms.`autokeyConfigs`.update permission on the parent folder and cloudkms.`cryptoKeys`.`setIamPolicy` permission on the provided key project. A KeyHandle creation in the folder''s descendant projects will use this configuration to determine where to create the resulting CryptoKey.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudkms_folders_update_autokey_config_execute()` to send, or `cloudkms_folders_update_autokey_config` for simplest API.
@@ -393,7 +393,7 @@ where
 }
 
 /// PATCH v1/folders/{foldersId}/autokeyConfig
-/// Updates the AutokeyConfig for a folder or a project. The caller must have both cloudkms.`autokeyConfigs`.update permission on the parent folder and cloudkms.`cryptoKeys`.`setIamPolicy` permission on the provided key project. A KeyHandle creation in the folder's descendant projects will use this configuration to determine where to create the resulting CryptoKey.
+/// Updates the AutokeyConfig for a folder or a project. The caller must have both cloudkms.`autokeyConfigs`.update permission on the parent folder and cloudkms.`cryptoKeys`.`setIamPolicy` permission on the provided key project. A KeyHandle creation in the folder''s descendant projects will use this configuration to determine where to create the resulting CryptoKey.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -467,7 +467,7 @@ pub fn cloudkms_folders_update_autokey_config_task(
 }
 
 /// PATCH v1/folders/{foldersId}/autokeyConfig
-/// Updates the AutokeyConfig for a folder or a project. The caller must have both cloudkms.`autokeyConfigs`.update permission on the parent folder and cloudkms.`cryptoKeys`.`setIamPolicy` permission on the provided key project. A KeyHandle creation in the folder's descendant projects will use this configuration to determine where to create the resulting CryptoKey.
+/// Updates the AutokeyConfig for a folder or a project. The caller must have both cloudkms.`autokeyConfigs`.update permission on the parent folder and cloudkms.`cryptoKeys`.`setIamPolicy` permission on the provided key project. A KeyHandle creation in the folder''s descendant projects will use this configuration to determine where to create the resulting CryptoKey.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -508,7 +508,7 @@ pub struct CloudkmsFoldersUpdateAutokeyConfigArgs {
 }
 
 /// PATCH v1/folders/{foldersId}/autokeyConfig
-/// Updates the AutokeyConfig for a folder or a project. The caller must have both cloudkms.`autokeyConfigs`.update permission on the parent folder and cloudkms.`cryptoKeys`.`setIamPolicy` permission on the provided key project. A KeyHandle creation in the folder's descendant projects will use this configuration to determine where to create the resulting CryptoKey.
+/// Updates the AutokeyConfig for a folder or a project. The caller must have both cloudkms.`autokeyConfigs`.update permission on the parent folder and cloudkms.`cryptoKeys`.`setIamPolicy` permission on the provided key project. A KeyHandle creation in the folder''s descendant projects will use this configuration to determine where to create the resulting CryptoKey.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `cloudkms_folders_update_autokey_config_builder()` + `cloudkms_folders_update_autokey_config_execute()`.
@@ -1935,7 +1935,7 @@ pub fn cloudkms_projects_show_effective_key_access_justifications_policy_config(
 }
 
 /// PATCH v1/projects/{projectsId}/autokeyConfig
-/// Updates the AutokeyConfig for a folder or a project. The caller must have both cloudkms.`autokeyConfigs`.update permission on the parent folder and cloudkms.`cryptoKeys`.`setIamPolicy` permission on the provided key project. A KeyHandle creation in the folder's descendant projects will use this configuration to determine where to create the resulting CryptoKey.
+/// Updates the AutokeyConfig for a folder or a project. The caller must have both cloudkms.`autokeyConfigs`.update permission on the parent folder and cloudkms.`cryptoKeys`.`setIamPolicy` permission on the provided key project. A KeyHandle creation in the folder''s descendant projects will use this configuration to determine where to create the resulting CryptoKey.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudkms_projects_update_autokey_config_execute()` to send, or `cloudkms_projects_update_autokey_config` for simplest API.
@@ -1974,7 +1974,7 @@ where
 }
 
 /// PATCH v1/projects/{projectsId}/autokeyConfig
-/// Updates the AutokeyConfig for a folder or a project. The caller must have both cloudkms.`autokeyConfigs`.update permission on the parent folder and cloudkms.`cryptoKeys`.`setIamPolicy` permission on the provided key project. A KeyHandle creation in the folder's descendant projects will use this configuration to determine where to create the resulting CryptoKey.
+/// Updates the AutokeyConfig for a folder or a project. The caller must have both cloudkms.`autokeyConfigs`.update permission on the parent folder and cloudkms.`cryptoKeys`.`setIamPolicy` permission on the provided key project. A KeyHandle creation in the folder''s descendant projects will use this configuration to determine where to create the resulting CryptoKey.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -2048,7 +2048,7 @@ pub fn cloudkms_projects_update_autokey_config_task(
 }
 
 /// PATCH v1/projects/{projectsId}/autokeyConfig
-/// Updates the AutokeyConfig for a folder or a project. The caller must have both cloudkms.`autokeyConfigs`.update permission on the parent folder and cloudkms.`cryptoKeys`.`setIamPolicy` permission on the provided key project. A KeyHandle creation in the folder's descendant projects will use this configuration to determine where to create the resulting CryptoKey.
+/// Updates the AutokeyConfig for a folder or a project. The caller must have both cloudkms.`autokeyConfigs`.update permission on the parent folder and cloudkms.`cryptoKeys`.`setIamPolicy` permission on the provided key project. A KeyHandle creation in the folder''s descendant projects will use this configuration to determine where to create the resulting CryptoKey.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -2089,7 +2089,7 @@ pub struct CloudkmsProjectsUpdateAutokeyConfigArgs {
 }
 
 /// PATCH v1/projects/{projectsId}/autokeyConfig
-/// Updates the AutokeyConfig for a folder or a project. The caller must have both cloudkms.`autokeyConfigs`.update permission on the parent folder and cloudkms.`cryptoKeys`.`setIamPolicy` permission on the provided key project. A KeyHandle creation in the folder's descendant projects will use this configuration to determine where to create the resulting CryptoKey.
+/// Updates the AutokeyConfig for a folder or a project. The caller must have both cloudkms.`autokeyConfigs`.update permission on the parent folder and cloudkms.`cryptoKeys`.`setIamPolicy` permission on the provided key project. A KeyHandle creation in the folder''s descendant projects will use this configuration to determine where to create the resulting CryptoKey.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `cloudkms_projects_update_autokey_config_builder()` + `cloudkms_projects_update_autokey_config_execute()`.
@@ -4408,7 +4408,7 @@ pub fn cloudkms_projects_locations_ekm_connections_list(
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/ekmConnections/{ekmConnectionsId}
-/// Updates an EkmConnection's metadata.
+/// Updates an EkmConnection''s metadata.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudkms_projects_locations_ekm_connections_patch_execute()` to send, or `cloudkms_projects_locations_ekm_connections_patch` for simplest API.
@@ -4447,7 +4447,7 @@ where
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/ekmConnections/{ekmConnectionsId}
-/// Updates an EkmConnection's metadata.
+/// Updates an EkmConnection''s metadata.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -4521,7 +4521,7 @@ pub fn cloudkms_projects_locations_ekm_connections_patch_task(
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/ekmConnections/{ekmConnectionsId}
-/// Updates an EkmConnection's metadata.
+/// Updates an EkmConnection''s metadata.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -4562,7 +4562,7 @@ pub struct CloudkmsProjectsLocationsEkmConnectionsPatchArgs {
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/ekmConnections/{ekmConnectionsId}
-/// Updates an EkmConnection's metadata.
+/// Updates an EkmConnection''s metadata.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `cloudkms_projects_locations_ekm_connections_patch_builder()` + `cloudkms_projects_locations_ekm_connections_patch_execute()`.
@@ -10666,7 +10666,7 @@ pub fn cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_mac
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/keyRings/{keyRingsId}/cryptoKeys/{cryptoKeysId}/cryptoKeyVersions/{cryptoKeyVersionsId}
-/// Update a CryptoKeyVersion's metadata. state may be changed between ENABLED and DISABLED using this method. See DestroyCryptoKeyVersion and RestoreCryptoKeyVersion to move between other states.
+/// Update a CryptoKeyVersion''s metadata. state may be changed between ENABLED and DISABLED using this method. See DestroyCryptoKeyVersion and RestoreCryptoKeyVersion to move between other states.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_patch_execute()` to send, or `cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_patch` for simplest API.
@@ -10705,7 +10705,7 @@ where
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/keyRings/{keyRingsId}/cryptoKeys/{cryptoKeysId}/cryptoKeyVersions/{cryptoKeyVersionsId}
-/// Update a CryptoKeyVersion's metadata. state may be changed between ENABLED and DISABLED using this method. See DestroyCryptoKeyVersion and RestoreCryptoKeyVersion to move between other states.
+/// Update a CryptoKeyVersion''s metadata. state may be changed between ENABLED and DISABLED using this method. See DestroyCryptoKeyVersion and RestoreCryptoKeyVersion to move between other states.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -10779,7 +10779,7 @@ pub fn cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_pat
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/keyRings/{keyRingsId}/cryptoKeys/{cryptoKeysId}/cryptoKeyVersions/{cryptoKeyVersionsId}
-/// Update a CryptoKeyVersion's metadata. state may be changed between ENABLED and DISABLED using this method. See DestroyCryptoKeyVersion and RestoreCryptoKeyVersion to move between other states.
+/// Update a CryptoKeyVersion''s metadata. state may be changed between ENABLED and DISABLED using this method. See DestroyCryptoKeyVersion and RestoreCryptoKeyVersion to move between other states.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -10821,7 +10821,7 @@ pub struct CloudkmsProjectsLocationsKeyRingsCryptoKeysCryptoKeyVersionsPatchArgs
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/keyRings/{keyRingsId}/cryptoKeys/{cryptoKeysId}/cryptoKeyVersions/{cryptoKeyVersionsId}
-/// Update a CryptoKeyVersion's metadata. state may be changed between ENABLED and DISABLED using this method. See DestroyCryptoKeyVersion and RestoreCryptoKeyVersion to move between other states.
+/// Update a CryptoKeyVersion''s metadata. state may be changed between ENABLED and DISABLED using this method. See DestroyCryptoKeyVersion and RestoreCryptoKeyVersion to move between other states.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_patch_builder()` + `cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_patch_execute()`.

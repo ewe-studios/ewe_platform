@@ -4230,7 +4230,7 @@ pub fn vmwareengine_projects_locations_network_policies_list(
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/networkPolicies/{networkPoliciesId}
-/// Modifies a NetworkPolicy resource. Only the following fields can be updated: internet_access, external_ip, edge_services_cidr. Only fields specified in `updateMask` are applied. When updating a network policy, the external IP network service can only be disabled if there are no external IP addresses present in the scope of the policy. Also, a NetworkService cannot be updated when NetworkService.state is set to RECONCILING. During operation processing, the resource is temporarily in the `ACTIVE` state before the operation fully completes. For that period of time, you can't update the resource. Use the operation status to determine when the processing fully completes.
+/// Modifies a NetworkPolicy resource. Only the following fields can be updated: internet_access, external_ip, edge_services_cidr. Only fields specified in `updateMask` are applied. When updating a network policy, the external IP network service can only be disabled if there are no external IP addresses present in the scope of the policy. Also, a NetworkService cannot be updated when NetworkService.state is set to RECONCILING. During operation processing, the resource is temporarily in the `ACTIVE` state before the operation fully completes. For that period of time, you can''t update the resource. Use the operation status to determine when the processing fully completes.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmwareengine_projects_locations_network_policies_patch_execute()` to send, or `vmwareengine_projects_locations_network_policies_patch` for simplest API.
@@ -4277,7 +4277,7 @@ where
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/networkPolicies/{networkPoliciesId}
-/// Modifies a NetworkPolicy resource. Only the following fields can be updated: internet_access, external_ip, edge_services_cidr. Only fields specified in `updateMask` are applied. When updating a network policy, the external IP network service can only be disabled if there are no external IP addresses present in the scope of the policy. Also, a NetworkService cannot be updated when NetworkService.state is set to RECONCILING. During operation processing, the resource is temporarily in the `ACTIVE` state before the operation fully completes. For that period of time, you can't update the resource. Use the operation status to determine when the processing fully completes.
+/// Modifies a NetworkPolicy resource. Only the following fields can be updated: internet_access, external_ip, edge_services_cidr. Only fields specified in `updateMask` are applied. When updating a network policy, the external IP network service can only be disabled if there are no external IP addresses present in the scope of the policy. Also, a NetworkService cannot be updated when NetworkService.state is set to RECONCILING. During operation processing, the resource is temporarily in the `ACTIVE` state before the operation fully completes. For that period of time, you can''t update the resource. Use the operation status to determine when the processing fully completes.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -4351,7 +4351,7 @@ pub fn vmwareengine_projects_locations_network_policies_patch_task(
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/networkPolicies/{networkPoliciesId}
-/// Modifies a NetworkPolicy resource. Only the following fields can be updated: internet_access, external_ip, edge_services_cidr. Only fields specified in `updateMask` are applied. When updating a network policy, the external IP network service can only be disabled if there are no external IP addresses present in the scope of the policy. Also, a NetworkService cannot be updated when NetworkService.state is set to RECONCILING. During operation processing, the resource is temporarily in the `ACTIVE` state before the operation fully completes. For that period of time, you can't update the resource. Use the operation status to determine when the processing fully completes.
+/// Modifies a NetworkPolicy resource. Only the following fields can be updated: internet_access, external_ip, edge_services_cidr. Only fields specified in `updateMask` are applied. When updating a network policy, the external IP network service can only be disabled if there are no external IP addresses present in the scope of the policy. Also, a NetworkService cannot be updated when NetworkService.state is set to RECONCILING. During operation processing, the resource is temporarily in the `ACTIVE` state before the operation fully completes. For that period of time, you can''t update the resource. Use the operation status to determine when the processing fully completes.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -4394,7 +4394,7 @@ pub struct VmwareengineProjectsLocationsNetworkPoliciesPatchArgs {
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/networkPolicies/{networkPoliciesId}
-/// Modifies a NetworkPolicy resource. Only the following fields can be updated: internet_access, external_ip, edge_services_cidr. Only fields specified in `updateMask` are applied. When updating a network policy, the external IP network service can only be disabled if there are no external IP addresses present in the scope of the policy. Also, a NetworkService cannot be updated when NetworkService.state is set to RECONCILING. During operation processing, the resource is temporarily in the `ACTIVE` state before the operation fully completes. For that period of time, you can't update the resource. Use the operation status to determine when the processing fully completes.
+/// Modifies a NetworkPolicy resource. Only the following fields can be updated: internet_access, external_ip, edge_services_cidr. Only fields specified in `updateMask` are applied. When updating a network policy, the external IP network service can only be disabled if there are no external IP addresses present in the scope of the policy. Also, a NetworkService cannot be updated when NetworkService.state is set to RECONCILING. During operation processing, the resource is temporarily in the `ACTIVE` state before the operation fully completes. For that period of time, you can''t update the resource. Use the operation status to determine when the processing fully completes.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `vmwareengine_projects_locations_network_policies_patch_builder()` + `vmwareengine_projects_locations_network_policies_patch_execute()`.
@@ -5725,7 +5725,7 @@ pub fn vmwareengine_projects_locations_node_types_list(
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
-/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmwareengine_projects_locations_operations_delete_execute()` to send, or `vmwareengine_projects_locations_operations_delete` for simplest API.
@@ -5752,7 +5752,7 @@ where
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
-/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -5826,7 +5826,7 @@ pub fn vmwareengine_projects_locations_operations_delete_task(
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
-/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -5863,7 +5863,7 @@ pub struct VmwareengineProjectsLocationsOperationsDeleteArgs {
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
-/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `vmwareengine_projects_locations_operations_delete_builder()` + `vmwareengine_projects_locations_operations_delete_execute()`.
@@ -6045,7 +6045,7 @@ pub fn vmwareengine_projects_locations_operations_get(
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmwareengine_projects_locations_operations_list_execute()` to send, or `vmwareengine_projects_locations_operations_list` for simplest API.
@@ -6096,7 +6096,7 @@ where
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -6170,7 +6170,7 @@ pub fn vmwareengine_projects_locations_operations_list_task(
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -6217,7 +6217,7 @@ pub struct VmwareengineProjectsLocationsOperationsListArgs {
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `vmwareengine_projects_locations_operations_list_builder()` + `vmwareengine_projects_locations_operations_list_execute()`.
@@ -7343,7 +7343,7 @@ pub fn vmwareengine_projects_locations_private_clouds_list(
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}
-/// Modifies a PrivateCloud resource. Only the following fields can be updated: description. Only fields specified in `updateMask` are applied. During operation processing, the resource is temporarily in the `ACTIVE` state before the operation fully completes. For that period of time, you can't update the resource. Use the operation status to determine when the processing fully completes.
+/// Modifies a PrivateCloud resource. Only the following fields can be updated: description. Only fields specified in `updateMask` are applied. During operation processing, the resource is temporarily in the `ACTIVE` state before the operation fully completes. For that period of time, you can''t update the resource. Use the operation status to determine when the processing fully completes.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmwareengine_projects_locations_private_clouds_patch_execute()` to send, or `vmwareengine_projects_locations_private_clouds_patch` for simplest API.
@@ -7390,7 +7390,7 @@ where
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}
-/// Modifies a PrivateCloud resource. Only the following fields can be updated: description. Only fields specified in `updateMask` are applied. During operation processing, the resource is temporarily in the `ACTIVE` state before the operation fully completes. For that period of time, you can't update the resource. Use the operation status to determine when the processing fully completes.
+/// Modifies a PrivateCloud resource. Only the following fields can be updated: description. Only fields specified in `updateMask` are applied. During operation processing, the resource is temporarily in the `ACTIVE` state before the operation fully completes. For that period of time, you can''t update the resource. Use the operation status to determine when the processing fully completes.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -7464,7 +7464,7 @@ pub fn vmwareengine_projects_locations_private_clouds_patch_task(
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}
-/// Modifies a PrivateCloud resource. Only the following fields can be updated: description. Only fields specified in `updateMask` are applied. During operation processing, the resource is temporarily in the `ACTIVE` state before the operation fully completes. For that period of time, you can't update the resource. Use the operation status to determine when the processing fully completes.
+/// Modifies a PrivateCloud resource. Only the following fields can be updated: description. Only fields specified in `updateMask` are applied. During operation processing, the resource is temporarily in the `ACTIVE` state before the operation fully completes. For that period of time, you can''t update the resource. Use the operation status to determine when the processing fully completes.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -7507,7 +7507,7 @@ pub struct VmwareengineProjectsLocationsPrivateCloudsPatchArgs {
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}
-/// Modifies a PrivateCloud resource. Only the following fields can be updated: description. Only fields specified in `updateMask` are applied. During operation processing, the resource is temporarily in the `ACTIVE` state before the operation fully completes. For that period of time, you can't update the resource. Use the operation status to determine when the processing fully completes.
+/// Modifies a PrivateCloud resource. Only the following fields can be updated: description. Only fields specified in `updateMask` are applied. During operation processing, the resource is temporarily in the `ACTIVE` state before the operation fully completes. For that period of time, you can''t update the resource. Use the operation status to determine when the processing fully completes.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `vmwareengine_projects_locations_private_clouds_patch_builder()` + `vmwareengine_projects_locations_private_clouds_patch_execute()`.
@@ -10124,7 +10124,7 @@ pub fn vmwareengine_projects_locations_private_clouds_clusters_mount_datastore(
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/clusters/{clustersId}
-/// Modifies a Cluster resource. Only fields specified in `updateMask` are applied. During operation processing, the resource is temporarily in the `ACTIVE` state before the operation fully completes. For that period of time, you can't update the resource. Use the operation status to determine when the processing fully completes.
+/// Modifies a Cluster resource. Only fields specified in `updateMask` are applied. During operation processing, the resource is temporarily in the `ACTIVE` state before the operation fully completes. For that period of time, you can''t update the resource. Use the operation status to determine when the processing fully completes.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmwareengine_projects_locations_private_clouds_clusters_patch_execute()` to send, or `vmwareengine_projects_locations_private_clouds_clusters_patch` for simplest API.
@@ -10171,7 +10171,7 @@ where
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/clusters/{clustersId}
-/// Modifies a Cluster resource. Only fields specified in `updateMask` are applied. During operation processing, the resource is temporarily in the `ACTIVE` state before the operation fully completes. For that period of time, you can't update the resource. Use the operation status to determine when the processing fully completes.
+/// Modifies a Cluster resource. Only fields specified in `updateMask` are applied. During operation processing, the resource is temporarily in the `ACTIVE` state before the operation fully completes. For that period of time, you can''t update the resource. Use the operation status to determine when the processing fully completes.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -10245,7 +10245,7 @@ pub fn vmwareengine_projects_locations_private_clouds_clusters_patch_task(
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/clusters/{clustersId}
-/// Modifies a Cluster resource. Only fields specified in `updateMask` are applied. During operation processing, the resource is temporarily in the `ACTIVE` state before the operation fully completes. For that period of time, you can't update the resource. Use the operation status to determine when the processing fully completes.
+/// Modifies a Cluster resource. Only fields specified in `updateMask` are applied. During operation processing, the resource is temporarily in the `ACTIVE` state before the operation fully completes. For that period of time, you can''t update the resource. Use the operation status to determine when the processing fully completes.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -10288,7 +10288,7 @@ pub struct VmwareengineProjectsLocationsPrivateCloudsClustersPatchArgs {
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/clusters/{clustersId}
-/// Modifies a Cluster resource. Only fields specified in `updateMask` are applied. During operation processing, the resource is temporarily in the `ACTIVE` state before the operation fully completes. For that period of time, you can't update the resource. Use the operation status to determine when the processing fully completes.
+/// Modifies a Cluster resource. Only fields specified in `updateMask` are applied. During operation processing, the resource is temporarily in the `ACTIVE` state before the operation fully completes. For that period of time, you can''t update the resource. Use the operation status to determine when the processing fully completes.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `vmwareengine_projects_locations_private_clouds_clusters_patch_builder()` + `vmwareengine_projects_locations_private_clouds_clusters_patch_execute()`.
@@ -11914,7 +11914,7 @@ pub fn vmwareengine_projects_locations_private_clouds_external_addresses_list(
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/externalAddresses/{externalAddressesId}
-/// Updates the parameters of a single external IP address. Only fields specified in update_mask are applied. During operation processing, the resource is temporarily in the `ACTIVE` state before the operation fully completes. For that period of time, you can't update the resource. Use the operation status to determine when the processing fully completes.
+/// Updates the parameters of a single external IP address. Only fields specified in update_mask are applied. During operation processing, the resource is temporarily in the `ACTIVE` state before the operation fully completes. For that period of time, you can''t update the resource. Use the operation status to determine when the processing fully completes.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmwareengine_projects_locations_private_clouds_external_addresses_patch_execute()` to send, or `vmwareengine_projects_locations_private_clouds_external_addresses_patch` for simplest API.
@@ -11961,7 +11961,7 @@ where
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/externalAddresses/{externalAddressesId}
-/// Updates the parameters of a single external IP address. Only fields specified in update_mask are applied. During operation processing, the resource is temporarily in the `ACTIVE` state before the operation fully completes. For that period of time, you can't update the resource. Use the operation status to determine when the processing fully completes.
+/// Updates the parameters of a single external IP address. Only fields specified in update_mask are applied. During operation processing, the resource is temporarily in the `ACTIVE` state before the operation fully completes. For that period of time, you can''t update the resource. Use the operation status to determine when the processing fully completes.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -12035,7 +12035,7 @@ pub fn vmwareengine_projects_locations_private_clouds_external_addresses_patch_t
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/externalAddresses/{externalAddressesId}
-/// Updates the parameters of a single external IP address. Only fields specified in update_mask are applied. During operation processing, the resource is temporarily in the `ACTIVE` state before the operation fully completes. For that period of time, you can't update the resource. Use the operation status to determine when the processing fully completes.
+/// Updates the parameters of a single external IP address. Only fields specified in update_mask are applied. During operation processing, the resource is temporarily in the `ACTIVE` state before the operation fully completes. For that period of time, you can''t update the resource. Use the operation status to determine when the processing fully completes.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -12079,7 +12079,7 @@ pub struct VmwareengineProjectsLocationsPrivateCloudsExternalAddressesPatchArgs 
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/externalAddresses/{externalAddressesId}
-/// Updates the parameters of a single external IP address. Only fields specified in update_mask are applied. During operation processing, the resource is temporarily in the `ACTIVE` state before the operation fully completes. For that period of time, you can't update the resource. Use the operation status to determine when the processing fully completes.
+/// Updates the parameters of a single external IP address. Only fields specified in update_mask are applied. During operation processing, the resource is temporarily in the `ACTIVE` state before the operation fully completes. For that period of time, you can''t update the resource. Use the operation status to determine when the processing fully completes.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `vmwareengine_projects_locations_private_clouds_external_addresses_patch_builder()` + `vmwareengine_projects_locations_private_clouds_external_addresses_patch_execute()`.
@@ -14105,7 +14105,7 @@ pub fn vmwareengine_projects_locations_private_clouds_logging_servers_patch(
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/managementDnsZoneBindings
-/// Creates a new ManagementDnsZoneBinding resource in a private cloud. This RPC creates the DNS binding and the resource that represents the DNS binding of the consumer VPC network to the management DNS zone. A management DNS zone is the Cloud DNS cross-project binding zone that VMware Engine creates for each private cloud. It contains FQDNs and corresponding IP addresses for the private cloud's ESXi hosts and management VM appliances like vCenter and NSX Manager.
+/// Creates a new ManagementDnsZoneBinding resource in a private cloud. This RPC creates the DNS binding and the resource that represents the DNS binding of the consumer VPC network to the management DNS zone. A management DNS zone is the Cloud DNS cross-project binding zone that VMware Engine creates for each private cloud. It contains FQDNs and corresponding IP addresses for the private cloud''s ESXi hosts and management VM appliances like vCenter and NSX Manager.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_create_execute()` to send, or `vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_create` for simplest API.
@@ -14150,7 +14150,7 @@ where
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/managementDnsZoneBindings
-/// Creates a new ManagementDnsZoneBinding resource in a private cloud. This RPC creates the DNS binding and the resource that represents the DNS binding of the consumer VPC network to the management DNS zone. A management DNS zone is the Cloud DNS cross-project binding zone that VMware Engine creates for each private cloud. It contains FQDNs and corresponding IP addresses for the private cloud's ESXi hosts and management VM appliances like vCenter and NSX Manager.
+/// Creates a new ManagementDnsZoneBinding resource in a private cloud. This RPC creates the DNS binding and the resource that represents the DNS binding of the consumer VPC network to the management DNS zone. A management DNS zone is the Cloud DNS cross-project binding zone that VMware Engine creates for each private cloud. It contains FQDNs and corresponding IP addresses for the private cloud''s ESXi hosts and management VM appliances like vCenter and NSX Manager.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -14224,7 +14224,7 @@ pub fn vmwareengine_projects_locations_private_clouds_management_dns_zone_bindin
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/managementDnsZoneBindings
-/// Creates a new ManagementDnsZoneBinding resource in a private cloud. This RPC creates the DNS binding and the resource that represents the DNS binding of the consumer VPC network to the management DNS zone. A management DNS zone is the Cloud DNS cross-project binding zone that VMware Engine creates for each private cloud. It contains FQDNs and corresponding IP addresses for the private cloud's ESXi hosts and management VM appliances like vCenter and NSX Manager.
+/// Creates a new ManagementDnsZoneBinding resource in a private cloud. This RPC creates the DNS binding and the resource that represents the DNS binding of the consumer VPC network to the management DNS zone. A management DNS zone is the Cloud DNS cross-project binding zone that VMware Engine creates for each private cloud. It contains FQDNs and corresponding IP addresses for the private cloud''s ESXi hosts and management VM appliances like vCenter and NSX Manager.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -14268,7 +14268,7 @@ pub struct VmwareengineProjectsLocationsPrivateCloudsManagementDnsZoneBindingsCr
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/managementDnsZoneBindings
-/// Creates a new ManagementDnsZoneBinding resource in a private cloud. This RPC creates the DNS binding and the resource that represents the DNS binding of the consumer VPC network to the management DNS zone. A management DNS zone is the Cloud DNS cross-project binding zone that VMware Engine creates for each private cloud. It contains FQDNs and corresponding IP addresses for the private cloud's ESXi hosts and management VM appliances like vCenter and NSX Manager.
+/// Creates a new ManagementDnsZoneBinding resource in a private cloud. This RPC creates the DNS binding and the resource that represents the DNS binding of the consumer VPC network to the management DNS zone. A management DNS zone is the Cloud DNS cross-project binding zone that VMware Engine creates for each private cloud. It contains FQDNs and corresponding IP addresses for the private cloud''s ESXi hosts and management VM appliances like vCenter and NSX Manager.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_create_builder()` + `vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_create_execute()`.
@@ -14484,7 +14484,7 @@ pub fn vmwareengine_projects_locations_private_clouds_management_dns_zone_bindin
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/managementDnsZoneBindings/{managementDnsZoneBindingsId}
-/// Retrieves a 'ManagementDnsZoneBinding' resource by its resource name.
+/// Retrieves a ''ManagementDnsZoneBinding'' resource by its resource name.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_get_execute()` to send, or `vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_get` for simplest API.
@@ -14511,7 +14511,7 @@ where
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/managementDnsZoneBindings/{managementDnsZoneBindingsId}
-/// Retrieves a 'ManagementDnsZoneBinding' resource by its resource name.
+/// Retrieves a ''ManagementDnsZoneBinding'' resource by its resource name.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -14585,7 +14585,7 @@ pub fn vmwareengine_projects_locations_private_clouds_management_dns_zone_bindin
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/managementDnsZoneBindings/{managementDnsZoneBindingsId}
-/// Retrieves a 'ManagementDnsZoneBinding' resource by its resource name.
+/// Retrieves a ''ManagementDnsZoneBinding'' resource by its resource name.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -14627,7 +14627,7 @@ pub struct VmwareengineProjectsLocationsPrivateCloudsManagementDnsZoneBindingsGe
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/managementDnsZoneBindings/{managementDnsZoneBindingsId}
-/// Retrieves a 'ManagementDnsZoneBinding' resource by its resource name.
+/// Retrieves a ''ManagementDnsZoneBinding'' resource by its resource name.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_get_builder()` + `vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_get_execute()`.

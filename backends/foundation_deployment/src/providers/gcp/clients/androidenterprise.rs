@@ -365,7 +365,7 @@ pub fn androidenterprise_devices_get(
 }
 
 /// GET androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/devices/{deviceId}/state
-/// Checks if a device can access Google apps and services for a user. Returns whether access is "enabled" or "disabled". A "disabled" state prevents the user's Managed Google Account on the device from successfully authenticating with Google. This blocks access to most Google applications and services, including Google Play, as the device cannot prove its entitlement to access them. New devices default to "disabled". Important: Enforcement of this state depends on the following conditions: * The user must be a managed google account. * The enterprise must be a managed google domain. * Third-party Android mobile management must be active in the Google Admin Console for the user's Organizational Unit. If these conditions aren't met, access may still be possible even in a "disabled" state.
+/// Checks if a device can access Google apps and services for a user. Returns whether access is "enabled" or "disabled". A "disabled" state prevents the user''s Managed Google Account on the device from successfully authenticating with Google. This blocks access to most Google applications and services, including Google Play, as the device cannot prove its entitlement to access them. New devices default to "disabled". Important: Enforcement of this state depends on the following conditions: * The user must be a managed google account. * The enterprise must be a managed google domain. * Third-party Android mobile management must be active in the Google Admin Console for the user''s Organizational Unit. If these conditions aren''t met, access may still be possible even in a "disabled" state.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidenterprise_devices_get_state_execute()` to send, or `androidenterprise_devices_get_state` for simplest API.
@@ -396,7 +396,7 @@ where
 }
 
 /// GET androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/devices/{deviceId}/state
-/// Checks if a device can access Google apps and services for a user. Returns whether access is "enabled" or "disabled". A "disabled" state prevents the user's Managed Google Account on the device from successfully authenticating with Google. This blocks access to most Google applications and services, including Google Play, as the device cannot prove its entitlement to access them. New devices default to "disabled". Important: Enforcement of this state depends on the following conditions: * The user must be a managed google account. * The enterprise must be a managed google domain. * Third-party Android mobile management must be active in the Google Admin Console for the user's Organizational Unit. If these conditions aren't met, access may still be possible even in a "disabled" state.
+/// Checks if a device can access Google apps and services for a user. Returns whether access is "enabled" or "disabled". A "disabled" state prevents the user''s Managed Google Account on the device from successfully authenticating with Google. This blocks access to most Google applications and services, including Google Play, as the device cannot prove its entitlement to access them. New devices default to "disabled". Important: Enforcement of this state depends on the following conditions: * The user must be a managed google account. * The enterprise must be a managed google domain. * Third-party Android mobile management must be active in the Google Admin Console for the user''s Organizational Unit. If these conditions aren''t met, access may still be possible even in a "disabled" state.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -470,7 +470,7 @@ pub fn androidenterprise_devices_get_state_task(
 }
 
 /// GET androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/devices/{deviceId}/state
-/// Checks if a device can access Google apps and services for a user. Returns whether access is "enabled" or "disabled". A "disabled" state prevents the user's Managed Google Account on the device from successfully authenticating with Google. This blocks access to most Google applications and services, including Google Play, as the device cannot prove its entitlement to access them. New devices default to "disabled". Important: Enforcement of this state depends on the following conditions: * The user must be a managed google account. * The enterprise must be a managed google domain. * Third-party Android mobile management must be active in the Google Admin Console for the user's Organizational Unit. If these conditions aren't met, access may still be possible even in a "disabled" state.
+/// Checks if a device can access Google apps and services for a user. Returns whether access is "enabled" or "disabled". A "disabled" state prevents the user''s Managed Google Account on the device from successfully authenticating with Google. This blocks access to most Google applications and services, including Google Play, as the device cannot prove its entitlement to access them. New devices default to "disabled". Important: Enforcement of this state depends on the following conditions: * The user must be a managed google account. * The enterprise must be a managed google domain. * Third-party Android mobile management must be active in the Google Admin Console for the user''s Organizational Unit. If these conditions aren''t met, access may still be possible even in a "disabled" state.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -511,7 +511,7 @@ pub struct AndroidenterpriseDevicesGetStateArgs {
 }
 
 /// GET androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/devices/{deviceId}/state
-/// Checks if a device can access Google apps and services for a user. Returns whether access is "enabled" or "disabled". A "disabled" state prevents the user's Managed Google Account on the device from successfully authenticating with Google. This blocks access to most Google applications and services, including Google Play, as the device cannot prove its entitlement to access them. New devices default to "disabled". Important: Enforcement of this state depends on the following conditions: * The user must be a managed google account. * The enterprise must be a managed google domain. * Third-party Android mobile management must be active in the Google Admin Console for the user's Organizational Unit. If these conditions aren't met, access may still be possible even in a "disabled" state.
+/// Checks if a device can access Google apps and services for a user. Returns whether access is "enabled" or "disabled". A "disabled" state prevents the user''s Managed Google Account on the device from successfully authenticating with Google. This blocks access to most Google applications and services, including Google Play, as the device cannot prove its entitlement to access them. New devices default to "disabled". Important: Enforcement of this state depends on the following conditions: * The user must be a managed google account. * The enterprise must be a managed google domain. * Third-party Android mobile management must be active in the Google Admin Console for the user''s Organizational Unit. If these conditions aren''t met, access may still be possible even in a "disabled" state.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `androidenterprise_devices_get_state_builder()` + `androidenterprise_devices_get_state_execute()`.
@@ -538,7 +538,7 @@ pub fn androidenterprise_devices_get_state(
 }
 
 /// GET androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/devices
-/// Retrieves the IDs of all of a user's devices.
+/// Retrieves the IDs of all of a user''s devices.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidenterprise_devices_list_execute()` to send, or `androidenterprise_devices_list` for simplest API.
@@ -567,7 +567,7 @@ where
 }
 
 /// GET androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/devices
-/// Retrieves the IDs of all of a user's devices.
+/// Retrieves the IDs of all of a user''s devices.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -641,7 +641,7 @@ pub fn androidenterprise_devices_list_task(
 }
 
 /// GET androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/devices
-/// Retrieves the IDs of all of a user's devices.
+/// Retrieves the IDs of all of a user''s devices.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -682,7 +682,7 @@ pub struct AndroidenterpriseDevicesListArgs {
 }
 
 /// GET androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/devices
-/// Retrieves the IDs of all of a user's devices.
+/// Retrieves the IDs of all of a user''s devices.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `androidenterprise_devices_list_builder()` + `androidenterprise_devices_list_execute()`.
@@ -706,7 +706,7 @@ pub fn androidenterprise_devices_list(
 }
 
 /// PUT androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/devices/{deviceId}/state
-/// Sets whether a device's access to Google services (including Google Play) is enabled or disabled for the specified user. Setting the state to "enabled" allows the Google Account to access Google services, while "disabled" blocks access by preventing OAuth token issuance. Preconditions for Enforcement: 1. This setting is only effective for Google-managed users. 2. The enterprise must be linked to a Google Managed Domain. 3. Enforcement requires third-party Android mobile management to be enabled within the Google Admin Console for the user's Organizational Unit. If these preconditions are not met, changes to this state may be ignored.
+/// Sets whether a device''s access to Google services (including Google Play) is enabled or disabled for the specified user. Setting the state to "enabled" allows the Google Account to access Google services, while "disabled" blocks access by preventing OAuth token issuance. Preconditions for Enforcement: 1. This setting is only effective for Google-managed users. 2. The enterprise must be linked to a Google Managed Domain. 3. Enforcement requires third-party Android mobile management to be enabled within the Google Admin Console for the user''s Organizational Unit. If these preconditions are not met, changes to this state may be ignored.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidenterprise_devices_set_state_execute()` to send, or `androidenterprise_devices_set_state` for simplest API.
@@ -737,7 +737,7 @@ where
 }
 
 /// PUT androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/devices/{deviceId}/state
-/// Sets whether a device's access to Google services (including Google Play) is enabled or disabled for the specified user. Setting the state to "enabled" allows the Google Account to access Google services, while "disabled" blocks access by preventing OAuth token issuance. Preconditions for Enforcement: 1. This setting is only effective for Google-managed users. 2. The enterprise must be linked to a Google Managed Domain. 3. Enforcement requires third-party Android mobile management to be enabled within the Google Admin Console for the user's Organizational Unit. If these preconditions are not met, changes to this state may be ignored.
+/// Sets whether a device''s access to Google services (including Google Play) is enabled or disabled for the specified user. Setting the state to "enabled" allows the Google Account to access Google services, while "disabled" blocks access by preventing OAuth token issuance. Preconditions for Enforcement: 1. This setting is only effective for Google-managed users. 2. The enterprise must be linked to a Google Managed Domain. 3. Enforcement requires third-party Android mobile management to be enabled within the Google Admin Console for the user''s Organizational Unit. If these preconditions are not met, changes to this state may be ignored.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -811,7 +811,7 @@ pub fn androidenterprise_devices_set_state_task(
 }
 
 /// PUT androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/devices/{deviceId}/state
-/// Sets whether a device's access to Google services (including Google Play) is enabled or disabled for the specified user. Setting the state to "enabled" allows the Google Account to access Google services, while "disabled" blocks access by preventing OAuth token issuance. Preconditions for Enforcement: 1. This setting is only effective for Google-managed users. 2. The enterprise must be linked to a Google Managed Domain. 3. Enforcement requires third-party Android mobile management to be enabled within the Google Admin Console for the user's Organizational Unit. If these preconditions are not met, changes to this state may be ignored.
+/// Sets whether a device''s access to Google services (including Google Play) is enabled or disabled for the specified user. Setting the state to "enabled" allows the Google Account to access Google services, while "disabled" blocks access by preventing OAuth token issuance. Preconditions for Enforcement: 1. This setting is only effective for Google-managed users. 2. The enterprise must be linked to a Google Managed Domain. 3. Enforcement requires third-party Android mobile management to be enabled within the Google Admin Console for the user''s Organizational Unit. If these preconditions are not met, changes to this state may be ignored.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -852,7 +852,7 @@ pub struct AndroidenterpriseDevicesSetStateArgs {
 }
 
 /// PUT androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/devices/{deviceId}/state
-/// Sets whether a device's access to Google services (including Google Play) is enabled or disabled for the specified user. Setting the state to "enabled" allows the Google Account to access Google services, while "disabled" blocks access by preventing OAuth token issuance. Preconditions for Enforcement: 1. This setting is only effective for Google-managed users. 2. The enterprise must be linked to a Google Managed Domain. 3. Enforcement requires third-party Android mobile management to be enabled within the Google Admin Console for the user's Organizational Unit. If these preconditions are not met, changes to this state may be ignored.
+/// Sets whether a device''s access to Google services (including Google Play) is enabled or disabled for the specified user. Setting the state to "enabled" allows the Google Account to access Google services, while "disabled" blocks access by preventing OAuth token issuance. Preconditions for Enforcement: 1. This setting is only effective for Google-managed users. 2. The enterprise must be linked to a Google Managed Domain. 3. Enforcement requires third-party Android mobile management to be enabled within the Google Admin Console for the user''s Organizational Unit. If these preconditions are not met, changes to this state may be ignored.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `androidenterprise_devices_set_state_builder()` + `androidenterprise_devices_set_state_execute()`.
@@ -4501,7 +4501,7 @@ pub fn androidenterprise_entitlements_update(
 }
 
 /// GET androidenterprise/v1/enterprises/{enterpriseId}/groupLicenses/{groupLicenseId}
-/// Retrieves details of an enterprise's group license for a product. **Note:** This item has been deprecated. New integrations cannot use this method and can refer to our new recommendations.
+/// Retrieves details of an enterprise''s group license for a product. **Note:** This item has been deprecated. New integrations cannot use this method and can refer to our new recommendations.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidenterprise_grouplicenses_get_execute()` to send, or `androidenterprise_grouplicenses_get` for simplest API.
@@ -4530,7 +4530,7 @@ where
 }
 
 /// GET androidenterprise/v1/enterprises/{enterpriseId}/groupLicenses/{groupLicenseId}
-/// Retrieves details of an enterprise's group license for a product. **Note:** This item has been deprecated. New integrations cannot use this method and can refer to our new recommendations.
+/// Retrieves details of an enterprise''s group license for a product. **Note:** This item has been deprecated. New integrations cannot use this method and can refer to our new recommendations.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -4604,7 +4604,7 @@ pub fn androidenterprise_grouplicenses_get_task(
 }
 
 /// GET androidenterprise/v1/enterprises/{enterpriseId}/groupLicenses/{groupLicenseId}
-/// Retrieves details of an enterprise's group license for a product. **Note:** This item has been deprecated. New integrations cannot use this method and can refer to our new recommendations.
+/// Retrieves details of an enterprise''s group license for a product. **Note:** This item has been deprecated. New integrations cannot use this method and can refer to our new recommendations.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -4645,7 +4645,7 @@ pub struct AndroidenterpriseGrouplicensesGetArgs {
 }
 
 /// GET androidenterprise/v1/enterprises/{enterpriseId}/groupLicenses/{groupLicenseId}
-/// Retrieves details of an enterprise's group license for a product. **Note:** This item has been deprecated. New integrations cannot use this method and can refer to our new recommendations.
+/// Retrieves details of an enterprise''s group license for a product. **Note:** This item has been deprecated. New integrations cannot use this method and can refer to our new recommendations.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `androidenterprise_grouplicenses_get_builder()` + `androidenterprise_grouplicenses_get_execute()`.
@@ -11286,7 +11286,7 @@ pub fn androidenterprise_users_generate_authentication_token(
 }
 
 /// GET androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}
-/// Retrieves a user's details.
+/// Retrieves a user''s details.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidenterprise_users_get_execute()` to send, or `androidenterprise_users_get` for simplest API.
@@ -11314,7 +11314,7 @@ where
 }
 
 /// GET androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}
-/// Retrieves a user's details.
+/// Retrieves a user''s details.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -11388,7 +11388,7 @@ pub fn androidenterprise_users_get_task(
 }
 
 /// GET androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}
-/// Retrieves a user's details.
+/// Retrieves a user''s details.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -11427,7 +11427,7 @@ pub struct AndroidenterpriseUsersGetArgs {
 }
 
 /// GET androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}
-/// Retrieves a user's details.
+/// Retrieves a user''s details.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `androidenterprise_users_get_builder()` + `androidenterprise_users_get_execute()`.

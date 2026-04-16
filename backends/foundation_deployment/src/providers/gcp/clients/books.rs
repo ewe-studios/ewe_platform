@@ -1430,7 +1430,7 @@ pub fn books_familysharing_get_family_info(
 }
 
 /// POST books/v1/familysharing/share
-/// Initiates sharing of the content with the user's family. Empty response indicates success.
+/// Initiates sharing of the content with the user''s family. Empty response indicates success.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `books_familysharing_share_execute()` to send, or `books_familysharing_share` for simplest API.
@@ -1473,7 +1473,7 @@ where
 }
 
 /// POST books/v1/familysharing/share
-/// Initiates sharing of the content with the user's family. Empty response indicates success.
+/// Initiates sharing of the content with the user''s family. Empty response indicates success.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -1547,7 +1547,7 @@ pub fn books_familysharing_share_task(
 }
 
 /// POST books/v1/familysharing/share
-/// Initiates sharing of the content with the user's family. Empty response indicates success.
+/// Initiates sharing of the content with the user''s family. Empty response indicates success.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -1588,7 +1588,7 @@ pub struct BooksFamilysharingShareArgs {
 }
 
 /// POST books/v1/familysharing/share
-/// Initiates sharing of the content with the user's family. Empty response indicates success.
+/// Initiates sharing of the content with the user''s family. Empty response indicates success.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `books_familysharing_share_builder()` + `books_familysharing_share_execute()`.
@@ -1611,7 +1611,7 @@ pub fn books_familysharing_share(
 }
 
 /// POST books/v1/familysharing/unshare
-/// Initiates revoking content that has already been shared with the user's family. Empty response indicates success.
+/// Initiates revoking content that has already been shared with the user''s family. Empty response indicates success.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `books_familysharing_unshare_execute()` to send, or `books_familysharing_unshare` for simplest API.
@@ -1654,7 +1654,7 @@ where
 }
 
 /// POST books/v1/familysharing/unshare
-/// Initiates revoking content that has already been shared with the user's family. Empty response indicates success.
+/// Initiates revoking content that has already been shared with the user''s family. Empty response indicates success.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -1728,7 +1728,7 @@ pub fn books_familysharing_unshare_task(
 }
 
 /// POST books/v1/familysharing/unshare
-/// Initiates revoking content that has already been shared with the user's family. Empty response indicates success.
+/// Initiates revoking content that has already been shared with the user''s family. Empty response indicates success.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -1769,7 +1769,7 @@ pub struct BooksFamilysharingUnshareArgs {
 }
 
 /// POST books/v1/familysharing/unshare
-/// Initiates revoking content that has already been shared with the user's family. Empty response indicates success.
+/// Initiates revoking content that has already been shared with the user''s family. Empty response indicates success.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `books_familysharing_unshare_builder()` + `books_familysharing_unshare_execute()`.

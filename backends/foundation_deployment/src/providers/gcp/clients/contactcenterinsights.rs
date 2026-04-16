@@ -11121,7 +11121,7 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/authorizedViewSets/{authorizedViewSetsId}/authorizedViews/{authorizedViewsId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_operations_cancel_execute()` to send, or `contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_operations_cancel` for simplest API.
@@ -11150,7 +11150,7 @@ where
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/authorizedViewSets/{authorizedViewSetsId}/authorizedViews/{authorizedViewsId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -11224,7 +11224,7 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/authorizedViewSets/{authorizedViewSetsId}/authorizedViews/{authorizedViewsId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -11264,7 +11264,7 @@ pub struct ContactcenterinsightsProjectsLocationsAuthorizedViewSetsAuthorizedVie
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/authorizedViewSets/{authorizedViewSetsId}/authorizedViews/{authorizedViewsId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_operations_cancel_builder()` + `contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_operations_cancel_execute()`.
@@ -11459,7 +11459,7 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/authorizedViewSets/{authorizedViewSetsId}/authorizedViews/{authorizedViewsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_operations_list_execute()` to send, or `contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_operations_list` for simplest API.
@@ -11512,7 +11512,7 @@ where
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/authorizedViewSets/{authorizedViewSetsId}/authorizedViews/{authorizedViewsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -11587,7 +11587,7 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/authorizedViewSets/{authorizedViewSetsId}/authorizedViews/{authorizedViewsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -11637,7 +11637,7 @@ pub struct ContactcenterinsightsProjectsLocationsAuthorizedViewSetsAuthorizedVie
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/authorizedViewSets/{authorizedViewSetsId}/authorizedViews/{authorizedViewsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_operations_list_builder()` + `contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_operations_list_execute()`.
@@ -14042,7 +14042,7 @@ pub fn contactcenterinsights_projects_locations_conversations_get(
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/conversations:ingest
-/// Imports conversations and processes them according to the user's configuration.
+/// Imports conversations and processes them according to the user''s configuration.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_conversations_ingest_execute()` to send, or `contactcenterinsights_projects_locations_conversations_ingest` for simplest API.
@@ -14069,7 +14069,7 @@ where
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/conversations:ingest
-/// Imports conversations and processes them according to the user's configuration.
+/// Imports conversations and processes them according to the user''s configuration.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -14143,7 +14143,7 @@ pub fn contactcenterinsights_projects_locations_conversations_ingest_task(
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/conversations:ingest
-/// Imports conversations and processes them according to the user's configuration.
+/// Imports conversations and processes them according to the user''s configuration.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -14184,7 +14184,7 @@ pub struct ContactcenterinsightsProjectsLocationsConversationsIngestArgs {
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/conversations:ingest
-/// Imports conversations and processes them according to the user's configuration.
+/// Imports conversations and processes them according to the user''s configuration.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `contactcenterinsights_projects_locations_conversations_ingest_builder()` + `contactcenterinsights_projects_locations_conversations_ingest_execute()`.
@@ -23180,7 +23180,7 @@ pub fn contactcenterinsights_projects_locations_datasets_conversations_get(
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/conversations:ingest
-/// Imports conversations and processes them according to the user's configuration.
+/// Imports conversations and processes them according to the user''s configuration.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_datasets_conversations_ingest_execute()` to send, or `contactcenterinsights_projects_locations_datasets_conversations_ingest` for simplest API.
@@ -23207,7 +23207,7 @@ where
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/conversations:ingest
-/// Imports conversations and processes them according to the user's configuration.
+/// Imports conversations and processes them according to the user''s configuration.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -23281,7 +23281,7 @@ pub fn contactcenterinsights_projects_locations_datasets_conversations_ingest_ta
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/conversations:ingest
-/// Imports conversations and processes them according to the user's configuration.
+/// Imports conversations and processes them according to the user''s configuration.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -23323,7 +23323,7 @@ pub struct ContactcenterinsightsProjectsLocationsDatasetsConversationsIngestArgs
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/conversations:ingest
-/// Imports conversations and processes them according to the user's configuration.
+/// Imports conversations and processes them according to the user''s configuration.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `contactcenterinsights_projects_locations_datasets_conversations_ingest_builder()` + `contactcenterinsights_projects_locations_datasets_conversations_ingest_execute()`.
@@ -25190,7 +25190,7 @@ pub fn contactcenterinsights_projects_locations_insightsdata_export(
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/issueModels/{issueModelsId}:calculateIssueModelStats
-/// Gets an issue model's statistics.
+/// Gets an issue model''s statistics.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_issue_models_calculate_issue_model_stats_execute()` to send, or `contactcenterinsights_projects_locations_issue_models_calculate_issue_model_stats` for simplest API.
@@ -25219,7 +25219,7 @@ where
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/issueModels/{issueModelsId}:calculateIssueModelStats
-/// Gets an issue model's statistics.
+/// Gets an issue model''s statistics.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -25297,7 +25297,7 @@ pub fn contactcenterinsights_projects_locations_issue_models_calculate_issue_mod
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/issueModels/{issueModelsId}:calculateIssueModelStats
-/// Gets an issue model's statistics.
+/// Gets an issue model''s statistics.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -25344,7 +25344,7 @@ pub struct ContactcenterinsightsProjectsLocationsIssueModelsCalculateIssueModelS
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/issueModels/{issueModelsId}:calculateIssueModelStats
-/// Gets an issue model's statistics.
+/// Gets an issue model''s statistics.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `contactcenterinsights_projects_locations_issue_models_calculate_issue_model_stats_builder()` + `contactcenterinsights_projects_locations_issue_models_calculate_issue_model_stats_execute()`.
@@ -27799,7 +27799,7 @@ pub fn contactcenterinsights_projects_locations_issue_models_issues_patch(
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_operations_cancel_execute()` to send, or `contactcenterinsights_projects_locations_operations_cancel` for simplest API.
@@ -27826,7 +27826,7 @@ where
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -27900,7 +27900,7 @@ pub fn contactcenterinsights_projects_locations_operations_cancel_task(
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -27939,7 +27939,7 @@ pub struct ContactcenterinsightsProjectsLocationsOperationsCancelArgs {
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `contactcenterinsights_projects_locations_operations_cancel_builder()` + `contactcenterinsights_projects_locations_operations_cancel_execute()`.
@@ -28133,7 +28133,7 @@ pub fn contactcenterinsights_projects_locations_operations_get(
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `contactcenterinsights_projects_locations_operations_list_execute()` to send, or `contactcenterinsights_projects_locations_operations_list` for simplest API.
@@ -28184,7 +28184,7 @@ where
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -28259,7 +28259,7 @@ pub fn contactcenterinsights_projects_locations_operations_list_task(
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -28308,7 +28308,7 @@ pub struct ContactcenterinsightsProjectsLocationsOperationsListArgs {
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `contactcenterinsights_projects_locations_operations_list_builder()` + `contactcenterinsights_projects_locations_operations_list_execute()`.

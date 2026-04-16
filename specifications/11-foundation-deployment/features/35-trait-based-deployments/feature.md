@@ -92,7 +92,7 @@ let destroy_stream = worker.destroy(client)?;
 ### Example 1: Cloudflare Worker (`crates/ewe_deployables/src/cloudflare/worker.rs`)
 
 ```rust
-use foundation_core::traits::Deploying;
+use foundation_deployment::traits::Deploying;
 use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt, BoxedSendExecutionAction};
 use foundation_deployment::provider_client::ProviderClient;
 use foundation_db::state::FileStateStore;
@@ -243,7 +243,7 @@ impl Deployable for CloudflareWorker {
 ### Example 2: GCP Cloud Run Service (`crates/ewe_deployables/src/gcp/cloud_run.rs`)
 
 ```rust
-use foundation_core::traits::Deploying;
+use foundation_deployment::traits::Deploying;
 use foundation_core::valtron::{execute, StreamIterator, TaskIteratorExt, BoxedSendExecutionAction};
 use foundation_deployment::provider_client::ProviderClient;
 use foundation_db::state::FileStateStore;
@@ -410,7 +410,7 @@ impl Deployable for CloudRunService {
 ### Example 3: GCP Cloud Run Job (`crates/ewe_deployables/src/gcp/cloud_job.rs`)
 
 ```rust
-use foundation_core::traits::Deploying;
+use foundation_deployment::traits::Deploying;
 use foundation_core::valtron::{execute, StreamIterator, TaskIteratorExt, BoxedSendExecutionAction};
 use foundation_deployment::provider_client::ProviderClient;
 use foundation_db::state::FileStateStore;
@@ -592,7 +592,7 @@ impl Deployable for CloudRunJob {
 ### Deployable Trait Definition
 
 ```rust
-// foundation_core/traits.rs
+// foundation_deployment/traits.rs
 
 use foundation_core::valtron::{TaskIterator, StreamIterator, BoxedSendExecutionAction};
 use foundation_deployment::provider_client::ProviderClient;
@@ -771,7 +771,7 @@ impl Deployable for MyWorker {
 ### Deployable Trait
 
 ```rust
-// foundation_core/traits.rs
+// foundation_deployment/traits.rs
 
 use foundation_core::valtron::{TaskIterator, StreamIterator, BoxedSendExecutionAction};
 use foundation_deployment::provider_client::ProviderClient;
@@ -1237,7 +1237,7 @@ fn test_worker_deploy() {
 ```rust
 // deploy/my_worker.rs
 
-use foundation_core::traits::{Deploying, Deployable};
+use foundation_deployment::traits::{Deploying, Deployable};
 use foundation_core::valtron::{execute, TaskIterator, TaskIteratorExt, BoxedSendExecutionAction};
 use foundation_deployment::provider_client::ProviderClient;
 use foundation_db::state::FileStateStore;
@@ -1365,7 +1365,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 ```rust
 // deploy/my_service.rs
 
-use foundation_core::traits::Deploying;
+use foundation_deployment::traits::Deploying;
 use foundation_core::valtron::{execute, TaskIterator, TaskIteratorExt, BoxedSendExecutionAction};
 use foundation_core::wire::simple_http::client::SimpleHttpClient;
 use foundation_deployment::{providers::gcp::clients::*, types::*};
@@ -1430,7 +1430,7 @@ impl Deployable for CloudRunService {
 ```rust
 // deploy/full_stack.rs
 
-use foundation_core::traits::Deploying;
+use foundation_deployment::traits::Deploying;
 use foundation_core::valtron::{execute, TaskIterator, TaskIteratorExt, BoxedSendExecutionAction, collect_from_streams};
 use foundation_core::wire::simple_http::client::SimpleHttpClient;
 use foundation_deployment::{providers::cloudflare::clients::*, types::*};
@@ -1502,7 +1502,7 @@ impl Deployable for FullStack {
 ```rust
 // deploy/main.rs
 
-use foundation_core::traits::Deploying;
+use foundation_deployment::traits::Deploying;
 use foundation_core::valtron::{execute, TaskIterator, TaskIteratorExt, BoxedSendExecutionAction};
 use foundation_core::wire::simple_http::client::SimpleHttpClient;
 use foundation_deployment::{providers::cloudflare::clients::*, types::*};
@@ -1590,7 +1590,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 ```rust
 // Add destroy capability to Deployable trait
 
-use foundation_core::traits::Deploying;
+use foundation_deployment::traits::Deploying;
 use foundation_core::valtron::{execute, one_shot, StreamIterator, TaskIterator, BoxedSendExecutionAction};
 
 pub trait Deployable {
@@ -1725,7 +1725,7 @@ fn destroy_worker() -> Result<(), ApiError> {
    - [ ] Update examples to use the pooled client method
 
 2. **Define Deployable trait**
-   - [ ] Create trait in `foundation_core/traits.rs`
+   - [ ] Create trait in `foundation_deployment/traits.rs`
    - [ ] Add associated types: `Output`, `Error` (with Debug bound)
    - [ ] Add generic `Deploying` enum with `Init, Processing, Done, Failed` variants
    - [ ] Add two methods: `deploy()` (StreamIterator) and `deploy_task()` (TaskIterator)
@@ -1793,7 +1793,7 @@ fn destroy_worker() -> Result<(), ApiError> {
 
 ```rust
 // ✅ CORRECT: Imports at top
-use foundation_core::traits::Deploying;
+use foundation_deployment::traits::Deploying;
 use foundation_core::valtron::{execute, StreamIterator, TaskIterator};
 
 impl Deployable for MyWorker {

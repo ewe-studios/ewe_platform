@@ -16,7 +16,9 @@
 //! - Apply valtron combinators: `map_ready()`, `map_pending()`, `execute()`
 //! - Task functions return `TaskIterator` for user composition before `execute()`
 
-use foundation_openapi::to_pascal_case;
+use foundation_openapi::{
+    to_pascal_case, operation_id_to_fn_name, sanitize_doc_comment,
+};
 use regex::Regex;
 use std::fmt::Write as FmtWrite;
 use std::path::{Path, PathBuf};
@@ -470,7 +472,7 @@ impl ClientGenerator {
         // Doc comment
         writeln!(out, "/// {} {}", endpoint.method, endpoint.path)?;
         if let Some(summary) = &endpoint.summary {
-            writeln!(out, "/// {}", self.sanitize_doc(summary, true))?;
+            writeln!(out, "/// {}", sanitize_doc_comment(summary, true))?;
         }
         writeln!(out, "///")?;
         writeln!(out, "/// Returns `ClientRequestBuilder` for customization.")?;
@@ -657,7 +659,7 @@ impl ClientGenerator {
         // Doc comment explaining use cases
         writeln!(out, "/// {} {}", endpoint.method, endpoint.path)?;
         if let Some(summary) = &endpoint.summary {
-            writeln!(out, "/// {}", self.sanitize_doc(summary, true))?;
+            writeln!(out, "/// {}", sanitize_doc_comment(summary, true))?;
         }
         writeln!(out, "///")?;
         writeln!(out, "/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,")?;
@@ -751,7 +753,7 @@ impl ClientGenerator {
         // Doc comment - updated to mention task function
         writeln!(out, "/// {} {}", endpoint.method, endpoint.path)?;
         if let Some(summary) = &endpoint.summary {
-            writeln!(out, "/// {}", self.sanitize_doc(summary, true))?;
+            writeln!(out, "/// {}", sanitize_doc_comment(summary, true))?;
         }
         writeln!(out, "///")?;
         writeln!(out, "/// Takes a `ClientRequestBuilder`, builds and executes the request,")?;
@@ -830,7 +832,7 @@ impl ClientGenerator {
         // Doc comment
         writeln!(out, "/// {} {}", endpoint.method, endpoint.path)?;
         if let Some(summary) = &endpoint.summary {
-            writeln!(out, "/// {}", self.sanitize_doc(summary, true))?;
+            writeln!(out, "/// {}", sanitize_doc_comment(summary, true))?;
         }
         writeln!(out, "///")?;
         writeln!(out, "/// Simplest API - builds and executes the request in one call.")?;
@@ -1081,63 +1083,8 @@ impl ClientGenerator {
     }
 
     fn endpoint_to_fn_name(&self, endpoint: &ApiEndpoint) -> String {
-        if let Some(ref op_id) = endpoint.operation_id {
-            // Replace special characters with underscores before converting to snake case
-            let clean_id = op_id
-                .replace(['-', '.', '@', ':', '<', '>', '[', ']', '(', ')', '\'', ',', '~', '/'], "_");  // Replace slashes
-            return self.to_snake_case(&clean_id);
-        }
-
-        // Generate from method + path
-        let path_part = endpoint
-            .path
-            .trim_matches('/')
-            .replace('/', "_")
-            .replace(['{', '}'], "")
-            .replace(['-', '.', '@', ':', '<', '>', '[', ']'], "_") // Replace ] in path
-            .replace(['(', ')', '\''], "") // Remove apostrophes from path
-            .replace([',', '~', '/'], "_"); // Replace slashes in path
-        format!("{}_{}", endpoint.method.to_lowercase(), path_part)
+        operation_id_to_fn_name(endpoint.operation_id.as_deref(), &endpoint.method, &endpoint.path)
     }
-
-    fn to_snake_case(&self, s: &str) -> String {
-        // First replace special characters with underscores
-        let normalized = s
-            .replace(['-', '.', '@', ':', '<', '>', '[', ']', '(', ')', '\'', ',', '~', '/'], "_");  // Replace slashes
-
-        let mut result = String::new();
-        let mut prev_was_upper = false;
-        let mut prev_was_underscore = false;
-
-        for (i, c) in normalized.chars().enumerate() {
-            if c.is_uppercase() {
-                if i > 0 && !prev_was_upper && !prev_was_underscore {
-                    result.push('_');
-                }
-                result.push(c.to_lowercase().next().unwrap());
-                prev_was_upper = true;
-                prev_was_underscore = false;
-            } else if c.is_numeric() {
-                result.push(c);
-                prev_was_upper = false;
-                prev_was_underscore = false;
-            } else if c == '_' {
-                // Skip consecutive underscores
-                if !prev_was_underscore {
-                    result.push('_');
-                }
-                prev_was_upper = false;
-                prev_was_underscore = true;
-            } else {
-                result.push(c);
-                prev_was_upper = false;
-                prev_was_underscore = false;
-            }
-        }
-
-        result
-    }
-
 
     fn label_to_feature_name(label: &str) -> String {
         label.split('/').next().unwrap_or(label).replace('-', "_")
@@ -1152,85 +1099,6 @@ impl ClientGenerator {
             | "use" | "where" | "while" | "async" | "await" | "dyn" | "override" => format!("{}_rs", name),
             _ => name.to_string(),
         }
-    }
-
-    fn sanitize_doc(&self, text: &str, full: bool) -> String {
-        let mut result = text.to_string();
-
-        // 0. Normalize existing backticks - remove them and we'll re-add properly later
-        // This handles cases where the spec already has backticks that may be unpaired
-        // or in invalid Rust doc format
-        result = result.replace('`', "");
-
-        // 1. Wrap path-like patterns in backticks
-        let path_re = Regex::new(r"([a-z]+/[\w{/}-]+)").unwrap();
-        result = path_re.replace_all(&result, "`$1`").to_string();
-
-        // 2. Wrap type-like patterns
-        let type_re = Regex::new(r"\b(String|i32|i64|bool|f64|Vec<[^>]+>|Option<[^>]+>)\b").unwrap();
-        result = type_re.replace_all(&result, "`$1`").to_string();
-
-        // 3. Wrap enum-like values
-        let enum_re = Regex::new(r"\b(TRUE|FALSE|OK|ERROR|PENDING|ACTIVE|INACTIVE)\b").unwrap();
-        result = enum_re.replace_all(&result, "`$1`").to_string();
-
-        // 4. Wrap code-like identifiers (camelCase or single words that look like code)
-        // Matches things like `returnPartialSuccess`, `maxResults`, etc.
-        let code_re = Regex::new(r"\b([a-z][a-zA-Z0-9]+(?:[A-Z][a-zA-Z0-9]+)+)\b").unwrap();
-        result = code_re.replace_all(&result, "`$1`").to_string();
-
-        // 5. Wrap boolean literals
-        let bool_re = Regex::new(r"\b(true|false|null)\b").unwrap();
-        result = bool_re.replace_all(&result, "`$1`").to_string();
-
-        // 6. Convert bare URLs to angle-bracket links
-        let url_re = Regex::new(r"(https?://[^\s<>\[\]()]+)").unwrap();
-        result = url_re.replace_all(&result, "<$1>").to_string();
-
-        // 7. Escape stray angle brackets not in backticks or URLs
-        let mut escaped = String::new();
-        let mut in_backticks = false;
-        let mut in_url = false;
-        let mut chars = result.chars().peekable();
-
-        while let Some(c) = chars.next() {
-            if c == '`' {
-                in_backticks = !in_backticks;
-                escaped.push(c);
-            } else if c == '<' && !in_backticks {
-                // Check if this looks like a URL start
-                let rest: String = chars.clone().collect();
-                if rest.starts_with("http://") || rest.starts_with("https://") {
-                    in_url = true;
-                    escaped.push(c);
-                } else {
-                    escaped.push_str("&lt;");
-                }
-            } else if c == '>' && !in_backticks && in_url {
-                in_url = false;
-                escaped.push(c);
-            } else if c == '>' && !in_backticks {
-                escaped.push_str("&gt;");
-            } else {
-                escaped.push(c);
-            }
-        }
-        result = escaped;
-
-        // 8. For field comments, use only first line
-        if !full {
-            result = result.lines().next().unwrap_or(&result).to_string();
-        } else {
-            // For full comments, ensure each line is properly formatted
-            // Join lines with "/// " prefix for multi-line descriptions
-            result = result
-                .lines()
-                .map(|line| line.trim())
-                .collect::<Vec<_>>()
-                .join(" ");
-        }
-
-        result
     }
 
     fn format_directory(&self, dir: &Path) -> Result<(), GenClientError> {

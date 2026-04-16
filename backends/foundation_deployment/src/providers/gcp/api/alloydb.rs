@@ -29,7 +29,7 @@ use crate::providers::gcp::clients::alloydb::{
     alloydb_projects_locations_clusters_patch_builder, alloydb_projects_locations_clusters_patch_task,
     alloydb_projects_locations_clusters_promote_builder, alloydb_projects_locations_clusters_promote_task,
     alloydb_projects_locations_clusters_restore_builder, alloydb_projects_locations_clusters_restore_task,
-    alloydb_projects_locations_clusters_restore_from_cloud_s_q_l_builder, alloydb_projects_locations_clusters_restore_from_cloud_s_q_l_task,
+    alloydb_projects_locations_clusters_restore_from_cloud_sql_builder, alloydb_projects_locations_clusters_restore_from_cloud_sql_task,
     alloydb_projects_locations_clusters_switchover_builder, alloydb_projects_locations_clusters_switchover_task,
     alloydb_projects_locations_clusters_upgrade_builder, alloydb_projects_locations_clusters_upgrade_task,
     alloydb_projects_locations_clusters_instances_create_builder, alloydb_projects_locations_clusters_instances_create_task,
@@ -94,7 +94,7 @@ use crate::providers::gcp::clients::alloydb::AlloydbProjectsLocationsClustersLis
 use crate::providers::gcp::clients::alloydb::AlloydbProjectsLocationsClustersPatchArgs;
 use crate::providers::gcp::clients::alloydb::AlloydbProjectsLocationsClustersPromoteArgs;
 use crate::providers::gcp::clients::alloydb::AlloydbProjectsLocationsClustersRestoreArgs;
-use crate::providers::gcp::clients::alloydb::AlloydbProjectsLocationsClustersRestoreFromCloudSQLArgs;
+use crate::providers::gcp::clients::alloydb::AlloydbProjectsLocationsClustersRestoreFromCloudSqlArgs;
 use crate::providers::gcp::clients::alloydb::AlloydbProjectsLocationsClustersSwitchoverArgs;
 use crate::providers::gcp::clients::alloydb::AlloydbProjectsLocationsClustersUpgradeArgs;
 use crate::providers::gcp::clients::alloydb::AlloydbProjectsLocationsClustersUsersCreateArgs;
@@ -895,7 +895,7 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
-    /// Alloydb projects locations clusters restore from cloud s q l.
+    /// Alloydb projects locations clusters restore from cloud sql.
     ///
     /// Automatically stores the result in the state store on success.
     ///
@@ -910,9 +910,9 @@ where
     /// # Errors
     ///
     /// Returns ProviderError if the API request or state storage fails.
-    pub fn alloydb_projects_locations_clusters_restore_from_cloud_s_q_l(
+    pub fn alloydb_projects_locations_clusters_restore_from_cloud_sql(
         &self,
-        args: &AlloydbProjectsLocationsClustersRestoreFromCloudSQLArgs,
+        args: &AlloydbProjectsLocationsClustersRestoreFromCloudSqlArgs,
     ) -> Result<
         impl StreamIterator<
             D = Result<Operation, ProviderError<ApiError>>,
@@ -921,13 +921,13 @@ where
         + 'static,
         ProviderError<ApiError>,
     > {
-        let builder = alloydb_projects_locations_clusters_restore_from_cloud_s_q_l_builder(
+        let builder = alloydb_projects_locations_clusters_restore_from_cloud_sql_builder(
             &self.http_client,
             &args.parent,
         )
         .map_err(ProviderError::Api)?;
 
-        let task = alloydb_projects_locations_clusters_restore_from_cloud_s_q_l_task(builder)
+        let task = alloydb_projects_locations_clusters_restore_from_cloud_sql_task(builder)
             .map_err(ProviderError::Api)?;
 
         let state_store = self.client.state_store.clone();

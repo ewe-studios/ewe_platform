@@ -22,7 +22,7 @@ use foundation_macros::JsonHash;
 use serde::Serialize;
 
 /// POST v1/folders/{foldersId}/assets:group
-/// Filters an organization's assets and groups them by their specified properties.
+/// Filters an organization''s assets and groups them by their specified properties.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_folders_assets_group_execute()` to send, or `securitycenter_folders_assets_group` for simplest API.
@@ -49,7 +49,7 @@ where
 }
 
 /// POST v1/folders/{foldersId}/assets:group
-/// Filters an organization's assets and groups them by their specified properties.
+/// Filters an organization''s assets and groups them by their specified properties.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -123,7 +123,7 @@ pub fn securitycenter_folders_assets_group_task(
 }
 
 /// POST v1/folders/{foldersId}/assets:group
-/// Filters an organization's assets and groups them by their specified properties.
+/// Filters an organization''s assets and groups them by their specified properties.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -162,7 +162,7 @@ pub struct SecuritycenterFoldersAssetsGroupArgs {
 }
 
 /// POST v1/folders/{foldersId}/assets:group
-/// Filters an organization's assets and groups them by their specified properties.
+/// Filters an organization''s assets and groups them by their specified properties.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `securitycenter_folders_assets_group_builder()` + `securitycenter_folders_assets_group_execute()`.
@@ -186,7 +186,7 @@ pub fn securitycenter_folders_assets_group(
 }
 
 /// GET v1/folders/{foldersId}/assets
-/// Lists an organization's assets.
+/// Lists an organization''s assets.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_folders_assets_list_execute()` to send, or `securitycenter_folders_assets_list` for simplest API.
@@ -249,7 +249,7 @@ where
 }
 
 /// GET v1/folders/{foldersId}/assets
-/// Lists an organization's assets.
+/// Lists an organization''s assets.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -323,7 +323,7 @@ pub fn securitycenter_folders_assets_list_task(
 }
 
 /// GET v1/folders/{foldersId}/assets
-/// Lists an organization's assets.
+/// Lists an organization''s assets.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -376,7 +376,7 @@ pub struct SecuritycenterFoldersAssetsListArgs {
 }
 
 /// GET v1/folders/{foldersId}/assets
-/// Lists an organization's assets.
+/// Lists an organization''s assets.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `securitycenter_folders_assets_list_builder()` + `securitycenter_folders_assets_list_execute()`.
@@ -7473,7 +7473,7 @@ pub fn securitycenter_folders_sources_list(
 }
 
 /// POST v1/folders/{foldersId}/sources/{sourcesId}/findings:group
-/// Filters an organization or source's findings and groups them by their specified properties. To group across all sources provide a - as the source id. Example: /v1/`organizations/{organization_id}/sources/-/findings`, /v1/`folders/{folder_id}/sources/-/findings`, /v1/`projects/{project_id}/sources/-/findings`
+/// Filters an organization or source''s findings and groups them by their specified properties. To group across all sources provide a - as the source id. Example: /v1/`organizations/{organization_id}/sources/-/findings`, /v1/`folders/{folder_id}/sources/-/findings`, /v1/`projects/{project_id}/sources/-/findings`
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_folders_sources_findings_group_execute()` to send, or `securitycenter_folders_sources_findings_group` for simplest API.
@@ -7500,7 +7500,7 @@ where
 }
 
 /// POST v1/folders/{foldersId}/sources/{sourcesId}/findings:group
-/// Filters an organization or source's findings and groups them by their specified properties. To group across all sources provide a - as the source id. Example: /v1/`organizations/{organization_id}/sources/-/findings`, /v1/`folders/{folder_id}/sources/-/findings`, /v1/`projects/{project_id}/sources/-/findings`
+/// Filters an organization or source''s findings and groups them by their specified properties. To group across all sources provide a - as the source id. Example: /v1/`organizations/{organization_id}/sources/-/findings`, /v1/`folders/{folder_id}/sources/-/findings`, /v1/`projects/{project_id}/sources/-/findings`
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -7574,7 +7574,7 @@ pub fn securitycenter_folders_sources_findings_group_task(
 }
 
 /// POST v1/folders/{foldersId}/sources/{sourcesId}/findings:group
-/// Filters an organization or source's findings and groups them by their specified properties. To group across all sources provide a - as the source id. Example: /v1/`organizations/{organization_id}/sources/-/findings`, /v1/`folders/{folder_id}/sources/-/findings`, /v1/`projects/{project_id}/sources/-/findings`
+/// Filters an organization or source''s findings and groups them by their specified properties. To group across all sources provide a - as the source id. Example: /v1/`organizations/{organization_id}/sources/-/findings`, /v1/`folders/{folder_id}/sources/-/findings`, /v1/`projects/{project_id}/sources/-/findings`
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -7613,7 +7613,7 @@ pub struct SecuritycenterFoldersSourcesFindingsGroupArgs {
 }
 
 /// POST v1/folders/{foldersId}/sources/{sourcesId}/findings:group
-/// Filters an organization or source's findings and groups them by their specified properties. To group across all sources provide a - as the source id. Example: /v1/`organizations/{organization_id}/sources/-/findings`, /v1/`folders/{folder_id}/sources/-/findings`, /v1/`projects/{project_id}/sources/-/findings`
+/// Filters an organization or source''s findings and groups them by their specified properties. To group across all sources provide a - as the source id. Example: /v1/`organizations/{organization_id}/sources/-/findings`, /v1/`folders/{folder_id}/sources/-/findings`, /v1/`projects/{project_id}/sources/-/findings`
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `securitycenter_folders_sources_findings_group_builder()` + `securitycenter_folders_sources_findings_group_execute()`.
@@ -7637,7 +7637,7 @@ pub fn securitycenter_folders_sources_findings_group(
 }
 
 /// GET v1/folders/{foldersId}/sources/{sourcesId}/findings
-/// Lists an organization or source's findings. To list across all sources provide a - as the source id. Example: /v1/`organizations/{organization_id}/sources/-/findings`
+/// Lists an organization or source''s findings. To list across all sources provide a - as the source id. Example: /v1/`organizations/{organization_id}/sources/-/findings`
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_folders_sources_findings_list_execute()` to send, or `securitycenter_folders_sources_findings_list` for simplest API.
@@ -7700,7 +7700,7 @@ where
 }
 
 /// GET v1/folders/{foldersId}/sources/{sourcesId}/findings
-/// Lists an organization or source's findings. To list across all sources provide a - as the source id. Example: /v1/`organizations/{organization_id}/sources/-/findings`
+/// Lists an organization or source''s findings. To list across all sources provide a - as the source id. Example: /v1/`organizations/{organization_id}/sources/-/findings`
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -7774,7 +7774,7 @@ pub fn securitycenter_folders_sources_findings_list_task(
 }
 
 /// GET v1/folders/{foldersId}/sources/{sourcesId}/findings
-/// Lists an organization or source's findings. To list across all sources provide a - as the source id. Example: /v1/`organizations/{organization_id}/sources/-/findings`
+/// Lists an organization or source''s findings. To list across all sources provide a - as the source id. Example: /v1/`organizations/{organization_id}/sources/-/findings`
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -7827,7 +7827,7 @@ pub struct SecuritycenterFoldersSourcesFindingsListArgs {
 }
 
 /// GET v1/folders/{foldersId}/sources/{sourcesId}/findings
-/// Lists an organization or source's findings. To list across all sources provide a - as the source id. Example: /v1/`organizations/{organization_id}/sources/-/findings`
+/// Lists an organization or source''s findings. To list across all sources provide a - as the source id. Example: /v1/`organizations/{organization_id}/sources/-/findings`
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `securitycenter_folders_sources_findings_list_builder()` + `securitycenter_folders_sources_findings_list_execute()`.
@@ -8899,7 +8899,7 @@ pub fn securitycenter_organizations_get_organization_settings(
 }
 
 /// PATCH v1/organizations/{organizationsId}/organizationSettings
-/// Updates an organization's settings.
+/// Updates an organization''s settings.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_organizations_update_organization_settings_execute()` to send, or `securitycenter_organizations_update_organization_settings` for simplest API.
@@ -8938,7 +8938,7 @@ where
 }
 
 /// PATCH v1/organizations/{organizationsId}/organizationSettings
-/// Updates an organization's settings.
+/// Updates an organization''s settings.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -9012,7 +9012,7 @@ pub fn securitycenter_organizations_update_organization_settings_task(
 }
 
 /// PATCH v1/organizations/{organizationsId}/organizationSettings
-/// Updates an organization's settings.
+/// Updates an organization''s settings.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -9053,7 +9053,7 @@ pub struct SecuritycenterOrganizationsUpdateOrganizationSettingsArgs {
 }
 
 /// PATCH v1/organizations/{organizationsId}/organizationSettings
-/// Updates an organization's settings.
+/// Updates an organization''s settings.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `securitycenter_organizations_update_organization_settings_builder()` + `securitycenter_organizations_update_organization_settings_execute()`.
@@ -9081,7 +9081,7 @@ pub fn securitycenter_organizations_update_organization_settings(
 }
 
 /// POST v1/organizations/{organizationsId}/assets:group
-/// Filters an organization's assets and groups them by their specified properties.
+/// Filters an organization''s assets and groups them by their specified properties.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_organizations_assets_group_execute()` to send, or `securitycenter_organizations_assets_group` for simplest API.
@@ -9108,7 +9108,7 @@ where
 }
 
 /// POST v1/organizations/{organizationsId}/assets:group
-/// Filters an organization's assets and groups them by their specified properties.
+/// Filters an organization''s assets and groups them by their specified properties.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -9182,7 +9182,7 @@ pub fn securitycenter_organizations_assets_group_task(
 }
 
 /// POST v1/organizations/{organizationsId}/assets:group
-/// Filters an organization's assets and groups them by their specified properties.
+/// Filters an organization''s assets and groups them by their specified properties.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -9221,7 +9221,7 @@ pub struct SecuritycenterOrganizationsAssetsGroupArgs {
 }
 
 /// POST v1/organizations/{organizationsId}/assets:group
-/// Filters an organization's assets and groups them by their specified properties.
+/// Filters an organization''s assets and groups them by their specified properties.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `securitycenter_organizations_assets_group_builder()` + `securitycenter_organizations_assets_group_execute()`.
@@ -9245,7 +9245,7 @@ pub fn securitycenter_organizations_assets_group(
 }
 
 /// GET v1/organizations/{organizationsId}/assets
-/// Lists an organization's assets.
+/// Lists an organization''s assets.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_organizations_assets_list_execute()` to send, or `securitycenter_organizations_assets_list` for simplest API.
@@ -9308,7 +9308,7 @@ where
 }
 
 /// GET v1/organizations/{organizationsId}/assets
-/// Lists an organization's assets.
+/// Lists an organization''s assets.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -9382,7 +9382,7 @@ pub fn securitycenter_organizations_assets_list_task(
 }
 
 /// GET v1/organizations/{organizationsId}/assets
-/// Lists an organization's assets.
+/// Lists an organization''s assets.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -9435,7 +9435,7 @@ pub struct SecuritycenterOrganizationsAssetsListArgs {
 }
 
 /// GET v1/organizations/{organizationsId}/assets
-/// Lists an organization's assets.
+/// Lists an organization''s assets.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `securitycenter_organizations_assets_list_builder()` + `securitycenter_organizations_assets_list_execute()`.
@@ -15019,7 +15019,7 @@ pub fn securitycenter_organizations_notification_configs_patch(
 }
 
 /// POST v1/organizations/{organizationsId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_organizations_operations_cancel_execute()` to send, or `securitycenter_organizations_operations_cancel` for simplest API.
@@ -15046,7 +15046,7 @@ where
 }
 
 /// POST v1/organizations/{organizationsId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -15120,7 +15120,7 @@ pub fn securitycenter_organizations_operations_cancel_task(
 }
 
 /// POST v1/organizations/{organizationsId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -15157,7 +15157,7 @@ pub struct SecuritycenterOrganizationsOperationsCancelArgs {
 }
 
 /// POST v1/organizations/{organizationsId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `securitycenter_organizations_operations_cancel_builder()` + `securitycenter_organizations_operations_cancel_execute()`.
@@ -15179,7 +15179,7 @@ pub fn securitycenter_organizations_operations_cancel(
 }
 
 /// DELETE v1/organizations/{organizationsId}/operations/{operationsId}
-/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_organizations_operations_delete_execute()` to send, or `securitycenter_organizations_operations_delete` for simplest API.
@@ -15206,7 +15206,7 @@ where
 }
 
 /// DELETE v1/organizations/{organizationsId}/operations/{operationsId}
-/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -15280,7 +15280,7 @@ pub fn securitycenter_organizations_operations_delete_task(
 }
 
 /// DELETE v1/organizations/{organizationsId}/operations/{operationsId}
-/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -15317,7 +15317,7 @@ pub struct SecuritycenterOrganizationsOperationsDeleteArgs {
 }
 
 /// DELETE v1/organizations/{organizationsId}/operations/{operationsId}
-/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `securitycenter_organizations_operations_delete_builder()` + `securitycenter_organizations_operations_delete_execute()`.
@@ -15499,7 +15499,7 @@ pub fn securitycenter_organizations_operations_get(
 }
 
 /// GET v1/organizations/{organizationsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_organizations_operations_list_execute()` to send, or `securitycenter_organizations_operations_list` for simplest API.
@@ -15550,7 +15550,7 @@ where
 }
 
 /// GET v1/organizations/{organizationsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -15624,7 +15624,7 @@ pub fn securitycenter_organizations_operations_list_task(
 }
 
 /// GET v1/organizations/{organizationsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -15671,7 +15671,7 @@ pub struct SecuritycenterOrganizationsOperationsListArgs {
 }
 
 /// GET v1/organizations/{organizationsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `securitycenter_organizations_operations_list_builder()` + `securitycenter_organizations_operations_list_execute()`.
@@ -15702,7 +15702,7 @@ pub fn securitycenter_organizations_operations_list(
 }
 
 /// POST v1/organizations/{organizationsId}/resourceValueConfigs:batchCreate
-/// Creates a ResourceValueConfig for an organization. Maps user's tags to difference resource values for use by the attack path simulation.
+/// Creates a ResourceValueConfig for an organization. Maps user''s tags to difference resource values for use by the attack path simulation.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_organizations_resource_value_configs_batch_create_execute()` to send, or `securitycenter_organizations_resource_value_configs_batch_create` for simplest API.
@@ -15729,7 +15729,7 @@ where
 }
 
 /// POST v1/organizations/{organizationsId}/resourceValueConfigs:batchCreate
-/// Creates a ResourceValueConfig for an organization. Maps user's tags to difference resource values for use by the attack path simulation.
+/// Creates a ResourceValueConfig for an organization. Maps user''s tags to difference resource values for use by the attack path simulation.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -15804,7 +15804,7 @@ pub fn securitycenter_organizations_resource_value_configs_batch_create_task(
 }
 
 /// POST v1/organizations/{organizationsId}/resourceValueConfigs:batchCreate
-/// Creates a ResourceValueConfig for an organization. Maps user's tags to difference resource values for use by the attack path simulation.
+/// Creates a ResourceValueConfig for an organization. Maps user''s tags to difference resource values for use by the attack path simulation.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -15845,7 +15845,7 @@ pub struct SecuritycenterOrganizationsResourceValueConfigsBatchCreateArgs {
 }
 
 /// POST v1/organizations/{organizationsId}/resourceValueConfigs:batchCreate
-/// Creates a ResourceValueConfig for an organization. Maps user's tags to difference resource values for use by the attack path simulation.
+/// Creates a ResourceValueConfig for an organization. Maps user''s tags to difference resource values for use by the attack path simulation.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `securitycenter_organizations_resource_value_configs_batch_create_builder()` + `securitycenter_organizations_resource_value_configs_batch_create_execute()`.
@@ -20965,7 +20965,7 @@ pub fn securitycenter_organizations_sources_findings_create(
 }
 
 /// POST v1/organizations/{organizationsId}/sources/{sourcesId}/findings:group
-/// Filters an organization or source's findings and groups them by their specified properties. To group across all sources provide a - as the source id. Example: /v1/`organizations/{organization_id}/sources/-/findings`, /v1/`folders/{folder_id}/sources/-/findings`, /v1/`projects/{project_id}/sources/-/findings`
+/// Filters an organization or source''s findings and groups them by their specified properties. To group across all sources provide a - as the source id. Example: /v1/`organizations/{organization_id}/sources/-/findings`, /v1/`folders/{folder_id}/sources/-/findings`, /v1/`projects/{project_id}/sources/-/findings`
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_organizations_sources_findings_group_execute()` to send, or `securitycenter_organizations_sources_findings_group` for simplest API.
@@ -20992,7 +20992,7 @@ where
 }
 
 /// POST v1/organizations/{organizationsId}/sources/{sourcesId}/findings:group
-/// Filters an organization or source's findings and groups them by their specified properties. To group across all sources provide a - as the source id. Example: /v1/`organizations/{organization_id}/sources/-/findings`, /v1/`folders/{folder_id}/sources/-/findings`, /v1/`projects/{project_id}/sources/-/findings`
+/// Filters an organization or source''s findings and groups them by their specified properties. To group across all sources provide a - as the source id. Example: /v1/`organizations/{organization_id}/sources/-/findings`, /v1/`folders/{folder_id}/sources/-/findings`, /v1/`projects/{project_id}/sources/-/findings`
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -21066,7 +21066,7 @@ pub fn securitycenter_organizations_sources_findings_group_task(
 }
 
 /// POST v1/organizations/{organizationsId}/sources/{sourcesId}/findings:group
-/// Filters an organization or source's findings and groups them by their specified properties. To group across all sources provide a - as the source id. Example: /v1/`organizations/{organization_id}/sources/-/findings`, /v1/`folders/{folder_id}/sources/-/findings`, /v1/`projects/{project_id}/sources/-/findings`
+/// Filters an organization or source''s findings and groups them by their specified properties. To group across all sources provide a - as the source id. Example: /v1/`organizations/{organization_id}/sources/-/findings`, /v1/`folders/{folder_id}/sources/-/findings`, /v1/`projects/{project_id}/sources/-/findings`
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -21105,7 +21105,7 @@ pub struct SecuritycenterOrganizationsSourcesFindingsGroupArgs {
 }
 
 /// POST v1/organizations/{organizationsId}/sources/{sourcesId}/findings:group
-/// Filters an organization or source's findings and groups them by their specified properties. To group across all sources provide a - as the source id. Example: /v1/`organizations/{organization_id}/sources/-/findings`, /v1/`folders/{folder_id}/sources/-/findings`, /v1/`projects/{project_id}/sources/-/findings`
+/// Filters an organization or source''s findings and groups them by their specified properties. To group across all sources provide a - as the source id. Example: /v1/`organizations/{organization_id}/sources/-/findings`, /v1/`folders/{folder_id}/sources/-/findings`, /v1/`projects/{project_id}/sources/-/findings`
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `securitycenter_organizations_sources_findings_group_builder()` + `securitycenter_organizations_sources_findings_group_execute()`.
@@ -21130,7 +21130,7 @@ pub fn securitycenter_organizations_sources_findings_group(
 }
 
 /// GET v1/organizations/{organizationsId}/sources/{sourcesId}/findings
-/// Lists an organization or source's findings. To list across all sources provide a - as the source id. Example: /v1/`organizations/{organization_id}/sources/-/findings`
+/// Lists an organization or source''s findings. To list across all sources provide a - as the source id. Example: /v1/`organizations/{organization_id}/sources/-/findings`
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_organizations_sources_findings_list_execute()` to send, or `securitycenter_organizations_sources_findings_list` for simplest API.
@@ -21193,7 +21193,7 @@ where
 }
 
 /// GET v1/organizations/{organizationsId}/sources/{sourcesId}/findings
-/// Lists an organization or source's findings. To list across all sources provide a - as the source id. Example: /v1/`organizations/{organization_id}/sources/-/findings`
+/// Lists an organization or source''s findings. To list across all sources provide a - as the source id. Example: /v1/`organizations/{organization_id}/sources/-/findings`
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -21267,7 +21267,7 @@ pub fn securitycenter_organizations_sources_findings_list_task(
 }
 
 /// GET v1/organizations/{organizationsId}/sources/{sourcesId}/findings
-/// Lists an organization or source's findings. To list across all sources provide a - as the source id. Example: /v1/`organizations/{organization_id}/sources/-/findings`
+/// Lists an organization or source''s findings. To list across all sources provide a - as the source id. Example: /v1/`organizations/{organization_id}/sources/-/findings`
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -21320,7 +21320,7 @@ pub struct SecuritycenterOrganizationsSourcesFindingsListArgs {
 }
 
 /// GET v1/organizations/{organizationsId}/sources/{sourcesId}/findings
-/// Lists an organization or source's findings. To list across all sources provide a - as the source id. Example: /v1/`organizations/{organization_id}/sources/-/findings`
+/// Lists an organization or source''s findings. To list across all sources provide a - as the source id. Example: /v1/`organizations/{organization_id}/sources/-/findings`
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `securitycenter_organizations_sources_findings_list_builder()` + `securitycenter_organizations_sources_findings_list_execute()`.
@@ -22436,7 +22436,7 @@ pub fn securitycenter_organizations_valued_resources_list(
 }
 
 /// POST v1/projects/{projectsId}/assets:group
-/// Filters an organization's assets and groups them by their specified properties.
+/// Filters an organization''s assets and groups them by their specified properties.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_projects_assets_group_execute()` to send, or `securitycenter_projects_assets_group` for simplest API.
@@ -22463,7 +22463,7 @@ where
 }
 
 /// POST v1/projects/{projectsId}/assets:group
-/// Filters an organization's assets and groups them by their specified properties.
+/// Filters an organization''s assets and groups them by their specified properties.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -22537,7 +22537,7 @@ pub fn securitycenter_projects_assets_group_task(
 }
 
 /// POST v1/projects/{projectsId}/assets:group
-/// Filters an organization's assets and groups them by their specified properties.
+/// Filters an organization''s assets and groups them by their specified properties.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -22576,7 +22576,7 @@ pub struct SecuritycenterProjectsAssetsGroupArgs {
 }
 
 /// POST v1/projects/{projectsId}/assets:group
-/// Filters an organization's assets and groups them by their specified properties.
+/// Filters an organization''s assets and groups them by their specified properties.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `securitycenter_projects_assets_group_builder()` + `securitycenter_projects_assets_group_execute()`.
@@ -22600,7 +22600,7 @@ pub fn securitycenter_projects_assets_group(
 }
 
 /// GET v1/projects/{projectsId}/assets
-/// Lists an organization's assets.
+/// Lists an organization''s assets.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_projects_assets_list_execute()` to send, or `securitycenter_projects_assets_list` for simplest API.
@@ -22663,7 +22663,7 @@ where
 }
 
 /// GET v1/projects/{projectsId}/assets
-/// Lists an organization's assets.
+/// Lists an organization''s assets.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -22737,7 +22737,7 @@ pub fn securitycenter_projects_assets_list_task(
 }
 
 /// GET v1/projects/{projectsId}/assets
-/// Lists an organization's assets.
+/// Lists an organization''s assets.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -22790,7 +22790,7 @@ pub struct SecuritycenterProjectsAssetsListArgs {
 }
 
 /// GET v1/projects/{projectsId}/assets
-/// Lists an organization's assets.
+/// Lists an organization''s assets.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `securitycenter_projects_assets_list_builder()` + `securitycenter_projects_assets_list_execute()`.
@@ -29891,7 +29891,7 @@ pub fn securitycenter_projects_sources_list(
 }
 
 /// POST v1/projects/{projectsId}/sources/{sourcesId}/findings:group
-/// Filters an organization or source's findings and groups them by their specified properties. To group across all sources provide a - as the source id. Example: /v1/`organizations/{organization_id}/sources/-/findings`, /v1/`folders/{folder_id}/sources/-/findings`, /v1/`projects/{project_id}/sources/-/findings`
+/// Filters an organization or source''s findings and groups them by their specified properties. To group across all sources provide a - as the source id. Example: /v1/`organizations/{organization_id}/sources/-/findings`, /v1/`folders/{folder_id}/sources/-/findings`, /v1/`projects/{project_id}/sources/-/findings`
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_projects_sources_findings_group_execute()` to send, or `securitycenter_projects_sources_findings_group` for simplest API.
@@ -29918,7 +29918,7 @@ where
 }
 
 /// POST v1/projects/{projectsId}/sources/{sourcesId}/findings:group
-/// Filters an organization or source's findings and groups them by their specified properties. To group across all sources provide a - as the source id. Example: /v1/`organizations/{organization_id}/sources/-/findings`, /v1/`folders/{folder_id}/sources/-/findings`, /v1/`projects/{project_id}/sources/-/findings`
+/// Filters an organization or source''s findings and groups them by their specified properties. To group across all sources provide a - as the source id. Example: /v1/`organizations/{organization_id}/sources/-/findings`, /v1/`folders/{folder_id}/sources/-/findings`, /v1/`projects/{project_id}/sources/-/findings`
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -29992,7 +29992,7 @@ pub fn securitycenter_projects_sources_findings_group_task(
 }
 
 /// POST v1/projects/{projectsId}/sources/{sourcesId}/findings:group
-/// Filters an organization or source's findings and groups them by their specified properties. To group across all sources provide a - as the source id. Example: /v1/`organizations/{organization_id}/sources/-/findings`, /v1/`folders/{folder_id}/sources/-/findings`, /v1/`projects/{project_id}/sources/-/findings`
+/// Filters an organization or source''s findings and groups them by their specified properties. To group across all sources provide a - as the source id. Example: /v1/`organizations/{organization_id}/sources/-/findings`, /v1/`folders/{folder_id}/sources/-/findings`, /v1/`projects/{project_id}/sources/-/findings`
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -30031,7 +30031,7 @@ pub struct SecuritycenterProjectsSourcesFindingsGroupArgs {
 }
 
 /// POST v1/projects/{projectsId}/sources/{sourcesId}/findings:group
-/// Filters an organization or source's findings and groups them by their specified properties. To group across all sources provide a - as the source id. Example: /v1/`organizations/{organization_id}/sources/-/findings`, /v1/`folders/{folder_id}/sources/-/findings`, /v1/`projects/{project_id}/sources/-/findings`
+/// Filters an organization or source''s findings and groups them by their specified properties. To group across all sources provide a - as the source id. Example: /v1/`organizations/{organization_id}/sources/-/findings`, /v1/`folders/{folder_id}/sources/-/findings`, /v1/`projects/{project_id}/sources/-/findings`
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `securitycenter_projects_sources_findings_group_builder()` + `securitycenter_projects_sources_findings_group_execute()`.
@@ -30055,7 +30055,7 @@ pub fn securitycenter_projects_sources_findings_group(
 }
 
 /// GET v1/projects/{projectsId}/sources/{sourcesId}/findings
-/// Lists an organization or source's findings. To list across all sources provide a - as the source id. Example: /v1/`organizations/{organization_id}/sources/-/findings`
+/// Lists an organization or source''s findings. To list across all sources provide a - as the source id. Example: /v1/`organizations/{organization_id}/sources/-/findings`
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securitycenter_projects_sources_findings_list_execute()` to send, or `securitycenter_projects_sources_findings_list` for simplest API.
@@ -30118,7 +30118,7 @@ where
 }
 
 /// GET v1/projects/{projectsId}/sources/{sourcesId}/findings
-/// Lists an organization or source's findings. To list across all sources provide a - as the source id. Example: /v1/`organizations/{organization_id}/sources/-/findings`
+/// Lists an organization or source''s findings. To list across all sources provide a - as the source id. Example: /v1/`organizations/{organization_id}/sources/-/findings`
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -30192,7 +30192,7 @@ pub fn securitycenter_projects_sources_findings_list_task(
 }
 
 /// GET v1/projects/{projectsId}/sources/{sourcesId}/findings
-/// Lists an organization or source's findings. To list across all sources provide a - as the source id. Example: /v1/`organizations/{organization_id}/sources/-/findings`
+/// Lists an organization or source''s findings. To list across all sources provide a - as the source id. Example: /v1/`organizations/{organization_id}/sources/-/findings`
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -30245,7 +30245,7 @@ pub struct SecuritycenterProjectsSourcesFindingsListArgs {
 }
 
 /// GET v1/projects/{projectsId}/sources/{sourcesId}/findings
-/// Lists an organization or source's findings. To list across all sources provide a - as the source id. Example: /v1/`organizations/{organization_id}/sources/-/findings`
+/// Lists an organization or source''s findings. To list across all sources provide a - as the source id. Example: /v1/`organizations/{organization_id}/sources/-/findings`
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `securitycenter_projects_sources_findings_list_builder()` + `securitycenter_projects_sources_findings_list_execute()`.
