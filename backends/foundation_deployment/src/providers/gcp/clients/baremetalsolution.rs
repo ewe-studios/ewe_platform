@@ -6527,7 +6527,7 @@ pub fn baremetalsolution_projects_locations_ssh_keys_list(
 }
 
 /// POST v2/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}:evict
-/// Skips volume's cooloff and deletes it now. Volume must be in cooloff state.
+/// Skips volume''s cooloff and deletes it now. Volume must be in cooloff state.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `baremetalsolution_projects_locations_volumes_evict_execute()` to send, or `baremetalsolution_projects_locations_volumes_evict` for simplest API.
@@ -6554,7 +6554,7 @@ where
 }
 
 /// POST v2/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}:evict
-/// Skips volume's cooloff and deletes it now. Volume must be in cooloff state.
+/// Skips volume''s cooloff and deletes it now. Volume must be in cooloff state.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -6628,7 +6628,7 @@ pub fn baremetalsolution_projects_locations_volumes_evict_task(
 }
 
 /// POST v2/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}:evict
-/// Skips volume's cooloff and deletes it now. Volume must be in cooloff state.
+/// Skips volume''s cooloff and deletes it now. Volume must be in cooloff state.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -6665,7 +6665,7 @@ pub struct BaremetalsolutionProjectsLocationsVolumesEvictArgs {
 }
 
 /// POST v2/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}:evict
-/// Skips volume's cooloff and deletes it now. Volume must be in cooloff state.
+/// Skips volume''s cooloff and deletes it now. Volume must be in cooloff state.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `baremetalsolution_projects_locations_volumes_evict_builder()` + `baremetalsolution_projects_locations_volumes_evict_execute()`.
@@ -7542,7 +7542,7 @@ pub fn baremetalsolution_projects_locations_volumes_resize(
 }
 
 /// POST v2/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}/luns/{lunsId}:evict
-/// Skips lun's cooloff and deletes it now. Lun must be in cooloff state.
+/// Skips lun''s cooloff and deletes it now. Lun must be in cooloff state.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `baremetalsolution_projects_locations_volumes_luns_evict_execute()` to send, or `baremetalsolution_projects_locations_volumes_luns_evict` for simplest API.
@@ -7569,7 +7569,7 @@ where
 }
 
 /// POST v2/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}/luns/{lunsId}:evict
-/// Skips lun's cooloff and deletes it now. Lun must be in cooloff state.
+/// Skips lun''s cooloff and deletes it now. Lun must be in cooloff state.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -7643,7 +7643,7 @@ pub fn baremetalsolution_projects_locations_volumes_luns_evict_task(
 }
 
 /// POST v2/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}/luns/{lunsId}:evict
-/// Skips lun's cooloff and deletes it now. Lun must be in cooloff state.
+/// Skips lun''s cooloff and deletes it now. Lun must be in cooloff state.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -7680,7 +7680,7 @@ pub struct BaremetalsolutionProjectsLocationsVolumesLunsEvictArgs {
 }
 
 /// POST v2/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}/luns/{lunsId}:evict
-/// Skips lun's cooloff and deletes it now. Lun must be in cooloff state.
+/// Skips lun''s cooloff and deletes it now. Lun must be in cooloff state.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `baremetalsolution_projects_locations_volumes_luns_evict_builder()` + `baremetalsolution_projects_locations_volumes_luns_evict_execute()`.

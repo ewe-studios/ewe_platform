@@ -560,7 +560,7 @@ pub fn realtimebidding_bidders_creatives_list(
 }
 
 /// POST v1/bidders/{biddersId}/creatives:watch
-/// Watches all creatives pertaining to a bidder. It is sufficient to invoke this endpoint once per bidder. A P`ub/Sub` topic will be created and notifications will be pushed to the topic when any of the bidder's creatives change status. All of the bidder's service accounts will have access to read from the topic. Subsequent invocations of this method will return the existing P`ub/Sub` configuration.
+/// Watches all creatives pertaining to a bidder. It is sufficient to invoke this endpoint once per bidder. A P`ub/Sub` topic will be created and notifications will be pushed to the topic when any of the bidder''s creatives change status. All of the bidder''s service accounts will have access to read from the topic. Subsequent invocations of this method will return the existing P`ub/Sub` configuration.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `realtimebidding_bidders_creatives_watch_execute()` to send, or `realtimebidding_bidders_creatives_watch` for simplest API.
@@ -587,7 +587,7 @@ where
 }
 
 /// POST v1/bidders/{biddersId}/creatives:watch
-/// Watches all creatives pertaining to a bidder. It is sufficient to invoke this endpoint once per bidder. A P`ub/Sub` topic will be created and notifications will be pushed to the topic when any of the bidder's creatives change status. All of the bidder's service accounts will have access to read from the topic. Subsequent invocations of this method will return the existing P`ub/Sub` configuration.
+/// Watches all creatives pertaining to a bidder. It is sufficient to invoke this endpoint once per bidder. A P`ub/Sub` topic will be created and notifications will be pushed to the topic when any of the bidder''s creatives change status. All of the bidder''s service accounts will have access to read from the topic. Subsequent invocations of this method will return the existing P`ub/Sub` configuration.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -661,7 +661,7 @@ pub fn realtimebidding_bidders_creatives_watch_task(
 }
 
 /// POST v1/bidders/{biddersId}/creatives:watch
-/// Watches all creatives pertaining to a bidder. It is sufficient to invoke this endpoint once per bidder. A P`ub/Sub` topic will be created and notifications will be pushed to the topic when any of the bidder's creatives change status. All of the bidder's service accounts will have access to read from the topic. Subsequent invocations of this method will return the existing P`ub/Sub` configuration.
+/// Watches all creatives pertaining to a bidder. It is sufficient to invoke this endpoint once per bidder. A P`ub/Sub` topic will be created and notifications will be pushed to the topic when any of the bidder''s creatives change status. All of the bidder''s service accounts will have access to read from the topic. Subsequent invocations of this method will return the existing P`ub/Sub` configuration.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -700,7 +700,7 @@ pub struct RealtimebiddingBiddersCreativesWatchArgs {
 }
 
 /// POST v1/bidders/{biddersId}/creatives:watch
-/// Watches all creatives pertaining to a bidder. It is sufficient to invoke this endpoint once per bidder. A P`ub/Sub` topic will be created and notifications will be pushed to the topic when any of the bidder's creatives change status. All of the bidder's service accounts will have access to read from the topic. Subsequent invocations of this method will return the existing P`ub/Sub` configuration.
+/// Watches all creatives pertaining to a bidder. It is sufficient to invoke this endpoint once per bidder. A P`ub/Sub` topic will be created and notifications will be pushed to the topic when any of the bidder''s creatives change status. All of the bidder''s service accounts will have access to read from the topic. Subsequent invocations of this method will return the existing P`ub/Sub` configuration.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `realtimebidding_bidders_creatives_watch_builder()` + `realtimebidding_bidders_creatives_watch_execute()`.
@@ -884,7 +884,7 @@ pub fn realtimebidding_bidders_endpoints_get(
 }
 
 /// GET v1/bidders/{biddersId}/endpoints
-/// Lists all the bidder's endpoints.
+/// Lists all the bidder''s endpoints.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `realtimebidding_bidders_endpoints_list_execute()` to send, or `realtimebidding_bidders_endpoints_list` for simplest API.
@@ -927,7 +927,7 @@ where
 }
 
 /// GET v1/bidders/{biddersId}/endpoints
-/// Lists all the bidder's endpoints.
+/// Lists all the bidder''s endpoints.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -1001,7 +1001,7 @@ pub fn realtimebidding_bidders_endpoints_list_task(
 }
 
 /// GET v1/bidders/{biddersId}/endpoints
-/// Lists all the bidder's endpoints.
+/// Lists all the bidder''s endpoints.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -1044,7 +1044,7 @@ pub struct RealtimebiddingBiddersEndpointsListArgs {
 }
 
 /// GET v1/bidders/{biddersId}/endpoints
-/// Lists all the bidder's endpoints.
+/// Lists all the bidder''s endpoints.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `realtimebidding_bidders_endpoints_list_builder()` + `realtimebidding_bidders_endpoints_list_execute()`.
@@ -1073,7 +1073,7 @@ pub fn realtimebidding_bidders_endpoints_list(
 }
 
 /// PATCH v1/bidders/{biddersId}/endpoints/{endpointsId}
-/// Updates a bidder's endpoint.
+/// Updates a bidder''s endpoint.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `realtimebidding_bidders_endpoints_patch_execute()` to send, or `realtimebidding_bidders_endpoints_patch` for simplest API.
@@ -1112,7 +1112,7 @@ where
 }
 
 /// PATCH v1/bidders/{biddersId}/endpoints/{endpointsId}
-/// Updates a bidder's endpoint.
+/// Updates a bidder''s endpoint.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -1186,7 +1186,7 @@ pub fn realtimebidding_bidders_endpoints_patch_task(
 }
 
 /// PATCH v1/bidders/{biddersId}/endpoints/{endpointsId}
-/// Updates a bidder's endpoint.
+/// Updates a bidder''s endpoint.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -1225,7 +1225,7 @@ pub struct RealtimebiddingBiddersEndpointsPatchArgs {
 }
 
 /// PATCH v1/bidders/{biddersId}/endpoints/{endpointsId}
-/// Updates a bidder's endpoint.
+/// Updates a bidder''s endpoint.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `realtimebidding_bidders_endpoints_patch_builder()` + `realtimebidding_bidders_endpoints_patch_execute()`.
@@ -1914,7 +1914,7 @@ pub fn realtimebidding_bidders_pretargeting_configs_add_targeted_sites(
 }
 
 /// POST v1/bidders/{biddersId}/pretargetingConfigs
-/// Creates a pretargeting configuration. A pretargeting configuration's state (PretargetingConfig.state) is active upon creation, and it will start to affect traffic shortly after. A bidder may create a maximum of 10 pretargeting configurations. Attempts to exceed this maximum results in a 400 bad request error.
+/// Creates a pretargeting configuration. A pretargeting configuration''s state (PretargetingConfig.state) is active upon creation, and it will start to affect traffic shortly after. A bidder may create a maximum of 10 pretargeting configurations. Attempts to exceed this maximum results in a 400 bad request error.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `realtimebidding_bidders_pretargeting_configs_create_execute()` to send, or `realtimebidding_bidders_pretargeting_configs_create` for simplest API.
@@ -1941,7 +1941,7 @@ where
 }
 
 /// POST v1/bidders/{biddersId}/pretargetingConfigs
-/// Creates a pretargeting configuration. A pretargeting configuration's state (PretargetingConfig.state) is active upon creation, and it will start to affect traffic shortly after. A bidder may create a maximum of 10 pretargeting configurations. Attempts to exceed this maximum results in a 400 bad request error.
+/// Creates a pretargeting configuration. A pretargeting configuration''s state (PretargetingConfig.state) is active upon creation, and it will start to affect traffic shortly after. A bidder may create a maximum of 10 pretargeting configurations. Attempts to exceed this maximum results in a 400 bad request error.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -2015,7 +2015,7 @@ pub fn realtimebidding_bidders_pretargeting_configs_create_task(
 }
 
 /// POST v1/bidders/{biddersId}/pretargetingConfigs
-/// Creates a pretargeting configuration. A pretargeting configuration's state (PretargetingConfig.state) is active upon creation, and it will start to affect traffic shortly after. A bidder may create a maximum of 10 pretargeting configurations. Attempts to exceed this maximum results in a 400 bad request error.
+/// Creates a pretargeting configuration. A pretargeting configuration''s state (PretargetingConfig.state) is active upon creation, and it will start to affect traffic shortly after. A bidder may create a maximum of 10 pretargeting configurations. Attempts to exceed this maximum results in a 400 bad request error.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -2054,7 +2054,7 @@ pub struct RealtimebiddingBiddersPretargetingConfigsCreateArgs {
 }
 
 /// POST v1/bidders/{biddersId}/pretargetingConfigs
-/// Creates a pretargeting configuration. A pretargeting configuration's state (PretargetingConfig.state) is active upon creation, and it will start to affect traffic shortly after. A bidder may create a maximum of 10 pretargeting configurations. Attempts to exceed this maximum results in a 400 bad request error.
+/// Creates a pretargeting configuration. A pretargeting configuration''s state (PretargetingConfig.state) is active upon creation, and it will start to affect traffic shortly after. A bidder may create a maximum of 10 pretargeting configurations. Attempts to exceed this maximum results in a 400 bad request error.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `realtimebidding_bidders_pretargeting_configs_create_builder()` + `realtimebidding_bidders_pretargeting_configs_create_execute()`.

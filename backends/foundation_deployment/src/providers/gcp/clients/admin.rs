@@ -22,7 +22,7 @@ use foundation_macros::JsonHash;
 use serde::Serialize;
 
 /// GET admin/reports/v1/activity/users/{userKey}/applications/{applicationName}
-/// Retrieves a list of activities for a specific customer's account and application such as the Admin console application or the Google Drive application. For more information, see the guides for administrator and Google Drive activity reports. For more information about the activity report's parameters, see the activity parameters reference guides.
+/// Retrieves a list of activities for a specific customer''s account and application such as the Admin console application or the Google Drive application. For more information, see the guides for administrator and Google Drive activity reports. For more information about the activity report''s parameters, see the activity parameters reference guides.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `reports_activities_list_execute()` to send, or `reports_activities_list` for simplest API.
@@ -118,7 +118,7 @@ where
 }
 
 /// GET admin/reports/v1/activity/users/{userKey}/applications/{applicationName}
-/// Retrieves a list of activities for a specific customer's account and application such as the Admin console application or the Google Drive application. For more information, see the guides for administrator and Google Drive activity reports. For more information about the activity report's parameters, see the activity parameters reference guides.
+/// Retrieves a list of activities for a specific customer''s account and application such as the Admin console application or the Google Drive application. For more information, see the guides for administrator and Google Drive activity reports. For more information about the activity report''s parameters, see the activity parameters reference guides.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -192,7 +192,7 @@ pub fn reports_activities_list_task(
 }
 
 /// GET admin/reports/v1/activity/users/{userKey}/applications/{applicationName}
-/// Retrieves a list of activities for a specific customer's account and application such as the Admin console application or the Google Drive application. For more information, see the guides for administrator and Google Drive activity reports. For more information about the activity report's parameters, see the activity parameters reference guides.
+/// Retrieves a list of activities for a specific customer''s account and application such as the Admin console application or the Google Drive application. For more information, see the guides for administrator and Google Drive activity reports. For more information about the activity report''s parameters, see the activity parameters reference guides.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -261,7 +261,7 @@ pub struct ReportsActivitiesListArgs {
 }
 
 /// GET admin/reports/v1/activity/users/{userKey}/applications/{applicationName}
-/// Retrieves a list of activities for a specific customer's account and application such as the Admin console application or the Google Drive application. For more information, see the guides for administrator and Google Drive activity reports. For more information about the activity report's parameters, see the activity parameters reference guides.
+/// Retrieves a list of activities for a specific customer''s account and application such as the Admin console application or the Google Drive application. For more information, see the guides for administrator and Google Drive activity reports. For more information about the activity report''s parameters, see the activity parameters reference guides.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `reports_activities_list_builder()` + `reports_activities_list_execute()`.
@@ -692,7 +692,7 @@ pub fn admin_channels_stop(
 }
 
 /// GET admin/reports/v1/usage/dates/{date}
-/// Retrieves a report which is a collection of properties and statistics for a specific customer's account. For more information, see the Customers Usage Report guide. For more information about the customer report's parameters, see the Customers Usage parameters reference guides.
+/// Retrieves a report which is a collection of properties and statistics for a specific customer''s account. For more information, see the Customers Usage Report guide. For more information about the customer report''s parameters, see the Customers Usage parameters reference guides.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `reports_customer_usage_reports_get_execute()` to send, or `reports_customer_usage_reports_get` for simplest API.
@@ -739,7 +739,7 @@ where
 }
 
 /// GET admin/reports/v1/usage/dates/{date}
-/// Retrieves a report which is a collection of properties and statistics for a specific customer's account. For more information, see the Customers Usage Report guide. For more information about the customer report's parameters, see the Customers Usage parameters reference guides.
+/// Retrieves a report which is a collection of properties and statistics for a specific customer''s account. For more information, see the Customers Usage Report guide. For more information about the customer report''s parameters, see the Customers Usage parameters reference guides.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -813,7 +813,7 @@ pub fn reports_customer_usage_reports_get_task(
 }
 
 /// GET admin/reports/v1/usage/dates/{date}
-/// Retrieves a report which is a collection of properties and statistics for a specific customer's account. For more information, see the Customers Usage Report guide. For more information about the customer report's parameters, see the Customers Usage parameters reference guides.
+/// Retrieves a report which is a collection of properties and statistics for a specific customer''s account. For more information, see the Customers Usage Report guide. For more information about the customer report''s parameters, see the Customers Usage parameters reference guides.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -858,7 +858,7 @@ pub struct ReportsCustomerUsageReportsGetArgs {
 }
 
 /// GET admin/reports/v1/usage/dates/{date}
-/// Retrieves a report which is a collection of properties and statistics for a specific customer's account. For more information, see the Customers Usage Report guide. For more information about the customer report's parameters, see the Customers Usage parameters reference guides.
+/// Retrieves a report which is a collection of properties and statistics for a specific customer''s account. For more information, see the Customers Usage Report guide. For more information about the customer report''s parameters, see the Customers Usage parameters reference guides.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `reports_customer_usage_reports_get_builder()` + `reports_customer_usage_reports_get_execute()`.
@@ -888,7 +888,7 @@ pub fn reports_customer_usage_reports_get(
 }
 
 /// GET admin/reports/v1/usage/{entityType}/{entityKey}/dates/{date}
-/// Retrieves a report which is a collection of properties and statistics for entities used by users within the account. For more information, see the Entities Usage Report guide. For more information about the entities report's parameters, see the Entities Usage parameters reference guides.
+/// Retrieves a report which is a collection of properties and statistics for entities used by users within the account. For more information, see the Entities Usage Report guide. For more information about the entities report''s parameters, see the Entities Usage parameters reference guides.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `reports_entity_usage_reports_get_execute()` to send, or `reports_entity_usage_reports_get` for simplest API.
@@ -945,7 +945,7 @@ where
 }
 
 /// GET admin/reports/v1/usage/{entityType}/{entityKey}/dates/{date}
-/// Retrieves a report which is a collection of properties and statistics for entities used by users within the account. For more information, see the Entities Usage Report guide. For more information about the entities report's parameters, see the Entities Usage parameters reference guides.
+/// Retrieves a report which is a collection of properties and statistics for entities used by users within the account. For more information, see the Entities Usage Report guide. For more information about the entities report''s parameters, see the Entities Usage parameters reference guides.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -1019,7 +1019,7 @@ pub fn reports_entity_usage_reports_get_task(
 }
 
 /// GET admin/reports/v1/usage/{entityType}/{entityKey}/dates/{date}
-/// Retrieves a report which is a collection of properties and statistics for entities used by users within the account. For more information, see the Entities Usage Report guide. For more information about the entities report's parameters, see the Entities Usage parameters reference guides.
+/// Retrieves a report which is a collection of properties and statistics for entities used by users within the account. For more information, see the Entities Usage Report guide. For more information about the entities report''s parameters, see the Entities Usage parameters reference guides.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -1072,7 +1072,7 @@ pub struct ReportsEntityUsageReportsGetArgs {
 }
 
 /// GET admin/reports/v1/usage/{entityType}/{entityKey}/dates/{date}
-/// Retrieves a report which is a collection of properties and statistics for entities used by users within the account. For more information, see the Entities Usage Report guide. For more information about the entities report's parameters, see the Entities Usage parameters reference guides.
+/// Retrieves a report which is a collection of properties and statistics for entities used by users within the account. For more information, see the Entities Usage Report guide. For more information about the entities report''s parameters, see the Entities Usage parameters reference guides.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `reports_entity_usage_reports_get_builder()` + `reports_entity_usage_reports_get_execute()`.
@@ -1106,7 +1106,7 @@ pub fn reports_entity_usage_reports_get(
 }
 
 /// GET admin/reports/v1/usage/users/{userKey}/dates/{date}
-/// Retrieves a report which is a collection of properties and statistics for a set of users with the account. For more information, see the User Usage Report guide. For more information about the user report's parameters, see the Users Usage parameters reference guides.
+/// Retrieves a report which is a collection of properties and statistics for a set of users with the account. For more information, see the User Usage Report guide. For more information about the user report''s parameters, see the Users Usage parameters reference guides.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `reports_user_usage_report_get_execute()` to send, or `reports_user_usage_report_get` for simplest API.
@@ -1170,7 +1170,7 @@ where
 }
 
 /// GET admin/reports/v1/usage/users/{userKey}/dates/{date}
-/// Retrieves a report which is a collection of properties and statistics for a set of users with the account. For more information, see the User Usage Report guide. For more information about the user report's parameters, see the Users Usage parameters reference guides.
+/// Retrieves a report which is a collection of properties and statistics for a set of users with the account. For more information, see the User Usage Report guide. For more information about the user report''s parameters, see the Users Usage parameters reference guides.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -1244,7 +1244,7 @@ pub fn reports_user_usage_report_get_task(
 }
 
 /// GET admin/reports/v1/usage/users/{userKey}/dates/{date}
-/// Retrieves a report which is a collection of properties and statistics for a set of users with the account. For more information, see the User Usage Report guide. For more information about the user report's parameters, see the Users Usage parameters reference guides.
+/// Retrieves a report which is a collection of properties and statistics for a set of users with the account. For more information, see the User Usage Report guide. For more information about the user report''s parameters, see the Users Usage parameters reference guides.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -1299,7 +1299,7 @@ pub struct ReportsUserUsageReportGetArgs {
 }
 
 /// GET admin/reports/v1/usage/users/{userKey}/dates/{date}
-/// Retrieves a report which is a collection of properties and statistics for a set of users with the account. For more information, see the User Usage Report guide. For more information about the user report's parameters, see the Users Usage parameters reference guides.
+/// Retrieves a report which is a collection of properties and statistics for a set of users with the account. For more information, see the User Usage Report guide. For more information about the user report''s parameters, see the Users Usage parameters reference guides.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `reports_user_usage_report_get_builder()` + `reports_user_usage_report_get_execute()`.

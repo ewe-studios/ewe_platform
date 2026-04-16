@@ -545,7 +545,7 @@ pub fn dataform_projects_locations_list(
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}:queryUserRootContents
-/// Returns the contents of a caller's root folder in a given location. The root folder contains all resources that are created by the user and not contained in any other folder.
+/// Returns the contents of a caller''s root folder in a given location. The root folder contains all resources that are created by the user and not contained in any other folder.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataform_projects_locations_query_user_root_contents_execute()` to send, or `dataform_projects_locations_query_user_root_contents` for simplest API.
@@ -596,7 +596,7 @@ where
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}:queryUserRootContents
-/// Returns the contents of a caller's root folder in a given location. The root folder contains all resources that are created by the user and not contained in any other folder.
+/// Returns the contents of a caller''s root folder in a given location. The root folder contains all resources that are created by the user and not contained in any other folder.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -670,7 +670,7 @@ pub fn dataform_projects_locations_query_user_root_contents_task(
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}:queryUserRootContents
-/// Returns the contents of a caller's root folder in a given location. The root folder contains all resources that are created by the user and not contained in any other folder.
+/// Returns the contents of a caller''s root folder in a given location. The root folder contains all resources that are created by the user and not contained in any other folder.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -719,7 +719,7 @@ pub struct DataformProjectsLocationsQueryUserRootContentsArgs {
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}:queryUserRootContents
-/// Returns the contents of a caller's root folder in a given location. The root folder contains all resources that are created by the user and not contained in any other folder.
+/// Returns the contents of a caller''s root folder in a given location. The root folder contains all resources that are created by the user and not contained in any other folder.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `dataform_projects_locations_query_user_root_contents_builder()` + `dataform_projects_locations_query_user_root_contents_execute()`.
@@ -2617,7 +2617,7 @@ pub fn dataform_projects_locations_folders_test_iam_permissions(
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataform_projects_locations_operations_cancel_execute()` to send, or `dataform_projects_locations_operations_cancel` for simplest API.
@@ -2644,7 +2644,7 @@ where
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -2718,7 +2718,7 @@ pub fn dataform_projects_locations_operations_cancel_task(
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -2755,7 +2755,7 @@ pub struct DataformProjectsLocationsOperationsCancelArgs {
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `dataform_projects_locations_operations_cancel_builder()` + `dataform_projects_locations_operations_cancel_execute()`.
@@ -2777,7 +2777,7 @@ pub fn dataform_projects_locations_operations_cancel(
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
-/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataform_projects_locations_operations_delete_execute()` to send, or `dataform_projects_locations_operations_delete` for simplest API.
@@ -2804,7 +2804,7 @@ where
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
-/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -2878,7 +2878,7 @@ pub fn dataform_projects_locations_operations_delete_task(
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
-/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -2915,7 +2915,7 @@ pub struct DataformProjectsLocationsOperationsDeleteArgs {
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
-/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `dataform_projects_locations_operations_delete_builder()` + `dataform_projects_locations_operations_delete_execute()`.
@@ -3097,7 +3097,7 @@ pub fn dataform_projects_locations_operations_get(
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataform_projects_locations_operations_list_execute()` to send, or `dataform_projects_locations_operations_list` for simplest API.
@@ -3148,7 +3148,7 @@ where
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -3222,7 +3222,7 @@ pub fn dataform_projects_locations_operations_list_task(
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -3269,7 +3269,7 @@ pub struct DataformProjectsLocationsOperationsListArgs {
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `dataform_projects_locations_operations_list_builder()` + `dataform_projects_locations_operations_list_execute()`.
@@ -3468,7 +3468,7 @@ pub fn dataform_projects_locations_repositories_commit(
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}:computeAccessTokenStatus
-/// Computes a Repository's Git access token status.
+/// Computes a Repository''s Git access token status.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataform_projects_locations_repositories_compute_access_token_status_execute()` to send, or `dataform_projects_locations_repositories_compute_access_token_status` for simplest API.
@@ -3495,7 +3495,7 @@ where
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}:computeAccessTokenStatus
-/// Computes a Repository's Git access token status.
+/// Computes a Repository''s Git access token status.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -3570,7 +3570,7 @@ pub fn dataform_projects_locations_repositories_compute_access_token_status_task
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}:computeAccessTokenStatus
-/// Computes a Repository's Git access token status.
+/// Computes a Repository''s Git access token status.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -3611,7 +3611,7 @@ pub struct DataformProjectsLocationsRepositoriesComputeAccessTokenStatusArgs {
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}:computeAccessTokenStatus
-/// Computes a Repository's Git access token status.
+/// Computes a Repository''s Git access token status.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `dataform_projects_locations_repositories_compute_access_token_status_builder()` + `dataform_projects_locations_repositories_compute_access_token_status_execute()`.
@@ -3992,7 +3992,7 @@ pub fn dataform_projects_locations_repositories_delete(
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}:fetchHistory
-/// Fetches a Repository's history of commits. The Repository must not have a value for git_remote_settings.url.
+/// Fetches a Repository''s history of commits. The Repository must not have a value for git_remote_settings.url.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataform_projects_locations_repositories_fetch_history_execute()` to send, or `dataform_projects_locations_repositories_fetch_history` for simplest API.
@@ -4035,7 +4035,7 @@ where
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}:fetchHistory
-/// Fetches a Repository's history of commits. The Repository must not have a value for git_remote_settings.url.
+/// Fetches a Repository''s history of commits. The Repository must not have a value for git_remote_settings.url.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -4109,7 +4109,7 @@ pub fn dataform_projects_locations_repositories_fetch_history_task(
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}:fetchHistory
-/// Fetches a Repository's history of commits. The Repository must not have a value for git_remote_settings.url.
+/// Fetches a Repository''s history of commits. The Repository must not have a value for git_remote_settings.url.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -4154,7 +4154,7 @@ pub struct DataformProjectsLocationsRepositoriesFetchHistoryArgs {
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}:fetchHistory
-/// Fetches a Repository's history of commits. The Repository must not have a value for git_remote_settings.url.
+/// Fetches a Repository''s history of commits. The Repository must not have a value for git_remote_settings.url.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `dataform_projects_locations_repositories_fetch_history_builder()` + `dataform_projects_locations_repositories_fetch_history_execute()`.
@@ -4185,7 +4185,7 @@ pub fn dataform_projects_locations_repositories_fetch_history(
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}:fetchRemoteBranches
-/// Fetches a Repository's remote branches.
+/// Fetches a Repository''s remote branches.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataform_projects_locations_repositories_fetch_remote_branches_execute()` to send, or `dataform_projects_locations_repositories_fetch_remote_branches` for simplest API.
@@ -4212,7 +4212,7 @@ where
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}:fetchRemoteBranches
-/// Fetches a Repository's remote branches.
+/// Fetches a Repository''s remote branches.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -4286,7 +4286,7 @@ pub fn dataform_projects_locations_repositories_fetch_remote_branches_task(
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}:fetchRemoteBranches
-/// Fetches a Repository's remote branches.
+/// Fetches a Repository''s remote branches.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -4327,7 +4327,7 @@ pub struct DataformProjectsLocationsRepositoriesFetchRemoteBranchesArgs {
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}:fetchRemoteBranches
-/// Fetches a Repository's remote branches.
+/// Fetches a Repository''s remote branches.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `dataform_projects_locations_repositories_fetch_remote_branches_builder()` + `dataform_projects_locations_repositories_fetch_remote_branches_execute()`.
@@ -11803,7 +11803,7 @@ pub fn dataform_projects_locations_repositories_workspaces_move_file(
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/workspaces/{workspacesId}:pull
-/// Pulls Git commits from the Repository's remote into a Workspace.
+/// Pulls Git commits from the Repository''s remote into a Workspace.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataform_projects_locations_repositories_workspaces_pull_execute()` to send, or `dataform_projects_locations_repositories_workspaces_pull` for simplest API.
@@ -11830,7 +11830,7 @@ where
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/workspaces/{workspacesId}:pull
-/// Pulls Git commits from the Repository's remote into a Workspace.
+/// Pulls Git commits from the Repository''s remote into a Workspace.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -11904,7 +11904,7 @@ pub fn dataform_projects_locations_repositories_workspaces_pull_task(
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/workspaces/{workspacesId}:pull
-/// Pulls Git commits from the Repository's remote into a Workspace.
+/// Pulls Git commits from the Repository''s remote into a Workspace.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -11943,7 +11943,7 @@ pub struct DataformProjectsLocationsRepositoriesWorkspacesPullArgs {
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/workspaces/{workspacesId}:pull
-/// Pulls Git commits from the Repository's remote into a Workspace.
+/// Pulls Git commits from the Repository''s remote into a Workspace.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `dataform_projects_locations_repositories_workspaces_pull_builder()` + `dataform_projects_locations_repositories_workspaces_pull_execute()`.
@@ -11968,7 +11968,7 @@ pub fn dataform_projects_locations_repositories_workspaces_pull(
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/workspaces/{workspacesId}:push
-/// Pushes Git commits from a Workspace to the Repository's remote.
+/// Pushes Git commits from a Workspace to the Repository''s remote.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `dataform_projects_locations_repositories_workspaces_push_execute()` to send, or `dataform_projects_locations_repositories_workspaces_push` for simplest API.
@@ -11995,7 +11995,7 @@ where
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/workspaces/{workspacesId}:push
-/// Pushes Git commits from a Workspace to the Repository's remote.
+/// Pushes Git commits from a Workspace to the Repository''s remote.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -12069,7 +12069,7 @@ pub fn dataform_projects_locations_repositories_workspaces_push_task(
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/workspaces/{workspacesId}:push
-/// Pushes Git commits from a Workspace to the Repository's remote.
+/// Pushes Git commits from a Workspace to the Repository''s remote.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -12108,7 +12108,7 @@ pub struct DataformProjectsLocationsRepositoriesWorkspacesPushArgs {
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/workspaces/{workspacesId}:push
-/// Pushes Git commits from a Workspace to the Repository's remote.
+/// Pushes Git commits from a Workspace to the Repository''s remote.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `dataform_projects_locations_repositories_workspaces_push_builder()` + `dataform_projects_locations_repositories_workspaces_push_execute()`.

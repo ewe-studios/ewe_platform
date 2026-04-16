@@ -22,7 +22,7 @@ use foundation_macros::JsonHash;
 use serde::Serialize;
 
 /// GET v1/callback:generateToken
-/// Receives the auth code and auth config id to combine that with the client id and secret to retrieve access tokens from the token endpoint. Returns either a success or error message when it's done.
+/// Receives the auth code and auth config id to combine that with the client id and secret to retrieve access tokens from the token endpoint. Returns either a success or error message when it''s done.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_callback_generate_token_execute()` to send, or `integrations_callback_generate_token` for simplest API.
@@ -73,7 +73,7 @@ where
 }
 
 /// GET v1/callback:generateToken
-/// Receives the auth code and auth config id to combine that with the client id and secret to retrieve access tokens from the token endpoint. Returns either a success or error message when it's done.
+/// Receives the auth code and auth config id to combine that with the client id and secret to retrieve access tokens from the token endpoint. Returns either a success or error message when it''s done.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -151,7 +151,7 @@ pub fn integrations_callback_generate_token_task(
 }
 
 /// GET v1/callback:generateToken
-/// Receives the auth code and auth config id to combine that with the client id and secret to retrieve access tokens from the token endpoint. Returns either a success or error message when it's done.
+/// Receives the auth code and auth config id to combine that with the client id and secret to retrieve access tokens from the token endpoint. Returns either a success or error message when it''s done.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -200,7 +200,7 @@ pub struct IntegrationsCallbackGenerateTokenArgs {
 }
 
 /// GET v1/callback:generateToken
-/// Receives the auth code and auth config id to combine that with the client id and secret to retrieve access tokens from the token endpoint. Returns either a success or error message when it's done.
+/// Receives the auth code and auth config id to combine that with the client id and secret to retrieve access tokens from the token endpoint. Returns either a success or error message when it''s done.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `integrations_callback_generate_token_builder()` + `integrations_callback_generate_token_execute()`.
@@ -1648,7 +1648,7 @@ pub fn integrations_projects_locations_auth_configs_delete(
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/authConfigs/{authConfigsId}
-/// Gets a complete auth config. If the auth config doesn't exist, Code.NOT_FOUND exception will be thrown. Returns the decrypted auth config.
+/// Gets a complete auth config. If the auth config doesn''t exist, Code.NOT_FOUND exception will be thrown. Returns the decrypted auth config.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_auth_configs_get_execute()` to send, or `integrations_projects_locations_auth_configs_get` for simplest API.
@@ -1675,7 +1675,7 @@ where
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/authConfigs/{authConfigsId}
-/// Gets a complete auth config. If the auth config doesn't exist, Code.NOT_FOUND exception will be thrown. Returns the decrypted auth config.
+/// Gets a complete auth config. If the auth config doesn''t exist, Code.NOT_FOUND exception will be thrown. Returns the decrypted auth config.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -1749,7 +1749,7 @@ pub fn integrations_projects_locations_auth_configs_get_task(
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/authConfigs/{authConfigsId}
-/// Gets a complete auth config. If the auth config doesn't exist, Code.NOT_FOUND exception will be thrown. Returns the decrypted auth config.
+/// Gets a complete auth config. If the auth config doesn''t exist, Code.NOT_FOUND exception will be thrown. Returns the decrypted auth config.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -1790,7 +1790,7 @@ pub struct IntegrationsProjectsLocationsAuthConfigsGetArgs {
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/authConfigs/{authConfigsId}
-/// Gets a complete auth config. If the auth config doesn't exist, Code.NOT_FOUND exception will be thrown. Returns the decrypted auth config.
+/// Gets a complete auth config. If the auth config doesn''t exist, Code.NOT_FOUND exception will be thrown. Returns the decrypted auth config.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `integrations_projects_locations_auth_configs_get_builder()` + `integrations_projects_locations_auth_configs_get_execute()`.
@@ -12683,7 +12683,7 @@ pub fn integrations_projects_locations_products_auth_configs_delete(
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/products/{productsId}/authConfigs/{authConfigsId}
-/// Gets a complete auth config. If the auth config doesn't exist, Code.NOT_FOUND exception will be thrown. Returns the decrypted auth config.
+/// Gets a complete auth config. If the auth config doesn''t exist, Code.NOT_FOUND exception will be thrown. Returns the decrypted auth config.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_products_auth_configs_get_execute()` to send, or `integrations_projects_locations_products_auth_configs_get` for simplest API.
@@ -12710,7 +12710,7 @@ where
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/products/{productsId}/authConfigs/{authConfigsId}
-/// Gets a complete auth config. If the auth config doesn't exist, Code.NOT_FOUND exception will be thrown. Returns the decrypted auth config.
+/// Gets a complete auth config. If the auth config doesn''t exist, Code.NOT_FOUND exception will be thrown. Returns the decrypted auth config.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -12784,7 +12784,7 @@ pub fn integrations_projects_locations_products_auth_configs_get_task(
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/products/{productsId}/authConfigs/{authConfigsId}
-/// Gets a complete auth config. If the auth config doesn't exist, Code.NOT_FOUND exception will be thrown. Returns the decrypted auth config.
+/// Gets a complete auth config. If the auth config doesn''t exist, Code.NOT_FOUND exception will be thrown. Returns the decrypted auth config.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -12825,7 +12825,7 @@ pub struct IntegrationsProjectsLocationsProductsAuthConfigsGetArgs {
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/products/{productsId}/authConfigs/{authConfigsId}
-/// Gets a complete auth config. If the auth config doesn't exist, Code.NOT_FOUND exception will be thrown. Returns the decrypted auth config.
+/// Gets a complete auth config. If the auth config doesn''t exist, Code.NOT_FOUND exception will be thrown. Returns the decrypted auth config.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `integrations_projects_locations_products_auth_configs_get_builder()` + `integrations_projects_locations_products_auth_configs_get_execute()`.
@@ -18586,7 +18586,7 @@ pub fn integrations_projects_locations_products_sfdc_instances_delete(
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/products/{productsId}/sfdcInstances/{sfdcInstancesId}
-/// Gets an sfdc instance. If the instance doesn't exist, Code.NOT_FOUND exception will be thrown.
+/// Gets an sfdc instance. If the instance doesn''t exist, Code.NOT_FOUND exception will be thrown.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_products_sfdc_instances_get_execute()` to send, or `integrations_projects_locations_products_sfdc_instances_get` for simplest API.
@@ -18613,7 +18613,7 @@ where
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/products/{productsId}/sfdcInstances/{sfdcInstancesId}
-/// Gets an sfdc instance. If the instance doesn't exist, Code.NOT_FOUND exception will be thrown.
+/// Gets an sfdc instance. If the instance doesn''t exist, Code.NOT_FOUND exception will be thrown.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -18688,7 +18688,7 @@ pub fn integrations_projects_locations_products_sfdc_instances_get_task(
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/products/{productsId}/sfdcInstances/{sfdcInstancesId}
-/// Gets an sfdc instance. If the instance doesn't exist, Code.NOT_FOUND exception will be thrown.
+/// Gets an sfdc instance. If the instance doesn''t exist, Code.NOT_FOUND exception will be thrown.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -18729,7 +18729,7 @@ pub struct IntegrationsProjectsLocationsProductsSfdcInstancesGetArgs {
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/products/{productsId}/sfdcInstances/{sfdcInstancesId}
-/// Gets an sfdc instance. If the instance doesn't exist, Code.NOT_FOUND exception will be thrown.
+/// Gets an sfdc instance. If the instance doesn''t exist, Code.NOT_FOUND exception will be thrown.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `integrations_projects_locations_products_sfdc_instances_get_builder()` + `integrations_projects_locations_products_sfdc_instances_get_execute()`.
@@ -19501,7 +19501,7 @@ pub fn integrations_projects_locations_products_sfdc_instances_sfdc_channels_del
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/products/{productsId}/sfdcInstances/{sfdcInstancesId}/sfdcChannels/{sfdcChannelsId}
-/// Gets an sfdc channel. If the channel doesn't exist, Code.NOT_FOUND exception will be thrown.
+/// Gets an sfdc channel. If the channel doesn''t exist, Code.NOT_FOUND exception will be thrown.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_products_sfdc_instances_sfdc_channels_get_execute()` to send, or `integrations_projects_locations_products_sfdc_instances_sfdc_channels_get` for simplest API.
@@ -19528,7 +19528,7 @@ where
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/products/{productsId}/sfdcInstances/{sfdcInstancesId}/sfdcChannels/{sfdcChannelsId}
-/// Gets an sfdc channel. If the channel doesn't exist, Code.NOT_FOUND exception will be thrown.
+/// Gets an sfdc channel. If the channel doesn''t exist, Code.NOT_FOUND exception will be thrown.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -19602,7 +19602,7 @@ pub fn integrations_projects_locations_products_sfdc_instances_sfdc_channels_get
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/products/{productsId}/sfdcInstances/{sfdcInstancesId}/sfdcChannels/{sfdcChannelsId}
-/// Gets an sfdc channel. If the channel doesn't exist, Code.NOT_FOUND exception will be thrown.
+/// Gets an sfdc channel. If the channel doesn''t exist, Code.NOT_FOUND exception will be thrown.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -19644,7 +19644,7 @@ pub struct IntegrationsProjectsLocationsProductsSfdcInstancesSfdcChannelsGetArgs
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/products/{productsId}/sfdcInstances/{sfdcInstancesId}/sfdcChannels/{sfdcChannelsId}
-/// Gets an sfdc channel. If the channel doesn't exist, Code.NOT_FOUND exception will be thrown.
+/// Gets an sfdc channel. If the channel doesn''t exist, Code.NOT_FOUND exception will be thrown.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `integrations_projects_locations_products_sfdc_instances_sfdc_channels_get_builder()` + `integrations_projects_locations_products_sfdc_instances_sfdc_channels_get_execute()`.
@@ -20415,7 +20415,7 @@ pub fn integrations_projects_locations_sfdc_instances_delete(
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sfdcInstances/{sfdcInstancesId}
-/// Gets an sfdc instance. If the instance doesn't exist, Code.NOT_FOUND exception will be thrown.
+/// Gets an sfdc instance. If the instance doesn''t exist, Code.NOT_FOUND exception will be thrown.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_sfdc_instances_get_execute()` to send, or `integrations_projects_locations_sfdc_instances_get` for simplest API.
@@ -20442,7 +20442,7 @@ where
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sfdcInstances/{sfdcInstancesId}
-/// Gets an sfdc instance. If the instance doesn't exist, Code.NOT_FOUND exception will be thrown.
+/// Gets an sfdc instance. If the instance doesn''t exist, Code.NOT_FOUND exception will be thrown.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -20517,7 +20517,7 @@ pub fn integrations_projects_locations_sfdc_instances_get_task(
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sfdcInstances/{sfdcInstancesId}
-/// Gets an sfdc instance. If the instance doesn't exist, Code.NOT_FOUND exception will be thrown.
+/// Gets an sfdc instance. If the instance doesn''t exist, Code.NOT_FOUND exception will be thrown.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -20558,7 +20558,7 @@ pub struct IntegrationsProjectsLocationsSfdcInstancesGetArgs {
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sfdcInstances/{sfdcInstancesId}
-/// Gets an sfdc instance. If the instance doesn't exist, Code.NOT_FOUND exception will be thrown.
+/// Gets an sfdc instance. If the instance doesn''t exist, Code.NOT_FOUND exception will be thrown.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `integrations_projects_locations_sfdc_instances_get_builder()` + `integrations_projects_locations_sfdc_instances_get_execute()`.
@@ -21325,7 +21325,7 @@ pub fn integrations_projects_locations_sfdc_instances_sfdc_channels_delete(
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sfdcInstances/{sfdcInstancesId}/sfdcChannels/{sfdcChannelsId}
-/// Gets an sfdc channel. If the channel doesn't exist, Code.NOT_FOUND exception will be thrown.
+/// Gets an sfdc channel. If the channel doesn''t exist, Code.NOT_FOUND exception will be thrown.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `integrations_projects_locations_sfdc_instances_sfdc_channels_get_execute()` to send, or `integrations_projects_locations_sfdc_instances_sfdc_channels_get` for simplest API.
@@ -21352,7 +21352,7 @@ where
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sfdcInstances/{sfdcInstancesId}/sfdcChannels/{sfdcChannelsId}
-/// Gets an sfdc channel. If the channel doesn't exist, Code.NOT_FOUND exception will be thrown.
+/// Gets an sfdc channel. If the channel doesn''t exist, Code.NOT_FOUND exception will be thrown.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -21426,7 +21426,7 @@ pub fn integrations_projects_locations_sfdc_instances_sfdc_channels_get_task(
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sfdcInstances/{sfdcInstancesId}/sfdcChannels/{sfdcChannelsId}
-/// Gets an sfdc channel. If the channel doesn't exist, Code.NOT_FOUND exception will be thrown.
+/// Gets an sfdc channel. If the channel doesn''t exist, Code.NOT_FOUND exception will be thrown.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -21467,7 +21467,7 @@ pub struct IntegrationsProjectsLocationsSfdcInstancesSfdcChannelsGetArgs {
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sfdcInstances/{sfdcInstancesId}/sfdcChannels/{sfdcChannelsId}
-/// Gets an sfdc channel. If the channel doesn't exist, Code.NOT_FOUND exception will be thrown.
+/// Gets an sfdc channel. If the channel doesn''t exist, Code.NOT_FOUND exception will be thrown.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `integrations_projects_locations_sfdc_instances_sfdc_channels_get_builder()` + `integrations_projects_locations_sfdc_instances_sfdc_channels_get_execute()`.

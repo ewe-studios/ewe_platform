@@ -11273,7 +11273,7 @@ pub fn access_mtls_authentication_list_mtls_certificates_hostname_settings(
 }
 
 /// PUT /accounts/{account_id}/access/certificates/settings
-/// Update an `mTLS` certificate's hostname settings
+/// Update an `mTLS` certificate''s hostname settings
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `access_mtls_authentication_update_an_mtls_certificate_settings_execute()` to send, or `access_mtls_authentication_update_an_mtls_certificate_settings` for simplest API.
@@ -11300,7 +11300,7 @@ where
 }
 
 /// PUT /accounts/{account_id}/access/certificates/settings
-/// Update an `mTLS` certificate's hostname settings
+/// Update an `mTLS` certificate''s hostname settings
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -11374,7 +11374,7 @@ pub fn access_mtls_authentication_update_an_mtls_certificate_settings_task(
 }
 
 /// PUT /accounts/{account_id}/access/certificates/settings
-/// Update an `mTLS` certificate's hostname settings
+/// Update an `mTLS` certificate''s hostname settings
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -11415,7 +11415,7 @@ pub struct AccessMtlsAuthenticationUpdateAnMtlsCertificateSettingsArgs {
 }
 
 /// PUT /accounts/{account_id}/access/certificates/settings
-/// Update an `mTLS` certificate's hostname settings
+/// Update an `mTLS` certificate''s hostname settings
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `access_mtls_authentication_update_an_mtls_certificate_settings_builder()` + `access_mtls_authentication_update_an_mtls_certificate_settings_execute()`.
@@ -22967,7 +22967,7 @@ pub fn zero_trust_users_get_last_seen_identity(
 }
 
 /// DELETE /accounts/{account_id}/access/users/{user_id}/mfa_authenticators/{authenticator_id}
-/// Delete a user's MFA device
+/// Delete a user''s MFA device
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `zero_trust_users_delete_mfa_authenticator_execute()` to send, or `zero_trust_users_delete_mfa_authenticator` for simplest API.
@@ -22996,7 +22996,7 @@ where
 }
 
 /// DELETE /accounts/{account_id}/access/users/{user_id}/mfa_authenticators/{authenticator_id}
-/// Delete a user's MFA device
+/// Delete a user''s MFA device
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -23070,7 +23070,7 @@ pub fn zero_trust_users_delete_mfa_authenticator_task(
 }
 
 /// DELETE /accounts/{account_id}/access/users/{user_id}/mfa_authenticators/{authenticator_id}
-/// Delete a user's MFA device
+/// Delete a user''s MFA device
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -23115,7 +23115,7 @@ pub struct ZeroTrustUsersDeleteMfaAuthenticatorArgs {
 }
 
 /// DELETE /accounts/{account_id}/access/users/{user_id}/mfa_authenticators/{authenticator_id}
-/// Delete a user's MFA device
+/// Delete a user''s MFA device
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `zero_trust_users_delete_mfa_authenticator_builder()` + `zero_trust_users_delete_mfa_authenticator_execute()`.
@@ -77933,9 +77933,9 @@ pub fn accounts_turnstile_widget_rotate_secret(
 /// Posts a file to Binary Storage
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `post_bin_dbpost_execute()` to send, or `post_bin_dbpost` for simplest API.
+/// Use `post_bin_db_post_execute()` to send, or `post_bin_db_post` for simplest API.
 
-pub fn post_bin_dbpost_builder<R>(
+pub fn post_bin_db_post_builder<R>(
     client: &SimpleHttpClient<R>,
     account_id: &String,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
@@ -77967,17 +77967,17 @@ where
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `post_bin_dbpost_execute()` or `post_bin_dbpost`.
+/// For direct execution, use `post_bin_db_post_execute()` or `post_bin_db_post`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `post_bin_dbpost_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_bin_db_post_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_bin_dbpost_task(
+pub fn post_bin_db_post_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -78033,33 +78033,33 @@ pub fn post_bin_dbpost_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `post_bin_dbpost_builder()` to create the builder,
+/// For full customization, use `post_bin_db_post_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `post_bin_dbpost_task()`.
-/// For the simplest API, use `post_bin_dbpost()`.
+/// For task-level control, use `post_bin_db_post_task()`.
+/// For the simplest API, use `post_bin_db_post()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `post_bin_dbpost_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_bin_db_post_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn post_bin_dbpost_execute(
+pub fn post_bin_db_post_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let task = post_bin_dbpost_task(builder)?;
+    let task = post_bin_db_post_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`post_bin_dbpost`].
+/// Arguments for [`post_bin_db_post`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct PostBinDbpostArgs {
+pub struct PostBinDbPostArgs {
     /// Path parameter: account_id
     pub account_id: String,
 }
@@ -78068,31 +78068,31 @@ pub struct PostBinDbpostArgs {
 /// Posts a file to Binary Storage
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `post_bin_dbpost_builder()` + `post_bin_dbpost_execute()`.
-/// For task-level control, use `post_bin_dbpost_task()`.
+/// For customization, use `post_bin_db_post_builder()` + `post_bin_db_post_execute()`.
+/// For task-level control, use `post_bin_db_post_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_bin_dbpost(
+pub fn post_bin_db_post(
     client: &SimpleHttpClient,
-    args: &PostBinDbpostArgs,
+    args: &PostBinDbPostArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_bin_dbpost_builder(client, &args.account_id)?;
-    post_bin_dbpost_execute(builder)
+    let builder = post_bin_db_post_builder(client, &args.account_id)?;
+    post_bin_db_post_execute(builder)
 }
 
 /// GET /accounts/{account_id}/cloudforce-one/binary/{hash}
 /// Retrieves a file from Binary Storage
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `get_bin_dbget_binary_execute()` to send, or `get_bin_dbget_binary` for simplest API.
+/// Use `get_bin_db_get_binary_execute()` to send, or `get_bin_db_get_binary` for simplest API.
 
-pub fn get_bin_dbget_binary_builder<R>(
+pub fn get_bin_db_get_binary_builder<R>(
     client: &SimpleHttpClient<R>,
     account_id: &String,
     hash: &String,
@@ -78125,17 +78125,17 @@ where
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `get_bin_dbget_binary_execute()` or `get_bin_dbget_binary`.
+/// For direct execution, use `get_bin_db_get_binary_execute()` or `get_bin_db_get_binary`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `get_bin_dbget_binary_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_bin_db_get_binary_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_bin_dbget_binary_task(
+pub fn get_bin_db_get_binary_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -78191,33 +78191,33 @@ pub fn get_bin_dbget_binary_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `get_bin_dbget_binary_builder()` to create the builder,
+/// For full customization, use `get_bin_db_get_binary_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `get_bin_dbget_binary_task()`.
-/// For the simplest API, use `get_bin_dbget_binary()`.
+/// For task-level control, use `get_bin_db_get_binary_task()`.
+/// For the simplest API, use `get_bin_db_get_binary()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `get_bin_dbget_binary_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_bin_db_get_binary_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn get_bin_dbget_binary_execute(
+pub fn get_bin_db_get_binary_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let task = get_bin_dbget_binary_task(builder)?;
+    let task = get_bin_db_get_binary_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`get_bin_dbget_binary`].
+/// Arguments for [`get_bin_db_get_binary`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct GetBinDbgetBinaryArgs {
+pub struct GetBinDbGetBinaryArgs {
     /// Path parameter: account_id
     pub account_id: String,
     /// Path parameter: hash
@@ -78228,22 +78228,22 @@ pub struct GetBinDbgetBinaryArgs {
 /// Retrieves a file from Binary Storage
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `get_bin_dbget_binary_builder()` + `get_bin_dbget_binary_execute()`.
-/// For task-level control, use `get_bin_dbget_binary_task()`.
+/// For customization, use `get_bin_db_get_binary_builder()` + `get_bin_db_get_binary_execute()`.
+/// For task-level control, use `get_bin_db_get_binary_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_bin_dbget_binary(
+pub fn get_bin_db_get_binary(
     client: &SimpleHttpClient,
-    args: &GetBinDbgetBinaryArgs,
+    args: &GetBinDbGetBinaryArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = get_bin_dbget_binary_builder(client, &args.account_id, &args.hash)?;
-    get_bin_dbget_binary_execute(builder)
+    let builder = get_bin_db_get_binary_builder(client, &args.account_id, &args.hash)?;
+    get_bin_db_get_binary_execute(builder)
 }
 
 /// GET /accounts/{account_id}/cloudforce-one/events
@@ -80486,9 +80486,9 @@ pub fn post_event_create_bulk(
 /// Creates bulk DOS event with relationships and indicators
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `post_dosevent_create_bulk_with_relationships_execute()` to send, or `post_dosevent_create_bulk_with_relationships` for simplest API.
+/// Use `post_dos_event_create_bulk_with_relationships_execute()` to send, or `post_dos_event_create_bulk_with_relationships` for simplest API.
 
-pub fn post_dosevent_create_bulk_with_relationships_builder<R>(
+pub fn post_dos_event_create_bulk_with_relationships_builder<R>(
     client: &SimpleHttpClient<R>,
     account_id: &String,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
@@ -80520,17 +80520,17 @@ where
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `post_dosevent_create_bulk_with_relationships_execute()` or `post_dosevent_create_bulk_with_relationships`.
+/// For direct execution, use `post_dos_event_create_bulk_with_relationships_execute()` or `post_dos_event_create_bulk_with_relationships`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `post_dosevent_create_bulk_with_relationships_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_dos_event_create_bulk_with_relationships_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_dosevent_create_bulk_with_relationships_task(
+pub fn post_dos_event_create_bulk_with_relationships_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -80586,33 +80586,33 @@ pub fn post_dosevent_create_bulk_with_relationships_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `post_dosevent_create_bulk_with_relationships_builder()` to create the builder,
+/// For full customization, use `post_dos_event_create_bulk_with_relationships_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `post_dosevent_create_bulk_with_relationships_task()`.
-/// For the simplest API, use `post_dosevent_create_bulk_with_relationships()`.
+/// For task-level control, use `post_dos_event_create_bulk_with_relationships_task()`.
+/// For the simplest API, use `post_dos_event_create_bulk_with_relationships()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `post_dosevent_create_bulk_with_relationships_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_dos_event_create_bulk_with_relationships_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn post_dosevent_create_bulk_with_relationships_execute(
+pub fn post_dos_event_create_bulk_with_relationships_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let task = post_dosevent_create_bulk_with_relationships_task(builder)?;
+    let task = post_dos_event_create_bulk_with_relationships_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`post_dosevent_create_bulk_with_relationships`].
+/// Arguments for [`post_dos_event_create_bulk_with_relationships`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct PostDoseventCreateBulkWithRelationshipsArgs {
+pub struct PostDosEventCreateBulkWithRelationshipsArgs {
     /// Path parameter: account_id
     pub account_id: String,
 }
@@ -80621,22 +80621,22 @@ pub struct PostDoseventCreateBulkWithRelationshipsArgs {
 /// Creates bulk DOS event with relationships and indicators
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `post_dosevent_create_bulk_with_relationships_builder()` + `post_dosevent_create_bulk_with_relationships_execute()`.
-/// For task-level control, use `post_dosevent_create_bulk_with_relationships_task()`.
+/// For customization, use `post_dos_event_create_bulk_with_relationships_builder()` + `post_dos_event_create_bulk_with_relationships_execute()`.
+/// For task-level control, use `post_dos_event_create_bulk_with_relationships_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_dosevent_create_bulk_with_relationships(
+pub fn post_dos_event_create_bulk_with_relationships(
     client: &SimpleHttpClient,
-    args: &PostDoseventCreateBulkWithRelationshipsArgs,
+    args: &PostDosEventCreateBulkWithRelationshipsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_dosevent_create_bulk_with_relationships_builder(client, &args.account_id)?;
-    post_dosevent_create_bulk_with_relationships_execute(builder)
+    let builder = post_dos_event_create_bulk_with_relationships_builder(client, &args.account_id)?;
+    post_dos_event_create_bulk_with_relationships_execute(builder)
 }
 
 /// GET /accounts/{account_id}/cloudforce-one/events/dataset
@@ -150139,9 +150139,9 @@ pub fn zero_trust_accounts_get_zero_trust_account_configuration(
 /// Update Zero Trust account configuration
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `zero_trust_accounts_update_zero_trust_account_configuration__execute()` to send, or `zero_trust_accounts_update_zero_trust_account_configuration_` for simplest API.
+/// Use `zero_trust_accounts_update_zero_trust_account_configuration_execute()` to send, or `zero_trust_accounts_update_zero_trust_account_configuration` for simplest API.
 
-pub fn zero_trust_accounts_update_zero_trust_account_configuration__builder<R>(
+pub fn zero_trust_accounts_update_zero_trust_account_configuration_builder<R>(
     client: &SimpleHttpClient<R>,
     account_id: &String,
     body: &ZeroTrustGatewayGatewayAccountSettings,
@@ -150176,17 +150176,17 @@ where
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `zero_trust_accounts_update_zero_trust_account_configuration__execute()` or `zero_trust_accounts_update_zero_trust_account_configuration_`.
+/// For direct execution, use `zero_trust_accounts_update_zero_trust_account_configuration_execute()` or `zero_trust_accounts_update_zero_trust_account_configuration`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `zero_trust_accounts_update_zero_trust_account_configuration__builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `zero_trust_accounts_update_zero_trust_account_configuration_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn zero_trust_accounts_update_zero_trust_account_configuration__task(
+pub fn zero_trust_accounts_update_zero_trust_account_configuration_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -150245,21 +150245,21 @@ pub fn zero_trust_accounts_update_zero_trust_account_configuration__task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `zero_trust_accounts_update_zero_trust_account_configuration__builder()` to create the builder,
+/// For full customization, use `zero_trust_accounts_update_zero_trust_account_configuration_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `zero_trust_accounts_update_zero_trust_account_configuration__task()`.
-/// For the simplest API, use `zero_trust_accounts_update_zero_trust_account_configuration_()`.
+/// For task-level control, use `zero_trust_accounts_update_zero_trust_account_configuration_task()`.
+/// For the simplest API, use `zero_trust_accounts_update_zero_trust_account_configuration()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `zero_trust_accounts_update_zero_trust_account_configuration__builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `zero_trust_accounts_update_zero_trust_account_configuration_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn zero_trust_accounts_update_zero_trust_account_configuration__execute(
+pub fn zero_trust_accounts_update_zero_trust_account_configuration_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<
@@ -150269,11 +150269,11 @@ pub fn zero_trust_accounts_update_zero_trust_account_configuration__execute(
         + 'static,
     ApiError,
 > {
-    let task = zero_trust_accounts_update_zero_trust_account_configuration__task(builder)?;
+    let task = zero_trust_accounts_update_zero_trust_account_configuration_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`zero_trust_accounts_update_zero_trust_account_configuration_`].
+/// Arguments for [`zero_trust_accounts_update_zero_trust_account_configuration`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZeroTrustAccountsUpdateZeroTrustAccountConfigurationArgs {
     /// Path parameter: account_id
@@ -150286,14 +150286,14 @@ pub struct ZeroTrustAccountsUpdateZeroTrustAccountConfigurationArgs {
 /// Update Zero Trust account configuration
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `zero_trust_accounts_update_zero_trust_account_configuration__builder()` + `zero_trust_accounts_update_zero_trust_account_configuration__execute()`.
-/// For task-level control, use `zero_trust_accounts_update_zero_trust_account_configuration__task()`.
+/// For customization, use `zero_trust_accounts_update_zero_trust_account_configuration_builder()` + `zero_trust_accounts_update_zero_trust_account_configuration_execute()`.
+/// For task-level control, use `zero_trust_accounts_update_zero_trust_account_configuration_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn zero_trust_accounts_update_zero_trust_account_configuration_(
+pub fn zero_trust_accounts_update_zero_trust_account_configuration(
     client: &SimpleHttpClient,
     args: &ZeroTrustAccountsUpdateZeroTrustAccountConfigurationArgs,
 ) -> Result<
@@ -150304,12 +150304,12 @@ pub fn zero_trust_accounts_update_zero_trust_account_configuration_(
         + 'static,
     ApiError,
 > {
-    let builder = zero_trust_accounts_update_zero_trust_account_configuration__builder(
+    let builder = zero_trust_accounts_update_zero_trust_account_configuration_builder(
         client,
         &args.account_id,
         &args.body,
     )?;
-    zero_trust_accounts_update_zero_trust_account_configuration__execute(builder)
+    zero_trust_accounts_update_zero_trust_account_configuration_execute(builder)
 }
 
 /// PATCH /accounts/{account_id}/gateway/configuration
@@ -231807,7 +231807,7 @@ pub fn add_participant(
 }
 
 /// GET /accounts/{account_id}/realtime/kit/{app_id}/meetings/{meeting_id}/participants/{participant_id}
-/// Fetch a participant's detail
+/// Fetch a participant''s detail
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `get_meeting_participant_execute()` to send, or `get_meeting_participant` for simplest API.
@@ -231836,7 +231836,7 @@ where
 }
 
 /// GET /accounts/{account_id}/realtime/kit/{app_id}/meetings/{meeting_id}/participants/{participant_id}
-/// Fetch a participant's detail
+/// Fetch a participant''s detail
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -231907,7 +231907,7 @@ pub fn get_meeting_participant_task(
 }
 
 /// GET /accounts/{account_id}/realtime/kit/{app_id}/meetings/{meeting_id}/participants/{participant_id}
-/// Fetch a participant's detail
+/// Fetch a participant''s detail
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -231946,7 +231946,7 @@ pub struct GetMeetingParticipantArgs {
 }
 
 /// GET /accounts/{account_id}/realtime/kit/{app_id}/meetings/{meeting_id}/participants/{participant_id}
-/// Fetch a participant's detail
+/// Fetch a participant''s detail
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_meeting_participant_builder()` + `get_meeting_participant_execute()`.
@@ -231968,7 +231968,7 @@ pub fn get_meeting_participant(
 }
 
 /// PATCH /accounts/{account_id}/realtime/kit/{app_id}/meetings/{meeting_id}/participants/{participant_id}
-/// Edit a participant's detail
+/// Edit a participant''s detail
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `edit_participant_execute()` to send, or `edit_participant` for simplest API.
@@ -231997,7 +231997,7 @@ where
 }
 
 /// PATCH /accounts/{account_id}/realtime/kit/{app_id}/meetings/{meeting_id}/participants/{participant_id}
-/// Edit a participant's detail
+/// Edit a participant''s detail
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -232068,7 +232068,7 @@ pub fn edit_participant_task(
 }
 
 /// PATCH /accounts/{account_id}/realtime/kit/{app_id}/meetings/{meeting_id}/participants/{participant_id}
-/// Edit a participant's detail
+/// Edit a participant''s detail
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -232107,7 +232107,7 @@ pub struct EditParticipantArgs {
 }
 
 /// PATCH /accounts/{account_id}/realtime/kit/{app_id}/meetings/{meeting_id}/participants/{participant_id}
-/// Edit a participant's detail
+/// Edit a participant''s detail
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `edit_participant_builder()` + `edit_participant_execute()`.
@@ -232291,7 +232291,7 @@ pub fn delete_meeting_participant(
 }
 
 /// POST /accounts/{account_id}/realtime/kit/{app_id}/meetings/{meeting_id}/participants/{participant_id}/token
-/// Refresh participant's authentication token
+/// Refresh participant''s authentication token
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `regenerate_token_execute()` to send, or `regenerate_token` for simplest API.
@@ -232324,7 +232324,7 @@ where
 }
 
 /// POST /accounts/{account_id}/realtime/kit/{app_id}/meetings/{meeting_id}/participants/{participant_id}/token
-/// Refresh participant's authentication token
+/// Refresh participant''s authentication token
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -232395,7 +232395,7 @@ pub fn regenerate_token_task(
 }
 
 /// POST /accounts/{account_id}/realtime/kit/{app_id}/meetings/{meeting_id}/participants/{participant_id}/token
-/// Refresh participant's authentication token
+/// Refresh participant''s authentication token
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -232438,7 +232438,7 @@ pub struct RegenerateTokenArgs {
 }
 
 /// POST /accounts/{account_id}/realtime/kit/{app_id}/meetings/{meeting_id}/participants/{participant_id}/token
-/// Refresh participant's authentication token
+/// Refresh participant''s authentication token
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `regenerate_token_builder()` + `regenerate_token_execute()`.
@@ -233793,9 +233793,9 @@ pub fn get_active_recording(
 /// Start recording audio and video tracks
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `start_track_recording_for_ameeting_execute()` to send, or `start_track_recording_for_ameeting` for simplest API.
+/// Use `start_track_recording_for_a_meeting_execute()` to send, or `start_track_recording_for_a_meeting` for simplest API.
 
-pub fn start_track_recording_for_ameeting_builder<R>(
+pub fn start_track_recording_for_a_meeting_builder<R>(
     client: &SimpleHttpClient<R>,
     account_id: &String,
     app_id: &String,
@@ -233828,17 +233828,17 @@ where
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `start_track_recording_for_ameeting_execute()` or `start_track_recording_for_ameeting`.
+/// For direct execution, use `start_track_recording_for_a_meeting_execute()` or `start_track_recording_for_a_meeting`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `start_track_recording_for_ameeting_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `start_track_recording_for_a_meeting_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn start_track_recording_for_ameeting_task(
+pub fn start_track_recording_for_a_meeting_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -233894,33 +233894,33 @@ pub fn start_track_recording_for_ameeting_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `start_track_recording_for_ameeting_builder()` to create the builder,
+/// For full customization, use `start_track_recording_for_a_meeting_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `start_track_recording_for_ameeting_task()`.
-/// For the simplest API, use `start_track_recording_for_ameeting()`.
+/// For task-level control, use `start_track_recording_for_a_meeting_task()`.
+/// For the simplest API, use `start_track_recording_for_a_meeting()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `start_track_recording_for_ameeting_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `start_track_recording_for_a_meeting_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn start_track_recording_for_ameeting_execute(
+pub fn start_track_recording_for_a_meeting_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let task = start_track_recording_for_ameeting_task(builder)?;
+    let task = start_track_recording_for_a_meeting_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`start_track_recording_for_ameeting`].
+/// Arguments for [`start_track_recording_for_a_meeting`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct StartTrackRecordingForAmeetingArgs {
+pub struct StartTrackRecordingForAMeetingArgs {
     /// Path parameter: account_id
     pub account_id: String,
     /// Path parameter: app_id
@@ -233931,23 +233931,23 @@ pub struct StartTrackRecordingForAmeetingArgs {
 /// Start recording audio and video tracks
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `start_track_recording_for_ameeting_builder()` + `start_track_recording_for_ameeting_execute()`.
-/// For task-level control, use `start_track_recording_for_ameeting_task()`.
+/// For customization, use `start_track_recording_for_a_meeting_builder()` + `start_track_recording_for_a_meeting_execute()`.
+/// For task-level control, use `start_track_recording_for_a_meeting_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn start_track_recording_for_ameeting(
+pub fn start_track_recording_for_a_meeting(
     client: &SimpleHttpClient,
-    args: &StartTrackRecordingForAmeetingArgs,
+    args: &StartTrackRecordingForAMeetingArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
-        start_track_recording_for_ameeting_builder(client, &args.account_id, &args.app_id)?;
-    start_track_recording_for_ameeting_execute(builder)
+        start_track_recording_for_a_meeting_builder(client, &args.account_id, &args.app_id)?;
+    start_track_recording_for_a_meeting_execute(builder)
 }
 
 /// GET /accounts/{account_id}/realtime/kit/{app_id}/recordings/{recording_id}
@@ -240726,7 +240726,7 @@ pub fn update_account_entrypoint_ruleset(
 }
 
 /// GET /accounts/{account_id}/rulesets/phases/{ruleset_phase}/entrypoint/versions
-/// List an account entry point ruleset's versions
+/// List an account entry point ruleset''s versions
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `list_account_entrypoint_ruleset_versions_execute()` to send, or `list_account_entrypoint_ruleset_versions` for simplest API.
@@ -240754,7 +240754,7 @@ where
 }
 
 /// GET /accounts/{account_id}/rulesets/phases/{ruleset_phase}/entrypoint/versions
-/// List an account entry point ruleset's versions
+/// List an account entry point ruleset''s versions
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -240825,7 +240825,7 @@ pub fn list_account_entrypoint_ruleset_versions_task(
 }
 
 /// GET /accounts/{account_id}/rulesets/phases/{ruleset_phase}/entrypoint/versions
-/// List an account entry point ruleset's versions
+/// List an account entry point ruleset''s versions
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -240864,7 +240864,7 @@ pub struct ListAccountEntrypointRulesetVersionsArgs {
 }
 
 /// GET /accounts/{account_id}/rulesets/phases/{ruleset_phase}/entrypoint/versions
-/// List an account entry point ruleset's versions
+/// List an account entry point ruleset''s versions
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `list_account_entrypoint_ruleset_versions_builder()` + `list_account_entrypoint_ruleset_versions_execute()`.
@@ -242036,7 +242036,7 @@ pub fn delete_account_ruleset_rule(
 }
 
 /// GET /accounts/{account_id}/rulesets/{ruleset_id}/versions
-/// List an account ruleset's versions
+/// List an account ruleset''s versions
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `list_account_ruleset_versions_execute()` to send, or `list_account_ruleset_versions` for simplest API.
@@ -242064,7 +242064,7 @@ where
 }
 
 /// GET /accounts/{account_id}/rulesets/{ruleset_id}/versions
-/// List an account ruleset's versions
+/// List an account ruleset''s versions
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -242135,7 +242135,7 @@ pub fn list_account_ruleset_versions_task(
 }
 
 /// GET /accounts/{account_id}/rulesets/{ruleset_id}/versions
-/// List an account ruleset's versions
+/// List an account ruleset''s versions
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -242174,7 +242174,7 @@ pub struct ListAccountRulesetVersionsArgs {
 }
 
 /// GET /accounts/{account_id}/rulesets/{ruleset_id}/versions
-/// List an account ruleset's versions
+/// List an account ruleset''s versions
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `list_account_ruleset_versions_builder()` + `list_account_ruleset_versions_execute()`.
@@ -242533,7 +242533,7 @@ pub fn delete_account_ruleset_version(
 }
 
 /// GET /accounts/{account_id}/rulesets/{ruleset_id}/versions/{ruleset_version}/by_tag/{rule_tag}
-/// List an account ruleset version's rules by tag
+/// List an account ruleset version''s rules by tag
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `list_account_ruleset_version_rules_by_tag_execute()` to send, or `list_account_ruleset_version_rules_by_tag` for simplest API.
@@ -242563,7 +242563,7 @@ where
 }
 
 /// GET /accounts/{account_id}/rulesets/{ruleset_id}/versions/{ruleset_version}/by_tag/{rule_tag}
-/// List an account ruleset version's rules by tag
+/// List an account ruleset version''s rules by tag
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -242634,7 +242634,7 @@ pub fn list_account_ruleset_version_rules_by_tag_task(
 }
 
 /// GET /accounts/{account_id}/rulesets/{ruleset_id}/versions/{ruleset_version}/by_tag/{rule_tag}
-/// List an account ruleset version's rules by tag
+/// List an account ruleset version''s rules by tag
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -242677,7 +242677,7 @@ pub struct ListAccountRulesetVersionRulesByTagArgs {
 }
 
 /// GET /accounts/{account_id}/rulesets/{ruleset_id}/versions/{ruleset_version}/by_tag/{rule_tag}
-/// List an account ruleset version's rules by tag
+/// List an account ruleset version''s rules by tag
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `list_account_ruleset_version_rules_by_tag_builder()` + `list_account_ruleset_version_rules_by_tag_execute()`.
@@ -254117,7 +254117,7 @@ pub fn share_recipient_create(
 }
 
 /// PUT /accounts/{account_id}/shares/{share_id}/recipients
-/// Update a share's recipients
+/// Update a share''s recipients
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `share_recipients_update_execute()` to send, or `share_recipients_update` for simplest API.
@@ -254148,7 +254148,7 @@ where
 }
 
 /// PUT /accounts/{account_id}/shares/{share_id}/recipients
-/// Update a share's recipients
+/// Update a share''s recipients
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -254219,7 +254219,7 @@ pub fn share_recipients_update_task(
 }
 
 /// PUT /accounts/{account_id}/shares/{share_id}/recipients
-/// Update a share's recipients
+/// Update a share''s recipients
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -254260,7 +254260,7 @@ pub struct ShareRecipientsUpdateArgs {
 }
 
 /// PUT /accounts/{account_id}/shares/{share_id}/recipients
-/// Update a share's recipients
+/// Update a share''s recipients
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `share_recipients_update_builder()` + `share_recipients_update_execute()`.
@@ -259882,7 +259882,7 @@ pub fn workers_kv_namespace_get_multiple_key_value_pairs(
 }
 
 /// GET /accounts/{account_id}/storage/kv/namespaces/{namespace_id}/keys
-/// List a Namespace's Keys
+/// List a Namespace''s Keys
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `workers_kv_namespace_list_a_namespace_s_keys_execute()` to send, or `workers_kv_namespace_list_a_namespace_s_keys` for simplest API.
@@ -259930,7 +259930,7 @@ where
 }
 
 /// GET /accounts/{account_id}/storage/kv/namespaces/{namespace_id}/keys
-/// List a Namespace's Keys
+/// List a Namespace''s Keys
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -260001,7 +260001,7 @@ pub fn workers_kv_namespace_list_a_namespace_s_keys_task(
 }
 
 /// GET /accounts/{account_id}/storage/kv/namespaces/{namespace_id}/keys
-/// List a Namespace's Keys
+/// List a Namespace''s Keys
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -260046,7 +260046,7 @@ pub struct WorkersKvNamespaceListANamespaceSKeysArgs {
 }
 
 /// GET /accounts/{account_id}/storage/kv/namespaces/{namespace_id}/keys
-/// List a Namespace's Keys
+/// List a Namespace''s Keys
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `workers_kv_namespace_list_a_namespace_s_keys_builder()` + `workers_kv_namespace_list_a_namespace_s_keys_execute()`.
@@ -275761,7 +275761,7 @@ pub fn urlscanner_get_scan(
 }
 
 /// GET /accounts/{account_id}/urlscanner/scan/{scan_id}/har
-/// Get URL scan's HAR
+/// Get URL scan''s HAR
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `urlscanner_get_scan_har_execute()` to send, or `urlscanner_get_scan_har` for simplest API.
@@ -275789,7 +275789,7 @@ where
 }
 
 /// GET /accounts/{account_id}/urlscanner/scan/{scan_id}/har
-/// Get URL scan's HAR
+/// Get URL scan''s HAR
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -275860,7 +275860,7 @@ pub fn urlscanner_get_scan_har_task(
 }
 
 /// GET /accounts/{account_id}/urlscanner/scan/{scan_id}/har
-/// Get URL scan's HAR
+/// Get URL scan''s HAR
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -275899,7 +275899,7 @@ pub struct UrlscannerGetScanHarArgs {
 }
 
 /// GET /accounts/{account_id}/urlscanner/scan/{scan_id}/har
-/// Get URL scan's HAR
+/// Get URL scan''s HAR
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `urlscanner_get_scan_har_builder()` + `urlscanner_get_scan_har_execute()`.
@@ -276264,7 +276264,7 @@ pub fn urlscanner_create_scan_bulk_v2(
 }
 
 /// GET /accounts/{account_id}/urlscanner/v2/dom/{scan_id}
-/// Get URL scan's DOM
+/// Get URL scan''s DOM
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `urlscanner_get_scan_dom_v2_execute()` to send, or `urlscanner_get_scan_dom_v2` for simplest API.
@@ -276292,7 +276292,7 @@ where
 }
 
 /// GET /accounts/{account_id}/urlscanner/v2/dom/{scan_id}
-/// Get URL scan's DOM
+/// Get URL scan''s DOM
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -276363,7 +276363,7 @@ pub fn urlscanner_get_scan_dom_v2_task(
 }
 
 /// GET /accounts/{account_id}/urlscanner/v2/dom/{scan_id}
-/// Get URL scan's DOM
+/// Get URL scan''s DOM
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -276402,7 +276402,7 @@ pub struct UrlscannerGetScanDomV2Args {
 }
 
 /// GET /accounts/{account_id}/urlscanner/v2/dom/{scan_id}
-/// Get URL scan's DOM
+/// Get URL scan''s DOM
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `urlscanner_get_scan_dom_v2_builder()` + `urlscanner_get_scan_dom_v2_execute()`.
@@ -276424,7 +276424,7 @@ pub fn urlscanner_get_scan_dom_v2(
 }
 
 /// GET /accounts/{account_id}/urlscanner/v2/har/{scan_id}
-/// Get URL scan's HAR
+/// Get URL scan''s HAR
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `urlscanner_get_scan_har_v2_execute()` to send, or `urlscanner_get_scan_har_v2` for simplest API.
@@ -276452,7 +276452,7 @@ where
 }
 
 /// GET /accounts/{account_id}/urlscanner/v2/har/{scan_id}
-/// Get URL scan's HAR
+/// Get URL scan''s HAR
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -276523,7 +276523,7 @@ pub fn urlscanner_get_scan_har_v2_task(
 }
 
 /// GET /accounts/{account_id}/urlscanner/v2/har/{scan_id}
-/// Get URL scan's HAR
+/// Get URL scan''s HAR
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -276562,7 +276562,7 @@ pub struct UrlscannerGetScanHarV2Args {
 }
 
 /// GET /accounts/{account_id}/urlscanner/v2/har/{scan_id}
-/// Get URL scan's HAR
+/// Get URL scan''s HAR
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `urlscanner_get_scan_har_v2_builder()` + `urlscanner_get_scan_har_v2_execute()`.
@@ -392738,7 +392738,7 @@ pub fn zone_level_access_mtls_authentication_list_mtls_certificates_hostname_set
 }
 
 /// PUT /zones/{zone_id}/access/certificates/settings
-/// Update an `mTLS` certificate's hostname settings
+/// Update an `mTLS` certificate''s hostname settings
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `zone_level_access_mtls_authentication_update_an_mtls_certificate_settings_execute()` to send, or `zone_level_access_mtls_authentication_update_an_mtls_certificate_settings` for simplest API.
@@ -392765,7 +392765,7 @@ where
 }
 
 /// PUT /zones/{zone_id}/access/certificates/settings
-/// Update an `mTLS` certificate's hostname settings
+/// Update an `mTLS` certificate''s hostname settings
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -392839,7 +392839,7 @@ pub fn zone_level_access_mtls_authentication_update_an_mtls_certificate_settings
 }
 
 /// PUT /zones/{zone_id}/access/certificates/settings
-/// Update an `mTLS` certificate's hostname settings
+/// Update an `mTLS` certificate''s hostname settings
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -392881,7 +392881,7 @@ pub struct ZoneLevelAccessMtlsAuthenticationUpdateAnMtlsCertificateSettingsArgs 
 }
 
 /// PUT /zones/{zone_id}/access/certificates/settings
-/// Update an `mTLS` certificate's hostname settings
+/// Update an `mTLS` certificate''s hostname settings
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `zone_level_access_mtls_authentication_update_an_mtls_certificate_settings_builder()` + `zone_level_access_mtls_authentication_update_an_mtls_certificate_settings_execute()`.
@@ -415850,9 +415850,9 @@ pub fn custom_hostname_for_a_zone_edit_custom_hostname(
 /// Delete Custom Hostname (and any issued SSL certificates)
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `custom_hostname_for_a_zone_delete_custom_hostname_and_any_issued_ssl_certificates__execute()` to send, or `custom_hostname_for_a_zone_delete_custom_hostname_and_any_issued_ssl_certificates_` for simplest API.
+/// Use `custom_hostname_for_a_zone_delete_custom_hostname_and_any_issued_ssl_certificates_execute()` to send, or `custom_hostname_for_a_zone_delete_custom_hostname_and_any_issued_ssl_certificates` for simplest API.
 
-pub fn custom_hostname_for_a_zone_delete_custom_hostname_and_any_issued_ssl_certificates__builder<
+pub fn custom_hostname_for_a_zone_delete_custom_hostname_and_any_issued_ssl_certificates_builder<
     R,
 >(
     client: &SimpleHttpClient<R>,
@@ -415887,17 +415887,17 @@ where
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `custom_hostname_for_a_zone_delete_custom_hostname_and_any_issued_ssl_certificates__execute()` or `custom_hostname_for_a_zone_delete_custom_hostname_and_any_issued_ssl_certificates_`.
+/// For direct execution, use `custom_hostname_for_a_zone_delete_custom_hostname_and_any_issued_ssl_certificates_execute()` or `custom_hostname_for_a_zone_delete_custom_hostname_and_any_issued_ssl_certificates`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `custom_hostname_for_a_zone_delete_custom_hostname_and_any_issued_ssl_certificates__builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `custom_hostname_for_a_zone_delete_custom_hostname_and_any_issued_ssl_certificates_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn custom_hostname_for_a_zone_delete_custom_hostname_and_any_issued_ssl_certificates__task(
+pub fn custom_hostname_for_a_zone_delete_custom_hostname_and_any_issued_ssl_certificates_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -415953,34 +415953,34 @@ pub fn custom_hostname_for_a_zone_delete_custom_hostname_and_any_issued_ssl_cert
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `custom_hostname_for_a_zone_delete_custom_hostname_and_any_issued_ssl_certificates__builder()` to create the builder,
+/// For full customization, use `custom_hostname_for_a_zone_delete_custom_hostname_and_any_issued_ssl_certificates_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `custom_hostname_for_a_zone_delete_custom_hostname_and_any_issued_ssl_certificates__task()`.
-/// For the simplest API, use `custom_hostname_for_a_zone_delete_custom_hostname_and_any_issued_ssl_certificates_()`.
+/// For task-level control, use `custom_hostname_for_a_zone_delete_custom_hostname_and_any_issued_ssl_certificates_task()`.
+/// For the simplest API, use `custom_hostname_for_a_zone_delete_custom_hostname_and_any_issued_ssl_certificates()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `custom_hostname_for_a_zone_delete_custom_hostname_and_any_issued_ssl_certificates__builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `custom_hostname_for_a_zone_delete_custom_hostname_and_any_issued_ssl_certificates_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn custom_hostname_for_a_zone_delete_custom_hostname_and_any_issued_ssl_certificates__execute(
+pub fn custom_hostname_for_a_zone_delete_custom_hostname_and_any_issued_ssl_certificates_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let task =
-        custom_hostname_for_a_zone_delete_custom_hostname_and_any_issued_ssl_certificates__task(
+        custom_hostname_for_a_zone_delete_custom_hostname_and_any_issued_ssl_certificates_task(
             builder,
         )?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`custom_hostname_for_a_zone_delete_custom_hostname_and_any_issued_ssl_certificates_`].
+/// Arguments for [`custom_hostname_for_a_zone_delete_custom_hostname_and_any_issued_ssl_certificates`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CustomHostnameForAZoneDeleteCustomHostnameAndAnyIssuedSslCertificatesArgs {
     /// Path parameter: custom_hostname_id
@@ -415993,14 +415993,14 @@ pub struct CustomHostnameForAZoneDeleteCustomHostnameAndAnyIssuedSslCertificates
 /// Delete Custom Hostname (and any issued SSL certificates)
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `custom_hostname_for_a_zone_delete_custom_hostname_and_any_issued_ssl_certificates__builder()` + `custom_hostname_for_a_zone_delete_custom_hostname_and_any_issued_ssl_certificates__execute()`.
-/// For task-level control, use `custom_hostname_for_a_zone_delete_custom_hostname_and_any_issued_ssl_certificates__task()`.
+/// For customization, use `custom_hostname_for_a_zone_delete_custom_hostname_and_any_issued_ssl_certificates_builder()` + `custom_hostname_for_a_zone_delete_custom_hostname_and_any_issued_ssl_certificates_execute()`.
+/// For task-level control, use `custom_hostname_for_a_zone_delete_custom_hostname_and_any_issued_ssl_certificates_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn custom_hostname_for_a_zone_delete_custom_hostname_and_any_issued_ssl_certificates_(
+pub fn custom_hostname_for_a_zone_delete_custom_hostname_and_any_issued_ssl_certificates(
     client: &SimpleHttpClient,
     args: &CustomHostnameForAZoneDeleteCustomHostnameAndAnyIssuedSslCertificatesArgs,
 ) -> Result<
@@ -416008,12 +416008,12 @@ pub fn custom_hostname_for_a_zone_delete_custom_hostname_and_any_issued_ssl_cert
     ApiError,
 > {
     let builder =
-        custom_hostname_for_a_zone_delete_custom_hostname_and_any_issued_ssl_certificates__builder(
+        custom_hostname_for_a_zone_delete_custom_hostname_and_any_issued_ssl_certificates_builder(
             client,
             &args.custom_hostname_id,
             &args.zone_id,
         )?;
-    custom_hostname_for_a_zone_delete_custom_hostname_and_any_issued_ssl_certificates__execute(
+    custom_hostname_for_a_zone_delete_custom_hostname_and_any_issued_ssl_certificates_execute(
         builder,
     )
 }
@@ -452821,7 +452821,7 @@ pub fn update_zone_entrypoint_ruleset(
 }
 
 /// GET /zones/{zone_id}/rulesets/phases/{ruleset_phase}/entrypoint/versions
-/// List a zone entry point ruleset's versions
+/// List a zone entry point ruleset''s versions
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `list_zone_entrypoint_ruleset_versions_execute()` to send, or `list_zone_entrypoint_ruleset_versions` for simplest API.
@@ -452849,7 +452849,7 @@ where
 }
 
 /// GET /zones/{zone_id}/rulesets/phases/{ruleset_phase}/entrypoint/versions
-/// List a zone entry point ruleset's versions
+/// List a zone entry point ruleset''s versions
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -452920,7 +452920,7 @@ pub fn list_zone_entrypoint_ruleset_versions_task(
 }
 
 /// GET /zones/{zone_id}/rulesets/phases/{ruleset_phase}/entrypoint/versions
-/// List a zone entry point ruleset's versions
+/// List a zone entry point ruleset''s versions
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -452959,7 +452959,7 @@ pub struct ListZoneEntrypointRulesetVersionsArgs {
 }
 
 /// GET /zones/{zone_id}/rulesets/phases/{ruleset_phase}/entrypoint/versions
-/// List a zone entry point ruleset's versions
+/// List a zone entry point ruleset''s versions
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `list_zone_entrypoint_ruleset_versions_builder()` + `list_zone_entrypoint_ruleset_versions_execute()`.
@@ -454118,7 +454118,7 @@ pub fn delete_zone_ruleset_rule(
 }
 
 /// GET /zones/{zone_id}/rulesets/{ruleset_id}/versions
-/// List a zone ruleset's versions
+/// List a zone ruleset''s versions
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `list_zone_ruleset_versions_execute()` to send, or `list_zone_ruleset_versions` for simplest API.
@@ -454146,7 +454146,7 @@ where
 }
 
 /// GET /zones/{zone_id}/rulesets/{ruleset_id}/versions
-/// List a zone ruleset's versions
+/// List a zone ruleset''s versions
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -454217,7 +454217,7 @@ pub fn list_zone_ruleset_versions_task(
 }
 
 /// GET /zones/{zone_id}/rulesets/{ruleset_id}/versions
-/// List a zone ruleset's versions
+/// List a zone ruleset''s versions
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -454256,7 +454256,7 @@ pub struct ListZoneRulesetVersionsArgs {
 }
 
 /// GET /zones/{zone_id}/rulesets/{ruleset_id}/versions
-/// List a zone ruleset's versions
+/// List a zone ruleset''s versions
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `list_zone_ruleset_versions_builder()` + `list_zone_ruleset_versions_execute()`.
@@ -454614,7 +454614,7 @@ pub fn delete_zone_ruleset_version(
 }
 
 /// GET /zones/{zone_id}/rulesets/{ruleset_id}/versions/{ruleset_version}/by_tag/{rule_tag}
-/// List a zone ruleset version's rules by tag
+/// List a zone ruleset version''s rules by tag
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `list_zone_ruleset_version_rules_by_tag_execute()` to send, or `list_zone_ruleset_version_rules_by_tag` for simplest API.
@@ -454644,7 +454644,7 @@ where
 }
 
 /// GET /zones/{zone_id}/rulesets/{ruleset_id}/versions/{ruleset_version}/by_tag/{rule_tag}
-/// List a zone ruleset version's rules by tag
+/// List a zone ruleset version''s rules by tag
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -454715,7 +454715,7 @@ pub fn list_zone_ruleset_version_rules_by_tag_task(
 }
 
 /// GET /zones/{zone_id}/rulesets/{ruleset_id}/versions/{ruleset_version}/by_tag/{rule_tag}
-/// List a zone ruleset version's rules by tag
+/// List a zone ruleset version''s rules by tag
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -454758,7 +454758,7 @@ pub struct ListZoneRulesetVersionRulesByTagArgs {
 }
 
 /// GET /zones/{zone_id}/rulesets/{ruleset_id}/versions/{ruleset_version}/by_tag/{rule_tag}
-/// List a zone ruleset version's rules by tag
+/// List a zone ruleset version''s rules by tag
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `list_zone_ruleset_version_rules_by_tag_builder()` + `list_zone_ruleset_version_rules_by_tag_execute()`.

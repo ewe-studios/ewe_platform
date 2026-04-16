@@ -193,7 +193,7 @@ pub fn licensing_license_assignments_delete(
 }
 
 /// GET apps/licensing/v1/product/{productId}/sku/{skuId}/user/{userId}
-/// Get a specific user's license by product SKU.
+/// Get a specific user''s license by product SKU.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `licensing_license_assignments_get_execute()` to send, or `licensing_license_assignments_get` for simplest API.
@@ -222,7 +222,7 @@ where
 }
 
 /// GET apps/licensing/v1/product/{productId}/sku/{skuId}/user/{userId}
-/// Get a specific user's license by product SKU.
+/// Get a specific user''s license by product SKU.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -296,7 +296,7 @@ pub fn licensing_license_assignments_get_task(
 }
 
 /// GET apps/licensing/v1/product/{productId}/sku/{skuId}/user/{userId}
-/// Get a specific user's license by product SKU.
+/// Get a specific user''s license by product SKU.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -339,7 +339,7 @@ pub struct LicensingLicenseAssignmentsGetArgs {
 }
 
 /// GET apps/licensing/v1/product/{productId}/sku/{skuId}/user/{userId}
-/// Get a specific user's license by product SKU.
+/// Get a specific user''s license by product SKU.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `licensing_license_assignments_get_builder()` + `licensing_license_assignments_get_execute()`.
@@ -932,7 +932,7 @@ pub fn licensing_license_assignments_list_for_product_and_sku(
 }
 
 /// PATCH apps/licensing/v1/product/{productId}/sku/{skuId}/user/{userId}
-/// Reassign a user's product SKU with a different SKU in the same product. This method supports patch semantics.
+/// Reassign a user''s product SKU with a different SKU in the same product. This method supports patch semantics.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `licensing_license_assignments_patch_execute()` to send, or `licensing_license_assignments_patch` for simplest API.
@@ -961,7 +961,7 @@ where
 }
 
 /// PATCH apps/licensing/v1/product/{productId}/sku/{skuId}/user/{userId}
-/// Reassign a user's product SKU with a different SKU in the same product. This method supports patch semantics.
+/// Reassign a user''s product SKU with a different SKU in the same product. This method supports patch semantics.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -1035,7 +1035,7 @@ pub fn licensing_license_assignments_patch_task(
 }
 
 /// PATCH apps/licensing/v1/product/{productId}/sku/{skuId}/user/{userId}
-/// Reassign a user's product SKU with a different SKU in the same product. This method supports patch semantics.
+/// Reassign a user''s product SKU with a different SKU in the same product. This method supports patch semantics.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -1078,7 +1078,7 @@ pub struct LicensingLicenseAssignmentsPatchArgs {
 }
 
 /// PATCH apps/licensing/v1/product/{productId}/sku/{skuId}/user/{userId}
-/// Reassign a user's product SKU with a different SKU in the same product. This method supports patch semantics.
+/// Reassign a user''s product SKU with a different SKU in the same product. This method supports patch semantics.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `licensing_license_assignments_patch_builder()` + `licensing_license_assignments_patch_execute()`.
@@ -1107,7 +1107,7 @@ pub fn licensing_license_assignments_patch(
 }
 
 /// PUT apps/licensing/v1/product/{productId}/sku/{skuId}/user/{userId}
-/// Reassign a user's product SKU with a different SKU in the same product.
+/// Reassign a user''s product SKU with a different SKU in the same product.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `licensing_license_assignments_update_execute()` to send, or `licensing_license_assignments_update` for simplest API.
@@ -1136,7 +1136,7 @@ where
 }
 
 /// PUT apps/licensing/v1/product/{productId}/sku/{skuId}/user/{userId}
-/// Reassign a user's product SKU with a different SKU in the same product.
+/// Reassign a user''s product SKU with a different SKU in the same product.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -1210,7 +1210,7 @@ pub fn licensing_license_assignments_update_task(
 }
 
 /// PUT apps/licensing/v1/product/{productId}/sku/{skuId}/user/{userId}
-/// Reassign a user's product SKU with a different SKU in the same product.
+/// Reassign a user''s product SKU with a different SKU in the same product.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -1253,7 +1253,7 @@ pub struct LicensingLicenseAssignmentsUpdateArgs {
 }
 
 /// PUT apps/licensing/v1/product/{productId}/sku/{skuId}/user/{userId}
-/// Reassign a user's product SKU with a different SKU in the same product.
+/// Reassign a user''s product SKU with a different SKU in the same product.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `licensing_license_assignments_update_builder()` + `licensing_license_assignments_update_execute()`.

@@ -523,7 +523,7 @@ pub fn firebaseappdistribution_projects_apps_releases_batch_delete(
 }
 
 /// POST v1/projects/{projectsId}/apps/{appsId}/releases/{releasesId}:distribute
-/// Distributes a release to testers. This call does the following: 1. Creates testers for the specified emails, if none exist. 2. Adds the testers and groups to the release. 3. Sends new testers an invitation email. 4. Sends existing testers a new release email. The request will fail with a INVALID_ARGUMENT if it contains a group that doesn't exist.
+/// Distributes a release to testers. This call does the following: 1. Creates testers for the specified emails, if none exist. 2. Adds the testers and groups to the release. 3. Sends new testers an invitation email. 4. Sends existing testers a new release email. The request will fail with a INVALID_ARGUMENT if it contains a group that doesn''t exist.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebaseappdistribution_projects_apps_releases_distribute_execute()` to send, or `firebaseappdistribution_projects_apps_releases_distribute` for simplest API.
@@ -550,7 +550,7 @@ where
 }
 
 /// POST v1/projects/{projectsId}/apps/{appsId}/releases/{releasesId}:distribute
-/// Distributes a release to testers. This call does the following: 1. Creates testers for the specified emails, if none exist. 2. Adds the testers and groups to the release. 3. Sends new testers an invitation email. 4. Sends existing testers a new release email. The request will fail with a INVALID_ARGUMENT if it contains a group that doesn't exist.
+/// Distributes a release to testers. This call does the following: 1. Creates testers for the specified emails, if none exist. 2. Adds the testers and groups to the release. 3. Sends new testers an invitation email. 4. Sends existing testers a new release email. The request will fail with a INVALID_ARGUMENT if it contains a group that doesn''t exist.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -628,7 +628,7 @@ pub fn firebaseappdistribution_projects_apps_releases_distribute_task(
 }
 
 /// POST v1/projects/{projectsId}/apps/{appsId}/releases/{releasesId}:distribute
-/// Distributes a release to testers. This call does the following: 1. Creates testers for the specified emails, if none exist. 2. Adds the testers and groups to the release. 3. Sends new testers an invitation email. 4. Sends existing testers a new release email. The request will fail with a INVALID_ARGUMENT if it contains a group that doesn't exist.
+/// Distributes a release to testers. This call does the following: 1. Creates testers for the specified emails, if none exist. 2. Adds the testers and groups to the release. 3. Sends new testers an invitation email. 4. Sends existing testers a new release email. The request will fail with a INVALID_ARGUMENT if it contains a group that doesn''t exist.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -669,7 +669,7 @@ pub struct FirebaseappdistributionProjectsAppsReleasesDistributeArgs {
 }
 
 /// POST v1/projects/{projectsId}/apps/{appsId}/releases/{releasesId}:distribute
-/// Distributes a release to testers. This call does the following: 1. Creates testers for the specified emails, if none exist. 2. Adds the testers and groups to the release. 3. Sends new testers an invitation email. 4. Sends existing testers a new release email. The request will fail with a INVALID_ARGUMENT if it contains a group that doesn't exist.
+/// Distributes a release to testers. This call does the following: 1. Creates testers for the specified emails, if none exist. 2. Adds the testers and groups to the release. 3. Sends new testers an invitation email. 4. Sends existing testers a new release email. The request will fail with a INVALID_ARGUMENT if it contains a group that doesn''t exist.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `firebaseappdistribution_projects_apps_releases_distribute_builder()` + `firebaseappdistribution_projects_apps_releases_distribute_execute()`.
@@ -1793,7 +1793,7 @@ pub fn firebaseappdistribution_projects_apps_releases_feedback_reports_list(
 }
 
 /// POST v1/projects/{projectsId}/apps/{appsId}/releases/{releasesId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebaseappdistribution_projects_apps_releases_operations_cancel_execute()` to send, or `firebaseappdistribution_projects_apps_releases_operations_cancel` for simplest API.
@@ -1820,7 +1820,7 @@ where
 }
 
 /// POST v1/projects/{projectsId}/apps/{appsId}/releases/{releasesId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -1894,7 +1894,7 @@ pub fn firebaseappdistribution_projects_apps_releases_operations_cancel_task(
 }
 
 /// POST v1/projects/{projectsId}/apps/{appsId}/releases/{releasesId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -1933,7 +1933,7 @@ pub struct FirebaseappdistributionProjectsAppsReleasesOperationsCancelArgs {
 }
 
 /// POST v1/projects/{projectsId}/apps/{appsId}/releases/{releasesId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `firebaseappdistribution_projects_apps_releases_operations_cancel_builder()` + `firebaseappdistribution_projects_apps_releases_operations_cancel_execute()`.
@@ -1959,7 +1959,7 @@ pub fn firebaseappdistribution_projects_apps_releases_operations_cancel(
 }
 
 /// DELETE v1/projects/{projectsId}/apps/{appsId}/releases/{releasesId}/operations/{operationsId}
-/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebaseappdistribution_projects_apps_releases_operations_delete_execute()` to send, or `firebaseappdistribution_projects_apps_releases_operations_delete` for simplest API.
@@ -1986,7 +1986,7 @@ where
 }
 
 /// DELETE v1/projects/{projectsId}/apps/{appsId}/releases/{releasesId}/operations/{operationsId}
-/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -2060,7 +2060,7 @@ pub fn firebaseappdistribution_projects_apps_releases_operations_delete_task(
 }
 
 /// DELETE v1/projects/{projectsId}/apps/{appsId}/releases/{releasesId}/operations/{operationsId}
-/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -2099,7 +2099,7 @@ pub struct FirebaseappdistributionProjectsAppsReleasesOperationsDeleteArgs {
 }
 
 /// DELETE v1/projects/{projectsId}/apps/{appsId}/releases/{releasesId}/operations/{operationsId}
-/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `firebaseappdistribution_projects_apps_releases_operations_delete_builder()` + `firebaseappdistribution_projects_apps_releases_operations_delete_execute()`.
@@ -2294,7 +2294,7 @@ pub fn firebaseappdistribution_projects_apps_releases_operations_get(
 }
 
 /// GET v1/projects/{projectsId}/apps/{appsId}/releases/{releasesId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebaseappdistribution_projects_apps_releases_operations_list_execute()` to send, or `firebaseappdistribution_projects_apps_releases_operations_list` for simplest API.
@@ -2345,7 +2345,7 @@ where
 }
 
 /// GET v1/projects/{projectsId}/apps/{appsId}/releases/{releasesId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -2420,7 +2420,7 @@ pub fn firebaseappdistribution_projects_apps_releases_operations_list_task(
 }
 
 /// GET v1/projects/{projectsId}/apps/{appsId}/releases/{releasesId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -2469,7 +2469,7 @@ pub struct FirebaseappdistributionProjectsAppsReleasesOperationsListArgs {
 }
 
 /// GET v1/projects/{projectsId}/apps/{appsId}/releases/{releasesId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `firebaseappdistribution_projects_apps_releases_operations_list_builder()` + `firebaseappdistribution_projects_apps_releases_operations_list_execute()`.
@@ -3897,7 +3897,7 @@ pub fn firebaseappdistribution_projects_groups_patch(
 }
 
 /// POST v1/projects/{projectsId}/testers:batchAdd
-/// Batch adds testers. This call adds testers for the specified emails if they don't already exist. Returns all testers specified in the request, including newly created and previously existing testers. This action is idempotent.
+/// Batch adds testers. This call adds testers for the specified emails if they don''t already exist. Returns all testers specified in the request, including newly created and previously existing testers. This action is idempotent.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebaseappdistribution_projects_testers_batch_add_execute()` to send, or `firebaseappdistribution_projects_testers_batch_add` for simplest API.
@@ -3924,7 +3924,7 @@ where
 }
 
 /// POST v1/projects/{projectsId}/testers:batchAdd
-/// Batch adds testers. This call adds testers for the specified emails if they don't already exist. Returns all testers specified in the request, including newly created and previously existing testers. This action is idempotent.
+/// Batch adds testers. This call adds testers for the specified emails if they don''t already exist. Returns all testers specified in the request, including newly created and previously existing testers. This action is idempotent.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -3999,7 +3999,7 @@ pub fn firebaseappdistribution_projects_testers_batch_add_task(
 }
 
 /// POST v1/projects/{projectsId}/testers:batchAdd
-/// Batch adds testers. This call adds testers for the specified emails if they don't already exist. Returns all testers specified in the request, including newly created and previously existing testers. This action is idempotent.
+/// Batch adds testers. This call adds testers for the specified emails if they don''t already exist. Returns all testers specified in the request, including newly created and previously existing testers. This action is idempotent.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -4040,7 +4040,7 @@ pub struct FirebaseappdistributionProjectsTestersBatchAddArgs {
 }
 
 /// POST v1/projects/{projectsId}/testers:batchAdd
-/// Batch adds testers. This call adds testers for the specified emails if they don't already exist. Returns all testers specified in the request, including newly created and previously existing testers. This action is idempotent.
+/// Batch adds testers. This call adds testers for the specified emails if they don''t already exist. Returns all testers specified in the request, including newly created and previously existing testers. This action is idempotent.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `firebaseappdistribution_projects_testers_batch_add_builder()` + `firebaseappdistribution_projects_testers_batch_add_execute()`.

@@ -8587,7 +8587,7 @@ pub fn retail_projects_locations_catalogs_operations_get(
 }
 
 /// GET v2/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `retail_projects_locations_catalogs_operations_list_execute()` to send, or `retail_projects_locations_catalogs_operations_list` for simplest API.
@@ -8638,7 +8638,7 @@ where
 }
 
 /// GET v2/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -8713,7 +8713,7 @@ pub fn retail_projects_locations_catalogs_operations_list_task(
 }
 
 /// GET v2/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -8762,7 +8762,7 @@ pub struct RetailProjectsLocationsCatalogsOperationsListArgs {
 }
 
 /// GET v2/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `retail_projects_locations_catalogs_operations_list_builder()` + `retail_projects_locations_catalogs_operations_list_execute()`.
@@ -9305,7 +9305,7 @@ pub fn retail_projects_locations_catalogs_placements_search(
 }
 
 /// POST v2/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/servingConfigs/{servingConfigsId}:addControl
-/// Enables a Control on the specified ServingConfig. The control is added in the last position of the list of controls it belongs to (e.g. if it's a facet spec control it will be applied in the last position of `servingConfig`.`facetSpecIds`) Returns a ALREADY_EXISTS error if the control has already been applied. Returns a FAILED_PRECONDITION error if the addition could exceed maximum number of control allowed for that type of control.
+/// Enables a Control on the specified ServingConfig. The control is added in the last position of the list of controls it belongs to (e.g. if it''s a facet spec control it will be applied in the last position of `servingConfig`.`facetSpecIds`) Returns a ALREADY_EXISTS error if the control has already been applied. Returns a FAILED_PRECONDITION error if the addition could exceed maximum number of control allowed for that type of control.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `retail_projects_locations_catalogs_serving_configs_add_control_execute()` to send, or `retail_projects_locations_catalogs_serving_configs_add_control` for simplest API.
@@ -9332,7 +9332,7 @@ where
 }
 
 /// POST v2/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/servingConfigs/{servingConfigsId}:addControl
-/// Enables a Control on the specified ServingConfig. The control is added in the last position of the list of controls it belongs to (e.g. if it's a facet spec control it will be applied in the last position of `servingConfig`.`facetSpecIds`) Returns a ALREADY_EXISTS error if the control has already been applied. Returns a FAILED_PRECONDITION error if the addition could exceed maximum number of control allowed for that type of control.
+/// Enables a Control on the specified ServingConfig. The control is added in the last position of the list of controls it belongs to (e.g. if it''s a facet spec control it will be applied in the last position of `servingConfig`.`facetSpecIds`) Returns a ALREADY_EXISTS error if the control has already been applied. Returns a FAILED_PRECONDITION error if the addition could exceed maximum number of control allowed for that type of control.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -9406,7 +9406,7 @@ pub fn retail_projects_locations_catalogs_serving_configs_add_control_task(
 }
 
 /// POST v2/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/servingConfigs/{servingConfigsId}:addControl
-/// Enables a Control on the specified ServingConfig. The control is added in the last position of the list of controls it belongs to (e.g. if it's a facet spec control it will be applied in the last position of `servingConfig`.`facetSpecIds`) Returns a ALREADY_EXISTS error if the control has already been applied. Returns a FAILED_PRECONDITION error if the addition could exceed maximum number of control allowed for that type of control.
+/// Enables a Control on the specified ServingConfig. The control is added in the last position of the list of controls it belongs to (e.g. if it''s a facet spec control it will be applied in the last position of `servingConfig`.`facetSpecIds`) Returns a ALREADY_EXISTS error if the control has already been applied. Returns a FAILED_PRECONDITION error if the addition could exceed maximum number of control allowed for that type of control.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -9447,7 +9447,7 @@ pub struct RetailProjectsLocationsCatalogsServingConfigsAddControlArgs {
 }
 
 /// POST v2/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/servingConfigs/{servingConfigsId}:addControl
-/// Enables a Control on the specified ServingConfig. The control is added in the last position of the list of controls it belongs to (e.g. if it's a facet spec control it will be applied in the last position of `servingConfig`.`facetSpecIds`) Returns a ALREADY_EXISTS error if the control has already been applied. Returns a FAILED_PRECONDITION error if the addition could exceed maximum number of control allowed for that type of control.
+/// Enables a Control on the specified ServingConfig. The control is added in the last position of the list of controls it belongs to (e.g. if it''s a facet spec control it will be applied in the last position of `servingConfig`.`facetSpecIds`) Returns a ALREADY_EXISTS error if the control has already been applied. Returns a FAILED_PRECONDITION error if the addition could exceed maximum number of control allowed for that type of control.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `retail_projects_locations_catalogs_serving_configs_add_control_builder()` + `retail_projects_locations_catalogs_serving_configs_add_control_execute()`.
@@ -12086,7 +12086,7 @@ pub fn retail_projects_locations_operations_get(
 }
 
 /// GET v2/projects/{projectsId}/locations/{locationsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `retail_projects_locations_operations_list_execute()` to send, or `retail_projects_locations_operations_list` for simplest API.
@@ -12137,7 +12137,7 @@ where
 }
 
 /// GET v2/projects/{projectsId}/locations/{locationsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -12212,7 +12212,7 @@ pub fn retail_projects_locations_operations_list_task(
 }
 
 /// GET v2/projects/{projectsId}/locations/{locationsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -12261,7 +12261,7 @@ pub struct RetailProjectsLocationsOperationsListArgs {
 }
 
 /// GET v2/projects/{projectsId}/locations/{locationsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `retail_projects_locations_operations_list_builder()` + `retail_projects_locations_operations_list_execute()`.
@@ -12462,7 +12462,7 @@ pub fn retail_projects_operations_get(
 }
 
 /// GET v2/projects/{projectsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `retail_projects_operations_list_execute()` to send, or `retail_projects_operations_list` for simplest API.
@@ -12513,7 +12513,7 @@ where
 }
 
 /// GET v2/projects/{projectsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -12588,7 +12588,7 @@ pub fn retail_projects_operations_list_task(
 }
 
 /// GET v2/projects/{projectsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -12637,7 +12637,7 @@ pub struct RetailProjectsOperationsListArgs {
 }
 
 /// GET v2/projects/{projectsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `retail_projects_operations_list_builder()` + `retail_projects_operations_list_execute()`.

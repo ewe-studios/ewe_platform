@@ -22,7 +22,7 @@ use foundation_macros::JsonHash;
 use serde::Serialize;
 
 /// POST v1/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `servicenetworking_operations_cancel_execute()` to send, or `servicenetworking_operations_cancel` for simplest API.
@@ -49,7 +49,7 @@ where
 }
 
 /// POST v1/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -123,7 +123,7 @@ pub fn servicenetworking_operations_cancel_task(
 }
 
 /// POST v1/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -160,7 +160,7 @@ pub struct ServicenetworkingOperationsCancelArgs {
 }
 
 /// POST v1/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `servicenetworking_operations_cancel_builder()` + `servicenetworking_operations_cancel_execute()`.
@@ -182,7 +182,7 @@ pub fn servicenetworking_operations_cancel(
 }
 
 /// DELETE v1/operations/{operationsId}
-/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `servicenetworking_operations_delete_execute()` to send, or `servicenetworking_operations_delete` for simplest API.
@@ -209,7 +209,7 @@ where
 }
 
 /// DELETE v1/operations/{operationsId}
-/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -283,7 +283,7 @@ pub fn servicenetworking_operations_delete_task(
 }
 
 /// DELETE v1/operations/{operationsId}
-/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -320,7 +320,7 @@ pub struct ServicenetworkingOperationsDeleteArgs {
 }
 
 /// DELETE v1/operations/{operationsId}
-/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `servicenetworking_operations_delete_builder()` + `servicenetworking_operations_delete_execute()`.
@@ -502,7 +502,7 @@ pub fn servicenetworking_operations_get(
 }
 
 /// GET v1/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `servicenetworking_operations_list_execute()` to send, or `servicenetworking_operations_list` for simplest API.
@@ -549,7 +549,7 @@ where
 }
 
 /// GET v1/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -623,7 +623,7 @@ pub fn servicenetworking_operations_list_task(
 }
 
 /// GET v1/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -668,7 +668,7 @@ pub struct ServicenetworkingOperationsListArgs {
 }
 
 /// GET v1/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `servicenetworking_operations_list_builder()` + `servicenetworking_operations_list_execute()`.
@@ -698,7 +698,7 @@ pub fn servicenetworking_operations_list(
 }
 
 /// POST v1/services/{servicesId}/{servicesId1}/{servicesId2}:addSubnetwork
-/// For service producers, provisions a new subnet in a peered service's shared VPC network in the requested region and with the requested size that's expressed as a CIDR range (number of leading bits of `ipV4` network mask). The method checks against the assigned allocated ranges to find a non-conflicting IP address range. The method will reuse a subnet if subsequent calls contain the same subnet name, region, and prefix length. This method will make producer's tenant project to be a shared VPC service project as needed.
+/// For service producers, provisions a new subnet in a peered service''s shared VPC network in the requested region and with the requested size that''s expressed as a CIDR range (number of leading bits of `ipV4` network mask). The method checks against the assigned allocated ranges to find a non-conflicting IP address range. The method will reuse a subnet if subsequent calls contain the same subnet name, region, and prefix length. This method will make producer''s tenant project to be a shared VPC service project as needed.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `servicenetworking_services_add_subnetwork_execute()` to send, or `servicenetworking_services_add_subnetwork` for simplest API.
@@ -725,7 +725,7 @@ where
 }
 
 /// POST v1/services/{servicesId}/{servicesId1}/{servicesId2}:addSubnetwork
-/// For service producers, provisions a new subnet in a peered service's shared VPC network in the requested region and with the requested size that's expressed as a CIDR range (number of leading bits of `ipV4` network mask). The method checks against the assigned allocated ranges to find a non-conflicting IP address range. The method will reuse a subnet if subsequent calls contain the same subnet name, region, and prefix length. This method will make producer's tenant project to be a shared VPC service project as needed.
+/// For service producers, provisions a new subnet in a peered service''s shared VPC network in the requested region and with the requested size that''s expressed as a CIDR range (number of leading bits of `ipV4` network mask). The method checks against the assigned allocated ranges to find a non-conflicting IP address range. The method will reuse a subnet if subsequent calls contain the same subnet name, region, and prefix length. This method will make producer''s tenant project to be a shared VPC service project as needed.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -799,7 +799,7 @@ pub fn servicenetworking_services_add_subnetwork_task(
 }
 
 /// POST v1/services/{servicesId}/{servicesId1}/{servicesId2}:addSubnetwork
-/// For service producers, provisions a new subnet in a peered service's shared VPC network in the requested region and with the requested size that's expressed as a CIDR range (number of leading bits of `ipV4` network mask). The method checks against the assigned allocated ranges to find a non-conflicting IP address range. The method will reuse a subnet if subsequent calls contain the same subnet name, region, and prefix length. This method will make producer's tenant project to be a shared VPC service project as needed.
+/// For service producers, provisions a new subnet in a peered service''s shared VPC network in the requested region and with the requested size that''s expressed as a CIDR range (number of leading bits of `ipV4` network mask). The method checks against the assigned allocated ranges to find a non-conflicting IP address range. The method will reuse a subnet if subsequent calls contain the same subnet name, region, and prefix length. This method will make producer''s tenant project to be a shared VPC service project as needed.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -836,7 +836,7 @@ pub struct ServicenetworkingServicesAddSubnetworkArgs {
 }
 
 /// POST v1/services/{servicesId}/{servicesId1}/{servicesId2}:addSubnetwork
-/// For service producers, provisions a new subnet in a peered service's shared VPC network in the requested region and with the requested size that's expressed as a CIDR range (number of leading bits of `ipV4` network mask). The method checks against the assigned allocated ranges to find a non-conflicting IP address range. The method will reuse a subnet if subsequent calls contain the same subnet name, region, and prefix length. This method will make producer's tenant project to be a shared VPC service project as needed.
+/// For service producers, provisions a new subnet in a peered service''s shared VPC network in the requested region and with the requested size that''s expressed as a CIDR range (number of leading bits of `ipV4` network mask). The method checks against the assigned allocated ranges to find a non-conflicting IP address range. The method will reuse a subnet if subsequent calls contain the same subnet name, region, and prefix length. This method will make producer''s tenant project to be a shared VPC service project as needed.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `servicenetworking_services_add_subnetwork_builder()` + `servicenetworking_services_add_subnetwork_execute()`.
@@ -1508,7 +1508,7 @@ pub fn servicenetworking_services_validate(
 }
 
 /// POST v1/services/{servicesId}/connections
-/// Creates a private connection that establishes a VPC Network Peering connection to a VPC network in the service producer's organization. The administrator of the service consumer's VPC network invokes this method. The administrator must assign one or more allocated IP ranges for provisioning subnetworks in the service producer's VPC network. This connection is used for all supported services in the service producer's organization, so it only needs to be invoked once.
+/// Creates a private connection that establishes a VPC Network Peering connection to a VPC network in the service producer''s organization. The administrator of the service consumer''s VPC network invokes this method. The administrator must assign one or more allocated IP ranges for provisioning subnetworks in the service producer''s VPC network. This connection is used for all supported services in the service producer''s organization, so it only needs to be invoked once.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `servicenetworking_services_connections_create_execute()` to send, or `servicenetworking_services_connections_create` for simplest API.
@@ -1535,7 +1535,7 @@ where
 }
 
 /// POST v1/services/{servicesId}/connections
-/// Creates a private connection that establishes a VPC Network Peering connection to a VPC network in the service producer's organization. The administrator of the service consumer's VPC network invokes this method. The administrator must assign one or more allocated IP ranges for provisioning subnetworks in the service producer's VPC network. This connection is used for all supported services in the service producer's organization, so it only needs to be invoked once.
+/// Creates a private connection that establishes a VPC Network Peering connection to a VPC network in the service producer''s organization. The administrator of the service consumer''s VPC network invokes this method. The administrator must assign one or more allocated IP ranges for provisioning subnetworks in the service producer''s VPC network. This connection is used for all supported services in the service producer''s organization, so it only needs to be invoked once.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -1609,7 +1609,7 @@ pub fn servicenetworking_services_connections_create_task(
 }
 
 /// POST v1/services/{servicesId}/connections
-/// Creates a private connection that establishes a VPC Network Peering connection to a VPC network in the service producer's organization. The administrator of the service consumer's VPC network invokes this method. The administrator must assign one or more allocated IP ranges for provisioning subnetworks in the service producer's VPC network. This connection is used for all supported services in the service producer's organization, so it only needs to be invoked once.
+/// Creates a private connection that establishes a VPC Network Peering connection to a VPC network in the service producer''s organization. The administrator of the service consumer''s VPC network invokes this method. The administrator must assign one or more allocated IP ranges for provisioning subnetworks in the service producer''s VPC network. This connection is used for all supported services in the service producer''s organization, so it only needs to be invoked once.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -1646,7 +1646,7 @@ pub struct ServicenetworkingServicesConnectionsCreateArgs {
 }
 
 /// POST v1/services/{servicesId}/connections
-/// Creates a private connection that establishes a VPC Network Peering connection to a VPC network in the service producer's organization. The administrator of the service consumer's VPC network invokes this method. The administrator must assign one or more allocated IP ranges for provisioning subnetworks in the service producer's VPC network. This connection is used for all supported services in the service producer's organization, so it only needs to be invoked once.
+/// Creates a private connection that establishes a VPC Network Peering connection to a VPC network in the service producer''s organization. The administrator of the service consumer''s VPC network invokes this method. The administrator must assign one or more allocated IP ranges for provisioning subnetworks in the service producer''s VPC network. This connection is used for all supported services in the service producer''s organization, so it only needs to be invoked once.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `servicenetworking_services_connections_create_builder()` + `servicenetworking_services_connections_create_execute()`.
@@ -1829,7 +1829,7 @@ pub fn servicenetworking_services_connections_delete_connection(
 }
 
 /// GET v1/services/{servicesId}/connections
-/// List the private connections that are configured in a service consumer's VPC network.
+/// List the private connections that are configured in a service consumer''s VPC network.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `servicenetworking_services_connections_list_execute()` to send, or `servicenetworking_services_connections_list` for simplest API.
@@ -1868,7 +1868,7 @@ where
 }
 
 /// GET v1/services/{servicesId}/connections
-/// List the private connections that are configured in a service consumer's VPC network.
+/// List the private connections that are configured in a service consumer''s VPC network.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -1942,7 +1942,7 @@ pub fn servicenetworking_services_connections_list_task(
 }
 
 /// GET v1/services/{servicesId}/connections
-/// List the private connections that are configured in a service consumer's VPC network.
+/// List the private connections that are configured in a service consumer''s VPC network.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -1983,7 +1983,7 @@ pub struct ServicenetworkingServicesConnectionsListArgs {
 }
 
 /// GET v1/services/{servicesId}/connections
-/// List the private connections that are configured in a service consumer's VPC network.
+/// List the private connections that are configured in a service consumer''s VPC network.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `servicenetworking_services_connections_list_builder()` + `servicenetworking_services_connections_list_execute()`.

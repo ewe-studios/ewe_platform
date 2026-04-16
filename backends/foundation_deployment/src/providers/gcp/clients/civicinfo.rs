@@ -553,7 +553,7 @@ pub fn civicinfo_elections_election_query(
 }
 
 /// GET civicinfo/v2/voterinfo
-/// Looks up information relevant to a voter based on the voter's registered address.
+/// Looks up information relevant to a voter based on the voter''s registered address.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `civicinfo_elections_voter_info_query_execute()` to send, or `civicinfo_elections_voter_info_query` for simplest API.
@@ -604,7 +604,7 @@ where
 }
 
 /// GET civicinfo/v2/voterinfo
-/// Looks up information relevant to a voter based on the voter's registered address.
+/// Looks up information relevant to a voter based on the voter''s registered address.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -678,7 +678,7 @@ pub fn civicinfo_elections_voter_info_query_task(
 }
 
 /// GET civicinfo/v2/voterinfo
-/// Looks up information relevant to a voter based on the voter's registered address.
+/// Looks up information relevant to a voter based on the voter''s registered address.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -727,7 +727,7 @@ pub struct CivicinfoElectionsVoterInfoQueryArgs {
 }
 
 /// GET civicinfo/v2/voterinfo
-/// Looks up information relevant to a voter based on the voter's registered address.
+/// Looks up information relevant to a voter based on the voter''s registered address.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `civicinfo_elections_voter_info_query_builder()` + `civicinfo_elections_voter_info_query_execute()`.

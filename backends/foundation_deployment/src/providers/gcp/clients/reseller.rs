@@ -182,7 +182,7 @@ pub fn reseller_customers_get(
 }
 
 /// POST apps/reseller/v1/customers
-/// Orders a new customer's account. Before ordering a new customer account, establish whether the customer account already exists using the [customers.get](<https://developers.google.`com/workspace/admin/reseller/v1/reference/customers/get`>) If the customer account exists as a direct Google account or as a resold customer account from another reseller, use the `customerAuthToken`\ as described in [order a resold account for an existing customer](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/manage_customers`#create_existing_customer>). For more information about ordering a new customer account, see [order a new customer account](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/manage_customers`#create_customer>). After creating a new customer account, you must provision a user as an administrator. The customer's administrator is required to sign in to the Admin console and sign the G Suite via Reseller agreement to activate the account. Resellers are prohibited from signing the G Suite via Reseller agreement on the customer's behalf. For more information, see [order a new customer account](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/manage_customers`#tos>).
+/// Orders a new customer''s account. Before ordering a new customer account, establish whether the customer account already exists using the [customers.get](<https://developers.google.`com/workspace/admin/reseller/v1/reference/customers/get`>) If the customer account exists as a direct Google account or as a resold customer account from another reseller, use the `customerAuthToken`\ as described in [order a resold account for an existing customer](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/manage_customers`#create_existing_customer>). For more information about ordering a new customer account, see [order a new customer account](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/manage_customers`#create_customer>). After creating a new customer account, you must provision a user as an administrator. The customer''s administrator is required to sign in to the Admin console and sign the G Suite via Reseller agreement to activate the account. Resellers are prohibited from signing the G Suite via Reseller agreement on the customer''s behalf. For more information, see [order a new customer account](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/manage_customers`#tos>).
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `reseller_customers_insert_execute()` to send, or `reseller_customers_insert` for simplest API.
@@ -217,7 +217,7 @@ where
 }
 
 /// POST apps/reseller/v1/customers
-/// Orders a new customer's account. Before ordering a new customer account, establish whether the customer account already exists using the [customers.get](<https://developers.google.`com/workspace/admin/reseller/v1/reference/customers/get`>) If the customer account exists as a direct Google account or as a resold customer account from another reseller, use the `customerAuthToken`\ as described in [order a resold account for an existing customer](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/manage_customers`#create_existing_customer>). For more information about ordering a new customer account, see [order a new customer account](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/manage_customers`#create_customer>). After creating a new customer account, you must provision a user as an administrator. The customer's administrator is required to sign in to the Admin console and sign the G Suite via Reseller agreement to activate the account. Resellers are prohibited from signing the G Suite via Reseller agreement on the customer's behalf. For more information, see [order a new customer account](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/manage_customers`#tos>).
+/// Orders a new customer''s account. Before ordering a new customer account, establish whether the customer account already exists using the [customers.get](<https://developers.google.`com/workspace/admin/reseller/v1/reference/customers/get`>) If the customer account exists as a direct Google account or as a resold customer account from another reseller, use the `customerAuthToken`\ as described in [order a resold account for an existing customer](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/manage_customers`#create_existing_customer>). For more information about ordering a new customer account, see [order a new customer account](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/manage_customers`#create_customer>). After creating a new customer account, you must provision a user as an administrator. The customer''s administrator is required to sign in to the Admin console and sign the G Suite via Reseller agreement to activate the account. Resellers are prohibited from signing the G Suite via Reseller agreement on the customer''s behalf. For more information, see [order a new customer account](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/manage_customers`#tos>).
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -291,7 +291,7 @@ pub fn reseller_customers_insert_task(
 }
 
 /// POST apps/reseller/v1/customers
-/// Orders a new customer's account. Before ordering a new customer account, establish whether the customer account already exists using the [customers.get](<https://developers.google.`com/workspace/admin/reseller/v1/reference/customers/get`>) If the customer account exists as a direct Google account or as a resold customer account from another reseller, use the `customerAuthToken`\ as described in [order a resold account for an existing customer](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/manage_customers`#create_existing_customer>). For more information about ordering a new customer account, see [order a new customer account](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/manage_customers`#create_customer>). After creating a new customer account, you must provision a user as an administrator. The customer's administrator is required to sign in to the Admin console and sign the G Suite via Reseller agreement to activate the account. Resellers are prohibited from signing the G Suite via Reseller agreement on the customer's behalf. For more information, see [order a new customer account](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/manage_customers`#tos>).
+/// Orders a new customer''s account. Before ordering a new customer account, establish whether the customer account already exists using the [customers.get](<https://developers.google.`com/workspace/admin/reseller/v1/reference/customers/get`>) If the customer account exists as a direct Google account or as a resold customer account from another reseller, use the `customerAuthToken`\ as described in [order a resold account for an existing customer](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/manage_customers`#create_existing_customer>). For more information about ordering a new customer account, see [order a new customer account](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/manage_customers`#create_customer>). After creating a new customer account, you must provision a user as an administrator. The customer''s administrator is required to sign in to the Admin console and sign the G Suite via Reseller agreement to activate the account. Resellers are prohibited from signing the G Suite via Reseller agreement on the customer''s behalf. For more information, see [order a new customer account](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/manage_customers`#tos>).
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -328,7 +328,7 @@ pub struct ResellerCustomersInsertArgs {
 }
 
 /// POST apps/reseller/v1/customers
-/// Orders a new customer's account. Before ordering a new customer account, establish whether the customer account already exists using the [customers.get](<https://developers.google.`com/workspace/admin/reseller/v1/reference/customers/get`>) If the customer account exists as a direct Google account or as a resold customer account from another reseller, use the `customerAuthToken`\ as described in [order a resold account for an existing customer](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/manage_customers`#create_existing_customer>). For more information about ordering a new customer account, see [order a new customer account](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/manage_customers`#create_customer>). After creating a new customer account, you must provision a user as an administrator. The customer's administrator is required to sign in to the Admin console and sign the G Suite via Reseller agreement to activate the account. Resellers are prohibited from signing the G Suite via Reseller agreement on the customer's behalf. For more information, see [order a new customer account](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/manage_customers`#tos>).
+/// Orders a new customer''s account. Before ordering a new customer account, establish whether the customer account already exists using the [customers.get](<https://developers.google.`com/workspace/admin/reseller/v1/reference/customers/get`>) If the customer account exists as a direct Google account or as a resold customer account from another reseller, use the `customerAuthToken`\ as described in [order a resold account for an existing customer](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/manage_customers`#create_existing_customer>). For more information about ordering a new customer account, see [order a new customer account](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/manage_customers`#create_customer>). After creating a new customer account, you must provision a user as an administrator. The customer''s administrator is required to sign in to the Admin console and sign the G Suite via Reseller agreement to activate the account. Resellers are prohibited from signing the G Suite via Reseller agreement on the customer''s behalf. For more information, see [order a new customer account](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/manage_customers`#tos>).
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `reseller_customers_insert_builder()` + `reseller_customers_insert_execute()`.
@@ -350,7 +350,7 @@ pub fn reseller_customers_insert(
 }
 
 /// PATCH apps/reseller/v1/customers/{customerId}
-/// Updates a customer account's settings. This method supports patch semantics. You cannot update `customerType` via the Reseller API, but a "team" customer can verify their domain and become `customerType` = "domain". For more information, see [Verify your domain to unlock Essentials features](<https://support.google.`com/a/answer/9122284`>).
+/// Updates a customer account''s settings. This method supports patch semantics. You cannot update `customerType` via the Reseller API, but a "team" customer can verify their domain and become `customerType` = "domain". For more information, see [Verify your domain to unlock Essentials features](<https://support.google.`com/a/answer/9122284`>).
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `reseller_customers_patch_execute()` to send, or `reseller_customers_patch` for simplest API.
@@ -377,7 +377,7 @@ where
 }
 
 /// PATCH apps/reseller/v1/customers/{customerId}
-/// Updates a customer account's settings. This method supports patch semantics. You cannot update `customerType` via the Reseller API, but a "team" customer can verify their domain and become `customerType` = "domain". For more information, see [Verify your domain to unlock Essentials features](<https://support.google.`com/a/answer/9122284`>).
+/// Updates a customer account''s settings. This method supports patch semantics. You cannot update `customerType` via the Reseller API, but a "team" customer can verify their domain and become `customerType` = "domain". For more information, see [Verify your domain to unlock Essentials features](<https://support.google.`com/a/answer/9122284`>).
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -451,7 +451,7 @@ pub fn reseller_customers_patch_task(
 }
 
 /// PATCH apps/reseller/v1/customers/{customerId}
-/// Updates a customer account's settings. This method supports patch semantics. You cannot update `customerType` via the Reseller API, but a "team" customer can verify their domain and become `customerType` = "domain". For more information, see [Verify your domain to unlock Essentials features](<https://support.google.`com/a/answer/9122284`>).
+/// Updates a customer account''s settings. This method supports patch semantics. You cannot update `customerType` via the Reseller API, but a "team" customer can verify their domain and become `customerType` = "domain". For more information, see [Verify your domain to unlock Essentials features](<https://support.google.`com/a/answer/9122284`>).
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -488,7 +488,7 @@ pub struct ResellerCustomersPatchArgs {
 }
 
 /// PATCH apps/reseller/v1/customers/{customerId}
-/// Updates a customer account's settings. This method supports patch semantics. You cannot update `customerType` via the Reseller API, but a "team" customer can verify their domain and become `customerType` = "domain". For more information, see [Verify your domain to unlock Essentials features](<https://support.google.`com/a/answer/9122284`>).
+/// Updates a customer account''s settings. This method supports patch semantics. You cannot update `customerType` via the Reseller API, but a "team" customer can verify their domain and become `customerType` = "domain". For more information, see [Verify your domain to unlock Essentials features](<https://support.google.`com/a/answer/9122284`>).
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `reseller_customers_patch_builder()` + `reseller_customers_patch_execute()`.
@@ -510,7 +510,7 @@ pub fn reseller_customers_patch(
 }
 
 /// PUT apps/reseller/v1/customers/{customerId}
-/// Updates a customer account's settings. You cannot update `customerType` via the Reseller API, but a "team" customer can verify their domain and become `customerType` = "domain". For more information, see [update a customer's settings](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/manage_customers`#update_customer>).
+/// Updates a customer account''s settings. You cannot update `customerType` via the Reseller API, but a "team" customer can verify their domain and become `customerType` = "domain". For more information, see [update a customer''s settings](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/manage_customers`#update_customer>).
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `reseller_customers_update_execute()` to send, or `reseller_customers_update` for simplest API.
@@ -537,7 +537,7 @@ where
 }
 
 /// PUT apps/reseller/v1/customers/{customerId}
-/// Updates a customer account's settings. You cannot update `customerType` via the Reseller API, but a "team" customer can verify their domain and become `customerType` = "domain". For more information, see [update a customer's settings](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/manage_customers`#update_customer>).
+/// Updates a customer account''s settings. You cannot update `customerType` via the Reseller API, but a "team" customer can verify their domain and become `customerType` = "domain". For more information, see [update a customer''s settings](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/manage_customers`#update_customer>).
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -611,7 +611,7 @@ pub fn reseller_customers_update_task(
 }
 
 /// PUT apps/reseller/v1/customers/{customerId}
-/// Updates a customer account's settings. You cannot update `customerType` via the Reseller API, but a "team" customer can verify their domain and become `customerType` = "domain". For more information, see [update a customer's settings](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/manage_customers`#update_customer>).
+/// Updates a customer account''s settings. You cannot update `customerType` via the Reseller API, but a "team" customer can verify their domain and become `customerType` = "domain". For more information, see [update a customer''s settings](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/manage_customers`#update_customer>).
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -648,7 +648,7 @@ pub struct ResellerCustomersUpdateArgs {
 }
 
 /// PUT apps/reseller/v1/customers/{customerId}
-/// Updates a customer account's settings. You cannot update `customerType` via the Reseller API, but a "team" customer can verify their domain and become `customerType` = "domain". For more information, see [update a customer's settings](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/manage_customers`#update_customer>).
+/// Updates a customer account''s settings. You cannot update `customerType` via the Reseller API, but a "team" customer can verify their domain and become `customerType` = "domain". For more information, see [update a customer''s settings](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/manage_customers`#update_customer>).
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `reseller_customers_update_builder()` + `reseller_customers_update_execute()`.
@@ -1511,7 +1511,7 @@ pub fn reseller_subscriptions_change_plan(
 }
 
 /// POST apps/reseller/v1/customers/{customerId}/subscriptions/{subscriptionId}/changeRenewalSettings
-/// Updates a user license's renewal settings. This is applicable for accounts with annual commitment plans only. For more information, see the description in [manage subscriptions](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/manage_subscriptions`#update_renewal>).
+/// Updates a user license''s renewal settings. This is applicable for accounts with annual commitment plans only. For more information, see the description in [manage subscriptions](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/manage_subscriptions`#update_renewal>).
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `reseller_subscriptions_change_renewal_settings_execute()` to send, or `reseller_subscriptions_change_renewal_settings` for simplest API.
@@ -1540,7 +1540,7 @@ where
 }
 
 /// POST apps/reseller/v1/customers/{customerId}/subscriptions/{subscriptionId}/changeRenewalSettings
-/// Updates a user license's renewal settings. This is applicable for accounts with annual commitment plans only. For more information, see the description in [manage subscriptions](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/manage_subscriptions`#update_renewal>).
+/// Updates a user license''s renewal settings. This is applicable for accounts with annual commitment plans only. For more information, see the description in [manage subscriptions](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/manage_subscriptions`#update_renewal>).
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -1614,7 +1614,7 @@ pub fn reseller_subscriptions_change_renewal_settings_task(
 }
 
 /// POST apps/reseller/v1/customers/{customerId}/subscriptions/{subscriptionId}/changeRenewalSettings
-/// Updates a user license's renewal settings. This is applicable for accounts with annual commitment plans only. For more information, see the description in [manage subscriptions](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/manage_subscriptions`#update_renewal>).
+/// Updates a user license''s renewal settings. This is applicable for accounts with annual commitment plans only. For more information, see the description in [manage subscriptions](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/manage_subscriptions`#update_renewal>).
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -1655,7 +1655,7 @@ pub struct ResellerSubscriptionsChangeRenewalSettingsArgs {
 }
 
 /// POST apps/reseller/v1/customers/{customerId}/subscriptions/{subscriptionId}/changeRenewalSettings
-/// Updates a user license's renewal settings. This is applicable for accounts with annual commitment plans only. For more information, see the description in [manage subscriptions](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/manage_subscriptions`#update_renewal>).
+/// Updates a user license''s renewal settings. This is applicable for accounts with annual commitment plans only. For more information, see the description in [manage subscriptions](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/manage_subscriptions`#update_renewal>).
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `reseller_subscriptions_change_renewal_settings_builder()` + `reseller_subscriptions_change_renewal_settings_execute()`.
@@ -1683,7 +1683,7 @@ pub fn reseller_subscriptions_change_renewal_settings(
 }
 
 /// POST apps/reseller/v1/customers/{customerId}/subscriptions/{subscriptionId}/changeSeats
-/// Updates a subscription's user license settings. For more information about updating an annual commitment plan or a flexible plan subscription’s licenses, see [Manage Subscriptions](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/manage_subscriptions`#update_subscription_seat>).
+/// Updates a subscription''s user license settings. For more information about updating an annual commitment plan or a flexible plan subscription’s licenses, see [Manage Subscriptions](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/manage_subscriptions`#update_subscription_seat>).
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `reseller_subscriptions_change_seats_execute()` to send, or `reseller_subscriptions_change_seats` for simplest API.
@@ -1712,7 +1712,7 @@ where
 }
 
 /// POST apps/reseller/v1/customers/{customerId}/subscriptions/{subscriptionId}/changeSeats
-/// Updates a subscription's user license settings. For more information about updating an annual commitment plan or a flexible plan subscription’s licenses, see [Manage Subscriptions](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/manage_subscriptions`#update_subscription_seat>).
+/// Updates a subscription''s user license settings. For more information about updating an annual commitment plan or a flexible plan subscription’s licenses, see [Manage Subscriptions](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/manage_subscriptions`#update_subscription_seat>).
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -1786,7 +1786,7 @@ pub fn reseller_subscriptions_change_seats_task(
 }
 
 /// POST apps/reseller/v1/customers/{customerId}/subscriptions/{subscriptionId}/changeSeats
-/// Updates a subscription's user license settings. For more information about updating an annual commitment plan or a flexible plan subscription’s licenses, see [Manage Subscriptions](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/manage_subscriptions`#update_subscription_seat>).
+/// Updates a subscription''s user license settings. For more information about updating an annual commitment plan or a flexible plan subscription’s licenses, see [Manage Subscriptions](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/manage_subscriptions`#update_subscription_seat>).
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -1827,7 +1827,7 @@ pub struct ResellerSubscriptionsChangeSeatsArgs {
 }
 
 /// POST apps/reseller/v1/customers/{customerId}/subscriptions/{subscriptionId}/changeSeats
-/// Updates a subscription's user license settings. For more information about updating an annual commitment plan or a flexible plan subscription’s licenses, see [Manage Subscriptions](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/manage_subscriptions`#update_subscription_seat>).
+/// Updates a subscription''s user license settings. For more information about updating an annual commitment plan or a flexible plan subscription’s licenses, see [Manage Subscriptions](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/manage_subscriptions`#update_subscription_seat>).
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `reseller_subscriptions_change_seats_builder()` + `reseller_subscriptions_change_seats_execute()`.
@@ -2202,7 +2202,7 @@ pub fn reseller_subscriptions_get(
 }
 
 /// POST apps/reseller/v1/customers/{customerId}/subscriptions
-/// Creates or transfer a subscription. Create a subscription for a customer's account that you ordered using the [Order a new customer account](<https://developers.google.`com/workspace/admin/reseller/v1/reference/customers/insert`.html>) method. For more information about creating a subscription for different payment plans, see [manage subscriptions](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/manage_subscriptions`#create_subscription>).\ If you did not order the customer's account using the customer insert method, use the customer's `customerAuthToken` when creating a subscription for that customer. If transferring a G Suite subscription with an associated Google Drive or Google Vault subscription, use the [batch operation](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/batch`.html>) to transfer all of these subscriptions. For more information, see how to [transfer subscriptions](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/manage_subscriptions`#transfer_a_subscription>).
+/// Creates or transfer a subscription. Create a subscription for a customer''s account that you ordered using the [Order a new customer account](<https://developers.google.`com/workspace/admin/reseller/v1/reference/customers/insert`.html>) method. For more information about creating a subscription for different payment plans, see [manage subscriptions](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/manage_subscriptions`#create_subscription>).\ If you did not order the customer''s account using the customer insert method, use the customer''s `customerAuthToken` when creating a subscription for that customer. If transferring a G Suite subscription with an associated Google Drive or Google Vault subscription, use the [batch operation](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/batch`.html>) to transfer all of these subscriptions. For more information, see how to [transfer subscriptions](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/manage_subscriptions`#transfer_a_subscription>).
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `reseller_subscriptions_insert_execute()` to send, or `reseller_subscriptions_insert` for simplest API.
@@ -2249,7 +2249,7 @@ where
 }
 
 /// POST apps/reseller/v1/customers/{customerId}/subscriptions
-/// Creates or transfer a subscription. Create a subscription for a customer's account that you ordered using the [Order a new customer account](<https://developers.google.`com/workspace/admin/reseller/v1/reference/customers/insert`.html>) method. For more information about creating a subscription for different payment plans, see [manage subscriptions](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/manage_subscriptions`#create_subscription>).\ If you did not order the customer's account using the customer insert method, use the customer's `customerAuthToken` when creating a subscription for that customer. If transferring a G Suite subscription with an associated Google Drive or Google Vault subscription, use the [batch operation](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/batch`.html>) to transfer all of these subscriptions. For more information, see how to [transfer subscriptions](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/manage_subscriptions`#transfer_a_subscription>).
+/// Creates or transfer a subscription. Create a subscription for a customer''s account that you ordered using the [Order a new customer account](<https://developers.google.`com/workspace/admin/reseller/v1/reference/customers/insert`.html>) method. For more information about creating a subscription for different payment plans, see [manage subscriptions](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/manage_subscriptions`#create_subscription>).\ If you did not order the customer''s account using the customer insert method, use the customer''s `customerAuthToken` when creating a subscription for that customer. If transferring a G Suite subscription with an associated Google Drive or Google Vault subscription, use the [batch operation](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/batch`.html>) to transfer all of these subscriptions. For more information, see how to [transfer subscriptions](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/manage_subscriptions`#transfer_a_subscription>).
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -2323,7 +2323,7 @@ pub fn reseller_subscriptions_insert_task(
 }
 
 /// POST apps/reseller/v1/customers/{customerId}/subscriptions
-/// Creates or transfer a subscription. Create a subscription for a customer's account that you ordered using the [Order a new customer account](<https://developers.google.`com/workspace/admin/reseller/v1/reference/customers/insert`.html>) method. For more information about creating a subscription for different payment plans, see [manage subscriptions](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/manage_subscriptions`#create_subscription>).\ If you did not order the customer's account using the customer insert method, use the customer's `customerAuthToken` when creating a subscription for that customer. If transferring a G Suite subscription with an associated Google Drive or Google Vault subscription, use the [batch operation](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/batch`.html>) to transfer all of these subscriptions. For more information, see how to [transfer subscriptions](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/manage_subscriptions`#transfer_a_subscription>).
+/// Creates or transfer a subscription. Create a subscription for a customer''s account that you ordered using the [Order a new customer account](<https://developers.google.`com/workspace/admin/reseller/v1/reference/customers/insert`.html>) method. For more information about creating a subscription for different payment plans, see [manage subscriptions](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/manage_subscriptions`#create_subscription>).\ If you did not order the customer''s account using the customer insert method, use the customer''s `customerAuthToken` when creating a subscription for that customer. If transferring a G Suite subscription with an associated Google Drive or Google Vault subscription, use the [batch operation](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/batch`.html>) to transfer all of these subscriptions. For more information, see how to [transfer subscriptions](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/manage_subscriptions`#transfer_a_subscription>).
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -2368,7 +2368,7 @@ pub struct ResellerSubscriptionsInsertArgs {
 }
 
 /// POST apps/reseller/v1/customers/{customerId}/subscriptions
-/// Creates or transfer a subscription. Create a subscription for a customer's account that you ordered using the [Order a new customer account](<https://developers.google.`com/workspace/admin/reseller/v1/reference/customers/insert`.html>) method. For more information about creating a subscription for different payment plans, see [manage subscriptions](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/manage_subscriptions`#create_subscription>).\ If you did not order the customer's account using the customer insert method, use the customer's `customerAuthToken` when creating a subscription for that customer. If transferring a G Suite subscription with an associated Google Drive or Google Vault subscription, use the [batch operation](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/batch`.html>) to transfer all of these subscriptions. For more information, see how to [transfer subscriptions](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/manage_subscriptions`#transfer_a_subscription>).
+/// Creates or transfer a subscription. Create a subscription for a customer''s account that you ordered using the [Order a new customer account](<https://developers.google.`com/workspace/admin/reseller/v1/reference/customers/insert`.html>) method. For more information about creating a subscription for different payment plans, see [manage subscriptions](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/manage_subscriptions`#create_subscription>).\ If you did not order the customer''s account using the customer insert method, use the customer''s `customerAuthToken` when creating a subscription for that customer. If transferring a G Suite subscription with an associated Google Drive or Google Vault subscription, use the [batch operation](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/batch`.html>) to transfer all of these subscriptions. For more information, see how to [transfer subscriptions](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/manage_subscriptions`#transfer_a_subscription>).
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `reseller_subscriptions_insert_builder()` + `reseller_subscriptions_insert_execute()`.
@@ -2398,7 +2398,7 @@ pub fn reseller_subscriptions_insert(
 }
 
 /// GET apps/reseller/v1/subscriptions
-/// Lists of subscriptions managed by the reseller. The list can be all subscriptions, all of a customer's subscriptions, or all of a customer's transferable subscriptions. Optionally, this method can filter the response by a `customerNamePrefix`. For more information, see [manage subscriptions](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/manage_subscriptions`>).
+/// Lists of subscriptions managed by the reseller. The list can be all subscriptions, all of a customer''s subscriptions, or all of a customer''s transferable subscriptions. Optionally, this method can filter the response by a `customerNamePrefix`. For more information, see [manage subscriptions](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/manage_subscriptions`>).
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `reseller_subscriptions_list_execute()` to send, or `reseller_subscriptions_list` for simplest API.
@@ -2449,7 +2449,7 @@ where
 }
 
 /// GET apps/reseller/v1/subscriptions
-/// Lists of subscriptions managed by the reseller. The list can be all subscriptions, all of a customer's subscriptions, or all of a customer's transferable subscriptions. Optionally, this method can filter the response by a `customerNamePrefix`. For more information, see [manage subscriptions](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/manage_subscriptions`>).
+/// Lists of subscriptions managed by the reseller. The list can be all subscriptions, all of a customer''s subscriptions, or all of a customer''s transferable subscriptions. Optionally, this method can filter the response by a `customerNamePrefix`. For more information, see [manage subscriptions](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/manage_subscriptions`>).
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -2523,7 +2523,7 @@ pub fn reseller_subscriptions_list_task(
 }
 
 /// GET apps/reseller/v1/subscriptions
-/// Lists of subscriptions managed by the reseller. The list can be all subscriptions, all of a customer's subscriptions, or all of a customer's transferable subscriptions. Optionally, this method can filter the response by a `customerNamePrefix`. For more information, see [manage subscriptions](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/manage_subscriptions`>).
+/// Lists of subscriptions managed by the reseller. The list can be all subscriptions, all of a customer''s subscriptions, or all of a customer''s transferable subscriptions. Optionally, this method can filter the response by a `customerNamePrefix`. For more information, see [manage subscriptions](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/manage_subscriptions`>).
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -2570,7 +2570,7 @@ pub struct ResellerSubscriptionsListArgs {
 }
 
 /// GET apps/reseller/v1/subscriptions
-/// Lists of subscriptions managed by the reseller. The list can be all subscriptions, all of a customer's subscriptions, or all of a customer's transferable subscriptions. Optionally, this method can filter the response by a `customerNamePrefix`. For more information, see [manage subscriptions](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/manage_subscriptions`>).
+/// Lists of subscriptions managed by the reseller. The list can be all subscriptions, all of a customer''s subscriptions, or all of a customer''s transferable subscriptions. Optionally, this method can filter the response by a `customerNamePrefix`. For more information, see [manage subscriptions](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/manage_subscriptions`>).
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `reseller_subscriptions_list_builder()` + `reseller_subscriptions_list_execute()`.

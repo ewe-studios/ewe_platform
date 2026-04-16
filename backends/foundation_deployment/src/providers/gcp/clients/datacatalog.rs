@@ -22,7 +22,7 @@ use foundation_macros::JsonHash;
 use serde::Serialize;
 
 /// POST v1/catalog:search
-/// Searches Data Catalog for multiple resources like entries and tags that match a query. This is a [Custom Method] (<https://cloud.google.`com/apis/design/custom_methods`>) that doesn't return all information on a resource, only its ID and high level fields. To get more information, you can subsequently call specific get methods. Note: Data Catalog search queries don't guarantee full recall. Results that match your query might not be returned, even in subsequent result pages. Additionally, returned (and not returned) results can vary if you repeat search queries. For more information, see [Data Catalog search syntax] (<https://cloud.google.`com/data-catalog/docs/how-to/search-reference`>).
+/// Searches Data Catalog for multiple resources like entries and tags that match a query. This is a [Custom Method] (<https://cloud.google.`com/apis/design/custom_methods`>) that doesn''t return all information on a resource, only its ID and high level fields. To get more information, you can subsequently call specific get methods. Note: Data Catalog search queries don''t guarantee full recall. Results that match your query might not be returned, even in subsequent result pages. Additionally, returned (and not returned) results can vary if you repeat search queries. For more information, see [Data Catalog search syntax] (<https://cloud.google.`com/data-catalog/docs/how-to/search-reference`>).
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datacatalog_catalog_search_execute()` to send, or `datacatalog_catalog_search` for simplest API.
@@ -45,7 +45,7 @@ where
 }
 
 /// POST v1/catalog:search
-/// Searches Data Catalog for multiple resources like entries and tags that match a query. This is a [Custom Method] (<https://cloud.google.`com/apis/design/custom_methods`>) that doesn't return all information on a resource, only its ID and high level fields. To get more information, you can subsequently call specific get methods. Note: Data Catalog search queries don't guarantee full recall. Results that match your query might not be returned, even in subsequent result pages. Additionally, returned (and not returned) results can vary if you repeat search queries. For more information, see [Data Catalog search syntax] (<https://cloud.google.`com/data-catalog/docs/how-to/search-reference`>).
+/// Searches Data Catalog for multiple resources like entries and tags that match a query. This is a [Custom Method] (<https://cloud.google.`com/apis/design/custom_methods`>) that doesn''t return all information on a resource, only its ID and high level fields. To get more information, you can subsequently call specific get methods. Note: Data Catalog search queries don''t guarantee full recall. Results that match your query might not be returned, even in subsequent result pages. Additionally, returned (and not returned) results can vary if you repeat search queries. For more information, see [Data Catalog search syntax] (<https://cloud.google.`com/data-catalog/docs/how-to/search-reference`>).
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -120,7 +120,7 @@ pub fn datacatalog_catalog_search_task(
 }
 
 /// POST v1/catalog:search
-/// Searches Data Catalog for multiple resources like entries and tags that match a query. This is a [Custom Method] (<https://cloud.google.`com/apis/design/custom_methods`>) that doesn't return all information on a resource, only its ID and high level fields. To get more information, you can subsequently call specific get methods. Note: Data Catalog search queries don't guarantee full recall. Results that match your query might not be returned, even in subsequent result pages. Additionally, returned (and not returned) results can vary if you repeat search queries. For more information, see [Data Catalog search syntax] (<https://cloud.google.`com/data-catalog/docs/how-to/search-reference`>).
+/// Searches Data Catalog for multiple resources like entries and tags that match a query. This is a [Custom Method] (<https://cloud.google.`com/apis/design/custom_methods`>) that doesn''t return all information on a resource, only its ID and high level fields. To get more information, you can subsequently call specific get methods. Note: Data Catalog search queries don''t guarantee full recall. Results that match your query might not be returned, even in subsequent result pages. Additionally, returned (and not returned) results can vary if you repeat search queries. For more information, see [Data Catalog search syntax] (<https://cloud.google.`com/data-catalog/docs/how-to/search-reference`>).
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -154,7 +154,7 @@ pub fn datacatalog_catalog_search_execute(
 }
 
 /// POST v1/catalog:search
-/// Searches Data Catalog for multiple resources like entries and tags that match a query. This is a [Custom Method] (<https://cloud.google.`com/apis/design/custom_methods`>) that doesn't return all information on a resource, only its ID and high level fields. To get more information, you can subsequently call specific get methods. Note: Data Catalog search queries don't guarantee full recall. Results that match your query might not be returned, even in subsequent result pages. Additionally, returned (and not returned) results can vary if you repeat search queries. For more information, see [Data Catalog search syntax] (<https://cloud.google.`com/data-catalog/docs/how-to/search-reference`>).
+/// Searches Data Catalog for multiple resources like entries and tags that match a query. This is a [Custom Method] (<https://cloud.google.`com/apis/design/custom_methods`>) that doesn''t return all information on a resource, only its ID and high level fields. To get more information, you can subsequently call specific get methods. Note: Data Catalog search queries don''t guarantee full recall. Results that match your query might not be returned, even in subsequent result pages. Additionally, returned (and not returned) results can vary if you repeat search queries. For more information, see [Data Catalog search syntax] (<https://cloud.google.`com/data-catalog/docs/how-to/search-reference`>).
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `datacatalog_catalog_search_builder()` + `datacatalog_catalog_search_execute()`.
@@ -1233,7 +1233,7 @@ pub fn datacatalog_projects_locations_set_config(
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/entryGroups
-/// Creates an entry group. An entry group contains logically related entries together with [Cloud Identity and Access Management](/data-`catalog/docs/concepts/iam`) policies. These policies specify users who can create, edit, and view entries within entry groups. Data Catalog automatically creates entry groups with names that start with the @ symbol for the following resources: * BigQuery entries (@bigquery) * P`ub/Sub` topics (@pubsub) * Dataproc Metastore services (@dataproc_metastore_{SERVICE_NAME_HASH}) You can create your own entry groups for Cloud Storage fileset entries and custom entries together with the corresponding IAM policies. User-created entry groups can't contain the @ symbol, it is reserved for automatically created groups. Entry groups, like entries, can be searched. A maximum of 10,000 entry groups may be created per organization across all locations. You must enable the Data Catalog API in the project identified by the parent parameter. For more information, see [Data Catalog resource project](<https://cloud.google.`com/data-catalog/docs/concepts/resource-project`>).
+/// Creates an entry group. An entry group contains logically related entries together with [Cloud Identity and Access Management](/data-`catalog/docs/concepts/iam`) policies. These policies specify users who can create, edit, and view entries within entry groups. Data Catalog automatically creates entry groups with names that start with the @ symbol for the following resources: * BigQuery entries (@bigquery) * P`ub/Sub` topics (@pubsub) * Dataproc Metastore services (@dataproc_metastore_{SERVICE_NAME_HASH}) You can create your own entry groups for Cloud Storage fileset entries and custom entries together with the corresponding IAM policies. User-created entry groups can''t contain the @ symbol, it is reserved for automatically created groups. Entry groups, like entries, can be searched. A maximum of 10,000 entry groups may be created per organization across all locations. You must enable the Data Catalog API in the project identified by the parent parameter. For more information, see [Data Catalog resource project](<https://cloud.google.`com/data-catalog/docs/concepts/resource-project`>).
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datacatalog_projects_locations_entry_groups_create_execute()` to send, or `datacatalog_projects_locations_entry_groups_create` for simplest API.
@@ -1272,7 +1272,7 @@ where
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/entryGroups
-/// Creates an entry group. An entry group contains logically related entries together with [Cloud Identity and Access Management](/data-`catalog/docs/concepts/iam`) policies. These policies specify users who can create, edit, and view entries within entry groups. Data Catalog automatically creates entry groups with names that start with the @ symbol for the following resources: * BigQuery entries (@bigquery) * P`ub/Sub` topics (@pubsub) * Dataproc Metastore services (@dataproc_metastore_{SERVICE_NAME_HASH}) You can create your own entry groups for Cloud Storage fileset entries and custom entries together with the corresponding IAM policies. User-created entry groups can't contain the @ symbol, it is reserved for automatically created groups. Entry groups, like entries, can be searched. A maximum of 10,000 entry groups may be created per organization across all locations. You must enable the Data Catalog API in the project identified by the parent parameter. For more information, see [Data Catalog resource project](<https://cloud.google.`com/data-catalog/docs/concepts/resource-project`>).
+/// Creates an entry group. An entry group contains logically related entries together with [Cloud Identity and Access Management](/data-`catalog/docs/concepts/iam`) policies. These policies specify users who can create, edit, and view entries within entry groups. Data Catalog automatically creates entry groups with names that start with the @ symbol for the following resources: * BigQuery entries (@bigquery) * P`ub/Sub` topics (@pubsub) * Dataproc Metastore services (@dataproc_metastore_{SERVICE_NAME_HASH}) You can create your own entry groups for Cloud Storage fileset entries and custom entries together with the corresponding IAM policies. User-created entry groups can''t contain the @ symbol, it is reserved for automatically created groups. Entry groups, like entries, can be searched. A maximum of 10,000 entry groups may be created per organization across all locations. You must enable the Data Catalog API in the project identified by the parent parameter. For more information, see [Data Catalog resource project](<https://cloud.google.`com/data-catalog/docs/concepts/resource-project`>).
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -1346,7 +1346,7 @@ pub fn datacatalog_projects_locations_entry_groups_create_task(
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/entryGroups
-/// Creates an entry group. An entry group contains logically related entries together with [Cloud Identity and Access Management](/data-`catalog/docs/concepts/iam`) policies. These policies specify users who can create, edit, and view entries within entry groups. Data Catalog automatically creates entry groups with names that start with the @ symbol for the following resources: * BigQuery entries (@bigquery) * P`ub/Sub` topics (@pubsub) * Dataproc Metastore services (@dataproc_metastore_{SERVICE_NAME_HASH}) You can create your own entry groups for Cloud Storage fileset entries and custom entries together with the corresponding IAM policies. User-created entry groups can't contain the @ symbol, it is reserved for automatically created groups. Entry groups, like entries, can be searched. A maximum of 10,000 entry groups may be created per organization across all locations. You must enable the Data Catalog API in the project identified by the parent parameter. For more information, see [Data Catalog resource project](<https://cloud.google.`com/data-catalog/docs/concepts/resource-project`>).
+/// Creates an entry group. An entry group contains logically related entries together with [Cloud Identity and Access Management](/data-`catalog/docs/concepts/iam`) policies. These policies specify users who can create, edit, and view entries within entry groups. Data Catalog automatically creates entry groups with names that start with the @ symbol for the following resources: * BigQuery entries (@bigquery) * P`ub/Sub` topics (@pubsub) * Dataproc Metastore services (@dataproc_metastore_{SERVICE_NAME_HASH}) You can create your own entry groups for Cloud Storage fileset entries and custom entries together with the corresponding IAM policies. User-created entry groups can''t contain the @ symbol, it is reserved for automatically created groups. Entry groups, like entries, can be searched. A maximum of 10,000 entry groups may be created per organization across all locations. You must enable the Data Catalog API in the project identified by the parent parameter. For more information, see [Data Catalog resource project](<https://cloud.google.`com/data-catalog/docs/concepts/resource-project`>).
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -1389,7 +1389,7 @@ pub struct DatacatalogProjectsLocationsEntryGroupsCreateArgs {
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/entryGroups
-/// Creates an entry group. An entry group contains logically related entries together with [Cloud Identity and Access Management](/data-`catalog/docs/concepts/iam`) policies. These policies specify users who can create, edit, and view entries within entry groups. Data Catalog automatically creates entry groups with names that start with the @ symbol for the following resources: * BigQuery entries (@bigquery) * P`ub/Sub` topics (@pubsub) * Dataproc Metastore services (@dataproc_metastore_{SERVICE_NAME_HASH}) You can create your own entry groups for Cloud Storage fileset entries and custom entries together with the corresponding IAM policies. User-created entry groups can't contain the @ symbol, it is reserved for automatically created groups. Entry groups, like entries, can be searched. A maximum of 10,000 entry groups may be created per organization across all locations. You must enable the Data Catalog API in the project identified by the parent parameter. For more information, see [Data Catalog resource project](<https://cloud.google.`com/data-catalog/docs/concepts/resource-project`>).
+/// Creates an entry group. An entry group contains logically related entries together with [Cloud Identity and Access Management](/data-`catalog/docs/concepts/iam`) policies. These policies specify users who can create, edit, and view entries within entry groups. Data Catalog automatically creates entry groups with names that start with the @ symbol for the following resources: * BigQuery entries (@bigquery) * P`ub/Sub` topics (@pubsub) * Dataproc Metastore services (@dataproc_metastore_{SERVICE_NAME_HASH}) You can create your own entry groups for Cloud Storage fileset entries and custom entries together with the corresponding IAM policies. User-created entry groups can''t contain the @ symbol, it is reserved for automatically created groups. Entry groups, like entries, can be searched. A maximum of 10,000 entry groups may be created per organization across all locations. You must enable the Data Catalog API in the project identified by the parent parameter. For more information, see [Data Catalog resource project](<https://cloud.google.`com/data-catalog/docs/concepts/resource-project`>).
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `datacatalog_projects_locations_entry_groups_create_builder()` + `datacatalog_projects_locations_entry_groups_create_execute()`.
@@ -1783,7 +1783,7 @@ pub fn datacatalog_projects_locations_entry_groups_get(
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}:getIamPolicy
-/// Gets the access control policy for a resource. May return: * ANOT_FOUND error if the resource doesn't exist or you don't have the permission to view it. * An empty policy if the resource exists but doesn't have a set policy. Supported resources are: - Tag templates - Entry groups Note: This method doesn't get policies from Google Cloud Platform resources ingested into Data Catalog. To call this method, you must have the following Google IAM permissions: - datacatalog.`tagTemplates`.`getIamPolicy` to get policies on tag templates. - datacatalog.`entryGroups`.`getIamPolicy` to get policies on entry groups.
+/// Gets the access control policy for a resource. May return: * ANOT_FOUND error if the resource doesn''t exist or you don''t have the permission to view it. * An empty policy if the resource exists but doesn''t have a set policy. Supported resources are: - Tag templates - Entry groups Note: This method doesn''t get policies from Google Cloud Platform resources ingested into Data Catalog. To call this method, you must have the following Google IAM permissions: - datacatalog.`tagTemplates`.`getIamPolicy` to get policies on tag templates. - datacatalog.`entryGroups`.`getIamPolicy` to get policies on entry groups.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datacatalog_projects_locations_entry_groups_get_iam_policy_execute()` to send, or `datacatalog_projects_locations_entry_groups_get_iam_policy` for simplest API.
@@ -1810,7 +1810,7 @@ where
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}:getIamPolicy
-/// Gets the access control policy for a resource. May return: * ANOT_FOUND error if the resource doesn't exist or you don't have the permission to view it. * An empty policy if the resource exists but doesn't have a set policy. Supported resources are: - Tag templates - Entry groups Note: This method doesn't get policies from Google Cloud Platform resources ingested into Data Catalog. To call this method, you must have the following Google IAM permissions: - datacatalog.`tagTemplates`.`getIamPolicy` to get policies on tag templates. - datacatalog.`entryGroups`.`getIamPolicy` to get policies on entry groups.
+/// Gets the access control policy for a resource. May return: * ANOT_FOUND error if the resource doesn''t exist or you don''t have the permission to view it. * An empty policy if the resource exists but doesn''t have a set policy. Supported resources are: - Tag templates - Entry groups Note: This method doesn''t get policies from Google Cloud Platform resources ingested into Data Catalog. To call this method, you must have the following Google IAM permissions: - datacatalog.`tagTemplates`.`getIamPolicy` to get policies on tag templates. - datacatalog.`entryGroups`.`getIamPolicy` to get policies on entry groups.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -1884,7 +1884,7 @@ pub fn datacatalog_projects_locations_entry_groups_get_iam_policy_task(
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}:getIamPolicy
-/// Gets the access control policy for a resource. May return: * ANOT_FOUND error if the resource doesn't exist or you don't have the permission to view it. * An empty policy if the resource exists but doesn't have a set policy. Supported resources are: - Tag templates - Entry groups Note: This method doesn't get policies from Google Cloud Platform resources ingested into Data Catalog. To call this method, you must have the following Google IAM permissions: - datacatalog.`tagTemplates`.`getIamPolicy` to get policies on tag templates. - datacatalog.`entryGroups`.`getIamPolicy` to get policies on entry groups.
+/// Gets the access control policy for a resource. May return: * ANOT_FOUND error if the resource doesn''t exist or you don''t have the permission to view it. * An empty policy if the resource exists but doesn''t have a set policy. Supported resources are: - Tag templates - Entry groups Note: This method doesn''t get policies from Google Cloud Platform resources ingested into Data Catalog. To call this method, you must have the following Google IAM permissions: - datacatalog.`tagTemplates`.`getIamPolicy` to get policies on tag templates. - datacatalog.`entryGroups`.`getIamPolicy` to get policies on entry groups.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -1921,7 +1921,7 @@ pub struct DatacatalogProjectsLocationsEntryGroupsGetIamPolicyArgs {
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}:getIamPolicy
-/// Gets the access control policy for a resource. May return: * ANOT_FOUND error if the resource doesn't exist or you don't have the permission to view it. * An empty policy if the resource exists but doesn't have a set policy. Supported resources are: - Tag templates - Entry groups Note: This method doesn't get policies from Google Cloud Platform resources ingested into Data Catalog. To call this method, you must have the following Google IAM permissions: - datacatalog.`tagTemplates`.`getIamPolicy` to get policies on tag templates. - datacatalog.`entryGroups`.`getIamPolicy` to get policies on entry groups.
+/// Gets the access control policy for a resource. May return: * ANOT_FOUND error if the resource doesn''t exist or you don''t have the permission to view it. * An empty policy if the resource exists but doesn''t have a set policy. Supported resources are: - Tag templates - Entry groups Note: This method doesn''t get policies from Google Cloud Platform resources ingested into Data Catalog. To call this method, you must have the following Google IAM permissions: - datacatalog.`tagTemplates`.`getIamPolicy` to get policies on tag templates. - datacatalog.`entryGroups`.`getIamPolicy` to get policies on entry groups.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `datacatalog_projects_locations_entry_groups_get_iam_policy_builder()` + `datacatalog_projects_locations_entry_groups_get_iam_policy_execute()`.
@@ -2324,7 +2324,7 @@ pub fn datacatalog_projects_locations_entry_groups_patch(
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}:setIamPolicy
-/// Sets an access control policy for a resource. Replaces any existing policy. Supported resources are: - Tag templates - Entry groups Note: This method sets policies only within Data Catalog and can't be used to manage policies in BigQuery, P`ub/Sub`, Dataproc Metastore, and any external Google Cloud Platform resources synced with the Data Catalog. To call this method, you must have the following Google IAM permissions: - datacatalog.`tagTemplates`.`setIamPolicy` to set policies on tag templates. - datacatalog.`entryGroups`.`setIamPolicy` to set policies on entry groups.
+/// Sets an access control policy for a resource. Replaces any existing policy. Supported resources are: - Tag templates - Entry groups Note: This method sets policies only within Data Catalog and can''t be used to manage policies in BigQuery, P`ub/Sub`, Dataproc Metastore, and any external Google Cloud Platform resources synced with the Data Catalog. To call this method, you must have the following Google IAM permissions: - datacatalog.`tagTemplates`.`setIamPolicy` to set policies on tag templates. - datacatalog.`entryGroups`.`setIamPolicy` to set policies on entry groups.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datacatalog_projects_locations_entry_groups_set_iam_policy_execute()` to send, or `datacatalog_projects_locations_entry_groups_set_iam_policy` for simplest API.
@@ -2351,7 +2351,7 @@ where
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}:setIamPolicy
-/// Sets an access control policy for a resource. Replaces any existing policy. Supported resources are: - Tag templates - Entry groups Note: This method sets policies only within Data Catalog and can't be used to manage policies in BigQuery, P`ub/Sub`, Dataproc Metastore, and any external Google Cloud Platform resources synced with the Data Catalog. To call this method, you must have the following Google IAM permissions: - datacatalog.`tagTemplates`.`setIamPolicy` to set policies on tag templates. - datacatalog.`entryGroups`.`setIamPolicy` to set policies on entry groups.
+/// Sets an access control policy for a resource. Replaces any existing policy. Supported resources are: - Tag templates - Entry groups Note: This method sets policies only within Data Catalog and can''t be used to manage policies in BigQuery, P`ub/Sub`, Dataproc Metastore, and any external Google Cloud Platform resources synced with the Data Catalog. To call this method, you must have the following Google IAM permissions: - datacatalog.`tagTemplates`.`setIamPolicy` to set policies on tag templates. - datacatalog.`entryGroups`.`setIamPolicy` to set policies on entry groups.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -2425,7 +2425,7 @@ pub fn datacatalog_projects_locations_entry_groups_set_iam_policy_task(
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}:setIamPolicy
-/// Sets an access control policy for a resource. Replaces any existing policy. Supported resources are: - Tag templates - Entry groups Note: This method sets policies only within Data Catalog and can't be used to manage policies in BigQuery, P`ub/Sub`, Dataproc Metastore, and any external Google Cloud Platform resources synced with the Data Catalog. To call this method, you must have the following Google IAM permissions: - datacatalog.`tagTemplates`.`setIamPolicy` to set policies on tag templates. - datacatalog.`entryGroups`.`setIamPolicy` to set policies on entry groups.
+/// Sets an access control policy for a resource. Replaces any existing policy. Supported resources are: - Tag templates - Entry groups Note: This method sets policies only within Data Catalog and can''t be used to manage policies in BigQuery, P`ub/Sub`, Dataproc Metastore, and any external Google Cloud Platform resources synced with the Data Catalog. To call this method, you must have the following Google IAM permissions: - datacatalog.`tagTemplates`.`setIamPolicy` to set policies on tag templates. - datacatalog.`entryGroups`.`setIamPolicy` to set policies on entry groups.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -2462,7 +2462,7 @@ pub struct DatacatalogProjectsLocationsEntryGroupsSetIamPolicyArgs {
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}:setIamPolicy
-/// Sets an access control policy for a resource. Replaces any existing policy. Supported resources are: - Tag templates - Entry groups Note: This method sets policies only within Data Catalog and can't be used to manage policies in BigQuery, P`ub/Sub`, Dataproc Metastore, and any external Google Cloud Platform resources synced with the Data Catalog. To call this method, you must have the following Google IAM permissions: - datacatalog.`tagTemplates`.`setIamPolicy` to set policies on tag templates. - datacatalog.`entryGroups`.`setIamPolicy` to set policies on entry groups.
+/// Sets an access control policy for a resource. Replaces any existing policy. Supported resources are: - Tag templates - Entry groups Note: This method sets policies only within Data Catalog and can''t be used to manage policies in BigQuery, P`ub/Sub`, Dataproc Metastore, and any external Google Cloud Platform resources synced with the Data Catalog. To call this method, you must have the following Google IAM permissions: - datacatalog.`tagTemplates`.`setIamPolicy` to set policies on tag templates. - datacatalog.`entryGroups`.`setIamPolicy` to set policies on entry groups.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `datacatalog_projects_locations_entry_groups_set_iam_policy_builder()` + `datacatalog_projects_locations_entry_groups_set_iam_policy_execute()`.
@@ -2485,7 +2485,7 @@ pub fn datacatalog_projects_locations_entry_groups_set_iam_policy(
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}:testIamPermissions
-/// Gets your permissions on a resource. Returns an empty set of permissions if the resource doesn't exist. Supported resources are: - Tag templates - Entry groups Note: This method gets policies only within Data Catalog and can't be used to get policies from BigQuery, P`ub/Sub`, Dataproc Metastore, and any external Google Cloud Platform resources ingested into Data Catalog. No Google IAM permissions are required to call this method.
+/// Gets your permissions on a resource. Returns an empty set of permissions if the resource doesn''t exist. Supported resources are: - Tag templates - Entry groups Note: This method gets policies only within Data Catalog and can''t be used to get policies from BigQuery, P`ub/Sub`, Dataproc Metastore, and any external Google Cloud Platform resources ingested into Data Catalog. No Google IAM permissions are required to call this method.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datacatalog_projects_locations_entry_groups_test_iam_permissions_execute()` to send, or `datacatalog_projects_locations_entry_groups_test_iam_permissions` for simplest API.
@@ -2512,7 +2512,7 @@ where
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}:testIamPermissions
-/// Gets your permissions on a resource. Returns an empty set of permissions if the resource doesn't exist. Supported resources are: - Tag templates - Entry groups Note: This method gets policies only within Data Catalog and can't be used to get policies from BigQuery, P`ub/Sub`, Dataproc Metastore, and any external Google Cloud Platform resources ingested into Data Catalog. No Google IAM permissions are required to call this method.
+/// Gets your permissions on a resource. Returns an empty set of permissions if the resource doesn''t exist. Supported resources are: - Tag templates - Entry groups Note: This method gets policies only within Data Catalog and can''t be used to get policies from BigQuery, P`ub/Sub`, Dataproc Metastore, and any external Google Cloud Platform resources ingested into Data Catalog. No Google IAM permissions are required to call this method.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -2586,7 +2586,7 @@ pub fn datacatalog_projects_locations_entry_groups_test_iam_permissions_task(
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}:testIamPermissions
-/// Gets your permissions on a resource. Returns an empty set of permissions if the resource doesn't exist. Supported resources are: - Tag templates - Entry groups Note: This method gets policies only within Data Catalog and can't be used to get policies from BigQuery, P`ub/Sub`, Dataproc Metastore, and any external Google Cloud Platform resources ingested into Data Catalog. No Google IAM permissions are required to call this method.
+/// Gets your permissions on a resource. Returns an empty set of permissions if the resource doesn''t exist. Supported resources are: - Tag templates - Entry groups Note: This method gets policies only within Data Catalog and can''t be used to get policies from BigQuery, P`ub/Sub`, Dataproc Metastore, and any external Google Cloud Platform resources ingested into Data Catalog. No Google IAM permissions are required to call this method.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -2627,7 +2627,7 @@ pub struct DatacatalogProjectsLocationsEntryGroupsTestIamPermissionsArgs {
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}:testIamPermissions
-/// Gets your permissions on a resource. Returns an empty set of permissions if the resource doesn't exist. Supported resources are: - Tag templates - Entry groups Note: This method gets policies only within Data Catalog and can't be used to get policies from BigQuery, P`ub/Sub`, Dataproc Metastore, and any external Google Cloud Platform resources ingested into Data Catalog. No Google IAM permissions are required to call this method.
+/// Gets your permissions on a resource. Returns an empty set of permissions if the resource doesn''t exist. Supported resources are: - Tag templates - Entry groups Note: This method gets policies only within Data Catalog and can''t be used to get policies from BigQuery, P`ub/Sub`, Dataproc Metastore, and any external Google Cloud Platform resources ingested into Data Catalog. No Google IAM permissions are required to call this method.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `datacatalog_projects_locations_entry_groups_test_iam_permissions_builder()` + `datacatalog_projects_locations_entry_groups_test_iam_permissions_execute()`.
@@ -2656,7 +2656,7 @@ pub fn datacatalog_projects_locations_entry_groups_test_iam_permissions(
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries
-/// Creates an entry. You can create entries only with 'FILESET', 'CLUSTER', 'DATA_STREAM', or custom types. Data Catalog automatically creates entries with other types during metadata ingestion from integrated systems. You must enable the Data Catalog API in the project identified by the parent parameter. For more information, see [Data Catalog resource project](<https://cloud.google.`com/data-catalog/docs/concepts/resource-project`>). An entry group can have a maximum of 100,000 entries.
+/// Creates an entry. You can create entries only with ''FILESET'', ''CLUSTER'', ''DATA_STREAM'', or custom types. Data Catalog automatically creates entries with other types during metadata ingestion from integrated systems. You must enable the Data Catalog API in the project identified by the parent parameter. For more information, see [Data Catalog resource project](<https://cloud.google.`com/data-catalog/docs/concepts/resource-project`>). An entry group can have a maximum of 100,000 entries.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datacatalog_projects_locations_entry_groups_entries_create_execute()` to send, or `datacatalog_projects_locations_entry_groups_entries_create` for simplest API.
@@ -2695,7 +2695,7 @@ where
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries
-/// Creates an entry. You can create entries only with 'FILESET', 'CLUSTER', 'DATA_STREAM', or custom types. Data Catalog automatically creates entries with other types during metadata ingestion from integrated systems. You must enable the Data Catalog API in the project identified by the parent parameter. For more information, see [Data Catalog resource project](<https://cloud.google.`com/data-catalog/docs/concepts/resource-project`>). An entry group can have a maximum of 100,000 entries.
+/// Creates an entry. You can create entries only with ''FILESET'', ''CLUSTER'', ''DATA_STREAM'', or custom types. Data Catalog automatically creates entries with other types during metadata ingestion from integrated systems. You must enable the Data Catalog API in the project identified by the parent parameter. For more information, see [Data Catalog resource project](<https://cloud.google.`com/data-catalog/docs/concepts/resource-project`>). An entry group can have a maximum of 100,000 entries.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -2769,7 +2769,7 @@ pub fn datacatalog_projects_locations_entry_groups_entries_create_task(
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries
-/// Creates an entry. You can create entries only with 'FILESET', 'CLUSTER', 'DATA_STREAM', or custom types. Data Catalog automatically creates entries with other types during metadata ingestion from integrated systems. You must enable the Data Catalog API in the project identified by the parent parameter. For more information, see [Data Catalog resource project](<https://cloud.google.`com/data-catalog/docs/concepts/resource-project`>). An entry group can have a maximum of 100,000 entries.
+/// Creates an entry. You can create entries only with ''FILESET'', ''CLUSTER'', ''DATA_STREAM'', or custom types. Data Catalog automatically creates entries with other types during metadata ingestion from integrated systems. You must enable the Data Catalog API in the project identified by the parent parameter. For more information, see [Data Catalog resource project](<https://cloud.google.`com/data-catalog/docs/concepts/resource-project`>). An entry group can have a maximum of 100,000 entries.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -2812,7 +2812,7 @@ pub struct DatacatalogProjectsLocationsEntryGroupsEntriesCreateArgs {
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries
-/// Creates an entry. You can create entries only with 'FILESET', 'CLUSTER', 'DATA_STREAM', or custom types. Data Catalog automatically creates entries with other types during metadata ingestion from integrated systems. You must enable the Data Catalog API in the project identified by the parent parameter. For more information, see [Data Catalog resource project](<https://cloud.google.`com/data-catalog/docs/concepts/resource-project`>). An entry group can have a maximum of 100,000 entries.
+/// Creates an entry. You can create entries only with ''FILESET'', ''CLUSTER'', ''DATA_STREAM'', or custom types. Data Catalog automatically creates entries with other types during metadata ingestion from integrated systems. You must enable the Data Catalog API in the project identified by the parent parameter. For more information, see [Data Catalog resource project](<https://cloud.google.`com/data-catalog/docs/concepts/resource-project`>). An entry group can have a maximum of 100,000 entries.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `datacatalog_projects_locations_entry_groups_entries_create_builder()` + `datacatalog_projects_locations_entry_groups_entries_create_execute()`.
@@ -3172,7 +3172,7 @@ pub fn datacatalog_projects_locations_entry_groups_entries_get(
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries/{entriesId}:getIamPolicy
-/// Gets the access control policy for a resource. May return: * ANOT_FOUND error if the resource doesn't exist or you don't have the permission to view it. * An empty policy if the resource exists but doesn't have a set policy. Supported resources are: - Tag templates - Entry groups Note: This method doesn't get policies from Google Cloud Platform resources ingested into Data Catalog. To call this method, you must have the following Google IAM permissions: - datacatalog.`tagTemplates`.`getIamPolicy` to get policies on tag templates. - datacatalog.`entryGroups`.`getIamPolicy` to get policies on entry groups.
+/// Gets the access control policy for a resource. May return: * ANOT_FOUND error if the resource doesn''t exist or you don''t have the permission to view it. * An empty policy if the resource exists but doesn''t have a set policy. Supported resources are: - Tag templates - Entry groups Note: This method doesn''t get policies from Google Cloud Platform resources ingested into Data Catalog. To call this method, you must have the following Google IAM permissions: - datacatalog.`tagTemplates`.`getIamPolicy` to get policies on tag templates. - datacatalog.`entryGroups`.`getIamPolicy` to get policies on entry groups.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datacatalog_projects_locations_entry_groups_entries_get_iam_policy_execute()` to send, or `datacatalog_projects_locations_entry_groups_entries_get_iam_policy` for simplest API.
@@ -3199,7 +3199,7 @@ where
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries/{entriesId}:getIamPolicy
-/// Gets the access control policy for a resource. May return: * ANOT_FOUND error if the resource doesn't exist or you don't have the permission to view it. * An empty policy if the resource exists but doesn't have a set policy. Supported resources are: - Tag templates - Entry groups Note: This method doesn't get policies from Google Cloud Platform resources ingested into Data Catalog. To call this method, you must have the following Google IAM permissions: - datacatalog.`tagTemplates`.`getIamPolicy` to get policies on tag templates. - datacatalog.`entryGroups`.`getIamPolicy` to get policies on entry groups.
+/// Gets the access control policy for a resource. May return: * ANOT_FOUND error if the resource doesn''t exist or you don''t have the permission to view it. * An empty policy if the resource exists but doesn''t have a set policy. Supported resources are: - Tag templates - Entry groups Note: This method doesn''t get policies from Google Cloud Platform resources ingested into Data Catalog. To call this method, you must have the following Google IAM permissions: - datacatalog.`tagTemplates`.`getIamPolicy` to get policies on tag templates. - datacatalog.`entryGroups`.`getIamPolicy` to get policies on entry groups.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -3273,7 +3273,7 @@ pub fn datacatalog_projects_locations_entry_groups_entries_get_iam_policy_task(
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries/{entriesId}:getIamPolicy
-/// Gets the access control policy for a resource. May return: * ANOT_FOUND error if the resource doesn't exist or you don't have the permission to view it. * An empty policy if the resource exists but doesn't have a set policy. Supported resources are: - Tag templates - Entry groups Note: This method doesn't get policies from Google Cloud Platform resources ingested into Data Catalog. To call this method, you must have the following Google IAM permissions: - datacatalog.`tagTemplates`.`getIamPolicy` to get policies on tag templates. - datacatalog.`entryGroups`.`getIamPolicy` to get policies on entry groups.
+/// Gets the access control policy for a resource. May return: * ANOT_FOUND error if the resource doesn''t exist or you don''t have the permission to view it. * An empty policy if the resource exists but doesn''t have a set policy. Supported resources are: - Tag templates - Entry groups Note: This method doesn''t get policies from Google Cloud Platform resources ingested into Data Catalog. To call this method, you must have the following Google IAM permissions: - datacatalog.`tagTemplates`.`getIamPolicy` to get policies on tag templates. - datacatalog.`entryGroups`.`getIamPolicy` to get policies on entry groups.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -3310,7 +3310,7 @@ pub struct DatacatalogProjectsLocationsEntryGroupsEntriesGetIamPolicyArgs {
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries/{entriesId}:getIamPolicy
-/// Gets the access control policy for a resource. May return: * ANOT_FOUND error if the resource doesn't exist or you don't have the permission to view it. * An empty policy if the resource exists but doesn't have a set policy. Supported resources are: - Tag templates - Entry groups Note: This method doesn't get policies from Google Cloud Platform resources ingested into Data Catalog. To call this method, you must have the following Google IAM permissions: - datacatalog.`tagTemplates`.`getIamPolicy` to get policies on tag templates. - datacatalog.`entryGroups`.`getIamPolicy` to get policies on entry groups.
+/// Gets the access control policy for a resource. May return: * ANOT_FOUND error if the resource doesn''t exist or you don''t have the permission to view it. * An empty policy if the resource exists but doesn''t have a set policy. Supported resources are: - Tag templates - Entry groups Note: This method doesn''t get policies from Google Cloud Platform resources ingested into Data Catalog. To call this method, you must have the following Google IAM permissions: - datacatalog.`tagTemplates`.`getIamPolicy` to get policies on tag templates. - datacatalog.`entryGroups`.`getIamPolicy` to get policies on entry groups.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `datacatalog_projects_locations_entry_groups_entries_get_iam_policy_builder()` + `datacatalog_projects_locations_entry_groups_entries_get_iam_policy_execute()`.
@@ -4396,7 +4396,7 @@ pub fn datacatalog_projects_locations_entry_groups_entries_star(
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries/{entriesId}:testIamPermissions
-/// Gets your permissions on a resource. Returns an empty set of permissions if the resource doesn't exist. Supported resources are: - Tag templates - Entry groups Note: This method gets policies only within Data Catalog and can't be used to get policies from BigQuery, P`ub/Sub`, Dataproc Metastore, and any external Google Cloud Platform resources ingested into Data Catalog. No Google IAM permissions are required to call this method.
+/// Gets your permissions on a resource. Returns an empty set of permissions if the resource doesn''t exist. Supported resources are: - Tag templates - Entry groups Note: This method gets policies only within Data Catalog and can''t be used to get policies from BigQuery, P`ub/Sub`, Dataproc Metastore, and any external Google Cloud Platform resources ingested into Data Catalog. No Google IAM permissions are required to call this method.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datacatalog_projects_locations_entry_groups_entries_test_iam_permissions_execute()` to send, or `datacatalog_projects_locations_entry_groups_entries_test_iam_permissions` for simplest API.
@@ -4423,7 +4423,7 @@ where
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries/{entriesId}:testIamPermissions
-/// Gets your permissions on a resource. Returns an empty set of permissions if the resource doesn't exist. Supported resources are: - Tag templates - Entry groups Note: This method gets policies only within Data Catalog and can't be used to get policies from BigQuery, P`ub/Sub`, Dataproc Metastore, and any external Google Cloud Platform resources ingested into Data Catalog. No Google IAM permissions are required to call this method.
+/// Gets your permissions on a resource. Returns an empty set of permissions if the resource doesn''t exist. Supported resources are: - Tag templates - Entry groups Note: This method gets policies only within Data Catalog and can''t be used to get policies from BigQuery, P`ub/Sub`, Dataproc Metastore, and any external Google Cloud Platform resources ingested into Data Catalog. No Google IAM permissions are required to call this method.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -4497,7 +4497,7 @@ pub fn datacatalog_projects_locations_entry_groups_entries_test_iam_permissions_
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries/{entriesId}:testIamPermissions
-/// Gets your permissions on a resource. Returns an empty set of permissions if the resource doesn't exist. Supported resources are: - Tag templates - Entry groups Note: This method gets policies only within Data Catalog and can't be used to get policies from BigQuery, P`ub/Sub`, Dataproc Metastore, and any external Google Cloud Platform resources ingested into Data Catalog. No Google IAM permissions are required to call this method.
+/// Gets your permissions on a resource. Returns an empty set of permissions if the resource doesn''t exist. Supported resources are: - Tag templates - Entry groups Note: This method gets policies only within Data Catalog and can''t be used to get policies from BigQuery, P`ub/Sub`, Dataproc Metastore, and any external Google Cloud Platform resources ingested into Data Catalog. No Google IAM permissions are required to call this method.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -4539,7 +4539,7 @@ pub struct DatacatalogProjectsLocationsEntryGroupsEntriesTestIamPermissionsArgs 
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries/{entriesId}:testIamPermissions
-/// Gets your permissions on a resource. Returns an empty set of permissions if the resource doesn't exist. Supported resources are: - Tag templates - Entry groups Note: This method gets policies only within Data Catalog and can't be used to get policies from BigQuery, P`ub/Sub`, Dataproc Metastore, and any external Google Cloud Platform resources ingested into Data Catalog. No Google IAM permissions are required to call this method.
+/// Gets your permissions on a resource. Returns an empty set of permissions if the resource doesn''t exist. Supported resources are: - Tag templates - Entry groups Note: This method gets policies only within Data Catalog and can''t be used to get policies from BigQuery, P`ub/Sub`, Dataproc Metastore, and any external Google Cloud Platform resources ingested into Data Catalog. No Google IAM permissions are required to call this method.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `datacatalog_projects_locations_entry_groups_entries_test_iam_permissions_builder()` + `datacatalog_projects_locations_entry_groups_entries_test_iam_permissions_execute()`.
@@ -6322,7 +6322,7 @@ pub fn datacatalog_projects_locations_entry_groups_tags_patch(
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datacatalog_projects_locations_operations_cancel_execute()` to send, or `datacatalog_projects_locations_operations_cancel` for simplest API.
@@ -6349,7 +6349,7 @@ where
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -6423,7 +6423,7 @@ pub fn datacatalog_projects_locations_operations_cancel_task(
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -6460,7 +6460,7 @@ pub struct DatacatalogProjectsLocationsOperationsCancelArgs {
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `datacatalog_projects_locations_operations_cancel_builder()` + `datacatalog_projects_locations_operations_cancel_execute()`.
@@ -6482,7 +6482,7 @@ pub fn datacatalog_projects_locations_operations_cancel(
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
-/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datacatalog_projects_locations_operations_delete_execute()` to send, or `datacatalog_projects_locations_operations_delete` for simplest API.
@@ -6509,7 +6509,7 @@ where
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
-/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -6583,7 +6583,7 @@ pub fn datacatalog_projects_locations_operations_delete_task(
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
-/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -6620,7 +6620,7 @@ pub struct DatacatalogProjectsLocationsOperationsDeleteArgs {
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
-/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `datacatalog_projects_locations_operations_delete_builder()` + `datacatalog_projects_locations_operations_delete_execute()`.
@@ -6802,7 +6802,7 @@ pub fn datacatalog_projects_locations_operations_get(
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datacatalog_projects_locations_operations_list_execute()` to send, or `datacatalog_projects_locations_operations_list` for simplest API.
@@ -6853,7 +6853,7 @@ where
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -6927,7 +6927,7 @@ pub fn datacatalog_projects_locations_operations_list_task(
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -6974,7 +6974,7 @@ pub struct DatacatalogProjectsLocationsOperationsListArgs {
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `datacatalog_projects_locations_operations_list_builder()` + `datacatalog_projects_locations_operations_list_execute()`.
@@ -7537,7 +7537,7 @@ pub fn datacatalog_projects_locations_tag_templates_get(
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/tagTemplates/{tagTemplatesId}:getIamPolicy
-/// Gets the access control policy for a resource. May return: * ANOT_FOUND error if the resource doesn't exist or you don't have the permission to view it. * An empty policy if the resource exists but doesn't have a set policy. Supported resources are: - Tag templates - Entry groups Note: This method doesn't get policies from Google Cloud Platform resources ingested into Data Catalog. To call this method, you must have the following Google IAM permissions: - datacatalog.`tagTemplates`.`getIamPolicy` to get policies on tag templates. - datacatalog.`entryGroups`.`getIamPolicy` to get policies on entry groups.
+/// Gets the access control policy for a resource. May return: * ANOT_FOUND error if the resource doesn''t exist or you don''t have the permission to view it. * An empty policy if the resource exists but doesn''t have a set policy. Supported resources are: - Tag templates - Entry groups Note: This method doesn''t get policies from Google Cloud Platform resources ingested into Data Catalog. To call this method, you must have the following Google IAM permissions: - datacatalog.`tagTemplates`.`getIamPolicy` to get policies on tag templates. - datacatalog.`entryGroups`.`getIamPolicy` to get policies on entry groups.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datacatalog_projects_locations_tag_templates_get_iam_policy_execute()` to send, or `datacatalog_projects_locations_tag_templates_get_iam_policy` for simplest API.
@@ -7564,7 +7564,7 @@ where
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/tagTemplates/{tagTemplatesId}:getIamPolicy
-/// Gets the access control policy for a resource. May return: * ANOT_FOUND error if the resource doesn't exist or you don't have the permission to view it. * An empty policy if the resource exists but doesn't have a set policy. Supported resources are: - Tag templates - Entry groups Note: This method doesn't get policies from Google Cloud Platform resources ingested into Data Catalog. To call this method, you must have the following Google IAM permissions: - datacatalog.`tagTemplates`.`getIamPolicy` to get policies on tag templates. - datacatalog.`entryGroups`.`getIamPolicy` to get policies on entry groups.
+/// Gets the access control policy for a resource. May return: * ANOT_FOUND error if the resource doesn''t exist or you don''t have the permission to view it. * An empty policy if the resource exists but doesn''t have a set policy. Supported resources are: - Tag templates - Entry groups Note: This method doesn''t get policies from Google Cloud Platform resources ingested into Data Catalog. To call this method, you must have the following Google IAM permissions: - datacatalog.`tagTemplates`.`getIamPolicy` to get policies on tag templates. - datacatalog.`entryGroups`.`getIamPolicy` to get policies on entry groups.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -7638,7 +7638,7 @@ pub fn datacatalog_projects_locations_tag_templates_get_iam_policy_task(
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/tagTemplates/{tagTemplatesId}:getIamPolicy
-/// Gets the access control policy for a resource. May return: * ANOT_FOUND error if the resource doesn't exist or you don't have the permission to view it. * An empty policy if the resource exists but doesn't have a set policy. Supported resources are: - Tag templates - Entry groups Note: This method doesn't get policies from Google Cloud Platform resources ingested into Data Catalog. To call this method, you must have the following Google IAM permissions: - datacatalog.`tagTemplates`.`getIamPolicy` to get policies on tag templates. - datacatalog.`entryGroups`.`getIamPolicy` to get policies on entry groups.
+/// Gets the access control policy for a resource. May return: * ANOT_FOUND error if the resource doesn''t exist or you don''t have the permission to view it. * An empty policy if the resource exists but doesn''t have a set policy. Supported resources are: - Tag templates - Entry groups Note: This method doesn''t get policies from Google Cloud Platform resources ingested into Data Catalog. To call this method, you must have the following Google IAM permissions: - datacatalog.`tagTemplates`.`getIamPolicy` to get policies on tag templates. - datacatalog.`entryGroups`.`getIamPolicy` to get policies on entry groups.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -7675,7 +7675,7 @@ pub struct DatacatalogProjectsLocationsTagTemplatesGetIamPolicyArgs {
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/tagTemplates/{tagTemplatesId}:getIamPolicy
-/// Gets the access control policy for a resource. May return: * ANOT_FOUND error if the resource doesn't exist or you don't have the permission to view it. * An empty policy if the resource exists but doesn't have a set policy. Supported resources are: - Tag templates - Entry groups Note: This method doesn't get policies from Google Cloud Platform resources ingested into Data Catalog. To call this method, you must have the following Google IAM permissions: - datacatalog.`tagTemplates`.`getIamPolicy` to get policies on tag templates. - datacatalog.`entryGroups`.`getIamPolicy` to get policies on entry groups.
+/// Gets the access control policy for a resource. May return: * ANOT_FOUND error if the resource doesn''t exist or you don''t have the permission to view it. * An empty policy if the resource exists but doesn''t have a set policy. Supported resources are: - Tag templates - Entry groups Note: This method doesn''t get policies from Google Cloud Platform resources ingested into Data Catalog. To call this method, you must have the following Google IAM permissions: - datacatalog.`tagTemplates`.`getIamPolicy` to get policies on tag templates. - datacatalog.`entryGroups`.`getIamPolicy` to get policies on entry groups.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `datacatalog_projects_locations_tag_templates_get_iam_policy_builder()` + `datacatalog_projects_locations_tag_templates_get_iam_policy_execute()`.
@@ -7700,7 +7700,7 @@ pub fn datacatalog_projects_locations_tag_templates_get_iam_policy(
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/tagTemplates/{tagTemplatesId}
-/// Updates a tag template. You can't update template fields with this method. These fields are separate resources with their own create, update, and delete methods. You must enable the Data Catalog API in the project identified by the tag_template.name parameter. For more information, see [Data Catalog resource project](<https://cloud.google.`com/data-catalog/docs/concepts/resource-project`>).
+/// Updates a tag template. You can''t update template fields with this method. These fields are separate resources with their own create, update, and delete methods. You must enable the Data Catalog API in the project identified by the tag_template.name parameter. For more information, see [Data Catalog resource project](<https://cloud.google.`com/data-catalog/docs/concepts/resource-project`>).
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datacatalog_projects_locations_tag_templates_patch_execute()` to send, or `datacatalog_projects_locations_tag_templates_patch` for simplest API.
@@ -7739,7 +7739,7 @@ where
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/tagTemplates/{tagTemplatesId}
-/// Updates a tag template. You can't update template fields with this method. These fields are separate resources with their own create, update, and delete methods. You must enable the Data Catalog API in the project identified by the tag_template.name parameter. For more information, see [Data Catalog resource project](<https://cloud.google.`com/data-catalog/docs/concepts/resource-project`>).
+/// Updates a tag template. You can''t update template fields with this method. These fields are separate resources with their own create, update, and delete methods. You must enable the Data Catalog API in the project identified by the tag_template.name parameter. For more information, see [Data Catalog resource project](<https://cloud.google.`com/data-catalog/docs/concepts/resource-project`>).
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -7813,7 +7813,7 @@ pub fn datacatalog_projects_locations_tag_templates_patch_task(
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/tagTemplates/{tagTemplatesId}
-/// Updates a tag template. You can't update template fields with this method. These fields are separate resources with their own create, update, and delete methods. You must enable the Data Catalog API in the project identified by the tag_template.name parameter. For more information, see [Data Catalog resource project](<https://cloud.google.`com/data-catalog/docs/concepts/resource-project`>).
+/// Updates a tag template. You can''t update template fields with this method. These fields are separate resources with their own create, update, and delete methods. You must enable the Data Catalog API in the project identified by the tag_template.name parameter. For more information, see [Data Catalog resource project](<https://cloud.google.`com/data-catalog/docs/concepts/resource-project`>).
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -7856,7 +7856,7 @@ pub struct DatacatalogProjectsLocationsTagTemplatesPatchArgs {
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/tagTemplates/{tagTemplatesId}
-/// Updates a tag template. You can't update template fields with this method. These fields are separate resources with their own create, update, and delete methods. You must enable the Data Catalog API in the project identified by the tag_template.name parameter. For more information, see [Data Catalog resource project](<https://cloud.google.`com/data-catalog/docs/concepts/resource-project`>).
+/// Updates a tag template. You can''t update template fields with this method. These fields are separate resources with their own create, update, and delete methods. You must enable the Data Catalog API in the project identified by the tag_template.name parameter. For more information, see [Data Catalog resource project](<https://cloud.google.`com/data-catalog/docs/concepts/resource-project`>).
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `datacatalog_projects_locations_tag_templates_patch_builder()` + `datacatalog_projects_locations_tag_templates_patch_execute()`.
@@ -7886,7 +7886,7 @@ pub fn datacatalog_projects_locations_tag_templates_patch(
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/tagTemplates/{tagTemplatesId}:setIamPolicy
-/// Sets an access control policy for a resource. Replaces any existing policy. Supported resources are: - Tag templates - Entry groups Note: This method sets policies only within Data Catalog and can't be used to manage policies in BigQuery, P`ub/Sub`, Dataproc Metastore, and any external Google Cloud Platform resources synced with the Data Catalog. To call this method, you must have the following Google IAM permissions: - datacatalog.`tagTemplates`.`setIamPolicy` to set policies on tag templates. - datacatalog.`entryGroups`.`setIamPolicy` to set policies on entry groups.
+/// Sets an access control policy for a resource. Replaces any existing policy. Supported resources are: - Tag templates - Entry groups Note: This method sets policies only within Data Catalog and can''t be used to manage policies in BigQuery, P`ub/Sub`, Dataproc Metastore, and any external Google Cloud Platform resources synced with the Data Catalog. To call this method, you must have the following Google IAM permissions: - datacatalog.`tagTemplates`.`setIamPolicy` to set policies on tag templates. - datacatalog.`entryGroups`.`setIamPolicy` to set policies on entry groups.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datacatalog_projects_locations_tag_templates_set_iam_policy_execute()` to send, or `datacatalog_projects_locations_tag_templates_set_iam_policy` for simplest API.
@@ -7913,7 +7913,7 @@ where
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/tagTemplates/{tagTemplatesId}:setIamPolicy
-/// Sets an access control policy for a resource. Replaces any existing policy. Supported resources are: - Tag templates - Entry groups Note: This method sets policies only within Data Catalog and can't be used to manage policies in BigQuery, P`ub/Sub`, Dataproc Metastore, and any external Google Cloud Platform resources synced with the Data Catalog. To call this method, you must have the following Google IAM permissions: - datacatalog.`tagTemplates`.`setIamPolicy` to set policies on tag templates. - datacatalog.`entryGroups`.`setIamPolicy` to set policies on entry groups.
+/// Sets an access control policy for a resource. Replaces any existing policy. Supported resources are: - Tag templates - Entry groups Note: This method sets policies only within Data Catalog and can''t be used to manage policies in BigQuery, P`ub/Sub`, Dataproc Metastore, and any external Google Cloud Platform resources synced with the Data Catalog. To call this method, you must have the following Google IAM permissions: - datacatalog.`tagTemplates`.`setIamPolicy` to set policies on tag templates. - datacatalog.`entryGroups`.`setIamPolicy` to set policies on entry groups.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -7987,7 +7987,7 @@ pub fn datacatalog_projects_locations_tag_templates_set_iam_policy_task(
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/tagTemplates/{tagTemplatesId}:setIamPolicy
-/// Sets an access control policy for a resource. Replaces any existing policy. Supported resources are: - Tag templates - Entry groups Note: This method sets policies only within Data Catalog and can't be used to manage policies in BigQuery, P`ub/Sub`, Dataproc Metastore, and any external Google Cloud Platform resources synced with the Data Catalog. To call this method, you must have the following Google IAM permissions: - datacatalog.`tagTemplates`.`setIamPolicy` to set policies on tag templates. - datacatalog.`entryGroups`.`setIamPolicy` to set policies on entry groups.
+/// Sets an access control policy for a resource. Replaces any existing policy. Supported resources are: - Tag templates - Entry groups Note: This method sets policies only within Data Catalog and can''t be used to manage policies in BigQuery, P`ub/Sub`, Dataproc Metastore, and any external Google Cloud Platform resources synced with the Data Catalog. To call this method, you must have the following Google IAM permissions: - datacatalog.`tagTemplates`.`setIamPolicy` to set policies on tag templates. - datacatalog.`entryGroups`.`setIamPolicy` to set policies on entry groups.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -8024,7 +8024,7 @@ pub struct DatacatalogProjectsLocationsTagTemplatesSetIamPolicyArgs {
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/tagTemplates/{tagTemplatesId}:setIamPolicy
-/// Sets an access control policy for a resource. Replaces any existing policy. Supported resources are: - Tag templates - Entry groups Note: This method sets policies only within Data Catalog and can't be used to manage policies in BigQuery, P`ub/Sub`, Dataproc Metastore, and any external Google Cloud Platform resources synced with the Data Catalog. To call this method, you must have the following Google IAM permissions: - datacatalog.`tagTemplates`.`setIamPolicy` to set policies on tag templates. - datacatalog.`entryGroups`.`setIamPolicy` to set policies on entry groups.
+/// Sets an access control policy for a resource. Replaces any existing policy. Supported resources are: - Tag templates - Entry groups Note: This method sets policies only within Data Catalog and can''t be used to manage policies in BigQuery, P`ub/Sub`, Dataproc Metastore, and any external Google Cloud Platform resources synced with the Data Catalog. To call this method, you must have the following Google IAM permissions: - datacatalog.`tagTemplates`.`setIamPolicy` to set policies on tag templates. - datacatalog.`entryGroups`.`setIamPolicy` to set policies on entry groups.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `datacatalog_projects_locations_tag_templates_set_iam_policy_builder()` + `datacatalog_projects_locations_tag_templates_set_iam_policy_execute()`.
@@ -8049,7 +8049,7 @@ pub fn datacatalog_projects_locations_tag_templates_set_iam_policy(
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/tagTemplates/{tagTemplatesId}:testIamPermissions
-/// Gets your permissions on a resource. Returns an empty set of permissions if the resource doesn't exist. Supported resources are: - Tag templates - Entry groups Note: This method gets policies only within Data Catalog and can't be used to get policies from BigQuery, P`ub/Sub`, Dataproc Metastore, and any external Google Cloud Platform resources ingested into Data Catalog. No Google IAM permissions are required to call this method.
+/// Gets your permissions on a resource. Returns an empty set of permissions if the resource doesn''t exist. Supported resources are: - Tag templates - Entry groups Note: This method gets policies only within Data Catalog and can''t be used to get policies from BigQuery, P`ub/Sub`, Dataproc Metastore, and any external Google Cloud Platform resources ingested into Data Catalog. No Google IAM permissions are required to call this method.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datacatalog_projects_locations_tag_templates_test_iam_permissions_execute()` to send, or `datacatalog_projects_locations_tag_templates_test_iam_permissions` for simplest API.
@@ -8076,7 +8076,7 @@ where
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/tagTemplates/{tagTemplatesId}:testIamPermissions
-/// Gets your permissions on a resource. Returns an empty set of permissions if the resource doesn't exist. Supported resources are: - Tag templates - Entry groups Note: This method gets policies only within Data Catalog and can't be used to get policies from BigQuery, P`ub/Sub`, Dataproc Metastore, and any external Google Cloud Platform resources ingested into Data Catalog. No Google IAM permissions are required to call this method.
+/// Gets your permissions on a resource. Returns an empty set of permissions if the resource doesn''t exist. Supported resources are: - Tag templates - Entry groups Note: This method gets policies only within Data Catalog and can''t be used to get policies from BigQuery, P`ub/Sub`, Dataproc Metastore, and any external Google Cloud Platform resources ingested into Data Catalog. No Google IAM permissions are required to call this method.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -8150,7 +8150,7 @@ pub fn datacatalog_projects_locations_tag_templates_test_iam_permissions_task(
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/tagTemplates/{tagTemplatesId}:testIamPermissions
-/// Gets your permissions on a resource. Returns an empty set of permissions if the resource doesn't exist. Supported resources are: - Tag templates - Entry groups Note: This method gets policies only within Data Catalog and can't be used to get policies from BigQuery, P`ub/Sub`, Dataproc Metastore, and any external Google Cloud Platform resources ingested into Data Catalog. No Google IAM permissions are required to call this method.
+/// Gets your permissions on a resource. Returns an empty set of permissions if the resource doesn''t exist. Supported resources are: - Tag templates - Entry groups Note: This method gets policies only within Data Catalog and can''t be used to get policies from BigQuery, P`ub/Sub`, Dataproc Metastore, and any external Google Cloud Platform resources ingested into Data Catalog. No Google IAM permissions are required to call this method.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -8191,7 +8191,7 @@ pub struct DatacatalogProjectsLocationsTagTemplatesTestIamPermissionsArgs {
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/tagTemplates/{tagTemplatesId}:testIamPermissions
-/// Gets your permissions on a resource. Returns an empty set of permissions if the resource doesn't exist. Supported resources are: - Tag templates - Entry groups Note: This method gets policies only within Data Catalog and can't be used to get policies from BigQuery, P`ub/Sub`, Dataproc Metastore, and any external Google Cloud Platform resources ingested into Data Catalog. No Google IAM permissions are required to call this method.
+/// Gets your permissions on a resource. Returns an empty set of permissions if the resource doesn''t exist. Supported resources are: - Tag templates - Entry groups Note: This method gets policies only within Data Catalog and can''t be used to get policies from BigQuery, P`ub/Sub`, Dataproc Metastore, and any external Google Cloud Platform resources ingested into Data Catalog. No Google IAM permissions are required to call this method.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `datacatalog_projects_locations_tag_templates_test_iam_permissions_builder()` + `datacatalog_projects_locations_tag_templates_test_iam_permissions_execute()`.
@@ -8584,7 +8584,7 @@ pub fn datacatalog_projects_locations_tag_templates_fields_delete(
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/tagTemplates/{tagTemplatesId}/fields/{fieldsId}
-/// Updates a field in a tag template. You can't update the field type with this method. You must enable the Data Catalog API in the project identified by the name parameter. For more information, see [Data Catalog resource project](<https://cloud.google.`com/data-catalog/docs/concepts/resource-project`>).
+/// Updates a field in a tag template. You can''t update the field type with this method. You must enable the Data Catalog API in the project identified by the name parameter. For more information, see [Data Catalog resource project](<https://cloud.google.`com/data-catalog/docs/concepts/resource-project`>).
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datacatalog_projects_locations_tag_templates_fields_patch_execute()` to send, or `datacatalog_projects_locations_tag_templates_fields_patch` for simplest API.
@@ -8623,7 +8623,7 @@ where
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/tagTemplates/{tagTemplatesId}/fields/{fieldsId}
-/// Updates a field in a tag template. You can't update the field type with this method. You must enable the Data Catalog API in the project identified by the name parameter. For more information, see [Data Catalog resource project](<https://cloud.google.`com/data-catalog/docs/concepts/resource-project`>).
+/// Updates a field in a tag template. You can''t update the field type with this method. You must enable the Data Catalog API in the project identified by the name parameter. For more information, see [Data Catalog resource project](<https://cloud.google.`com/data-catalog/docs/concepts/resource-project`>).
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -8697,7 +8697,7 @@ pub fn datacatalog_projects_locations_tag_templates_fields_patch_task(
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/tagTemplates/{tagTemplatesId}/fields/{fieldsId}
-/// Updates a field in a tag template. You can't update the field type with this method. You must enable the Data Catalog API in the project identified by the name parameter. For more information, see [Data Catalog resource project](<https://cloud.google.`com/data-catalog/docs/concepts/resource-project`>).
+/// Updates a field in a tag template. You can''t update the field type with this method. You must enable the Data Catalog API in the project identified by the name parameter. For more information, see [Data Catalog resource project](<https://cloud.google.`com/data-catalog/docs/concepts/resource-project`>).
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -8740,7 +8740,7 @@ pub struct DatacatalogProjectsLocationsTagTemplatesFieldsPatchArgs {
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/tagTemplates/{tagTemplatesId}/fields/{fieldsId}
-/// Updates a field in a tag template. You can't update the field type with this method. You must enable the Data Catalog API in the project identified by the name parameter. For more information, see [Data Catalog resource project](<https://cloud.google.`com/data-catalog/docs/concepts/resource-project`>).
+/// Updates a field in a tag template. You can''t update the field type with this method. You must enable the Data Catalog API in the project identified by the name parameter. For more information, see [Data Catalog resource project](<https://cloud.google.`com/data-catalog/docs/concepts/resource-project`>).
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `datacatalog_projects_locations_tag_templates_fields_patch_builder()` + `datacatalog_projects_locations_tag_templates_fields_patch_execute()`.
@@ -9110,7 +9110,7 @@ pub fn datacatalog_projects_locations_tag_templates_fields_enum_values_rename(
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/taxonomies
-/// Creates a taxonomy in a specified project. The taxonomy is initially empty, that is, it doesn't contain policy tags.
+/// Creates a taxonomy in a specified project. The taxonomy is initially empty, that is, it doesn''t contain policy tags.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datacatalog_projects_locations_taxonomies_create_execute()` to send, or `datacatalog_projects_locations_taxonomies_create` for simplest API.
@@ -9137,7 +9137,7 @@ where
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/taxonomies
-/// Creates a taxonomy in a specified project. The taxonomy is initially empty, that is, it doesn't contain policy tags.
+/// Creates a taxonomy in a specified project. The taxonomy is initially empty, that is, it doesn''t contain policy tags.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -9211,7 +9211,7 @@ pub fn datacatalog_projects_locations_taxonomies_create_task(
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/taxonomies
-/// Creates a taxonomy in a specified project. The taxonomy is initially empty, that is, it doesn't contain policy tags.
+/// Creates a taxonomy in a specified project. The taxonomy is initially empty, that is, it doesn''t contain policy tags.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -9252,7 +9252,7 @@ pub struct DatacatalogProjectsLocationsTaxonomiesCreateArgs {
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/taxonomies
-/// Creates a taxonomy in a specified project. The taxonomy is initially empty, that is, it doesn't contain policy tags.
+/// Creates a taxonomy in a specified project. The taxonomy is initially empty, that is, it doesn''t contain policy tags.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `datacatalog_projects_locations_taxonomies_create_builder()` + `datacatalog_projects_locations_taxonomies_create_execute()`.
@@ -10517,7 +10517,7 @@ pub fn datacatalog_projects_locations_taxonomies_patch(
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/taxonomies/{taxonomiesId}:replace
-/// Replaces (updates) a taxonomy and all its policy tags. The taxonomy and its entire hierarchy of policy tags must be represented literally by SerializedTaxonomy and the nested SerializedPolicyTag messages. This operation automatically does the following: - Deletes the existing policy tags that are missing from the SerializedPolicyTag. - Creates policy tags that don't have resource names. They are considered new. - Updates policy tags with valid resources names accordingly.
+/// Replaces (updates) a taxonomy and all its policy tags. The taxonomy and its entire hierarchy of policy tags must be represented literally by SerializedTaxonomy and the nested SerializedPolicyTag messages. This operation automatically does the following: - Deletes the existing policy tags that are missing from the SerializedPolicyTag. - Creates policy tags that don''t have resource names. They are considered new. - Updates policy tags with valid resources names accordingly.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datacatalog_projects_locations_taxonomies_replace_execute()` to send, or `datacatalog_projects_locations_taxonomies_replace` for simplest API.
@@ -10544,7 +10544,7 @@ where
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/taxonomies/{taxonomiesId}:replace
-/// Replaces (updates) a taxonomy and all its policy tags. The taxonomy and its entire hierarchy of policy tags must be represented literally by SerializedTaxonomy and the nested SerializedPolicyTag messages. This operation automatically does the following: - Deletes the existing policy tags that are missing from the SerializedPolicyTag. - Creates policy tags that don't have resource names. They are considered new. - Updates policy tags with valid resources names accordingly.
+/// Replaces (updates) a taxonomy and all its policy tags. The taxonomy and its entire hierarchy of policy tags must be represented literally by SerializedTaxonomy and the nested SerializedPolicyTag messages. This operation automatically does the following: - Deletes the existing policy tags that are missing from the SerializedPolicyTag. - Creates policy tags that don''t have resource names. They are considered new. - Updates policy tags with valid resources names accordingly.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -10618,7 +10618,7 @@ pub fn datacatalog_projects_locations_taxonomies_replace_task(
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/taxonomies/{taxonomiesId}:replace
-/// Replaces (updates) a taxonomy and all its policy tags. The taxonomy and its entire hierarchy of policy tags must be represented literally by SerializedTaxonomy and the nested SerializedPolicyTag messages. This operation automatically does the following: - Deletes the existing policy tags that are missing from the SerializedPolicyTag. - Creates policy tags that don't have resource names. They are considered new. - Updates policy tags with valid resources names accordingly.
+/// Replaces (updates) a taxonomy and all its policy tags. The taxonomy and its entire hierarchy of policy tags must be represented literally by SerializedTaxonomy and the nested SerializedPolicyTag messages. This operation automatically does the following: - Deletes the existing policy tags that are missing from the SerializedPolicyTag. - Creates policy tags that don''t have resource names. They are considered new. - Updates policy tags with valid resources names accordingly.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -10659,7 +10659,7 @@ pub struct DatacatalogProjectsLocationsTaxonomiesReplaceArgs {
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/taxonomies/{taxonomiesId}:replace
-/// Replaces (updates) a taxonomy and all its policy tags. The taxonomy and its entire hierarchy of policy tags must be represented literally by SerializedTaxonomy and the nested SerializedPolicyTag messages. This operation automatically does the following: - Deletes the existing policy tags that are missing from the SerializedPolicyTag. - Creates policy tags that don't have resource names. They are considered new. - Updates policy tags with valid resources names accordingly.
+/// Replaces (updates) a taxonomy and all its policy tags. The taxonomy and its entire hierarchy of policy tags must be represented literally by SerializedTaxonomy and the nested SerializedPolicyTag messages. This operation automatically does the following: - Deletes the existing policy tags that are missing from the SerializedPolicyTag. - Creates policy tags that don''t have resource names. They are considered new. - Updates policy tags with valid resources names accordingly.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `datacatalog_projects_locations_taxonomies_replace_builder()` + `datacatalog_projects_locations_taxonomies_replace_execute()`.

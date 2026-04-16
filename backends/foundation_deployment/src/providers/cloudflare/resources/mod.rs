@@ -7,6 +7,8 @@
 
 #![cfg(feature = "cloudflare")]
 
+pub use super::clients::types::*;
+
 use super::*;
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};

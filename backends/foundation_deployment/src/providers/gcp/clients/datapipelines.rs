@@ -354,7 +354,7 @@ pub fn datapipelines_projects_locations_pipelines_delete(
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/pipelines/{pipelinesId}
-/// Looks up a single pipeline. Returns a "NOT_FOUND" error if no such pipeline exists. Returns a "FORBIDDEN" error if the caller doesn't have permission to access it.
+/// Looks up a single pipeline. Returns a "NOT_FOUND" error if no such pipeline exists. Returns a "FORBIDDEN" error if the caller doesn''t have permission to access it.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datapipelines_projects_locations_pipelines_get_execute()` to send, or `datapipelines_projects_locations_pipelines_get` for simplest API.
@@ -381,7 +381,7 @@ where
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/pipelines/{pipelinesId}
-/// Looks up a single pipeline. Returns a "NOT_FOUND" error if no such pipeline exists. Returns a "FORBIDDEN" error if the caller doesn't have permission to access it.
+/// Looks up a single pipeline. Returns a "NOT_FOUND" error if no such pipeline exists. Returns a "FORBIDDEN" error if the caller doesn''t have permission to access it.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -455,7 +455,7 @@ pub fn datapipelines_projects_locations_pipelines_get_task(
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/pipelines/{pipelinesId}
-/// Looks up a single pipeline. Returns a "NOT_FOUND" error if no such pipeline exists. Returns a "FORBIDDEN" error if the caller doesn't have permission to access it.
+/// Looks up a single pipeline. Returns a "NOT_FOUND" error if no such pipeline exists. Returns a "FORBIDDEN" error if the caller doesn''t have permission to access it.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -496,7 +496,7 @@ pub struct DatapipelinesProjectsLocationsPipelinesGetArgs {
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/pipelines/{pipelinesId}
-/// Looks up a single pipeline. Returns a "NOT_FOUND" error if no such pipeline exists. Returns a "FORBIDDEN" error if the caller doesn't have permission to access it.
+/// Looks up a single pipeline. Returns a "NOT_FOUND" error if no such pipeline exists. Returns a "FORBIDDEN" error if the caller doesn''t have permission to access it.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `datapipelines_projects_locations_pipelines_get_builder()` + `datapipelines_projects_locations_pipelines_get_execute()`.
@@ -522,7 +522,7 @@ pub fn datapipelines_projects_locations_pipelines_get(
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/pipelines
-/// Lists pipelines. Returns a "FORBIDDEN" error if the caller doesn't have permission to access it.
+/// Lists pipelines. Returns a "FORBIDDEN" error if the caller doesn''t have permission to access it.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datapipelines_projects_locations_pipelines_list_execute()` to send, or `datapipelines_projects_locations_pipelines_list` for simplest API.
@@ -569,7 +569,7 @@ where
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/pipelines
-/// Lists pipelines. Returns a "FORBIDDEN" error if the caller doesn't have permission to access it.
+/// Lists pipelines. Returns a "FORBIDDEN" error if the caller doesn''t have permission to access it.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -644,7 +644,7 @@ pub fn datapipelines_projects_locations_pipelines_list_task(
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/pipelines
-/// Lists pipelines. Returns a "FORBIDDEN" error if the caller doesn't have permission to access it.
+/// Lists pipelines. Returns a "FORBIDDEN" error if the caller doesn''t have permission to access it.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -691,7 +691,7 @@ pub struct DatapipelinesProjectsLocationsPipelinesListArgs {
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/pipelines
-/// Lists pipelines. Returns a "FORBIDDEN" error if the caller doesn't have permission to access it.
+/// Lists pipelines. Returns a "FORBIDDEN" error if the caller doesn''t have permission to access it.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `datapipelines_projects_locations_pipelines_list_builder()` + `datapipelines_projects_locations_pipelines_list_execute()`.
@@ -723,7 +723,7 @@ pub fn datapipelines_projects_locations_pipelines_list(
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/pipelines/{pipelinesId}
-/// Updates a pipeline. If successful, the updated Pipeline is returned. Returns NOT_FOUND if the pipeline doesn't exist. If UpdatePipeline does not return successfully, you can retry the UpdatePipeline request until you receive a successful response.
+/// Updates a pipeline. If successful, the updated Pipeline is returned. Returns NOT_FOUND if the pipeline doesn''t exist. If UpdatePipeline does not return successfully, you can retry the UpdatePipeline request until you receive a successful response.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datapipelines_projects_locations_pipelines_patch_execute()` to send, or `datapipelines_projects_locations_pipelines_patch` for simplest API.
@@ -762,7 +762,7 @@ where
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/pipelines/{pipelinesId}
-/// Updates a pipeline. If successful, the updated Pipeline is returned. Returns NOT_FOUND if the pipeline doesn't exist. If UpdatePipeline does not return successfully, you can retry the UpdatePipeline request until you receive a successful response.
+/// Updates a pipeline. If successful, the updated Pipeline is returned. Returns NOT_FOUND if the pipeline doesn''t exist. If UpdatePipeline does not return successfully, you can retry the UpdatePipeline request until you receive a successful response.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -836,7 +836,7 @@ pub fn datapipelines_projects_locations_pipelines_patch_task(
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/pipelines/{pipelinesId}
-/// Updates a pipeline. If successful, the updated Pipeline is returned. Returns NOT_FOUND if the pipeline doesn't exist. If UpdatePipeline does not return successfully, you can retry the UpdatePipeline request until you receive a successful response.
+/// Updates a pipeline. If successful, the updated Pipeline is returned. Returns NOT_FOUND if the pipeline doesn''t exist. If UpdatePipeline does not return successfully, you can retry the UpdatePipeline request until you receive a successful response.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -879,7 +879,7 @@ pub struct DatapipelinesProjectsLocationsPipelinesPatchArgs {
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/pipelines/{pipelinesId}
-/// Updates a pipeline. If successful, the updated Pipeline is returned. Returns NOT_FOUND if the pipeline doesn't exist. If UpdatePipeline does not return successfully, you can retry the UpdatePipeline request until you receive a successful response.
+/// Updates a pipeline. If successful, the updated Pipeline is returned. Returns NOT_FOUND if the pipeline doesn''t exist. If UpdatePipeline does not return successfully, you can retry the UpdatePipeline request until you receive a successful response.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `datapipelines_projects_locations_pipelines_patch_builder()` + `datapipelines_projects_locations_pipelines_patch_execute()`.
@@ -909,7 +909,7 @@ pub fn datapipelines_projects_locations_pipelines_patch(
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/pipelines/{pipelinesId}:run
-/// Creates a job for the specified pipeline directly. You can use this method when the internal scheduler is not configured and you want to trigger the job directly or through an external system. Returns a "NOT_FOUND" error if the pipeline doesn't exist. Returns a "FORBIDDEN" error if the user doesn't have permission to access the pipeline or run jobs for the pipeline.
+/// Creates a job for the specified pipeline directly. You can use this method when the internal scheduler is not configured and you want to trigger the job directly or through an external system. Returns a "NOT_FOUND" error if the pipeline doesn''t exist. Returns a "FORBIDDEN" error if the user doesn''t have permission to access the pipeline or run jobs for the pipeline.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datapipelines_projects_locations_pipelines_run_execute()` to send, or `datapipelines_projects_locations_pipelines_run` for simplest API.
@@ -936,7 +936,7 @@ where
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/pipelines/{pipelinesId}:run
-/// Creates a job for the specified pipeline directly. You can use this method when the internal scheduler is not configured and you want to trigger the job directly or through an external system. Returns a "NOT_FOUND" error if the pipeline doesn't exist. Returns a "FORBIDDEN" error if the user doesn't have permission to access the pipeline or run jobs for the pipeline.
+/// Creates a job for the specified pipeline directly. You can use this method when the internal scheduler is not configured and you want to trigger the job directly or through an external system. Returns a "NOT_FOUND" error if the pipeline doesn''t exist. Returns a "FORBIDDEN" error if the user doesn''t have permission to access the pipeline or run jobs for the pipeline.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -1011,7 +1011,7 @@ pub fn datapipelines_projects_locations_pipelines_run_task(
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/pipelines/{pipelinesId}:run
-/// Creates a job for the specified pipeline directly. You can use this method when the internal scheduler is not configured and you want to trigger the job directly or through an external system. Returns a "NOT_FOUND" error if the pipeline doesn't exist. Returns a "FORBIDDEN" error if the user doesn't have permission to access the pipeline or run jobs for the pipeline.
+/// Creates a job for the specified pipeline directly. You can use this method when the internal scheduler is not configured and you want to trigger the job directly or through an external system. Returns a "NOT_FOUND" error if the pipeline doesn''t exist. Returns a "FORBIDDEN" error if the user doesn''t have permission to access the pipeline or run jobs for the pipeline.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -1052,7 +1052,7 @@ pub struct DatapipelinesProjectsLocationsPipelinesRunArgs {
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/pipelines/{pipelinesId}:run
-/// Creates a job for the specified pipeline directly. You can use this method when the internal scheduler is not configured and you want to trigger the job directly or through an external system. Returns a "NOT_FOUND" error if the pipeline doesn't exist. Returns a "FORBIDDEN" error if the user doesn't have permission to access the pipeline or run jobs for the pipeline.
+/// Creates a job for the specified pipeline directly. You can use this method when the internal scheduler is not configured and you want to trigger the job directly or through an external system. Returns a "NOT_FOUND" error if the pipeline doesn''t exist. Returns a "FORBIDDEN" error if the user doesn''t have permission to access the pipeline or run jobs for the pipeline.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `datapipelines_projects_locations_pipelines_run_builder()` + `datapipelines_projects_locations_pipelines_run_execute()`.
@@ -1078,7 +1078,7 @@ pub fn datapipelines_projects_locations_pipelines_run(
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/pipelines/{pipelinesId}:stop
-/// Freezes pipeline execution permanently. If there's a corresponding scheduler entry, it's deleted, and the pipeline state is changed to "ARCHIVED". However, pipeline metadata is retained.
+/// Freezes pipeline execution permanently. If there''s a corresponding scheduler entry, it''s deleted, and the pipeline state is changed to "ARCHIVED". However, pipeline metadata is retained.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datapipelines_projects_locations_pipelines_stop_execute()` to send, or `datapipelines_projects_locations_pipelines_stop` for simplest API.
@@ -1105,7 +1105,7 @@ where
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/pipelines/{pipelinesId}:stop
-/// Freezes pipeline execution permanently. If there's a corresponding scheduler entry, it's deleted, and the pipeline state is changed to "ARCHIVED". However, pipeline metadata is retained.
+/// Freezes pipeline execution permanently. If there''s a corresponding scheduler entry, it''s deleted, and the pipeline state is changed to "ARCHIVED". However, pipeline metadata is retained.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -1179,7 +1179,7 @@ pub fn datapipelines_projects_locations_pipelines_stop_task(
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/pipelines/{pipelinesId}:stop
-/// Freezes pipeline execution permanently. If there's a corresponding scheduler entry, it's deleted, and the pipeline state is changed to "ARCHIVED". However, pipeline metadata is retained.
+/// Freezes pipeline execution permanently. If there''s a corresponding scheduler entry, it''s deleted, and the pipeline state is changed to "ARCHIVED". However, pipeline metadata is retained.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -1220,7 +1220,7 @@ pub struct DatapipelinesProjectsLocationsPipelinesStopArgs {
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/pipelines/{pipelinesId}:stop
-/// Freezes pipeline execution permanently. If there's a corresponding scheduler entry, it's deleted, and the pipeline state is changed to "ARCHIVED". However, pipeline metadata is retained.
+/// Freezes pipeline execution permanently. If there''s a corresponding scheduler entry, it''s deleted, and the pipeline state is changed to "ARCHIVED". However, pipeline metadata is retained.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `datapipelines_projects_locations_pipelines_stop_builder()` + `datapipelines_projects_locations_pipelines_stop_execute()`.
@@ -1246,7 +1246,7 @@ pub fn datapipelines_projects_locations_pipelines_stop(
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/pipelines/{pipelinesId}/jobs
-/// Lists jobs for a given pipeline. Throws a "FORBIDDEN" error if the caller doesn't have permission to access it.
+/// Lists jobs for a given pipeline. Throws a "FORBIDDEN" error if the caller doesn''t have permission to access it.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datapipelines_projects_locations_pipelines_jobs_list_execute()` to send, or `datapipelines_projects_locations_pipelines_jobs_list` for simplest API.
@@ -1289,7 +1289,7 @@ where
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/pipelines/{pipelinesId}/jobs
-/// Lists jobs for a given pipeline. Throws a "FORBIDDEN" error if the caller doesn't have permission to access it.
+/// Lists jobs for a given pipeline. Throws a "FORBIDDEN" error if the caller doesn''t have permission to access it.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -1364,7 +1364,7 @@ pub fn datapipelines_projects_locations_pipelines_jobs_list_task(
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/pipelines/{pipelinesId}/jobs
-/// Lists jobs for a given pipeline. Throws a "FORBIDDEN" error if the caller doesn't have permission to access it.
+/// Lists jobs for a given pipeline. Throws a "FORBIDDEN" error if the caller doesn''t have permission to access it.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -1409,7 +1409,7 @@ pub struct DatapipelinesProjectsLocationsPipelinesJobsListArgs {
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/pipelines/{pipelinesId}/jobs
-/// Lists jobs for a given pipeline. Throws a "FORBIDDEN" error if the caller doesn't have permission to access it.
+/// Lists jobs for a given pipeline. Throws a "FORBIDDEN" error if the caller doesn''t have permission to access it.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `datapipelines_projects_locations_pipelines_jobs_list_builder()` + `datapipelines_projects_locations_pipelines_jobs_list_execute()`.

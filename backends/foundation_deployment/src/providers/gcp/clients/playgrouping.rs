@@ -22,7 +22,7 @@ use foundation_macros::JsonHash;
 use serde::Serialize;
 
 /// POST v1alpha1/apps/{appsId}/tokens/{tokensId}:verify
-/// Verify an API token by asserting the app and persona it belongs to. The verification is a protection against client-side attacks and will fail if the contents of the token don't match the provided values. A token must be verified before it can be used to manipulate user tags.
+/// Verify an API token by asserting the app and persona it belongs to. The verification is a protection against client-side attacks and will fail if the contents of the token don''t match the provided values. A token must be verified before it can be used to manipulate user tags.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `playgrouping_apps_tokens_verify_execute()` to send, or `playgrouping_apps_tokens_verify` for simplest API.
@@ -50,7 +50,7 @@ where
 }
 
 /// POST v1alpha1/apps/{appsId}/tokens/{tokensId}:verify
-/// Verify an API token by asserting the app and persona it belongs to. The verification is a protection against client-side attacks and will fail if the contents of the token don't match the provided values. A token must be verified before it can be used to manipulate user tags.
+/// Verify an API token by asserting the app and persona it belongs to. The verification is a protection against client-side attacks and will fail if the contents of the token don''t match the provided values. A token must be verified before it can be used to manipulate user tags.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -124,7 +124,7 @@ pub fn playgrouping_apps_tokens_verify_task(
 }
 
 /// POST v1alpha1/apps/{appsId}/tokens/{tokensId}:verify
-/// Verify an API token by asserting the app and persona it belongs to. The verification is a protection against client-side attacks and will fail if the contents of the token don't match the provided values. A token must be verified before it can be used to manipulate user tags.
+/// Verify an API token by asserting the app and persona it belongs to. The verification is a protection against client-side attacks and will fail if the contents of the token don''t match the provided values. A token must be verified before it can be used to manipulate user tags.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -165,7 +165,7 @@ pub struct PlaygroupingAppsTokensVerifyArgs {
 }
 
 /// POST v1alpha1/apps/{appsId}/tokens/{tokensId}:verify
-/// Verify an API token by asserting the app and persona it belongs to. The verification is a protection against client-side attacks and will fail if the contents of the token don't match the provided values. A token must be verified before it can be used to manipulate user tags.
+/// Verify an API token by asserting the app and persona it belongs to. The verification is a protection against client-side attacks and will fail if the contents of the token don''t match the provided values. A token must be verified before it can be used to manipulate user tags.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `playgrouping_apps_tokens_verify_builder()` + `playgrouping_apps_tokens_verify_execute()`.

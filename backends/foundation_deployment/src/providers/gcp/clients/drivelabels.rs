@@ -560,7 +560,7 @@ pub fn drivelabels_labels_delta(
 }
 
 /// POST v2/labels/{labelsId}:disable
-/// Disable a published label. For more information, see [Disable, enable, and delete a label](<https://developers.google.`com/workspace/drive/labels/guides/disable-delete-label`>). Disabling a label will result in a new disabled published revision based on the current published revision. If there's a draft revision, a new disabled draft revision will be created based on the latest draft revision. Older draft revisions will be deleted. Once disabled, a label may be deleted with DeleteLabel.
+/// Disable a published label. For more information, see [Disable, enable, and delete a label](<https://developers.google.`com/workspace/drive/labels/guides/disable-delete-label`>). Disabling a label will result in a new disabled published revision based on the current published revision. If there''s a draft revision, a new disabled draft revision will be created based on the latest draft revision. Older draft revisions will be deleted. Once disabled, a label may be deleted with DeleteLabel.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `drivelabels_labels_disable_execute()` to send, or `drivelabels_labels_disable` for simplest API.
@@ -587,7 +587,7 @@ where
 }
 
 /// POST v2/labels/{labelsId}:disable
-/// Disable a published label. For more information, see [Disable, enable, and delete a label](<https://developers.google.`com/workspace/drive/labels/guides/disable-delete-label`>). Disabling a label will result in a new disabled published revision based on the current published revision. If there's a draft revision, a new disabled draft revision will be created based on the latest draft revision. Older draft revisions will be deleted. Once disabled, a label may be deleted with DeleteLabel.
+/// Disable a published label. For more information, see [Disable, enable, and delete a label](<https://developers.google.`com/workspace/drive/labels/guides/disable-delete-label`>). Disabling a label will result in a new disabled published revision based on the current published revision. If there''s a draft revision, a new disabled draft revision will be created based on the latest draft revision. Older draft revisions will be deleted. Once disabled, a label may be deleted with DeleteLabel.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -661,7 +661,7 @@ pub fn drivelabels_labels_disable_task(
 }
 
 /// POST v2/labels/{labelsId}:disable
-/// Disable a published label. For more information, see [Disable, enable, and delete a label](<https://developers.google.`com/workspace/drive/labels/guides/disable-delete-label`>). Disabling a label will result in a new disabled published revision based on the current published revision. If there's a draft revision, a new disabled draft revision will be created based on the latest draft revision. Older draft revisions will be deleted. Once disabled, a label may be deleted with DeleteLabel.
+/// Disable a published label. For more information, see [Disable, enable, and delete a label](<https://developers.google.`com/workspace/drive/labels/guides/disable-delete-label`>). Disabling a label will result in a new disabled published revision based on the current published revision. If there''s a draft revision, a new disabled draft revision will be created based on the latest draft revision. Older draft revisions will be deleted. Once disabled, a label may be deleted with DeleteLabel.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -702,7 +702,7 @@ pub struct DrivelabelsLabelsDisableArgs {
 }
 
 /// POST v2/labels/{labelsId}:disable
-/// Disable a published label. For more information, see [Disable, enable, and delete a label](<https://developers.google.`com/workspace/drive/labels/guides/disable-delete-label`>). Disabling a label will result in a new disabled published revision based on the current published revision. If there's a draft revision, a new disabled draft revision will be created based on the latest draft revision. Older draft revisions will be deleted. Once disabled, a label may be deleted with DeleteLabel.
+/// Disable a published label. For more information, see [Disable, enable, and delete a label](<https://developers.google.`com/workspace/drive/labels/guides/disable-delete-label`>). Disabling a label will result in a new disabled published revision based on the current published revision. If there''s a draft revision, a new disabled draft revision will be created based on the latest draft revision. Older draft revisions will be deleted. Once disabled, a label may be deleted with DeleteLabel.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `drivelabels_labels_disable_builder()` + `drivelabels_labels_disable_execute()`.
@@ -728,7 +728,7 @@ pub fn drivelabels_labels_disable(
 }
 
 /// POST v2/labels/{labelsId}:enable
-/// Enable a disabled label and restore it to its published state. For more information, see [Disable, enable, and delete a label](<https://developers.google.`com/workspace/drive/labels/guides/disable-delete-label`>). This will result in a new published revision based on the current disabled published revision. If there's an existing disabled draft revision, a new revision will be created based on that draft and will be enabled.
+/// Enable a disabled label and restore it to its published state. For more information, see [Disable, enable, and delete a label](<https://developers.google.`com/workspace/drive/labels/guides/disable-delete-label`>). This will result in a new published revision based on the current disabled published revision. If there''s an existing disabled draft revision, a new revision will be created based on that draft and will be enabled.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `drivelabels_labels_enable_execute()` to send, or `drivelabels_labels_enable` for simplest API.
@@ -755,7 +755,7 @@ where
 }
 
 /// POST v2/labels/{labelsId}:enable
-/// Enable a disabled label and restore it to its published state. For more information, see [Disable, enable, and delete a label](<https://developers.google.`com/workspace/drive/labels/guides/disable-delete-label`>). This will result in a new published revision based on the current disabled published revision. If there's an existing disabled draft revision, a new revision will be created based on that draft and will be enabled.
+/// Enable a disabled label and restore it to its published state. For more information, see [Disable, enable, and delete a label](<https://developers.google.`com/workspace/drive/labels/guides/disable-delete-label`>). This will result in a new published revision based on the current disabled published revision. If there''s an existing disabled draft revision, a new revision will be created based on that draft and will be enabled.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -829,7 +829,7 @@ pub fn drivelabels_labels_enable_task(
 }
 
 /// POST v2/labels/{labelsId}:enable
-/// Enable a disabled label and restore it to its published state. For more information, see [Disable, enable, and delete a label](<https://developers.google.`com/workspace/drive/labels/guides/disable-delete-label`>). This will result in a new published revision based on the current disabled published revision. If there's an existing disabled draft revision, a new revision will be created based on that draft and will be enabled.
+/// Enable a disabled label and restore it to its published state. For more information, see [Disable, enable, and delete a label](<https://developers.google.`com/workspace/drive/labels/guides/disable-delete-label`>). This will result in a new published revision based on the current disabled published revision. If there''s an existing disabled draft revision, a new revision will be created based on that draft and will be enabled.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -870,7 +870,7 @@ pub struct DrivelabelsLabelsEnableArgs {
 }
 
 /// POST v2/labels/{labelsId}:enable
-/// Enable a disabled label and restore it to its published state. For more information, see [Disable, enable, and delete a label](<https://developers.google.`com/workspace/drive/labels/guides/disable-delete-label`>). This will result in a new published revision based on the current disabled published revision. If there's an existing disabled draft revision, a new revision will be created based on that draft and will be enabled.
+/// Enable a disabled label and restore it to its published state. For more information, see [Disable, enable, and delete a label](<https://developers.google.`com/workspace/drive/labels/guides/disable-delete-label`>). This will result in a new published revision based on the current disabled published revision. If there''s an existing disabled draft revision, a new revision will be created based on that draft and will be enabled.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `drivelabels_labels_enable_builder()` + `drivelabels_labels_enable_execute()`.
@@ -1489,7 +1489,7 @@ pub fn drivelabels_labels_publish(
 }
 
 /// POST v2/labels/{labelsId}:updateLabelCopyMode
-/// Updates a label's CopyMode. Changes to this policy aren't revisioned, don't require publishing, and take effect immediately.
+/// Updates a label''s CopyMode. Changes to this policy aren''t revisioned, don''t require publishing, and take effect immediately.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `drivelabels_labels_update_label_copy_mode_execute()` to send, or `drivelabels_labels_update_label_copy_mode` for simplest API.
@@ -1516,7 +1516,7 @@ where
 }
 
 /// POST v2/labels/{labelsId}:updateLabelCopyMode
-/// Updates a label's CopyMode. Changes to this policy aren't revisioned, don't require publishing, and take effect immediately.
+/// Updates a label''s CopyMode. Changes to this policy aren''t revisioned, don''t require publishing, and take effect immediately.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -1590,7 +1590,7 @@ pub fn drivelabels_labels_update_label_copy_mode_task(
 }
 
 /// POST v2/labels/{labelsId}:updateLabelCopyMode
-/// Updates a label's CopyMode. Changes to this policy aren't revisioned, don't require publishing, and take effect immediately.
+/// Updates a label''s CopyMode. Changes to this policy aren''t revisioned, don''t require publishing, and take effect immediately.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -1631,7 +1631,7 @@ pub struct DrivelabelsLabelsUpdateLabelCopyModeArgs {
 }
 
 /// POST v2/labels/{labelsId}:updateLabelCopyMode
-/// Updates a label's CopyMode. Changes to this policy aren't revisioned, don't require publishing, and take effect immediately.
+/// Updates a label''s CopyMode. Changes to this policy aren''t revisioned, don''t require publishing, and take effect immediately.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `drivelabels_labels_update_label_copy_mode_builder()` + `drivelabels_labels_update_label_copy_mode_execute()`.
@@ -1657,7 +1657,7 @@ pub fn drivelabels_labels_update_label_copy_mode(
 }
 
 /// POST v2/labels/{labelsId}:updateLabelEnabledAppSettings
-/// Updates a label's EnabledAppSettings. Enabling a label in a Google Workspace app allows it to be used in that app. This change isn't revisioned, doesn't require publishing, and takes effect immediately.
+/// Updates a label''s EnabledAppSettings. Enabling a label in a Google Workspace app allows it to be used in that app. This change isn''t revisioned, doesn''t require publishing, and takes effect immediately.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `drivelabels_labels_update_label_enabled_app_settings_execute()` to send, or `drivelabels_labels_update_label_enabled_app_settings` for simplest API.
@@ -1684,7 +1684,7 @@ where
 }
 
 /// POST v2/labels/{labelsId}:updateLabelEnabledAppSettings
-/// Updates a label's EnabledAppSettings. Enabling a label in a Google Workspace app allows it to be used in that app. This change isn't revisioned, doesn't require publishing, and takes effect immediately.
+/// Updates a label''s EnabledAppSettings. Enabling a label in a Google Workspace app allows it to be used in that app. This change isn''t revisioned, doesn''t require publishing, and takes effect immediately.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -1758,7 +1758,7 @@ pub fn drivelabels_labels_update_label_enabled_app_settings_task(
 }
 
 /// POST v2/labels/{labelsId}:updateLabelEnabledAppSettings
-/// Updates a label's EnabledAppSettings. Enabling a label in a Google Workspace app allows it to be used in that app. This change isn't revisioned, doesn't require publishing, and takes effect immediately.
+/// Updates a label''s EnabledAppSettings. Enabling a label in a Google Workspace app allows it to be used in that app. This change isn''t revisioned, doesn''t require publishing, and takes effect immediately.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -1799,7 +1799,7 @@ pub struct DrivelabelsLabelsUpdateLabelEnabledAppSettingsArgs {
 }
 
 /// POST v2/labels/{labelsId}:updateLabelEnabledAppSettings
-/// Updates a label's EnabledAppSettings. Enabling a label in a Google Workspace app allows it to be used in that app. This change isn't revisioned, doesn't require publishing, and takes effect immediately.
+/// Updates a label''s EnabledAppSettings. Enabling a label in a Google Workspace app allows it to be used in that app. This change isn''t revisioned, doesn''t require publishing, and takes effect immediately.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `drivelabels_labels_update_label_enabled_app_settings_builder()` + `drivelabels_labels_update_label_enabled_app_settings_execute()`.
@@ -1825,7 +1825,7 @@ pub fn drivelabels_labels_update_label_enabled_app_settings(
 }
 
 /// PATCH v2/labels/{labelsId}/permissions
-/// Updates a label's permissions. If a permission for the indicated principal doesn't exist, a label permission is created, otherwise the existing permission is updated. Permissions affect the label resource as a whole, aren't revisioned, and don't require publishing.
+/// Updates a label''s permissions. If a permission for the indicated principal doesn''t exist, a label permission is created, otherwise the existing permission is updated. Permissions affect the label resource as a whole, aren''t revisioned, and don''t require publishing.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `drivelabels_labels_update_permissions_execute()` to send, or `drivelabels_labels_update_permissions` for simplest API.
@@ -1864,7 +1864,7 @@ where
 }
 
 /// PATCH v2/labels/{labelsId}/permissions
-/// Updates a label's permissions. If a permission for the indicated principal doesn't exist, a label permission is created, otherwise the existing permission is updated. Permissions affect the label resource as a whole, aren't revisioned, and don't require publishing.
+/// Updates a label''s permissions. If a permission for the indicated principal doesn''t exist, a label permission is created, otherwise the existing permission is updated. Permissions affect the label resource as a whole, aren''t revisioned, and don''t require publishing.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -1938,7 +1938,7 @@ pub fn drivelabels_labels_update_permissions_task(
 }
 
 /// PATCH v2/labels/{labelsId}/permissions
-/// Updates a label's permissions. If a permission for the indicated principal doesn't exist, a label permission is created, otherwise the existing permission is updated. Permissions affect the label resource as a whole, aren't revisioned, and don't require publishing.
+/// Updates a label''s permissions. If a permission for the indicated principal doesn''t exist, a label permission is created, otherwise the existing permission is updated. Permissions affect the label resource as a whole, aren''t revisioned, and don''t require publishing.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -1981,7 +1981,7 @@ pub struct DrivelabelsLabelsUpdatePermissionsArgs {
 }
 
 /// PATCH v2/labels/{labelsId}/permissions
-/// Updates a label's permissions. If a permission for the indicated principal doesn't exist, a label permission is created, otherwise the existing permission is updated. Permissions affect the label resource as a whole, aren't revisioned, and don't require publishing.
+/// Updates a label''s permissions. If a permission for the indicated principal doesn''t exist, a label permission is created, otherwise the existing permission is updated. Permissions affect the label resource as a whole, aren''t revisioned, and don''t require publishing.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `drivelabels_labels_update_permissions_builder()` + `drivelabels_labels_update_permissions_execute()`.
@@ -2202,7 +2202,7 @@ pub fn drivelabels_labels_locks_list(
 }
 
 /// POST v2/labels/{labelsId}/permissions:batchDelete
-/// Deletes label permissions. Permissions affect the label resource as a whole, aren't revisioned, and don't require publishing.
+/// Deletes label permissions. Permissions affect the label resource as a whole, aren''t revisioned, and don''t require publishing.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `drivelabels_labels_permissions_batch_delete_execute()` to send, or `drivelabels_labels_permissions_batch_delete` for simplest API.
@@ -2229,7 +2229,7 @@ where
 }
 
 /// POST v2/labels/{labelsId}/permissions:batchDelete
-/// Deletes label permissions. Permissions affect the label resource as a whole, aren't revisioned, and don't require publishing.
+/// Deletes label permissions. Permissions affect the label resource as a whole, aren''t revisioned, and don''t require publishing.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -2303,7 +2303,7 @@ pub fn drivelabels_labels_permissions_batch_delete_task(
 }
 
 /// POST v2/labels/{labelsId}/permissions:batchDelete
-/// Deletes label permissions. Permissions affect the label resource as a whole, aren't revisioned, and don't require publishing.
+/// Deletes label permissions. Permissions affect the label resource as a whole, aren''t revisioned, and don''t require publishing.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -2342,7 +2342,7 @@ pub struct DrivelabelsLabelsPermissionsBatchDeleteArgs {
 }
 
 /// POST v2/labels/{labelsId}/permissions:batchDelete
-/// Deletes label permissions. Permissions affect the label resource as a whole, aren't revisioned, and don't require publishing.
+/// Deletes label permissions. Permissions affect the label resource as a whole, aren''t revisioned, and don''t require publishing.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `drivelabels_labels_permissions_batch_delete_builder()` + `drivelabels_labels_permissions_batch_delete_execute()`.
@@ -2366,7 +2366,7 @@ pub fn drivelabels_labels_permissions_batch_delete(
 }
 
 /// POST v2/labels/{labelsId}/permissions:batchUpdate
-/// Updates label permissions. If a permission for the indicated principal doesn't exist, a label permission is created, otherwise the existing permission is updated. Permissions affect the label resource as a whole, aren't revisioned, and don't require publishing.
+/// Updates label permissions. If a permission for the indicated principal doesn''t exist, a label permission is created, otherwise the existing permission is updated. Permissions affect the label resource as a whole, aren''t revisioned, and don''t require publishing.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `drivelabels_labels_permissions_batch_update_execute()` to send, or `drivelabels_labels_permissions_batch_update` for simplest API.
@@ -2393,7 +2393,7 @@ where
 }
 
 /// POST v2/labels/{labelsId}/permissions:batchUpdate
-/// Updates label permissions. If a permission for the indicated principal doesn't exist, a label permission is created, otherwise the existing permission is updated. Permissions affect the label resource as a whole, aren't revisioned, and don't require publishing.
+/// Updates label permissions. If a permission for the indicated principal doesn''t exist, a label permission is created, otherwise the existing permission is updated. Permissions affect the label resource as a whole, aren''t revisioned, and don''t require publishing.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -2471,7 +2471,7 @@ pub fn drivelabels_labels_permissions_batch_update_task(
 }
 
 /// POST v2/labels/{labelsId}/permissions:batchUpdate
-/// Updates label permissions. If a permission for the indicated principal doesn't exist, a label permission is created, otherwise the existing permission is updated. Permissions affect the label resource as a whole, aren't revisioned, and don't require publishing.
+/// Updates label permissions. If a permission for the indicated principal doesn''t exist, a label permission is created, otherwise the existing permission is updated. Permissions affect the label resource as a whole, aren''t revisioned, and don''t require publishing.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -2515,7 +2515,7 @@ pub struct DrivelabelsLabelsPermissionsBatchUpdateArgs {
 }
 
 /// POST v2/labels/{labelsId}/permissions:batchUpdate
-/// Updates label permissions. If a permission for the indicated principal doesn't exist, a label permission is created, otherwise the existing permission is updated. Permissions affect the label resource as a whole, aren't revisioned, and don't require publishing.
+/// Updates label permissions. If a permission for the indicated principal doesn''t exist, a label permission is created, otherwise the existing permission is updated. Permissions affect the label resource as a whole, aren''t revisioned, and don''t require publishing.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `drivelabels_labels_permissions_batch_update_builder()` + `drivelabels_labels_permissions_batch_update_execute()`.
@@ -2544,7 +2544,7 @@ pub fn drivelabels_labels_permissions_batch_update(
 }
 
 /// POST v2/labels/{labelsId}/permissions
-/// Updates a label's permissions. If a permission for the indicated principal doesn't exist, a label permission is created, otherwise the existing permission is updated. Permissions affect the label resource as a whole, aren't revisioned, and don't require publishing.
+/// Updates a label''s permissions. If a permission for the indicated principal doesn''t exist, a label permission is created, otherwise the existing permission is updated. Permissions affect the label resource as a whole, aren''t revisioned, and don''t require publishing.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `drivelabels_labels_permissions_create_execute()` to send, or `drivelabels_labels_permissions_create` for simplest API.
@@ -2583,7 +2583,7 @@ where
 }
 
 /// POST v2/labels/{labelsId}/permissions
-/// Updates a label's permissions. If a permission for the indicated principal doesn't exist, a label permission is created, otherwise the existing permission is updated. Permissions affect the label resource as a whole, aren't revisioned, and don't require publishing.
+/// Updates a label''s permissions. If a permission for the indicated principal doesn''t exist, a label permission is created, otherwise the existing permission is updated. Permissions affect the label resource as a whole, aren''t revisioned, and don''t require publishing.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -2657,7 +2657,7 @@ pub fn drivelabels_labels_permissions_create_task(
 }
 
 /// POST v2/labels/{labelsId}/permissions
-/// Updates a label's permissions. If a permission for the indicated principal doesn't exist, a label permission is created, otherwise the existing permission is updated. Permissions affect the label resource as a whole, aren't revisioned, and don't require publishing.
+/// Updates a label''s permissions. If a permission for the indicated principal doesn''t exist, a label permission is created, otherwise the existing permission is updated. Permissions affect the label resource as a whole, aren''t revisioned, and don''t require publishing.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -2700,7 +2700,7 @@ pub struct DrivelabelsLabelsPermissionsCreateArgs {
 }
 
 /// POST v2/labels/{labelsId}/permissions
-/// Updates a label's permissions. If a permission for the indicated principal doesn't exist, a label permission is created, otherwise the existing permission is updated. Permissions affect the label resource as a whole, aren't revisioned, and don't require publishing.
+/// Updates a label''s permissions. If a permission for the indicated principal doesn''t exist, a label permission is created, otherwise the existing permission is updated. Permissions affect the label resource as a whole, aren''t revisioned, and don''t require publishing.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `drivelabels_labels_permissions_create_builder()` + `drivelabels_labels_permissions_create_execute()`.
@@ -2727,7 +2727,7 @@ pub fn drivelabels_labels_permissions_create(
 }
 
 /// DELETE v2/labels/{labelsId}/permissions/{permissionsId}
-/// Deletes a label's permission. Permissions affect the label resource as a whole, aren't revisioned, and don't require publishing.
+/// Deletes a label''s permission. Permissions affect the label resource as a whole, aren''t revisioned, and don''t require publishing.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `drivelabels_labels_permissions_delete_execute()` to send, or `drivelabels_labels_permissions_delete` for simplest API.
@@ -2766,7 +2766,7 @@ where
 }
 
 /// DELETE v2/labels/{labelsId}/permissions/{permissionsId}
-/// Deletes a label's permission. Permissions affect the label resource as a whole, aren't revisioned, and don't require publishing.
+/// Deletes a label''s permission. Permissions affect the label resource as a whole, aren''t revisioned, and don''t require publishing.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -2840,7 +2840,7 @@ pub fn drivelabels_labels_permissions_delete_task(
 }
 
 /// DELETE v2/labels/{labelsId}/permissions/{permissionsId}
-/// Deletes a label's permission. Permissions affect the label resource as a whole, aren't revisioned, and don't require publishing.
+/// Deletes a label''s permission. Permissions affect the label resource as a whole, aren''t revisioned, and don''t require publishing.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -2881,7 +2881,7 @@ pub struct DrivelabelsLabelsPermissionsDeleteArgs {
 }
 
 /// DELETE v2/labels/{labelsId}/permissions/{permissionsId}
-/// Deletes a label's permission. Permissions affect the label resource as a whole, aren't revisioned, and don't require publishing.
+/// Deletes a label''s permission. Permissions affect the label resource as a whole, aren''t revisioned, and don''t require publishing.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `drivelabels_labels_permissions_delete_builder()` + `drivelabels_labels_permissions_delete_execute()`.
@@ -2906,7 +2906,7 @@ pub fn drivelabels_labels_permissions_delete(
 }
 
 /// GET v2/labels/{labelsId}/permissions
-/// Lists a label's permissions.
+/// Lists a label''s permissions.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `drivelabels_labels_permissions_list_execute()` to send, or `drivelabels_labels_permissions_list` for simplest API.
@@ -2953,7 +2953,7 @@ where
 }
 
 /// GET v2/labels/{labelsId}/permissions
-/// Lists a label's permissions.
+/// Lists a label''s permissions.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -3031,7 +3031,7 @@ pub fn drivelabels_labels_permissions_list_task(
 }
 
 /// GET v2/labels/{labelsId}/permissions
-/// Lists a label's permissions.
+/// Lists a label''s permissions.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -3078,7 +3078,7 @@ pub struct DrivelabelsLabelsPermissionsListArgs {
 }
 
 /// GET v2/labels/{labelsId}/permissions
-/// Lists a label's permissions.
+/// Lists a label''s permissions.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `drivelabels_labels_permissions_list_builder()` + `drivelabels_labels_permissions_list_execute()`.
@@ -3110,7 +3110,7 @@ pub fn drivelabels_labels_permissions_list(
 }
 
 /// PATCH v2/labels/{labelsId}/revisions/{revisionsId}/permissions
-/// Updates a label's permissions. If a permission for the indicated principal doesn't exist, a label permission is created, otherwise the existing permission is updated. Permissions affect the label resource as a whole, aren't revisioned, and don't require publishing.
+/// Updates a label''s permissions. If a permission for the indicated principal doesn''t exist, a label permission is created, otherwise the existing permission is updated. Permissions affect the label resource as a whole, aren''t revisioned, and don''t require publishing.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `drivelabels_labels_revisions_update_permissions_execute()` to send, or `drivelabels_labels_revisions_update_permissions` for simplest API.
@@ -3149,7 +3149,7 @@ where
 }
 
 /// PATCH v2/labels/{labelsId}/revisions/{revisionsId}/permissions
-/// Updates a label's permissions. If a permission for the indicated principal doesn't exist, a label permission is created, otherwise the existing permission is updated. Permissions affect the label resource as a whole, aren't revisioned, and don't require publishing.
+/// Updates a label''s permissions. If a permission for the indicated principal doesn''t exist, a label permission is created, otherwise the existing permission is updated. Permissions affect the label resource as a whole, aren''t revisioned, and don''t require publishing.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -3223,7 +3223,7 @@ pub fn drivelabels_labels_revisions_update_permissions_task(
 }
 
 /// PATCH v2/labels/{labelsId}/revisions/{revisionsId}/permissions
-/// Updates a label's permissions. If a permission for the indicated principal doesn't exist, a label permission is created, otherwise the existing permission is updated. Permissions affect the label resource as a whole, aren't revisioned, and don't require publishing.
+/// Updates a label''s permissions. If a permission for the indicated principal doesn''t exist, a label permission is created, otherwise the existing permission is updated. Permissions affect the label resource as a whole, aren''t revisioned, and don''t require publishing.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -3266,7 +3266,7 @@ pub struct DrivelabelsLabelsRevisionsUpdatePermissionsArgs {
 }
 
 /// PATCH v2/labels/{labelsId}/revisions/{revisionsId}/permissions
-/// Updates a label's permissions. If a permission for the indicated principal doesn't exist, a label permission is created, otherwise the existing permission is updated. Permissions affect the label resource as a whole, aren't revisioned, and don't require publishing.
+/// Updates a label''s permissions. If a permission for the indicated principal doesn''t exist, a label permission is created, otherwise the existing permission is updated. Permissions affect the label resource as a whole, aren''t revisioned, and don''t require publishing.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `drivelabels_labels_revisions_update_permissions_builder()` + `drivelabels_labels_revisions_update_permissions_execute()`.
@@ -3490,7 +3490,7 @@ pub fn drivelabels_labels_revisions_locks_list(
 }
 
 /// POST v2/labels/{labelsId}/revisions/{revisionsId}/permissions:batchDelete
-/// Deletes label permissions. Permissions affect the label resource as a whole, aren't revisioned, and don't require publishing.
+/// Deletes label permissions. Permissions affect the label resource as a whole, aren''t revisioned, and don''t require publishing.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `drivelabels_labels_revisions_permissions_batch_delete_execute()` to send, or `drivelabels_labels_revisions_permissions_batch_delete` for simplest API.
@@ -3517,7 +3517,7 @@ where
 }
 
 /// POST v2/labels/{labelsId}/revisions/{revisionsId}/permissions:batchDelete
-/// Deletes label permissions. Permissions affect the label resource as a whole, aren't revisioned, and don't require publishing.
+/// Deletes label permissions. Permissions affect the label resource as a whole, aren''t revisioned, and don''t require publishing.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -3591,7 +3591,7 @@ pub fn drivelabels_labels_revisions_permissions_batch_delete_task(
 }
 
 /// POST v2/labels/{labelsId}/revisions/{revisionsId}/permissions:batchDelete
-/// Deletes label permissions. Permissions affect the label resource as a whole, aren't revisioned, and don't require publishing.
+/// Deletes label permissions. Permissions affect the label resource as a whole, aren''t revisioned, and don''t require publishing.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -3630,7 +3630,7 @@ pub struct DrivelabelsLabelsRevisionsPermissionsBatchDeleteArgs {
 }
 
 /// POST v2/labels/{labelsId}/revisions/{revisionsId}/permissions:batchDelete
-/// Deletes label permissions. Permissions affect the label resource as a whole, aren't revisioned, and don't require publishing.
+/// Deletes label permissions. Permissions affect the label resource as a whole, aren''t revisioned, and don''t require publishing.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `drivelabels_labels_revisions_permissions_batch_delete_builder()` + `drivelabels_labels_revisions_permissions_batch_delete_execute()`.
@@ -3655,7 +3655,7 @@ pub fn drivelabels_labels_revisions_permissions_batch_delete(
 }
 
 /// POST v2/labels/{labelsId}/revisions/{revisionsId}/permissions:batchUpdate
-/// Updates label permissions. If a permission for the indicated principal doesn't exist, a label permission is created, otherwise the existing permission is updated. Permissions affect the label resource as a whole, aren't revisioned, and don't require publishing.
+/// Updates label permissions. If a permission for the indicated principal doesn''t exist, a label permission is created, otherwise the existing permission is updated. Permissions affect the label resource as a whole, aren''t revisioned, and don''t require publishing.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `drivelabels_labels_revisions_permissions_batch_update_execute()` to send, or `drivelabels_labels_revisions_permissions_batch_update` for simplest API.
@@ -3682,7 +3682,7 @@ where
 }
 
 /// POST v2/labels/{labelsId}/revisions/{revisionsId}/permissions:batchUpdate
-/// Updates label permissions. If a permission for the indicated principal doesn't exist, a label permission is created, otherwise the existing permission is updated. Permissions affect the label resource as a whole, aren't revisioned, and don't require publishing.
+/// Updates label permissions. If a permission for the indicated principal doesn''t exist, a label permission is created, otherwise the existing permission is updated. Permissions affect the label resource as a whole, aren''t revisioned, and don''t require publishing.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -3760,7 +3760,7 @@ pub fn drivelabels_labels_revisions_permissions_batch_update_task(
 }
 
 /// POST v2/labels/{labelsId}/revisions/{revisionsId}/permissions:batchUpdate
-/// Updates label permissions. If a permission for the indicated principal doesn't exist, a label permission is created, otherwise the existing permission is updated. Permissions affect the label resource as a whole, aren't revisioned, and don't require publishing.
+/// Updates label permissions. If a permission for the indicated principal doesn''t exist, a label permission is created, otherwise the existing permission is updated. Permissions affect the label resource as a whole, aren''t revisioned, and don''t require publishing.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -3804,7 +3804,7 @@ pub struct DrivelabelsLabelsRevisionsPermissionsBatchUpdateArgs {
 }
 
 /// POST v2/labels/{labelsId}/revisions/{revisionsId}/permissions:batchUpdate
-/// Updates label permissions. If a permission for the indicated principal doesn't exist, a label permission is created, otherwise the existing permission is updated. Permissions affect the label resource as a whole, aren't revisioned, and don't require publishing.
+/// Updates label permissions. If a permission for the indicated principal doesn''t exist, a label permission is created, otherwise the existing permission is updated. Permissions affect the label resource as a whole, aren''t revisioned, and don''t require publishing.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `drivelabels_labels_revisions_permissions_batch_update_builder()` + `drivelabels_labels_revisions_permissions_batch_update_execute()`.
@@ -3834,7 +3834,7 @@ pub fn drivelabels_labels_revisions_permissions_batch_update(
 }
 
 /// POST v2/labels/{labelsId}/revisions/{revisionsId}/permissions
-/// Updates a label's permissions. If a permission for the indicated principal doesn't exist, a label permission is created, otherwise the existing permission is updated. Permissions affect the label resource as a whole, aren't revisioned, and don't require publishing.
+/// Updates a label''s permissions. If a permission for the indicated principal doesn''t exist, a label permission is created, otherwise the existing permission is updated. Permissions affect the label resource as a whole, aren''t revisioned, and don''t require publishing.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `drivelabels_labels_revisions_permissions_create_execute()` to send, or `drivelabels_labels_revisions_permissions_create` for simplest API.
@@ -3873,7 +3873,7 @@ where
 }
 
 /// POST v2/labels/{labelsId}/revisions/{revisionsId}/permissions
-/// Updates a label's permissions. If a permission for the indicated principal doesn't exist, a label permission is created, otherwise the existing permission is updated. Permissions affect the label resource as a whole, aren't revisioned, and don't require publishing.
+/// Updates a label''s permissions. If a permission for the indicated principal doesn''t exist, a label permission is created, otherwise the existing permission is updated. Permissions affect the label resource as a whole, aren''t revisioned, and don''t require publishing.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -3947,7 +3947,7 @@ pub fn drivelabels_labels_revisions_permissions_create_task(
 }
 
 /// POST v2/labels/{labelsId}/revisions/{revisionsId}/permissions
-/// Updates a label's permissions. If a permission for the indicated principal doesn't exist, a label permission is created, otherwise the existing permission is updated. Permissions affect the label resource as a whole, aren't revisioned, and don't require publishing.
+/// Updates a label''s permissions. If a permission for the indicated principal doesn''t exist, a label permission is created, otherwise the existing permission is updated. Permissions affect the label resource as a whole, aren''t revisioned, and don''t require publishing.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -3990,7 +3990,7 @@ pub struct DrivelabelsLabelsRevisionsPermissionsCreateArgs {
 }
 
 /// POST v2/labels/{labelsId}/revisions/{revisionsId}/permissions
-/// Updates a label's permissions. If a permission for the indicated principal doesn't exist, a label permission is created, otherwise the existing permission is updated. Permissions affect the label resource as a whole, aren't revisioned, and don't require publishing.
+/// Updates a label''s permissions. If a permission for the indicated principal doesn''t exist, a label permission is created, otherwise the existing permission is updated. Permissions affect the label resource as a whole, aren''t revisioned, and don''t require publishing.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `drivelabels_labels_revisions_permissions_create_builder()` + `drivelabels_labels_revisions_permissions_create_execute()`.
@@ -4020,7 +4020,7 @@ pub fn drivelabels_labels_revisions_permissions_create(
 }
 
 /// DELETE v2/labels/{labelsId}/revisions/{revisionsId}/permissions/{permissionsId}
-/// Deletes a label's permission. Permissions affect the label resource as a whole, aren't revisioned, and don't require publishing.
+/// Deletes a label''s permission. Permissions affect the label resource as a whole, aren''t revisioned, and don''t require publishing.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `drivelabels_labels_revisions_permissions_delete_execute()` to send, or `drivelabels_labels_revisions_permissions_delete` for simplest API.
@@ -4059,7 +4059,7 @@ where
 }
 
 /// DELETE v2/labels/{labelsId}/revisions/{revisionsId}/permissions/{permissionsId}
-/// Deletes a label's permission. Permissions affect the label resource as a whole, aren't revisioned, and don't require publishing.
+/// Deletes a label''s permission. Permissions affect the label resource as a whole, aren''t revisioned, and don''t require publishing.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -4133,7 +4133,7 @@ pub fn drivelabels_labels_revisions_permissions_delete_task(
 }
 
 /// DELETE v2/labels/{labelsId}/revisions/{revisionsId}/permissions/{permissionsId}
-/// Deletes a label's permission. Permissions affect the label resource as a whole, aren't revisioned, and don't require publishing.
+/// Deletes a label''s permission. Permissions affect the label resource as a whole, aren''t revisioned, and don''t require publishing.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -4174,7 +4174,7 @@ pub struct DrivelabelsLabelsRevisionsPermissionsDeleteArgs {
 }
 
 /// DELETE v2/labels/{labelsId}/revisions/{revisionsId}/permissions/{permissionsId}
-/// Deletes a label's permission. Permissions affect the label resource as a whole, aren't revisioned, and don't require publishing.
+/// Deletes a label''s permission. Permissions affect the label resource as a whole, aren''t revisioned, and don''t require publishing.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `drivelabels_labels_revisions_permissions_delete_builder()` + `drivelabels_labels_revisions_permissions_delete_execute()`.
@@ -4202,7 +4202,7 @@ pub fn drivelabels_labels_revisions_permissions_delete(
 }
 
 /// GET v2/labels/{labelsId}/revisions/{revisionsId}/permissions
-/// Lists a label's permissions.
+/// Lists a label''s permissions.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `drivelabels_labels_revisions_permissions_list_execute()` to send, or `drivelabels_labels_revisions_permissions_list` for simplest API.
@@ -4249,7 +4249,7 @@ where
 }
 
 /// GET v2/labels/{labelsId}/revisions/{revisionsId}/permissions
-/// Lists a label's permissions.
+/// Lists a label''s permissions.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -4327,7 +4327,7 @@ pub fn drivelabels_labels_revisions_permissions_list_task(
 }
 
 /// GET v2/labels/{labelsId}/revisions/{revisionsId}/permissions
-/// Lists a label's permissions.
+/// Lists a label''s permissions.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -4374,7 +4374,7 @@ pub struct DrivelabelsLabelsRevisionsPermissionsListArgs {
 }
 
 /// GET v2/labels/{labelsId}/revisions/{revisionsId}/permissions
-/// Lists a label's permissions.
+/// Lists a label''s permissions.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `drivelabels_labels_revisions_permissions_list_builder()` + `drivelabels_labels_revisions_permissions_list_execute()`.

@@ -1538,7 +1538,7 @@ pub fn bigquerydatapolicy_projects_locations_data_policies_set_iam_policy(
 }
 
 /// POST v2/projects/{projectsId}/locations/{locationsId}/dataPolicies/{dataPoliciesId}:testIamPermissions
-/// Returns the caller's permission on the specified data policy resource.
+/// Returns the caller''s permission on the specified data policy resource.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigquerydatapolicy_projects_locations_data_policies_test_iam_permissions_execute()` to send, or `bigquerydatapolicy_projects_locations_data_policies_test_iam_permissions` for simplest API.
@@ -1565,7 +1565,7 @@ where
 }
 
 /// POST v2/projects/{projectsId}/locations/{locationsId}/dataPolicies/{dataPoliciesId}:testIamPermissions
-/// Returns the caller's permission on the specified data policy resource.
+/// Returns the caller''s permission on the specified data policy resource.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -1639,7 +1639,7 @@ pub fn bigquerydatapolicy_projects_locations_data_policies_test_iam_permissions_
 }
 
 /// POST v2/projects/{projectsId}/locations/{locationsId}/dataPolicies/{dataPoliciesId}:testIamPermissions
-/// Returns the caller's permission on the specified data policy resource.
+/// Returns the caller''s permission on the specified data policy resource.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -1681,7 +1681,7 @@ pub struct BigquerydatapolicyProjectsLocationsDataPoliciesTestIamPermissionsArgs
 }
 
 /// POST v2/projects/{projectsId}/locations/{locationsId}/dataPolicies/{dataPoliciesId}:testIamPermissions
-/// Returns the caller's permission on the specified data policy resource.
+/// Returns the caller''s permission on the specified data policy resource.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `bigquerydatapolicy_projects_locations_data_policies_test_iam_permissions_builder()` + `bigquerydatapolicy_projects_locations_data_policies_test_iam_permissions_execute()`.

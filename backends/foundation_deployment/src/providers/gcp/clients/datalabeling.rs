@@ -6273,7 +6273,7 @@ pub fn datalabeling_projects_evaluation_jobs_list(
 }
 
 /// PATCH v1beta1/projects/{projectsId}/evaluationJobs/{evaluationJobsId}
-/// Updates an evaluation job. You can only update certain fields of the job's EvaluationJobConfig: `humanAnnotationConfig`.instruction, `exampleCount`, and `exampleSamplePercentage`. If you want to change any other aspect of the evaluation job, you must delete the job and create a new one.
+/// Updates an evaluation job. You can only update certain fields of the job''s EvaluationJobConfig: `humanAnnotationConfig`.instruction, `exampleCount`, and `exampleSamplePercentage`. If you want to change any other aspect of the evaluation job, you must delete the job and create a new one.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datalabeling_projects_evaluation_jobs_patch_execute()` to send, or `datalabeling_projects_evaluation_jobs_patch` for simplest API.
@@ -6312,7 +6312,7 @@ where
 }
 
 /// PATCH v1beta1/projects/{projectsId}/evaluationJobs/{evaluationJobsId}
-/// Updates an evaluation job. You can only update certain fields of the job's EvaluationJobConfig: `humanAnnotationConfig`.instruction, `exampleCount`, and `exampleSamplePercentage`. If you want to change any other aspect of the evaluation job, you must delete the job and create a new one.
+/// Updates an evaluation job. You can only update certain fields of the job''s EvaluationJobConfig: `humanAnnotationConfig`.instruction, `exampleCount`, and `exampleSamplePercentage`. If you want to change any other aspect of the evaluation job, you must delete the job and create a new one.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -6387,7 +6387,7 @@ pub fn datalabeling_projects_evaluation_jobs_patch_task(
 }
 
 /// PATCH v1beta1/projects/{projectsId}/evaluationJobs/{evaluationJobsId}
-/// Updates an evaluation job. You can only update certain fields of the job's EvaluationJobConfig: `humanAnnotationConfig`.instruction, `exampleCount`, and `exampleSamplePercentage`. If you want to change any other aspect of the evaluation job, you must delete the job and create a new one.
+/// Updates an evaluation job. You can only update certain fields of the job''s EvaluationJobConfig: `humanAnnotationConfig`.instruction, `exampleCount`, and `exampleSamplePercentage`. If you want to change any other aspect of the evaluation job, you must delete the job and create a new one.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -6430,7 +6430,7 @@ pub struct DatalabelingProjectsEvaluationJobsPatchArgs {
 }
 
 /// PATCH v1beta1/projects/{projectsId}/evaluationJobs/{evaluationJobsId}
-/// Updates an evaluation job. You can only update certain fields of the job's EvaluationJobConfig: `humanAnnotationConfig`.instruction, `exampleCount`, and `exampleSamplePercentage`. If you want to change any other aspect of the evaluation job, you must delete the job and create a new one.
+/// Updates an evaluation job. You can only update certain fields of the job''s EvaluationJobConfig: `humanAnnotationConfig`.instruction, `exampleCount`, and `exampleSamplePercentage`. If you want to change any other aspect of the evaluation job, you must delete the job and create a new one.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `datalabeling_projects_evaluation_jobs_patch_builder()` + `datalabeling_projects_evaluation_jobs_patch_execute()`.
@@ -6621,7 +6621,7 @@ pub fn datalabeling_projects_evaluation_jobs_pause(
 }
 
 /// POST v1beta1/projects/{projectsId}/evaluationJobs/{evaluationJobsId}:resume
-/// Resumes a paused evaluation job. A deleted evaluation job can't be resumed. Resuming a running or scheduled evaluation job is a no-op.
+/// Resumes a paused evaluation job. A deleted evaluation job can''t be resumed. Resuming a running or scheduled evaluation job is a no-op.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datalabeling_projects_evaluation_jobs_resume_execute()` to send, or `datalabeling_projects_evaluation_jobs_resume` for simplest API.
@@ -6648,7 +6648,7 @@ where
 }
 
 /// POST v1beta1/projects/{projectsId}/evaluationJobs/{evaluationJobsId}:resume
-/// Resumes a paused evaluation job. A deleted evaluation job can't be resumed. Resuming a running or scheduled evaluation job is a no-op.
+/// Resumes a paused evaluation job. A deleted evaluation job can''t be resumed. Resuming a running or scheduled evaluation job is a no-op.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -6722,7 +6722,7 @@ pub fn datalabeling_projects_evaluation_jobs_resume_task(
 }
 
 /// POST v1beta1/projects/{projectsId}/evaluationJobs/{evaluationJobsId}:resume
-/// Resumes a paused evaluation job. A deleted evaluation job can't be resumed. Resuming a running or scheduled evaluation job is a no-op.
+/// Resumes a paused evaluation job. A deleted evaluation job can''t be resumed. Resuming a running or scheduled evaluation job is a no-op.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -6761,7 +6761,7 @@ pub struct DatalabelingProjectsEvaluationJobsResumeArgs {
 }
 
 /// POST v1beta1/projects/{projectsId}/evaluationJobs/{evaluationJobsId}:resume
-/// Resumes a paused evaluation job. A deleted evaluation job can't be resumed. Resuming a running or scheduled evaluation job is a no-op.
+/// Resumes a paused evaluation job. A deleted evaluation job can''t be resumed. Resuming a running or scheduled evaluation job is a no-op.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `datalabeling_projects_evaluation_jobs_resume_builder()` + `datalabeling_projects_evaluation_jobs_resume_execute()`.
@@ -7705,7 +7705,7 @@ pub fn datalabeling_projects_instructions_list(
 }
 
 /// GET v1beta1/projects/{projectsId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datalabeling_projects_operations_cancel_execute()` to send, or `datalabeling_projects_operations_cancel` for simplest API.
@@ -7732,7 +7732,7 @@ where
 }
 
 /// GET v1beta1/projects/{projectsId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -7806,7 +7806,7 @@ pub fn datalabeling_projects_operations_cancel_task(
 }
 
 /// GET v1beta1/projects/{projectsId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -7845,7 +7845,7 @@ pub struct DatalabelingProjectsOperationsCancelArgs {
 }
 
 /// GET v1beta1/projects/{projectsId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `datalabeling_projects_operations_cancel_builder()` + `datalabeling_projects_operations_cancel_execute()`.
@@ -7869,7 +7869,7 @@ pub fn datalabeling_projects_operations_cancel(
 }
 
 /// DELETE v1beta1/projects/{projectsId}/operations/{operationsId}
-/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datalabeling_projects_operations_delete_execute()` to send, or `datalabeling_projects_operations_delete` for simplest API.
@@ -7896,7 +7896,7 @@ where
 }
 
 /// DELETE v1beta1/projects/{projectsId}/operations/{operationsId}
-/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -7970,7 +7970,7 @@ pub fn datalabeling_projects_operations_delete_task(
 }
 
 /// DELETE v1beta1/projects/{projectsId}/operations/{operationsId}
-/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -8009,7 +8009,7 @@ pub struct DatalabelingProjectsOperationsDeleteArgs {
 }
 
 /// DELETE v1beta1/projects/{projectsId}/operations/{operationsId}
-/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `datalabeling_projects_operations_delete_builder()` + `datalabeling_projects_operations_delete_execute()`.
@@ -8201,7 +8201,7 @@ pub fn datalabeling_projects_operations_get(
 }
 
 /// GET v1beta1/projects/{projectsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datalabeling_projects_operations_list_execute()` to send, or `datalabeling_projects_operations_list` for simplest API.
@@ -8248,7 +8248,7 @@ where
 }
 
 /// GET v1beta1/projects/{projectsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -8323,7 +8323,7 @@ pub fn datalabeling_projects_operations_list_task(
 }
 
 /// GET v1beta1/projects/{projectsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -8370,7 +8370,7 @@ pub struct DatalabelingProjectsOperationsListArgs {
 }
 
 /// GET v1beta1/projects/{projectsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `datalabeling_projects_operations_list_builder()` + `datalabeling_projects_operations_list_execute()`.

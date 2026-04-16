@@ -22,7 +22,7 @@ use foundation_macros::JsonHash;
 use serde::Serialize;
 
 /// GET gmail/v1/users/{userId}/profile
-/// Gets the current user's Gmail profile.
+/// Gets the current user''s Gmail profile.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gmail_users_get_profile_execute()` to send, or `gmail_users_get_profile` for simplest API.
@@ -49,7 +49,7 @@ where
 }
 
 /// GET gmail/v1/users/{userId}/profile
-/// Gets the current user's Gmail profile.
+/// Gets the current user''s Gmail profile.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -123,7 +123,7 @@ pub fn gmail_users_get_profile_task(
 }
 
 /// GET gmail/v1/users/{userId}/profile
-/// Gets the current user's Gmail profile.
+/// Gets the current user''s Gmail profile.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -160,7 +160,7 @@ pub struct GmailUsersGetProfileArgs {
 }
 
 /// GET gmail/v1/users/{userId}/profile
-/// Gets the current user's Gmail profile.
+/// Gets the current user''s Gmail profile.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `gmail_users_get_profile_builder()` + `gmail_users_get_profile_execute()`.
@@ -1000,7 +1000,7 @@ pub fn gmail_users_drafts_get(
 }
 
 /// GET gmail/v1/users/{userId}/drafts
-/// Lists the drafts in the user's mailbox.
+/// Lists the drafts in the user''s mailbox.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gmail_users_drafts_list_execute()` to send, or `gmail_users_drafts_list` for simplest API.
@@ -1051,7 +1051,7 @@ where
 }
 
 /// GET gmail/v1/users/{userId}/drafts
-/// Lists the drafts in the user's mailbox.
+/// Lists the drafts in the user''s mailbox.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -1125,7 +1125,7 @@ pub fn gmail_users_drafts_list_task(
 }
 
 /// GET gmail/v1/users/{userId}/drafts
-/// Lists the drafts in the user's mailbox.
+/// Lists the drafts in the user''s mailbox.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -1172,7 +1172,7 @@ pub struct GmailUsersDraftsListArgs {
 }
 
 /// GET gmail/v1/users/{userId}/drafts
-/// Lists the drafts in the user's mailbox.
+/// Lists the drafts in the user''s mailbox.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `gmail_users_drafts_list_builder()` + `gmail_users_drafts_list_execute()`.
@@ -1363,7 +1363,7 @@ pub fn gmail_users_drafts_send(
 }
 
 /// PUT gmail/v1/users/{userId}/drafts/{id}
-/// Replaces a draft's content.
+/// Replaces a draft''s content.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gmail_users_drafts_update_execute()` to send, or `gmail_users_drafts_update` for simplest API.
@@ -1391,7 +1391,7 @@ where
 }
 
 /// PUT gmail/v1/users/{userId}/drafts/{id}
-/// Replaces a draft's content.
+/// Replaces a draft''s content.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -1465,7 +1465,7 @@ pub fn gmail_users_drafts_update_task(
 }
 
 /// PUT gmail/v1/users/{userId}/drafts/{id}
-/// Replaces a draft's content.
+/// Replaces a draft''s content.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -1504,7 +1504,7 @@ pub struct GmailUsersDraftsUpdateArgs {
 }
 
 /// PUT gmail/v1/users/{userId}/drafts/{id}
-/// Replaces a draft's content.
+/// Replaces a draft''s content.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `gmail_users_drafts_update_builder()` + `gmail_users_drafts_update_execute()`.
@@ -2219,7 +2219,7 @@ pub fn gmail_users_labels_get(
 }
 
 /// GET gmail/v1/users/{userId}/labels
-/// Lists all labels in the user's mailbox.
+/// Lists all labels in the user''s mailbox.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gmail_users_labels_list_execute()` to send, or `gmail_users_labels_list` for simplest API.
@@ -2246,7 +2246,7 @@ where
 }
 
 /// GET gmail/v1/users/{userId}/labels
-/// Lists all labels in the user's mailbox.
+/// Lists all labels in the user''s mailbox.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -2320,7 +2320,7 @@ pub fn gmail_users_labels_list_task(
 }
 
 /// GET gmail/v1/users/{userId}/labels
-/// Lists all labels in the user's mailbox.
+/// Lists all labels in the user''s mailbox.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -2359,7 +2359,7 @@ pub struct GmailUsersLabelsListArgs {
 }
 
 /// GET gmail/v1/users/{userId}/labels
-/// Lists all labels in the user's mailbox.
+/// Lists all labels in the user''s mailbox.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `gmail_users_labels_list_builder()` + `gmail_users_labels_list_execute()`.
@@ -3372,7 +3372,7 @@ pub fn gmail_users_messages_get(
 }
 
 /// POST gmail/v1/users/{userId}/messages/import
-/// Imports a message into only this user's mailbox, with standard email delivery scanning and classification similar to receiving via SMTP. This method doesn't perform SPF checks, so it might not work for some spam messages, such as those attempting to perform domain spoofing. This method does not send a message. Note that the maximum size of the message is 150MB.
+/// Imports a message into only this user''s mailbox, with standard email delivery scanning and classification similar to receiving via SMTP. This method doesn''t perform SPF checks, so it might not work for some spam messages, such as those attempting to perform domain spoofing. This method does not send a message. Note that the maximum size of the message is 150MB.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gmail_users_messages_import_execute()` to send, or `gmail_users_messages_import` for simplest API.
@@ -3423,7 +3423,7 @@ where
 }
 
 /// POST gmail/v1/users/{userId}/messages/import
-/// Imports a message into only this user's mailbox, with standard email delivery scanning and classification similar to receiving via SMTP. This method doesn't perform SPF checks, so it might not work for some spam messages, such as those attempting to perform domain spoofing. This method does not send a message. Note that the maximum size of the message is 150MB.
+/// Imports a message into only this user''s mailbox, with standard email delivery scanning and classification similar to receiving via SMTP. This method doesn''t perform SPF checks, so it might not work for some spam messages, such as those attempting to perform domain spoofing. This method does not send a message. Note that the maximum size of the message is 150MB.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -3497,7 +3497,7 @@ pub fn gmail_users_messages_import_task(
 }
 
 /// POST gmail/v1/users/{userId}/messages/import
-/// Imports a message into only this user's mailbox, with standard email delivery scanning and classification similar to receiving via SMTP. This method doesn't perform SPF checks, so it might not work for some spam messages, such as those attempting to perform domain spoofing. This method does not send a message. Note that the maximum size of the message is 150MB.
+/// Imports a message into only this user''s mailbox, with standard email delivery scanning and classification similar to receiving via SMTP. This method doesn''t perform SPF checks, so it might not work for some spam messages, such as those attempting to perform domain spoofing. This method does not send a message. Note that the maximum size of the message is 150MB.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -3542,7 +3542,7 @@ pub struct GmailUsersMessagesImportArgs {
 }
 
 /// POST gmail/v1/users/{userId}/messages/import
-/// Imports a message into only this user's mailbox, with standard email delivery scanning and classification similar to receiving via SMTP. This method doesn't perform SPF checks, so it might not work for some spam messages, such as those attempting to perform domain spoofing. This method does not send a message. Note that the maximum size of the message is 150MB.
+/// Imports a message into only this user''s mailbox, with standard email delivery scanning and classification similar to receiving via SMTP. This method doesn''t perform SPF checks, so it might not work for some spam messages, such as those attempting to perform domain spoofing. This method does not send a message. Note that the maximum size of the message is 150MB.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `gmail_users_messages_import_builder()` + `gmail_users_messages_import_execute()`.
@@ -3571,7 +3571,7 @@ pub fn gmail_users_messages_import(
 }
 
 /// POST gmail/v1/users/{userId}/messages
-/// Directly inserts a message into only this user's mailbox similar to IMAP APPEND, bypassing most scanning and classification. Does not send a message.
+/// Directly inserts a message into only this user''s mailbox similar to IMAP APPEND, bypassing most scanning and classification. Does not send a message.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gmail_users_messages_insert_execute()` to send, or `gmail_users_messages_insert` for simplest API.
@@ -3614,7 +3614,7 @@ where
 }
 
 /// POST gmail/v1/users/{userId}/messages
-/// Directly inserts a message into only this user's mailbox similar to IMAP APPEND, bypassing most scanning and classification. Does not send a message.
+/// Directly inserts a message into only this user''s mailbox similar to IMAP APPEND, bypassing most scanning and classification. Does not send a message.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -3688,7 +3688,7 @@ pub fn gmail_users_messages_insert_task(
 }
 
 /// POST gmail/v1/users/{userId}/messages
-/// Directly inserts a message into only this user's mailbox similar to IMAP APPEND, bypassing most scanning and classification. Does not send a message.
+/// Directly inserts a message into only this user''s mailbox similar to IMAP APPEND, bypassing most scanning and classification. Does not send a message.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -3729,7 +3729,7 @@ pub struct GmailUsersMessagesInsertArgs {
 }
 
 /// POST gmail/v1/users/{userId}/messages
-/// Directly inserts a message into only this user's mailbox similar to IMAP APPEND, bypassing most scanning and classification. Does not send a message.
+/// Directly inserts a message into only this user''s mailbox similar to IMAP APPEND, bypassing most scanning and classification. Does not send a message.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `gmail_users_messages_insert_builder()` + `gmail_users_messages_insert_execute()`.
@@ -3756,7 +3756,7 @@ pub fn gmail_users_messages_insert(
 }
 
 /// GET gmail/v1/users/{userId}/messages
-/// Lists the messages in the user's mailbox. For example usage, see [List Gmail messages](<https://developers.google.`com/workspace/gmail/api/guides/list-messages`>).
+/// Lists the messages in the user''s mailbox. For example usage, see [List Gmail messages](<https://developers.google.`com/workspace/gmail/api/guides/list-messages`>).
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gmail_users_messages_list_execute()` to send, or `gmail_users_messages_list` for simplest API.
@@ -3811,7 +3811,7 @@ where
 }
 
 /// GET gmail/v1/users/{userId}/messages
-/// Lists the messages in the user's mailbox. For example usage, see [List Gmail messages](<https://developers.google.`com/workspace/gmail/api/guides/list-messages`>).
+/// Lists the messages in the user''s mailbox. For example usage, see [List Gmail messages](<https://developers.google.`com/workspace/gmail/api/guides/list-messages`>).
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -3885,7 +3885,7 @@ pub fn gmail_users_messages_list_task(
 }
 
 /// GET gmail/v1/users/{userId}/messages
-/// Lists the messages in the user's mailbox. For example usage, see [List Gmail messages](<https://developers.google.`com/workspace/gmail/api/guides/list-messages`>).
+/// Lists the messages in the user''s mailbox. For example usage, see [List Gmail messages](<https://developers.google.`com/workspace/gmail/api/guides/list-messages`>).
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -3934,7 +3934,7 @@ pub struct GmailUsersMessagesListArgs {
 }
 
 /// GET gmail/v1/users/{userId}/messages
-/// Lists the messages in the user's mailbox. For example usage, see [List Gmail messages](<https://developers.google.`com/workspace/gmail/api/guides/list-messages`>).
+/// Lists the messages in the user''s mailbox. For example usage, see [List Gmail messages](<https://developers.google.`com/workspace/gmail/api/guides/list-messages`>).
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `gmail_users_messages_list_builder()` + `gmail_users_messages_list_execute()`.
@@ -6422,7 +6422,7 @@ pub fn gmail_users_settings_update_vacation(
 }
 
 /// POST gmail/v1/users/{userId}/settings/cse/identities
-/// Creates and configures a client-side encryption identity that's authorized to send mail from the user account. Google publishes the S/MIME certificate to a shared domain-wide directory so that people within a Google Workspace organization can encrypt and send mail to the identity. For administrators managing identities and keypairs for users in their organization, requests require authorization with a [service account](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`>) that has [domain-wide delegation authority](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`#delegatingauthority>) to impersonate users with the <https://www.googleapis.`com/auth/gmail`.settings.basic> scope. For users managing their own identities and keypairs, requests require [hardware key encryption](<https://support.google.`com/a/answer/14153163`>) turned on and configured.
+/// Creates and configures a client-side encryption identity that''s authorized to send mail from the user account. Google publishes the S/MIME certificate to a shared domain-wide directory so that people within a Google Workspace organization can encrypt and send mail to the identity. For administrators managing identities and keypairs for users in their organization, requests require authorization with a [service account](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`>) that has [domain-wide delegation authority](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`#delegatingauthority>) to impersonate users with the <https://www.googleapis.`com/auth/gmail`.settings.basic> scope. For users managing their own identities and keypairs, requests require [hardware key encryption](<https://support.google.`com/a/answer/14153163`>) turned on and configured.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gmail_users_settings_cse_identities_create_execute()` to send, or `gmail_users_settings_cse_identities_create` for simplest API.
@@ -6449,7 +6449,7 @@ where
 }
 
 /// POST gmail/v1/users/{userId}/settings/cse/identities
-/// Creates and configures a client-side encryption identity that's authorized to send mail from the user account. Google publishes the S/MIME certificate to a shared domain-wide directory so that people within a Google Workspace organization can encrypt and send mail to the identity. For administrators managing identities and keypairs for users in their organization, requests require authorization with a [service account](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`>) that has [domain-wide delegation authority](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`#delegatingauthority>) to impersonate users with the <https://www.googleapis.`com/auth/gmail`.settings.basic> scope. For users managing their own identities and keypairs, requests require [hardware key encryption](<https://support.google.`com/a/answer/14153163`>) turned on and configured.
+/// Creates and configures a client-side encryption identity that''s authorized to send mail from the user account. Google publishes the S/MIME certificate to a shared domain-wide directory so that people within a Google Workspace organization can encrypt and send mail to the identity. For administrators managing identities and keypairs for users in their organization, requests require authorization with a [service account](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`>) that has [domain-wide delegation authority](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`#delegatingauthority>) to impersonate users with the <https://www.googleapis.`com/auth/gmail`.settings.basic> scope. For users managing their own identities and keypairs, requests require [hardware key encryption](<https://support.google.`com/a/answer/14153163`>) turned on and configured.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -6523,7 +6523,7 @@ pub fn gmail_users_settings_cse_identities_create_task(
 }
 
 /// POST gmail/v1/users/{userId}/settings/cse/identities
-/// Creates and configures a client-side encryption identity that's authorized to send mail from the user account. Google publishes the S/MIME certificate to a shared domain-wide directory so that people within a Google Workspace organization can encrypt and send mail to the identity. For administrators managing identities and keypairs for users in their organization, requests require authorization with a [service account](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`>) that has [domain-wide delegation authority](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`#delegatingauthority>) to impersonate users with the <https://www.googleapis.`com/auth/gmail`.settings.basic> scope. For users managing their own identities and keypairs, requests require [hardware key encryption](<https://support.google.`com/a/answer/14153163`>) turned on and configured.
+/// Creates and configures a client-side encryption identity that''s authorized to send mail from the user account. Google publishes the S/MIME certificate to a shared domain-wide directory so that people within a Google Workspace organization can encrypt and send mail to the identity. For administrators managing identities and keypairs for users in their organization, requests require authorization with a [service account](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`>) that has [domain-wide delegation authority](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`#delegatingauthority>) to impersonate users with the <https://www.googleapis.`com/auth/gmail`.settings.basic> scope. For users managing their own identities and keypairs, requests require [hardware key encryption](<https://support.google.`com/a/answer/14153163`>) turned on and configured.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -6560,7 +6560,7 @@ pub struct GmailUsersSettingsCseIdentitiesCreateArgs {
 }
 
 /// POST gmail/v1/users/{userId}/settings/cse/identities
-/// Creates and configures a client-side encryption identity that's authorized to send mail from the user account. Google publishes the S/MIME certificate to a shared domain-wide directory so that people within a Google Workspace organization can encrypt and send mail to the identity. For administrators managing identities and keypairs for users in their organization, requests require authorization with a [service account](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`>) that has [domain-wide delegation authority](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`#delegatingauthority>) to impersonate users with the <https://www.googleapis.`com/auth/gmail`.settings.basic> scope. For users managing their own identities and keypairs, requests require [hardware key encryption](<https://support.google.`com/a/answer/14153163`>) turned on and configured.
+/// Creates and configures a client-side encryption identity that''s authorized to send mail from the user account. Google publishes the S/MIME certificate to a shared domain-wide directory so that people within a Google Workspace organization can encrypt and send mail to the identity. For administrators managing identities and keypairs for users in their organization, requests require authorization with a [service account](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`>) that has [domain-wide delegation authority](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`#delegatingauthority>) to impersonate users with the <https://www.googleapis.`com/auth/gmail`.settings.basic> scope. For users managing their own identities and keypairs, requests require [hardware key encryption](<https://support.google.`com/a/answer/14153163`>) turned on and configured.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `gmail_users_settings_cse_identities_create_builder()` + `gmail_users_settings_cse_identities_create_execute()`.
@@ -7102,7 +7102,7 @@ pub fn gmail_users_settings_cse_identities_list(
 }
 
 /// PATCH gmail/v1/users/{userId}/settings/cse/identities/{emailAddress}
-/// Associates a different key pair with an existing client-side encryption identity. The updated key pair must validate against Google's [S/MIME certificate profiles](<https://support.google.`com/a/answer/7300887`>). For administrators managing identities and keypairs for users in their organization, requests require authorization with a [service account](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`>) that has [domain-wide delegation authority](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`#delegatingauthority>) to impersonate users with the <https://www.googleapis.`com/auth/gmail`.settings.basic> scope. For users managing their own identities and keypairs, requests require [hardware key encryption](<https://support.google.`com/a/answer/14153163`>) turned on and configured.
+/// Associates a different key pair with an existing client-side encryption identity. The updated key pair must validate against Google''s [S/MIME certificate profiles](<https://support.google.`com/a/answer/7300887`>). For administrators managing identities and keypairs for users in their organization, requests require authorization with a [service account](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`>) that has [domain-wide delegation authority](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`#delegatingauthority>) to impersonate users with the <https://www.googleapis.`com/auth/gmail`.settings.basic> scope. For users managing their own identities and keypairs, requests require [hardware key encryption](<https://support.google.`com/a/answer/14153163`>) turned on and configured.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gmail_users_settings_cse_identities_patch_execute()` to send, or `gmail_users_settings_cse_identities_patch` for simplest API.
@@ -7130,7 +7130,7 @@ where
 }
 
 /// PATCH gmail/v1/users/{userId}/settings/cse/identities/{emailAddress}
-/// Associates a different key pair with an existing client-side encryption identity. The updated key pair must validate against Google's [S/MIME certificate profiles](<https://support.google.`com/a/answer/7300887`>). For administrators managing identities and keypairs for users in their organization, requests require authorization with a [service account](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`>) that has [domain-wide delegation authority](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`#delegatingauthority>) to impersonate users with the <https://www.googleapis.`com/auth/gmail`.settings.basic> scope. For users managing their own identities and keypairs, requests require [hardware key encryption](<https://support.google.`com/a/answer/14153163`>) turned on and configured.
+/// Associates a different key pair with an existing client-side encryption identity. The updated key pair must validate against Google''s [S/MIME certificate profiles](<https://support.google.`com/a/answer/7300887`>). For administrators managing identities and keypairs for users in their organization, requests require authorization with a [service account](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`>) that has [domain-wide delegation authority](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`#delegatingauthority>) to impersonate users with the <https://www.googleapis.`com/auth/gmail`.settings.basic> scope. For users managing their own identities and keypairs, requests require [hardware key encryption](<https://support.google.`com/a/answer/14153163`>) turned on and configured.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -7204,7 +7204,7 @@ pub fn gmail_users_settings_cse_identities_patch_task(
 }
 
 /// PATCH gmail/v1/users/{userId}/settings/cse/identities/{emailAddress}
-/// Associates a different key pair with an existing client-side encryption identity. The updated key pair must validate against Google's [S/MIME certificate profiles](<https://support.google.`com/a/answer/7300887`>). For administrators managing identities and keypairs for users in their organization, requests require authorization with a [service account](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`>) that has [domain-wide delegation authority](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`#delegatingauthority>) to impersonate users with the <https://www.googleapis.`com/auth/gmail`.settings.basic> scope. For users managing their own identities and keypairs, requests require [hardware key encryption](<https://support.google.`com/a/answer/14153163`>) turned on and configured.
+/// Associates a different key pair with an existing client-side encryption identity. The updated key pair must validate against Google''s [S/MIME certificate profiles](<https://support.google.`com/a/answer/7300887`>). For administrators managing identities and keypairs for users in their organization, requests require authorization with a [service account](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`>) that has [domain-wide delegation authority](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`#delegatingauthority>) to impersonate users with the <https://www.googleapis.`com/auth/gmail`.settings.basic> scope. For users managing their own identities and keypairs, requests require [hardware key encryption](<https://support.google.`com/a/answer/14153163`>) turned on and configured.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -7243,7 +7243,7 @@ pub struct GmailUsersSettingsCseIdentitiesPatchArgs {
 }
 
 /// PATCH gmail/v1/users/{userId}/settings/cse/identities/{emailAddress}
-/// Associates a different key pair with an existing client-side encryption identity. The updated key pair must validate against Google's [S/MIME certificate profiles](<https://support.google.`com/a/answer/7300887`>). For administrators managing identities and keypairs for users in their organization, requests require authorization with a [service account](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`>) that has [domain-wide delegation authority](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`#delegatingauthority>) to impersonate users with the <https://www.googleapis.`com/auth/gmail`.settings.basic> scope. For users managing their own identities and keypairs, requests require [hardware key encryption](<https://support.google.`com/a/answer/14153163`>) turned on and configured.
+/// Associates a different key pair with an existing client-side encryption identity. The updated key pair must validate against Google''s [S/MIME certificate profiles](<https://support.google.`com/a/answer/7300887`>). For administrators managing identities and keypairs for users in their organization, requests require authorization with a [service account](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`>) that has [domain-wide delegation authority](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`#delegatingauthority>) to impersonate users with the <https://www.googleapis.`com/auth/gmail`.settings.basic> scope. For users managing their own identities and keypairs, requests require [hardware key encryption](<https://support.google.`com/a/answer/14153163`>) turned on and configured.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `gmail_users_settings_cse_identities_patch_builder()` + `gmail_users_settings_cse_identities_patch_execute()`.
@@ -8110,7 +8110,7 @@ pub fn gmail_users_settings_cse_keypairs_list(
 }
 
 /// POST gmail/v1/users/{userId}/settings/cse/keypairs/{keyPairId}:obliterate
-/// Deletes a client-side encryption key pair permanently and immediately. You can only permanently delete key pairs that have been turned off for more than 30 days. To turn off a key pair, use the DisableCseKeyPair method. Gmail can't restore or decrypt any messages that were encrypted by an obliterated key. Authenticated users and Google Workspace administrators lose access to reading the encrypted messages. For administrators managing identities and keypairs for users in their organization, requests require authorization with a [service account](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`>) that has [domain-wide delegation authority](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`#delegatingauthority>) to impersonate users with the <https://www.googleapis.`com/auth/gmail`.settings.basic> scope. For users managing their own identities and keypairs, requests require [hardware key encryption](<https://support.google.`com/a/answer/14153163`>) turned on and configured.
+/// Deletes a client-side encryption key pair permanently and immediately. You can only permanently delete key pairs that have been turned off for more than 30 days. To turn off a key pair, use the DisableCseKeyPair method. Gmail can''t restore or decrypt any messages that were encrypted by an obliterated key. Authenticated users and Google Workspace administrators lose access to reading the encrypted messages. For administrators managing identities and keypairs for users in their organization, requests require authorization with a [service account](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`>) that has [domain-wide delegation authority](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`#delegatingauthority>) to impersonate users with the <https://www.googleapis.`com/auth/gmail`.settings.basic> scope. For users managing their own identities and keypairs, requests require [hardware key encryption](<https://support.google.`com/a/answer/14153163`>) turned on and configured.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gmail_users_settings_cse_keypairs_obliterate_execute()` to send, or `gmail_users_settings_cse_keypairs_obliterate` for simplest API.
@@ -8138,7 +8138,7 @@ where
 }
 
 /// POST gmail/v1/users/{userId}/settings/cse/keypairs/{keyPairId}:obliterate
-/// Deletes a client-side encryption key pair permanently and immediately. You can only permanently delete key pairs that have been turned off for more than 30 days. To turn off a key pair, use the DisableCseKeyPair method. Gmail can't restore or decrypt any messages that were encrypted by an obliterated key. Authenticated users and Google Workspace administrators lose access to reading the encrypted messages. For administrators managing identities and keypairs for users in their organization, requests require authorization with a [service account](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`>) that has [domain-wide delegation authority](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`#delegatingauthority>) to impersonate users with the <https://www.googleapis.`com/auth/gmail`.settings.basic> scope. For users managing their own identities and keypairs, requests require [hardware key encryption](<https://support.google.`com/a/answer/14153163`>) turned on and configured.
+/// Deletes a client-side encryption key pair permanently and immediately. You can only permanently delete key pairs that have been turned off for more than 30 days. To turn off a key pair, use the DisableCseKeyPair method. Gmail can''t restore or decrypt any messages that were encrypted by an obliterated key. Authenticated users and Google Workspace administrators lose access to reading the encrypted messages. For administrators managing identities and keypairs for users in their organization, requests require authorization with a [service account](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`>) that has [domain-wide delegation authority](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`#delegatingauthority>) to impersonate users with the <https://www.googleapis.`com/auth/gmail`.settings.basic> scope. For users managing their own identities and keypairs, requests require [hardware key encryption](<https://support.google.`com/a/answer/14153163`>) turned on and configured.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -8209,7 +8209,7 @@ pub fn gmail_users_settings_cse_keypairs_obliterate_task(
 }
 
 /// POST gmail/v1/users/{userId}/settings/cse/keypairs/{keyPairId}:obliterate
-/// Deletes a client-side encryption key pair permanently and immediately. You can only permanently delete key pairs that have been turned off for more than 30 days. To turn off a key pair, use the DisableCseKeyPair method. Gmail can't restore or decrypt any messages that were encrypted by an obliterated key. Authenticated users and Google Workspace administrators lose access to reading the encrypted messages. For administrators managing identities and keypairs for users in their organization, requests require authorization with a [service account](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`>) that has [domain-wide delegation authority](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`#delegatingauthority>) to impersonate users with the <https://www.googleapis.`com/auth/gmail`.settings.basic> scope. For users managing their own identities and keypairs, requests require [hardware key encryption](<https://support.google.`com/a/answer/14153163`>) turned on and configured.
+/// Deletes a client-side encryption key pair permanently and immediately. You can only permanently delete key pairs that have been turned off for more than 30 days. To turn off a key pair, use the DisableCseKeyPair method. Gmail can''t restore or decrypt any messages that were encrypted by an obliterated key. Authenticated users and Google Workspace administrators lose access to reading the encrypted messages. For administrators managing identities and keypairs for users in their organization, requests require authorization with a [service account](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`>) that has [domain-wide delegation authority](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`#delegatingauthority>) to impersonate users with the <https://www.googleapis.`com/auth/gmail`.settings.basic> scope. For users managing their own identities and keypairs, requests require [hardware key encryption](<https://support.google.`com/a/answer/14153163`>) turned on and configured.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -8248,7 +8248,7 @@ pub struct GmailUsersSettingsCseKeypairsObliterateArgs {
 }
 
 /// POST gmail/v1/users/{userId}/settings/cse/keypairs/{keyPairId}:obliterate
-/// Deletes a client-side encryption key pair permanently and immediately. You can only permanently delete key pairs that have been turned off for more than 30 days. To turn off a key pair, use the DisableCseKeyPair method. Gmail can't restore or decrypt any messages that were encrypted by an obliterated key. Authenticated users and Google Workspace administrators lose access to reading the encrypted messages. For administrators managing identities and keypairs for users in their organization, requests require authorization with a [service account](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`>) that has [domain-wide delegation authority](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`#delegatingauthority>) to impersonate users with the <https://www.googleapis.`com/auth/gmail`.settings.basic> scope. For users managing their own identities and keypairs, requests require [hardware key encryption](<https://support.google.`com/a/answer/14153163`>) turned on and configured.
+/// Deletes a client-side encryption key pair permanently and immediately. You can only permanently delete key pairs that have been turned off for more than 30 days. To turn off a key pair, use the DisableCseKeyPair method. Gmail can''t restore or decrypt any messages that were encrypted by an obliterated key. Authenticated users and Google Workspace administrators lose access to reading the encrypted messages. For administrators managing identities and keypairs for users in their organization, requests require authorization with a [service account](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`>) that has [domain-wide delegation authority](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`#delegatingauthority>) to impersonate users with the <https://www.googleapis.`com/auth/gmail`.settings.basic> scope. For users managing their own identities and keypairs, requests require [hardware key encryption](<https://support.google.`com/a/answer/14153163`>) turned on and configured.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `gmail_users_settings_cse_keypairs_obliterate_builder()` + `gmail_users_settings_cse_keypairs_obliterate_execute()`.
@@ -9570,7 +9570,7 @@ pub fn gmail_users_settings_filters_list(
 }
 
 /// POST gmail/v1/users/{userId}/settings/forwardingAddresses
-/// Creates a forwarding address. If ownership verification is required, a message will be sent to the recipient and the resource's verification status will be set to pending; otherwise, the resource will be created with verification status set to accepted. This method is only available to service account clients that have been delegated domain-wide authority.
+/// Creates a forwarding address. If ownership verification is required, a message will be sent to the recipient and the resource''s verification status will be set to pending; otherwise, the resource will be created with verification status set to accepted. This method is only available to service account clients that have been delegated domain-wide authority.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gmail_users_settings_forwarding_addresses_create_execute()` to send, or `gmail_users_settings_forwarding_addresses_create` for simplest API.
@@ -9597,7 +9597,7 @@ where
 }
 
 /// POST gmail/v1/users/{userId}/settings/forwardingAddresses
-/// Creates a forwarding address. If ownership verification is required, a message will be sent to the recipient and the resource's verification status will be set to pending; otherwise, the resource will be created with verification status set to accepted. This method is only available to service account clients that have been delegated domain-wide authority.
+/// Creates a forwarding address. If ownership verification is required, a message will be sent to the recipient and the resource''s verification status will be set to pending; otherwise, the resource will be created with verification status set to accepted. This method is only available to service account clients that have been delegated domain-wide authority.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -9671,7 +9671,7 @@ pub fn gmail_users_settings_forwarding_addresses_create_task(
 }
 
 /// POST gmail/v1/users/{userId}/settings/forwardingAddresses
-/// Creates a forwarding address. If ownership verification is required, a message will be sent to the recipient and the resource's verification status will be set to pending; otherwise, the resource will be created with verification status set to accepted. This method is only available to service account clients that have been delegated domain-wide authority.
+/// Creates a forwarding address. If ownership verification is required, a message will be sent to the recipient and the resource''s verification status will be set to pending; otherwise, the resource will be created with verification status set to accepted. This method is only available to service account clients that have been delegated domain-wide authority.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -9710,7 +9710,7 @@ pub struct GmailUsersSettingsForwardingAddressesCreateArgs {
 }
 
 /// POST gmail/v1/users/{userId}/settings/forwardingAddresses
-/// Creates a forwarding address. If ownership verification is required, a message will be sent to the recipient and the resource's verification status will be set to pending; otherwise, the resource will be created with verification status set to accepted. This method is only available to service account clients that have been delegated domain-wide authority.
+/// Creates a forwarding address. If ownership verification is required, a message will be sent to the recipient and the resource''s verification status will be set to pending; otherwise, the resource will be created with verification status set to accepted. This method is only available to service account clients that have been delegated domain-wide authority.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `gmail_users_settings_forwarding_addresses_create_builder()` + `gmail_users_settings_forwarding_addresses_create_execute()`.
@@ -10237,7 +10237,7 @@ pub fn gmail_users_settings_forwarding_addresses_list(
 }
 
 /// POST gmail/v1/users/{userId}/settings/sendAs
-/// Creates a custom "from" send-as alias. If an SMTP MSA is specified, Gmail will attempt to connect to the SMTP service to validate the configuration before creating the alias. If ownership verification is required for the alias, a message will be sent to the email address and the resource's verification status will be set to pending; otherwise, the resource will be created with verification status set to accepted. If a signature is provided, Gmail will sanitize the HTML before saving it with the alias. This method is only available to service account clients that have been delegated domain-wide authority.
+/// Creates a custom "from" send-as alias. If an SMTP MSA is specified, Gmail will attempt to connect to the SMTP service to validate the configuration before creating the alias. If ownership verification is required for the alias, a message will be sent to the email address and the resource''s verification status will be set to pending; otherwise, the resource will be created with verification status set to accepted. If a signature is provided, Gmail will sanitize the HTML before saving it with the alias. This method is only available to service account clients that have been delegated domain-wide authority.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gmail_users_settings_send_as_create_execute()` to send, or `gmail_users_settings_send_as_create` for simplest API.
@@ -10264,7 +10264,7 @@ where
 }
 
 /// POST gmail/v1/users/{userId}/settings/sendAs
-/// Creates a custom "from" send-as alias. If an SMTP MSA is specified, Gmail will attempt to connect to the SMTP service to validate the configuration before creating the alias. If ownership verification is required for the alias, a message will be sent to the email address and the resource's verification status will be set to pending; otherwise, the resource will be created with verification status set to accepted. If a signature is provided, Gmail will sanitize the HTML before saving it with the alias. This method is only available to service account clients that have been delegated domain-wide authority.
+/// Creates a custom "from" send-as alias. If an SMTP MSA is specified, Gmail will attempt to connect to the SMTP service to validate the configuration before creating the alias. If ownership verification is required for the alias, a message will be sent to the email address and the resource''s verification status will be set to pending; otherwise, the resource will be created with verification status set to accepted. If a signature is provided, Gmail will sanitize the HTML before saving it with the alias. This method is only available to service account clients that have been delegated domain-wide authority.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -10338,7 +10338,7 @@ pub fn gmail_users_settings_send_as_create_task(
 }
 
 /// POST gmail/v1/users/{userId}/settings/sendAs
-/// Creates a custom "from" send-as alias. If an SMTP MSA is specified, Gmail will attempt to connect to the SMTP service to validate the configuration before creating the alias. If ownership verification is required for the alias, a message will be sent to the email address and the resource's verification status will be set to pending; otherwise, the resource will be created with verification status set to accepted. If a signature is provided, Gmail will sanitize the HTML before saving it with the alias. This method is only available to service account clients that have been delegated domain-wide authority.
+/// Creates a custom "from" send-as alias. If an SMTP MSA is specified, Gmail will attempt to connect to the SMTP service to validate the configuration before creating the alias. If ownership verification is required for the alias, a message will be sent to the email address and the resource''s verification status will be set to pending; otherwise, the resource will be created with verification status set to accepted. If a signature is provided, Gmail will sanitize the HTML before saving it with the alias. This method is only available to service account clients that have been delegated domain-wide authority.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -10375,7 +10375,7 @@ pub struct GmailUsersSettingsSendAsCreateArgs {
 }
 
 /// POST gmail/v1/users/{userId}/settings/sendAs
-/// Creates a custom "from" send-as alias. If an SMTP MSA is specified, Gmail will attempt to connect to the SMTP service to validate the configuration before creating the alias. If ownership verification is required for the alias, a message will be sent to the email address and the resource's verification status will be set to pending; otherwise, the resource will be created with verification status set to accepted. If a signature is provided, Gmail will sanitize the HTML before saving it with the alias. This method is only available to service account clients that have been delegated domain-wide authority.
+/// Creates a custom "from" send-as alias. If an SMTP MSA is specified, Gmail will attempt to connect to the SMTP service to validate the configuration before creating the alias. If ownership verification is required for the alias, a message will be sent to the email address and the resource''s verification status will be set to pending; otherwise, the resource will be created with verification status set to accepted. If a signature is provided, Gmail will sanitize the HTML before saving it with the alias. This method is only available to service account clients that have been delegated domain-wide authority.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `gmail_users_settings_send_as_create_builder()` + `gmail_users_settings_send_as_create_execute()`.
@@ -12569,7 +12569,7 @@ pub fn gmail_users_threads_get(
 }
 
 /// GET gmail/v1/users/{userId}/threads
-/// Lists the threads in the user's mailbox.
+/// Lists the threads in the user''s mailbox.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gmail_users_threads_list_execute()` to send, or `gmail_users_threads_list` for simplest API.
@@ -12624,7 +12624,7 @@ where
 }
 
 /// GET gmail/v1/users/{userId}/threads
-/// Lists the threads in the user's mailbox.
+/// Lists the threads in the user''s mailbox.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -12698,7 +12698,7 @@ pub fn gmail_users_threads_list_task(
 }
 
 /// GET gmail/v1/users/{userId}/threads
-/// Lists the threads in the user's mailbox.
+/// Lists the threads in the user''s mailbox.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -12747,7 +12747,7 @@ pub struct GmailUsersThreadsListArgs {
 }
 
 /// GET gmail/v1/users/{userId}/threads
-/// Lists the threads in the user's mailbox.
+/// Lists the threads in the user''s mailbox.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `gmail_users_threads_list_builder()` + `gmail_users_threads_list_execute()`.

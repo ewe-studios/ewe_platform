@@ -191,7 +191,7 @@ pub fn assuredworkloads_organizations_locations_operations_get(
 }
 
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `assuredworkloads_organizations_locations_operations_list_execute()` to send, or `assuredworkloads_organizations_locations_operations_list` for simplest API.
@@ -242,7 +242,7 @@ where
 }
 
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -317,7 +317,7 @@ pub fn assuredworkloads_organizations_locations_operations_list_task(
 }
 
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -366,7 +366,7 @@ pub struct AssuredworkloadsOrganizationsLocationsOperationsListArgs {
 }
 
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `assuredworkloads_organizations_locations_operations_list_builder()` + `assuredworkloads_organizations_locations_operations_list_execute()`.
@@ -803,7 +803,7 @@ pub fn assuredworkloads_organizations_locations_workloads_create(
 }
 
 /// DELETE v1/organizations/{organizationsId}/locations/{locationsId}/workloads/{workloadsId}
-/// Deletes the workload. Make sure that workload's direct children are already in a deleted state, otherwise the request will fail with a FAILED_PRECONDITION error. In addition to assuredworkloads.workload.delete permission, the user should also have orgpolicy.policy.set permission on the deleted folder to remove Assured Workloads OrgPolicies.
+/// Deletes the workload. Make sure that workload''s direct children are already in a deleted state, otherwise the request will fail with a FAILED_PRECONDITION error. In addition to assuredworkloads.workload.delete permission, the user should also have orgpolicy.policy.set permission on the deleted folder to remove Assured Workloads OrgPolicies.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `assuredworkloads_organizations_locations_workloads_delete_execute()` to send, or `assuredworkloads_organizations_locations_workloads_delete` for simplest API.
@@ -842,7 +842,7 @@ where
 }
 
 /// DELETE v1/organizations/{organizationsId}/locations/{locationsId}/workloads/{workloadsId}
-/// Deletes the workload. Make sure that workload's direct children are already in a deleted state, otherwise the request will fail with a FAILED_PRECONDITION error. In addition to assuredworkloads.workload.delete permission, the user should also have orgpolicy.policy.set permission on the deleted folder to remove Assured Workloads OrgPolicies.
+/// Deletes the workload. Make sure that workload''s direct children are already in a deleted state, otherwise the request will fail with a FAILED_PRECONDITION error. In addition to assuredworkloads.workload.delete permission, the user should also have orgpolicy.policy.set permission on the deleted folder to remove Assured Workloads OrgPolicies.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -916,7 +916,7 @@ pub fn assuredworkloads_organizations_locations_workloads_delete_task(
 }
 
 /// DELETE v1/organizations/{organizationsId}/locations/{locationsId}/workloads/{workloadsId}
-/// Deletes the workload. Make sure that workload's direct children are already in a deleted state, otherwise the request will fail with a FAILED_PRECONDITION error. In addition to assuredworkloads.workload.delete permission, the user should also have orgpolicy.policy.set permission on the deleted folder to remove Assured Workloads OrgPolicies.
+/// Deletes the workload. Make sure that workload''s direct children are already in a deleted state, otherwise the request will fail with a FAILED_PRECONDITION error. In addition to assuredworkloads.workload.delete permission, the user should also have orgpolicy.policy.set permission on the deleted folder to remove Assured Workloads OrgPolicies.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -957,7 +957,7 @@ pub struct AssuredworkloadsOrganizationsLocationsWorkloadsDeleteArgs {
 }
 
 /// DELETE v1/organizations/{organizationsId}/locations/{locationsId}/workloads/{workloadsId}
-/// Deletes the workload. Make sure that workload's direct children are already in a deleted state, otherwise the request will fail with a FAILED_PRECONDITION error. In addition to assuredworkloads.workload.delete permission, the user should also have orgpolicy.policy.set permission on the deleted folder to remove Assured Workloads OrgPolicies.
+/// Deletes the workload. Make sure that workload''s direct children are already in a deleted state, otherwise the request will fail with a FAILED_PRECONDITION error. In addition to assuredworkloads.workload.delete permission, the user should also have orgpolicy.policy.set permission on the deleted folder to remove Assured Workloads OrgPolicies.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `assuredworkloads_organizations_locations_workloads_delete_builder()` + `assuredworkloads_organizations_locations_workloads_delete_execute()`.
@@ -1721,7 +1721,7 @@ pub fn assuredworkloads_organizations_locations_workloads_list(
 }
 
 /// PATCH v1/organizations/{organizationsId}/locations/{locationsId}/workloads/{workloadsId}:mutatePartnerPermissions
-/// Update the permissions settings for an existing partner workload. For force updates don't set etag field in the Workload. Only one update operation per workload can be in progress.
+/// Update the permissions settings for an existing partner workload. For force updates don''t set etag field in the Workload. Only one update operation per workload can be in progress.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `assuredworkloads_organizations_locations_workloads_mutate_partner_permissions_execute()` to send, or `assuredworkloads_organizations_locations_workloads_mutate_partner_permissions` for simplest API.
@@ -1748,7 +1748,7 @@ where
 }
 
 /// PATCH v1/organizations/{organizationsId}/locations/{locationsId}/workloads/{workloadsId}:mutatePartnerPermissions
-/// Update the permissions settings for an existing partner workload. For force updates don't set etag field in the Workload. Only one update operation per workload can be in progress.
+/// Update the permissions settings for an existing partner workload. For force updates don''t set etag field in the Workload. Only one update operation per workload can be in progress.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -1822,7 +1822,7 @@ pub fn assuredworkloads_organizations_locations_workloads_mutate_partner_permiss
 }
 
 /// PATCH v1/organizations/{organizationsId}/locations/{locationsId}/workloads/{workloadsId}:mutatePartnerPermissions
-/// Update the permissions settings for an existing partner workload. For force updates don't set etag field in the Workload. Only one update operation per workload can be in progress.
+/// Update the permissions settings for an existing partner workload. For force updates don''t set etag field in the Workload. Only one update operation per workload can be in progress.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -1865,7 +1865,7 @@ pub struct AssuredworkloadsOrganizationsLocationsWorkloadsMutatePartnerPermissio
 }
 
 /// PATCH v1/organizations/{organizationsId}/locations/{locationsId}/workloads/{workloadsId}:mutatePartnerPermissions
-/// Update the permissions settings for an existing partner workload. For force updates don't set etag field in the Workload. Only one update operation per workload can be in progress.
+/// Update the permissions settings for an existing partner workload. For force updates don''t set etag field in the Workload. Only one update operation per workload can be in progress.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `assuredworkloads_organizations_locations_workloads_mutate_partner_permissions_builder()` + `assuredworkloads_organizations_locations_workloads_mutate_partner_permissions_execute()`.
@@ -1894,7 +1894,7 @@ pub fn assuredworkloads_organizations_locations_workloads_mutate_partner_permiss
 }
 
 /// PATCH v1/organizations/{organizationsId}/locations/{locationsId}/workloads/{workloadsId}
-/// Updates an existing workload. Currently allows updating of workload display_name and labels. For force updates don't set etag field in the Workload. Only one update operation per workload can be in progress.
+/// Updates an existing workload. Currently allows updating of workload display_name and labels. For force updates don''t set etag field in the Workload. Only one update operation per workload can be in progress.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `assuredworkloads_organizations_locations_workloads_patch_execute()` to send, or `assuredworkloads_organizations_locations_workloads_patch` for simplest API.
@@ -1933,7 +1933,7 @@ where
 }
 
 /// PATCH v1/organizations/{organizationsId}/locations/{locationsId}/workloads/{workloadsId}
-/// Updates an existing workload. Currently allows updating of workload display_name and labels. For force updates don't set etag field in the Workload. Only one update operation per workload can be in progress.
+/// Updates an existing workload. Currently allows updating of workload display_name and labels. For force updates don''t set etag field in the Workload. Only one update operation per workload can be in progress.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -2007,7 +2007,7 @@ pub fn assuredworkloads_organizations_locations_workloads_patch_task(
 }
 
 /// PATCH v1/organizations/{organizationsId}/locations/{locationsId}/workloads/{workloadsId}
-/// Updates an existing workload. Currently allows updating of workload display_name and labels. For force updates don't set etag field in the Workload. Only one update operation per workload can be in progress.
+/// Updates an existing workload. Currently allows updating of workload display_name and labels. For force updates don''t set etag field in the Workload. Only one update operation per workload can be in progress.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -2050,7 +2050,7 @@ pub struct AssuredworkloadsOrganizationsLocationsWorkloadsPatchArgs {
 }
 
 /// PATCH v1/organizations/{organizationsId}/locations/{locationsId}/workloads/{workloadsId}
-/// Updates an existing workload. Currently allows updating of workload display_name and labels. For force updates don't set etag field in the Workload. Only one update operation per workload can be in progress.
+/// Updates an existing workload. Currently allows updating of workload display_name and labels. For force updates don''t set etag field in the Workload. Only one update operation per workload can be in progress.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `assuredworkloads_organizations_locations_workloads_patch_builder()` + `assuredworkloads_organizations_locations_workloads_patch_execute()`.
@@ -2988,7 +2988,7 @@ pub fn assuredworkloads_organizations_locations_workloads_violations_get(
 }
 
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/workloads/{workloadsId}/violations
-/// Lists the Violations in the AssuredWorkload Environment. Callers may also choose to read across multiple Workloads as per [AIP-159](<https://google.aip.`dev/159`>) by using '-' (the hyphen or dash character) as a wildcard character instead of workload-id in the parent. Format `organizations/{org_id}/locations/{location}/workloads/-`
+/// Lists the Violations in the AssuredWorkload Environment. Callers may also choose to read across multiple Workloads as per [AIP-159](<https://google.aip.`dev/159`>) by using ''-'' (the hyphen or dash character) as a wildcard character instead of workload-id in the parent. Format `organizations/{org_id}/locations/{location}/workloads/-`
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `assuredworkloads_organizations_locations_workloads_violations_list_execute()` to send, or `assuredworkloads_organizations_locations_workloads_violations_list` for simplest API.
@@ -3043,7 +3043,7 @@ where
 }
 
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/workloads/{workloadsId}/violations
-/// Lists the Violations in the AssuredWorkload Environment. Callers may also choose to read across multiple Workloads as per [AIP-159](<https://google.aip.`dev/159`>) by using '-' (the hyphen or dash character) as a wildcard character instead of workload-id in the parent. Format `organizations/{org_id}/locations/{location}/workloads/-`
+/// Lists the Violations in the AssuredWorkload Environment. Callers may also choose to read across multiple Workloads as per [AIP-159](<https://google.aip.`dev/159`>) by using ''-'' (the hyphen or dash character) as a wildcard character instead of workload-id in the parent. Format `organizations/{org_id}/locations/{location}/workloads/-`
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -3121,7 +3121,7 @@ pub fn assuredworkloads_organizations_locations_workloads_violations_list_task(
 }
 
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/workloads/{workloadsId}/violations
-/// Lists the Violations in the AssuredWorkload Environment. Callers may also choose to read across multiple Workloads as per [AIP-159](<https://google.aip.`dev/159`>) by using '-' (the hyphen or dash character) as a wildcard character instead of workload-id in the parent. Format `organizations/{org_id}/locations/{location}/workloads/-`
+/// Lists the Violations in the AssuredWorkload Environment. Callers may also choose to read across multiple Workloads as per [AIP-159](<https://google.aip.`dev/159`>) by using ''-'' (the hyphen or dash character) as a wildcard character instead of workload-id in the parent. Format `organizations/{org_id}/locations/{location}/workloads/-`
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -3172,7 +3172,7 @@ pub struct AssuredworkloadsOrganizationsLocationsWorkloadsViolationsListArgs {
 }
 
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/workloads/{workloadsId}/violations
-/// Lists the Violations in the AssuredWorkload Environment. Callers may also choose to read across multiple Workloads as per [AIP-159](<https://google.aip.`dev/159`>) by using '-' (the hyphen or dash character) as a wildcard character instead of workload-id in the parent. Format `organizations/{org_id}/locations/{location}/workloads/-`
+/// Lists the Violations in the AssuredWorkload Environment. Callers may also choose to read across multiple Workloads as per [AIP-159](<https://google.aip.`dev/159`>) by using ''-'' (the hyphen or dash character) as a wildcard character instead of workload-id in the parent. Format `organizations/{org_id}/locations/{location}/workloads/-`
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `assuredworkloads_organizations_locations_workloads_violations_list_builder()` + `assuredworkloads_organizations_locations_workloads_violations_list_execute()`.

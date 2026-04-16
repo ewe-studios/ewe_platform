@@ -22,7 +22,7 @@ use foundation_macros::JsonHash;
 use serde::Serialize;
 
 /// POST v1/organizations/{organizationsId}/locations/{locationsId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securityposture_organizations_locations_operations_cancel_execute()` to send, or `securityposture_organizations_locations_operations_cancel` for simplest API.
@@ -49,7 +49,7 @@ where
 }
 
 /// POST v1/organizations/{organizationsId}/locations/{locationsId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -123,7 +123,7 @@ pub fn securityposture_organizations_locations_operations_cancel_task(
 }
 
 /// POST v1/organizations/{organizationsId}/locations/{locationsId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -160,7 +160,7 @@ pub struct SecuritypostureOrganizationsLocationsOperationsCancelArgs {
 }
 
 /// POST v1/organizations/{organizationsId}/locations/{locationsId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `securityposture_organizations_locations_operations_cancel_builder()` + `securityposture_organizations_locations_operations_cancel_execute()`.
@@ -183,7 +183,7 @@ pub fn securityposture_organizations_locations_operations_cancel(
 }
 
 /// DELETE v1/organizations/{organizationsId}/locations/{locationsId}/operations/{operationsId}
-/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securityposture_organizations_locations_operations_delete_execute()` to send, or `securityposture_organizations_locations_operations_delete` for simplest API.
@@ -210,7 +210,7 @@ where
 }
 
 /// DELETE v1/organizations/{organizationsId}/locations/{locationsId}/operations/{operationsId}
-/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -284,7 +284,7 @@ pub fn securityposture_organizations_locations_operations_delete_task(
 }
 
 /// DELETE v1/organizations/{organizationsId}/locations/{locationsId}/operations/{operationsId}
-/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -321,7 +321,7 @@ pub struct SecuritypostureOrganizationsLocationsOperationsDeleteArgs {
 }
 
 /// DELETE v1/organizations/{organizationsId}/locations/{locationsId}/operations/{operationsId}
-/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `securityposture_organizations_locations_operations_delete_builder()` + `securityposture_organizations_locations_operations_delete_execute()`.
@@ -505,7 +505,7 @@ pub fn securityposture_organizations_locations_operations_get(
 }
 
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `securityposture_organizations_locations_operations_list_execute()` to send, or `securityposture_organizations_locations_operations_list` for simplest API.
@@ -556,7 +556,7 @@ where
 }
 
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -630,7 +630,7 @@ pub fn securityposture_organizations_locations_operations_list_task(
 }
 
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -677,7 +677,7 @@ pub struct SecuritypostureOrganizationsLocationsOperationsListArgs {
 }
 
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `securityposture_organizations_locations_operations_list_builder()` + `securityposture_organizations_locations_operations_list_execute()`.
@@ -3258,9 +3258,9 @@ pub fn securityposture_organizations_locations_postures_patch(
 /// Validates a specified infrastructure-as-code (IaC) configuration, and creates a Report with the validation results. Only Terraform configurations are supported. Only modified assets are validated.
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `securityposture_organizations_locations_reports_create_ia_cvalidation_report_execute()` to send, or `securityposture_organizations_locations_reports_create_ia_cvalidation_report` for simplest API.
+/// Use `securityposture_organizations_locations_reports_create_ia_c_validation_report_execute()` to send, or `securityposture_organizations_locations_reports_create_ia_c_validation_report` for simplest API.
 
-pub fn securityposture_organizations_locations_reports_create_ia_cvalidation_report_builder<R>(
+pub fn securityposture_organizations_locations_reports_create_ia_c_validation_report_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
@@ -3292,17 +3292,17 @@ where
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `securityposture_organizations_locations_reports_create_ia_cvalidation_report_execute()` or `securityposture_organizations_locations_reports_create_ia_cvalidation_report`.
+/// For direct execution, use `securityposture_organizations_locations_reports_create_ia_c_validation_report_execute()` or `securityposture_organizations_locations_reports_create_ia_c_validation_report`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `securityposture_organizations_locations_reports_create_ia_cvalidation_report_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `securityposture_organizations_locations_reports_create_ia_c_validation_report_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn securityposture_organizations_locations_reports_create_ia_cvalidation_report_task(
+pub fn securityposture_organizations_locations_reports_create_ia_c_validation_report_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -3361,34 +3361,35 @@ pub fn securityposture_organizations_locations_reports_create_ia_cvalidation_rep
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `securityposture_organizations_locations_reports_create_ia_cvalidation_report_builder()` to create the builder,
+/// For full customization, use `securityposture_organizations_locations_reports_create_ia_c_validation_report_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `securityposture_organizations_locations_reports_create_ia_cvalidation_report_task()`.
-/// For the simplest API, use `securityposture_organizations_locations_reports_create_ia_cvalidation_report()`.
+/// For task-level control, use `securityposture_organizations_locations_reports_create_ia_c_validation_report_task()`.
+/// For the simplest API, use `securityposture_organizations_locations_reports_create_ia_c_validation_report()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `securityposture_organizations_locations_reports_create_ia_cvalidation_report_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `securityposture_organizations_locations_reports_create_ia_c_validation_report_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn securityposture_organizations_locations_reports_create_ia_cvalidation_report_execute(
+pub fn securityposture_organizations_locations_reports_create_ia_c_validation_report_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let task =
-        securityposture_organizations_locations_reports_create_ia_cvalidation_report_task(builder)?;
+    let task = securityposture_organizations_locations_reports_create_ia_c_validation_report_task(
+        builder,
+    )?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`securityposture_organizations_locations_reports_create_ia_cvalidation_report`].
+/// Arguments for [`securityposture_organizations_locations_reports_create_ia_c_validation_report`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct SecuritypostureOrganizationsLocationsReportsCreateIaCvalidationReportArgs {
+pub struct SecuritypostureOrganizationsLocationsReportsCreateIaCValidationReportArgs {
     /// Path parameter: parent
     pub parent: String,
 }
@@ -3397,26 +3398,26 @@ pub struct SecuritypostureOrganizationsLocationsReportsCreateIaCvalidationReport
 /// Validates a specified infrastructure-as-code (IaC) configuration, and creates a Report with the validation results. Only Terraform configurations are supported. Only modified assets are validated.
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `securityposture_organizations_locations_reports_create_ia_cvalidation_report_builder()` + `securityposture_organizations_locations_reports_create_ia_cvalidation_report_execute()`.
-/// For task-level control, use `securityposture_organizations_locations_reports_create_ia_cvalidation_report_task()`.
+/// For customization, use `securityposture_organizations_locations_reports_create_ia_c_validation_report_builder()` + `securityposture_organizations_locations_reports_create_ia_c_validation_report_execute()`.
+/// For task-level control, use `securityposture_organizations_locations_reports_create_ia_c_validation_report_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn securityposture_organizations_locations_reports_create_ia_cvalidation_report(
+pub fn securityposture_organizations_locations_reports_create_ia_c_validation_report(
     client: &SimpleHttpClient,
-    args: &SecuritypostureOrganizationsLocationsReportsCreateIaCvalidationReportArgs,
+    args: &SecuritypostureOrganizationsLocationsReportsCreateIaCValidationReportArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
-        securityposture_organizations_locations_reports_create_ia_cvalidation_report_builder(
+        securityposture_organizations_locations_reports_create_ia_c_validation_report_builder(
             client,
             &args.parent,
         )?;
-    securityposture_organizations_locations_reports_create_ia_cvalidation_report_execute(builder)
+    securityposture_organizations_locations_reports_create_ia_c_validation_report_execute(builder)
 }
 
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/reports/{reportsId}
@@ -4645,17 +4646,17 @@ impl ResourceIdentifier<SecuritypostureOrganizationsLocationsPosturesPatchArgs> 
 // ResourceIdentifier implementation for Operation
 // =============================================================================
 
-/// ResourceIdentifier implementation for Operation with SecuritypostureOrganizationsLocationsReportsCreateIaCvalidationReportArgs input.
+/// ResourceIdentifier implementation for Operation with SecuritypostureOrganizationsLocationsReportsCreateIaCValidationReportArgs input.
 ///
 /// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
 ///
 /// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<SecuritypostureOrganizationsLocationsReportsCreateIaCvalidationReportArgs>
+impl ResourceIdentifier<SecuritypostureOrganizationsLocationsReportsCreateIaCValidationReportArgs>
     for Operation
 {
     fn generate_resource_id(
         &self,
-        input: &SecuritypostureOrganizationsLocationsReportsCreateIaCvalidationReportArgs,
+        input: &SecuritypostureOrganizationsLocationsReportsCreateIaCValidationReportArgs,
     ) -> String {
         format!("gcp::securityposture::Operation/{}", input.parent)
     }

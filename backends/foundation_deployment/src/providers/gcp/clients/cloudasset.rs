@@ -2683,7 +2683,7 @@ pub fn cloudasset_analyze_iam_policy_longrunning(
 }
 
 /// GET v1/{v1Id}/{v1Id1}:analyzeMove
-/// Analyze moving a resource to a specified destination without kicking off the actual move. The analysis is best effort depending on the user's permissions of viewing different hierarchical policies and configurations. The policies and configuration are subject to change before the actual resource migration takes place.
+/// Analyze moving a resource to a specified destination without kicking off the actual move. The analysis is best effort depending on the user''s permissions of viewing different hierarchical policies and configurations. The policies and configuration are subject to change before the actual resource migration takes place.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudasset_analyze_move_execute()` to send, or `cloudasset_analyze_move` for simplest API.
@@ -2726,7 +2726,7 @@ where
 }
 
 /// GET v1/{v1Id}/{v1Id1}:analyzeMove
-/// Analyze moving a resource to a specified destination without kicking off the actual move. The analysis is best effort depending on the user's permissions of viewing different hierarchical policies and configurations. The policies and configuration are subject to change before the actual resource migration takes place.
+/// Analyze moving a resource to a specified destination without kicking off the actual move. The analysis is best effort depending on the user''s permissions of viewing different hierarchical policies and configurations. The policies and configuration are subject to change before the actual resource migration takes place.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -2800,7 +2800,7 @@ pub fn cloudasset_analyze_move_task(
 }
 
 /// GET v1/{v1Id}/{v1Id1}:analyzeMove
-/// Analyze moving a resource to a specified destination without kicking off the actual move. The analysis is best effort depending on the user's permissions of viewing different hierarchical policies and configurations. The policies and configuration are subject to change before the actual resource migration takes place.
+/// Analyze moving a resource to a specified destination without kicking off the actual move. The analysis is best effort depending on the user''s permissions of viewing different hierarchical policies and configurations. The policies and configuration are subject to change before the actual resource migration takes place.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -2843,7 +2843,7 @@ pub struct CloudassetAnalyzeMoveArgs {
 }
 
 /// GET v1/{v1Id}/{v1Id1}:analyzeMove
-/// Analyze moving a resource to a specified destination without kicking off the actual move. The analysis is best effort depending on the user's permissions of viewing different hierarchical policies and configurations. The policies and configuration are subject to change before the actual resource migration takes place.
+/// Analyze moving a resource to a specified destination without kicking off the actual move. The analysis is best effort depending on the user''s permissions of viewing different hierarchical policies and configurations. The policies and configuration are subject to change before the actual resource migration takes place.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `cloudasset_analyze_move_builder()` + `cloudasset_analyze_move_execute()`.
@@ -3868,7 +3868,7 @@ pub fn cloudasset_export_assets(
 }
 
 /// POST v1/{v1Id}/{v1Id1}:queryAssets
-/// Issue a job that queries assets using a SQL statement compatible with [BigQuery SQL](<https://cloud.google.`com/bigquery/docs/introduction-sql`>). If the query execution finishes within timeout and there's no pagination, the full query results will be returned in the QueryAssetsResponse. Otherwise, full query results can be obtained by issuing extra requests with the job_reference from the a previous QueryAssets call. Note, the query result has approximately 10 GB limitation enforced by [BigQuery](<https://cloud.google.`com/bigquery/docs/best-practices-performance-output`>). Queries return larger results will result in errors.
+/// Issue a job that queries assets using a SQL statement compatible with [BigQuery SQL](<https://cloud.google.`com/bigquery/docs/introduction-sql`>). If the query execution finishes within timeout and there''s no pagination, the full query results will be returned in the QueryAssetsResponse. Otherwise, full query results can be obtained by issuing extra requests with the job_reference from the a previous QueryAssets call. Note, the query result has approximately 10 GB limitation enforced by [BigQuery](<https://cloud.google.`com/bigquery/docs/best-practices-performance-output`>). Queries return larger results will result in errors.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudasset_query_assets_execute()` to send, or `cloudasset_query_assets` for simplest API.
@@ -3895,7 +3895,7 @@ where
 }
 
 /// POST v1/{v1Id}/{v1Id1}:queryAssets
-/// Issue a job that queries assets using a SQL statement compatible with [BigQuery SQL](<https://cloud.google.`com/bigquery/docs/introduction-sql`>). If the query execution finishes within timeout and there's no pagination, the full query results will be returned in the QueryAssetsResponse. Otherwise, full query results can be obtained by issuing extra requests with the job_reference from the a previous QueryAssets call. Note, the query result has approximately 10 GB limitation enforced by [BigQuery](<https://cloud.google.`com/bigquery/docs/best-practices-performance-output`>). Queries return larger results will result in errors.
+/// Issue a job that queries assets using a SQL statement compatible with [BigQuery SQL](<https://cloud.google.`com/bigquery/docs/introduction-sql`>). If the query execution finishes within timeout and there''s no pagination, the full query results will be returned in the QueryAssetsResponse. Otherwise, full query results can be obtained by issuing extra requests with the job_reference from the a previous QueryAssets call. Note, the query result has approximately 10 GB limitation enforced by [BigQuery](<https://cloud.google.`com/bigquery/docs/best-practices-performance-output`>). Queries return larger results will result in errors.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -3969,7 +3969,7 @@ pub fn cloudasset_query_assets_task(
 }
 
 /// POST v1/{v1Id}/{v1Id1}:queryAssets
-/// Issue a job that queries assets using a SQL statement compatible with [BigQuery SQL](<https://cloud.google.`com/bigquery/docs/introduction-sql`>). If the query execution finishes within timeout and there's no pagination, the full query results will be returned in the QueryAssetsResponse. Otherwise, full query results can be obtained by issuing extra requests with the job_reference from the a previous QueryAssets call. Note, the query result has approximately 10 GB limitation enforced by [BigQuery](<https://cloud.google.`com/bigquery/docs/best-practices-performance-output`>). Queries return larger results will result in errors.
+/// Issue a job that queries assets using a SQL statement compatible with [BigQuery SQL](<https://cloud.google.`com/bigquery/docs/introduction-sql`>). If the query execution finishes within timeout and there''s no pagination, the full query results will be returned in the QueryAssetsResponse. Otherwise, full query results can be obtained by issuing extra requests with the job_reference from the a previous QueryAssets call. Note, the query result has approximately 10 GB limitation enforced by [BigQuery](<https://cloud.google.`com/bigquery/docs/best-practices-performance-output`>). Queries return larger results will result in errors.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -4008,7 +4008,7 @@ pub struct CloudassetQueryAssetsArgs {
 }
 
 /// POST v1/{v1Id}/{v1Id1}:queryAssets
-/// Issue a job that queries assets using a SQL statement compatible with [BigQuery SQL](<https://cloud.google.`com/bigquery/docs/introduction-sql`>). If the query execution finishes within timeout and there's no pagination, the full query results will be returned in the QueryAssetsResponse. Otherwise, full query results can be obtained by issuing extra requests with the job_reference from the a previous QueryAssets call. Note, the query result has approximately 10 GB limitation enforced by [BigQuery](<https://cloud.google.`com/bigquery/docs/best-practices-performance-output`>). Queries return larger results will result in errors.
+/// Issue a job that queries assets using a SQL statement compatible with [BigQuery SQL](<https://cloud.google.`com/bigquery/docs/introduction-sql`>). If the query execution finishes within timeout and there''s no pagination, the full query results will be returned in the QueryAssetsResponse. Otherwise, full query results can be obtained by issuing extra requests with the job_reference from the a previous QueryAssets call. Note, the query result has approximately 10 GB limitation enforced by [BigQuery](<https://cloud.google.`com/bigquery/docs/best-practices-performance-output`>). Queries return larger results will result in errors.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `cloudasset_query_assets_builder()` + `cloudasset_query_assets_execute()`.

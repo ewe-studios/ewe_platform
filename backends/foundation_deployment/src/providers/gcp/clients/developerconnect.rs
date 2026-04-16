@@ -2242,9 +2242,9 @@ pub fn developerconnect_projects_locations_account_connectors_users_fetch_self(
 /// Finishes OAuth flow for an account connector.
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `developerconnect_projects_locations_account_connectors_users_finish_oauth_flow_execute()` to send, or `developerconnect_projects_locations_account_connectors_users_finish_oauth_flow` for simplest API.
+/// Use `developerconnect_projects_locations_account_connectors_users_finish_o_auth_flow_execute()` to send, or `developerconnect_projects_locations_account_connectors_users_finish_o_auth_flow` for simplest API.
 
-pub fn developerconnect_projects_locations_account_connectors_users_finish_oauth_flow_builder<R>(
+pub fn developerconnect_projects_locations_account_connectors_users_finish_o_auth_flow_builder<R>(
     client: &SimpleHttpClient<R>,
     accountConnector: &String,
     googleOauthParams_scopes: &Option<Option<String>>,
@@ -2304,17 +2304,17 @@ where
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `developerconnect_projects_locations_account_connectors_users_finish_oauth_flow_execute()` or `developerconnect_projects_locations_account_connectors_users_finish_oauth_flow`.
+/// For direct execution, use `developerconnect_projects_locations_account_connectors_users_finish_o_auth_flow_execute()` or `developerconnect_projects_locations_account_connectors_users_finish_o_auth_flow`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `developerconnect_projects_locations_account_connectors_users_finish_oauth_flow_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `developerconnect_projects_locations_account_connectors_users_finish_o_auth_flow_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn developerconnect_projects_locations_account_connectors_users_finish_oauth_flow_task(
+pub fn developerconnect_projects_locations_account_connectors_users_finish_o_auth_flow_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -2373,21 +2373,21 @@ pub fn developerconnect_projects_locations_account_connectors_users_finish_oauth
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `developerconnect_projects_locations_account_connectors_users_finish_oauth_flow_builder()` to create the builder,
+/// For full customization, use `developerconnect_projects_locations_account_connectors_users_finish_o_auth_flow_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `developerconnect_projects_locations_account_connectors_users_finish_oauth_flow_task()`.
-/// For the simplest API, use `developerconnect_projects_locations_account_connectors_users_finish_oauth_flow()`.
+/// For task-level control, use `developerconnect_projects_locations_account_connectors_users_finish_o_auth_flow_task()`.
+/// For the simplest API, use `developerconnect_projects_locations_account_connectors_users_finish_o_auth_flow()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `developerconnect_projects_locations_account_connectors_users_finish_oauth_flow_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `developerconnect_projects_locations_account_connectors_users_finish_o_auth_flow_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn developerconnect_projects_locations_account_connectors_users_finish_oauth_flow_execute(
+pub fn developerconnect_projects_locations_account_connectors_users_finish_o_auth_flow_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<FinishOAuthResponse>, ApiError>, P = ApiPending>
@@ -2395,15 +2395,16 @@ pub fn developerconnect_projects_locations_account_connectors_users_finish_oauth
         + 'static,
     ApiError,
 > {
-    let task = developerconnect_projects_locations_account_connectors_users_finish_oauth_flow_task(
-        builder,
-    )?;
+    let task =
+        developerconnect_projects_locations_account_connectors_users_finish_o_auth_flow_task(
+            builder,
+        )?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`developerconnect_projects_locations_account_connectors_users_finish_oauth_flow`].
+/// Arguments for [`developerconnect_projects_locations_account_connectors_users_finish_o_auth_flow`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DeveloperconnectProjectsLocationsAccountConnectorsUsersFinishOauthFlowArgs {
+pub struct DeveloperconnectProjectsLocationsAccountConnectorsUsersFinishOAuthFlowArgs {
     /// Path parameter: accountConnector
     pub accountConnector: String,
     /// Query parameter: googleOauthParams_scopes
@@ -2422,16 +2423,16 @@ pub struct DeveloperconnectProjectsLocationsAccountConnectorsUsersFinishOauthFlo
 /// Finishes OAuth flow for an account connector.
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `developerconnect_projects_locations_account_connectors_users_finish_oauth_flow_builder()` + `developerconnect_projects_locations_account_connectors_users_finish_oauth_flow_execute()`.
-/// For task-level control, use `developerconnect_projects_locations_account_connectors_users_finish_oauth_flow_task()`.
+/// For customization, use `developerconnect_projects_locations_account_connectors_users_finish_o_auth_flow_builder()` + `developerconnect_projects_locations_account_connectors_users_finish_o_auth_flow_execute()`.
+/// For task-level control, use `developerconnect_projects_locations_account_connectors_users_finish_o_auth_flow_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn developerconnect_projects_locations_account_connectors_users_finish_oauth_flow(
+pub fn developerconnect_projects_locations_account_connectors_users_finish_o_auth_flow(
     client: &SimpleHttpClient,
-    args: &DeveloperconnectProjectsLocationsAccountConnectorsUsersFinishOauthFlowArgs,
+    args: &DeveloperconnectProjectsLocationsAccountConnectorsUsersFinishOAuthFlowArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<FinishOAuthResponse>, ApiError>, P = ApiPending>
         + Send
@@ -2439,7 +2440,7 @@ pub fn developerconnect_projects_locations_account_connectors_users_finish_oauth
     ApiError,
 > {
     let builder =
-        developerconnect_projects_locations_account_connectors_users_finish_oauth_flow_builder(
+        developerconnect_projects_locations_account_connectors_users_finish_o_auth_flow_builder(
             client,
             &args.accountConnector,
             &args.googleOauthParams_scopes,
@@ -2448,7 +2449,7 @@ pub fn developerconnect_projects_locations_account_connectors_users_finish_oauth
             &args.oauthParams_code,
             &args.oauthParams_ticket,
         )?;
-    developerconnect_projects_locations_account_connectors_users_finish_oauth_flow_execute(builder)
+    developerconnect_projects_locations_account_connectors_users_finish_o_auth_flow_execute(builder)
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/accountConnectors/{accountConnectorsId}/users
@@ -2658,9 +2659,9 @@ pub fn developerconnect_projects_locations_account_connectors_users_list(
 /// Starts OAuth flow for an account connector.
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `developerconnect_projects_locations_account_connectors_users_start_oauth_flow_execute()` to send, or `developerconnect_projects_locations_account_connectors_users_start_oauth_flow` for simplest API.
+/// Use `developerconnect_projects_locations_account_connectors_users_start_o_auth_flow_execute()` to send, or `developerconnect_projects_locations_account_connectors_users_start_o_auth_flow` for simplest API.
 
-pub fn developerconnect_projects_locations_account_connectors_users_start_oauth_flow_builder<R>(
+pub fn developerconnect_projects_locations_account_connectors_users_start_o_auth_flow_builder<R>(
     client: &SimpleHttpClient<R>,
     accountConnector: &String,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
@@ -2692,17 +2693,17 @@ where
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `developerconnect_projects_locations_account_connectors_users_start_oauth_flow_execute()` or `developerconnect_projects_locations_account_connectors_users_start_oauth_flow`.
+/// For direct execution, use `developerconnect_projects_locations_account_connectors_users_start_o_auth_flow_execute()` or `developerconnect_projects_locations_account_connectors_users_start_o_auth_flow`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `developerconnect_projects_locations_account_connectors_users_start_oauth_flow_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `developerconnect_projects_locations_account_connectors_users_start_o_auth_flow_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn developerconnect_projects_locations_account_connectors_users_start_oauth_flow_task(
+pub fn developerconnect_projects_locations_account_connectors_users_start_o_auth_flow_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
@@ -2761,21 +2762,21 @@ pub fn developerconnect_projects_locations_account_connectors_users_start_oauth_
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `developerconnect_projects_locations_account_connectors_users_start_oauth_flow_builder()` to create the builder,
+/// For full customization, use `developerconnect_projects_locations_account_connectors_users_start_o_auth_flow_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `developerconnect_projects_locations_account_connectors_users_start_oauth_flow_task()`.
-/// For the simplest API, use `developerconnect_projects_locations_account_connectors_users_start_oauth_flow()`.
+/// For task-level control, use `developerconnect_projects_locations_account_connectors_users_start_o_auth_flow_task()`.
+/// For the simplest API, use `developerconnect_projects_locations_account_connectors_users_start_o_auth_flow()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `developerconnect_projects_locations_account_connectors_users_start_oauth_flow_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `developerconnect_projects_locations_account_connectors_users_start_o_auth_flow_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn developerconnect_projects_locations_account_connectors_users_start_oauth_flow_execute(
+pub fn developerconnect_projects_locations_account_connectors_users_start_o_auth_flow_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<StartOAuthResponse>, ApiError>, P = ApiPending>
@@ -2783,15 +2784,15 @@ pub fn developerconnect_projects_locations_account_connectors_users_start_oauth_
         + 'static,
     ApiError,
 > {
-    let task = developerconnect_projects_locations_account_connectors_users_start_oauth_flow_task(
+    let task = developerconnect_projects_locations_account_connectors_users_start_o_auth_flow_task(
         builder,
     )?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`developerconnect_projects_locations_account_connectors_users_start_oauth_flow`].
+/// Arguments for [`developerconnect_projects_locations_account_connectors_users_start_o_auth_flow`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DeveloperconnectProjectsLocationsAccountConnectorsUsersStartOauthFlowArgs {
+pub struct DeveloperconnectProjectsLocationsAccountConnectorsUsersStartOAuthFlowArgs {
     /// Path parameter: accountConnector
     pub accountConnector: String,
 }
@@ -2800,16 +2801,16 @@ pub struct DeveloperconnectProjectsLocationsAccountConnectorsUsersStartOauthFlow
 /// Starts OAuth flow for an account connector.
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `developerconnect_projects_locations_account_connectors_users_start_oauth_flow_builder()` + `developerconnect_projects_locations_account_connectors_users_start_oauth_flow_execute()`.
-/// For task-level control, use `developerconnect_projects_locations_account_connectors_users_start_oauth_flow_task()`.
+/// For customization, use `developerconnect_projects_locations_account_connectors_users_start_o_auth_flow_builder()` + `developerconnect_projects_locations_account_connectors_users_start_o_auth_flow_execute()`.
+/// For task-level control, use `developerconnect_projects_locations_account_connectors_users_start_o_auth_flow_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn developerconnect_projects_locations_account_connectors_users_start_oauth_flow(
+pub fn developerconnect_projects_locations_account_connectors_users_start_o_auth_flow(
     client: &SimpleHttpClient,
-    args: &DeveloperconnectProjectsLocationsAccountConnectorsUsersStartOauthFlowArgs,
+    args: &DeveloperconnectProjectsLocationsAccountConnectorsUsersStartOAuthFlowArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<StartOAuthResponse>, ApiError>, P = ApiPending>
         + Send
@@ -2817,11 +2818,11 @@ pub fn developerconnect_projects_locations_account_connectors_users_start_oauth_
     ApiError,
 > {
     let builder =
-        developerconnect_projects_locations_account_connectors_users_start_oauth_flow_builder(
+        developerconnect_projects_locations_account_connectors_users_start_o_auth_flow_builder(
             client,
             &args.accountConnector,
         )?;
-    developerconnect_projects_locations_account_connectors_users_start_oauth_flow_execute(builder)
+    developerconnect_projects_locations_account_connectors_users_start_o_auth_flow_execute(builder)
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/connections
@@ -7576,7 +7577,7 @@ pub fn developerconnect_projects_locations_insights_configs_deployment_events_li
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `developerconnect_projects_locations_operations_cancel_execute()` to send, or `developerconnect_projects_locations_operations_cancel` for simplest API.
@@ -7603,7 +7604,7 @@ where
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -7677,7 +7678,7 @@ pub fn developerconnect_projects_locations_operations_cancel_task(
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -7714,7 +7715,7 @@ pub struct DeveloperconnectProjectsLocationsOperationsCancelArgs {
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `developerconnect_projects_locations_operations_cancel_builder()` + `developerconnect_projects_locations_operations_cancel_execute()`.
@@ -7737,7 +7738,7 @@ pub fn developerconnect_projects_locations_operations_cancel(
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
-/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `developerconnect_projects_locations_operations_delete_execute()` to send, or `developerconnect_projects_locations_operations_delete` for simplest API.
@@ -7764,7 +7765,7 @@ where
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
-/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -7838,7 +7839,7 @@ pub fn developerconnect_projects_locations_operations_delete_task(
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
-/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -7875,7 +7876,7 @@ pub struct DeveloperconnectProjectsLocationsOperationsDeleteArgs {
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
-/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `developerconnect_projects_locations_operations_delete_builder()` + `developerconnect_projects_locations_operations_delete_execute()`.
@@ -8058,7 +8059,7 @@ pub fn developerconnect_projects_locations_operations_get(
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `developerconnect_projects_locations_operations_list_execute()` to send, or `developerconnect_projects_locations_operations_list` for simplest API.
@@ -8109,7 +8110,7 @@ where
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -8183,7 +8184,7 @@ pub fn developerconnect_projects_locations_operations_list_task(
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -8230,7 +8231,7 @@ pub struct DeveloperconnectProjectsLocationsOperationsListArgs {
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `developerconnect_projects_locations_operations_list_builder()` + `developerconnect_projects_locations_operations_list_execute()`.
@@ -8600,17 +8601,17 @@ impl ResourceIdentifier<DeveloperconnectProjectsLocationsAccountConnectorsUsersF
 // ResourceIdentifier implementation for FinishOAuthResponse
 // =============================================================================
 
-/// ResourceIdentifier implementation for FinishOAuthResponse with DeveloperconnectProjectsLocationsAccountConnectorsUsersFinishOauthFlowArgs input.
+/// ResourceIdentifier implementation for FinishOAuthResponse with DeveloperconnectProjectsLocationsAccountConnectorsUsersFinishOAuthFlowArgs input.
 ///
 /// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
 ///
 /// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<DeveloperconnectProjectsLocationsAccountConnectorsUsersFinishOauthFlowArgs>
+impl ResourceIdentifier<DeveloperconnectProjectsLocationsAccountConnectorsUsersFinishOAuthFlowArgs>
     for FinishOAuthResponse
 {
     fn generate_resource_id(
         &self,
-        input: &DeveloperconnectProjectsLocationsAccountConnectorsUsersFinishOauthFlowArgs,
+        input: &DeveloperconnectProjectsLocationsAccountConnectorsUsersFinishOAuthFlowArgs,
     ) -> String {
         format!(
             "gcp::developerconnect::FinishOAuthResponse/{}",
@@ -8659,17 +8660,17 @@ impl ResourceIdentifier<DeveloperconnectProjectsLocationsAccountConnectorsUsersL
 // ResourceIdentifier implementation for StartOAuthResponse
 // =============================================================================
 
-/// ResourceIdentifier implementation for StartOAuthResponse with DeveloperconnectProjectsLocationsAccountConnectorsUsersStartOauthFlowArgs input.
+/// ResourceIdentifier implementation for StartOAuthResponse with DeveloperconnectProjectsLocationsAccountConnectorsUsersStartOAuthFlowArgs input.
 ///
 /// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
 ///
 /// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<DeveloperconnectProjectsLocationsAccountConnectorsUsersStartOauthFlowArgs>
+impl ResourceIdentifier<DeveloperconnectProjectsLocationsAccountConnectorsUsersStartOAuthFlowArgs>
     for StartOAuthResponse
 {
     fn generate_resource_id(
         &self,
-        input: &DeveloperconnectProjectsLocationsAccountConnectorsUsersStartOauthFlowArgs,
+        input: &DeveloperconnectProjectsLocationsAccountConnectorsUsersStartOAuthFlowArgs,
     ) -> String {
         format!(
             "gcp::developerconnect::StartOAuthResponse/{}",

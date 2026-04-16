@@ -690,7 +690,7 @@ pub fn sheets_spreadsheets_get_by_data_filter(
 }
 
 /// GET v4/spreadsheets/{spreadsheetId}/developerMetadata/{metadataId}
-/// Returns the developer metadata with the specified ID. The caller must specify the spreadsheet ID and the developer metadata's unique `metadataId`. For more information, see [Read, write, and search metadata](<https://developers.google.`com/workspace/sheets/api/guides/metadata`>).
+/// Returns the developer metadata with the specified ID. The caller must specify the spreadsheet ID and the developer metadata''s unique `metadataId`. For more information, see [Read, write, and search metadata](<https://developers.google.`com/workspace/sheets/api/guides/metadata`>).
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `sheets_spreadsheets_developer_metadata_get_execute()` to send, or `sheets_spreadsheets_developer_metadata_get` for simplest API.
@@ -718,7 +718,7 @@ where
 }
 
 /// GET v4/spreadsheets/{spreadsheetId}/developerMetadata/{metadataId}
-/// Returns the developer metadata with the specified ID. The caller must specify the spreadsheet ID and the developer metadata's unique `metadataId`. For more information, see [Read, write, and search metadata](<https://developers.google.`com/workspace/sheets/api/guides/metadata`>).
+/// Returns the developer metadata with the specified ID. The caller must specify the spreadsheet ID and the developer metadata''s unique `metadataId`. For more information, see [Read, write, and search metadata](<https://developers.google.`com/workspace/sheets/api/guides/metadata`>).
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -792,7 +792,7 @@ pub fn sheets_spreadsheets_developer_metadata_get_task(
 }
 
 /// GET v4/spreadsheets/{spreadsheetId}/developerMetadata/{metadataId}
-/// Returns the developer metadata with the specified ID. The caller must specify the spreadsheet ID and the developer metadata's unique `metadataId`. For more information, see [Read, write, and search metadata](<https://developers.google.`com/workspace/sheets/api/guides/metadata`>).
+/// Returns the developer metadata with the specified ID. The caller must specify the spreadsheet ID and the developer metadata''s unique `metadataId`. For more information, see [Read, write, and search metadata](<https://developers.google.`com/workspace/sheets/api/guides/metadata`>).
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -833,7 +833,7 @@ pub struct SheetsSpreadsheetsDeveloperMetadataGetArgs {
 }
 
 /// GET v4/spreadsheets/{spreadsheetId}/developerMetadata/{metadataId}
-/// Returns the developer metadata with the specified ID. The caller must specify the spreadsheet ID and the developer metadata's unique `metadataId`. For more information, see [Read, write, and search metadata](<https://developers.google.`com/workspace/sheets/api/guides/metadata`>).
+/// Returns the developer metadata with the specified ID. The caller must specify the spreadsheet ID and the developer metadata''s unique `metadataId`. For more information, see [Read, write, and search metadata](<https://developers.google.`com/workspace/sheets/api/guides/metadata`>).
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `sheets_spreadsheets_developer_metadata_get_builder()` + `sheets_spreadsheets_developer_metadata_get_execute()`.

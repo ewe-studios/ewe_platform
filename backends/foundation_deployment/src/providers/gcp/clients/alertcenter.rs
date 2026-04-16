@@ -1219,7 +1219,7 @@ pub fn alertcenter_alerts_undelete(
 }
 
 /// POST v1beta1/alerts/{alertId}/feedback
-/// Creates new feedback for an alert. Attempting to create a feedback for a non-existent alert returns NOT_FOUND error. Attempting to create a feedback for an alert that is marked for deletion returns FAILED_PRECONDITION' error.
+/// Creates new feedback for an alert. Attempting to create a feedback for a non-existent alert returns NOT_FOUND error. Attempting to create a feedback for an alert that is marked for deletion returns FAILED_PRECONDITION'' error.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `alertcenter_alerts_feedback_create_execute()` to send, or `alertcenter_alerts_feedback_create` for simplest API.
@@ -1258,7 +1258,7 @@ where
 }
 
 /// POST v1beta1/alerts/{alertId}/feedback
-/// Creates new feedback for an alert. Attempting to create a feedback for a non-existent alert returns NOT_FOUND error. Attempting to create a feedback for an alert that is marked for deletion returns FAILED_PRECONDITION' error.
+/// Creates new feedback for an alert. Attempting to create a feedback for a non-existent alert returns NOT_FOUND error. Attempting to create a feedback for an alert that is marked for deletion returns FAILED_PRECONDITION'' error.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -1332,7 +1332,7 @@ pub fn alertcenter_alerts_feedback_create_task(
 }
 
 /// POST v1beta1/alerts/{alertId}/feedback
-/// Creates new feedback for an alert. Attempting to create a feedback for a non-existent alert returns NOT_FOUND error. Attempting to create a feedback for an alert that is marked for deletion returns FAILED_PRECONDITION' error.
+/// Creates new feedback for an alert. Attempting to create a feedback for a non-existent alert returns NOT_FOUND error. Attempting to create a feedback for an alert that is marked for deletion returns FAILED_PRECONDITION'' error.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -1373,7 +1373,7 @@ pub struct AlertcenterAlertsFeedbackCreateArgs {
 }
 
 /// POST v1beta1/alerts/{alertId}/feedback
-/// Creates new feedback for an alert. Attempting to create a feedback for a non-existent alert returns NOT_FOUND error. Attempting to create a feedback for an alert that is marked for deletion returns FAILED_PRECONDITION' error.
+/// Creates new feedback for an alert. Attempting to create a feedback for a non-existent alert returns NOT_FOUND error. Attempting to create a feedback for an alert that is marked for deletion returns FAILED_PRECONDITION'' error.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `alertcenter_alerts_feedback_create_builder()` + `alertcenter_alerts_feedback_create_execute()`.

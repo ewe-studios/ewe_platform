@@ -1281,7 +1281,7 @@ pub fn calendar_acl_watch(
 }
 
 /// DELETE users/me/calendarList/{calendarId}
-/// Removes a calendar from the user's calendar list.
+/// Removes a calendar from the user''s calendar list.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `calendar_calendar_list_delete_execute()` to send, or `calendar_calendar_list_delete` for simplest API.
@@ -1308,7 +1308,7 @@ where
 }
 
 /// DELETE users/me/calendarList/{calendarId}
-/// Removes a calendar from the user's calendar list.
+/// Removes a calendar from the user''s calendar list.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -1379,7 +1379,7 @@ pub fn calendar_calendar_list_delete_task(
 }
 
 /// DELETE users/me/calendarList/{calendarId}
-/// Removes a calendar from the user's calendar list.
+/// Removes a calendar from the user''s calendar list.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -1416,7 +1416,7 @@ pub struct CalendarCalendarListDeleteArgs {
 }
 
 /// DELETE users/me/calendarList/{calendarId}
-/// Removes a calendar from the user's calendar list.
+/// Removes a calendar from the user''s calendar list.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `calendar_calendar_list_delete_builder()` + `calendar_calendar_list_delete_execute()`.
@@ -1438,7 +1438,7 @@ pub fn calendar_calendar_list_delete(
 }
 
 /// GET users/me/calendarList/{calendarId}
-/// Returns a calendar from the user's calendar list.
+/// Returns a calendar from the user''s calendar list.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `calendar_calendar_list_get_execute()` to send, or `calendar_calendar_list_get` for simplest API.
@@ -1465,7 +1465,7 @@ where
 }
 
 /// GET users/me/calendarList/{calendarId}
-/// Returns a calendar from the user's calendar list.
+/// Returns a calendar from the user''s calendar list.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -1539,7 +1539,7 @@ pub fn calendar_calendar_list_get_task(
 }
 
 /// GET users/me/calendarList/{calendarId}
-/// Returns a calendar from the user's calendar list.
+/// Returns a calendar from the user''s calendar list.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -1578,7 +1578,7 @@ pub struct CalendarCalendarListGetArgs {
 }
 
 /// GET users/me/calendarList/{calendarId}
-/// Returns a calendar from the user's calendar list.
+/// Returns a calendar from the user''s calendar list.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `calendar_calendar_list_get_builder()` + `calendar_calendar_list_get_execute()`.
@@ -1602,7 +1602,7 @@ pub fn calendar_calendar_list_get(
 }
 
 /// POST users/me/calendarList
-/// Inserts an existing calendar into the user's calendar list.
+/// Inserts an existing calendar into the user''s calendar list.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `calendar_calendar_list_insert_execute()` to send, or `calendar_calendar_list_insert` for simplest API.
@@ -1637,7 +1637,7 @@ where
 }
 
 /// POST users/me/calendarList
-/// Inserts an existing calendar into the user's calendar list.
+/// Inserts an existing calendar into the user''s calendar list.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -1711,7 +1711,7 @@ pub fn calendar_calendar_list_insert_task(
 }
 
 /// POST users/me/calendarList
-/// Inserts an existing calendar into the user's calendar list.
+/// Inserts an existing calendar into the user''s calendar list.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -1750,7 +1750,7 @@ pub struct CalendarCalendarListInsertArgs {
 }
 
 /// POST users/me/calendarList
-/// Inserts an existing calendar into the user's calendar list.
+/// Inserts an existing calendar into the user''s calendar list.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `calendar_calendar_list_insert_builder()` + `calendar_calendar_list_insert_execute()`.
@@ -1774,7 +1774,7 @@ pub fn calendar_calendar_list_insert(
 }
 
 /// GET users/me/calendarList
-/// Returns the calendars on the user's calendar list.
+/// Returns the calendars on the user''s calendar list.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `calendar_calendar_list_list_execute()` to send, or `calendar_calendar_list_list` for simplest API.
@@ -1829,7 +1829,7 @@ where
 }
 
 /// GET users/me/calendarList
-/// Returns the calendars on the user's calendar list.
+/// Returns the calendars on the user''s calendar list.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -1903,7 +1903,7 @@ pub fn calendar_calendar_list_list_task(
 }
 
 /// GET users/me/calendarList
-/// Returns the calendars on the user's calendar list.
+/// Returns the calendars on the user''s calendar list.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -1952,7 +1952,7 @@ pub struct CalendarCalendarListListArgs {
 }
 
 /// GET users/me/calendarList
-/// Returns the calendars on the user's calendar list.
+/// Returns the calendars on the user''s calendar list.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `calendar_calendar_list_list_builder()` + `calendar_calendar_list_list_execute()`.
@@ -1984,7 +1984,7 @@ pub fn calendar_calendar_list_list(
 }
 
 /// PATCH users/me/calendarList/{calendarId}
-/// Updates an existing calendar on the user's calendar list. This method supports patch semantics.
+/// Updates an existing calendar on the user''s calendar list. This method supports patch semantics.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `calendar_calendar_list_patch_execute()` to send, or `calendar_calendar_list_patch` for simplest API.
@@ -2023,7 +2023,7 @@ where
 }
 
 /// PATCH users/me/calendarList/{calendarId}
-/// Updates an existing calendar on the user's calendar list. This method supports patch semantics.
+/// Updates an existing calendar on the user''s calendar list. This method supports patch semantics.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -2097,7 +2097,7 @@ pub fn calendar_calendar_list_patch_task(
 }
 
 /// PATCH users/me/calendarList/{calendarId}
-/// Updates an existing calendar on the user's calendar list. This method supports patch semantics.
+/// Updates an existing calendar on the user''s calendar list. This method supports patch semantics.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -2138,7 +2138,7 @@ pub struct CalendarCalendarListPatchArgs {
 }
 
 /// PATCH users/me/calendarList/{calendarId}
-/// Updates an existing calendar on the user's calendar list. This method supports patch semantics.
+/// Updates an existing calendar on the user''s calendar list. This method supports patch semantics.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `calendar_calendar_list_patch_builder()` + `calendar_calendar_list_patch_execute()`.
@@ -2163,7 +2163,7 @@ pub fn calendar_calendar_list_patch(
 }
 
 /// PUT users/me/calendarList/{calendarId}
-/// Updates an existing calendar on the user's calendar list.
+/// Updates an existing calendar on the user''s calendar list.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `calendar_calendar_list_update_execute()` to send, or `calendar_calendar_list_update` for simplest API.
@@ -2202,7 +2202,7 @@ where
 }
 
 /// PUT users/me/calendarList/{calendarId}
-/// Updates an existing calendar on the user's calendar list.
+/// Updates an existing calendar on the user''s calendar list.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -2276,7 +2276,7 @@ pub fn calendar_calendar_list_update_task(
 }
 
 /// PUT users/me/calendarList/{calendarId}
-/// Updates an existing calendar on the user's calendar list.
+/// Updates an existing calendar on the user''s calendar list.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -2317,7 +2317,7 @@ pub struct CalendarCalendarListUpdateArgs {
 }
 
 /// PUT users/me/calendarList/{calendarId}
-/// Updates an existing calendar on the user's calendar list.
+/// Updates an existing calendar on the user''s calendar list.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `calendar_calendar_list_update_builder()` + `calendar_calendar_list_update_execute()`.
@@ -3023,7 +3023,7 @@ pub fn calendar_calendars_get(
 }
 
 /// POST calendars
-/// Creates a secondary calendar. The authenticated user for the request is made the data owner of the new calendar.  Note: We recommend to authenticate as the intended data owner of the calendar. You can use domain-wide delegation of authority to allow applications to act on behalf of a specific user. Don't use a service account for authentication. If you use a service account for authentication, the service account is the data owner, which can lead to unexpected behavior. For example, if a service account is the data owner, data ownership cannot be transferred.
+/// Creates a secondary calendar. The authenticated user for the request is made the data owner of the new calendar.  Note: We recommend to authenticate as the intended data owner of the calendar. You can use domain-wide delegation of authority to allow applications to act on behalf of a specific user. Don''t use a service account for authentication. If you use a service account for authentication, the service account is the data owner, which can lead to unexpected behavior. For example, if a service account is the data owner, data ownership cannot be transferred.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `calendar_calendars_insert_execute()` to send, or `calendar_calendars_insert` for simplest API.
@@ -3046,7 +3046,7 @@ where
 }
 
 /// POST calendars
-/// Creates a secondary calendar. The authenticated user for the request is made the data owner of the new calendar.  Note: We recommend to authenticate as the intended data owner of the calendar. You can use domain-wide delegation of authority to allow applications to act on behalf of a specific user. Don't use a service account for authentication. If you use a service account for authentication, the service account is the data owner, which can lead to unexpected behavior. For example, if a service account is the data owner, data ownership cannot be transferred.
+/// Creates a secondary calendar. The authenticated user for the request is made the data owner of the new calendar.  Note: We recommend to authenticate as the intended data owner of the calendar. You can use domain-wide delegation of authority to allow applications to act on behalf of a specific user. Don''t use a service account for authentication. If you use a service account for authentication, the service account is the data owner, which can lead to unexpected behavior. For example, if a service account is the data owner, data ownership cannot be transferred.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -3120,7 +3120,7 @@ pub fn calendar_calendars_insert_task(
 }
 
 /// POST calendars
-/// Creates a secondary calendar. The authenticated user for the request is made the data owner of the new calendar.  Note: We recommend to authenticate as the intended data owner of the calendar. You can use domain-wide delegation of authority to allow applications to act on behalf of a specific user. Don't use a service account for authentication. If you use a service account for authentication, the service account is the data owner, which can lead to unexpected behavior. For example, if a service account is the data owner, data ownership cannot be transferred.
+/// Creates a secondary calendar. The authenticated user for the request is made the data owner of the new calendar.  Note: We recommend to authenticate as the intended data owner of the calendar. You can use domain-wide delegation of authority to allow applications to act on behalf of a specific user. Don''t use a service account for authentication. If you use a service account for authentication, the service account is the data owner, which can lead to unexpected behavior. For example, if a service account is the data owner, data ownership cannot be transferred.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -3150,7 +3150,7 @@ pub fn calendar_calendars_insert_execute(
 }
 
 /// POST calendars
-/// Creates a secondary calendar. The authenticated user for the request is made the data owner of the new calendar.  Note: We recommend to authenticate as the intended data owner of the calendar. You can use domain-wide delegation of authority to allow applications to act on behalf of a specific user. Don't use a service account for authentication. If you use a service account for authentication, the service account is the data owner, which can lead to unexpected behavior. For example, if a service account is the data owner, data ownership cannot be transferred.
+/// Creates a secondary calendar. The authenticated user for the request is made the data owner of the new calendar.  Note: We recommend to authenticate as the intended data owner of the calendar. You can use domain-wide delegation of authority to allow applications to act on behalf of a specific user. Don''t use a service account for authentication. If you use a service account for authentication, the service account is the data owner, which can lead to unexpected behavior. For example, if a service account is the data owner, data ownership cannot be transferred.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `calendar_calendars_insert_builder()` + `calendar_calendars_insert_execute()`.
@@ -5092,7 +5092,7 @@ pub fn calendar_events_list(
 }
 
 /// POST calendars/{calendarId}/events/{eventId}/move
-/// Moves an event to another calendar, i.e. changes an event's organizer. Note that only default events can be moved; birthday, `focusTime`, `fromGmail`, `outOfOffice` and `workingLocation` events cannot be moved.
+/// Moves an event to another calendar, i.e. changes an event''s organizer. Note that only default events can be moved; birthday, `focusTime`, `fromGmail`, `outOfOffice` and `workingLocation` events cannot be moved.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `calendar_events_move_execute()` to send, or `calendar_events_move` for simplest API.
@@ -5140,7 +5140,7 @@ where
 }
 
 /// POST calendars/{calendarId}/events/{eventId}/move
-/// Moves an event to another calendar, i.e. changes an event's organizer. Note that only default events can be moved; birthday, `focusTime`, `fromGmail`, `outOfOffice` and `workingLocation` events cannot be moved.
+/// Moves an event to another calendar, i.e. changes an event''s organizer. Note that only default events can be moved; birthday, `focusTime`, `fromGmail`, `outOfOffice` and `workingLocation` events cannot be moved.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -5214,7 +5214,7 @@ pub fn calendar_events_move_task(
 }
 
 /// POST calendars/{calendarId}/events/{eventId}/move
-/// Moves an event to another calendar, i.e. changes an event's organizer. Note that only default events can be moved; birthday, `focusTime`, `fromGmail`, `outOfOffice` and `workingLocation` events cannot be moved.
+/// Moves an event to another calendar, i.e. changes an event''s organizer. Note that only default events can be moved; birthday, `focusTime`, `fromGmail`, `outOfOffice` and `workingLocation` events cannot be moved.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -5259,7 +5259,7 @@ pub struct CalendarEventsMoveArgs {
 }
 
 /// POST calendars/{calendarId}/events/{eventId}/move
-/// Moves an event to another calendar, i.e. changes an event's organizer. Note that only default events can be moved; birthday, `focusTime`, `fromGmail`, `outOfOffice` and `workingLocation` events cannot be moved.
+/// Moves an event to another calendar, i.e. changes an event''s organizer. Note that only default events can be moved; birthday, `focusTime`, `fromGmail`, `outOfOffice` and `workingLocation` events cannot be moved.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `calendar_events_move_builder()` + `calendar_events_move_execute()`.

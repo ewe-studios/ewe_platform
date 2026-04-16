@@ -1487,7 +1487,7 @@ pub fn bigquery_jobs_cancel(
 }
 
 /// DELETE projects/{projectsId}/jobs/{jobsId}/delete
-/// Requests the deletion of the metadata of a job. This call returns when the job's metadata is deleted.
+/// Requests the deletion of the metadata of a job. This call returns when the job''s metadata is deleted.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigquery_jobs_delete_execute()` to send, or `bigquery_jobs_delete` for simplest API.
@@ -1527,7 +1527,7 @@ where
 }
 
 /// DELETE projects/{projectsId}/jobs/{jobsId}/delete
-/// Requests the deletion of the metadata of a job. This call returns when the job's metadata is deleted.
+/// Requests the deletion of the metadata of a job. This call returns when the job''s metadata is deleted.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -1598,7 +1598,7 @@ pub fn bigquery_jobs_delete_task(
 }
 
 /// DELETE projects/{projectsId}/jobs/{jobsId}/delete
-/// Requests the deletion of the metadata of a job. This call returns when the job's metadata is deleted.
+/// Requests the deletion of the metadata of a job. This call returns when the job''s metadata is deleted.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -1639,7 +1639,7 @@ pub struct BigqueryJobsDeleteArgs {
 }
 
 /// DELETE projects/{projectsId}/jobs/{jobsId}/delete
-/// Requests the deletion of the metadata of a job. This call returns when the job's metadata is deleted.
+/// Requests the deletion of the metadata of a job. This call returns when the job''s metadata is deleted.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `bigquery_jobs_delete_builder()` + `bigquery_jobs_delete_execute()`.
@@ -1662,7 +1662,7 @@ pub fn bigquery_jobs_delete(
 }
 
 /// GET projects/{projectsId}/jobs/{jobsId}
-/// Returns information about a specific job. Job information is available for a six month period after creation. Requires that you're the person who ran the job, or have the Is Owner project role.
+/// Returns information about a specific job. Job information is available for a six month period after creation. Requires that you''re the person who ran the job, or have the Is Owner project role.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigquery_jobs_get_execute()` to send, or `bigquery_jobs_get` for simplest API.
@@ -1702,7 +1702,7 @@ where
 }
 
 /// GET projects/{projectsId}/jobs/{jobsId}
-/// Returns information about a specific job. Job information is available for a six month period after creation. Requires that you're the person who ran the job, or have the Is Owner project role.
+/// Returns information about a specific job. Job information is available for a six month period after creation. Requires that you''re the person who ran the job, or have the Is Owner project role.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -1776,7 +1776,7 @@ pub fn bigquery_jobs_get_task(
 }
 
 /// GET projects/{projectsId}/jobs/{jobsId}
-/// Returns information about a specific job. Job information is available for a six month period after creation. Requires that you're the person who ran the job, or have the Is Owner project role.
+/// Returns information about a specific job. Job information is available for a six month period after creation. Requires that you''re the person who ran the job, or have the Is Owner project role.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -1817,7 +1817,7 @@ pub struct BigqueryJobsGetArgs {
 }
 
 /// GET projects/{projectsId}/jobs/{jobsId}
-/// Returns information about a specific job. Job information is available for a six month period after creation. Requires that you're the person who ran the job, or have the Is Owner project role.
+/// Returns information about a specific job. Job information is available for a six month period after creation. Requires that you''re the person who ran the job, or have the Is Owner project role.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `bigquery_jobs_get_builder()` + `bigquery_jobs_get_execute()`.
@@ -2067,7 +2067,7 @@ pub fn bigquery_jobs_get_query_results(
 }
 
 /// POST projects/{projectsId}/jobs
-/// Starts a new asynchronous job. This API has two different kinds of endpoint URIs, as this method supports a variety of use cases. * The *Metadata* URI is used for most interactions, as it accepts the job configuration directly. * The *Upload* URI is ONLY for the case when you're sending both a load job configuration and a data stream together. In this case, the Upload URI accepts the job configuration and the data as two distinct multipart MIME parts.
+/// Starts a new asynchronous job. This API has two different kinds of endpoint URIs, as this method supports a variety of use cases. * The *Metadata* URI is used for most interactions, as it accepts the job configuration directly. * The *Upload* URI is ONLY for the case when you''re sending both a load job configuration and a data stream together. In this case, the Upload URI accepts the job configuration and the data as two distinct multipart MIME parts.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `bigquery_jobs_insert_execute()` to send, or `bigquery_jobs_insert` for simplest API.
@@ -2094,7 +2094,7 @@ where
 }
 
 /// POST projects/{projectsId}/jobs
-/// Starts a new asynchronous job. This API has two different kinds of endpoint URIs, as this method supports a variety of use cases. * The *Metadata* URI is used for most interactions, as it accepts the job configuration directly. * The *Upload* URI is ONLY for the case when you're sending both a load job configuration and a data stream together. In this case, the Upload URI accepts the job configuration and the data as two distinct multipart MIME parts.
+/// Starts a new asynchronous job. This API has two different kinds of endpoint URIs, as this method supports a variety of use cases. * The *Metadata* URI is used for most interactions, as it accepts the job configuration directly. * The *Upload* URI is ONLY for the case when you''re sending both a load job configuration and a data stream together. In this case, the Upload URI accepts the job configuration and the data as two distinct multipart MIME parts.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -2168,7 +2168,7 @@ pub fn bigquery_jobs_insert_task(
 }
 
 /// POST projects/{projectsId}/jobs
-/// Starts a new asynchronous job. This API has two different kinds of endpoint URIs, as this method supports a variety of use cases. * The *Metadata* URI is used for most interactions, as it accepts the job configuration directly. * The *Upload* URI is ONLY for the case when you're sending both a load job configuration and a data stream together. In this case, the Upload URI accepts the job configuration and the data as two distinct multipart MIME parts.
+/// Starts a new asynchronous job. This API has two different kinds of endpoint URIs, as this method supports a variety of use cases. * The *Metadata* URI is used for most interactions, as it accepts the job configuration directly. * The *Upload* URI is ONLY for the case when you''re sending both a load job configuration and a data stream together. In this case, the Upload URI accepts the job configuration and the data as two distinct multipart MIME parts.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -2205,7 +2205,7 @@ pub struct BigqueryJobsInsertArgs {
 }
 
 /// POST projects/{projectsId}/jobs
-/// Starts a new asynchronous job. This API has two different kinds of endpoint URIs, as this method supports a variety of use cases. * The *Metadata* URI is used for most interactions, as it accepts the job configuration directly. * The *Upload* URI is ONLY for the case when you're sending both a load job configuration and a data stream together. In this case, the Upload URI accepts the job configuration and the data as two distinct multipart MIME parts.
+/// Starts a new asynchronous job. This API has two different kinds of endpoint URIs, as this method supports a variety of use cases. * The *Metadata* URI is used for most interactions, as it accepts the job configuration directly. * The *Upload* URI is ONLY for the case when you''re sending both a load job configuration and a data stream together. In this case, the Upload URI accepts the job configuration and the data as two distinct multipart MIME parts.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `bigquery_jobs_insert_builder()` + `bigquery_jobs_insert_execute()`.

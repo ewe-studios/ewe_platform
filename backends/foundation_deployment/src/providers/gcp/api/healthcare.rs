@@ -67,7 +67,7 @@ use crate::providers::gcp::clients::healthcare::{
     healthcare_projects_locations_datasets_dicom_stores_delete_builder, healthcare_projects_locations_datasets_dicom_stores_delete_task,
     healthcare_projects_locations_datasets_dicom_stores_export_builder, healthcare_projects_locations_datasets_dicom_stores_export_task,
     healthcare_projects_locations_datasets_dicom_stores_get_builder, healthcare_projects_locations_datasets_dicom_stores_get_task,
-    healthcare_projects_locations_datasets_dicom_stores_get_d_i_c_o_m_store_metrics_builder, healthcare_projects_locations_datasets_dicom_stores_get_d_i_c_o_m_store_metrics_task,
+    healthcare_projects_locations_datasets_dicom_stores_get_dicom_store_metrics_builder, healthcare_projects_locations_datasets_dicom_stores_get_dicom_store_metrics_task,
     healthcare_projects_locations_datasets_dicom_stores_get_iam_policy_builder, healthcare_projects_locations_datasets_dicom_stores_get_iam_policy_task,
     healthcare_projects_locations_datasets_dicom_stores_import_builder, healthcare_projects_locations_datasets_dicom_stores_import_task,
     healthcare_projects_locations_datasets_dicom_stores_list_builder, healthcare_projects_locations_datasets_dicom_stores_list_task,
@@ -110,7 +110,7 @@ use crate::providers::gcp::clients::healthcare::{
     healthcare_projects_locations_datasets_fhir_stores_explain_data_access_builder, healthcare_projects_locations_datasets_fhir_stores_explain_data_access_task,
     healthcare_projects_locations_datasets_fhir_stores_export_builder, healthcare_projects_locations_datasets_fhir_stores_export_task,
     healthcare_projects_locations_datasets_fhir_stores_get_builder, healthcare_projects_locations_datasets_fhir_stores_get_task,
-    healthcare_projects_locations_datasets_fhir_stores_get_f_h_i_r_store_metrics_builder, healthcare_projects_locations_datasets_fhir_stores_get_f_h_i_r_store_metrics_task,
+    healthcare_projects_locations_datasets_fhir_stores_get_fhir_store_metrics_builder, healthcare_projects_locations_datasets_fhir_stores_get_fhir_store_metrics_task,
     healthcare_projects_locations_datasets_fhir_stores_get_iam_policy_builder, healthcare_projects_locations_datasets_fhir_stores_get_iam_policy_task,
     healthcare_projects_locations_datasets_fhir_stores_import_builder, healthcare_projects_locations_datasets_fhir_stores_import_task,
     healthcare_projects_locations_datasets_fhir_stores_list_builder, healthcare_projects_locations_datasets_fhir_stores_list_task,
@@ -148,7 +148,7 @@ use crate::providers::gcp::clients::healthcare::{
     healthcare_projects_locations_datasets_hl7_v2_stores_delete_builder, healthcare_projects_locations_datasets_hl7_v2_stores_delete_task,
     healthcare_projects_locations_datasets_hl7_v2_stores_export_builder, healthcare_projects_locations_datasets_hl7_v2_stores_export_task,
     healthcare_projects_locations_datasets_hl7_v2_stores_get_builder, healthcare_projects_locations_datasets_hl7_v2_stores_get_task,
-    healthcare_projects_locations_datasets_hl7_v2_stores_get_h_l7_v2_store_metrics_builder, healthcare_projects_locations_datasets_hl7_v2_stores_get_h_l7_v2_store_metrics_task,
+    healthcare_projects_locations_datasets_hl7_v2_stores_get_hl7v2_store_metrics_builder, healthcare_projects_locations_datasets_hl7_v2_stores_get_hl7v2_store_metrics_task,
     healthcare_projects_locations_datasets_hl7_v2_stores_get_iam_policy_builder, healthcare_projects_locations_datasets_hl7_v2_stores_get_iam_policy_task,
     healthcare_projects_locations_datasets_hl7_v2_stores_import_builder, healthcare_projects_locations_datasets_hl7_v2_stores_import_task,
     healthcare_projects_locations_datasets_hl7_v2_stores_list_builder, healthcare_projects_locations_datasets_hl7_v2_stores_list_task,
@@ -260,7 +260,7 @@ use crate::providers::gcp::clients::healthcare::HealthcareProjectsLocationsDatas
 use crate::providers::gcp::clients::healthcare::HealthcareProjectsLocationsDatasetsDicomStoresDicomWebStudiesSetBlobStorageSettingsArgs;
 use crate::providers::gcp::clients::healthcare::HealthcareProjectsLocationsDatasetsDicomStoresExportArgs;
 use crate::providers::gcp::clients::healthcare::HealthcareProjectsLocationsDatasetsDicomStoresGetArgs;
-use crate::providers::gcp::clients::healthcare::HealthcareProjectsLocationsDatasetsDicomStoresGetDICOMStoreMetricsArgs;
+use crate::providers::gcp::clients::healthcare::HealthcareProjectsLocationsDatasetsDicomStoresGetDicomStoreMetricsArgs;
 use crate::providers::gcp::clients::healthcare::HealthcareProjectsLocationsDatasetsDicomStoresGetIamPolicyArgs;
 use crate::providers::gcp::clients::healthcare::HealthcareProjectsLocationsDatasetsDicomStoresImportArgs;
 use crate::providers::gcp::clients::healthcare::HealthcareProjectsLocationsDatasetsDicomStoresListArgs;
@@ -323,7 +323,7 @@ use crate::providers::gcp::clients::healthcare::HealthcareProjectsLocationsDatas
 use crate::providers::gcp::clients::healthcare::HealthcareProjectsLocationsDatasetsFhirStoresFhirUpdateArgs;
 use crate::providers::gcp::clients::healthcare::HealthcareProjectsLocationsDatasetsFhirStoresFhirVreadArgs;
 use crate::providers::gcp::clients::healthcare::HealthcareProjectsLocationsDatasetsFhirStoresGetArgs;
-use crate::providers::gcp::clients::healthcare::HealthcareProjectsLocationsDatasetsFhirStoresGetFHIRStoreMetricsArgs;
+use crate::providers::gcp::clients::healthcare::HealthcareProjectsLocationsDatasetsFhirStoresGetFhirStoreMetricsArgs;
 use crate::providers::gcp::clients::healthcare::HealthcareProjectsLocationsDatasetsFhirStoresGetIamPolicyArgs;
 use crate::providers::gcp::clients::healthcare::HealthcareProjectsLocationsDatasetsFhirStoresImportArgs;
 use crate::providers::gcp::clients::healthcare::HealthcareProjectsLocationsDatasetsFhirStoresListArgs;
@@ -339,7 +339,7 @@ use crate::providers::gcp::clients::healthcare::HealthcareProjectsLocationsDatas
 use crate::providers::gcp::clients::healthcare::HealthcareProjectsLocationsDatasetsHl7V2StoresDeleteArgs;
 use crate::providers::gcp::clients::healthcare::HealthcareProjectsLocationsDatasetsHl7V2StoresExportArgs;
 use crate::providers::gcp::clients::healthcare::HealthcareProjectsLocationsDatasetsHl7V2StoresGetArgs;
-use crate::providers::gcp::clients::healthcare::HealthcareProjectsLocationsDatasetsHl7V2StoresGetHL7V2StoreMetricsArgs;
+use crate::providers::gcp::clients::healthcare::HealthcareProjectsLocationsDatasetsHl7V2StoresGetHl7V2StoreMetricsArgs;
 use crate::providers::gcp::clients::healthcare::HealthcareProjectsLocationsDatasetsHl7V2StoresGetIamPolicyArgs;
 use crate::providers::gcp::clients::healthcare::HealthcareProjectsLocationsDatasetsHl7V2StoresImportArgs;
 use crate::providers::gcp::clients::healthcare::HealthcareProjectsLocationsDatasetsHl7V2StoresListArgs;
@@ -2715,7 +2715,7 @@ where
         execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
-    /// Healthcare projects locations datasets dicom stores get d i c o m store metrics.
+    /// Healthcare projects locations datasets dicom stores get dicom store metrics.
     ///
     /// Read-only operation - no state tracking.
     ///
@@ -2730,9 +2730,9 @@ where
     /// # Errors
     ///
     /// Returns ProviderError if the API request fails.
-    pub fn healthcare_projects_locations_datasets_dicom_stores_get_d_i_c_o_m_store_metrics(
+    pub fn healthcare_projects_locations_datasets_dicom_stores_get_dicom_store_metrics(
         &self,
-        args: &HealthcareProjectsLocationsDatasetsDicomStoresGetDICOMStoreMetricsArgs,
+        args: &HealthcareProjectsLocationsDatasetsDicomStoresGetDicomStoreMetricsArgs,
     ) -> Result<
         impl StreamIterator<
             D = Result<DicomStoreMetrics, ProviderError<ApiError>>,
@@ -2741,13 +2741,13 @@ where
         + 'static,
         ProviderError<ApiError>,
     > {
-        let builder = healthcare_projects_locations_datasets_dicom_stores_get_d_i_c_o_m_store_metrics_builder(
+        let builder = healthcare_projects_locations_datasets_dicom_stores_get_dicom_store_metrics_builder(
             &self.http_client,
             &args.name,
         )
         .map_err(ProviderError::Api)?;
 
-        let task = healthcare_projects_locations_datasets_dicom_stores_get_d_i_c_o_m_store_metrics_task(builder)
+        let task = healthcare_projects_locations_datasets_dicom_stores_get_dicom_store_metrics_task(builder)
             .map_err(ProviderError::Api)?;
 
         execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
@@ -4483,7 +4483,7 @@ where
         execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
-    /// Healthcare projects locations datasets fhir stores get f h i r store metrics.
+    /// Healthcare projects locations datasets fhir stores get fhir store metrics.
     ///
     /// Read-only operation - no state tracking.
     ///
@@ -4498,9 +4498,9 @@ where
     /// # Errors
     ///
     /// Returns ProviderError if the API request fails.
-    pub fn healthcare_projects_locations_datasets_fhir_stores_get_f_h_i_r_store_metrics(
+    pub fn healthcare_projects_locations_datasets_fhir_stores_get_fhir_store_metrics(
         &self,
-        args: &HealthcareProjectsLocationsDatasetsFhirStoresGetFHIRStoreMetricsArgs,
+        args: &HealthcareProjectsLocationsDatasetsFhirStoresGetFhirStoreMetricsArgs,
     ) -> Result<
         impl StreamIterator<
             D = Result<FhirStoreMetrics, ProviderError<ApiError>>,
@@ -4509,13 +4509,13 @@ where
         + 'static,
         ProviderError<ApiError>,
     > {
-        let builder = healthcare_projects_locations_datasets_fhir_stores_get_f_h_i_r_store_metrics_builder(
+        let builder = healthcare_projects_locations_datasets_fhir_stores_get_fhir_store_metrics_builder(
             &self.http_client,
             &args.name,
         )
         .map_err(ProviderError::Api)?;
 
-        let task = healthcare_projects_locations_datasets_fhir_stores_get_f_h_i_r_store_metrics_task(builder)
+        let task = healthcare_projects_locations_datasets_fhir_stores_get_fhir_store_metrics_task(builder)
             .map_err(ProviderError::Api)?;
 
         execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
@@ -6111,7 +6111,7 @@ where
         execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
-    /// Healthcare projects locations datasets hl7 v2 stores get h l7 v2 store metrics.
+    /// Healthcare projects locations datasets hl7 v2 stores get hl7v2 store metrics.
     ///
     /// Read-only operation - no state tracking.
     ///
@@ -6126,9 +6126,9 @@ where
     /// # Errors
     ///
     /// Returns ProviderError if the API request fails.
-    pub fn healthcare_projects_locations_datasets_hl7_v2_stores_get_h_l7_v2_store_metrics(
+    pub fn healthcare_projects_locations_datasets_hl7_v2_stores_get_hl7v2_store_metrics(
         &self,
-        args: &HealthcareProjectsLocationsDatasetsHl7V2StoresGetHL7V2StoreMetricsArgs,
+        args: &HealthcareProjectsLocationsDatasetsHl7V2StoresGetHl7V2StoreMetricsArgs,
     ) -> Result<
         impl StreamIterator<
             D = Result<Hl7V2StoreMetrics, ProviderError<ApiError>>,
@@ -6137,13 +6137,13 @@ where
         + 'static,
         ProviderError<ApiError>,
     > {
-        let builder = healthcare_projects_locations_datasets_hl7_v2_stores_get_h_l7_v2_store_metrics_builder(
+        let builder = healthcare_projects_locations_datasets_hl7_v2_stores_get_hl7v2_store_metrics_builder(
             &self.http_client,
             &args.name,
         )
         .map_err(ProviderError::Api)?;
 
-        let task = healthcare_projects_locations_datasets_hl7_v2_stores_get_h_l7_v2_store_metrics_task(builder)
+        let task = healthcare_projects_locations_datasets_hl7_v2_stores_get_hl7v2_store_metrics_task(builder)
             .map_err(ProviderError::Api)?;
 
         execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))

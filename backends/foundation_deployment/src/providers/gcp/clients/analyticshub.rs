@@ -3367,7 +3367,7 @@ pub fn analyticshub_projects_locations_data_exchanges_listings_set_iam_policy(
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/dataExchanges/{dataExchangesId}/listings/{listingsId}:subscribe
-/// Subscribes to a listing. Currently, with Analytics Hub, you can create listings that reference only BigQuery datasets. Upon subscription to a listing for a BigQuery dataset, Analytics Hub creates a linked dataset in the subscriber's project.
+/// Subscribes to a listing. Currently, with Analytics Hub, you can create listings that reference only BigQuery datasets. Upon subscription to a listing for a BigQuery dataset, Analytics Hub creates a linked dataset in the subscriber''s project.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `analyticshub_projects_locations_data_exchanges_listings_subscribe_execute()` to send, or `analyticshub_projects_locations_data_exchanges_listings_subscribe` for simplest API.
@@ -3394,7 +3394,7 @@ where
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/dataExchanges/{dataExchangesId}/listings/{listingsId}:subscribe
-/// Subscribes to a listing. Currently, with Analytics Hub, you can create listings that reference only BigQuery datasets. Upon subscription to a listing for a BigQuery dataset, Analytics Hub creates a linked dataset in the subscriber's project.
+/// Subscribes to a listing. Currently, with Analytics Hub, you can create listings that reference only BigQuery datasets. Upon subscription to a listing for a BigQuery dataset, Analytics Hub creates a linked dataset in the subscriber''s project.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -3468,7 +3468,7 @@ pub fn analyticshub_projects_locations_data_exchanges_listings_subscribe_task(
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/dataExchanges/{dataExchangesId}/listings/{listingsId}:subscribe
-/// Subscribes to a listing. Currently, with Analytics Hub, you can create listings that reference only BigQuery datasets. Upon subscription to a listing for a BigQuery dataset, Analytics Hub creates a linked dataset in the subscriber's project.
+/// Subscribes to a listing. Currently, with Analytics Hub, you can create listings that reference only BigQuery datasets. Upon subscription to a listing for a BigQuery dataset, Analytics Hub creates a linked dataset in the subscriber''s project.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -3507,7 +3507,7 @@ pub struct AnalyticshubProjectsLocationsDataExchangesListingsSubscribeArgs {
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/dataExchanges/{dataExchangesId}/listings/{listingsId}:subscribe
-/// Subscribes to a listing. Currently, with Analytics Hub, you can create listings that reference only BigQuery datasets. Upon subscription to a listing for a BigQuery dataset, Analytics Hub creates a linked dataset in the subscriber's project.
+/// Subscribes to a listing. Currently, with Analytics Hub, you can create listings that reference only BigQuery datasets. Upon subscription to a listing for a BigQuery dataset, Analytics Hub creates a linked dataset in the subscriber''s project.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `analyticshub_projects_locations_data_exchanges_listings_subscribe_builder()` + `analyticshub_projects_locations_data_exchanges_listings_subscribe_execute()`.

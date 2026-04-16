@@ -868,7 +868,7 @@ pub fn iamcredentials_projects_service_accounts_get_allowed_locations(
 }
 
 /// POST v1/projects/{projectsId}/serviceAccounts/{serviceAccountsId}:signBlob
-/// Signs a blob using a service account's system-managed private key.
+/// Signs a blob using a service account''s system-managed private key.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `iamcredentials_projects_service_accounts_sign_blob_execute()` to send, or `iamcredentials_projects_service_accounts_sign_blob` for simplest API.
@@ -895,7 +895,7 @@ where
 }
 
 /// POST v1/projects/{projectsId}/serviceAccounts/{serviceAccountsId}:signBlob
-/// Signs a blob using a service account's system-managed private key.
+/// Signs a blob using a service account''s system-managed private key.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -969,7 +969,7 @@ pub fn iamcredentials_projects_service_accounts_sign_blob_task(
 }
 
 /// POST v1/projects/{projectsId}/serviceAccounts/{serviceAccountsId}:signBlob
-/// Signs a blob using a service account's system-managed private key.
+/// Signs a blob using a service account''s system-managed private key.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -1008,7 +1008,7 @@ pub struct IamcredentialsProjectsServiceAccountsSignBlobArgs {
 }
 
 /// POST v1/projects/{projectsId}/serviceAccounts/{serviceAccountsId}:signBlob
-/// Signs a blob using a service account's system-managed private key.
+/// Signs a blob using a service account''s system-managed private key.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `iamcredentials_projects_service_accounts_sign_blob_builder()` + `iamcredentials_projects_service_accounts_sign_blob_execute()`.
@@ -1032,7 +1032,7 @@ pub fn iamcredentials_projects_service_accounts_sign_blob(
 }
 
 /// POST v1/projects/{projectsId}/serviceAccounts/{serviceAccountsId}:signJwt
-/// Signs a JWT using a service account's system-managed private key.
+/// Signs a JWT using a service account''s system-managed private key.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `iamcredentials_projects_service_accounts_sign_jwt_execute()` to send, or `iamcredentials_projects_service_accounts_sign_jwt` for simplest API.
@@ -1059,7 +1059,7 @@ where
 }
 
 /// POST v1/projects/{projectsId}/serviceAccounts/{serviceAccountsId}:signJwt
-/// Signs a JWT using a service account's system-managed private key.
+/// Signs a JWT using a service account''s system-managed private key.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -1133,7 +1133,7 @@ pub fn iamcredentials_projects_service_accounts_sign_jwt_task(
 }
 
 /// POST v1/projects/{projectsId}/serviceAccounts/{serviceAccountsId}:signJwt
-/// Signs a JWT using a service account's system-managed private key.
+/// Signs a JWT using a service account''s system-managed private key.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -1172,7 +1172,7 @@ pub struct IamcredentialsProjectsServiceAccountsSignJwtArgs {
 }
 
 /// POST v1/projects/{projectsId}/serviceAccounts/{serviceAccountsId}:signJwt
-/// Signs a JWT using a service account's system-managed private key.
+/// Signs a JWT using a service account''s system-managed private key.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `iamcredentials_projects_service_accounts_sign_jwt_builder()` + `iamcredentials_projects_service_accounts_sign_jwt_execute()`.

@@ -900,7 +900,7 @@ pub fn cloudbilling_billing_accounts_move(
 }
 
 /// PATCH v1/billingAccounts/{billingAccountsId}
-/// Updates a billing account's fields. Currently the only field that can be edited is display_name. The current authenticated user must have the billing.accounts.update IAM permission, which is typically given to the [administrator](<https://cloud.google.`com/billing/docs/how-to/billing-access`>) of the billing account.
+/// Updates a billing account''s fields. Currently the only field that can be edited is display_name. The current authenticated user must have the billing.accounts.update IAM permission, which is typically given to the [administrator](<https://cloud.google.`com/billing/docs/how-to/billing-access`>) of the billing account.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudbilling_billing_accounts_patch_execute()` to send, or `cloudbilling_billing_accounts_patch` for simplest API.
@@ -939,7 +939,7 @@ where
 }
 
 /// PATCH v1/billingAccounts/{billingAccountsId}
-/// Updates a billing account's fields. Currently the only field that can be edited is display_name. The current authenticated user must have the billing.accounts.update IAM permission, which is typically given to the [administrator](<https://cloud.google.`com/billing/docs/how-to/billing-access`>) of the billing account.
+/// Updates a billing account''s fields. Currently the only field that can be edited is display_name. The current authenticated user must have the billing.accounts.update IAM permission, which is typically given to the [administrator](<https://cloud.google.`com/billing/docs/how-to/billing-access`>) of the billing account.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -1013,7 +1013,7 @@ pub fn cloudbilling_billing_accounts_patch_task(
 }
 
 /// PATCH v1/billingAccounts/{billingAccountsId}
-/// Updates a billing account's fields. Currently the only field that can be edited is display_name. The current authenticated user must have the billing.accounts.update IAM permission, which is typically given to the [administrator](<https://cloud.google.`com/billing/docs/how-to/billing-access`>) of the billing account.
+/// Updates a billing account''s fields. Currently the only field that can be edited is display_name. The current authenticated user must have the billing.accounts.update IAM permission, which is typically given to the [administrator](<https://cloud.google.`com/billing/docs/how-to/billing-access`>) of the billing account.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -1054,7 +1054,7 @@ pub struct CloudbillingBillingAccountsPatchArgs {
 }
 
 /// PATCH v1/billingAccounts/{billingAccountsId}
-/// Updates a billing account's fields. Currently the only field that can be edited is display_name. The current authenticated user must have the billing.accounts.update IAM permission, which is typically given to the [administrator](<https://cloud.google.`com/billing/docs/how-to/billing-access`>) of the billing account.
+/// Updates a billing account''s fields. Currently the only field that can be edited is display_name. The current authenticated user must have the billing.accounts.update IAM permission, which is typically given to the [administrator](<https://cloud.google.`com/billing/docs/how-to/billing-access`>) of the billing account.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `cloudbilling_billing_accounts_patch_builder()` + `cloudbilling_billing_accounts_patch_execute()`.

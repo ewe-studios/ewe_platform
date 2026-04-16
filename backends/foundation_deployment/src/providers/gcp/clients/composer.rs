@@ -1357,7 +1357,7 @@ pub fn composer_projects_locations_environments_list(
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/environments/{environmentsId}:loadSnapshot
-/// Loads a snapshot of a Cloud Composer environment. As a result of this operation, a snapshot of environment's specified in LoadSnapshotRequest is loaded into the environment.
+/// Loads a snapshot of a Cloud Composer environment. As a result of this operation, a snapshot of environment''s specified in LoadSnapshotRequest is loaded into the environment.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `composer_projects_locations_environments_load_snapshot_execute()` to send, or `composer_projects_locations_environments_load_snapshot` for simplest API.
@@ -1384,7 +1384,7 @@ where
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/environments/{environmentsId}:loadSnapshot
-/// Loads a snapshot of a Cloud Composer environment. As a result of this operation, a snapshot of environment's specified in LoadSnapshotRequest is loaded into the environment.
+/// Loads a snapshot of a Cloud Composer environment. As a result of this operation, a snapshot of environment''s specified in LoadSnapshotRequest is loaded into the environment.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -1458,7 +1458,7 @@ pub fn composer_projects_locations_environments_load_snapshot_task(
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/environments/{environmentsId}:loadSnapshot
-/// Loads a snapshot of a Cloud Composer environment. As a result of this operation, a snapshot of environment's specified in LoadSnapshotRequest is loaded into the environment.
+/// Loads a snapshot of a Cloud Composer environment. As a result of this operation, a snapshot of environment''s specified in LoadSnapshotRequest is loaded into the environment.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -1495,7 +1495,7 @@ pub struct ComposerProjectsLocationsEnvironmentsLoadSnapshotArgs {
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/environments/{environmentsId}:loadSnapshot
-/// Loads a snapshot of a Cloud Composer environment. As a result of this operation, a snapshot of environment's specified in LoadSnapshotRequest is loaded into the environment.
+/// Loads a snapshot of a Cloud Composer environment. As a result of this operation, a snapshot of environment''s specified in LoadSnapshotRequest is loaded into the environment.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `composer_projects_locations_environments_load_snapshot_builder()` + `composer_projects_locations_environments_load_snapshot_execute()`.
@@ -2028,7 +2028,7 @@ pub fn composer_projects_locations_environments_restart_web_server(
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/environments/{environmentsId}:saveSnapshot
-/// Creates a snapshots of a Cloud Composer environment. As a result of this operation, snapshot of environment's state is stored in a location specified in the SaveSnapshotRequest.
+/// Creates a snapshots of a Cloud Composer environment. As a result of this operation, snapshot of environment''s state is stored in a location specified in the SaveSnapshotRequest.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `composer_projects_locations_environments_save_snapshot_execute()` to send, or `composer_projects_locations_environments_save_snapshot` for simplest API.
@@ -2055,7 +2055,7 @@ where
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/environments/{environmentsId}:saveSnapshot
-/// Creates a snapshots of a Cloud Composer environment. As a result of this operation, snapshot of environment's state is stored in a location specified in the SaveSnapshotRequest.
+/// Creates a snapshots of a Cloud Composer environment. As a result of this operation, snapshot of environment''s state is stored in a location specified in the SaveSnapshotRequest.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -2129,7 +2129,7 @@ pub fn composer_projects_locations_environments_save_snapshot_task(
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/environments/{environmentsId}:saveSnapshot
-/// Creates a snapshots of a Cloud Composer environment. As a result of this operation, snapshot of environment's state is stored in a location specified in the SaveSnapshotRequest.
+/// Creates a snapshots of a Cloud Composer environment. As a result of this operation, snapshot of environment''s state is stored in a location specified in the SaveSnapshotRequest.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -2166,7 +2166,7 @@ pub struct ComposerProjectsLocationsEnvironmentsSaveSnapshotArgs {
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/environments/{environmentsId}:saveSnapshot
-/// Creates a snapshots of a Cloud Composer environment. As a result of this operation, snapshot of environment's state is stored in a location specified in the SaveSnapshotRequest.
+/// Creates a snapshots of a Cloud Composer environment. As a result of this operation, snapshot of environment''s state is stored in a location specified in the SaveSnapshotRequest.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `composer_projects_locations_environments_save_snapshot_builder()` + `composer_projects_locations_environments_save_snapshot_execute()`.
@@ -4471,7 +4471,7 @@ pub fn composer_projects_locations_image_versions_list(
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
-/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `composer_projects_locations_operations_delete_execute()` to send, or `composer_projects_locations_operations_delete` for simplest API.
@@ -4498,7 +4498,7 @@ where
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
-/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -4572,7 +4572,7 @@ pub fn composer_projects_locations_operations_delete_task(
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
-/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -4609,7 +4609,7 @@ pub struct ComposerProjectsLocationsOperationsDeleteArgs {
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
-/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `composer_projects_locations_operations_delete_builder()` + `composer_projects_locations_operations_delete_execute()`.
@@ -4791,7 +4791,7 @@ pub fn composer_projects_locations_operations_get(
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `composer_projects_locations_operations_list_execute()` to send, or `composer_projects_locations_operations_list` for simplest API.
@@ -4842,7 +4842,7 @@ where
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -4916,7 +4916,7 @@ pub fn composer_projects_locations_operations_list_task(
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -4963,7 +4963,7 @@ pub struct ComposerProjectsLocationsOperationsListArgs {
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `composer_projects_locations_operations_list_builder()` + `composer_projects_locations_operations_list_execute()`.

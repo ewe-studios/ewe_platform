@@ -22,7 +22,7 @@ use foundation_macros::JsonHash;
 use serde::Serialize;
 
 /// GET v1/hybrid/issuers
-/// Lists hybrid services and its trusted issuers service account ids. This api is authenticated and unauthorized(allow all the users) and used by runtime authn-authz service to query control plane's issuer service account ids.
+/// Lists hybrid services and its trusted issuers service account ids. This api is authenticated and unauthorized(allow all the users) and used by runtime authn-authz service to query control plane''s issuer service account ids.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_hybrid_issuers_list_execute()` to send, or `apigee_hybrid_issuers_list` for simplest API.
@@ -45,7 +45,7 @@ where
 }
 
 /// GET v1/hybrid/issuers
-/// Lists hybrid services and its trusted issuers service account ids. This api is authenticated and unauthorized(allow all the users) and used by runtime authn-authz service to query control plane's issuer service account ids.
+/// Lists hybrid services and its trusted issuers service account ids. This api is authenticated and unauthorized(allow all the users) and used by runtime authn-authz service to query control plane''s issuer service account ids.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -120,7 +120,7 @@ pub fn apigee_hybrid_issuers_list_task(
 }
 
 /// GET v1/hybrid/issuers
-/// Lists hybrid services and its trusted issuers service account ids. This api is authenticated and unauthorized(allow all the users) and used by runtime authn-authz service to query control plane's issuer service account ids.
+/// Lists hybrid services and its trusted issuers service account ids. This api is authenticated and unauthorized(allow all the users) and used by runtime authn-authz service to query control plane''s issuer service account ids.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -154,7 +154,7 @@ pub fn apigee_hybrid_issuers_list_execute(
 }
 
 /// GET v1/hybrid/issuers
-/// Lists hybrid services and its trusted issuers service account ids. This api is authenticated and unauthorized(allow all the users) and used by runtime authn-authz service to query control plane's issuer service account ids.
+/// Lists hybrid services and its trusted issuers service account ids. This api is authenticated and unauthorized(allow all the users) and used by runtime authn-authz service to query control plane''s issuer service account ids.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `apigee_hybrid_issuers_list_builder()` + `apigee_hybrid_issuers_list_execute()`.
@@ -1555,7 +1555,7 @@ pub fn apigee_organizations_get_security_settings(
 }
 
 /// POST v1/organizations/{organizationsId}:getSyncAuthorization
-/// Lists the service accounts with the permissions required to allow the Synchronizer to download environment data from the control plane. An ETag is returned in the response to `getSyncAuthorization`. Pass that ETag when calling [`setSyncAuthorization`](`setSyncAuthorization`) to ensure that you are updating the correct version. If you don't pass the ETag in the call to `setSyncAuthorization`, then the existing authorization is overwritten indiscriminately. For more information, see [Configure the Synchronizer](<https://cloud.google.`com/apigee/docs/hybrid/latest/synchronizer-access`>). **Note**: Available to Apigee hybrid only.
+/// Lists the service accounts with the permissions required to allow the Synchronizer to download environment data from the control plane. An ETag is returned in the response to `getSyncAuthorization`. Pass that ETag when calling [`setSyncAuthorization`](`setSyncAuthorization`) to ensure that you are updating the correct version. If you don''t pass the ETag in the call to `setSyncAuthorization`, then the existing authorization is overwritten indiscriminately. For more information, see [Configure the Synchronizer](<https://cloud.google.`com/apigee/docs/hybrid/latest/synchronizer-access`>). **Note**: Available to Apigee hybrid only.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_get_sync_authorization_execute()` to send, or `apigee_organizations_get_sync_authorization` for simplest API.
@@ -1582,7 +1582,7 @@ where
 }
 
 /// POST v1/organizations/{organizationsId}:getSyncAuthorization
-/// Lists the service accounts with the permissions required to allow the Synchronizer to download environment data from the control plane. An ETag is returned in the response to `getSyncAuthorization`. Pass that ETag when calling [`setSyncAuthorization`](`setSyncAuthorization`) to ensure that you are updating the correct version. If you don't pass the ETag in the call to `setSyncAuthorization`, then the existing authorization is overwritten indiscriminately. For more information, see [Configure the Synchronizer](<https://cloud.google.`com/apigee/docs/hybrid/latest/synchronizer-access`>). **Note**: Available to Apigee hybrid only.
+/// Lists the service accounts with the permissions required to allow the Synchronizer to download environment data from the control plane. An ETag is returned in the response to `getSyncAuthorization`. Pass that ETag when calling [`setSyncAuthorization`](`setSyncAuthorization`) to ensure that you are updating the correct version. If you don''t pass the ETag in the call to `setSyncAuthorization`, then the existing authorization is overwritten indiscriminately. For more information, see [Configure the Synchronizer](<https://cloud.google.`com/apigee/docs/hybrid/latest/synchronizer-access`>). **Note**: Available to Apigee hybrid only.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -1656,7 +1656,7 @@ pub fn apigee_organizations_get_sync_authorization_task(
 }
 
 /// POST v1/organizations/{organizationsId}:getSyncAuthorization
-/// Lists the service accounts with the permissions required to allow the Synchronizer to download environment data from the control plane. An ETag is returned in the response to `getSyncAuthorization`. Pass that ETag when calling [`setSyncAuthorization`](`setSyncAuthorization`) to ensure that you are updating the correct version. If you don't pass the ETag in the call to `setSyncAuthorization`, then the existing authorization is overwritten indiscriminately. For more information, see [Configure the Synchronizer](<https://cloud.google.`com/apigee/docs/hybrid/latest/synchronizer-access`>). **Note**: Available to Apigee hybrid only.
+/// Lists the service accounts with the permissions required to allow the Synchronizer to download environment data from the control plane. An ETag is returned in the response to `getSyncAuthorization`. Pass that ETag when calling [`setSyncAuthorization`](`setSyncAuthorization`) to ensure that you are updating the correct version. If you don''t pass the ETag in the call to `setSyncAuthorization`, then the existing authorization is overwritten indiscriminately. For more information, see [Configure the Synchronizer](<https://cloud.google.`com/apigee/docs/hybrid/latest/synchronizer-access`>). **Note**: Available to Apigee hybrid only.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -1697,7 +1697,7 @@ pub struct ApigeeOrganizationsGetSyncAuthorizationArgs {
 }
 
 /// POST v1/organizations/{organizationsId}:getSyncAuthorization
-/// Lists the service accounts with the permissions required to allow the Synchronizer to download environment data from the control plane. An ETag is returned in the response to `getSyncAuthorization`. Pass that ETag when calling [`setSyncAuthorization`](`setSyncAuthorization`) to ensure that you are updating the correct version. If you don't pass the ETag in the call to `setSyncAuthorization`, then the existing authorization is overwritten indiscriminately. For more information, see [Configure the Synchronizer](<https://cloud.google.`com/apigee/docs/hybrid/latest/synchronizer-access`>). **Note**: Available to Apigee hybrid only.
+/// Lists the service accounts with the permissions required to allow the Synchronizer to download environment data from the control plane. An ETag is returned in the response to `getSyncAuthorization`. Pass that ETag when calling [`setSyncAuthorization`](`setSyncAuthorization`) to ensure that you are updating the correct version. If you don''t pass the ETag in the call to `setSyncAuthorization`, then the existing authorization is overwritten indiscriminately. For more information, see [Configure the Synchronizer](<https://cloud.google.`com/apigee/docs/hybrid/latest/synchronizer-access`>). **Note**: Available to Apigee hybrid only.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `apigee_organizations_get_sync_authorization_builder()` + `apigee_organizations_get_sync_authorization_execute()`.
@@ -2048,7 +2048,7 @@ pub fn apigee_organizations_set_addons(
 }
 
 /// POST v1/organizations/{organizationsId}:setSyncAuthorization
-/// Sets the permissions required to allow the Synchronizer to download environment data from the control plane. You must call this API to enable proper functioning of hybrid. Pass the ETag when calling `setSyncAuthorization` to ensure that you are updating the correct version. To get an ETag, call [`getSyncAuthorization`](`getSyncAuthorization`). If you don't pass the ETag in the call to `setSyncAuthorization`, then the existing authorization is overwritten indiscriminately. For more information, see [Configure the Synchronizer](<https://cloud.google.`com/apigee/docs/hybrid/latest/synchronizer-access`>). **Note**: Available to Apigee hybrid only.
+/// Sets the permissions required to allow the Synchronizer to download environment data from the control plane. You must call this API to enable proper functioning of hybrid. Pass the ETag when calling `setSyncAuthorization` to ensure that you are updating the correct version. To get an ETag, call [`getSyncAuthorization`](`getSyncAuthorization`). If you don''t pass the ETag in the call to `setSyncAuthorization`, then the existing authorization is overwritten indiscriminately. For more information, see [Configure the Synchronizer](<https://cloud.google.`com/apigee/docs/hybrid/latest/synchronizer-access`>). **Note**: Available to Apigee hybrid only.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_set_sync_authorization_execute()` to send, or `apigee_organizations_set_sync_authorization` for simplest API.
@@ -2075,7 +2075,7 @@ where
 }
 
 /// POST v1/organizations/{organizationsId}:setSyncAuthorization
-/// Sets the permissions required to allow the Synchronizer to download environment data from the control plane. You must call this API to enable proper functioning of hybrid. Pass the ETag when calling `setSyncAuthorization` to ensure that you are updating the correct version. To get an ETag, call [`getSyncAuthorization`](`getSyncAuthorization`). If you don't pass the ETag in the call to `setSyncAuthorization`, then the existing authorization is overwritten indiscriminately. For more information, see [Configure the Synchronizer](<https://cloud.google.`com/apigee/docs/hybrid/latest/synchronizer-access`>). **Note**: Available to Apigee hybrid only.
+/// Sets the permissions required to allow the Synchronizer to download environment data from the control plane. You must call this API to enable proper functioning of hybrid. Pass the ETag when calling `setSyncAuthorization` to ensure that you are updating the correct version. To get an ETag, call [`getSyncAuthorization`](`getSyncAuthorization`). If you don''t pass the ETag in the call to `setSyncAuthorization`, then the existing authorization is overwritten indiscriminately. For more information, see [Configure the Synchronizer](<https://cloud.google.`com/apigee/docs/hybrid/latest/synchronizer-access`>). **Note**: Available to Apigee hybrid only.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -2149,7 +2149,7 @@ pub fn apigee_organizations_set_sync_authorization_task(
 }
 
 /// POST v1/organizations/{organizationsId}:setSyncAuthorization
-/// Sets the permissions required to allow the Synchronizer to download environment data from the control plane. You must call this API to enable proper functioning of hybrid. Pass the ETag when calling `setSyncAuthorization` to ensure that you are updating the correct version. To get an ETag, call [`getSyncAuthorization`](`getSyncAuthorization`). If you don't pass the ETag in the call to `setSyncAuthorization`, then the existing authorization is overwritten indiscriminately. For more information, see [Configure the Synchronizer](<https://cloud.google.`com/apigee/docs/hybrid/latest/synchronizer-access`>). **Note**: Available to Apigee hybrid only.
+/// Sets the permissions required to allow the Synchronizer to download environment data from the control plane. You must call this API to enable proper functioning of hybrid. Pass the ETag when calling `setSyncAuthorization` to ensure that you are updating the correct version. To get an ETag, call [`getSyncAuthorization`](`getSyncAuthorization`). If you don''t pass the ETag in the call to `setSyncAuthorization`, then the existing authorization is overwritten indiscriminately. For more information, see [Configure the Synchronizer](<https://cloud.google.`com/apigee/docs/hybrid/latest/synchronizer-access`>). **Note**: Available to Apigee hybrid only.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -2190,7 +2190,7 @@ pub struct ApigeeOrganizationsSetSyncAuthorizationArgs {
 }
 
 /// POST v1/organizations/{organizationsId}:setSyncAuthorization
-/// Sets the permissions required to allow the Synchronizer to download environment data from the control plane. You must call this API to enable proper functioning of hybrid. Pass the ETag when calling `setSyncAuthorization` to ensure that you are updating the correct version. To get an ETag, call [`getSyncAuthorization`](`getSyncAuthorization`). If you don't pass the ETag in the call to `setSyncAuthorization`, then the existing authorization is overwritten indiscriminately. For more information, see [Configure the Synchronizer](<https://cloud.google.`com/apigee/docs/hybrid/latest/synchronizer-access`>). **Note**: Available to Apigee hybrid only.
+/// Sets the permissions required to allow the Synchronizer to download environment data from the control plane. You must call this API to enable proper functioning of hybrid. Pass the ETag when calling `setSyncAuthorization` to ensure that you are updating the correct version. To get an ETag, call [`getSyncAuthorization`](`getSyncAuthorization`). If you don''t pass the ETag in the call to `setSyncAuthorization`, then the existing authorization is overwritten indiscriminately. For more information, see [Configure the Synchronizer](<https://cloud.google.`com/apigee/docs/hybrid/latest/synchronizer-access`>). **Note**: Available to Apigee hybrid only.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `apigee_organizations_set_sync_authorization_builder()` + `apigee_organizations_set_sync_authorization_execute()`.
@@ -4688,7 +4688,7 @@ pub fn apigee_organizations_apim_service_extensions_patch(
 }
 
 /// POST v1/organizations/{organizationsId}/apiproducts/{apiproductsId}/attributes
-/// Updates or creates API product attributes. This API **replaces** the current list of attributes with the attributes specified in the request body. In this way, you can update existing attributes, add new attributes, or delete existing attributes by omitting them from the request body. **Note**: OAuth access tokens and Key Management Service (KMS) entities (apps, developers, and API products) are cached for 180 seconds (current default). Any custom attributes associated with entities also get cached for at least 180 seconds after entity is accessed during runtime. In this case, the ExpiresIn element on the OAuthV2 policy won't be able to expire an access token in less than 180 seconds.
+/// Updates or creates API product attributes. This API **replaces** the current list of attributes with the attributes specified in the request body. In this way, you can update existing attributes, add new attributes, or delete existing attributes by omitting them from the request body. **Note**: OAuth access tokens and Key Management Service (KMS) entities (apps, developers, and API products) are cached for 180 seconds (current default). Any custom attributes associated with entities also get cached for at least 180 seconds after entity is accessed during runtime. In this case, the ExpiresIn element on the OAuthV2 policy won''t be able to expire an access token in less than 180 seconds.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_apiproducts_attributes_execute()` to send, or `apigee_organizations_apiproducts_attributes` for simplest API.
@@ -4715,7 +4715,7 @@ where
 }
 
 /// POST v1/organizations/{organizationsId}/apiproducts/{apiproductsId}/attributes
-/// Updates or creates API product attributes. This API **replaces** the current list of attributes with the attributes specified in the request body. In this way, you can update existing attributes, add new attributes, or delete existing attributes by omitting them from the request body. **Note**: OAuth access tokens and Key Management Service (KMS) entities (apps, developers, and API products) are cached for 180 seconds (current default). Any custom attributes associated with entities also get cached for at least 180 seconds after entity is accessed during runtime. In this case, the ExpiresIn element on the OAuthV2 policy won't be able to expire an access token in less than 180 seconds.
+/// Updates or creates API product attributes. This API **replaces** the current list of attributes with the attributes specified in the request body. In this way, you can update existing attributes, add new attributes, or delete existing attributes by omitting them from the request body. **Note**: OAuth access tokens and Key Management Service (KMS) entities (apps, developers, and API products) are cached for 180 seconds (current default). Any custom attributes associated with entities also get cached for at least 180 seconds after entity is accessed during runtime. In this case, the ExpiresIn element on the OAuthV2 policy won''t be able to expire an access token in less than 180 seconds.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -4789,7 +4789,7 @@ pub fn apigee_organizations_apiproducts_attributes_task(
 }
 
 /// POST v1/organizations/{organizationsId}/apiproducts/{apiproductsId}/attributes
-/// Updates or creates API product attributes. This API **replaces** the current list of attributes with the attributes specified in the request body. In this way, you can update existing attributes, add new attributes, or delete existing attributes by omitting them from the request body. **Note**: OAuth access tokens and Key Management Service (KMS) entities (apps, developers, and API products) are cached for 180 seconds (current default). Any custom attributes associated with entities also get cached for at least 180 seconds after entity is accessed during runtime. In this case, the ExpiresIn element on the OAuthV2 policy won't be able to expire an access token in less than 180 seconds.
+/// Updates or creates API product attributes. This API **replaces** the current list of attributes with the attributes specified in the request body. In this way, you can update existing attributes, add new attributes, or delete existing attributes by omitting them from the request body. **Note**: OAuth access tokens and Key Management Service (KMS) entities (apps, developers, and API products) are cached for 180 seconds (current default). Any custom attributes associated with entities also get cached for at least 180 seconds after entity is accessed during runtime. In this case, the ExpiresIn element on the OAuthV2 policy won''t be able to expire an access token in less than 180 seconds.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -4830,7 +4830,7 @@ pub struct ApigeeOrganizationsApiproductsAttributesArgs {
 }
 
 /// POST v1/organizations/{organizationsId}/apiproducts/{apiproductsId}/attributes
-/// Updates or creates API product attributes. This API **replaces** the current list of attributes with the attributes specified in the request body. In this way, you can update existing attributes, add new attributes, or delete existing attributes by omitting them from the request body. **Note**: OAuth access tokens and Key Management Service (KMS) entities (apps, developers, and API products) are cached for 180 seconds (current default). Any custom attributes associated with entities also get cached for at least 180 seconds after entity is accessed during runtime. In this case, the ExpiresIn element on the OAuthV2 policy won't be able to expire an access token in less than 180 seconds.
+/// Updates or creates API product attributes. This API **replaces** the current list of attributes with the attributes specified in the request body. In this way, you can update existing attributes, add new attributes, or delete existing attributes by omitting them from the request body. **Note**: OAuth access tokens and Key Management Service (KMS) entities (apps, developers, and API products) are cached for 180 seconds (current default). Any custom attributes associated with entities also get cached for at least 180 seconds after entity is accessed during runtime. In this case, the ExpiresIn element on the OAuthV2 policy won''t be able to expire an access token in less than 180 seconds.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `apigee_organizations_apiproducts_attributes_builder()` + `apigee_organizations_apiproducts_attributes_execute()`.
@@ -4856,7 +4856,7 @@ pub fn apigee_organizations_apiproducts_attributes(
 }
 
 /// POST v1/organizations/{organizationsId}/apiproducts
-/// Creates an API product in an organization. You create API products after you have proxied backend services using API proxies. An API product is a collection of API resources combined with quota settings and metadata that you can use to deliver customized and productized API bundles to your developer community. This metadata can include: - Scope - Environments - API proxies - Extensible profile API products enable you repackage APIs on the fly, without having to do any additional coding or configuration. Apigee recommends that you start with a simple API product including only required elements. You then provision credentials to apps to enable them to start testing your APIs. After you have authentication and authorization working against a simple API product, you can iterate to create finer-grained API products, defining different sets of API resources for each API product. **WARNING:** - If you don't specify an API proxy in the request body, *any* app associated with the product can make calls to *any* API in your entire organization. - If you don't specify an environment in the request body, the product allows access to all environments. For more information, see What is an API product?
+/// Creates an API product in an organization. You create API products after you have proxied backend services using API proxies. An API product is a collection of API resources combined with quota settings and metadata that you can use to deliver customized and productized API bundles to your developer community. This metadata can include: - Scope - Environments - API proxies - Extensible profile API products enable you repackage APIs on the fly, without having to do any additional coding or configuration. Apigee recommends that you start with a simple API product including only required elements. You then provision credentials to apps to enable them to start testing your APIs. After you have authentication and authorization working against a simple API product, you can iterate to create finer-grained API products, defining different sets of API resources for each API product. **WARNING:** - If you don''t specify an API proxy in the request body, *any* app associated with the product can make calls to *any* API in your entire organization. - If you don''t specify an environment in the request body, the product allows access to all environments. For more information, see What is an API product?
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_apiproducts_create_execute()` to send, or `apigee_organizations_apiproducts_create` for simplest API.
@@ -4883,7 +4883,7 @@ where
 }
 
 /// POST v1/organizations/{organizationsId}/apiproducts
-/// Creates an API product in an organization. You create API products after you have proxied backend services using API proxies. An API product is a collection of API resources combined with quota settings and metadata that you can use to deliver customized and productized API bundles to your developer community. This metadata can include: - Scope - Environments - API proxies - Extensible profile API products enable you repackage APIs on the fly, without having to do any additional coding or configuration. Apigee recommends that you start with a simple API product including only required elements. You then provision credentials to apps to enable them to start testing your APIs. After you have authentication and authorization working against a simple API product, you can iterate to create finer-grained API products, defining different sets of API resources for each API product. **WARNING:** - If you don't specify an API proxy in the request body, *any* app associated with the product can make calls to *any* API in your entire organization. - If you don't specify an environment in the request body, the product allows access to all environments. For more information, see What is an API product?
+/// Creates an API product in an organization. You create API products after you have proxied backend services using API proxies. An API product is a collection of API resources combined with quota settings and metadata that you can use to deliver customized and productized API bundles to your developer community. This metadata can include: - Scope - Environments - API proxies - Extensible profile API products enable you repackage APIs on the fly, without having to do any additional coding or configuration. Apigee recommends that you start with a simple API product including only required elements. You then provision credentials to apps to enable them to start testing your APIs. After you have authentication and authorization working against a simple API product, you can iterate to create finer-grained API products, defining different sets of API resources for each API product. **WARNING:** - If you don''t specify an API proxy in the request body, *any* app associated with the product can make calls to *any* API in your entire organization. - If you don''t specify an environment in the request body, the product allows access to all environments. For more information, see What is an API product?
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -4957,7 +4957,7 @@ pub fn apigee_organizations_apiproducts_create_task(
 }
 
 /// POST v1/organizations/{organizationsId}/apiproducts
-/// Creates an API product in an organization. You create API products after you have proxied backend services using API proxies. An API product is a collection of API resources combined with quota settings and metadata that you can use to deliver customized and productized API bundles to your developer community. This metadata can include: - Scope - Environments - API proxies - Extensible profile API products enable you repackage APIs on the fly, without having to do any additional coding or configuration. Apigee recommends that you start with a simple API product including only required elements. You then provision credentials to apps to enable them to start testing your APIs. After you have authentication and authorization working against a simple API product, you can iterate to create finer-grained API products, defining different sets of API resources for each API product. **WARNING:** - If you don't specify an API proxy in the request body, *any* app associated with the product can make calls to *any* API in your entire organization. - If you don't specify an environment in the request body, the product allows access to all environments. For more information, see What is an API product?
+/// Creates an API product in an organization. You create API products after you have proxied backend services using API proxies. An API product is a collection of API resources combined with quota settings and metadata that you can use to deliver customized and productized API bundles to your developer community. This metadata can include: - Scope - Environments - API proxies - Extensible profile API products enable you repackage APIs on the fly, without having to do any additional coding or configuration. Apigee recommends that you start with a simple API product including only required elements. You then provision credentials to apps to enable them to start testing your APIs. After you have authentication and authorization working against a simple API product, you can iterate to create finer-grained API products, defining different sets of API resources for each API product. **WARNING:** - If you don''t specify an API proxy in the request body, *any* app associated with the product can make calls to *any* API in your entire organization. - If you don''t specify an environment in the request body, the product allows access to all environments. For more information, see What is an API product?
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -4998,7 +4998,7 @@ pub struct ApigeeOrganizationsApiproductsCreateArgs {
 }
 
 /// POST v1/organizations/{organizationsId}/apiproducts
-/// Creates an API product in an organization. You create API products after you have proxied backend services using API proxies. An API product is a collection of API resources combined with quota settings and metadata that you can use to deliver customized and productized API bundles to your developer community. This metadata can include: - Scope - Environments - API proxies - Extensible profile API products enable you repackage APIs on the fly, without having to do any additional coding or configuration. Apigee recommends that you start with a simple API product including only required elements. You then provision credentials to apps to enable them to start testing your APIs. After you have authentication and authorization working against a simple API product, you can iterate to create finer-grained API products, defining different sets of API resources for each API product. **WARNING:** - If you don't specify an API proxy in the request body, *any* app associated with the product can make calls to *any* API in your entire organization. - If you don't specify an environment in the request body, the product allows access to all environments. For more information, see What is an API product?
+/// Creates an API product in an organization. You create API products after you have proxied backend services using API proxies. An API product is a collection of API resources combined with quota settings and metadata that you can use to deliver customized and productized API bundles to your developer community. This metadata can include: - Scope - Environments - API proxies - Extensible profile API products enable you repackage APIs on the fly, without having to do any additional coding or configuration. Apigee recommends that you start with a simple API product including only required elements. You then provision credentials to apps to enable them to start testing your APIs. After you have authentication and authorization working against a simple API product, you can iterate to create finer-grained API products, defining different sets of API resources for each API product. **WARNING:** - If you don''t specify an API proxy in the request body, *any* app associated with the product can make calls to *any* API in your entire organization. - If you don''t specify an environment in the request body, the product allows access to all environments. For more information, see What is an API product?
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `apigee_organizations_apiproducts_create_builder()` + `apigee_organizations_apiproducts_create_execute()`.
@@ -6422,7 +6422,7 @@ pub fn apigee_organizations_apiproducts_attributes_list(
 }
 
 /// POST v1/organizations/{organizationsId}/apiproducts/{apiproductsId}/attributes/{attributesId}
-/// Updates the value of an API product attribute. **Note**: OAuth access tokens and Key Management Service (KMS) entities (apps, developers, and API products) are cached for 180 seconds (current default). Any custom attributes associated with entities also get cached for at least 180 seconds after entity is accessed during runtime. In this case, the ExpiresIn element on the OAuthV2 policy won't be able to expire an access token in less than 180 seconds.
+/// Updates the value of an API product attribute. **Note**: OAuth access tokens and Key Management Service (KMS) entities (apps, developers, and API products) are cached for 180 seconds (current default). Any custom attributes associated with entities also get cached for at least 180 seconds after entity is accessed during runtime. In this case, the ExpiresIn element on the OAuthV2 policy won''t be able to expire an access token in less than 180 seconds.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_apiproducts_attributes_update_api_product_attribute_execute()` to send, or `apigee_organizations_apiproducts_attributes_update_api_product_attribute` for simplest API.
@@ -6449,7 +6449,7 @@ where
 }
 
 /// POST v1/organizations/{organizationsId}/apiproducts/{apiproductsId}/attributes/{attributesId}
-/// Updates the value of an API product attribute. **Note**: OAuth access tokens and Key Management Service (KMS) entities (apps, developers, and API products) are cached for 180 seconds (current default). Any custom attributes associated with entities also get cached for at least 180 seconds after entity is accessed during runtime. In this case, the ExpiresIn element on the OAuthV2 policy won't be able to expire an access token in less than 180 seconds.
+/// Updates the value of an API product attribute. **Note**: OAuth access tokens and Key Management Service (KMS) entities (apps, developers, and API products) are cached for 180 seconds (current default). Any custom attributes associated with entities also get cached for at least 180 seconds after entity is accessed during runtime. In this case, the ExpiresIn element on the OAuthV2 policy won''t be able to expire an access token in less than 180 seconds.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -6523,7 +6523,7 @@ pub fn apigee_organizations_apiproducts_attributes_update_api_product_attribute_
 }
 
 /// POST v1/organizations/{organizationsId}/apiproducts/{apiproductsId}/attributes/{attributesId}
-/// Updates the value of an API product attribute. **Note**: OAuth access tokens and Key Management Service (KMS) entities (apps, developers, and API products) are cached for 180 seconds (current default). Any custom attributes associated with entities also get cached for at least 180 seconds after entity is accessed during runtime. In this case, the ExpiresIn element on the OAuthV2 policy won't be able to expire an access token in less than 180 seconds.
+/// Updates the value of an API product attribute. **Note**: OAuth access tokens and Key Management Service (KMS) entities (apps, developers, and API products) are cached for 180 seconds (current default). Any custom attributes associated with entities also get cached for at least 180 seconds after entity is accessed during runtime. In this case, the ExpiresIn element on the OAuthV2 policy won''t be able to expire an access token in less than 180 seconds.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -6565,7 +6565,7 @@ pub struct ApigeeOrganizationsApiproductsAttributesUpdateApiProductAttributeArgs
 }
 
 /// POST v1/organizations/{organizationsId}/apiproducts/{apiproductsId}/attributes/{attributesId}
-/// Updates the value of an API product attribute. **Note**: OAuth access tokens and Key Management Service (KMS) entities (apps, developers, and API products) are cached for 180 seconds (current default). Any custom attributes associated with entities also get cached for at least 180 seconds after entity is accessed during runtime. In this case, the ExpiresIn element on the OAuthV2 policy won't be able to expire an access token in less than 180 seconds.
+/// Updates the value of an API product attribute. **Note**: OAuth access tokens and Key Management Service (KMS) entities (apps, developers, and API products) are cached for 180 seconds (current default). Any custom attributes associated with entities also get cached for at least 180 seconds after entity is accessed during runtime. In this case, the ExpiresIn element on the OAuthV2 policy won''t be able to expire an access token in less than 180 seconds.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `apigee_organizations_apiproducts_attributes_update_api_product_attribute_builder()` + `apigee_organizations_apiproducts_attributes_update_api_product_attribute_execute()`.
@@ -6593,7 +6593,7 @@ pub fn apigee_organizations_apiproducts_attributes_update_api_product_attribute(
 }
 
 /// POST v1/organizations/{organizationsId}/apiproducts/{apiproductsId}/rateplans
-/// Create a rate plan that is associated with an API product in an organization. Using rate plans, API product owners can monetize their API products by configuring one or more of the following: - Billing frequency - Initial setup fees for using an API product - Payment funding model (postpaid only) - Fixed recurring or consumption-based charges for using an API product - Revenue sharing with developer partners An API product can have multiple rate plans associated with it but *only one* rate plan can be active at any point of time. **Note: From the developer's perspective, they purchase API products not rate plans.
+/// Create a rate plan that is associated with an API product in an organization. Using rate plans, API product owners can monetize their API products by configuring one or more of the following: - Billing frequency - Initial setup fees for using an API product - Payment funding model (postpaid only) - Fixed recurring or consumption-based charges for using an API product - Revenue sharing with developer partners An API product can have multiple rate plans associated with it but *only one* rate plan can be active at any point of time. **Note: From the developer''s perspective, they purchase API products not rate plans.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_apiproducts_rateplans_create_execute()` to send, or `apigee_organizations_apiproducts_rateplans_create` for simplest API.
@@ -6620,7 +6620,7 @@ where
 }
 
 /// POST v1/organizations/{organizationsId}/apiproducts/{apiproductsId}/rateplans
-/// Create a rate plan that is associated with an API product in an organization. Using rate plans, API product owners can monetize their API products by configuring one or more of the following: - Billing frequency - Initial setup fees for using an API product - Payment funding model (postpaid only) - Fixed recurring or consumption-based charges for using an API product - Revenue sharing with developer partners An API product can have multiple rate plans associated with it but *only one* rate plan can be active at any point of time. **Note: From the developer's perspective, they purchase API products not rate plans.
+/// Create a rate plan that is associated with an API product in an organization. Using rate plans, API product owners can monetize their API products by configuring one or more of the following: - Billing frequency - Initial setup fees for using an API product - Payment funding model (postpaid only) - Fixed recurring or consumption-based charges for using an API product - Revenue sharing with developer partners An API product can have multiple rate plans associated with it but *only one* rate plan can be active at any point of time. **Note: From the developer''s perspective, they purchase API products not rate plans.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -6694,7 +6694,7 @@ pub fn apigee_organizations_apiproducts_rateplans_create_task(
 }
 
 /// POST v1/organizations/{organizationsId}/apiproducts/{apiproductsId}/rateplans
-/// Create a rate plan that is associated with an API product in an organization. Using rate plans, API product owners can monetize their API products by configuring one or more of the following: - Billing frequency - Initial setup fees for using an API product - Payment funding model (postpaid only) - Fixed recurring or consumption-based charges for using an API product - Revenue sharing with developer partners An API product can have multiple rate plans associated with it but *only one* rate plan can be active at any point of time. **Note: From the developer's perspective, they purchase API products not rate plans.
+/// Create a rate plan that is associated with an API product in an organization. Using rate plans, API product owners can monetize their API products by configuring one or more of the following: - Billing frequency - Initial setup fees for using an API product - Payment funding model (postpaid only) - Fixed recurring or consumption-based charges for using an API product - Revenue sharing with developer partners An API product can have multiple rate plans associated with it but *only one* rate plan can be active at any point of time. **Note: From the developer''s perspective, they purchase API products not rate plans.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -6735,7 +6735,7 @@ pub struct ApigeeOrganizationsApiproductsRateplansCreateArgs {
 }
 
 /// POST v1/organizations/{organizationsId}/apiproducts/{apiproductsId}/rateplans
-/// Create a rate plan that is associated with an API product in an organization. Using rate plans, API product owners can monetize their API products by configuring one or more of the following: - Billing frequency - Initial setup fees for using an API product - Payment funding model (postpaid only) - Fixed recurring or consumption-based charges for using an API product - Revenue sharing with developer partners An API product can have multiple rate plans associated with it but *only one* rate plan can be active at any point of time. **Note: From the developer's perspective, they purchase API products not rate plans.
+/// Create a rate plan that is associated with an API product in an organization. Using rate plans, API product owners can monetize their API products by configuring one or more of the following: - Billing frequency - Initial setup fees for using an API product - Payment funding model (postpaid only) - Fixed recurring or consumption-based charges for using an API product - Revenue sharing with developer partners An API product can have multiple rate plans associated with it but *only one* rate plan can be active at any point of time. **Note: From the developer''s perspective, they purchase API products not rate plans.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `apigee_organizations_apiproducts_rateplans_create_builder()` + `apigee_organizations_apiproducts_rateplans_create_execute()`.
@@ -11179,7 +11179,7 @@ pub fn apigee_organizations_apis_revisions_deployments_list(
 }
 
 /// POST v1/organizations/{organizationsId}/appgroups
-/// Creates an AppGroup. Once created, user can register apps under the AppGroup to obtain secret key and password. At creation time, the AppGroup's state is set as active.
+/// Creates an AppGroup. Once created, user can register apps under the AppGroup to obtain secret key and password. At creation time, the AppGroup''s state is set as active.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_appgroups_create_execute()` to send, or `apigee_organizations_appgroups_create` for simplest API.
@@ -11206,7 +11206,7 @@ where
 }
 
 /// POST v1/organizations/{organizationsId}/appgroups
-/// Creates an AppGroup. Once created, user can register apps under the AppGroup to obtain secret key and password. At creation time, the AppGroup's state is set as active.
+/// Creates an AppGroup. Once created, user can register apps under the AppGroup to obtain secret key and password. At creation time, the AppGroup''s state is set as active.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -11280,7 +11280,7 @@ pub fn apigee_organizations_appgroups_create_task(
 }
 
 /// POST v1/organizations/{organizationsId}/appgroups
-/// Creates an AppGroup. Once created, user can register apps under the AppGroup to obtain secret key and password. At creation time, the AppGroup's state is set as active.
+/// Creates an AppGroup. Once created, user can register apps under the AppGroup to obtain secret key and password. At creation time, the AppGroup''s state is set as active.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -11321,7 +11321,7 @@ pub struct ApigeeOrganizationsAppgroupsCreateArgs {
 }
 
 /// POST v1/organizations/{organizationsId}/appgroups
-/// Creates an AppGroup. Once created, user can register apps under the AppGroup to obtain secret key and password. At creation time, the AppGroup's state is set as active.
+/// Creates an AppGroup. Once created, user can register apps under the AppGroup to obtain secret key and password. At creation time, the AppGroup''s state is set as active.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `apigee_organizations_appgroups_create_builder()` + `apigee_organizations_appgroups_create_execute()`.
@@ -13622,7 +13622,7 @@ pub fn apigee_organizations_appgroups_apps_keys_create(
 }
 
 /// DELETE v1/organizations/{organizationsId}/appgroups/{appgroupsId}/apps/{appsId}/keys/{keysId}
-/// Deletes an app's consumer key and removes all API products associated with the app. After the consumer key is deleted, it cannot be used to access any APIs.
+/// Deletes an app''s consumer key and removes all API products associated with the app. After the consumer key is deleted, it cannot be used to access any APIs.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_appgroups_apps_keys_delete_execute()` to send, or `apigee_organizations_appgroups_apps_keys_delete` for simplest API.
@@ -13649,7 +13649,7 @@ where
 }
 
 /// DELETE v1/organizations/{organizationsId}/appgroups/{appgroupsId}/apps/{appsId}/keys/{keysId}
-/// Deletes an app's consumer key and removes all API products associated with the app. After the consumer key is deleted, it cannot be used to access any APIs.
+/// Deletes an app''s consumer key and removes all API products associated with the app. After the consumer key is deleted, it cannot be used to access any APIs.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -13723,7 +13723,7 @@ pub fn apigee_organizations_appgroups_apps_keys_delete_task(
 }
 
 /// DELETE v1/organizations/{organizationsId}/appgroups/{appgroupsId}/apps/{appsId}/keys/{keysId}
-/// Deletes an app's consumer key and removes all API products associated with the app. After the consumer key is deleted, it cannot be used to access any APIs.
+/// Deletes an app''s consumer key and removes all API products associated with the app. After the consumer key is deleted, it cannot be used to access any APIs.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -13764,7 +13764,7 @@ pub struct ApigeeOrganizationsAppgroupsAppsKeysDeleteArgs {
 }
 
 /// DELETE v1/organizations/{organizationsId}/appgroups/{appgroupsId}/apps/{appsId}/keys/{keysId}
-/// Deletes an app's consumer key and removes all API products associated with the app. After the consumer key is deleted, it cannot be used to access any APIs.
+/// Deletes an app''s consumer key and removes all API products associated with the app. After the consumer key is deleted, it cannot be used to access any APIs.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `apigee_organizations_appgroups_apps_keys_delete_builder()` + `apigee_organizations_appgroups_apps_keys_delete_execute()`.
@@ -14128,7 +14128,7 @@ pub fn apigee_organizations_appgroups_apps_keys_update_app_group_app_key(
 }
 
 /// DELETE v1/organizations/{organizationsId}/appgroups/{appgroupsId}/apps/{appsId}/keys/{keysId}/apiproducts/{apiproductsId}
-/// Removes an API product from an app's consumer key. After the API product is removed, the app cannot access the API resources defined in that API product. **Note**: The consumer key is not removed, only its association with the API product.
+/// Removes an API product from an app''s consumer key. After the API product is removed, the app cannot access the API resources defined in that API product. **Note**: The consumer key is not removed, only its association with the API product.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_appgroups_apps_keys_apiproducts_delete_execute()` to send, or `apigee_organizations_appgroups_apps_keys_apiproducts_delete` for simplest API.
@@ -14155,7 +14155,7 @@ where
 }
 
 /// DELETE v1/organizations/{organizationsId}/appgroups/{appgroupsId}/apps/{appsId}/keys/{keysId}/apiproducts/{apiproductsId}
-/// Removes an API product from an app's consumer key. After the API product is removed, the app cannot access the API resources defined in that API product. **Note**: The consumer key is not removed, only its association with the API product.
+/// Removes an API product from an app''s consumer key. After the API product is removed, the app cannot access the API resources defined in that API product. **Note**: The consumer key is not removed, only its association with the API product.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -14229,7 +14229,7 @@ pub fn apigee_organizations_appgroups_apps_keys_apiproducts_delete_task(
 }
 
 /// DELETE v1/organizations/{organizationsId}/appgroups/{appgroupsId}/apps/{appsId}/keys/{keysId}/apiproducts/{apiproductsId}
-/// Removes an API product from an app's consumer key. After the API product is removed, the app cannot access the API resources defined in that API product. **Note**: The consumer key is not removed, only its association with the API product.
+/// Removes an API product from an app''s consumer key. After the API product is removed, the app cannot access the API resources defined in that API product. **Note**: The consumer key is not removed, only its association with the API product.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -14270,7 +14270,7 @@ pub struct ApigeeOrganizationsAppgroupsAppsKeysApiproductsDeleteArgs {
 }
 
 /// DELETE v1/organizations/{organizationsId}/appgroups/{appgroupsId}/apps/{appsId}/keys/{keysId}/apiproducts/{apiproductsId}
-/// Removes an API product from an app's consumer key. After the API product is removed, the app cannot access the API resources defined in that API product. **Note**: The consumer key is not removed, only its association with the API product.
+/// Removes an API product from an app''s consumer key. After the API product is removed, the app cannot access the API resources defined in that API product. **Note**: The consumer key is not removed, only its association with the API product.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `apigee_organizations_appgroups_apps_keys_apiproducts_delete_builder()` + `apigee_organizations_appgroups_apps_keys_apiproducts_delete_execute()`.
@@ -17024,7 +17024,7 @@ pub fn apigee_organizations_deployments_list(
 }
 
 /// POST v1/organizations/{organizationsId}/developers/{developersId}/attributes
-/// Updates developer attributes. This API replaces the existing attributes with those specified in the request. Add new attributes, and include or exclude any existing attributes that you want to retain or remove, respectively. The custom attribute limit is 18. **Note**: OAuth access tokens and Key Management Service (KMS) entities (apps, developers, and API products) are cached for 180 seconds (default). Any custom attributes associated with these entities are cached for at least 180 seconds after the entity is accessed at runtime. Therefore, an ExpiresIn element on the OAuthV2 policy won't be able to expire an access token in less than 180 seconds.
+/// Updates developer attributes. This API replaces the existing attributes with those specified in the request. Add new attributes, and include or exclude any existing attributes that you want to retain or remove, respectively. The custom attribute limit is 18. **Note**: OAuth access tokens and Key Management Service (KMS) entities (apps, developers, and API products) are cached for 180 seconds (default). Any custom attributes associated with these entities are cached for at least 180 seconds after the entity is accessed at runtime. Therefore, an ExpiresIn element on the OAuthV2 policy won''t be able to expire an access token in less than 180 seconds.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_developers_attributes_execute()` to send, or `apigee_organizations_developers_attributes` for simplest API.
@@ -17051,7 +17051,7 @@ where
 }
 
 /// POST v1/organizations/{organizationsId}/developers/{developersId}/attributes
-/// Updates developer attributes. This API replaces the existing attributes with those specified in the request. Add new attributes, and include or exclude any existing attributes that you want to retain or remove, respectively. The custom attribute limit is 18. **Note**: OAuth access tokens and Key Management Service (KMS) entities (apps, developers, and API products) are cached for 180 seconds (default). Any custom attributes associated with these entities are cached for at least 180 seconds after the entity is accessed at runtime. Therefore, an ExpiresIn element on the OAuthV2 policy won't be able to expire an access token in less than 180 seconds.
+/// Updates developer attributes. This API replaces the existing attributes with those specified in the request. Add new attributes, and include or exclude any existing attributes that you want to retain or remove, respectively. The custom attribute limit is 18. **Note**: OAuth access tokens and Key Management Service (KMS) entities (apps, developers, and API products) are cached for 180 seconds (default). Any custom attributes associated with these entities are cached for at least 180 seconds after the entity is accessed at runtime. Therefore, an ExpiresIn element on the OAuthV2 policy won''t be able to expire an access token in less than 180 seconds.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -17125,7 +17125,7 @@ pub fn apigee_organizations_developers_attributes_task(
 }
 
 /// POST v1/organizations/{organizationsId}/developers/{developersId}/attributes
-/// Updates developer attributes. This API replaces the existing attributes with those specified in the request. Add new attributes, and include or exclude any existing attributes that you want to retain or remove, respectively. The custom attribute limit is 18. **Note**: OAuth access tokens and Key Management Service (KMS) entities (apps, developers, and API products) are cached for 180 seconds (default). Any custom attributes associated with these entities are cached for at least 180 seconds after the entity is accessed at runtime. Therefore, an ExpiresIn element on the OAuthV2 policy won't be able to expire an access token in less than 180 seconds.
+/// Updates developer attributes. This API replaces the existing attributes with those specified in the request. Add new attributes, and include or exclude any existing attributes that you want to retain or remove, respectively. The custom attribute limit is 18. **Note**: OAuth access tokens and Key Management Service (KMS) entities (apps, developers, and API products) are cached for 180 seconds (default). Any custom attributes associated with these entities are cached for at least 180 seconds after the entity is accessed at runtime. Therefore, an ExpiresIn element on the OAuthV2 policy won''t be able to expire an access token in less than 180 seconds.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -17166,7 +17166,7 @@ pub struct ApigeeOrganizationsDevelopersAttributesArgs {
 }
 
 /// POST v1/organizations/{organizationsId}/developers/{developersId}/attributes
-/// Updates developer attributes. This API replaces the existing attributes with those specified in the request. Add new attributes, and include or exclude any existing attributes that you want to retain or remove, respectively. The custom attribute limit is 18. **Note**: OAuth access tokens and Key Management Service (KMS) entities (apps, developers, and API products) are cached for 180 seconds (default). Any custom attributes associated with these entities are cached for at least 180 seconds after the entity is accessed at runtime. Therefore, an ExpiresIn element on the OAuthV2 policy won't be able to expire an access token in less than 180 seconds.
+/// Updates developer attributes. This API replaces the existing attributes with those specified in the request. Add new attributes, and include or exclude any existing attributes that you want to retain or remove, respectively. The custom attribute limit is 18. **Note**: OAuth access tokens and Key Management Service (KMS) entities (apps, developers, and API products) are cached for 180 seconds (default). Any custom attributes associated with these entities are cached for at least 180 seconds after the entity is accessed at runtime. Therefore, an ExpiresIn element on the OAuthV2 policy won''t be able to expire an access token in less than 180 seconds.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `apigee_organizations_developers_attributes_builder()` + `apigee_organizations_developers_attributes_execute()`.
@@ -17528,7 +17528,7 @@ pub fn apigee_organizations_developers_delete(
 }
 
 /// GET v1/organizations/{organizationsId}/developers/{developersId}
-/// Returns the developer details, including the developer's name, email address, apps, and other information. **Note**: The response includes only the first 100 developer apps.
+/// Returns the developer details, including the developer''s name, email address, apps, and other information. **Note**: The response includes only the first 100 developer apps.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_developers_get_execute()` to send, or `apigee_organizations_developers_get` for simplest API.
@@ -17567,7 +17567,7 @@ where
 }
 
 /// GET v1/organizations/{organizationsId}/developers/{developersId}
-/// Returns the developer details, including the developer's name, email address, apps, and other information. **Note**: The response includes only the first 100 developer apps.
+/// Returns the developer details, including the developer''s name, email address, apps, and other information. **Note**: The response includes only the first 100 developer apps.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -17641,7 +17641,7 @@ pub fn apigee_organizations_developers_get_task(
 }
 
 /// GET v1/organizations/{organizationsId}/developers/{developersId}
-/// Returns the developer details, including the developer's name, email address, apps, and other information. **Note**: The response includes only the first 100 developer apps.
+/// Returns the developer details, including the developer''s name, email address, apps, and other information. **Note**: The response includes only the first 100 developer apps.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -17684,7 +17684,7 @@ pub struct ApigeeOrganizationsDevelopersGetArgs {
 }
 
 /// GET v1/organizations/{organizationsId}/developers/{developersId}
-/// Returns the developer details, including the developer's name, email address, apps, and other information. **Note**: The response includes only the first 100 developer apps.
+/// Returns the developer details, including the developer''s name, email address, apps, and other information. **Note**: The response includes only the first 100 developer apps.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `apigee_organizations_developers_get_builder()` + `apigee_organizations_developers_get_execute()`.
@@ -18270,7 +18270,7 @@ pub fn apigee_organizations_developers_list(
 }
 
 /// POST v1/organizations/{organizationsId}/developers/{developersId}
-/// Sets the status of a developer. A developer is active by default. If you set a developer's status to inactive, the API keys assigned to the developer apps are no longer valid even though the API keys are set to approved. Inactive developers can still sign in to the developer portal and create apps; however, any new API keys generated during app creation won't work. To set the status of a developer, set the action query parameter to active or inactive, and the Content-Type header to `application/octet-stream`. If successful, the API call returns the following HTTP status code: 204 No Content
+/// Sets the status of a developer. A developer is active by default. If you set a developer''s status to inactive, the API keys assigned to the developer apps are no longer valid even though the API keys are set to approved. Inactive developers can still sign in to the developer portal and create apps; however, any new API keys generated during app creation won''t work. To set the status of a developer, set the action query parameter to active or inactive, and the Content-Type header to `application/octet-stream`. If successful, the API call returns the following HTTP status code: 204 No Content
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_developers_set_developer_status_execute()` to send, or `apigee_organizations_developers_set_developer_status` for simplest API.
@@ -18309,7 +18309,7 @@ where
 }
 
 /// POST v1/organizations/{organizationsId}/developers/{developersId}
-/// Sets the status of a developer. A developer is active by default. If you set a developer's status to inactive, the API keys assigned to the developer apps are no longer valid even though the API keys are set to approved. Inactive developers can still sign in to the developer portal and create apps; however, any new API keys generated during app creation won't work. To set the status of a developer, set the action query parameter to active or inactive, and the Content-Type header to `application/octet-stream`. If successful, the API call returns the following HTTP status code: 204 No Content
+/// Sets the status of a developer. A developer is active by default. If you set a developer''s status to inactive, the API keys assigned to the developer apps are no longer valid even though the API keys are set to approved. Inactive developers can still sign in to the developer portal and create apps; however, any new API keys generated during app creation won''t work. To set the status of a developer, set the action query parameter to active or inactive, and the Content-Type header to `application/octet-stream`. If successful, the API call returns the following HTTP status code: 204 No Content
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -18383,7 +18383,7 @@ pub fn apigee_organizations_developers_set_developer_status_task(
 }
 
 /// POST v1/organizations/{organizationsId}/developers/{developersId}
-/// Sets the status of a developer. A developer is active by default. If you set a developer's status to inactive, the API keys assigned to the developer apps are no longer valid even though the API keys are set to approved. Inactive developers can still sign in to the developer portal and create apps; however, any new API keys generated during app creation won't work. To set the status of a developer, set the action query parameter to active or inactive, and the Content-Type header to `application/octet-stream`. If successful, the API call returns the following HTTP status code: 204 No Content
+/// Sets the status of a developer. A developer is active by default. If you set a developer''s status to inactive, the API keys assigned to the developer apps are no longer valid even though the API keys are set to approved. Inactive developers can still sign in to the developer portal and create apps; however, any new API keys generated during app creation won''t work. To set the status of a developer, set the action query parameter to active or inactive, and the Content-Type header to `application/octet-stream`. If successful, the API call returns the following HTTP status code: 204 No Content
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -18424,7 +18424,7 @@ pub struct ApigeeOrganizationsDevelopersSetDeveloperStatusArgs {
 }
 
 /// POST v1/organizations/{organizationsId}/developers/{developersId}
-/// Sets the status of a developer. A developer is active by default. If you set a developer's status to inactive, the API keys assigned to the developer apps are no longer valid even though the API keys are set to approved. Inactive developers can still sign in to the developer portal and create apps; however, any new API keys generated during app creation won't work. To set the status of a developer, set the action query parameter to active or inactive, and the Content-Type header to `application/octet-stream`. If successful, the API call returns the following HTTP status code: 204 No Content
+/// Sets the status of a developer. A developer is active by default. If you set a developer''s status to inactive, the API keys assigned to the developer apps are no longer valid even though the API keys are set to approved. Inactive developers can still sign in to the developer portal and create apps; however, any new API keys generated during app creation won''t work. To set the status of a developer, set the action query parameter to active or inactive, and the Content-Type header to `application/octet-stream`. If successful, the API call returns the following HTTP status code: 204 No Content
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `apigee_organizations_developers_set_developer_status_builder()` + `apigee_organizations_developers_set_developer_status_execute()`.
@@ -18452,7 +18452,7 @@ pub fn apigee_organizations_developers_set_developer_status(
 }
 
 /// PUT v1/organizations/{organizationsId}/developers/{developersId}
-/// Updates a developer. This API replaces the existing developer details with those specified in the request. Include or exclude any existing details that you want to retain or delete, respectively. The custom attribute limit is 18. **Note**: OAuth access tokens and Key Management Service (KMS) entities (apps, developers, and API products) are cached for 180 seconds (current default). Any custom attributes associated with these entities are cached for at least 180 seconds after the entity is accessed at runtime. Therefore, an ExpiresIn element on the OAuthV2 policy won't be able to expire an access token in less than 180 seconds.
+/// Updates a developer. This API replaces the existing developer details with those specified in the request. Include or exclude any existing details that you want to retain or delete, respectively. The custom attribute limit is 18. **Note**: OAuth access tokens and Key Management Service (KMS) entities (apps, developers, and API products) are cached for 180 seconds (current default). Any custom attributes associated with these entities are cached for at least 180 seconds after the entity is accessed at runtime. Therefore, an ExpiresIn element on the OAuthV2 policy won''t be able to expire an access token in less than 180 seconds.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_developers_update_execute()` to send, or `apigee_organizations_developers_update` for simplest API.
@@ -18479,7 +18479,7 @@ where
 }
 
 /// PUT v1/organizations/{organizationsId}/developers/{developersId}
-/// Updates a developer. This API replaces the existing developer details with those specified in the request. Include or exclude any existing details that you want to retain or delete, respectively. The custom attribute limit is 18. **Note**: OAuth access tokens and Key Management Service (KMS) entities (apps, developers, and API products) are cached for 180 seconds (current default). Any custom attributes associated with these entities are cached for at least 180 seconds after the entity is accessed at runtime. Therefore, an ExpiresIn element on the OAuthV2 policy won't be able to expire an access token in less than 180 seconds.
+/// Updates a developer. This API replaces the existing developer details with those specified in the request. Include or exclude any existing details that you want to retain or delete, respectively. The custom attribute limit is 18. **Note**: OAuth access tokens and Key Management Service (KMS) entities (apps, developers, and API products) are cached for 180 seconds (current default). Any custom attributes associated with these entities are cached for at least 180 seconds after the entity is accessed at runtime. Therefore, an ExpiresIn element on the OAuthV2 policy won''t be able to expire an access token in less than 180 seconds.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -18553,7 +18553,7 @@ pub fn apigee_organizations_developers_update_task(
 }
 
 /// PUT v1/organizations/{organizationsId}/developers/{developersId}
-/// Updates a developer. This API replaces the existing developer details with those specified in the request. Include or exclude any existing details that you want to retain or delete, respectively. The custom attribute limit is 18. **Note**: OAuth access tokens and Key Management Service (KMS) entities (apps, developers, and API products) are cached for 180 seconds (current default). Any custom attributes associated with these entities are cached for at least 180 seconds after the entity is accessed at runtime. Therefore, an ExpiresIn element on the OAuthV2 policy won't be able to expire an access token in less than 180 seconds.
+/// Updates a developer. This API replaces the existing developer details with those specified in the request. Include or exclude any existing details that you want to retain or delete, respectively. The custom attribute limit is 18. **Note**: OAuth access tokens and Key Management Service (KMS) entities (apps, developers, and API products) are cached for 180 seconds (current default). Any custom attributes associated with these entities are cached for at least 180 seconds after the entity is accessed at runtime. Therefore, an ExpiresIn element on the OAuthV2 policy won''t be able to expire an access token in less than 180 seconds.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -18594,7 +18594,7 @@ pub struct ApigeeOrganizationsDevelopersUpdateArgs {
 }
 
 /// PUT v1/organizations/{organizationsId}/developers/{developersId}
-/// Updates a developer. This API replaces the existing developer details with those specified in the request. Include or exclude any existing details that you want to retain or delete, respectively. The custom attribute limit is 18. **Note**: OAuth access tokens and Key Management Service (KMS) entities (apps, developers, and API products) are cached for 180 seconds (current default). Any custom attributes associated with these entities are cached for at least 180 seconds after the entity is accessed at runtime. Therefore, an ExpiresIn element on the OAuthV2 policy won't be able to expire an access token in less than 180 seconds.
+/// Updates a developer. This API replaces the existing developer details with those specified in the request. Include or exclude any existing details that you want to retain or delete, respectively. The custom attribute limit is 18. **Note**: OAuth access tokens and Key Management Service (KMS) entities (apps, developers, and API products) are cached for 180 seconds (current default). Any custom attributes associated with these entities are cached for at least 180 seconds after the entity is accessed at runtime. Therefore, an ExpiresIn element on the OAuthV2 policy won''t be able to expire an access token in less than 180 seconds.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `apigee_organizations_developers_update_builder()` + `apigee_organizations_developers_update_execute()`.
@@ -18958,7 +18958,7 @@ pub fn apigee_organizations_developers_apps_attributes(
 }
 
 /// POST v1/organizations/{organizationsId}/developers/{developersId}/apps
-/// Creates an app associated with a developer. This API associates the developer app with the specified API product and auto-generates an API key for the app to use in calls to API proxies inside that API product. The name is the unique ID of the app that you can use in API calls. The DisplayName (set as an attribute) appears in the UI. If you don't set the DisplayName attribute, the name appears in the UI.
+/// Creates an app associated with a developer. This API associates the developer app with the specified API product and auto-generates an API key for the app to use in calls to API proxies inside that API product. The name is the unique ID of the app that you can use in API calls. The DisplayName (set as an attribute) appears in the UI. If you don''t set the DisplayName attribute, the name appears in the UI.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_developers_apps_create_execute()` to send, or `apigee_organizations_developers_apps_create` for simplest API.
@@ -18985,7 +18985,7 @@ where
 }
 
 /// POST v1/organizations/{organizationsId}/developers/{developersId}/apps
-/// Creates an app associated with a developer. This API associates the developer app with the specified API product and auto-generates an API key for the app to use in calls to API proxies inside that API product. The name is the unique ID of the app that you can use in API calls. The DisplayName (set as an attribute) appears in the UI. If you don't set the DisplayName attribute, the name appears in the UI.
+/// Creates an app associated with a developer. This API associates the developer app with the specified API product and auto-generates an API key for the app to use in calls to API proxies inside that API product. The name is the unique ID of the app that you can use in API calls. The DisplayName (set as an attribute) appears in the UI. If you don''t set the DisplayName attribute, the name appears in the UI.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -19059,7 +19059,7 @@ pub fn apigee_organizations_developers_apps_create_task(
 }
 
 /// POST v1/organizations/{organizationsId}/developers/{developersId}/apps
-/// Creates an app associated with a developer. This API associates the developer app with the specified API product and auto-generates an API key for the app to use in calls to API proxies inside that API product. The name is the unique ID of the app that you can use in API calls. The DisplayName (set as an attribute) appears in the UI. If you don't set the DisplayName attribute, the name appears in the UI.
+/// Creates an app associated with a developer. This API associates the developer app with the specified API product and auto-generates an API key for the app to use in calls to API proxies inside that API product. The name is the unique ID of the app that you can use in API calls. The DisplayName (set as an attribute) appears in the UI. If you don''t set the DisplayName attribute, the name appears in the UI.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -19100,7 +19100,7 @@ pub struct ApigeeOrganizationsDevelopersAppsCreateArgs {
 }
 
 /// POST v1/organizations/{organizationsId}/developers/{developersId}/apps
-/// Creates an app associated with a developer. This API associates the developer app with the specified API product and auto-generates an API key for the app to use in calls to API proxies inside that API product. The name is the unique ID of the app that you can use in API calls. The DisplayName (set as an attribute) appears in the UI. If you don't set the DisplayName attribute, the name appears in the UI.
+/// Creates an app associated with a developer. This API associates the developer app with the specified API product and auto-generates an API key for the app to use in calls to API proxies inside that API product. The name is the unique ID of the app that you can use in API calls. The DisplayName (set as an attribute) appears in the UI. If you don''t set the DisplayName attribute, the name appears in the UI.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `apigee_organizations_developers_apps_create_builder()` + `apigee_organizations_developers_apps_create_execute()`.
@@ -19294,7 +19294,7 @@ pub fn apigee_organizations_developers_apps_delete(
 }
 
 /// POST v1/organizations/{organizationsId}/developers/{developersId}/apps/{appsId}
-/// Manages access to a developer app by enabling you to: * Approve or revoke a developer app * Generate a new consumer key and secret for a developer app To approve or revoke a developer app, set the action query parameter to approve or revoke, respectively, and the Content-Type header to `application/octet-stream`. If a developer app is revoked, none of its API keys are valid for API calls even though the keys are still approved. If successful, the API call returns the following HTTP status code: 204 No Content To generate a new consumer key and secret for a developer app, pass the new `key/secret` details. Rather than replace an existing key, this API generates a new key. In this case, multiple key pairs may be associated with a single developer app. Each key pair has an independent status (approve or revoke) and expiration time. Any approved, non-expired key can be used in an API call. For example, if you're using API key rotation, you can generate new keys with expiration times that overlap keys that are going to expire. You might also generate a new consumer `key/secret` if the security of the original `key/secret` is compromised. The `keyExpiresIn` property defines the expiration time for the API key in milliseconds. If you don't set this property or set it to -1, the API key never expires. **Notes**: * When generating a new `key/secret`, this API replaces the existing attributes, notes, and callback URLs with those specified in the request. Include or exclude any existing information that you want to retain or delete, respectively. * To migrate existing consumer keys and secrets to hybrid from another system, see the CreateDeveloperAppKey API.
+/// Manages access to a developer app by enabling you to: * Approve or revoke a developer app * Generate a new consumer key and secret for a developer app To approve or revoke a developer app, set the action query parameter to approve or revoke, respectively, and the Content-Type header to `application/octet-stream`. If a developer app is revoked, none of its API keys are valid for API calls even though the keys are still approved. If successful, the API call returns the following HTTP status code: 204 No Content To generate a new consumer key and secret for a developer app, pass the new `key/secret` details. Rather than replace an existing key, this API generates a new key. In this case, multiple key pairs may be associated with a single developer app. Each key pair has an independent status (approve or revoke) and expiration time. Any approved, non-expired key can be used in an API call. For example, if you''re using API key rotation, you can generate new keys with expiration times that overlap keys that are going to expire. You might also generate a new consumer `key/secret` if the security of the original `key/secret` is compromised. The `keyExpiresIn` property defines the expiration time for the API key in milliseconds. If you don''t set this property or set it to -1, the API key never expires. **Notes**: * When generating a new `key/secret`, this API replaces the existing attributes, notes, and callback URLs with those specified in the request. Include or exclude any existing information that you want to retain or delete, respectively. * To migrate existing consumer keys and secrets to hybrid from another system, see the CreateDeveloperAppKey API.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_developers_apps_generate_key_pair_or_update_developer_app_status_execute()` to send, or `apigee_organizations_developers_apps_generate_key_pair_or_update_developer_app_status` for simplest API.
@@ -19335,7 +19335,7 @@ where
 }
 
 /// POST v1/organizations/{organizationsId}/developers/{developersId}/apps/{appsId}
-/// Manages access to a developer app by enabling you to: * Approve or revoke a developer app * Generate a new consumer key and secret for a developer app To approve or revoke a developer app, set the action query parameter to approve or revoke, respectively, and the Content-Type header to `application/octet-stream`. If a developer app is revoked, none of its API keys are valid for API calls even though the keys are still approved. If successful, the API call returns the following HTTP status code: 204 No Content To generate a new consumer key and secret for a developer app, pass the new `key/secret` details. Rather than replace an existing key, this API generates a new key. In this case, multiple key pairs may be associated with a single developer app. Each key pair has an independent status (approve or revoke) and expiration time. Any approved, non-expired key can be used in an API call. For example, if you're using API key rotation, you can generate new keys with expiration times that overlap keys that are going to expire. You might also generate a new consumer `key/secret` if the security of the original `key/secret` is compromised. The `keyExpiresIn` property defines the expiration time for the API key in milliseconds. If you don't set this property or set it to -1, the API key never expires. **Notes**: * When generating a new `key/secret`, this API replaces the existing attributes, notes, and callback URLs with those specified in the request. Include or exclude any existing information that you want to retain or delete, respectively. * To migrate existing consumer keys and secrets to hybrid from another system, see the CreateDeveloperAppKey API.
+/// Manages access to a developer app by enabling you to: * Approve or revoke a developer app * Generate a new consumer key and secret for a developer app To approve or revoke a developer app, set the action query parameter to approve or revoke, respectively, and the Content-Type header to `application/octet-stream`. If a developer app is revoked, none of its API keys are valid for API calls even though the keys are still approved. If successful, the API call returns the following HTTP status code: 204 No Content To generate a new consumer key and secret for a developer app, pass the new `key/secret` details. Rather than replace an existing key, this API generates a new key. In this case, multiple key pairs may be associated with a single developer app. Each key pair has an independent status (approve or revoke) and expiration time. Any approved, non-expired key can be used in an API call. For example, if you''re using API key rotation, you can generate new keys with expiration times that overlap keys that are going to expire. You might also generate a new consumer `key/secret` if the security of the original `key/secret` is compromised. The `keyExpiresIn` property defines the expiration time for the API key in milliseconds. If you don''t set this property or set it to -1, the API key never expires. **Notes**: * When generating a new `key/secret`, this API replaces the existing attributes, notes, and callback URLs with those specified in the request. Include or exclude any existing information that you want to retain or delete, respectively. * To migrate existing consumer keys and secrets to hybrid from another system, see the CreateDeveloperAppKey API.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -19409,7 +19409,7 @@ pub fn apigee_organizations_developers_apps_generate_key_pair_or_update_develope
 }
 
 /// POST v1/organizations/{organizationsId}/developers/{developersId}/apps/{appsId}
-/// Manages access to a developer app by enabling you to: * Approve or revoke a developer app * Generate a new consumer key and secret for a developer app To approve or revoke a developer app, set the action query parameter to approve or revoke, respectively, and the Content-Type header to `application/octet-stream`. If a developer app is revoked, none of its API keys are valid for API calls even though the keys are still approved. If successful, the API call returns the following HTTP status code: 204 No Content To generate a new consumer key and secret for a developer app, pass the new `key/secret` details. Rather than replace an existing key, this API generates a new key. In this case, multiple key pairs may be associated with a single developer app. Each key pair has an independent status (approve or revoke) and expiration time. Any approved, non-expired key can be used in an API call. For example, if you're using API key rotation, you can generate new keys with expiration times that overlap keys that are going to expire. You might also generate a new consumer `key/secret` if the security of the original `key/secret` is compromised. The `keyExpiresIn` property defines the expiration time for the API key in milliseconds. If you don't set this property or set it to -1, the API key never expires. **Notes**: * When generating a new `key/secret`, this API replaces the existing attributes, notes, and callback URLs with those specified in the request. Include or exclude any existing information that you want to retain or delete, respectively. * To migrate existing consumer keys and secrets to hybrid from another system, see the CreateDeveloperAppKey API.
+/// Manages access to a developer app by enabling you to: * Approve or revoke a developer app * Generate a new consumer key and secret for a developer app To approve or revoke a developer app, set the action query parameter to approve or revoke, respectively, and the Content-Type header to `application/octet-stream`. If a developer app is revoked, none of its API keys are valid for API calls even though the keys are still approved. If successful, the API call returns the following HTTP status code: 204 No Content To generate a new consumer key and secret for a developer app, pass the new `key/secret` details. Rather than replace an existing key, this API generates a new key. In this case, multiple key pairs may be associated with a single developer app. Each key pair has an independent status (approve or revoke) and expiration time. Any approved, non-expired key can be used in an API call. For example, if you''re using API key rotation, you can generate new keys with expiration times that overlap keys that are going to expire. You might also generate a new consumer `key/secret` if the security of the original `key/secret` is compromised. The `keyExpiresIn` property defines the expiration time for the API key in milliseconds. If you don''t set this property or set it to -1, the API key never expires. **Notes**: * When generating a new `key/secret`, this API replaces the existing attributes, notes, and callback URLs with those specified in the request. Include or exclude any existing information that you want to retain or delete, respectively. * To migrate existing consumer keys and secrets to hybrid from another system, see the CreateDeveloperAppKey API.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -19455,7 +19455,7 @@ pub struct ApigeeOrganizationsDevelopersAppsGenerateKeyPairOrUpdateDeveloperAppS
 }
 
 /// POST v1/organizations/{organizationsId}/developers/{developersId}/apps/{appsId}
-/// Manages access to a developer app by enabling you to: * Approve or revoke a developer app * Generate a new consumer key and secret for a developer app To approve or revoke a developer app, set the action query parameter to approve or revoke, respectively, and the Content-Type header to `application/octet-stream`. If a developer app is revoked, none of its API keys are valid for API calls even though the keys are still approved. If successful, the API call returns the following HTTP status code: 204 No Content To generate a new consumer key and secret for a developer app, pass the new `key/secret` details. Rather than replace an existing key, this API generates a new key. In this case, multiple key pairs may be associated with a single developer app. Each key pair has an independent status (approve or revoke) and expiration time. Any approved, non-expired key can be used in an API call. For example, if you're using API key rotation, you can generate new keys with expiration times that overlap keys that are going to expire. You might also generate a new consumer `key/secret` if the security of the original `key/secret` is compromised. The `keyExpiresIn` property defines the expiration time for the API key in milliseconds. If you don't set this property or set it to -1, the API key never expires. **Notes**: * When generating a new `key/secret`, this API replaces the existing attributes, notes, and callback URLs with those specified in the request. Include or exclude any existing information that you want to retain or delete, respectively. * To migrate existing consumer keys and secrets to hybrid from another system, see the CreateDeveloperAppKey API.
+/// Manages access to a developer app by enabling you to: * Approve or revoke a developer app * Generate a new consumer key and secret for a developer app To approve or revoke a developer app, set the action query parameter to approve or revoke, respectively, and the Content-Type header to `application/octet-stream`. If a developer app is revoked, none of its API keys are valid for API calls even though the keys are still approved. If successful, the API call returns the following HTTP status code: 204 No Content To generate a new consumer key and secret for a developer app, pass the new `key/secret` details. Rather than replace an existing key, this API generates a new key. In this case, multiple key pairs may be associated with a single developer app. Each key pair has an independent status (approve or revoke) and expiration time. Any approved, non-expired key can be used in an API call. For example, if you''re using API key rotation, you can generate new keys with expiration times that overlap keys that are going to expire. You might also generate a new consumer `key/secret` if the security of the original `key/secret` is compromised. The `keyExpiresIn` property defines the expiration time for the API key in milliseconds. If you don''t set this property or set it to -1, the API key never expires. **Notes**: * When generating a new `key/secret`, this API replaces the existing attributes, notes, and callback URLs with those specified in the request. Include or exclude any existing information that you want to retain or delete, respectively. * To migrate existing consumer keys and secrets to hybrid from another system, see the CreateDeveloperAppKey API.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `apigee_organizations_developers_apps_generate_key_pair_or_update_developer_app_status_builder()` + `apigee_organizations_developers_apps_generate_key_pair_or_update_developer_app_status_execute()`.
@@ -20558,7 +20558,7 @@ pub fn apigee_organizations_developers_apps_attributes_list(
 }
 
 /// POST v1/organizations/{organizationsId}/developers/{developersId}/apps/{appsId}/attributes/{attributesId}
-/// Updates a developer app attribute. **Note**: OAuth access tokens and Key Management Service (KMS) entities (apps, developers, and API products) are cached for 180 seconds (current default). Any custom attributes associated with these entities are cached for at least 180 seconds after the entity is accessed at runtime. Therefore, an ExpiresIn element on the OAuthV2 policy won't be able to expire an access token in less than 180 seconds.
+/// Updates a developer app attribute. **Note**: OAuth access tokens and Key Management Service (KMS) entities (apps, developers, and API products) are cached for 180 seconds (current default). Any custom attributes associated with these entities are cached for at least 180 seconds after the entity is accessed at runtime. Therefore, an ExpiresIn element on the OAuthV2 policy won''t be able to expire an access token in less than 180 seconds.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_developers_apps_attributes_update_developer_app_attribute_execute()` to send, or `apigee_organizations_developers_apps_attributes_update_developer_app_attribute` for simplest API.
@@ -20585,7 +20585,7 @@ where
 }
 
 /// POST v1/organizations/{organizationsId}/developers/{developersId}/apps/{appsId}/attributes/{attributesId}
-/// Updates a developer app attribute. **Note**: OAuth access tokens and Key Management Service (KMS) entities (apps, developers, and API products) are cached for 180 seconds (current default). Any custom attributes associated with these entities are cached for at least 180 seconds after the entity is accessed at runtime. Therefore, an ExpiresIn element on the OAuthV2 policy won't be able to expire an access token in less than 180 seconds.
+/// Updates a developer app attribute. **Note**: OAuth access tokens and Key Management Service (KMS) entities (apps, developers, and API products) are cached for 180 seconds (current default). Any custom attributes associated with these entities are cached for at least 180 seconds after the entity is accessed at runtime. Therefore, an ExpiresIn element on the OAuthV2 policy won''t be able to expire an access token in less than 180 seconds.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -20659,7 +20659,7 @@ pub fn apigee_organizations_developers_apps_attributes_update_developer_app_attr
 }
 
 /// POST v1/organizations/{organizationsId}/developers/{developersId}/apps/{appsId}/attributes/{attributesId}
-/// Updates a developer app attribute. **Note**: OAuth access tokens and Key Management Service (KMS) entities (apps, developers, and API products) are cached for 180 seconds (current default). Any custom attributes associated with these entities are cached for at least 180 seconds after the entity is accessed at runtime. Therefore, an ExpiresIn element on the OAuthV2 policy won't be able to expire an access token in less than 180 seconds.
+/// Updates a developer app attribute. **Note**: OAuth access tokens and Key Management Service (KMS) entities (apps, developers, and API products) are cached for 180 seconds (current default). Any custom attributes associated with these entities are cached for at least 180 seconds after the entity is accessed at runtime. Therefore, an ExpiresIn element on the OAuthV2 policy won''t be able to expire an access token in less than 180 seconds.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -20702,7 +20702,7 @@ pub struct ApigeeOrganizationsDevelopersAppsAttributesUpdateDeveloperAppAttribut
 }
 
 /// POST v1/organizations/{organizationsId}/developers/{developersId}/apps/{appsId}/attributes/{attributesId}
-/// Updates a developer app attribute. **Note**: OAuth access tokens and Key Management Service (KMS) entities (apps, developers, and API products) are cached for 180 seconds (current default). Any custom attributes associated with these entities are cached for at least 180 seconds after the entity is accessed at runtime. Therefore, an ExpiresIn element on the OAuthV2 policy won't be able to expire an access token in less than 180 seconds.
+/// Updates a developer app attribute. **Note**: OAuth access tokens and Key Management Service (KMS) entities (apps, developers, and API products) are cached for 180 seconds (current default). Any custom attributes associated with these entities are cached for at least 180 seconds after the entity is accessed at runtime. Therefore, an ExpiresIn element on the OAuthV2 policy won''t be able to expire an access token in less than 180 seconds.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `apigee_organizations_developers_apps_attributes_update_developer_app_attribute_builder()` + `apigee_organizations_developers_apps_attributes_update_developer_app_attribute_execute()`.
@@ -20899,7 +20899,7 @@ pub fn apigee_organizations_developers_apps_keys_create(
 }
 
 /// DELETE v1/organizations/{organizationsId}/developers/{developersId}/apps/{appsId}/keys/{keysId}
-/// Deletes an app's consumer key and removes all API products associated with the app. After the consumer key is deleted, it cannot be used to access any APIs. **Note**: After you delete a consumer key, you may want to: 1. Create a new consumer key and secret for the developer app using the CreateDeveloperAppKey API, and subsequently add an API product to the key using the UpdateDeveloperAppKey API. 2. Delete the developer app, if it is no longer required.
+/// Deletes an app''s consumer key and removes all API products associated with the app. After the consumer key is deleted, it cannot be used to access any APIs. **Note**: After you delete a consumer key, you may want to: 1. Create a new consumer key and secret for the developer app using the CreateDeveloperAppKey API, and subsequently add an API product to the key using the UpdateDeveloperAppKey API. 2. Delete the developer app, if it is no longer required.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_developers_apps_keys_delete_execute()` to send, or `apigee_organizations_developers_apps_keys_delete` for simplest API.
@@ -20926,7 +20926,7 @@ where
 }
 
 /// DELETE v1/organizations/{organizationsId}/developers/{developersId}/apps/{appsId}/keys/{keysId}
-/// Deletes an app's consumer key and removes all API products associated with the app. After the consumer key is deleted, it cannot be used to access any APIs. **Note**: After you delete a consumer key, you may want to: 1. Create a new consumer key and secret for the developer app using the CreateDeveloperAppKey API, and subsequently add an API product to the key using the UpdateDeveloperAppKey API. 2. Delete the developer app, if it is no longer required.
+/// Deletes an app''s consumer key and removes all API products associated with the app. After the consumer key is deleted, it cannot be used to access any APIs. **Note**: After you delete a consumer key, you may want to: 1. Create a new consumer key and secret for the developer app using the CreateDeveloperAppKey API, and subsequently add an API product to the key using the UpdateDeveloperAppKey API. 2. Delete the developer app, if it is no longer required.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -21000,7 +21000,7 @@ pub fn apigee_organizations_developers_apps_keys_delete_task(
 }
 
 /// DELETE v1/organizations/{organizationsId}/developers/{developersId}/apps/{appsId}/keys/{keysId}
-/// Deletes an app's consumer key and removes all API products associated with the app. After the consumer key is deleted, it cannot be used to access any APIs. **Note**: After you delete a consumer key, you may want to: 1. Create a new consumer key and secret for the developer app using the CreateDeveloperAppKey API, and subsequently add an API product to the key using the UpdateDeveloperAppKey API. 2. Delete the developer app, if it is no longer required.
+/// Deletes an app''s consumer key and removes all API products associated with the app. After the consumer key is deleted, it cannot be used to access any APIs. **Note**: After you delete a consumer key, you may want to: 1. Create a new consumer key and secret for the developer app using the CreateDeveloperAppKey API, and subsequently add an API product to the key using the UpdateDeveloperAppKey API. 2. Delete the developer app, if it is no longer required.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -21041,7 +21041,7 @@ pub struct ApigeeOrganizationsDevelopersAppsKeysDeleteArgs {
 }
 
 /// DELETE v1/organizations/{organizationsId}/developers/{developersId}/apps/{appsId}/keys/{keysId}
-/// Deletes an app's consumer key and removes all API products associated with the app. After the consumer key is deleted, it cannot be used to access any APIs. **Note**: After you delete a consumer key, you may want to: 1. Create a new consumer key and secret for the developer app using the CreateDeveloperAppKey API, and subsequently add an API product to the key using the UpdateDeveloperAppKey API. 2. Delete the developer app, if it is no longer required.
+/// Deletes an app''s consumer key and removes all API products associated with the app. After the consumer key is deleted, it cannot be used to access any APIs. **Note**: After you delete a consumer key, you may want to: 1. Create a new consumer key and secret for the developer app using the CreateDeveloperAppKey API, and subsequently add an API product to the key using the UpdateDeveloperAppKey API. 2. Delete the developer app, if it is no longer required.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `apigee_organizations_developers_apps_keys_delete_builder()` + `apigee_organizations_developers_apps_keys_delete_execute()`.
@@ -21591,7 +21591,7 @@ pub fn apigee_organizations_developers_apps_keys_update_developer_app_key(
 }
 
 /// DELETE v1/organizations/{organizationsId}/developers/{developersId}/apps/{appsId}/keys/{keysId}/apiproducts/{apiproductsId}
-/// Removes an API product from an app's consumer key. After the API product is removed, the app cannot access the API resources defined in that API product. **Note**: The consumer key is not removed, only its association with the API product.
+/// Removes an API product from an app''s consumer key. After the API product is removed, the app cannot access the API resources defined in that API product. **Note**: The consumer key is not removed, only its association with the API product.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_developers_apps_keys_apiproducts_delete_execute()` to send, or `apigee_organizations_developers_apps_keys_apiproducts_delete` for simplest API.
@@ -21618,7 +21618,7 @@ where
 }
 
 /// DELETE v1/organizations/{organizationsId}/developers/{developersId}/apps/{appsId}/keys/{keysId}/apiproducts/{apiproductsId}
-/// Removes an API product from an app's consumer key. After the API product is removed, the app cannot access the API resources defined in that API product. **Note**: The consumer key is not removed, only its association with the API product.
+/// Removes an API product from an app''s consumer key. After the API product is removed, the app cannot access the API resources defined in that API product. **Note**: The consumer key is not removed, only its association with the API product.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -21692,7 +21692,7 @@ pub fn apigee_organizations_developers_apps_keys_apiproducts_delete_task(
 }
 
 /// DELETE v1/organizations/{organizationsId}/developers/{developersId}/apps/{appsId}/keys/{keysId}/apiproducts/{apiproductsId}
-/// Removes an API product from an app's consumer key. After the API product is removed, the app cannot access the API resources defined in that API product. **Note**: The consumer key is not removed, only its association with the API product.
+/// Removes an API product from an app''s consumer key. After the API product is removed, the app cannot access the API resources defined in that API product. **Note**: The consumer key is not removed, only its association with the API product.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -21733,7 +21733,7 @@ pub struct ApigeeOrganizationsDevelopersAppsKeysApiproductsDeleteArgs {
 }
 
 /// DELETE v1/organizations/{organizationsId}/developers/{developersId}/apps/{appsId}/keys/{keysId}/apiproducts/{apiproductsId}
-/// Removes an API product from an app's consumer key. After the API product is removed, the app cannot access the API resources defined in that API product. **Note**: The consumer key is not removed, only its association with the API product.
+/// Removes an API product from an app''s consumer key. After the API product is removed, the app cannot access the API resources defined in that API product. **Note**: The consumer key is not removed, only its association with the API product.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `apigee_organizations_developers_apps_keys_apiproducts_delete_builder()` + `apigee_organizations_developers_apps_keys_apiproducts_delete_execute()`.
@@ -22613,7 +22613,7 @@ pub fn apigee_organizations_developers_attributes_list(
 }
 
 /// POST v1/organizations/{organizationsId}/developers/{developersId}/attributes/{attributesId}
-/// Updates a developer attribute. **Note**: OAuth access tokens and Key Management Service (KMS) entities (apps, developers, and API products) are cached for 180 seconds (default). Any custom attributes associated with these entities are cached for at least 180 seconds after the entity is accessed at runtime. Therefore, an ExpiresIn element on the OAuthV2 policy won't be able to expire an access token in less than 180 seconds.
+/// Updates a developer attribute. **Note**: OAuth access tokens and Key Management Service (KMS) entities (apps, developers, and API products) are cached for 180 seconds (default). Any custom attributes associated with these entities are cached for at least 180 seconds after the entity is accessed at runtime. Therefore, an ExpiresIn element on the OAuthV2 policy won''t be able to expire an access token in less than 180 seconds.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_developers_attributes_update_developer_attribute_execute()` to send, or `apigee_organizations_developers_attributes_update_developer_attribute` for simplest API.
@@ -22640,7 +22640,7 @@ where
 }
 
 /// POST v1/organizations/{organizationsId}/developers/{developersId}/attributes/{attributesId}
-/// Updates a developer attribute. **Note**: OAuth access tokens and Key Management Service (KMS) entities (apps, developers, and API products) are cached for 180 seconds (default). Any custom attributes associated with these entities are cached for at least 180 seconds after the entity is accessed at runtime. Therefore, an ExpiresIn element on the OAuthV2 policy won't be able to expire an access token in less than 180 seconds.
+/// Updates a developer attribute. **Note**: OAuth access tokens and Key Management Service (KMS) entities (apps, developers, and API products) are cached for 180 seconds (default). Any custom attributes associated with these entities are cached for at least 180 seconds after the entity is accessed at runtime. Therefore, an ExpiresIn element on the OAuthV2 policy won''t be able to expire an access token in less than 180 seconds.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -22714,7 +22714,7 @@ pub fn apigee_organizations_developers_attributes_update_developer_attribute_tas
 }
 
 /// POST v1/organizations/{organizationsId}/developers/{developersId}/attributes/{attributesId}
-/// Updates a developer attribute. **Note**: OAuth access tokens and Key Management Service (KMS) entities (apps, developers, and API products) are cached for 180 seconds (default). Any custom attributes associated with these entities are cached for at least 180 seconds after the entity is accessed at runtime. Therefore, an ExpiresIn element on the OAuthV2 policy won't be able to expire an access token in less than 180 seconds.
+/// Updates a developer attribute. **Note**: OAuth access tokens and Key Management Service (KMS) entities (apps, developers, and API products) are cached for 180 seconds (default). Any custom attributes associated with these entities are cached for at least 180 seconds after the entity is accessed at runtime. Therefore, an ExpiresIn element on the OAuthV2 policy won''t be able to expire an access token in less than 180 seconds.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -22755,7 +22755,7 @@ pub struct ApigeeOrganizationsDevelopersAttributesUpdateDeveloperAttributeArgs {
 }
 
 /// POST v1/organizations/{organizationsId}/developers/{developersId}/attributes/{attributesId}
-/// Updates a developer attribute. **Note**: OAuth access tokens and Key Management Service (KMS) entities (apps, developers, and API products) are cached for 180 seconds (default). Any custom attributes associated with these entities are cached for at least 180 seconds after the entity is accessed at runtime. Therefore, an ExpiresIn element on the OAuthV2 policy won't be able to expire an access token in less than 180 seconds.
+/// Updates a developer attribute. **Note**: OAuth access tokens and Key Management Service (KMS) entities (apps, developers, and API products) are cached for 180 seconds (default). Any custom attributes associated with these entities are cached for at least 180 seconds after the entity is accessed at runtime. Therefore, an ExpiresIn element on the OAuthV2 policy won''t be able to expire an access token in less than 180 seconds.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `apigee_organizations_developers_attributes_update_developer_attribute_builder()` + `apigee_organizations_developers_attributes_update_developer_attribute_execute()`.
@@ -29110,7 +29110,7 @@ pub fn apigee_organizations_environments_set_iam_policy(
 }
 
 /// POST v1/organizations/{organizationsId}/environments/{environmentsId}:subscribe
-/// Creates a subscription for the environment's P`ub/Sub` topic. The server will assign a random name for this subscription. The "name" and "push_config" must *not* be specified.
+/// Creates a subscription for the environment''s P`ub/Sub` topic. The server will assign a random name for this subscription. The "name" and "push_config" must *not* be specified.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_environments_subscribe_execute()` to send, or `apigee_organizations_environments_subscribe` for simplest API.
@@ -29137,7 +29137,7 @@ where
 }
 
 /// POST v1/organizations/{organizationsId}/environments/{environmentsId}:subscribe
-/// Creates a subscription for the environment's P`ub/Sub` topic. The server will assign a random name for this subscription. The "name" and "push_config" must *not* be specified.
+/// Creates a subscription for the environment''s P`ub/Sub` topic. The server will assign a random name for this subscription. The "name" and "push_config" must *not* be specified.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -29211,7 +29211,7 @@ pub fn apigee_organizations_environments_subscribe_task(
 }
 
 /// POST v1/organizations/{organizationsId}/environments/{environmentsId}:subscribe
-/// Creates a subscription for the environment's P`ub/Sub` topic. The server will assign a random name for this subscription. The "name" and "push_config" must *not* be specified.
+/// Creates a subscription for the environment''s P`ub/Sub` topic. The server will assign a random name for this subscription. The "name" and "push_config" must *not* be specified.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -29252,7 +29252,7 @@ pub struct ApigeeOrganizationsEnvironmentsSubscribeArgs {
 }
 
 /// POST v1/organizations/{organizationsId}/environments/{environmentsId}:subscribe
-/// Creates a subscription for the environment's P`ub/Sub` topic. The server will assign a random name for this subscription. The "name" and "push_config" must *not* be specified.
+/// Creates a subscription for the environment''s P`ub/Sub` topic. The server will assign a random name for this subscription. The "name" and "push_config" must *not* be specified.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `apigee_organizations_environments_subscribe_builder()` + `apigee_organizations_environments_subscribe_execute()`.
@@ -29447,7 +29447,7 @@ pub fn apigee_organizations_environments_test_iam_permissions(
 }
 
 /// POST v1/organizations/{organizationsId}/environments/{environmentsId}:unsubscribe
-/// Deletes a subscription for the environment's P`ub/Sub` topic.
+/// Deletes a subscription for the environment''s P`ub/Sub` topic.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_environments_unsubscribe_execute()` to send, or `apigee_organizations_environments_unsubscribe` for simplest API.
@@ -29474,7 +29474,7 @@ where
 }
 
 /// POST v1/organizations/{organizationsId}/environments/{environmentsId}:unsubscribe
-/// Deletes a subscription for the environment's P`ub/Sub` topic.
+/// Deletes a subscription for the environment''s P`ub/Sub` topic.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -29548,7 +29548,7 @@ pub fn apigee_organizations_environments_unsubscribe_task(
 }
 
 /// POST v1/organizations/{organizationsId}/environments/{environmentsId}:unsubscribe
-/// Deletes a subscription for the environment's P`ub/Sub` topic.
+/// Deletes a subscription for the environment''s P`ub/Sub` topic.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -29587,7 +29587,7 @@ pub struct ApigeeOrganizationsEnvironmentsUnsubscribeArgs {
 }
 
 /// POST v1/organizations/{organizationsId}/environments/{environmentsId}:unsubscribe
-/// Deletes a subscription for the environment's P`ub/Sub` topic.
+/// Deletes a subscription for the environment''s P`ub/Sub` topic.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `apigee_organizations_environments_unsubscribe_builder()` + `apigee_organizations_environments_unsubscribe_execute()`.
@@ -31540,7 +31540,7 @@ pub fn apigee_organizations_environments_apis_deployments_list(
 }
 
 /// POST v1/organizations/{organizationsId}/environments/{environmentsId}/apis/{apisId}/revisions/{revisionsId}/deployments
-/// Deploys a revision of an API proxy. If another revision of the same API proxy revision is currently deployed, set the override parameter to `true` to have this revision replace the currently deployed revision. You cannot invoke an API proxy until it has been deployed to an environment. After you deploy an API proxy revision, you cannot edit it. To edit the API proxy, you must create and deploy a new revision. For a request path `organizations/{org}/environments/{env}/apis/{api}/revisions/{rev}/deployments`, two permissions are required: * apigee.deployments.create on the resource `organizations/{org}/environments/{env}` * apigee.proxyrevisions.deploy on the resource `organizations/{org}/apis/{api}/revisions/{rev}` All successful API proxy deployments to Apigee are [zero-downtime deployments](<https://cloud.google.`com/apigee/docs/api-platform/deploy/ui-deploy-overview`#zero-downtime-deployment>). Apigee hybrid validates the dependencies between shared flows and API proxies at deployment time. For example, if the Flow Callout policy in an API proxy references a shared flow that either doesn't exist or isn't deployed, the API proxy deployment fails.
+/// Deploys a revision of an API proxy. If another revision of the same API proxy revision is currently deployed, set the override parameter to `true` to have this revision replace the currently deployed revision. You cannot invoke an API proxy until it has been deployed to an environment. After you deploy an API proxy revision, you cannot edit it. To edit the API proxy, you must create and deploy a new revision. For a request path `organizations/{org}/environments/{env}/apis/{api}/revisions/{rev}/deployments`, two permissions are required: * apigee.deployments.create on the resource `organizations/{org}/environments/{env}` * apigee.proxyrevisions.deploy on the resource `organizations/{org}/apis/{api}/revisions/{rev}` All successful API proxy deployments to Apigee are [zero-downtime deployments](<https://cloud.google.`com/apigee/docs/api-platform/deploy/ui-deploy-overview`#zero-downtime-deployment>). Apigee hybrid validates the dependencies between shared flows and API proxies at deployment time. For example, if the Flow Callout policy in an API proxy references a shared flow that either doesn''t exist or isn''t deployed, the API proxy deployment fails.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_environments_apis_revisions_deploy_execute()` to send, or `apigee_organizations_environments_apis_revisions_deploy` for simplest API.
@@ -31587,7 +31587,7 @@ where
 }
 
 /// POST v1/organizations/{organizationsId}/environments/{environmentsId}/apis/{apisId}/revisions/{revisionsId}/deployments
-/// Deploys a revision of an API proxy. If another revision of the same API proxy revision is currently deployed, set the override parameter to `true` to have this revision replace the currently deployed revision. You cannot invoke an API proxy until it has been deployed to an environment. After you deploy an API proxy revision, you cannot edit it. To edit the API proxy, you must create and deploy a new revision. For a request path `organizations/{org}/environments/{env}/apis/{api}/revisions/{rev}/deployments`, two permissions are required: * apigee.deployments.create on the resource `organizations/{org}/environments/{env}` * apigee.proxyrevisions.deploy on the resource `organizations/{org}/apis/{api}/revisions/{rev}` All successful API proxy deployments to Apigee are [zero-downtime deployments](<https://cloud.google.`com/apigee/docs/api-platform/deploy/ui-deploy-overview`#zero-downtime-deployment>). Apigee hybrid validates the dependencies between shared flows and API proxies at deployment time. For example, if the Flow Callout policy in an API proxy references a shared flow that either doesn't exist or isn't deployed, the API proxy deployment fails.
+/// Deploys a revision of an API proxy. If another revision of the same API proxy revision is currently deployed, set the override parameter to `true` to have this revision replace the currently deployed revision. You cannot invoke an API proxy until it has been deployed to an environment. After you deploy an API proxy revision, you cannot edit it. To edit the API proxy, you must create and deploy a new revision. For a request path `organizations/{org}/environments/{env}/apis/{api}/revisions/{rev}/deployments`, two permissions are required: * apigee.deployments.create on the resource `organizations/{org}/environments/{env}` * apigee.proxyrevisions.deploy on the resource `organizations/{org}/apis/{api}/revisions/{rev}` All successful API proxy deployments to Apigee are [zero-downtime deployments](<https://cloud.google.`com/apigee/docs/api-platform/deploy/ui-deploy-overview`#zero-downtime-deployment>). Apigee hybrid validates the dependencies between shared flows and API proxies at deployment time. For example, if the Flow Callout policy in an API proxy references a shared flow that either doesn''t exist or isn''t deployed, the API proxy deployment fails.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -31661,7 +31661,7 @@ pub fn apigee_organizations_environments_apis_revisions_deploy_task(
 }
 
 /// POST v1/organizations/{organizationsId}/environments/{environmentsId}/apis/{apisId}/revisions/{revisionsId}/deployments
-/// Deploys a revision of an API proxy. If another revision of the same API proxy revision is currently deployed, set the override parameter to `true` to have this revision replace the currently deployed revision. You cannot invoke an API proxy until it has been deployed to an environment. After you deploy an API proxy revision, you cannot edit it. To edit the API proxy, you must create and deploy a new revision. For a request path `organizations/{org}/environments/{env}/apis/{api}/revisions/{rev}/deployments`, two permissions are required: * apigee.deployments.create on the resource `organizations/{org}/environments/{env}` * apigee.proxyrevisions.deploy on the resource `organizations/{org}/apis/{api}/revisions/{rev}` All successful API proxy deployments to Apigee are [zero-downtime deployments](<https://cloud.google.`com/apigee/docs/api-platform/deploy/ui-deploy-overview`#zero-downtime-deployment>). Apigee hybrid validates the dependencies between shared flows and API proxies at deployment time. For example, if the Flow Callout policy in an API proxy references a shared flow that either doesn't exist or isn't deployed, the API proxy deployment fails.
+/// Deploys a revision of an API proxy. If another revision of the same API proxy revision is currently deployed, set the override parameter to `true` to have this revision replace the currently deployed revision. You cannot invoke an API proxy until it has been deployed to an environment. After you deploy an API proxy revision, you cannot edit it. To edit the API proxy, you must create and deploy a new revision. For a request path `organizations/{org}/environments/{env}/apis/{api}/revisions/{rev}/deployments`, two permissions are required: * apigee.deployments.create on the resource `organizations/{org}/environments/{env}` * apigee.proxyrevisions.deploy on the resource `organizations/{org}/apis/{api}/revisions/{rev}` All successful API proxy deployments to Apigee are [zero-downtime deployments](<https://cloud.google.`com/apigee/docs/api-platform/deploy/ui-deploy-overview`#zero-downtime-deployment>). Apigee hybrid validates the dependencies between shared flows and API proxies at deployment time. For example, if the Flow Callout policy in an API proxy references a shared flow that either doesn''t exist or isn''t deployed, the API proxy deployment fails.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -31708,7 +31708,7 @@ pub struct ApigeeOrganizationsEnvironmentsApisRevisionsDeployArgs {
 }
 
 /// POST v1/organizations/{organizationsId}/environments/{environmentsId}/apis/{apisId}/revisions/{revisionsId}/deployments
-/// Deploys a revision of an API proxy. If another revision of the same API proxy revision is currently deployed, set the override parameter to `true` to have this revision replace the currently deployed revision. You cannot invoke an API proxy until it has been deployed to an environment. After you deploy an API proxy revision, you cannot edit it. To edit the API proxy, you must create and deploy a new revision. For a request path `organizations/{org}/environments/{env}/apis/{api}/revisions/{rev}/deployments`, two permissions are required: * apigee.deployments.create on the resource `organizations/{org}/environments/{env}` * apigee.proxyrevisions.deploy on the resource `organizations/{org}/apis/{api}/revisions/{rev}` All successful API proxy deployments to Apigee are [zero-downtime deployments](<https://cloud.google.`com/apigee/docs/api-platform/deploy/ui-deploy-overview`#zero-downtime-deployment>). Apigee hybrid validates the dependencies between shared flows and API proxies at deployment time. For example, if the Flow Callout policy in an API proxy references a shared flow that either doesn't exist or isn't deployed, the API proxy deployment fails.
+/// Deploys a revision of an API proxy. If another revision of the same API proxy revision is currently deployed, set the override parameter to `true` to have this revision replace the currently deployed revision. You cannot invoke an API proxy until it has been deployed to an environment. After you deploy an API proxy revision, you cannot edit it. To edit the API proxy, you must create and deploy a new revision. For a request path `organizations/{org}/environments/{env}/apis/{api}/revisions/{rev}/deployments`, two permissions are required: * apigee.deployments.create on the resource `organizations/{org}/environments/{env}` * apigee.proxyrevisions.deploy on the resource `organizations/{org}/apis/{api}/revisions/{rev}` All successful API proxy deployments to Apigee are [zero-downtime deployments](<https://cloud.google.`com/apigee/docs/api-platform/deploy/ui-deploy-overview`#zero-downtime-deployment>). Apigee hybrid validates the dependencies between shared flows and API proxies at deployment time. For example, if the Flow Callout policy in an API proxy references a shared flow that either doesn''t exist or isn''t deployed, the API proxy deployment fails.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `apigee_organizations_environments_apis_revisions_deploy_builder()` + `apigee_organizations_environments_apis_revisions_deploy_execute()`.
@@ -35960,7 +35960,7 @@ pub fn apigee_organizations_environments_flowhooks_detach_shared_flow_from_flow_
 }
 
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/flowhooks/{flowhooksId}
-/// Returns the name of the shared flow attached to the specified flow hook. If there's no shared flow attached to the flow hook, the API does not return an error; it simply does not return a name in the response.
+/// Returns the name of the shared flow attached to the specified flow hook. If there''s no shared flow attached to the flow hook, the API does not return an error; it simply does not return a name in the response.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_environments_flowhooks_get_execute()` to send, or `apigee_organizations_environments_flowhooks_get` for simplest API.
@@ -35987,7 +35987,7 @@ where
 }
 
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/flowhooks/{flowhooksId}
-/// Returns the name of the shared flow attached to the specified flow hook. If there's no shared flow attached to the flow hook, the API does not return an error; it simply does not return a name in the response.
+/// Returns the name of the shared flow attached to the specified flow hook. If there''s no shared flow attached to the flow hook, the API does not return an error; it simply does not return a name in the response.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -36061,7 +36061,7 @@ pub fn apigee_organizations_environments_flowhooks_get_task(
 }
 
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/flowhooks/{flowhooksId}
-/// Returns the name of the shared flow attached to the specified flow hook. If there's no shared flow attached to the flow hook, the API does not return an error; it simply does not return a name in the response.
+/// Returns the name of the shared flow attached to the specified flow hook. If there''s no shared flow attached to the flow hook, the API does not return an error; it simply does not return a name in the response.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -36102,7 +36102,7 @@ pub struct ApigeeOrganizationsEnvironmentsFlowhooksGetArgs {
 }
 
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/flowhooks/{flowhooksId}
-/// Returns the name of the shared flow attached to the specified flow hook. If there's no shared flow attached to the flow hook, the API does not return an error; it simply does not return a name in the response.
+/// Returns the name of the shared flow attached to the specified flow hook. If there''s no shared flow attached to the flow hook, the API does not return an error; it simply does not return a name in the response.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `apigee_organizations_environments_flowhooks_get_builder()` + `apigee_organizations_environments_flowhooks_get_execute()`.
@@ -36128,7 +36128,7 @@ pub fn apigee_organizations_environments_flowhooks_get(
 }
 
 /// POST v1/organizations/{organizationsId}/environments/{environmentsId}/keystores
-/// Creates a keystore or truststore. - Keystore: Contains certificates and their associated keys. - Truststore: Contains trusted certificates used to validate a server's certificate. These certificates are typically self-signed certificates or certificates that are not signed by a trusted CA.
+/// Creates a keystore or truststore. - Keystore: Contains certificates and their associated keys. - Truststore: Contains trusted certificates used to validate a server''s certificate. These certificates are typically self-signed certificates or certificates that are not signed by a trusted CA.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_environments_keystores_create_execute()` to send, or `apigee_organizations_environments_keystores_create` for simplest API.
@@ -36167,7 +36167,7 @@ where
 }
 
 /// POST v1/organizations/{organizationsId}/environments/{environmentsId}/keystores
-/// Creates a keystore or truststore. - Keystore: Contains certificates and their associated keys. - Truststore: Contains trusted certificates used to validate a server's certificate. These certificates are typically self-signed certificates or certificates that are not signed by a trusted CA.
+/// Creates a keystore or truststore. - Keystore: Contains certificates and their associated keys. - Truststore: Contains trusted certificates used to validate a server''s certificate. These certificates are typically self-signed certificates or certificates that are not signed by a trusted CA.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -36241,7 +36241,7 @@ pub fn apigee_organizations_environments_keystores_create_task(
 }
 
 /// POST v1/organizations/{organizationsId}/environments/{environmentsId}/keystores
-/// Creates a keystore or truststore. - Keystore: Contains certificates and their associated keys. - Truststore: Contains trusted certificates used to validate a server's certificate. These certificates are typically self-signed certificates or certificates that are not signed by a trusted CA.
+/// Creates a keystore or truststore. - Keystore: Contains certificates and their associated keys. - Truststore: Contains trusted certificates used to validate a server''s certificate. These certificates are typically self-signed certificates or certificates that are not signed by a trusted CA.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -36284,7 +36284,7 @@ pub struct ApigeeOrganizationsEnvironmentsKeystoresCreateArgs {
 }
 
 /// POST v1/organizations/{organizationsId}/environments/{environmentsId}/keystores
-/// Creates a keystore or truststore. - Keystore: Contains certificates and their associated keys. - Truststore: Contains trusted certificates used to validate a server's certificate. These certificates are typically self-signed certificates or certificates that are not signed by a trusted CA.
+/// Creates a keystore or truststore. - Keystore: Contains certificates and their associated keys. - Truststore: Contains trusted certificates used to validate a server''s certificate. These certificates are typically self-signed certificates or certificates that are not signed by a trusted CA.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `apigee_organizations_environments_keystores_create_builder()` + `apigee_organizations_environments_keystores_create_execute()`.
@@ -54738,7 +54738,7 @@ pub fn apigee_organizations_operations_get(
 }
 
 /// GET v1/organizations/{organizationsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_operations_list_execute()` to send, or `apigee_organizations_operations_list` for simplest API.
@@ -54789,7 +54789,7 @@ where
 }
 
 /// GET v1/organizations/{organizationsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -54864,7 +54864,7 @@ pub fn apigee_organizations_operations_list_task(
 }
 
 /// GET v1/organizations/{organizationsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -54913,7 +54913,7 @@ pub struct ApigeeOrganizationsOperationsListArgs {
 }
 
 /// GET v1/organizations/{organizationsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `apigee_organizations_operations_list_builder()` + `apigee_organizations_operations_list_execute()`.
@@ -60877,7 +60877,7 @@ pub fn apigee_organizations_sharedflows_create(
 }
 
 /// DELETE v1/organizations/{organizationsId}/sharedflows/{sharedflowsId}
-/// Deletes a shared flow and all it's revisions. The shared flow must be undeployed before you can delete it.
+/// Deletes a shared flow and all it''s revisions. The shared flow must be undeployed before you can delete it.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_sharedflows_delete_execute()` to send, or `apigee_organizations_sharedflows_delete` for simplest API.
@@ -60904,7 +60904,7 @@ where
 }
 
 /// DELETE v1/organizations/{organizationsId}/sharedflows/{sharedflowsId}
-/// Deletes a shared flow and all it's revisions. The shared flow must be undeployed before you can delete it.
+/// Deletes a shared flow and all it''s revisions. The shared flow must be undeployed before you can delete it.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -60978,7 +60978,7 @@ pub fn apigee_organizations_sharedflows_delete_task(
 }
 
 /// DELETE v1/organizations/{organizationsId}/sharedflows/{sharedflowsId}
-/// Deletes a shared flow and all it's revisions. The shared flow must be undeployed before you can delete it.
+/// Deletes a shared flow and all it''s revisions. The shared flow must be undeployed before you can delete it.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -61019,7 +61019,7 @@ pub struct ApigeeOrganizationsSharedflowsDeleteArgs {
 }
 
 /// DELETE v1/organizations/{organizationsId}/sharedflows/{sharedflowsId}
-/// Deletes a shared flow and all it's revisions. The shared flow must be undeployed before you can delete it.
+/// Deletes a shared flow and all it''s revisions. The shared flow must be undeployed before you can delete it.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `apigee_organizations_sharedflows_delete_builder()` + `apigee_organizations_sharedflows_delete_execute()`.
@@ -65723,7 +65723,7 @@ pub fn apigee_organizations_spaces_set_iam_policy(
 }
 
 /// POST v1/organizations/{organizationsId}/spaces/{spacesId}:testIamPermissions
-/// Callers don't need any permissions.
+/// Callers don''t need any permissions.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apigee_organizations_spaces_test_iam_permissions_execute()` to send, or `apigee_organizations_spaces_test_iam_permissions` for simplest API.
@@ -65750,7 +65750,7 @@ where
 }
 
 /// POST v1/organizations/{organizationsId}/spaces/{spacesId}:testIamPermissions
-/// Callers don't need any permissions.
+/// Callers don''t need any permissions.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -65824,7 +65824,7 @@ pub fn apigee_organizations_spaces_test_iam_permissions_task(
 }
 
 /// POST v1/organizations/{organizationsId}/spaces/{spacesId}:testIamPermissions
-/// Callers don't need any permissions.
+/// Callers don''t need any permissions.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -65865,7 +65865,7 @@ pub struct ApigeeOrganizationsSpacesTestIamPermissionsArgs {
 }
 
 /// POST v1/organizations/{organizationsId}/spaces/{spacesId}:testIamPermissions
-/// Callers don't need any permissions.
+/// Callers don''t need any permissions.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `apigee_organizations_spaces_test_iam_permissions_builder()` + `apigee_organizations_spaces_test_iam_permissions_execute()`.

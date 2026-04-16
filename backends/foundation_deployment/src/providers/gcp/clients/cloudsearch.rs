@@ -22,7 +22,7 @@ use foundation_macros::JsonHash;
 use serde::Serialize;
 
 /// POST v1/debug/datasources/{datasourcesId}/items/{itemsId}:checkAccess
-/// Checks whether an item is accessible by specified principal. Principal must be a user; groups and domain values aren't supported. **Note:** This API requires an admin account to execute.
+/// Checks whether an item is accessible by specified principal. Principal must be a user; groups and domain values aren''t supported. **Note:** This API requires an admin account to execute.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudsearch_debug_datasources_items_check_access_execute()` to send, or `cloudsearch_debug_datasources_items_check_access` for simplest API.
@@ -61,7 +61,7 @@ where
 }
 
 /// POST v1/debug/datasources/{datasourcesId}/items/{itemsId}:checkAccess
-/// Checks whether an item is accessible by specified principal. Principal must be a user; groups and domain values aren't supported. **Note:** This API requires an admin account to execute.
+/// Checks whether an item is accessible by specified principal. Principal must be a user; groups and domain values aren''t supported. **Note:** This API requires an admin account to execute.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -135,7 +135,7 @@ pub fn cloudsearch_debug_datasources_items_check_access_task(
 }
 
 /// POST v1/debug/datasources/{datasourcesId}/items/{itemsId}:checkAccess
-/// Checks whether an item is accessible by specified principal. Principal must be a user; groups and domain values aren't supported. **Note:** This API requires an admin account to execute.
+/// Checks whether an item is accessible by specified principal. Principal must be a user; groups and domain values aren''t supported. **Note:** This API requires an admin account to execute.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -176,7 +176,7 @@ pub struct CloudsearchDebugDatasourcesItemsCheckAccessArgs {
 }
 
 /// POST v1/debug/datasources/{datasourcesId}/items/{itemsId}:checkAccess
-/// Checks whether an item is accessible by specified principal. Principal must be a user; groups and domain values aren't supported. **Note:** This API requires an admin account to execute.
+/// Checks whether an item is accessible by specified principal. Principal must be a user; groups and domain values aren''t supported. **Note:** This API requires an admin account to execute.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `cloudsearch_debug_datasources_items_check_access_builder()` + `cloudsearch_debug_datasources_items_check_access_execute()`.
@@ -2909,7 +2909,7 @@ pub fn cloudsearch_indexing_datasources_items_unreserve(
 }
 
 /// POST v1/indexing/datasources/{datasourcesId}/items/{itemsId}:upload
-/// Creates an upload session for uploading item content. For items smaller than 100 KB, it's easier to embed the content inline within an index request. This API requires an admin or service account to execute. The service account used is the one whitelisted in the corresponding data source.
+/// Creates an upload session for uploading item content. For items smaller than 100 KB, it''s easier to embed the content inline within an index request. This API requires an admin or service account to execute. The service account used is the one whitelisted in the corresponding data source.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudsearch_indexing_datasources_items_upload_execute()` to send, or `cloudsearch_indexing_datasources_items_upload` for simplest API.
@@ -2936,7 +2936,7 @@ where
 }
 
 /// POST v1/indexing/datasources/{datasourcesId}/items/{itemsId}:upload
-/// Creates an upload session for uploading item content. For items smaller than 100 KB, it's easier to embed the content inline within an index request. This API requires an admin or service account to execute. The service account used is the one whitelisted in the corresponding data source.
+/// Creates an upload session for uploading item content. For items smaller than 100 KB, it''s easier to embed the content inline within an index request. This API requires an admin or service account to execute. The service account used is the one whitelisted in the corresponding data source.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -3010,7 +3010,7 @@ pub fn cloudsearch_indexing_datasources_items_upload_task(
 }
 
 /// POST v1/indexing/datasources/{datasourcesId}/items/{itemsId}:upload
-/// Creates an upload session for uploading item content. For items smaller than 100 KB, it's easier to embed the content inline within an index request. This API requires an admin or service account to execute. The service account used is the one whitelisted in the corresponding data source.
+/// Creates an upload session for uploading item content. For items smaller than 100 KB, it''s easier to embed the content inline within an index request. This API requires an admin or service account to execute. The service account used is the one whitelisted in the corresponding data source.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -3049,7 +3049,7 @@ pub struct CloudsearchIndexingDatasourcesItemsUploadArgs {
 }
 
 /// POST v1/indexing/datasources/{datasourcesId}/items/{itemsId}:upload
-/// Creates an upload session for uploading item content. For items smaller than 100 KB, it's easier to embed the content inline within an index request. This API requires an admin or service account to execute. The service account used is the one whitelisted in the corresponding data source.
+/// Creates an upload session for uploading item content. For items smaller than 100 KB, it''s easier to embed the content inline within an index request. This API requires an admin or service account to execute. The service account used is the one whitelisted in the corresponding data source.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `cloudsearch_indexing_datasources_items_upload_builder()` + `cloudsearch_indexing_datasources_items_upload_execute()`.
@@ -3390,7 +3390,7 @@ pub fn cloudsearch_operations_get(
 }
 
 /// GET v1/operations/{operationsId}/lro
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudsearch_operations_lro_list_execute()` to send, or `cloudsearch_operations_lro_list` for simplest API.
@@ -3441,7 +3441,7 @@ where
 }
 
 /// GET v1/operations/{operationsId}/lro
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -3515,7 +3515,7 @@ pub fn cloudsearch_operations_lro_list_task(
 }
 
 /// GET v1/operations/{operationsId}/lro
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -3562,7 +3562,7 @@ pub struct CloudsearchOperationsLroListArgs {
 }
 
 /// GET v1/operations/{operationsId}/lro
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `cloudsearch_operations_lro_list_builder()` + `cloudsearch_operations_lro_list_execute()`.
@@ -3593,7 +3593,7 @@ pub fn cloudsearch_operations_lro_list(
 }
 
 /// POST v1/query:removeActivity
-/// Provides functionality to remove logged activity for a user. Currently to be used only for Chat 1p clients **Note:** This API requires a standard end user account to execute. A service account can't perform Remove Activity requests directly; to use a service account to perform queries, set up [Google Workspace domain-wide delegation of authority](<https://developers.google.`com/workspace/cloud-search/docs/guides/delegation/`>).
+/// Provides functionality to remove logged activity for a user. Currently to be used only for Chat 1p clients **Note:** This API requires a standard end user account to execute. A service account can''t perform Remove Activity requests directly; to use a service account to perform queries, set up [Google Workspace domain-wide delegation of authority](<https://developers.google.`com/workspace/cloud-search/docs/guides/delegation/`>).
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudsearch_query_remove_activity_execute()` to send, or `cloudsearch_query_remove_activity` for simplest API.
@@ -3616,7 +3616,7 @@ where
 }
 
 /// POST v1/query:removeActivity
-/// Provides functionality to remove logged activity for a user. Currently to be used only for Chat 1p clients **Note:** This API requires a standard end user account to execute. A service account can't perform Remove Activity requests directly; to use a service account to perform queries, set up [Google Workspace domain-wide delegation of authority](<https://developers.google.`com/workspace/cloud-search/docs/guides/delegation/`>).
+/// Provides functionality to remove logged activity for a user. Currently to be used only for Chat 1p clients **Note:** This API requires a standard end user account to execute. A service account can''t perform Remove Activity requests directly; to use a service account to perform queries, set up [Google Workspace domain-wide delegation of authority](<https://developers.google.`com/workspace/cloud-search/docs/guides/delegation/`>).
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -3690,7 +3690,7 @@ pub fn cloudsearch_query_remove_activity_task(
 }
 
 /// POST v1/query:removeActivity
-/// Provides functionality to remove logged activity for a user. Currently to be used only for Chat 1p clients **Note:** This API requires a standard end user account to execute. A service account can't perform Remove Activity requests directly; to use a service account to perform queries, set up [Google Workspace domain-wide delegation of authority](<https://developers.google.`com/workspace/cloud-search/docs/guides/delegation/`>).
+/// Provides functionality to remove logged activity for a user. Currently to be used only for Chat 1p clients **Note:** This API requires a standard end user account to execute. A service account can''t perform Remove Activity requests directly; to use a service account to perform queries, set up [Google Workspace domain-wide delegation of authority](<https://developers.google.`com/workspace/cloud-search/docs/guides/delegation/`>).
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -3722,7 +3722,7 @@ pub fn cloudsearch_query_remove_activity_execute(
 }
 
 /// POST v1/query:removeActivity
-/// Provides functionality to remove logged activity for a user. Currently to be used only for Chat 1p clients **Note:** This API requires a standard end user account to execute. A service account can't perform Remove Activity requests directly; to use a service account to perform queries, set up [Google Workspace domain-wide delegation of authority](<https://developers.google.`com/workspace/cloud-search/docs/guides/delegation/`>).
+/// Provides functionality to remove logged activity for a user. Currently to be used only for Chat 1p clients **Note:** This API requires a standard end user account to execute. A service account can''t perform Remove Activity requests directly; to use a service account to perform queries, set up [Google Workspace domain-wide delegation of authority](<https://developers.google.`com/workspace/cloud-search/docs/guides/delegation/`>).
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `cloudsearch_query_remove_activity_builder()` + `cloudsearch_query_remove_activity_execute()`.
@@ -3745,7 +3745,7 @@ pub fn cloudsearch_query_remove_activity(
 }
 
 /// POST v1/query/search
-/// The Cloud Search Query API provides the search method, which returns the most relevant results from a user query. The results can come from Google Workspace apps, such as Gmail or Google Drive, or they can come from data that you have indexed from a third party. **Note:** This API requires a standard end user account to execute. A service account can't perform Query API requests directly; to use a service account to perform queries, set up [Google Workspace domain-wide delegation of authority](<https://developers.google.`com/workspace/cloud-search/docs/guides/delegation/`>).
+/// The Cloud Search Query API provides the search method, which returns the most relevant results from a user query. The results can come from Google Workspace apps, such as Gmail or Google Drive, or they can come from data that you have indexed from a third party. **Note:** This API requires a standard end user account to execute. A service account can''t perform Query API requests directly; to use a service account to perform queries, set up [Google Workspace domain-wide delegation of authority](<https://developers.google.`com/workspace/cloud-search/docs/guides/delegation/`>).
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudsearch_query_search_execute()` to send, or `cloudsearch_query_search` for simplest API.
@@ -3768,7 +3768,7 @@ where
 }
 
 /// POST v1/query/search
-/// The Cloud Search Query API provides the search method, which returns the most relevant results from a user query. The results can come from Google Workspace apps, such as Gmail or Google Drive, or they can come from data that you have indexed from a third party. **Note:** This API requires a standard end user account to execute. A service account can't perform Query API requests directly; to use a service account to perform queries, set up [Google Workspace domain-wide delegation of authority](<https://developers.google.`com/workspace/cloud-search/docs/guides/delegation/`>).
+/// The Cloud Search Query API provides the search method, which returns the most relevant results from a user query. The results can come from Google Workspace apps, such as Gmail or Google Drive, or they can come from data that you have indexed from a third party. **Note:** This API requires a standard end user account to execute. A service account can''t perform Query API requests directly; to use a service account to perform queries, set up [Google Workspace domain-wide delegation of authority](<https://developers.google.`com/workspace/cloud-search/docs/guides/delegation/`>).
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -3842,7 +3842,7 @@ pub fn cloudsearch_query_search_task(
 }
 
 /// POST v1/query/search
-/// The Cloud Search Query API provides the search method, which returns the most relevant results from a user query. The results can come from Google Workspace apps, such as Gmail or Google Drive, or they can come from data that you have indexed from a third party. **Note:** This API requires a standard end user account to execute. A service account can't perform Query API requests directly; to use a service account to perform queries, set up [Google Workspace domain-wide delegation of authority](<https://developers.google.`com/workspace/cloud-search/docs/guides/delegation/`>).
+/// The Cloud Search Query API provides the search method, which returns the most relevant results from a user query. The results can come from Google Workspace apps, such as Gmail or Google Drive, or they can come from data that you have indexed from a third party. **Note:** This API requires a standard end user account to execute. A service account can''t perform Query API requests directly; to use a service account to perform queries, set up [Google Workspace domain-wide delegation of authority](<https://developers.google.`com/workspace/cloud-search/docs/guides/delegation/`>).
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -3874,7 +3874,7 @@ pub fn cloudsearch_query_search_execute(
 }
 
 /// POST v1/query/search
-/// The Cloud Search Query API provides the search method, which returns the most relevant results from a user query. The results can come from Google Workspace apps, such as Gmail or Google Drive, or they can come from data that you have indexed from a third party. **Note:** This API requires a standard end user account to execute. A service account can't perform Query API requests directly; to use a service account to perform queries, set up [Google Workspace domain-wide delegation of authority](<https://developers.google.`com/workspace/cloud-search/docs/guides/delegation/`>).
+/// The Cloud Search Query API provides the search method, which returns the most relevant results from a user query. The results can come from Google Workspace apps, such as Gmail or Google Drive, or they can come from data that you have indexed from a third party. **Note:** This API requires a standard end user account to execute. A service account can''t perform Query API requests directly; to use a service account to perform queries, set up [Google Workspace domain-wide delegation of authority](<https://developers.google.`com/workspace/cloud-search/docs/guides/delegation/`>).
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `cloudsearch_query_search_builder()` + `cloudsearch_query_search_execute()`.
@@ -3897,7 +3897,7 @@ pub fn cloudsearch_query_search(
 }
 
 /// POST v1/query/suggest
-/// Provides suggestions for autocompleting the query. **Note:** This API requires a standard end user account to execute. A service account can't perform Query API requests directly; to use a service account to perform queries, set up [Google Workspace domain-wide delegation of authority](<https://developers.google.`com/workspace/cloud-search/docs/guides/delegation/`>).
+/// Provides suggestions for autocompleting the query. **Note:** This API requires a standard end user account to execute. A service account can''t perform Query API requests directly; to use a service account to perform queries, set up [Google Workspace domain-wide delegation of authority](<https://developers.google.`com/workspace/cloud-search/docs/guides/delegation/`>).
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudsearch_query_suggest_execute()` to send, or `cloudsearch_query_suggest` for simplest API.
@@ -3920,7 +3920,7 @@ where
 }
 
 /// POST v1/query/suggest
-/// Provides suggestions for autocompleting the query. **Note:** This API requires a standard end user account to execute. A service account can't perform Query API requests directly; to use a service account to perform queries, set up [Google Workspace domain-wide delegation of authority](<https://developers.google.`com/workspace/cloud-search/docs/guides/delegation/`>).
+/// Provides suggestions for autocompleting the query. **Note:** This API requires a standard end user account to execute. A service account can''t perform Query API requests directly; to use a service account to perform queries, set up [Google Workspace domain-wide delegation of authority](<https://developers.google.`com/workspace/cloud-search/docs/guides/delegation/`>).
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -3994,7 +3994,7 @@ pub fn cloudsearch_query_suggest_task(
 }
 
 /// POST v1/query/suggest
-/// Provides suggestions for autocompleting the query. **Note:** This API requires a standard end user account to execute. A service account can't perform Query API requests directly; to use a service account to perform queries, set up [Google Workspace domain-wide delegation of authority](<https://developers.google.`com/workspace/cloud-search/docs/guides/delegation/`>).
+/// Provides suggestions for autocompleting the query. **Note:** This API requires a standard end user account to execute. A service account can''t perform Query API requests directly; to use a service account to perform queries, set up [Google Workspace domain-wide delegation of authority](<https://developers.google.`com/workspace/cloud-search/docs/guides/delegation/`>).
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -4026,7 +4026,7 @@ pub fn cloudsearch_query_suggest_execute(
 }
 
 /// POST v1/query/suggest
-/// Provides suggestions for autocompleting the query. **Note:** This API requires a standard end user account to execute. A service account can't perform Query API requests directly; to use a service account to perform queries, set up [Google Workspace domain-wide delegation of authority](<https://developers.google.`com/workspace/cloud-search/docs/guides/delegation/`>).
+/// Provides suggestions for autocompleting the query. **Note:** This API requires a standard end user account to execute. A service account can''t perform Query API requests directly; to use a service account to perform queries, set up [Google Workspace domain-wide delegation of authority](<https://developers.google.`com/workspace/cloud-search/docs/guides/delegation/`>).
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `cloudsearch_query_suggest_builder()` + `cloudsearch_query_suggest_execute()`.
@@ -4049,7 +4049,7 @@ pub fn cloudsearch_query_suggest(
 }
 
 /// GET v1/query/sources
-/// Returns list of sources that user can use for Search and Suggest APIs. **Note:** This API requires a standard end user account to execute. A service account can't perform Query API requests directly; to use a service account to perform queries, set up [Google Workspace domain-wide delegation of authority](<https://developers.google.`com/workspace/cloud-search/docs/guides/delegation/`>).
+/// Returns list of sources that user can use for Search and Suggest APIs. **Note:** This API requires a standard end user account to execute. A service account can''t perform Query API requests directly; to use a service account to perform queries, set up [Google Workspace domain-wide delegation of authority](<https://developers.google.`com/workspace/cloud-search/docs/guides/delegation/`>).
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudsearch_query_sources_list_execute()` to send, or `cloudsearch_query_sources_list` for simplest API.
@@ -4103,7 +4103,7 @@ where
 }
 
 /// GET v1/query/sources
-/// Returns list of sources that user can use for Search and Suggest APIs. **Note:** This API requires a standard end user account to execute. A service account can't perform Query API requests directly; to use a service account to perform queries, set up [Google Workspace domain-wide delegation of authority](<https://developers.google.`com/workspace/cloud-search/docs/guides/delegation/`>).
+/// Returns list of sources that user can use for Search and Suggest APIs. **Note:** This API requires a standard end user account to execute. A service account can''t perform Query API requests directly; to use a service account to perform queries, set up [Google Workspace domain-wide delegation of authority](<https://developers.google.`com/workspace/cloud-search/docs/guides/delegation/`>).
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -4177,7 +4177,7 @@ pub fn cloudsearch_query_sources_list_task(
 }
 
 /// GET v1/query/sources
-/// Returns list of sources that user can use for Search and Suggest APIs. **Note:** This API requires a standard end user account to execute. A service account can't perform Query API requests directly; to use a service account to perform queries, set up [Google Workspace domain-wide delegation of authority](<https://developers.google.`com/workspace/cloud-search/docs/guides/delegation/`>).
+/// Returns list of sources that user can use for Search and Suggest APIs. **Note:** This API requires a standard end user account to execute. A service account can''t perform Query API requests directly; to use a service account to perform queries, set up [Google Workspace domain-wide delegation of authority](<https://developers.google.`com/workspace/cloud-search/docs/guides/delegation/`>).
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -4224,7 +4224,7 @@ pub struct CloudsearchQuerySourcesListArgs {
 }
 
 /// GET v1/query/sources
-/// Returns list of sources that user can use for Search and Suggest APIs. **Note:** This API requires a standard end user account to execute. A service account can't perform Query API requests directly; to use a service account to perform queries, set up [Google Workspace domain-wide delegation of authority](<https://developers.google.`com/workspace/cloud-search/docs/guides/delegation/`>).
+/// Returns list of sources that user can use for Search and Suggest APIs. **Note:** This API requires a standard end user account to execute. A service account can''t perform Query API requests directly; to use a service account to perform queries, set up [Google Workspace domain-wide delegation of authority](<https://developers.google.`com/workspace/cloud-search/docs/guides/delegation/`>).
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `cloudsearch_query_sources_list_builder()` + `cloudsearch_query_sources_list_execute()`.
@@ -6832,7 +6832,7 @@ pub fn cloudsearch_settings_searchapplications_update(
 }
 
 /// GET v1/stats/index
-/// Gets indexed item statistics aggreggated across all data sources. This API only returns statistics for previous dates; it doesn't return statistics for the current day. **Note:** This API requires a standard end user account to execute.
+/// Gets indexed item statistics aggreggated across all data sources. This API only returns statistics for previous dates; it doesn''t return statistics for the current day. **Note:** This API requires a standard end user account to execute.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudsearch_stats_get_index_execute()` to send, or `cloudsearch_stats_get_index` for simplest API.
@@ -6887,7 +6887,7 @@ where
 }
 
 /// GET v1/stats/index
-/// Gets indexed item statistics aggreggated across all data sources. This API only returns statistics for previous dates; it doesn't return statistics for the current day. **Note:** This API requires a standard end user account to execute.
+/// Gets indexed item statistics aggreggated across all data sources. This API only returns statistics for previous dates; it doesn''t return statistics for the current day. **Note:** This API requires a standard end user account to execute.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -6961,7 +6961,7 @@ pub fn cloudsearch_stats_get_index_task(
 }
 
 /// GET v1/stats/index
-/// Gets indexed item statistics aggreggated across all data sources. This API only returns statistics for previous dates; it doesn't return statistics for the current day. **Note:** This API requires a standard end user account to execute.
+/// Gets indexed item statistics aggreggated across all data sources. This API only returns statistics for previous dates; it doesn''t return statistics for the current day. **Note:** This API requires a standard end user account to execute.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -7012,7 +7012,7 @@ pub struct CloudsearchStatsGetIndexArgs {
 }
 
 /// GET v1/stats/index
-/// Gets indexed item statistics aggreggated across all data sources. This API only returns statistics for previous dates; it doesn't return statistics for the current day. **Note:** This API requires a standard end user account to execute.
+/// Gets indexed item statistics aggreggated across all data sources. This API only returns statistics for previous dates; it doesn''t return statistics for the current day. **Note:** This API requires a standard end user account to execute.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `cloudsearch_stats_get_index_builder()` + `cloudsearch_stats_get_index_execute()`.

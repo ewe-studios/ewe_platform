@@ -34,8 +34,8 @@ use crate::providers::gcp::clients::youtube::{
     youtube_comments_mark_as_spam_builder, youtube_comments_mark_as_spam_task,
     youtube_comments_set_moderation_status_builder, youtube_comments_set_moderation_status_task,
     youtube_comments_update_builder, youtube_comments_update_task,
-    youtube_i18_n_languages_list_builder, youtube_i18_n_languages_list_task,
-    youtube_i18_n_regions_list_builder, youtube_i18_n_regions_list_task,
+    youtube_i18n_languages_list_builder, youtube_i18n_languages_list_task,
+    youtube_i18n_regions_list_builder, youtube_i18n_regions_list_task,
     youtube_live_broadcasts_bind_builder, youtube_live_broadcasts_bind_task,
     youtube_live_broadcasts_delete_builder, youtube_live_broadcasts_delete_task,
     youtube_live_broadcasts_insert_builder, youtube_live_broadcasts_insert_task,
@@ -1254,7 +1254,7 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
-    /// Youtube i18 n languages list.
+    /// Youtube i18n languages list.
     ///
     /// Read-only operation - no state tracking.
     ///
@@ -1269,7 +1269,7 @@ where
     /// # Errors
     ///
     /// Returns ProviderError if the API request fails.
-    pub fn youtube_i18_n_languages_list(
+    pub fn youtube_i18n_languages_list(
         &self,
         args: &YoutubeI18NLanguagesListArgs,
     ) -> Result<
@@ -1280,20 +1280,20 @@ where
         + 'static,
         ProviderError<ApiError>,
     > {
-        let builder = youtube_i18_n_languages_list_builder(
+        let builder = youtube_i18n_languages_list_builder(
             &self.http_client,
             &args.hl,
             &args.part,
         )
         .map_err(ProviderError::Api)?;
 
-        let task = youtube_i18_n_languages_list_task(builder)
+        let task = youtube_i18n_languages_list_task(builder)
             .map_err(ProviderError::Api)?;
 
         execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
-    /// Youtube i18 n regions list.
+    /// Youtube i18n regions list.
     ///
     /// Read-only operation - no state tracking.
     ///
@@ -1308,7 +1308,7 @@ where
     /// # Errors
     ///
     /// Returns ProviderError if the API request fails.
-    pub fn youtube_i18_n_regions_list(
+    pub fn youtube_i18n_regions_list(
         &self,
         args: &YoutubeI18NRegionsListArgs,
     ) -> Result<
@@ -1319,14 +1319,14 @@ where
         + 'static,
         ProviderError<ApiError>,
     > {
-        let builder = youtube_i18_n_regions_list_builder(
+        let builder = youtube_i18n_regions_list_builder(
             &self.http_client,
             &args.hl,
             &args.part,
         )
         .map_err(ProviderError::Api)?;
 
-        let task = youtube_i18_n_regions_list_task(builder)
+        let task = youtube_i18n_regions_list_task(builder)
             .map_err(ProviderError::Api)?;
 
         execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))

@@ -22,7 +22,7 @@ use foundation_macros::JsonHash;
 use serde::Serialize;
 
 /// GET about
-/// Gets information about the user, the user's Drive, and system capabilities. For more information, see [Return user info](<https://developers.google.`com/workspace/drive/api/guides/user-info`>). Required: The fields parameter must be set. To return the exact fields you need, see [Return specific fields](<https://developers.google.`com/workspace/drive/api/guides/fields-parameter`>).
+/// Gets information about the user, the user''s Drive, and system capabilities. For more information, see [Return user info](<https://developers.google.`com/workspace/drive/api/guides/user-info`>). Required: The fields parameter must be set. To return the exact fields you need, see [Return specific fields](<https://developers.google.`com/workspace/drive/api/guides/fields-parameter`>).
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `drive_about_get_execute()` to send, or `drive_about_get` for simplest API.
@@ -45,7 +45,7 @@ where
 }
 
 /// GET about
-/// Gets information about the user, the user's Drive, and system capabilities. For more information, see [Return user info](<https://developers.google.`com/workspace/drive/api/guides/user-info`>). Required: The fields parameter must be set. To return the exact fields you need, see [Return specific fields](<https://developers.google.`com/workspace/drive/api/guides/fields-parameter`>).
+/// Gets information about the user, the user''s Drive, and system capabilities. For more information, see [Return user info](<https://developers.google.`com/workspace/drive/api/guides/user-info`>). Required: The fields parameter must be set. To return the exact fields you need, see [Return specific fields](<https://developers.google.`com/workspace/drive/api/guides/fields-parameter`>).
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -119,7 +119,7 @@ pub fn drive_about_get_task(
 }
 
 /// GET about
-/// Gets information about the user, the user's Drive, and system capabilities. For more information, see [Return user info](<https://developers.google.`com/workspace/drive/api/guides/user-info`>). Required: The fields parameter must be set. To return the exact fields you need, see [Return specific fields](<https://developers.google.`com/workspace/drive/api/guides/fields-parameter`>).
+/// Gets information about the user, the user''s Drive, and system capabilities. For more information, see [Return user info](<https://developers.google.`com/workspace/drive/api/guides/user-info`>). Required: The fields parameter must be set. To return the exact fields you need, see [Return specific fields](<https://developers.google.`com/workspace/drive/api/guides/fields-parameter`>).
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -149,7 +149,7 @@ pub fn drive_about_get_execute(
 }
 
 /// GET about
-/// Gets information about the user, the user's Drive, and system capabilities. For more information, see [Return user info](<https://developers.google.`com/workspace/drive/api/guides/user-info`>). Required: The fields parameter must be set. To return the exact fields you need, see [Return specific fields](<https://developers.google.`com/workspace/drive/api/guides/fields-parameter`>).
+/// Gets information about the user, the user''s Drive, and system capabilities. For more information, see [Return user info](<https://developers.google.`com/workspace/drive/api/guides/user-info`>). Required: The fields parameter must be set. To return the exact fields you need, see [Return specific fields](<https://developers.google.`com/workspace/drive/api/guides/fields-parameter`>).
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `drive_about_get_builder()` + `drive_about_get_execute()`.
@@ -337,7 +337,7 @@ pub fn drive_accessproposals_get(
 }
 
 /// GET files/{fileId}/accessproposals
-/// List the access proposals on a file. For more information, see [Manage pending access proposals](<https://developers.google.`com/workspace/drive/api/guides/pending-access`>). Note: Only approvers are able to list access proposals on a file. If the user isn't an approver, a 403 error is returned.
+/// List the access proposals on a file. For more information, see [Manage pending access proposals](<https://developers.google.`com/workspace/drive/api/guides/pending-access`>). Note: Only approvers are able to list access proposals on a file. If the user isn''t an approver, a 403 error is returned.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `drive_accessproposals_list_execute()` to send, or `drive_accessproposals_list` for simplest API.
@@ -380,7 +380,7 @@ where
 }
 
 /// GET files/{fileId}/accessproposals
-/// List the access proposals on a file. For more information, see [Manage pending access proposals](<https://developers.google.`com/workspace/drive/api/guides/pending-access`>). Note: Only approvers are able to list access proposals on a file. If the user isn't an approver, a 403 error is returned.
+/// List the access proposals on a file. For more information, see [Manage pending access proposals](<https://developers.google.`com/workspace/drive/api/guides/pending-access`>). Note: Only approvers are able to list access proposals on a file. If the user isn''t an approver, a 403 error is returned.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -454,7 +454,7 @@ pub fn drive_accessproposals_list_task(
 }
 
 /// GET files/{fileId}/accessproposals
-/// List the access proposals on a file. For more information, see [Manage pending access proposals](<https://developers.google.`com/workspace/drive/api/guides/pending-access`>). Note: Only approvers are able to list access proposals on a file. If the user isn't an approver, a 403 error is returned.
+/// List the access proposals on a file. For more information, see [Manage pending access proposals](<https://developers.google.`com/workspace/drive/api/guides/pending-access`>). Note: Only approvers are able to list access proposals on a file. If the user isn''t an approver, a 403 error is returned.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -499,7 +499,7 @@ pub struct DriveAccessproposalsListArgs {
 }
 
 /// GET files/{fileId}/accessproposals
-/// List the access proposals on a file. For more information, see [Manage pending access proposals](<https://developers.google.`com/workspace/drive/api/guides/pending-access`>). Note: Only approvers are able to list access proposals on a file. If the user isn't an approver, a 403 error is returned.
+/// List the access proposals on a file. For more information, see [Manage pending access proposals](<https://developers.google.`com/workspace/drive/api/guides/pending-access`>). Note: Only approvers are able to list access proposals on a file. If the user isn''t an approver, a 403 error is returned.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `drive_accessproposals_list_builder()` + `drive_accessproposals_list_execute()`.
@@ -1191,7 +1191,7 @@ pub fn drive_apps_get(
 }
 
 /// GET apps
-/// Lists a user's installed apps. For more information, see [Return user info](<https://developers.google.`com/workspace/drive/api/guides/user-info`>).
+/// Lists a user''s installed apps. For more information, see [Return user info](<https://developers.google.`com/workspace/drive/api/guides/user-info`>).
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `drive_apps_list_execute()` to send, or `drive_apps_list` for simplest API.
@@ -1234,7 +1234,7 @@ where
 }
 
 /// GET apps
-/// Lists a user's installed apps. For more information, see [Return user info](<https://developers.google.`com/workspace/drive/api/guides/user-info`>).
+/// Lists a user''s installed apps. For more information, see [Return user info](<https://developers.google.`com/workspace/drive/api/guides/user-info`>).
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -1308,7 +1308,7 @@ pub fn drive_apps_list_task(
 }
 
 /// GET apps
-/// Lists a user's installed apps. For more information, see [Return user info](<https://developers.google.`com/workspace/drive/api/guides/user-info`>).
+/// Lists a user''s installed apps. For more information, see [Return user info](<https://developers.google.`com/workspace/drive/api/guides/user-info`>).
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -1349,7 +1349,7 @@ pub struct DriveAppsListArgs {
 }
 
 /// GET apps
-/// Lists a user's installed apps. For more information, see [Return user info](<https://developers.google.`com/workspace/drive/api/guides/user-info`>).
+/// Lists a user''s installed apps. For more information, see [Return user info](<https://developers.google.`com/workspace/drive/api/guides/user-info`>).
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `drive_apps_list_builder()` + `drive_apps_list_execute()`.
@@ -2739,7 +2739,7 @@ pub fn drive_comments_get(
 }
 
 /// GET files/{fileId}/comments
-/// Lists a file's comments. For more information, see [Manage comments and replies](<https://developers.google.`com/workspace/drive/api/guides/manage-comments`>). Required: The fields parameter must be set. To return the exact fields you need, see [Return specific fields](<https://developers.google.`com/workspace/drive/api/guides/fields-parameter`>).
+/// Lists a file''s comments. For more information, see [Manage comments and replies](<https://developers.google.`com/workspace/drive/api/guides/manage-comments`>). Required: The fields parameter must be set. To return the exact fields you need, see [Return specific fields](<https://developers.google.`com/workspace/drive/api/guides/fields-parameter`>).
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `drive_comments_list_execute()` to send, or `drive_comments_list` for simplest API.
@@ -2790,7 +2790,7 @@ where
 }
 
 /// GET files/{fileId}/comments
-/// Lists a file's comments. For more information, see [Manage comments and replies](<https://developers.google.`com/workspace/drive/api/guides/manage-comments`>). Required: The fields parameter must be set. To return the exact fields you need, see [Return specific fields](<https://developers.google.`com/workspace/drive/api/guides/fields-parameter`>).
+/// Lists a file''s comments. For more information, see [Manage comments and replies](<https://developers.google.`com/workspace/drive/api/guides/manage-comments`>). Required: The fields parameter must be set. To return the exact fields you need, see [Return specific fields](<https://developers.google.`com/workspace/drive/api/guides/fields-parameter`>).
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -2864,7 +2864,7 @@ pub fn drive_comments_list_task(
 }
 
 /// GET files/{fileId}/comments
-/// Lists a file's comments. For more information, see [Manage comments and replies](<https://developers.google.`com/workspace/drive/api/guides/manage-comments`>). Required: The fields parameter must be set. To return the exact fields you need, see [Return specific fields](<https://developers.google.`com/workspace/drive/api/guides/fields-parameter`>).
+/// Lists a file''s comments. For more information, see [Manage comments and replies](<https://developers.google.`com/workspace/drive/api/guides/manage-comments`>). Required: The fields parameter must be set. To return the exact fields you need, see [Return specific fields](<https://developers.google.`com/workspace/drive/api/guides/fields-parameter`>).
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -2909,7 +2909,7 @@ pub struct DriveCommentsListArgs {
 }
 
 /// GET files/{fileId}/comments
-/// Lists a file's comments. For more information, see [Manage comments and replies](<https://developers.google.`com/workspace/drive/api/guides/manage-comments`>). Required: The fields parameter must be set. To return the exact fields you need, see [Return specific fields](<https://developers.google.`com/workspace/drive/api/guides/fields-parameter`>).
+/// Lists a file''s comments. For more information, see [Manage comments and replies](<https://developers.google.`com/workspace/drive/api/guides/manage-comments`>). Required: The fields parameter must be set. To return the exact fields you need, see [Return specific fields](<https://developers.google.`com/workspace/drive/api/guides/fields-parameter`>).
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `drive_comments_list_builder()` + `drive_comments_list_execute()`.
@@ -3448,7 +3448,7 @@ pub fn drive_drives_delete(
 }
 
 /// GET drives/{driveId}
-/// Gets a shared drive's metadata by ID. For more information, see [Manage shared drives](<https://developers.google.`com/workspace/drive/api/guides/manage-shareddrives`>).
+/// Gets a shared drive''s metadata by ID. For more information, see [Manage shared drives](<https://developers.google.`com/workspace/drive/api/guides/manage-shareddrives`>).
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `drive_drives_get_execute()` to send, or `drive_drives_get` for simplest API.
@@ -3484,7 +3484,7 @@ where
 }
 
 /// GET drives/{driveId}
-/// Gets a shared drive's metadata by ID. For more information, see [Manage shared drives](<https://developers.google.`com/workspace/drive/api/guides/manage-shareddrives`>).
+/// Gets a shared drive''s metadata by ID. For more information, see [Manage shared drives](<https://developers.google.`com/workspace/drive/api/guides/manage-shareddrives`>).
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -3558,7 +3558,7 @@ pub fn drive_drives_get_task(
 }
 
 /// GET drives/{driveId}
-/// Gets a shared drive's metadata by ID. For more information, see [Manage shared drives](<https://developers.google.`com/workspace/drive/api/guides/manage-shareddrives`>).
+/// Gets a shared drive''s metadata by ID. For more information, see [Manage shared drives](<https://developers.google.`com/workspace/drive/api/guides/manage-shareddrives`>).
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -3597,7 +3597,7 @@ pub struct DriveDrivesGetArgs {
 }
 
 /// GET drives/{driveId}
-/// Gets a shared drive's metadata by ID. For more information, see [Manage shared drives](<https://developers.google.`com/workspace/drive/api/guides/manage-shareddrives`>).
+/// Gets a shared drive''s metadata by ID. For more information, see [Manage shared drives](<https://developers.google.`com/workspace/drive/api/guides/manage-shareddrives`>).
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `drive_drives_get_builder()` + `drive_drives_get_execute()`.
@@ -3779,7 +3779,7 @@ pub fn drive_drives_hide(
 }
 
 /// GET drives
-/// Lists the user's shared drives. This method accepts the q parameter, which is a search query combining one or more search terms. For more information, see the [Search for shared drives](<https://developers.google.`com/workspace/drive/api/guides/search-shareddrives`>) guide.
+/// Lists the user''s shared drives. This method accepts the q parameter, which is a search query combining one or more search terms. For more information, see the [Search for shared drives](<https://developers.google.`com/workspace/drive/api/guides/search-shareddrives`>) guide.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `drive_drives_list_execute()` to send, or `drive_drives_list` for simplest API.
@@ -3826,7 +3826,7 @@ where
 }
 
 /// GET drives
-/// Lists the user's shared drives. This method accepts the q parameter, which is a search query combining one or more search terms. For more information, see the [Search for shared drives](<https://developers.google.`com/workspace/drive/api/guides/search-shareddrives`>) guide.
+/// Lists the user''s shared drives. This method accepts the q parameter, which is a search query combining one or more search terms. For more information, see the [Search for shared drives](<https://developers.google.`com/workspace/drive/api/guides/search-shareddrives`>) guide.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -3900,7 +3900,7 @@ pub fn drive_drives_list_task(
 }
 
 /// GET drives
-/// Lists the user's shared drives. This method accepts the q parameter, which is a search query combining one or more search terms. For more information, see the [Search for shared drives](<https://developers.google.`com/workspace/drive/api/guides/search-shareddrives`>) guide.
+/// Lists the user''s shared drives. This method accepts the q parameter, which is a search query combining one or more search terms. For more information, see the [Search for shared drives](<https://developers.google.`com/workspace/drive/api/guides/search-shareddrives`>) guide.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -3943,7 +3943,7 @@ pub struct DriveDrivesListArgs {
 }
 
 /// GET drives
-/// Lists the user's shared drives. This method accepts the q parameter, which is a search query combining one or more search terms. For more information, see the [Search for shared drives](<https://developers.google.`com/workspace/drive/api/guides/search-shareddrives`>) guide.
+/// Lists the user''s shared drives. This method accepts the q parameter, which is a search query combining one or more search terms. For more information, see the [Search for shared drives](<https://developers.google.`com/workspace/drive/api/guides/search-shareddrives`>) guide.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `drive_drives_list_builder()` + `drive_drives_list_execute()`.
@@ -4526,7 +4526,7 @@ pub fn drive_files_copy(
 }
 
 /// POST files
-/// Creates a file. For more information, see [Create and manage files](<https://developers.google.`com/workspace/drive/api/guides/create-file`>). This method supports an */upload* URI and accepts uploaded media with the following characteristics: - *Maximum file size:* 5,120 GB - *Accepted Media MIME types:* */* (Specify a valid MIME type, rather than the literal */* value. The literal */* is only used to indicate that any valid MIME type can be uploaded. For more information, see [Google Workspace and Google Drive supported MIME types](<https://developers.google.`com/workspace/drive/api/guides/mime-types`>).) For more information on uploading files, see [Upload file data](<https://developers.google.`com/workspace/drive/api/guides/manage-uploads`>). Apps creating shortcuts with the create method must specify the MIME type `application/vnd`.google-apps.shortcut. Apps should specify a file extension in the name property when inserting files with the API. For example, an operation to insert a JPEG file should specify something like "name": "cat.jpg" in the metadata. Subsequent GET requests include the read-only `fileExtension` property populated with the extension originally specified in the name property. When a Google Drive user requests to download a file, or when the file is downloaded through the sync client, Drive builds a full filename (with extension) based on the name. In cases where the extension is missing, Drive attempts to determine the extension based on the file's MIME type.
+/// Creates a file. For more information, see [Create and manage files](<https://developers.google.`com/workspace/drive/api/guides/create-file`>). This method supports an */upload* URI and accepts uploaded media with the following characteristics: - *Maximum file size:* 5,120 GB - *Accepted Media MIME types:* */* (Specify a valid MIME type, rather than the literal */* value. The literal */* is only used to indicate that any valid MIME type can be uploaded. For more information, see [Google Workspace and Google Drive supported MIME types](<https://developers.google.`com/workspace/drive/api/guides/mime-types`>).) For more information on uploading files, see [Upload file data](<https://developers.google.`com/workspace/drive/api/guides/manage-uploads`>). Apps creating shortcuts with the create method must specify the MIME type `application/vnd`.google-apps.shortcut. Apps should specify a file extension in the name property when inserting files with the API. For example, an operation to insert a JPEG file should specify something like "name": "cat.jpg" in the metadata. Subsequent GET requests include the read-only `fileExtension` property populated with the extension originally specified in the name property. When a Google Drive user requests to download a file, or when the file is downloaded through the sync client, Drive builds a full filename (with extension) based on the name. In cases where the extension is missing, Drive attempts to determine the extension based on the file''s MIME type.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `drive_files_create_execute()` to send, or `drive_files_create` for simplest API.
@@ -4593,7 +4593,7 @@ where
 }
 
 /// POST files
-/// Creates a file. For more information, see [Create and manage files](<https://developers.google.`com/workspace/drive/api/guides/create-file`>). This method supports an */upload* URI and accepts uploaded media with the following characteristics: - *Maximum file size:* 5,120 GB - *Accepted Media MIME types:* */* (Specify a valid MIME type, rather than the literal */* value. The literal */* is only used to indicate that any valid MIME type can be uploaded. For more information, see [Google Workspace and Google Drive supported MIME types](<https://developers.google.`com/workspace/drive/api/guides/mime-types`>).) For more information on uploading files, see [Upload file data](<https://developers.google.`com/workspace/drive/api/guides/manage-uploads`>). Apps creating shortcuts with the create method must specify the MIME type `application/vnd`.google-apps.shortcut. Apps should specify a file extension in the name property when inserting files with the API. For example, an operation to insert a JPEG file should specify something like "name": "cat.jpg" in the metadata. Subsequent GET requests include the read-only `fileExtension` property populated with the extension originally specified in the name property. When a Google Drive user requests to download a file, or when the file is downloaded through the sync client, Drive builds a full filename (with extension) based on the name. In cases where the extension is missing, Drive attempts to determine the extension based on the file's MIME type.
+/// Creates a file. For more information, see [Create and manage files](<https://developers.google.`com/workspace/drive/api/guides/create-file`>). This method supports an */upload* URI and accepts uploaded media with the following characteristics: - *Maximum file size:* 5,120 GB - *Accepted Media MIME types:* */* (Specify a valid MIME type, rather than the literal */* value. The literal */* is only used to indicate that any valid MIME type can be uploaded. For more information, see [Google Workspace and Google Drive supported MIME types](<https://developers.google.`com/workspace/drive/api/guides/mime-types`>).) For more information on uploading files, see [Upload file data](<https://developers.google.`com/workspace/drive/api/guides/manage-uploads`>). Apps creating shortcuts with the create method must specify the MIME type `application/vnd`.google-apps.shortcut. Apps should specify a file extension in the name property when inserting files with the API. For example, an operation to insert a JPEG file should specify something like "name": "cat.jpg" in the metadata. Subsequent GET requests include the read-only `fileExtension` property populated with the extension originally specified in the name property. When a Google Drive user requests to download a file, or when the file is downloaded through the sync client, Drive builds a full filename (with extension) based on the name. In cases where the extension is missing, Drive attempts to determine the extension based on the file''s MIME type.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -4667,7 +4667,7 @@ pub fn drive_files_create_task(
 }
 
 /// POST files
-/// Creates a file. For more information, see [Create and manage files](<https://developers.google.`com/workspace/drive/api/guides/create-file`>). This method supports an */upload* URI and accepts uploaded media with the following characteristics: - *Maximum file size:* 5,120 GB - *Accepted Media MIME types:* */* (Specify a valid MIME type, rather than the literal */* value. The literal */* is only used to indicate that any valid MIME type can be uploaded. For more information, see [Google Workspace and Google Drive supported MIME types](<https://developers.google.`com/workspace/drive/api/guides/mime-types`>).) For more information on uploading files, see [Upload file data](<https://developers.google.`com/workspace/drive/api/guides/manage-uploads`>). Apps creating shortcuts with the create method must specify the MIME type `application/vnd`.google-apps.shortcut. Apps should specify a file extension in the name property when inserting files with the API. For example, an operation to insert a JPEG file should specify something like "name": "cat.jpg" in the metadata. Subsequent GET requests include the read-only `fileExtension` property populated with the extension originally specified in the name property. When a Google Drive user requests to download a file, or when the file is downloaded through the sync client, Drive builds a full filename (with extension) based on the name. In cases where the extension is missing, Drive attempts to determine the extension based on the file's MIME type.
+/// Creates a file. For more information, see [Create and manage files](<https://developers.google.`com/workspace/drive/api/guides/create-file`>). This method supports an */upload* URI and accepts uploaded media with the following characteristics: - *Maximum file size:* 5,120 GB - *Accepted Media MIME types:* */* (Specify a valid MIME type, rather than the literal */* value. The literal */* is only used to indicate that any valid MIME type can be uploaded. For more information, see [Google Workspace and Google Drive supported MIME types](<https://developers.google.`com/workspace/drive/api/guides/mime-types`>).) For more information on uploading files, see [Upload file data](<https://developers.google.`com/workspace/drive/api/guides/manage-uploads`>). Apps creating shortcuts with the create method must specify the MIME type `application/vnd`.google-apps.shortcut. Apps should specify a file extension in the name property when inserting files with the API. For example, an operation to insert a JPEG file should specify something like "name": "cat.jpg" in the metadata. Subsequent GET requests include the read-only `fileExtension` property populated with the extension originally specified in the name property. When a Google Drive user requests to download a file, or when the file is downloaded through the sync client, Drive builds a full filename (with extension) based on the name. In cases where the extension is missing, Drive attempts to determine the extension based on the file''s MIME type.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -4720,7 +4720,7 @@ pub struct DriveFilesCreateArgs {
 }
 
 /// POST files
-/// Creates a file. For more information, see [Create and manage files](<https://developers.google.`com/workspace/drive/api/guides/create-file`>). This method supports an */upload* URI and accepts uploaded media with the following characteristics: - *Maximum file size:* 5,120 GB - *Accepted Media MIME types:* */* (Specify a valid MIME type, rather than the literal */* value. The literal */* is only used to indicate that any valid MIME type can be uploaded. For more information, see [Google Workspace and Google Drive supported MIME types](<https://developers.google.`com/workspace/drive/api/guides/mime-types`>).) For more information on uploading files, see [Upload file data](<https://developers.google.`com/workspace/drive/api/guides/manage-uploads`>). Apps creating shortcuts with the create method must specify the MIME type `application/vnd`.google-apps.shortcut. Apps should specify a file extension in the name property when inserting files with the API. For example, an operation to insert a JPEG file should specify something like "name": "cat.jpg" in the metadata. Subsequent GET requests include the read-only `fileExtension` property populated with the extension originally specified in the name property. When a Google Drive user requests to download a file, or when the file is downloaded through the sync client, Drive builds a full filename (with extension) based on the name. In cases where the extension is missing, Drive attempts to determine the extension based on the file's MIME type.
+/// Creates a file. For more information, see [Create and manage files](<https://developers.google.`com/workspace/drive/api/guides/create-file`>). This method supports an */upload* URI and accepts uploaded media with the following characteristics: - *Maximum file size:* 5,120 GB - *Accepted Media MIME types:* */* (Specify a valid MIME type, rather than the literal */* value. The literal */* is only used to indicate that any valid MIME type can be uploaded. For more information, see [Google Workspace and Google Drive supported MIME types](<https://developers.google.`com/workspace/drive/api/guides/mime-types`>).) For more information on uploading files, see [Upload file data](<https://developers.google.`com/workspace/drive/api/guides/manage-uploads`>). Apps creating shortcuts with the create method must specify the MIME type `application/vnd`.google-apps.shortcut. Apps should specify a file extension in the name property when inserting files with the API. For example, an operation to insert a JPEG file should specify something like "name": "cat.jpg" in the metadata. Subsequent GET requests include the read-only `fileExtension` property populated with the extension originally specified in the name property. When a Google Drive user requests to download a file, or when the file is downloaded through the sync client, Drive builds a full filename (with extension) based on the name. In cases where the extension is missing, Drive attempts to determine the extension based on the file''s MIME type.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `drive_files_create_builder()` + `drive_files_create_execute()`.
@@ -5120,7 +5120,7 @@ pub fn drive_files_download(
 }
 
 /// DELETE files/trash
-/// Permanently deletes all of the user's trashed files. For more information, see [Trash or delete files and folders](<https://developers.google.`com/workspace/drive/api/guides/delete`>).
+/// Permanently deletes all of the user''s trashed files. For more information, see [Trash or delete files and folders](<https://developers.google.`com/workspace/drive/api/guides/delete`>).
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `drive_files_empty_trash_execute()` to send, or `drive_files_empty_trash` for simplest API.
@@ -5159,7 +5159,7 @@ where
 }
 
 /// DELETE files/trash
-/// Permanently deletes all of the user's trashed files. For more information, see [Trash or delete files and folders](<https://developers.google.`com/workspace/drive/api/guides/delete`>).
+/// Permanently deletes all of the user''s trashed files. For more information, see [Trash or delete files and folders](<https://developers.google.`com/workspace/drive/api/guides/delete`>).
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -5230,7 +5230,7 @@ pub fn drive_files_empty_trash_task(
 }
 
 /// DELETE files/trash
-/// Permanently deletes all of the user's trashed files. For more information, see [Trash or delete files and folders](<https://developers.google.`com/workspace/drive/api/guides/delete`>).
+/// Permanently deletes all of the user''s trashed files. For more information, see [Trash or delete files and folders](<https://developers.google.`com/workspace/drive/api/guides/delete`>).
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -5269,7 +5269,7 @@ pub struct DriveFilesEmptyTrashArgs {
 }
 
 /// DELETE files/trash
-/// Permanently deletes all of the user's trashed files. For more information, see [Trash or delete files and folders](<https://developers.google.`com/workspace/drive/api/guides/delete`>).
+/// Permanently deletes all of the user''s trashed files. For more information, see [Trash or delete files and folders](<https://developers.google.`com/workspace/drive/api/guides/delete`>).
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `drive_files_empty_trash_builder()` + `drive_files_empty_trash_execute()`.
@@ -5826,7 +5826,7 @@ pub fn drive_files_generate_ids(
 }
 
 /// GET files/{fileId}
-/// Gets a file's metadata or content by ID. For more information, see [Search for files and folders](<https://developers.google.`com/workspace/drive/api/guides/search-files`>). If you provide the URL parameter alt=media, then the response includes the file contents in the response body. Downloading content with alt=media only works if the file is stored in Drive. To download Google Docs, Sheets, and Slides use [files.export](<https://developers.google.`com/workspace/drive/api/reference/rest/v3/files/export`>) instead. For more information, see [Download and export files](<https://developers.google.`com/workspace/drive/api/guides/manage-downloads`>).
+/// Gets a file''s metadata or content by ID. For more information, see [Search for files and folders](<https://developers.google.`com/workspace/drive/api/guides/search-files`>). If you provide the URL parameter alt=media, then the response includes the file contents in the response body. Downloading content with alt=media only works if the file is stored in Drive. To download Google Docs, Sheets, and Slides use [files.export](<https://developers.google.`com/workspace/drive/api/reference/rest/v3/files/export`>) instead. For more information, see [Download and export files](<https://developers.google.`com/workspace/drive/api/guides/manage-downloads`>).
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `drive_files_get_execute()` to send, or `drive_files_get` for simplest API.
@@ -5878,7 +5878,7 @@ where
 }
 
 /// GET files/{fileId}
-/// Gets a file's metadata or content by ID. For more information, see [Search for files and folders](<https://developers.google.`com/workspace/drive/api/guides/search-files`>). If you provide the URL parameter alt=media, then the response includes the file contents in the response body. Downloading content with alt=media only works if the file is stored in Drive. To download Google Docs, Sheets, and Slides use [files.export](<https://developers.google.`com/workspace/drive/api/reference/rest/v3/files/export`>) instead. For more information, see [Download and export files](<https://developers.google.`com/workspace/drive/api/guides/manage-downloads`>).
+/// Gets a file''s metadata or content by ID. For more information, see [Search for files and folders](<https://developers.google.`com/workspace/drive/api/guides/search-files`>). If you provide the URL parameter alt=media, then the response includes the file contents in the response body. Downloading content with alt=media only works if the file is stored in Drive. To download Google Docs, Sheets, and Slides use [files.export](<https://developers.google.`com/workspace/drive/api/reference/rest/v3/files/export`>) instead. For more information, see [Download and export files](<https://developers.google.`com/workspace/drive/api/guides/manage-downloads`>).
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -5952,7 +5952,7 @@ pub fn drive_files_get_task(
 }
 
 /// GET files/{fileId}
-/// Gets a file's metadata or content by ID. For more information, see [Search for files and folders](<https://developers.google.`com/workspace/drive/api/guides/search-files`>). If you provide the URL parameter alt=media, then the response includes the file contents in the response body. Downloading content with alt=media only works if the file is stored in Drive. To download Google Docs, Sheets, and Slides use [files.export](<https://developers.google.`com/workspace/drive/api/reference/rest/v3/files/export`>) instead. For more information, see [Download and export files](<https://developers.google.`com/workspace/drive/api/guides/manage-downloads`>).
+/// Gets a file''s metadata or content by ID. For more information, see [Search for files and folders](<https://developers.google.`com/workspace/drive/api/guides/search-files`>). If you provide the URL parameter alt=media, then the response includes the file contents in the response body. Downloading content with alt=media only works if the file is stored in Drive. To download Google Docs, Sheets, and Slides use [files.export](<https://developers.google.`com/workspace/drive/api/reference/rest/v3/files/export`>) instead. For more information, see [Download and export files](<https://developers.google.`com/workspace/drive/api/guides/manage-downloads`>).
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -5999,7 +5999,7 @@ pub struct DriveFilesGetArgs {
 }
 
 /// GET files/{fileId}
-/// Gets a file's metadata or content by ID. For more information, see [Search for files and folders](<https://developers.google.`com/workspace/drive/api/guides/search-files`>). If you provide the URL parameter alt=media, then the response includes the file contents in the response body. Downloading content with alt=media only works if the file is stored in Drive. To download Google Docs, Sheets, and Slides use [files.export](<https://developers.google.`com/workspace/drive/api/reference/rest/v3/files/export`>) instead. For more information, see [Download and export files](<https://developers.google.`com/workspace/drive/api/guides/manage-downloads`>).
+/// Gets a file''s metadata or content by ID. For more information, see [Search for files and folders](<https://developers.google.`com/workspace/drive/api/guides/search-files`>). If you provide the URL parameter alt=media, then the response includes the file contents in the response body. Downloading content with alt=media only works if the file is stored in Drive. To download Google Docs, Sheets, and Slides use [files.export](<https://developers.google.`com/workspace/drive/api/reference/rest/v3/files/export`>) instead. For more information, see [Download and export files](<https://developers.google.`com/workspace/drive/api/guides/manage-downloads`>).
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `drive_files_get_builder()` + `drive_files_get_execute()`.
@@ -6029,7 +6029,7 @@ pub fn drive_files_get(
 }
 
 /// GET files
-/// Lists the user's files. For more information, see [Search for files and folders](<https://developers.google.`com/workspace/drive/api/guides/search-files`>). This method accepts the q parameter, which is a search query combining one or more search terms. This method returns *all* files by default, including trashed files. If you don't want trashed files to appear in the list, use the trashed=`false` query parameter to remove trashed files from the results.
+/// Lists the user''s files. For more information, see [Search for files and folders](<https://developers.google.`com/workspace/drive/api/guides/search-files`>). This method accepts the q parameter, which is a search query combining one or more search terms. This method returns *all* files by default, including trashed files. If you don''t want trashed files to appear in the list, use the trashed=`false` query parameter to remove trashed files from the results.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `drive_files_list_execute()` to send, or `drive_files_list` for simplest API.
@@ -6120,7 +6120,7 @@ where
 }
 
 /// GET files
-/// Lists the user's files. For more information, see [Search for files and folders](<https://developers.google.`com/workspace/drive/api/guides/search-files`>). This method accepts the q parameter, which is a search query combining one or more search terms. This method returns *all* files by default, including trashed files. If you don't want trashed files to appear in the list, use the trashed=`false` query parameter to remove trashed files from the results.
+/// Lists the user''s files. For more information, see [Search for files and folders](<https://developers.google.`com/workspace/drive/api/guides/search-files`>). This method accepts the q parameter, which is a search query combining one or more search terms. This method returns *all* files by default, including trashed files. If you don''t want trashed files to appear in the list, use the trashed=`false` query parameter to remove trashed files from the results.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -6194,7 +6194,7 @@ pub fn drive_files_list_task(
 }
 
 /// GET files
-/// Lists the user's files. For more information, see [Search for files and folders](<https://developers.google.`com/workspace/drive/api/guides/search-files`>). This method accepts the q parameter, which is a search query combining one or more search terms. This method returns *all* files by default, including trashed files. If you don't want trashed files to appear in the list, use the trashed=`false` query parameter to remove trashed files from the results.
+/// Lists the user''s files. For more information, see [Search for files and folders](<https://developers.google.`com/workspace/drive/api/guides/search-files`>). This method accepts the q parameter, which is a search query combining one or more search terms. This method returns *all* files by default, including trashed files. If you don''t want trashed files to appear in the list, use the trashed=`false` query parameter to remove trashed files from the results.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -6259,7 +6259,7 @@ pub struct DriveFilesListArgs {
 }
 
 /// GET files
-/// Lists the user's files. For more information, see [Search for files and folders](<https://developers.google.`com/workspace/drive/api/guides/search-files`>). This method accepts the q parameter, which is a search query combining one or more search terms. This method returns *all* files by default, including trashed files. If you don't want trashed files to appear in the list, use the trashed=`false` query parameter to remove trashed files from the results.
+/// Lists the user''s files. For more information, see [Search for files and folders](<https://developers.google.`com/workspace/drive/api/guides/search-files`>). This method accepts the q parameter, which is a search query combining one or more search terms. This method returns *all* files by default, including trashed files. If you don''t want trashed files to appear in the list, use the trashed=`false` query parameter to remove trashed files from the results.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `drive_files_list_builder()` + `drive_files_list_execute()`.
@@ -6643,7 +6643,7 @@ pub fn drive_files_modify_labels(
 }
 
 /// PATCH files/{fileId}
-/// Updates a file's metadata, content, or both. When calling this method, only populate fields in the request that you want to modify. When updating fields, some fields might be changed automatically, such as `modifiedDate`. This method supports patch semantics. This method supports an */upload* URI and accepts uploaded media with the following characteristics: - *Maximum file size:* 5,120 GB - *Accepted Media MIME types:* */* (Specify a valid MIME type, rather than the literal */* value. The literal */* is only used to indicate that any valid MIME type can be uploaded. For more information, see [Google Workspace and Google Drive supported MIME types](<https://developers.google.`com/workspace/drive/api/guides/mime-types`>).) For more information on uploading files, see [Upload file data](<https://developers.google.`com/workspace/drive/api/guides/manage-uploads`>).
+/// Updates a file''s metadata, content, or both. When calling this method, only populate fields in the request that you want to modify. When updating fields, some fields might be changed automatically, such as `modifiedDate`. This method supports patch semantics. This method supports an */upload* URI and accepts uploaded media with the following characteristics: - *Maximum file size:* 5,120 GB - *Accepted Media MIME types:* */* (Specify a valid MIME type, rather than the literal */* value. The literal */* is only used to indicate that any valid MIME type can be uploaded. For more information, see [Google Workspace and Google Drive supported MIME types](<https://developers.google.`com/workspace/drive/api/guides/mime-types`>).) For more information on uploading files, see [Upload file data](<https://developers.google.`com/workspace/drive/api/guides/manage-uploads`>).
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `drive_files_update_execute()` to send, or `drive_files_update` for simplest API.
@@ -6715,7 +6715,7 @@ where
 }
 
 /// PATCH files/{fileId}
-/// Updates a file's metadata, content, or both. When calling this method, only populate fields in the request that you want to modify. When updating fields, some fields might be changed automatically, such as `modifiedDate`. This method supports patch semantics. This method supports an */upload* URI and accepts uploaded media with the following characteristics: - *Maximum file size:* 5,120 GB - *Accepted Media MIME types:* */* (Specify a valid MIME type, rather than the literal */* value. The literal */* is only used to indicate that any valid MIME type can be uploaded. For more information, see [Google Workspace and Google Drive supported MIME types](<https://developers.google.`com/workspace/drive/api/guides/mime-types`>).) For more information on uploading files, see [Upload file data](<https://developers.google.`com/workspace/drive/api/guides/manage-uploads`>).
+/// Updates a file''s metadata, content, or both. When calling this method, only populate fields in the request that you want to modify. When updating fields, some fields might be changed automatically, such as `modifiedDate`. This method supports patch semantics. This method supports an */upload* URI and accepts uploaded media with the following characteristics: - *Maximum file size:* 5,120 GB - *Accepted Media MIME types:* */* (Specify a valid MIME type, rather than the literal */* value. The literal */* is only used to indicate that any valid MIME type can be uploaded. For more information, see [Google Workspace and Google Drive supported MIME types](<https://developers.google.`com/workspace/drive/api/guides/mime-types`>).) For more information on uploading files, see [Upload file data](<https://developers.google.`com/workspace/drive/api/guides/manage-uploads`>).
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -6789,7 +6789,7 @@ pub fn drive_files_update_task(
 }
 
 /// PATCH files/{fileId}
-/// Updates a file's metadata, content, or both. When calling this method, only populate fields in the request that you want to modify. When updating fields, some fields might be changed automatically, such as `modifiedDate`. This method supports patch semantics. This method supports an */upload* URI and accepts uploaded media with the following characteristics: - *Maximum file size:* 5,120 GB - *Accepted Media MIME types:* */* (Specify a valid MIME type, rather than the literal */* value. The literal */* is only used to indicate that any valid MIME type can be uploaded. For more information, see [Google Workspace and Google Drive supported MIME types](<https://developers.google.`com/workspace/drive/api/guides/mime-types`>).) For more information on uploading files, see [Upload file data](<https://developers.google.`com/workspace/drive/api/guides/manage-uploads`>).
+/// Updates a file''s metadata, content, or both. When calling this method, only populate fields in the request that you want to modify. When updating fields, some fields might be changed automatically, such as `modifiedDate`. This method supports patch semantics. This method supports an */upload* URI and accepts uploaded media with the following characteristics: - *Maximum file size:* 5,120 GB - *Accepted Media MIME types:* */* (Specify a valid MIME type, rather than the literal */* value. The literal */* is only used to indicate that any valid MIME type can be uploaded. For more information, see [Google Workspace and Google Drive supported MIME types](<https://developers.google.`com/workspace/drive/api/guides/mime-types`>).) For more information on uploading files, see [Upload file data](<https://developers.google.`com/workspace/drive/api/guides/manage-uploads`>).
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -6846,7 +6846,7 @@ pub struct DriveFilesUpdateArgs {
 }
 
 /// PATCH files/{fileId}
-/// Updates a file's metadata, content, or both. When calling this method, only populate fields in the request that you want to modify. When updating fields, some fields might be changed automatically, such as `modifiedDate`. This method supports patch semantics. This method supports an */upload* URI and accepts uploaded media with the following characteristics: - *Maximum file size:* 5,120 GB - *Accepted Media MIME types:* */* (Specify a valid MIME type, rather than the literal */* value. The literal */* is only used to indicate that any valid MIME type can be uploaded. For more information, see [Google Workspace and Google Drive supported MIME types](<https://developers.google.`com/workspace/drive/api/guides/mime-types`>).) For more information on uploading files, see [Upload file data](<https://developers.google.`com/workspace/drive/api/guides/manage-uploads`>).
+/// Updates a file''s metadata, content, or both. When calling this method, only populate fields in the request that you want to modify. When updating fields, some fields might be changed automatically, such as `modifiedDate`. This method supports patch semantics. This method supports an */upload* URI and accepts uploaded media with the following characteristics: - *Maximum file size:* 5,120 GB - *Accepted Media MIME types:* */* (Specify a valid MIME type, rather than the literal */* value. The literal */* is only used to indicate that any valid MIME type can be uploaded. For more information, see [Google Workspace and Google Drive supported MIME types](<https://developers.google.`com/workspace/drive/api/guides/mime-types`>).) For more information on uploading files, see [Upload file data](<https://developers.google.`com/workspace/drive/api/guides/manage-uploads`>).
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `drive_files_update_builder()` + `drive_files_update_execute()`.
@@ -7241,7 +7241,7 @@ pub fn drive_operations_get(
 }
 
 /// POST files/{fileId}/permissions
-/// Creates a permission for a file or shared drive. For more information, see [Share files, folders, and drives](<https://developers.google.`com/workspace/drive/api/guides/manage-sharing`>). **Warning:** Concurrent permissions operations on the same file aren't supported; only the last update is applied.
+/// Creates a permission for a file or shared drive. For more information, see [Share files, folders, and drives](<https://developers.google.`com/workspace/drive/api/guides/manage-sharing`>). **Warning:** Concurrent permissions operations on the same file aren''t supported; only the last update is applied.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `drive_permissions_create_execute()` to send, or `drive_permissions_create` for simplest API.
@@ -7312,7 +7312,7 @@ where
 }
 
 /// POST files/{fileId}/permissions
-/// Creates a permission for a file or shared drive. For more information, see [Share files, folders, and drives](<https://developers.google.`com/workspace/drive/api/guides/manage-sharing`>). **Warning:** Concurrent permissions operations on the same file aren't supported; only the last update is applied.
+/// Creates a permission for a file or shared drive. For more information, see [Share files, folders, and drives](<https://developers.google.`com/workspace/drive/api/guides/manage-sharing`>). **Warning:** Concurrent permissions operations on the same file aren''t supported; only the last update is applied.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -7386,7 +7386,7 @@ pub fn drive_permissions_create_task(
 }
 
 /// POST files/{fileId}/permissions
-/// Creates a permission for a file or shared drive. For more information, see [Share files, folders, and drives](<https://developers.google.`com/workspace/drive/api/guides/manage-sharing`>). **Warning:** Concurrent permissions operations on the same file aren't supported; only the last update is applied.
+/// Creates a permission for a file or shared drive. For more information, see [Share files, folders, and drives](<https://developers.google.`com/workspace/drive/api/guides/manage-sharing`>). **Warning:** Concurrent permissions operations on the same file aren''t supported; only the last update is applied.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -7441,7 +7441,7 @@ pub struct DrivePermissionsCreateArgs {
 }
 
 /// POST files/{fileId}/permissions
-/// Creates a permission for a file or shared drive. For more information, see [Share files, folders, and drives](<https://developers.google.`com/workspace/drive/api/guides/manage-sharing`>). **Warning:** Concurrent permissions operations on the same file aren't supported; only the last update is applied.
+/// Creates a permission for a file or shared drive. For more information, see [Share files, folders, and drives](<https://developers.google.`com/workspace/drive/api/guides/manage-sharing`>). **Warning:** Concurrent permissions operations on the same file aren''t supported; only the last update is applied.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `drive_permissions_create_builder()` + `drive_permissions_create_execute()`.
@@ -7475,7 +7475,7 @@ pub fn drive_permissions_create(
 }
 
 /// DELETE files/{fileId}/permissions/{permissionId}
-/// Deletes a permission. For more information, see [Share files, folders, and drives](<https://developers.google.`com/workspace/drive/api/guides/manage-sharing`>). **Warning:** Concurrent permissions operations on the same file aren't supported; only the last update is applied.
+/// Deletes a permission. For more information, see [Share files, folders, and drives](<https://developers.google.`com/workspace/drive/api/guides/manage-sharing`>). **Warning:** Concurrent permissions operations on the same file aren''t supported; only the last update is applied.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `drive_permissions_delete_execute()` to send, or `drive_permissions_delete` for simplest API.
@@ -7527,7 +7527,7 @@ where
 }
 
 /// DELETE files/{fileId}/permissions/{permissionId}
-/// Deletes a permission. For more information, see [Share files, folders, and drives](<https://developers.google.`com/workspace/drive/api/guides/manage-sharing`>). **Warning:** Concurrent permissions operations on the same file aren't supported; only the last update is applied.
+/// Deletes a permission. For more information, see [Share files, folders, and drives](<https://developers.google.`com/workspace/drive/api/guides/manage-sharing`>). **Warning:** Concurrent permissions operations on the same file aren''t supported; only the last update is applied.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -7598,7 +7598,7 @@ pub fn drive_permissions_delete_task(
 }
 
 /// DELETE files/{fileId}/permissions/{permissionId}
-/// Deletes a permission. For more information, see [Share files, folders, and drives](<https://developers.google.`com/workspace/drive/api/guides/manage-sharing`>). **Warning:** Concurrent permissions operations on the same file aren't supported; only the last update is applied.
+/// Deletes a permission. For more information, see [Share files, folders, and drives](<https://developers.google.`com/workspace/drive/api/guides/manage-sharing`>). **Warning:** Concurrent permissions operations on the same file aren''t supported; only the last update is applied.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -7645,7 +7645,7 @@ pub struct DrivePermissionsDeleteArgs {
 }
 
 /// DELETE files/{fileId}/permissions/{permissionId}
-/// Deletes a permission. For more information, see [Share files, folders, and drives](<https://developers.google.`com/workspace/drive/api/guides/manage-sharing`>). **Warning:** Concurrent permissions operations on the same file aren't supported; only the last update is applied.
+/// Deletes a permission. For more information, see [Share files, folders, and drives](<https://developers.google.`com/workspace/drive/api/guides/manage-sharing`>). **Warning:** Concurrent permissions operations on the same file aren''t supported; only the last update is applied.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `drive_permissions_delete_builder()` + `drive_permissions_delete_execute()`.
@@ -7871,7 +7871,7 @@ pub fn drive_permissions_get(
 }
 
 /// GET files/{fileId}/permissions
-/// Lists a file's or shared drive's permissions. For more information, see [Share files, folders, and drives](<https://developers.google.`com/workspace/drive/api/guides/manage-sharing`>).
+/// Lists a file''s or shared drive''s permissions. For more information, see [Share files, folders, and drives](<https://developers.google.`com/workspace/drive/api/guides/manage-sharing`>).
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `drive_permissions_list_execute()` to send, or `drive_permissions_list` for simplest API.
@@ -7930,7 +7930,7 @@ where
 }
 
 /// GET files/{fileId}/permissions
-/// Lists a file's or shared drive's permissions. For more information, see [Share files, folders, and drives](<https://developers.google.`com/workspace/drive/api/guides/manage-sharing`>).
+/// Lists a file''s or shared drive''s permissions. For more information, see [Share files, folders, and drives](<https://developers.google.`com/workspace/drive/api/guides/manage-sharing`>).
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -8004,7 +8004,7 @@ pub fn drive_permissions_list_task(
 }
 
 /// GET files/{fileId}/permissions
-/// Lists a file's or shared drive's permissions. For more information, see [Share files, folders, and drives](<https://developers.google.`com/workspace/drive/api/guides/manage-sharing`>).
+/// Lists a file''s or shared drive''s permissions. For more information, see [Share files, folders, and drives](<https://developers.google.`com/workspace/drive/api/guides/manage-sharing`>).
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -8055,7 +8055,7 @@ pub struct DrivePermissionsListArgs {
 }
 
 /// GET files/{fileId}/permissions
-/// Lists a file's or shared drive's permissions. For more information, see [Share files, folders, and drives](<https://developers.google.`com/workspace/drive/api/guides/manage-sharing`>).
+/// Lists a file''s or shared drive''s permissions. For more information, see [Share files, folders, and drives](<https://developers.google.`com/workspace/drive/api/guides/manage-sharing`>).
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `drive_permissions_list_builder()` + `drive_permissions_list_execute()`.
@@ -8088,7 +8088,7 @@ pub fn drive_permissions_list(
 }
 
 /// PATCH files/{fileId}/permissions/{permissionId}
-/// Updates a permission with patch semantics. For more information, see [Share files, folders, and drives](<https://developers.google.`com/workspace/drive/api/guides/manage-sharing`>). **Warning:** Concurrent permissions operations on the same file aren't supported; only the last update is applied.
+/// Updates a permission with patch semantics. For more information, see [Share files, folders, and drives](<https://developers.google.`com/workspace/drive/api/guides/manage-sharing`>). **Warning:** Concurrent permissions operations on the same file aren''t supported; only the last update is applied.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `drive_permissions_update_execute()` to send, or `drive_permissions_update` for simplest API.
@@ -8148,7 +8148,7 @@ where
 }
 
 /// PATCH files/{fileId}/permissions/{permissionId}
-/// Updates a permission with patch semantics. For more information, see [Share files, folders, and drives](<https://developers.google.`com/workspace/drive/api/guides/manage-sharing`>). **Warning:** Concurrent permissions operations on the same file aren't supported; only the last update is applied.
+/// Updates a permission with patch semantics. For more information, see [Share files, folders, and drives](<https://developers.google.`com/workspace/drive/api/guides/manage-sharing`>). **Warning:** Concurrent permissions operations on the same file aren''t supported; only the last update is applied.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -8222,7 +8222,7 @@ pub fn drive_permissions_update_task(
 }
 
 /// PATCH files/{fileId}/permissions/{permissionId}
-/// Updates a permission with patch semantics. For more information, see [Share files, folders, and drives](<https://developers.google.`com/workspace/drive/api/guides/manage-sharing`>). **Warning:** Concurrent permissions operations on the same file aren't supported; only the last update is applied.
+/// Updates a permission with patch semantics. For more information, see [Share files, folders, and drives](<https://developers.google.`com/workspace/drive/api/guides/manage-sharing`>). **Warning:** Concurrent permissions operations on the same file aren''t supported; only the last update is applied.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -8273,7 +8273,7 @@ pub struct DrivePermissionsUpdateArgs {
 }
 
 /// PATCH files/{fileId}/permissions/{permissionId}
-/// Updates a permission with patch semantics. For more information, see [Share files, folders, and drives](<https://developers.google.`com/workspace/drive/api/guides/manage-sharing`>). **Warning:** Concurrent permissions operations on the same file aren't supported; only the last update is applied.
+/// Updates a permission with patch semantics. For more information, see [Share files, folders, and drives](<https://developers.google.`com/workspace/drive/api/guides/manage-sharing`>). **Warning:** Concurrent permissions operations on the same file aren''t supported; only the last update is applied.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `drive_permissions_update_builder()` + `drive_permissions_update_execute()`.
@@ -8818,7 +8818,7 @@ pub fn drive_replies_get(
 }
 
 /// GET files/{fileId}/comments/{commentId}/replies
-/// Lists a comment's replies. For more information, see [Manage comments and replies](<https://developers.google.`com/workspace/drive/api/guides/manage-comments`>).
+/// Lists a comment''s replies. For more information, see [Manage comments and replies](<https://developers.google.`com/workspace/drive/api/guides/manage-comments`>).
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `drive_replies_list_execute()` to send, or `drive_replies_list` for simplest API.
@@ -8866,7 +8866,7 @@ where
 }
 
 /// GET files/{fileId}/comments/{commentId}/replies
-/// Lists a comment's replies. For more information, see [Manage comments and replies](<https://developers.google.`com/workspace/drive/api/guides/manage-comments`>).
+/// Lists a comment''s replies. For more information, see [Manage comments and replies](<https://developers.google.`com/workspace/drive/api/guides/manage-comments`>).
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -8940,7 +8940,7 @@ pub fn drive_replies_list_task(
 }
 
 /// GET files/{fileId}/comments/{commentId}/replies
-/// Lists a comment's replies. For more information, see [Manage comments and replies](<https://developers.google.`com/workspace/drive/api/guides/manage-comments`>).
+/// Lists a comment''s replies. For more information, see [Manage comments and replies](<https://developers.google.`com/workspace/drive/api/guides/manage-comments`>).
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -8985,7 +8985,7 @@ pub struct DriveRepliesListArgs {
 }
 
 /// GET files/{fileId}/comments/{commentId}/replies
-/// Lists a comment's replies. For more information, see [Manage comments and replies](<https://developers.google.`com/workspace/drive/api/guides/manage-comments`>).
+/// Lists a comment''s replies. For more information, see [Manage comments and replies](<https://developers.google.`com/workspace/drive/api/guides/manage-comments`>).
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `drive_replies_list_builder()` + `drive_replies_list_execute()`.
@@ -9181,7 +9181,7 @@ pub fn drive_replies_update(
 }
 
 /// DELETE files/{fileId}/revisions/{revisionId}
-/// Permanently deletes a file version. You can only delete revisions for files with binary content in Google Drive, like images or videos. Revisions for other files, like Google Docs or Sheets, and the last remaining file version can't be deleted. For more information, see [Manage file revisions](<https://developers.google.`com/drive/api/guides/manage-revisions`>).
+/// Permanently deletes a file version. You can only delete revisions for files with binary content in Google Drive, like images or videos. Revisions for other files, like Google Docs or Sheets, and the last remaining file version can''t be deleted. For more information, see [Manage file revisions](<https://developers.google.`com/drive/api/guides/manage-revisions`>).
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `drive_revisions_delete_execute()` to send, or `drive_revisions_delete` for simplest API.
@@ -9209,7 +9209,7 @@ where
 }
 
 /// DELETE files/{fileId}/revisions/{revisionId}
-/// Permanently deletes a file version. You can only delete revisions for files with binary content in Google Drive, like images or videos. Revisions for other files, like Google Docs or Sheets, and the last remaining file version can't be deleted. For more information, see [Manage file revisions](<https://developers.google.`com/drive/api/guides/manage-revisions`>).
+/// Permanently deletes a file version. You can only delete revisions for files with binary content in Google Drive, like images or videos. Revisions for other files, like Google Docs or Sheets, and the last remaining file version can''t be deleted. For more information, see [Manage file revisions](<https://developers.google.`com/drive/api/guides/manage-revisions`>).
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -9280,7 +9280,7 @@ pub fn drive_revisions_delete_task(
 }
 
 /// DELETE files/{fileId}/revisions/{revisionId}
-/// Permanently deletes a file version. You can only delete revisions for files with binary content in Google Drive, like images or videos. Revisions for other files, like Google Docs or Sheets, and the last remaining file version can't be deleted. For more information, see [Manage file revisions](<https://developers.google.`com/drive/api/guides/manage-revisions`>).
+/// Permanently deletes a file version. You can only delete revisions for files with binary content in Google Drive, like images or videos. Revisions for other files, like Google Docs or Sheets, and the last remaining file version can''t be deleted. For more information, see [Manage file revisions](<https://developers.google.`com/drive/api/guides/manage-revisions`>).
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -9319,7 +9319,7 @@ pub struct DriveRevisionsDeleteArgs {
 }
 
 /// DELETE files/{fileId}/revisions/{revisionId}
-/// Permanently deletes a file version. You can only delete revisions for files with binary content in Google Drive, like images or videos. Revisions for other files, like Google Docs or Sheets, and the last remaining file version can't be deleted. For more information, see [Manage file revisions](<https://developers.google.`com/drive/api/guides/manage-revisions`>).
+/// Permanently deletes a file version. You can only delete revisions for files with binary content in Google Drive, like images or videos. Revisions for other files, like Google Docs or Sheets, and the last remaining file version can''t be deleted. For more information, see [Manage file revisions](<https://developers.google.`com/drive/api/guides/manage-revisions`>).
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `drive_revisions_delete_builder()` + `drive_revisions_delete_execute()`.
@@ -9341,7 +9341,7 @@ pub fn drive_revisions_delete(
 }
 
 /// GET files/{fileId}/revisions/{revisionId}
-/// Gets a revision's metadata or content by ID. For more information, see [Manage file revisions](<https://developers.google.`com/workspace/drive/api/guides/manage-revisions`>).
+/// Gets a revision''s metadata or content by ID. For more information, see [Manage file revisions](<https://developers.google.`com/workspace/drive/api/guides/manage-revisions`>).
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `drive_revisions_get_execute()` to send, or `drive_revisions_get` for simplest API.
@@ -9381,7 +9381,7 @@ where
 }
 
 /// GET files/{fileId}/revisions/{revisionId}
-/// Gets a revision's metadata or content by ID. For more information, see [Manage file revisions](<https://developers.google.`com/workspace/drive/api/guides/manage-revisions`>).
+/// Gets a revision''s metadata or content by ID. For more information, see [Manage file revisions](<https://developers.google.`com/workspace/drive/api/guides/manage-revisions`>).
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -9455,7 +9455,7 @@ pub fn drive_revisions_get_task(
 }
 
 /// GET files/{fileId}/revisions/{revisionId}
-/// Gets a revision's metadata or content by ID. For more information, see [Manage file revisions](<https://developers.google.`com/workspace/drive/api/guides/manage-revisions`>).
+/// Gets a revision''s metadata or content by ID. For more information, see [Manage file revisions](<https://developers.google.`com/workspace/drive/api/guides/manage-revisions`>).
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -9496,7 +9496,7 @@ pub struct DriveRevisionsGetArgs {
 }
 
 /// GET files/{fileId}/revisions/{revisionId}
-/// Gets a revision's metadata or content by ID. For more information, see [Manage file revisions](<https://developers.google.`com/workspace/drive/api/guides/manage-revisions`>).
+/// Gets a revision''s metadata or content by ID. For more information, see [Manage file revisions](<https://developers.google.`com/workspace/drive/api/guides/manage-revisions`>).
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `drive_revisions_get_builder()` + `drive_revisions_get_execute()`.
@@ -9523,7 +9523,7 @@ pub fn drive_revisions_get(
 }
 
 /// GET files/{fileId}/revisions
-/// Lists a file's revisions. For more information, see [Manage file revisions](<https://developers.google.`com/workspace/drive/api/guides/manage-revisions`>). **Important:** The list of revisions returned by this method might be incomplete for files with a large revision history, including frequently edited Google Docs, Sheets, and Slides. Older revisions might be omitted from the response, meaning the first revision returned may not be the oldest existing revision. The revision history visible in the Workspace editor user interface might be more complete than the list returned by the API.
+/// Lists a file''s revisions. For more information, see [Manage file revisions](<https://developers.google.`com/workspace/drive/api/guides/manage-revisions`>). **Important:** The list of revisions returned by this method might be incomplete for files with a large revision history, including frequently edited Google Docs, Sheets, and Slides. Older revisions might be omitted from the response, meaning the first revision returned may not be the oldest existing revision. The revision history visible in the Workspace editor user interface might be more complete than the list returned by the API.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `drive_revisions_list_execute()` to send, or `drive_revisions_list` for simplest API.
@@ -9566,7 +9566,7 @@ where
 }
 
 /// GET files/{fileId}/revisions
-/// Lists a file's revisions. For more information, see [Manage file revisions](<https://developers.google.`com/workspace/drive/api/guides/manage-revisions`>). **Important:** The list of revisions returned by this method might be incomplete for files with a large revision history, including frequently edited Google Docs, Sheets, and Slides. Older revisions might be omitted from the response, meaning the first revision returned may not be the oldest existing revision. The revision history visible in the Workspace editor user interface might be more complete than the list returned by the API.
+/// Lists a file''s revisions. For more information, see [Manage file revisions](<https://developers.google.`com/workspace/drive/api/guides/manage-revisions`>). **Important:** The list of revisions returned by this method might be incomplete for files with a large revision history, including frequently edited Google Docs, Sheets, and Slides. Older revisions might be omitted from the response, meaning the first revision returned may not be the oldest existing revision. The revision history visible in the Workspace editor user interface might be more complete than the list returned by the API.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -9640,7 +9640,7 @@ pub fn drive_revisions_list_task(
 }
 
 /// GET files/{fileId}/revisions
-/// Lists a file's revisions. For more information, see [Manage file revisions](<https://developers.google.`com/workspace/drive/api/guides/manage-revisions`>). **Important:** The list of revisions returned by this method might be incomplete for files with a large revision history, including frequently edited Google Docs, Sheets, and Slides. Older revisions might be omitted from the response, meaning the first revision returned may not be the oldest existing revision. The revision history visible in the Workspace editor user interface might be more complete than the list returned by the API.
+/// Lists a file''s revisions. For more information, see [Manage file revisions](<https://developers.google.`com/workspace/drive/api/guides/manage-revisions`>). **Important:** The list of revisions returned by this method might be incomplete for files with a large revision history, including frequently edited Google Docs, Sheets, and Slides. Older revisions might be omitted from the response, meaning the first revision returned may not be the oldest existing revision. The revision history visible in the Workspace editor user interface might be more complete than the list returned by the API.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -9683,7 +9683,7 @@ pub struct DriveRevisionsListArgs {
 }
 
 /// GET files/{fileId}/revisions
-/// Lists a file's revisions. For more information, see [Manage file revisions](<https://developers.google.`com/workspace/drive/api/guides/manage-revisions`>). **Important:** The list of revisions returned by this method might be incomplete for files with a large revision history, including frequently edited Google Docs, Sheets, and Slides. Older revisions might be omitted from the response, meaning the first revision returned may not be the oldest existing revision. The revision history visible in the Workspace editor user interface might be more complete than the list returned by the API.
+/// Lists a file''s revisions. For more information, see [Manage file revisions](<https://developers.google.`com/workspace/drive/api/guides/manage-revisions`>). **Important:** The list of revisions returned by this method might be incomplete for files with a large revision history, including frequently edited Google Docs, Sheets, and Slides. Older revisions might be omitted from the response, meaning the first revision returned may not be the oldest existing revision. The revision history visible in the Workspace editor user interface might be more complete than the list returned by the API.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `drive_revisions_list_builder()` + `drive_revisions_list_execute()`.

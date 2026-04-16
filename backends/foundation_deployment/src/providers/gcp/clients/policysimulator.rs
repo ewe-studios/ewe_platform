@@ -873,7 +873,7 @@ pub fn policysimulator_folders_locations_replays_operations_get(
 }
 
 /// GET v1/folders/{foldersId}/locations/{locationsId}/replays/{replaysId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `policysimulator_folders_locations_replays_operations_list_execute()` to send, or `policysimulator_folders_locations_replays_operations_list` for simplest API.
@@ -924,7 +924,7 @@ where
 }
 
 /// GET v1/folders/{foldersId}/locations/{locationsId}/replays/{replaysId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -999,7 +999,7 @@ pub fn policysimulator_folders_locations_replays_operations_list_task(
 }
 
 /// GET v1/folders/{foldersId}/locations/{locationsId}/replays/{replaysId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -1048,7 +1048,7 @@ pub struct PolicysimulatorFoldersLocationsReplaysOperationsListArgs {
 }
 
 /// GET v1/folders/{foldersId}/locations/{locationsId}/replays/{replaysId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `policysimulator_folders_locations_replays_operations_list_builder()` + `policysimulator_folders_locations_replays_operations_list_execute()`.
@@ -1452,7 +1452,7 @@ pub fn policysimulator_operations_get(
 }
 
 /// GET v1/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `policysimulator_operations_list_execute()` to send, or `policysimulator_operations_list` for simplest API.
@@ -1499,7 +1499,7 @@ where
 }
 
 /// GET v1/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -1574,7 +1574,7 @@ pub fn policysimulator_operations_list_task(
 }
 
 /// GET v1/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -1621,7 +1621,7 @@ pub struct PolicysimulatorOperationsListArgs {
 }
 
 /// GET v1/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `policysimulator_operations_list_builder()` + `policysimulator_operations_list_execute()`.
@@ -3287,7 +3287,7 @@ pub fn policysimulator_organizations_locations_replays_operations_get(
 }
 
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/replays/{replaysId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `policysimulator_organizations_locations_replays_operations_list_execute()` to send, or `policysimulator_organizations_locations_replays_operations_list` for simplest API.
@@ -3338,7 +3338,7 @@ where
 }
 
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/replays/{replaysId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -3413,7 +3413,7 @@ pub fn policysimulator_organizations_locations_replays_operations_list_task(
 }
 
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/replays/{replaysId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -3462,7 +3462,7 @@ pub struct PolicysimulatorOrganizationsLocationsReplaysOperationsListArgs {
 }
 
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/replays/{replaysId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `policysimulator_organizations_locations_replays_operations_list_builder()` + `policysimulator_organizations_locations_replays_operations_list_execute()`.
@@ -4551,7 +4551,7 @@ pub fn policysimulator_projects_locations_replays_operations_get(
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/replays/{replaysId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `policysimulator_projects_locations_replays_operations_list_execute()` to send, or `policysimulator_projects_locations_replays_operations_list` for simplest API.
@@ -4602,7 +4602,7 @@ where
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/replays/{replaysId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -4677,7 +4677,7 @@ pub fn policysimulator_projects_locations_replays_operations_list_task(
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/replays/{replaysId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -4726,7 +4726,7 @@ pub struct PolicysimulatorProjectsLocationsReplaysOperationsListArgs {
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/replays/{replaysId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `policysimulator_projects_locations_replays_operations_list_builder()` + `policysimulator_projects_locations_replays_operations_list_execute()`.

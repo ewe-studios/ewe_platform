@@ -2831,7 +2831,7 @@ pub fn appengine_apps_domain_mappings_patch(
 }
 
 /// POST v1/apps/{appsId}/firewall/ingressRules:batchUpdate
-/// Replaces the entire firewall ruleset in one bulk operation. This overrides and replaces the rules of an existing firewall with the new rules.If the final rule does not match traffic with the '*' wildcard IP range, then an "allow all" rule is explicitly added to the end of the list.
+/// Replaces the entire firewall ruleset in one bulk operation. This overrides and replaces the rules of an existing firewall with the new rules.If the final rule does not match traffic with the ''*'' wildcard IP range, then an "allow all" rule is explicitly added to the end of the list.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `appengine_apps_firewall_ingress_rules_batch_update_execute()` to send, or `appengine_apps_firewall_ingress_rules_batch_update` for simplest API.
@@ -2858,7 +2858,7 @@ where
 }
 
 /// POST v1/apps/{appsId}/firewall/ingressRules:batchUpdate
-/// Replaces the entire firewall ruleset in one bulk operation. This overrides and replaces the rules of an existing firewall with the new rules.If the final rule does not match traffic with the '*' wildcard IP range, then an "allow all" rule is explicitly added to the end of the list.
+/// Replaces the entire firewall ruleset in one bulk operation. This overrides and replaces the rules of an existing firewall with the new rules.If the final rule does not match traffic with the ''*'' wildcard IP range, then an "allow all" rule is explicitly added to the end of the list.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -2932,7 +2932,7 @@ pub fn appengine_apps_firewall_ingress_rules_batch_update_task(
 }
 
 /// POST v1/apps/{appsId}/firewall/ingressRules:batchUpdate
-/// Replaces the entire firewall ruleset in one bulk operation. This overrides and replaces the rules of an existing firewall with the new rules.If the final rule does not match traffic with the '*' wildcard IP range, then an "allow all" rule is explicitly added to the end of the list.
+/// Replaces the entire firewall ruleset in one bulk operation. This overrides and replaces the rules of an existing firewall with the new rules.If the final rule does not match traffic with the ''*'' wildcard IP range, then an "allow all" rule is explicitly added to the end of the list.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -2973,7 +2973,7 @@ pub struct AppengineAppsFirewallIngressRulesBatchUpdateArgs {
 }
 
 /// POST v1/apps/{appsId}/firewall/ingressRules:batchUpdate
-/// Replaces the entire firewall ruleset in one bulk operation. This overrides and replaces the rules of an existing firewall with the new rules.If the final rule does not match traffic with the '*' wildcard IP range, then an "allow all" rule is explicitly added to the end of the list.
+/// Replaces the entire firewall ruleset in one bulk operation. This overrides and replaces the rules of an existing firewall with the new rules.If the final rule does not match traffic with the ''*'' wildcard IP range, then an "allow all" rule is explicitly added to the end of the list.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `appengine_apps_firewall_ingress_rules_batch_update_builder()` + `appengine_apps_firewall_ingress_rules_batch_update_execute()`.
@@ -4412,7 +4412,7 @@ pub fn appengine_apps_operations_get(
 }
 
 /// GET v1/apps/{appsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `appengine_apps_operations_list_execute()` to send, or `appengine_apps_operations_list` for simplest API.
@@ -4463,7 +4463,7 @@ where
 }
 
 /// GET v1/apps/{appsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -4537,7 +4537,7 @@ pub fn appengine_apps_operations_list_task(
 }
 
 /// GET v1/apps/{appsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -4584,7 +4584,7 @@ pub struct AppengineAppsOperationsListArgs {
 }
 
 /// GET v1/apps/{appsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `appengine_apps_operations_list_builder()` + `appengine_apps_operations_list_execute()`.

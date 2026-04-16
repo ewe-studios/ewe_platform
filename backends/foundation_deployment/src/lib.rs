@@ -14,3 +14,5 @@ pub mod json_schema;
 pub mod provider_client;
 pub mod providers;
 pub mod resource_info;
+pub mod traits;
+pub mod types;

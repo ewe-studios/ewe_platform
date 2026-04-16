@@ -347,7 +347,7 @@ pub fn firebaseappcheck_oauth_clients_exchange_app_attest_assertion(
 }
 
 /// POST v1/oauthClients/{oauthClientsId}:exchangeAppAttestAttestation
-/// Accepts an App Attest CBOR attestation and verifies it with Apple using your preconfigured team and bundle IDs. If valid, returns an attestation artifact that can later be exchanged for an AppCheckToken using ExchangeAppAttestAssertion. For convenience and performance, this method's response object will also contain an AppCheckToken (if the verification is successful).
+/// Accepts an App Attest CBOR attestation and verifies it with Apple using your preconfigured team and bundle IDs. If valid, returns an attestation artifact that can later be exchanged for an AppCheckToken using ExchangeAppAttestAssertion. For convenience and performance, this method''s response object will also contain an AppCheckToken (if the verification is successful).
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebaseappcheck_oauth_clients_exchange_app_attest_attestation_execute()` to send, or `firebaseappcheck_oauth_clients_exchange_app_attest_attestation` for simplest API.
@@ -374,7 +374,7 @@ where
 }
 
 /// POST v1/oauthClients/{oauthClientsId}:exchangeAppAttestAttestation
-/// Accepts an App Attest CBOR attestation and verifies it with Apple using your preconfigured team and bundle IDs. If valid, returns an attestation artifact that can later be exchanged for an AppCheckToken using ExchangeAppAttestAssertion. For convenience and performance, this method's response object will also contain an AppCheckToken (if the verification is successful).
+/// Accepts an App Attest CBOR attestation and verifies it with Apple using your preconfigured team and bundle IDs. If valid, returns an attestation artifact that can later be exchanged for an AppCheckToken using ExchangeAppAttestAssertion. For convenience and performance, this method''s response object will also contain an AppCheckToken (if the verification is successful).
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -452,7 +452,7 @@ pub fn firebaseappcheck_oauth_clients_exchange_app_attest_attestation_task(
 }
 
 /// POST v1/oauthClients/{oauthClientsId}:exchangeAppAttestAttestation
-/// Accepts an App Attest CBOR attestation and verifies it with Apple using your preconfigured team and bundle IDs. If valid, returns an attestation artifact that can later be exchanged for an AppCheckToken using ExchangeAppAttestAssertion. For convenience and performance, this method's response object will also contain an AppCheckToken (if the verification is successful).
+/// Accepts an App Attest CBOR attestation and verifies it with Apple using your preconfigured team and bundle IDs. If valid, returns an attestation artifact that can later be exchanged for an AppCheckToken using ExchangeAppAttestAssertion. For convenience and performance, this method''s response object will also contain an AppCheckToken (if the verification is successful).
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -496,7 +496,7 @@ pub struct FirebaseappcheckOauthClientsExchangeAppAttestAttestationArgs {
 }
 
 /// POST v1/oauthClients/{oauthClientsId}:exchangeAppAttestAttestation
-/// Accepts an App Attest CBOR attestation and verifies it with Apple using your preconfigured team and bundle IDs. If valid, returns an attestation artifact that can later be exchanged for an AppCheckToken using ExchangeAppAttestAssertion. For convenience and performance, this method's response object will also contain an AppCheckToken (if the verification is successful).
+/// Accepts an App Attest CBOR attestation and verifies it with Apple using your preconfigured team and bundle IDs. If valid, returns an attestation artifact that can later be exchanged for an AppCheckToken using ExchangeAppAttestAssertion. For convenience and performance, this method''s response object will also contain an AppCheckToken (if the verification is successful).
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `firebaseappcheck_oauth_clients_exchange_app_attest_attestation_builder()` + `firebaseappcheck_oauth_clients_exchange_app_attest_attestation_execute()`.
@@ -1042,7 +1042,7 @@ pub fn firebaseappcheck_projects_apps_exchange_app_attest_assertion(
 }
 
 /// POST v1/projects/{projectsId}/apps/{appsId}:exchangeAppAttestAttestation
-/// Accepts an App Attest CBOR attestation and verifies it with Apple using your preconfigured team and bundle IDs. If valid, returns an attestation artifact that can later be exchanged for an AppCheckToken using ExchangeAppAttestAssertion. For convenience and performance, this method's response object will also contain an AppCheckToken (if the verification is successful).
+/// Accepts an App Attest CBOR attestation and verifies it with Apple using your preconfigured team and bundle IDs. If valid, returns an attestation artifact that can later be exchanged for an AppCheckToken using ExchangeAppAttestAssertion. For convenience and performance, this method''s response object will also contain an AppCheckToken (if the verification is successful).
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebaseappcheck_projects_apps_exchange_app_attest_attestation_execute()` to send, or `firebaseappcheck_projects_apps_exchange_app_attest_attestation` for simplest API.
@@ -1069,7 +1069,7 @@ where
 }
 
 /// POST v1/projects/{projectsId}/apps/{appsId}:exchangeAppAttestAttestation
-/// Accepts an App Attest CBOR attestation and verifies it with Apple using your preconfigured team and bundle IDs. If valid, returns an attestation artifact that can later be exchanged for an AppCheckToken using ExchangeAppAttestAssertion. For convenience and performance, this method's response object will also contain an AppCheckToken (if the verification is successful).
+/// Accepts an App Attest CBOR attestation and verifies it with Apple using your preconfigured team and bundle IDs. If valid, returns an attestation artifact that can later be exchanged for an AppCheckToken using ExchangeAppAttestAssertion. For convenience and performance, this method''s response object will also contain an AppCheckToken (if the verification is successful).
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -1147,7 +1147,7 @@ pub fn firebaseappcheck_projects_apps_exchange_app_attest_attestation_task(
 }
 
 /// POST v1/projects/{projectsId}/apps/{appsId}:exchangeAppAttestAttestation
-/// Accepts an App Attest CBOR attestation and verifies it with Apple using your preconfigured team and bundle IDs. If valid, returns an attestation artifact that can later be exchanged for an AppCheckToken using ExchangeAppAttestAssertion. For convenience and performance, this method's response object will also contain an AppCheckToken (if the verification is successful).
+/// Accepts an App Attest CBOR attestation and verifies it with Apple using your preconfigured team and bundle IDs. If valid, returns an attestation artifact that can later be exchanged for an AppCheckToken using ExchangeAppAttestAssertion. For convenience and performance, this method''s response object will also contain an AppCheckToken (if the verification is successful).
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -1191,7 +1191,7 @@ pub struct FirebaseappcheckProjectsAppsExchangeAppAttestAttestationArgs {
 }
 
 /// POST v1/projects/{projectsId}/apps/{appsId}:exchangeAppAttestAttestation
-/// Accepts an App Attest CBOR attestation and verifies it with Apple using your preconfigured team and bundle IDs. If valid, returns an attestation artifact that can later be exchanged for an AppCheckToken using ExchangeAppAttestAssertion. For convenience and performance, this method's response object will also contain an AppCheckToken (if the verification is successful).
+/// Accepts an App Attest CBOR attestation and verifies it with Apple using your preconfigured team and bundle IDs. If valid, returns an attestation artifact that can later be exchanged for an AppCheckToken using ExchangeAppAttestAssertion. For convenience and performance, this method''s response object will also contain an AppCheckToken (if the verification is successful).
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `firebaseappcheck_projects_apps_exchange_app_attest_attestation_builder()` + `firebaseappcheck_projects_apps_exchange_app_attest_attestation_execute()`.
@@ -1221,7 +1221,7 @@ pub fn firebaseappcheck_projects_apps_exchange_app_attest_attestation(
 }
 
 /// POST v1/projects/{projectsId}/apps/{appsId}:exchangeCustomToken
-/// Validates a custom token signed using your project's Admin SDK service account credentials. If valid, returns an AppCheckToken.
+/// Validates a custom token signed using your project''s Admin SDK service account credentials. If valid, returns an AppCheckToken.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebaseappcheck_projects_apps_exchange_custom_token_execute()` to send, or `firebaseappcheck_projects_apps_exchange_custom_token` for simplest API.
@@ -1248,7 +1248,7 @@ where
 }
 
 /// POST v1/projects/{projectsId}/apps/{appsId}:exchangeCustomToken
-/// Validates a custom token signed using your project's Admin SDK service account credentials. If valid, returns an AppCheckToken.
+/// Validates a custom token signed using your project''s Admin SDK service account credentials. If valid, returns an AppCheckToken.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -1322,7 +1322,7 @@ pub fn firebaseappcheck_projects_apps_exchange_custom_token_task(
 }
 
 /// POST v1/projects/{projectsId}/apps/{appsId}:exchangeCustomToken
-/// Validates a custom token signed using your project's Admin SDK service account credentials. If valid, returns an AppCheckToken.
+/// Validates a custom token signed using your project''s Admin SDK service account credentials. If valid, returns an AppCheckToken.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -1363,7 +1363,7 @@ pub struct FirebaseappcheckProjectsAppsExchangeCustomTokenArgs {
 }
 
 /// POST v1/projects/{projectsId}/apps/{appsId}:exchangeCustomToken
-/// Validates a custom token signed using your project's Admin SDK service account credentials. If valid, returns an AppCheckToken.
+/// Validates a custom token signed using your project''s Admin SDK service account credentials. If valid, returns an AppCheckToken.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `firebaseappcheck_projects_apps_exchange_custom_token_builder()` + `firebaseappcheck_projects_apps_exchange_custom_token_execute()`.

@@ -17385,7 +17385,7 @@ pub fn tagmanager_accounts_containers_workspaces_zones_update(
 }
 
 /// POST tagmanager/v2/accounts/{accountsId}/user_permissions
-/// Creates a user's Account & Container access.
+/// Creates a user''s Account & Container access.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tagmanager_accounts_user_permissions_create_execute()` to send, or `tagmanager_accounts_user_permissions_create` for simplest API.
@@ -17412,7 +17412,7 @@ where
 }
 
 /// POST tagmanager/v2/accounts/{accountsId}/user_permissions
-/// Creates a user's Account & Container access.
+/// Creates a user''s Account & Container access.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -17486,7 +17486,7 @@ pub fn tagmanager_accounts_user_permissions_create_task(
 }
 
 /// POST tagmanager/v2/accounts/{accountsId}/user_permissions
-/// Creates a user's Account & Container access.
+/// Creates a user''s Account & Container access.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -17525,7 +17525,7 @@ pub struct TagmanagerAccountsUserPermissionsCreateArgs {
 }
 
 /// POST tagmanager/v2/accounts/{accountsId}/user_permissions
-/// Creates a user's Account & Container access.
+/// Creates a user''s Account & Container access.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `tagmanager_accounts_user_permissions_create_builder()` + `tagmanager_accounts_user_permissions_create_execute()`.
@@ -17706,7 +17706,7 @@ pub fn tagmanager_accounts_user_permissions_delete(
 }
 
 /// GET tagmanager/v2/accounts/{accountsId}/user_permissions/{user_permissionsId}
-/// Gets a user's Account & Container access.
+/// Gets a user''s Account & Container access.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tagmanager_accounts_user_permissions_get_execute()` to send, or `tagmanager_accounts_user_permissions_get` for simplest API.
@@ -17733,7 +17733,7 @@ where
 }
 
 /// GET tagmanager/v2/accounts/{accountsId}/user_permissions/{user_permissionsId}
-/// Gets a user's Account & Container access.
+/// Gets a user''s Account & Container access.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -17807,7 +17807,7 @@ pub fn tagmanager_accounts_user_permissions_get_task(
 }
 
 /// GET tagmanager/v2/accounts/{accountsId}/user_permissions/{user_permissionsId}
-/// Gets a user's Account & Container access.
+/// Gets a user''s Account & Container access.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -17846,7 +17846,7 @@ pub struct TagmanagerAccountsUserPermissionsGetArgs {
 }
 
 /// GET tagmanager/v2/accounts/{accountsId}/user_permissions/{user_permissionsId}
-/// Gets a user's Account & Container access.
+/// Gets a user''s Account & Container access.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `tagmanager_accounts_user_permissions_get_builder()` + `tagmanager_accounts_user_permissions_get_execute()`.
@@ -18053,7 +18053,7 @@ pub fn tagmanager_accounts_user_permissions_list(
 }
 
 /// PUT tagmanager/v2/accounts/{accountsId}/user_permissions/{user_permissionsId}
-/// Updates a user's Account & Container access.
+/// Updates a user''s Account & Container access.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `tagmanager_accounts_user_permissions_update_execute()` to send, or `tagmanager_accounts_user_permissions_update` for simplest API.
@@ -18080,7 +18080,7 @@ where
 }
 
 /// PUT tagmanager/v2/accounts/{accountsId}/user_permissions/{user_permissionsId}
-/// Updates a user's Account & Container access.
+/// Updates a user''s Account & Container access.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -18154,7 +18154,7 @@ pub fn tagmanager_accounts_user_permissions_update_task(
 }
 
 /// PUT tagmanager/v2/accounts/{accountsId}/user_permissions/{user_permissionsId}
-/// Updates a user's Account & Container access.
+/// Updates a user''s Account & Container access.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -18193,7 +18193,7 @@ pub struct TagmanagerAccountsUserPermissionsUpdateArgs {
 }
 
 /// PUT tagmanager/v2/accounts/{accountsId}/user_permissions/{user_permissionsId}
-/// Updates a user's Account & Container access.
+/// Updates a user''s Account & Container access.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `tagmanager_accounts_user_permissions_update_builder()` + `tagmanager_accounts_user_permissions_update_execute()`.

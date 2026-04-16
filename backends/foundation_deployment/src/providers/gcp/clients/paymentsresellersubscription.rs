@@ -22,7 +22,7 @@ use foundation_macros::JsonHash;
 use serde::Serialize;
 
 /// GET v1/partners/{partnersId}/products
-/// Currently, it doesn't support **YouTube** products. Retrieves the products that can be resold by the partner. It should be authenticated with a service account.
+/// Currently, it doesn''t support **YouTube** products. Retrieves the products that can be resold by the partner. It should be authenticated with a service account.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `paymentsresellersubscription_partners_products_list_execute()` to send, or `paymentsresellersubscription_partners_products_list` for simplest API.
@@ -69,7 +69,7 @@ where
 }
 
 /// GET v1/partners/{partnersId}/products
-/// Currently, it doesn't support **YouTube** products. Retrieves the products that can be resold by the partner. It should be authenticated with a service account.
+/// Currently, it doesn''t support **YouTube** products. Retrieves the products that can be resold by the partner. It should be authenticated with a service account.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -143,7 +143,7 @@ pub fn paymentsresellersubscription_partners_products_list_task(
 }
 
 /// GET v1/partners/{partnersId}/products
-/// Currently, it doesn't support **YouTube** products. Retrieves the products that can be resold by the partner. It should be authenticated with a service account.
+/// Currently, it doesn''t support **YouTube** products. Retrieves the products that can be resold by the partner. It should be authenticated with a service account.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -188,7 +188,7 @@ pub struct PaymentsresellersubscriptionPartnersProductsListArgs {
 }
 
 /// GET v1/partners/{partnersId}/products
-/// Currently, it doesn't support **YouTube** products. Retrieves the products that can be resold by the partner. It should be authenticated with a service account.
+/// Currently, it doesn''t support **YouTube** products. Retrieves the products that can be resold by the partner. It should be authenticated with a service account.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `paymentsresellersubscription_partners_products_list_builder()` + `paymentsresellersubscription_partners_products_list_execute()`.
@@ -389,7 +389,7 @@ pub fn paymentsresellersubscription_partners_promotions_find_eligible(
 }
 
 /// GET v1/partners/{partnersId}/promotions
-/// Currently, it doesn't support **YouTube** promotions. Retrieves the promotions, such as free trial, that can be used by the partner. It should be authenticated with a service account.
+/// Currently, it doesn''t support **YouTube** promotions. Retrieves the promotions, such as free trial, that can be used by the partner. It should be authenticated with a service account.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `paymentsresellersubscription_partners_promotions_list_execute()` to send, or `paymentsresellersubscription_partners_promotions_list` for simplest API.
@@ -436,7 +436,7 @@ where
 }
 
 /// GET v1/partners/{partnersId}/promotions
-/// Currently, it doesn't support **YouTube** promotions. Retrieves the promotions, such as free trial, that can be used by the partner. It should be authenticated with a service account.
+/// Currently, it doesn''t support **YouTube** promotions. Retrieves the promotions, such as free trial, that can be used by the partner. It should be authenticated with a service account.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -510,7 +510,7 @@ pub fn paymentsresellersubscription_partners_promotions_list_task(
 }
 
 /// GET v1/partners/{partnersId}/promotions
-/// Currently, it doesn't support **YouTube** promotions. Retrieves the promotions, such as free trial, that can be used by the partner. It should be authenticated with a service account.
+/// Currently, it doesn''t support **YouTube** promotions. Retrieves the promotions, such as free trial, that can be used by the partner. It should be authenticated with a service account.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -555,7 +555,7 @@ pub struct PaymentsresellersubscriptionPartnersPromotionsListArgs {
 }
 
 /// GET v1/partners/{partnersId}/promotions
-/// Currently, it doesn't support **YouTube** promotions. Retrieves the promotions, such as free trial, that can be used by the partner. It should be authenticated with a service account.
+/// Currently, it doesn''t support **YouTube** promotions. Retrieves the promotions, such as free trial, that can be used by the partner. It should be authenticated with a service account.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `paymentsresellersubscription_partners_promotions_list_builder()` + `paymentsresellersubscription_partners_promotions_list_execute()`.

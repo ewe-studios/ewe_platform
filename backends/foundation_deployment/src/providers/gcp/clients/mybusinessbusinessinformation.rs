@@ -840,7 +840,7 @@ pub fn mybusinessbusinessinformation_categories_batch_get(
 }
 
 /// GET v1/categories
-/// Returns a list of business categories. Search will match the category name but not the category ID. Search only matches the front of a category name (that is, 'food' may return 'Food Court' but not 'Fast Food Restaurant').
+/// Returns a list of business categories. Search will match the category name but not the category ID. Search only matches the front of a category name (that is, ''food'' may return ''Food Court'' but not ''Fast Food Restaurant'').
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `mybusinessbusinessinformation_categories_list_execute()` to send, or `mybusinessbusinessinformation_categories_list` for simplest API.
@@ -896,7 +896,7 @@ where
 }
 
 /// GET v1/categories
-/// Returns a list of business categories. Search will match the category name but not the category ID. Search only matches the front of a category name (that is, 'food' may return 'Food Court' but not 'Fast Food Restaurant').
+/// Returns a list of business categories. Search will match the category name but not the category ID. Search only matches the front of a category name (that is, ''food'' may return ''Food Court'' but not ''Fast Food Restaurant'').
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -970,7 +970,7 @@ pub fn mybusinessbusinessinformation_categories_list_task(
 }
 
 /// GET v1/categories
-/// Returns a list of business categories. Search will match the category name but not the category ID. Search only matches the front of a category name (that is, 'food' may return 'Food Court' but not 'Fast Food Restaurant').
+/// Returns a list of business categories. Search will match the category name but not the category ID. Search only matches the front of a category name (that is, ''food'' may return ''Food Court'' but not ''Fast Food Restaurant'').
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -1019,7 +1019,7 @@ pub struct MybusinessbusinessinformationCategoriesListArgs {
 }
 
 /// GET v1/categories
-/// Returns a list of business categories. Search will match the category name but not the category ID. Search only matches the front of a category name (that is, 'food' may return 'Food Court' but not 'Fast Food Restaurant').
+/// Returns a list of business categories. Search will match the category name but not the category ID. Search only matches the front of a category name (that is, ''food'' may return ''Food Court'' but not ''Fast Food Restaurant'').
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `mybusinessbusinessinformation_categories_list_builder()` + `mybusinessbusinessinformation_categories_list_execute()`.

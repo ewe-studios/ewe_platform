@@ -354,7 +354,7 @@ pub fn billingbudgets_billing_accounts_budgets_delete(
 }
 
 /// GET v1/billingAccounts/{billingAccountsId}/budgets/{budgetsId}
-/// Returns a budget. WARNING: There are some fields exposed on the Google Cloud Console that aren't available on this API. When reading from the API, you will not see these fields in the return value, though they may have been set in the Cloud Console.
+/// Returns a budget. WARNING: There are some fields exposed on the Google Cloud Console that aren''t available on this API. When reading from the API, you will not see these fields in the return value, though they may have been set in the Cloud Console.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `billingbudgets_billing_accounts_budgets_get_execute()` to send, or `billingbudgets_billing_accounts_budgets_get` for simplest API.
@@ -381,7 +381,7 @@ where
 }
 
 /// GET v1/billingAccounts/{billingAccountsId}/budgets/{budgetsId}
-/// Returns a budget. WARNING: There are some fields exposed on the Google Cloud Console that aren't available on this API. When reading from the API, you will not see these fields in the return value, though they may have been set in the Cloud Console.
+/// Returns a budget. WARNING: There are some fields exposed on the Google Cloud Console that aren''t available on this API. When reading from the API, you will not see these fields in the return value, though they may have been set in the Cloud Console.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -455,7 +455,7 @@ pub fn billingbudgets_billing_accounts_budgets_get_task(
 }
 
 /// GET v1/billingAccounts/{billingAccountsId}/budgets/{budgetsId}
-/// Returns a budget. WARNING: There are some fields exposed on the Google Cloud Console that aren't available on this API. When reading from the API, you will not see these fields in the return value, though they may have been set in the Cloud Console.
+/// Returns a budget. WARNING: There are some fields exposed on the Google Cloud Console that aren''t available on this API. When reading from the API, you will not see these fields in the return value, though they may have been set in the Cloud Console.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -496,7 +496,7 @@ pub struct BillingbudgetsBillingAccountsBudgetsGetArgs {
 }
 
 /// GET v1/billingAccounts/{billingAccountsId}/budgets/{budgetsId}
-/// Returns a budget. WARNING: There are some fields exposed on the Google Cloud Console that aren't available on this API. When reading from the API, you will not see these fields in the return value, though they may have been set in the Cloud Console.
+/// Returns a budget. WARNING: There are some fields exposed on the Google Cloud Console that aren''t available on this API. When reading from the API, you will not see these fields in the return value, though they may have been set in the Cloud Console.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `billingbudgets_billing_accounts_budgets_get_builder()` + `billingbudgets_billing_accounts_budgets_get_execute()`.
@@ -522,7 +522,7 @@ pub fn billingbudgets_billing_accounts_budgets_get(
 }
 
 /// GET v1/billingAccounts/{billingAccountsId}/budgets
-/// Returns a list of budgets for a billing account. WARNING: There are some fields exposed on the Google Cloud Console that aren't available on this API. When reading from the API, you will not see these fields in the return value, though they may have been set in the Cloud Console.
+/// Returns a list of budgets for a billing account. WARNING: There are some fields exposed on the Google Cloud Console that aren''t available on this API. When reading from the API, you will not see these fields in the return value, though they may have been set in the Cloud Console.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `billingbudgets_billing_accounts_budgets_list_execute()` to send, or `billingbudgets_billing_accounts_budgets_list` for simplest API.
@@ -569,7 +569,7 @@ where
 }
 
 /// GET v1/billingAccounts/{billingAccountsId}/budgets
-/// Returns a list of budgets for a billing account. WARNING: There are some fields exposed on the Google Cloud Console that aren't available on this API. When reading from the API, you will not see these fields in the return value, though they may have been set in the Cloud Console.
+/// Returns a list of budgets for a billing account. WARNING: There are some fields exposed on the Google Cloud Console that aren''t available on this API. When reading from the API, you will not see these fields in the return value, though they may have been set in the Cloud Console.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -644,7 +644,7 @@ pub fn billingbudgets_billing_accounts_budgets_list_task(
 }
 
 /// GET v1/billingAccounts/{billingAccountsId}/budgets
-/// Returns a list of budgets for a billing account. WARNING: There are some fields exposed on the Google Cloud Console that aren't available on this API. When reading from the API, you will not see these fields in the return value, though they may have been set in the Cloud Console.
+/// Returns a list of budgets for a billing account. WARNING: There are some fields exposed on the Google Cloud Console that aren''t available on this API. When reading from the API, you will not see these fields in the return value, though they may have been set in the Cloud Console.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -691,7 +691,7 @@ pub struct BillingbudgetsBillingAccountsBudgetsListArgs {
 }
 
 /// GET v1/billingAccounts/{billingAccountsId}/budgets
-/// Returns a list of budgets for a billing account. WARNING: There are some fields exposed on the Google Cloud Console that aren't available on this API. When reading from the API, you will not see these fields in the return value, though they may have been set in the Cloud Console.
+/// Returns a list of budgets for a billing account. WARNING: There are some fields exposed on the Google Cloud Console that aren''t available on this API. When reading from the API, you will not see these fields in the return value, though they may have been set in the Cloud Console.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `billingbudgets_billing_accounts_budgets_list_builder()` + `billingbudgets_billing_accounts_budgets_list_execute()`.
@@ -723,7 +723,7 @@ pub fn billingbudgets_billing_accounts_budgets_list(
 }
 
 /// PATCH v1/billingAccounts/{billingAccountsId}/budgets/{budgetsId}
-/// Updates a budget and returns the updated budget. WARNING: There are some fields exposed on the Google Cloud Console that aren't available on this API. Budget fields that are not exposed in this API will not be changed by this method.
+/// Updates a budget and returns the updated budget. WARNING: There are some fields exposed on the Google Cloud Console that aren''t available on this API. Budget fields that are not exposed in this API will not be changed by this method.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `billingbudgets_billing_accounts_budgets_patch_execute()` to send, or `billingbudgets_billing_accounts_budgets_patch` for simplest API.
@@ -762,7 +762,7 @@ where
 }
 
 /// PATCH v1/billingAccounts/{billingAccountsId}/budgets/{budgetsId}
-/// Updates a budget and returns the updated budget. WARNING: There are some fields exposed on the Google Cloud Console that aren't available on this API. Budget fields that are not exposed in this API will not be changed by this method.
+/// Updates a budget and returns the updated budget. WARNING: There are some fields exposed on the Google Cloud Console that aren''t available on this API. Budget fields that are not exposed in this API will not be changed by this method.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -836,7 +836,7 @@ pub fn billingbudgets_billing_accounts_budgets_patch_task(
 }
 
 /// PATCH v1/billingAccounts/{billingAccountsId}/budgets/{budgetsId}
-/// Updates a budget and returns the updated budget. WARNING: There are some fields exposed on the Google Cloud Console that aren't available on this API. Budget fields that are not exposed in this API will not be changed by this method.
+/// Updates a budget and returns the updated budget. WARNING: There are some fields exposed on the Google Cloud Console that aren''t available on this API. Budget fields that are not exposed in this API will not be changed by this method.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -879,7 +879,7 @@ pub struct BillingbudgetsBillingAccountsBudgetsPatchArgs {
 }
 
 /// PATCH v1/billingAccounts/{billingAccountsId}/budgets/{budgetsId}
-/// Updates a budget and returns the updated budget. WARNING: There are some fields exposed on the Google Cloud Console that aren't available on this API. Budget fields that are not exposed in this API will not be changed by this method.
+/// Updates a budget and returns the updated budget. WARNING: There are some fields exposed on the Google Cloud Console that aren''t available on this API. Budget fields that are not exposed in this API will not be changed by this method.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `billingbudgets_billing_accounts_budgets_patch_builder()` + `billingbudgets_billing_accounts_budgets_patch_execute()`.

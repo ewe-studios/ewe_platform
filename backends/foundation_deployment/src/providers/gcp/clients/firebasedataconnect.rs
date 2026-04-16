@@ -385,7 +385,7 @@ pub fn firebasedataconnect_projects_locations_list(
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebasedataconnect_projects_locations_operations_cancel_execute()` to send, or `firebasedataconnect_projects_locations_operations_cancel` for simplest API.
@@ -412,7 +412,7 @@ where
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -486,7 +486,7 @@ pub fn firebasedataconnect_projects_locations_operations_cancel_task(
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -523,7 +523,7 @@ pub struct FirebasedataconnectProjectsLocationsOperationsCancelArgs {
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `firebasedataconnect_projects_locations_operations_cancel_builder()` + `firebasedataconnect_projects_locations_operations_cancel_execute()`.
@@ -546,7 +546,7 @@ pub fn firebasedataconnect_projects_locations_operations_cancel(
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
-/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebasedataconnect_projects_locations_operations_delete_execute()` to send, or `firebasedataconnect_projects_locations_operations_delete` for simplest API.
@@ -573,7 +573,7 @@ where
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
-/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -647,7 +647,7 @@ pub fn firebasedataconnect_projects_locations_operations_delete_task(
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
-/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -684,7 +684,7 @@ pub struct FirebasedataconnectProjectsLocationsOperationsDeleteArgs {
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
-/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `firebasedataconnect_projects_locations_operations_delete_builder()` + `firebasedataconnect_projects_locations_operations_delete_execute()`.
@@ -868,7 +868,7 @@ pub fn firebasedataconnect_projects_locations_operations_get(
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebasedataconnect_projects_locations_operations_list_execute()` to send, or `firebasedataconnect_projects_locations_operations_list` for simplest API.
@@ -919,7 +919,7 @@ where
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -993,7 +993,7 @@ pub fn firebasedataconnect_projects_locations_operations_list_task(
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -1040,7 +1040,7 @@ pub struct FirebasedataconnectProjectsLocationsOperationsListArgs {
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `firebasedataconnect_projects_locations_operations_list_builder()` + `firebasedataconnect_projects_locations_operations_list_execute()`.
@@ -1469,7 +1469,7 @@ pub fn firebasedataconnect_projects_locations_services_delete(
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/services/{servicesId}:executeGraphql
-/// Execute any GraphQL query and mutation against the Firebase Data Connect's generated GraphQL schema. Grants full read and write access to the connected data sources. Note: Use introspection query to explore the generated GraphQL schema.
+/// Execute any GraphQL query and mutation against the Firebase Data Connect''s generated GraphQL schema. Grants full read and write access to the connected data sources. Note: Use introspection query to explore the generated GraphQL schema.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebasedataconnect_projects_locations_services_execute_graphql_execute()` to send, or `firebasedataconnect_projects_locations_services_execute_graphql` for simplest API.
@@ -1496,7 +1496,7 @@ where
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/services/{servicesId}:executeGraphql
-/// Execute any GraphQL query and mutation against the Firebase Data Connect's generated GraphQL schema. Grants full read and write access to the connected data sources. Note: Use introspection query to explore the generated GraphQL schema.
+/// Execute any GraphQL query and mutation against the Firebase Data Connect''s generated GraphQL schema. Grants full read and write access to the connected data sources. Note: Use introspection query to explore the generated GraphQL schema.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -1570,7 +1570,7 @@ pub fn firebasedataconnect_projects_locations_services_execute_graphql_task(
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/services/{servicesId}:executeGraphql
-/// Execute any GraphQL query and mutation against the Firebase Data Connect's generated GraphQL schema. Grants full read and write access to the connected data sources. Note: Use introspection query to explore the generated GraphQL schema.
+/// Execute any GraphQL query and mutation against the Firebase Data Connect''s generated GraphQL schema. Grants full read and write access to the connected data sources. Note: Use introspection query to explore the generated GraphQL schema.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -1609,7 +1609,7 @@ pub struct FirebasedataconnectProjectsLocationsServicesExecuteGraphqlArgs {
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/services/{servicesId}:executeGraphql
-/// Execute any GraphQL query and mutation against the Firebase Data Connect's generated GraphQL schema. Grants full read and write access to the connected data sources. Note: Use introspection query to explore the generated GraphQL schema.
+/// Execute any GraphQL query and mutation against the Firebase Data Connect''s generated GraphQL schema. Grants full read and write access to the connected data sources. Note: Use introspection query to explore the generated GraphQL schema.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `firebasedataconnect_projects_locations_services_execute_graphql_builder()` + `firebasedataconnect_projects_locations_services_execute_graphql_execute()`.
@@ -1635,7 +1635,7 @@ pub fn firebasedataconnect_projects_locations_services_execute_graphql(
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/services/{servicesId}:executeGraphqlRead
-/// Execute any GraphQL query against the Firebase Data Connect's generated GraphQL schema. Grants full read to the connected data sources. ExecuteGraphqlRead is identical to ExecuteGraphql except it only accepts read-only query.
+/// Execute any GraphQL query against the Firebase Data Connect''s generated GraphQL schema. Grants full read to the connected data sources. ExecuteGraphqlRead is identical to ExecuteGraphql except it only accepts read-only query.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebasedataconnect_projects_locations_services_execute_graphql_read_execute()` to send, or `firebasedataconnect_projects_locations_services_execute_graphql_read` for simplest API.
@@ -1662,7 +1662,7 @@ where
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/services/{servicesId}:executeGraphqlRead
-/// Execute any GraphQL query against the Firebase Data Connect's generated GraphQL schema. Grants full read to the connected data sources. ExecuteGraphqlRead is identical to ExecuteGraphql except it only accepts read-only query.
+/// Execute any GraphQL query against the Firebase Data Connect''s generated GraphQL schema. Grants full read to the connected data sources. ExecuteGraphqlRead is identical to ExecuteGraphql except it only accepts read-only query.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -1736,7 +1736,7 @@ pub fn firebasedataconnect_projects_locations_services_execute_graphql_read_task
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/services/{servicesId}:executeGraphqlRead
-/// Execute any GraphQL query against the Firebase Data Connect's generated GraphQL schema. Grants full read to the connected data sources. ExecuteGraphqlRead is identical to ExecuteGraphql except it only accepts read-only query.
+/// Execute any GraphQL query against the Firebase Data Connect''s generated GraphQL schema. Grants full read to the connected data sources. ExecuteGraphqlRead is identical to ExecuteGraphql except it only accepts read-only query.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -1775,7 +1775,7 @@ pub struct FirebasedataconnectProjectsLocationsServicesExecuteGraphqlReadArgs {
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/services/{servicesId}:executeGraphqlRead
-/// Execute any GraphQL query against the Firebase Data Connect's generated GraphQL schema. Grants full read to the connected data sources. ExecuteGraphqlRead is identical to ExecuteGraphql except it only accepts read-only query.
+/// Execute any GraphQL query against the Firebase Data Connect''s generated GraphQL schema. Grants full read to the connected data sources. ExecuteGraphqlRead is identical to ExecuteGraphql except it only accepts read-only query.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `firebasedataconnect_projects_locations_services_execute_graphql_read_builder()` + `firebasedataconnect_projects_locations_services_execute_graphql_read_execute()`.
@@ -1961,7 +1961,7 @@ pub fn firebasedataconnect_projects_locations_services_get(
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/services/{servicesId}:introspectGraphql
-/// Execute introspection query against the Firebase Data Connect's generated GraphQL schema. GraphQL introspection query provides metadata such as what tables the schema have, what queries and mutations can be performed on the schema, and so on. Read more at <https://graphql.`org/learn/introspection`.> IntrospectGraphql can read schema metadata but cannot read rows from Cloud SQL instance, which can be done via ExecuteGraphqlRead.
+/// Execute introspection query against the Firebase Data Connect''s generated GraphQL schema. GraphQL introspection query provides metadata such as what tables the schema have, what queries and mutations can be performed on the schema, and so on. Read more at <https://graphql.`org/learn/introspection`.> IntrospectGraphql can read schema metadata but cannot read rows from Cloud SQL instance, which can be done via ExecuteGraphqlRead.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `firebasedataconnect_projects_locations_services_introspect_graphql_execute()` to send, or `firebasedataconnect_projects_locations_services_introspect_graphql` for simplest API.
@@ -1988,7 +1988,7 @@ where
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/services/{servicesId}:introspectGraphql
-/// Execute introspection query against the Firebase Data Connect's generated GraphQL schema. GraphQL introspection query provides metadata such as what tables the schema have, what queries and mutations can be performed on the schema, and so on. Read more at <https://graphql.`org/learn/introspection`.> IntrospectGraphql can read schema metadata but cannot read rows from Cloud SQL instance, which can be done via ExecuteGraphqlRead.
+/// Execute introspection query against the Firebase Data Connect''s generated GraphQL schema. GraphQL introspection query provides metadata such as what tables the schema have, what queries and mutations can be performed on the schema, and so on. Read more at <https://graphql.`org/learn/introspection`.> IntrospectGraphql can read schema metadata but cannot read rows from Cloud SQL instance, which can be done via ExecuteGraphqlRead.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -2062,7 +2062,7 @@ pub fn firebasedataconnect_projects_locations_services_introspect_graphql_task(
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/services/{servicesId}:introspectGraphql
-/// Execute introspection query against the Firebase Data Connect's generated GraphQL schema. GraphQL introspection query provides metadata such as what tables the schema have, what queries and mutations can be performed on the schema, and so on. Read more at <https://graphql.`org/learn/introspection`.> IntrospectGraphql can read schema metadata but cannot read rows from Cloud SQL instance, which can be done via ExecuteGraphqlRead.
+/// Execute introspection query against the Firebase Data Connect''s generated GraphQL schema. GraphQL introspection query provides metadata such as what tables the schema have, what queries and mutations can be performed on the schema, and so on. Read more at <https://graphql.`org/learn/introspection`.> IntrospectGraphql can read schema metadata but cannot read rows from Cloud SQL instance, which can be done via ExecuteGraphqlRead.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -2101,7 +2101,7 @@ pub struct FirebasedataconnectProjectsLocationsServicesIntrospectGraphqlArgs {
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/services/{servicesId}:introspectGraphql
-/// Execute introspection query against the Firebase Data Connect's generated GraphQL schema. GraphQL introspection query provides metadata such as what tables the schema have, what queries and mutations can be performed on the schema, and so on. Read more at <https://graphql.`org/learn/introspection`.> IntrospectGraphql can read schema metadata but cannot read rows from Cloud SQL instance, which can be done via ExecuteGraphqlRead.
+/// Execute introspection query against the Firebase Data Connect''s generated GraphQL schema. GraphQL introspection query provides metadata such as what tables the schema have, what queries and mutations can be performed on the schema, and so on. Read more at <https://graphql.`org/learn/introspection`.> IntrospectGraphql can read schema metadata but cannot read rows from Cloud SQL instance, which can be done via ExecuteGraphqlRead.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `firebasedataconnect_projects_locations_services_introspect_graphql_builder()` + `firebasedataconnect_projects_locations_services_introspect_graphql_execute()`.

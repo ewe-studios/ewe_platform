@@ -1098,7 +1098,7 @@ pub fn youtube_analytics_groups_list(
 }
 
 /// PUT v2/groups
-/// Modifies a group. For example, you could change a group's title.
+/// Modifies a group. For example, you could change a group''s title.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `youtube_analytics_groups_update_execute()` to send, or `youtube_analytics_groups_update` for simplest API.
@@ -1133,7 +1133,7 @@ where
 }
 
 /// PUT v2/groups
-/// Modifies a group. For example, you could change a group's title.
+/// Modifies a group. For example, you could change a group''s title.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -1207,7 +1207,7 @@ pub fn youtube_analytics_groups_update_task(
 }
 
 /// PUT v2/groups
-/// Modifies a group. For example, you could change a group's title.
+/// Modifies a group. For example, you could change a group''s title.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -1244,7 +1244,7 @@ pub struct YoutubeAnalyticsGroupsUpdateArgs {
 }
 
 /// PUT v2/groups
-/// Modifies a group. For example, you could change a group's title.
+/// Modifies a group. For example, you could change a group''s title.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `youtube_analytics_groups_update_builder()` + `youtube_analytics_groups_update_execute()`.

@@ -1014,7 +1014,7 @@ pub fn datastore_projects_lookup(
 }
 
 /// POST v1/projects/{projectId}:reserveIds
-/// Prevents the supplied keys' IDs from being auto-allocated by Cloud Datastore.
+/// Prevents the supplied keys'' IDs from being auto-allocated by Cloud Datastore.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datastore_projects_reserve_ids_execute()` to send, or `datastore_projects_reserve_ids` for simplest API.
@@ -1041,7 +1041,7 @@ where
 }
 
 /// POST v1/projects/{projectId}:reserveIds
-/// Prevents the supplied keys' IDs from being auto-allocated by Cloud Datastore.
+/// Prevents the supplied keys'' IDs from being auto-allocated by Cloud Datastore.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -1115,7 +1115,7 @@ pub fn datastore_projects_reserve_ids_task(
 }
 
 /// POST v1/projects/{projectId}:reserveIds
-/// Prevents the supplied keys' IDs from being auto-allocated by Cloud Datastore.
+/// Prevents the supplied keys'' IDs from being auto-allocated by Cloud Datastore.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -1154,7 +1154,7 @@ pub struct DatastoreProjectsReserveIdsArgs {
 }
 
 /// POST v1/projects/{projectId}:reserveIds
-/// Prevents the supplied keys' IDs from being auto-allocated by Cloud Datastore.
+/// Prevents the supplied keys'' IDs from being auto-allocated by Cloud Datastore.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `datastore_projects_reserve_ids_builder()` + `datastore_projects_reserve_ids_execute()`.
@@ -1674,7 +1674,7 @@ pub fn datastore_projects_run_query(
 }
 
 /// POST v1/projects/{projectId}/indexes
-/// Creates the specified index. A newly created index's initial state is CREATING. On completion of the returned google.longrunning.Operation, the state will be READY. If the index already exists, the call will return an ALREADY_EXISTS status. During index creation, the process could result in an error, in which case the index will move to the `ERROR` state. The process can be recovered by fixing the data that caused the error, removing the index with delete, then re-creating the index with create. Indexes with a single property cannot be created.
+/// Creates the specified index. A newly created index''s initial state is CREATING. On completion of the returned google.longrunning.Operation, the state will be READY. If the index already exists, the call will return an ALREADY_EXISTS status. During index creation, the process could result in an error, in which case the index will move to the `ERROR` state. The process can be recovered by fixing the data that caused the error, removing the index with delete, then re-creating the index with create. Indexes with a single property cannot be created.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datastore_projects_indexes_create_execute()` to send, or `datastore_projects_indexes_create` for simplest API.
@@ -1701,7 +1701,7 @@ where
 }
 
 /// POST v1/projects/{projectId}/indexes
-/// Creates the specified index. A newly created index's initial state is CREATING. On completion of the returned google.longrunning.Operation, the state will be READY. If the index already exists, the call will return an ALREADY_EXISTS status. During index creation, the process could result in an error, in which case the index will move to the `ERROR` state. The process can be recovered by fixing the data that caused the error, removing the index with delete, then re-creating the index with create. Indexes with a single property cannot be created.
+/// Creates the specified index. A newly created index''s initial state is CREATING. On completion of the returned google.longrunning.Operation, the state will be READY. If the index already exists, the call will return an ALREADY_EXISTS status. During index creation, the process could result in an error, in which case the index will move to the `ERROR` state. The process can be recovered by fixing the data that caused the error, removing the index with delete, then re-creating the index with create. Indexes with a single property cannot be created.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -1775,7 +1775,7 @@ pub fn datastore_projects_indexes_create_task(
 }
 
 /// POST v1/projects/{projectId}/indexes
-/// Creates the specified index. A newly created index's initial state is CREATING. On completion of the returned google.longrunning.Operation, the state will be READY. If the index already exists, the call will return an ALREADY_EXISTS status. During index creation, the process could result in an error, in which case the index will move to the `ERROR` state. The process can be recovered by fixing the data that caused the error, removing the index with delete, then re-creating the index with create. Indexes with a single property cannot be created.
+/// Creates the specified index. A newly created index''s initial state is CREATING. On completion of the returned google.longrunning.Operation, the state will be READY. If the index already exists, the call will return an ALREADY_EXISTS status. During index creation, the process could result in an error, in which case the index will move to the `ERROR` state. The process can be recovered by fixing the data that caused the error, removing the index with delete, then re-creating the index with create. Indexes with a single property cannot be created.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -1816,7 +1816,7 @@ pub struct DatastoreProjectsIndexesCreateArgs {
 }
 
 /// POST v1/projects/{projectId}/indexes
-/// Creates the specified index. A newly created index's initial state is CREATING. On completion of the returned google.longrunning.Operation, the state will be READY. If the index already exists, the call will return an ALREADY_EXISTS status. During index creation, the process could result in an error, in which case the index will move to the `ERROR` state. The process can be recovered by fixing the data that caused the error, removing the index with delete, then re-creating the index with create. Indexes with a single property cannot be created.
+/// Creates the specified index. A newly created index''s initial state is CREATING. On completion of the returned google.longrunning.Operation, the state will be READY. If the index already exists, the call will return an ALREADY_EXISTS status. During index creation, the process could result in an error, in which case the index will move to the `ERROR` state. The process can be recovered by fixing the data that caused the error, removing the index with delete, then re-creating the index with create. Indexes with a single property cannot be created.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `datastore_projects_indexes_create_builder()` + `datastore_projects_indexes_create_execute()`.
@@ -2385,7 +2385,7 @@ pub fn datastore_projects_indexes_list(
 }
 
 /// POST v1/projects/{projectsId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datastore_projects_operations_cancel_execute()` to send, or `datastore_projects_operations_cancel` for simplest API.
@@ -2412,7 +2412,7 @@ where
 }
 
 /// POST v1/projects/{projectsId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -2486,7 +2486,7 @@ pub fn datastore_projects_operations_cancel_task(
 }
 
 /// POST v1/projects/{projectsId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -2523,7 +2523,7 @@ pub struct DatastoreProjectsOperationsCancelArgs {
 }
 
 /// POST v1/projects/{projectsId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `datastore_projects_operations_cancel_builder()` + `datastore_projects_operations_cancel_execute()`.
@@ -2545,7 +2545,7 @@ pub fn datastore_projects_operations_cancel(
 }
 
 /// DELETE v1/projects/{projectsId}/operations/{operationsId}
-/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datastore_projects_operations_delete_execute()` to send, or `datastore_projects_operations_delete` for simplest API.
@@ -2572,7 +2572,7 @@ where
 }
 
 /// DELETE v1/projects/{projectsId}/operations/{operationsId}
-/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -2646,7 +2646,7 @@ pub fn datastore_projects_operations_delete_task(
 }
 
 /// DELETE v1/projects/{projectsId}/operations/{operationsId}
-/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -2683,7 +2683,7 @@ pub struct DatastoreProjectsOperationsDeleteArgs {
 }
 
 /// DELETE v1/projects/{projectsId}/operations/{operationsId}
-/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `datastore_projects_operations_delete_builder()` + `datastore_projects_operations_delete_execute()`.
@@ -2873,7 +2873,7 @@ pub fn datastore_projects_operations_get(
 }
 
 /// GET v1/projects/{projectsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `datastore_projects_operations_list_execute()` to send, or `datastore_projects_operations_list` for simplest API.
@@ -2924,7 +2924,7 @@ where
 }
 
 /// GET v1/projects/{projectsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -2999,7 +2999,7 @@ pub fn datastore_projects_operations_list_task(
 }
 
 /// GET v1/projects/{projectsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -3048,7 +3048,7 @@ pub struct DatastoreProjectsOperationsListArgs {
 }
 
 /// GET v1/projects/{projectsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `datastore_projects_operations_list_builder()` + `datastore_projects_operations_list_execute()`.

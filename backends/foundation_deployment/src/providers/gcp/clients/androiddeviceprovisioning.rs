@@ -22,7 +22,7 @@ use foundation_macros::JsonHash;
 use serde::Serialize;
 
 /// GET v1/customers
-/// Lists the user's customer accounts.
+/// Lists the user''s customer accounts.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androiddeviceprovisioning_customers_list_execute()` to send, or `androiddeviceprovisioning_customers_list` for simplest API.
@@ -61,7 +61,7 @@ where
 }
 
 /// GET v1/customers
-/// Lists the user's customer accounts.
+/// Lists the user''s customer accounts.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -135,7 +135,7 @@ pub fn androiddeviceprovisioning_customers_list_task(
 }
 
 /// GET v1/customers
-/// Lists the user's customer accounts.
+/// Lists the user''s customer accounts.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -178,7 +178,7 @@ pub struct AndroiddeviceprovisioningCustomersListArgs {
 }
 
 /// GET v1/customers
-/// Lists the user's customer accounts.
+/// Lists the user''s customer accounts.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `androiddeviceprovisioning_customers_list_builder()` + `androiddeviceprovisioning_customers_list_execute()`.
@@ -696,7 +696,7 @@ pub fn androiddeviceprovisioning_customers_configurations_get(
 }
 
 /// GET v1/customers/{customersId}/configurations
-/// Lists a customer's configurations.
+/// Lists a customer''s configurations.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androiddeviceprovisioning_customers_configurations_list_execute()` to send, or `androiddeviceprovisioning_customers_configurations_list` for simplest API.
@@ -723,7 +723,7 @@ where
 }
 
 /// GET v1/customers/{customersId}/configurations
-/// Lists a customer's configurations.
+/// Lists a customer''s configurations.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -797,7 +797,7 @@ pub fn androiddeviceprovisioning_customers_configurations_list_task(
 }
 
 /// GET v1/customers/{customersId}/configurations
-/// Lists a customer's configurations.
+/// Lists a customer''s configurations.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -838,7 +838,7 @@ pub struct AndroiddeviceprovisioningCustomersConfigurationsListArgs {
 }
 
 /// GET v1/customers/{customersId}/configurations
-/// Lists a customer's configurations.
+/// Lists a customer''s configurations.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `androiddeviceprovisioning_customers_configurations_list_builder()` + `androiddeviceprovisioning_customers_configurations_list_execute()`.
@@ -865,7 +865,7 @@ pub fn androiddeviceprovisioning_customers_configurations_list(
 }
 
 /// PATCH v1/customers/{customersId}/configurations/{configurationsId}
-/// Updates a configuration's field values.
+/// Updates a configuration''s field values.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androiddeviceprovisioning_customers_configurations_patch_execute()` to send, or `androiddeviceprovisioning_customers_configurations_patch` for simplest API.
@@ -904,7 +904,7 @@ where
 }
 
 /// PATCH v1/customers/{customersId}/configurations/{configurationsId}
-/// Updates a configuration's field values.
+/// Updates a configuration''s field values.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -978,7 +978,7 @@ pub fn androiddeviceprovisioning_customers_configurations_patch_task(
 }
 
 /// PATCH v1/customers/{customersId}/configurations/{configurationsId}
-/// Updates a configuration's field values.
+/// Updates a configuration''s field values.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -1019,7 +1019,7 @@ pub struct AndroiddeviceprovisioningCustomersConfigurationsPatchArgs {
 }
 
 /// PATCH v1/customers/{customersId}/configurations/{configurationsId}
-/// Updates a configuration's field values.
+/// Updates a configuration''s field values.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `androiddeviceprovisioning_customers_configurations_patch_builder()` + `androiddeviceprovisioning_customers_configurations_patch_execute()`.
@@ -1370,7 +1370,7 @@ pub fn androiddeviceprovisioning_customers_devices_get(
 }
 
 /// GET v1/customers/{customersId}/devices
-/// Lists a customer's devices.
+/// Lists a customer''s devices.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androiddeviceprovisioning_customers_devices_list_execute()` to send, or `androiddeviceprovisioning_customers_devices_list` for simplest API.
@@ -1413,7 +1413,7 @@ where
 }
 
 /// GET v1/customers/{customersId}/devices
-/// Lists a customer's devices.
+/// Lists a customer''s devices.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -1487,7 +1487,7 @@ pub fn androiddeviceprovisioning_customers_devices_list_task(
 }
 
 /// GET v1/customers/{customersId}/devices
-/// Lists a customer's devices.
+/// Lists a customer''s devices.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -1532,7 +1532,7 @@ pub struct AndroiddeviceprovisioningCustomersDevicesListArgs {
 }
 
 /// GET v1/customers/{customersId}/devices
-/// Lists a customer's devices.
+/// Lists a customer''s devices.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `androiddeviceprovisioning_customers_devices_list_builder()` + `androiddeviceprovisioning_customers_devices_list_execute()`.
@@ -3058,7 +3058,7 @@ pub fn androiddeviceprovisioning_partners_devices_find_by_identifier(
 }
 
 /// POST v1/partners/{partnersId}/devices:findByOwner
-/// Finds devices claimed for customers. The results only contain devices registered to the reseller that's identified by the `partnerId` argument. The customer's devices purchased from other resellers don't appear in the results.
+/// Finds devices claimed for customers. The results only contain devices registered to the reseller that''s identified by the `partnerId` argument. The customer''s devices purchased from other resellers don''t appear in the results.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androiddeviceprovisioning_partners_devices_find_by_owner_execute()` to send, or `androiddeviceprovisioning_partners_devices_find_by_owner` for simplest API.
@@ -3085,7 +3085,7 @@ where
 }
 
 /// POST v1/partners/{partnersId}/devices:findByOwner
-/// Finds devices claimed for customers. The results only contain devices registered to the reseller that's identified by the `partnerId` argument. The customer's devices purchased from other resellers don't appear in the results.
+/// Finds devices claimed for customers. The results only contain devices registered to the reseller that''s identified by the `partnerId` argument. The customer''s devices purchased from other resellers don''t appear in the results.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -3159,7 +3159,7 @@ pub fn androiddeviceprovisioning_partners_devices_find_by_owner_task(
 }
 
 /// POST v1/partners/{partnersId}/devices:findByOwner
-/// Finds devices claimed for customers. The results only contain devices registered to the reseller that's identified by the `partnerId` argument. The customer's devices purchased from other resellers don't appear in the results.
+/// Finds devices claimed for customers. The results only contain devices registered to the reseller that''s identified by the `partnerId` argument. The customer''s devices purchased from other resellers don''t appear in the results.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -3200,7 +3200,7 @@ pub struct AndroiddeviceprovisioningPartnersDevicesFindByOwnerArgs {
 }
 
 /// POST v1/partners/{partnersId}/devices:findByOwner
-/// Finds devices claimed for customers. The results only contain devices registered to the reseller that's identified by the `partnerId` argument. The customer's devices purchased from other resellers don't appear in the results.
+/// Finds devices claimed for customers. The results only contain devices registered to the reseller that''s identified by the `partnerId` argument. The customer''s devices purchased from other resellers don''t appear in the results.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `androiddeviceprovisioning_partners_devices_find_by_owner_builder()` + `androiddeviceprovisioning_partners_devices_find_by_owner_execute()`.
@@ -3387,7 +3387,7 @@ pub fn androiddeviceprovisioning_partners_devices_get(
 }
 
 /// POST v1/partners/{partnersId}/devices:getSimLockState
-/// Gets a device's SIM lock state.
+/// Gets a device''s SIM lock state.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androiddeviceprovisioning_partners_devices_get_sim_lock_state_execute()` to send, or `androiddeviceprovisioning_partners_devices_get_sim_lock_state` for simplest API.
@@ -3414,7 +3414,7 @@ where
 }
 
 /// POST v1/partners/{partnersId}/devices:getSimLockState
-/// Gets a device's SIM lock state.
+/// Gets a device''s SIM lock state.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -3488,7 +3488,7 @@ pub fn androiddeviceprovisioning_partners_devices_get_sim_lock_state_task(
 }
 
 /// POST v1/partners/{partnersId}/devices:getSimLockState
-/// Gets a device's SIM lock state.
+/// Gets a device''s SIM lock state.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -3529,7 +3529,7 @@ pub struct AndroiddeviceprovisioningPartnersDevicesGetSimLockStateArgs {
 }
 
 /// POST v1/partners/{partnersId}/devices:getSimLockState
-/// Gets a device's SIM lock state.
+/// Gets a device''s SIM lock state.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `androiddeviceprovisioning_partners_devices_get_sim_lock_state_builder()` + `androiddeviceprovisioning_partners_devices_get_sim_lock_state_execute()`.

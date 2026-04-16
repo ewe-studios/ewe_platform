@@ -10,36 +10,18 @@
 //! 3. Generate Provider struct with methods per endpoint
 //! 4. Each method wraps the task with StoreStateIdentifierTask
 
-use foundation_openapi::{ApiCatalog, to_snake_case, to_pascal_case, to_sentence_case};
+use foundation_openapi::{
+    ApiCatalog, to_pascal_case, to_sentence_case,
+    sanitize_identifier, escape_rust_keyword,
+};
 use std::collections::BTreeMap;
 use std::fmt::Write as FmtWrite;
 use std::fs;
 use std::path::{Path, PathBuf};
 
 // ---------------------------------------------------------------------------
-// Sanitize special characters in operation IDs before converting to Rust identifiers
-// ---------------------------------------------------------------------------
-
-fn sanitize_operation_id(op_id: &str) -> String {
-    op_id
-        .replace(['-', '.', '@', ':', '<', '>', '[', ']', '(', ')', '\'', ',', '~', '/'], "_")
-}
-
-// ---------------------------------------------------------------------------
 // Helper functions
 // ---------------------------------------------------------------------------
-
-/// Escape Rust keywords by appending `_rs`.
-fn escape_keyword(name: &str) -> String {
-    match name {
-        "as" | "break" | "const" | "continue" | "crate" | "else" | "enum" | "extern"
-        | "false" | "fn" | "for" | "if" | "impl" | "in" | "let" | "loop" | "match"
-        | "mod" | "move" | "mut" | "pub" | "ref" | "return" | "self" | "Self"
-        | "static" | "struct" | "super" | "trait" | "true" | "type" | "unsafe"
-        | "use" | "where" | "while" | "async" | "await" | "dyn" | "override" => format!("{}_rs", name),
-        _ => name.to_string(),
-    }
-}
 
 // ---------------------------------------------------------------------------
 // Error types
@@ -208,15 +190,16 @@ impl ProviderWrapperGenerator {
             // Use operation_type to determine if mutating
             let is_mutating = ep.operation_type.requires_state_tracking();
 
-            let sanitized_id = sanitize_operation_id(&ep.operation_id);
-            let base_name = to_snake_case(&sanitized_id);
+            // Use ApiInfo methods for consistent naming with clients.rs
+            let base_name = api.convenience_fn_name(ep);
+            let args_type = api.args_struct_name(ep);
 
             // Sanitize parameter names (replace dots and other special chars with underscores)
             let path_params: Vec<String> = ep.path_params.iter()
-                .map(|p| sanitize_operation_id(p))
+                .map(|p| sanitize_identifier(p))
                 .collect();
             let query_params: Vec<String> = ep.query_params.iter()
-                .map(|p| sanitize_operation_id(p))
+                .map(|p| sanitize_identifier(p))
                 .collect();
 
             // Check if endpoint has params (matches clients.rs has_params logic)
@@ -225,8 +208,8 @@ impl ProviderWrapperGenerator {
                 || ep.request_type.is_some();
 
             endpoints.push(EndpointFn {
-                base_name: base_name.clone(),
-                args_type: to_pascal_case(&sanitized_id) + "Args",
+                base_name,
+                args_type,
                 response_type: ep.response_type.as_ref().map(|rt| rt.as_rust_type()).unwrap_or("serde_json::Value").to_string(),
                 is_mutating,
                 path_params,
@@ -472,11 +455,11 @@ impl ProviderWrapperGenerator {
             writeln!(out, "            &self.http_client,")?;
             // Generate args fields from path_params
             for param in &endpoint.path_params {
-                writeln!(out, "            &args.{},", escape_keyword(param))?;
+                writeln!(out, "            &args.{},", escape_rust_keyword(param))?;
             }
             // Generate args fields from query_params
             for param in &endpoint.query_params {
-                writeln!(out, "            &args.{},", escape_keyword(param))?;
+                writeln!(out, "            &args.{},", escape_rust_keyword(param))?;
             }
             writeln!(out, "        )")?;
             writeln!(out, "        .map_err(ProviderError::Api)?;")?;
@@ -524,11 +507,11 @@ impl ProviderWrapperGenerator {
             writeln!(out, "            &self.http_client,")?;
             // Generate args fields from path_params
             for param in &endpoint.path_params {
-                writeln!(out, "            &args.{},", escape_keyword(param))?;
+                writeln!(out, "            &args.{},", escape_rust_keyword(param))?;
             }
             // Generate args fields from query_params
             for param in &endpoint.query_params {
-                writeln!(out, "            &args.{},", escape_keyword(param))?;
+                writeln!(out, "            &args.{},", escape_rust_keyword(param))?;
             }
             writeln!(out, "        )")?;
             writeln!(out, "        .map_err(ProviderError::Api)?;")?;

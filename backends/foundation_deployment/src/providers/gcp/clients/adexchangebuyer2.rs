@@ -4266,7 +4266,7 @@ pub fn adexchangebuyer2_accounts_products_list(
 }
 
 /// POST v2beta1/accounts/{accountId}/proposals/{proposalId}:accept
-/// Mark the proposal as accepted at the given revision number. If the number does not match the server's revision number an ABORTED error message will be returned. This call updates the proposal_state from PROPOSED to BUYER_ACCEPTED, or from SELLER_ACCEPTED to FINALIZED. Upon calling this endpoint, the buyer implicitly agrees to the terms and conditions optionally set within the proposal by the publisher.
+/// Mark the proposal as accepted at the given revision number. If the number does not match the server''s revision number an ABORTED error message will be returned. This call updates the proposal_state from PROPOSED to BUYER_ACCEPTED, or from SELLER_ACCEPTED to FINALIZED. Upon calling this endpoint, the buyer implicitly agrees to the terms and conditions optionally set within the proposal by the publisher.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `adexchangebuyer2_accounts_proposals_accept_execute()` to send, or `adexchangebuyer2_accounts_proposals_accept` for simplest API.
@@ -4294,7 +4294,7 @@ where
 }
 
 /// POST v2beta1/accounts/{accountId}/proposals/{proposalId}:accept
-/// Mark the proposal as accepted at the given revision number. If the number does not match the server's revision number an ABORTED error message will be returned. This call updates the proposal_state from PROPOSED to BUYER_ACCEPTED, or from SELLER_ACCEPTED to FINALIZED. Upon calling this endpoint, the buyer implicitly agrees to the terms and conditions optionally set within the proposal by the publisher.
+/// Mark the proposal as accepted at the given revision number. If the number does not match the server''s revision number an ABORTED error message will be returned. This call updates the proposal_state from PROPOSED to BUYER_ACCEPTED, or from SELLER_ACCEPTED to FINALIZED. Upon calling this endpoint, the buyer implicitly agrees to the terms and conditions optionally set within the proposal by the publisher.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -4368,7 +4368,7 @@ pub fn adexchangebuyer2_accounts_proposals_accept_task(
 }
 
 /// POST v2beta1/accounts/{accountId}/proposals/{proposalId}:accept
-/// Mark the proposal as accepted at the given revision number. If the number does not match the server's revision number an ABORTED error message will be returned. This call updates the proposal_state from PROPOSED to BUYER_ACCEPTED, or from SELLER_ACCEPTED to FINALIZED. Upon calling this endpoint, the buyer implicitly agrees to the terms and conditions optionally set within the proposal by the publisher.
+/// Mark the proposal as accepted at the given revision number. If the number does not match the server''s revision number an ABORTED error message will be returned. This call updates the proposal_state from PROPOSED to BUYER_ACCEPTED, or from SELLER_ACCEPTED to FINALIZED. Upon calling this endpoint, the buyer implicitly agrees to the terms and conditions optionally set within the proposal by the publisher.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -4407,7 +4407,7 @@ pub struct Adexchangebuyer2AccountsProposalsAcceptArgs {
 }
 
 /// POST v2beta1/accounts/{accountId}/proposals/{proposalId}:accept
-/// Mark the proposal as accepted at the given revision number. If the number does not match the server's revision number an ABORTED error message will be returned. This call updates the proposal_state from PROPOSED to BUYER_ACCEPTED, or from SELLER_ACCEPTED to FINALIZED. Upon calling this endpoint, the buyer implicitly agrees to the terms and conditions optionally set within the proposal by the publisher.
+/// Mark the proposal as accepted at the given revision number. If the number does not match the server''s revision number an ABORTED error message will be returned. This call updates the proposal_state from PROPOSED to BUYER_ACCEPTED, or from SELLER_ACCEPTED to FINALIZED. Upon calling this endpoint, the buyer implicitly agrees to the terms and conditions optionally set within the proposal by the publisher.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `adexchangebuyer2_accounts_proposals_accept_builder()` + `adexchangebuyer2_accounts_proposals_accept_execute()`.
@@ -5258,7 +5258,7 @@ pub fn adexchangebuyer2_accounts_proposals_get(
 }
 
 /// GET v2beta1/accounts/{accountId}/proposals
-/// List proposals. A filter expression (PQL query) may be specified to filter the results. To retrieve all finalized proposals, regardless if a proposal is being renegotiated, see the FinalizedProposals resource. Note that B`idder/ChildSeat` relationships differ from the usual behavior. A Bidder account can only see its child seats' proposals by specifying the ChildSeat's `accountId` in the request path.
+/// List proposals. A filter expression (PQL query) may be specified to filter the results. To retrieve all finalized proposals, regardless if a proposal is being renegotiated, see the FinalizedProposals resource. Note that B`idder/ChildSeat` relationships differ from the usual behavior. A Bidder account can only see its child seats'' proposals by specifying the ChildSeat''s `accountId` in the request path.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `adexchangebuyer2_accounts_proposals_list_execute()` to send, or `adexchangebuyer2_accounts_proposals_list` for simplest API.
@@ -5309,7 +5309,7 @@ where
 }
 
 /// GET v2beta1/accounts/{accountId}/proposals
-/// List proposals. A filter expression (PQL query) may be specified to filter the results. To retrieve all finalized proposals, regardless if a proposal is being renegotiated, see the FinalizedProposals resource. Note that B`idder/ChildSeat` relationships differ from the usual behavior. A Bidder account can only see its child seats' proposals by specifying the ChildSeat's `accountId` in the request path.
+/// List proposals. A filter expression (PQL query) may be specified to filter the results. To retrieve all finalized proposals, regardless if a proposal is being renegotiated, see the FinalizedProposals resource. Note that B`idder/ChildSeat` relationships differ from the usual behavior. A Bidder account can only see its child seats'' proposals by specifying the ChildSeat''s `accountId` in the request path.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -5383,7 +5383,7 @@ pub fn adexchangebuyer2_accounts_proposals_list_task(
 }
 
 /// GET v2beta1/accounts/{accountId}/proposals
-/// List proposals. A filter expression (PQL query) may be specified to filter the results. To retrieve all finalized proposals, regardless if a proposal is being renegotiated, see the FinalizedProposals resource. Note that B`idder/ChildSeat` relationships differ from the usual behavior. A Bidder account can only see its child seats' proposals by specifying the ChildSeat's `accountId` in the request path.
+/// List proposals. A filter expression (PQL query) may be specified to filter the results. To retrieve all finalized proposals, regardless if a proposal is being renegotiated, see the FinalizedProposals resource. Note that B`idder/ChildSeat` relationships differ from the usual behavior. A Bidder account can only see its child seats'' proposals by specifying the ChildSeat''s `accountId` in the request path.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -5430,7 +5430,7 @@ pub struct Adexchangebuyer2AccountsProposalsListArgs {
 }
 
 /// GET v2beta1/accounts/{accountId}/proposals
-/// List proposals. A filter expression (PQL query) may be specified to filter the results. To retrieve all finalized proposals, regardless if a proposal is being renegotiated, see the FinalizedProposals resource. Note that B`idder/ChildSeat` relationships differ from the usual behavior. A Bidder account can only see its child seats' proposals by specifying the ChildSeat's `accountId` in the request path.
+/// List proposals. A filter expression (PQL query) may be specified to filter the results. To retrieve all finalized proposals, regardless if a proposal is being renegotiated, see the FinalizedProposals resource. Note that B`idder/ChildSeat` relationships differ from the usual behavior. A Bidder account can only see its child seats'' proposals by specifying the ChildSeat''s `accountId` in the request path.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `adexchangebuyer2_accounts_proposals_list_builder()` + `adexchangebuyer2_accounts_proposals_list_execute()`.

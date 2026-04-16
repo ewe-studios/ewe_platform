@@ -1738,7 +1738,7 @@ pub fn games_management_events_reset_multiple_for_all_players(
 }
 
 /// POST games/v1management/applications/{applicationId}/players/hidden/{playerId}
-/// Hide the given player's leaderboard scores from the given application. This method is only available to user accounts for your developer console.
+/// Hide the given player''s leaderboard scores from the given application. This method is only available to user accounts for your developer console.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `games_management_players_hide_execute()` to send, or `games_management_players_hide` for simplest API.
@@ -1767,7 +1767,7 @@ where
 }
 
 /// POST games/v1management/applications/{applicationId}/players/hidden/{playerId}
-/// Hide the given player's leaderboard scores from the given application. This method is only available to user accounts for your developer console.
+/// Hide the given player''s leaderboard scores from the given application. This method is only available to user accounts for your developer console.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -1838,7 +1838,7 @@ pub fn games_management_players_hide_task(
 }
 
 /// POST games/v1management/applications/{applicationId}/players/hidden/{playerId}
-/// Hide the given player's leaderboard scores from the given application. This method is only available to user accounts for your developer console.
+/// Hide the given player''s leaderboard scores from the given application. This method is only available to user accounts for your developer console.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -1877,7 +1877,7 @@ pub struct GamesManagementPlayersHideArgs {
 }
 
 /// POST games/v1management/applications/{applicationId}/players/hidden/{playerId}
-/// Hide the given player's leaderboard scores from the given application. This method is only available to user accounts for your developer console.
+/// Hide the given player''s leaderboard scores from the given application. This method is only available to user accounts for your developer console.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `games_management_players_hide_builder()` + `games_management_players_hide_execute()`.
@@ -1900,7 +1900,7 @@ pub fn games_management_players_hide(
 }
 
 /// DELETE games/v1management/applications/{applicationId}/players/hidden/{playerId}
-/// Unhide the given player's leaderboard scores from the given application. This method is only available to user accounts for your developer console.
+/// Unhide the given player''s leaderboard scores from the given application. This method is only available to user accounts for your developer console.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `games_management_players_unhide_execute()` to send, or `games_management_players_unhide` for simplest API.
@@ -1929,7 +1929,7 @@ where
 }
 
 /// DELETE games/v1management/applications/{applicationId}/players/hidden/{playerId}
-/// Unhide the given player's leaderboard scores from the given application. This method is only available to user accounts for your developer console.
+/// Unhide the given player''s leaderboard scores from the given application. This method is only available to user accounts for your developer console.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -2000,7 +2000,7 @@ pub fn games_management_players_unhide_task(
 }
 
 /// DELETE games/v1management/applications/{applicationId}/players/hidden/{playerId}
-/// Unhide the given player's leaderboard scores from the given application. This method is only available to user accounts for your developer console.
+/// Unhide the given player''s leaderboard scores from the given application. This method is only available to user accounts for your developer console.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -2039,7 +2039,7 @@ pub struct GamesManagementPlayersUnhideArgs {
 }
 
 /// DELETE games/v1management/applications/{applicationId}/players/hidden/{playerId}
-/// Unhide the given player's leaderboard scores from the given application. This method is only available to user accounts for your developer console.
+/// Unhide the given player''s leaderboard scores from the given application. This method is only available to user accounts for your developer console.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `games_management_players_unhide_builder()` + `games_management_players_unhide_execute()`.

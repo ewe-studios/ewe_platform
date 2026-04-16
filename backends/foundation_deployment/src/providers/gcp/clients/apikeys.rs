@@ -700,7 +700,7 @@ pub fn apikeys_projects_locations_keys_delete(
 }
 
 /// GET v2/projects/{projectsId}/locations/{locationsId}/keys/{keysId}
-/// Gets the metadata for an API key. The key string of the API key isn't included in the response. NOTE: Key is a global resource; hence the only supported value for location is global.
+/// Gets the metadata for an API key. The key string of the API key isn''t included in the response. NOTE: Key is a global resource; hence the only supported value for location is global.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apikeys_projects_locations_keys_get_execute()` to send, or `apikeys_projects_locations_keys_get` for simplest API.
@@ -727,7 +727,7 @@ where
 }
 
 /// GET v2/projects/{projectsId}/locations/{locationsId}/keys/{keysId}
-/// Gets the metadata for an API key. The key string of the API key isn't included in the response. NOTE: Key is a global resource; hence the only supported value for location is global.
+/// Gets the metadata for an API key. The key string of the API key isn''t included in the response. NOTE: Key is a global resource; hence the only supported value for location is global.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -801,7 +801,7 @@ pub fn apikeys_projects_locations_keys_get_task(
 }
 
 /// GET v2/projects/{projectsId}/locations/{locationsId}/keys/{keysId}
-/// Gets the metadata for an API key. The key string of the API key isn't included in the response. NOTE: Key is a global resource; hence the only supported value for location is global.
+/// Gets the metadata for an API key. The key string of the API key isn''t included in the response. NOTE: Key is a global resource; hence the only supported value for location is global.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -838,7 +838,7 @@ pub struct ApikeysProjectsLocationsKeysGetArgs {
 }
 
 /// GET v2/projects/{projectsId}/locations/{locationsId}/keys/{keysId}
-/// Gets the metadata for an API key. The key string of the API key isn't included in the response. NOTE: Key is a global resource; hence the only supported value for location is global.
+/// Gets the metadata for an API key. The key string of the API key isn''t included in the response. NOTE: Key is a global resource; hence the only supported value for location is global.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `apikeys_projects_locations_keys_get_builder()` + `apikeys_projects_locations_keys_get_execute()`.
@@ -1024,7 +1024,7 @@ pub fn apikeys_projects_locations_keys_get_key_string(
 }
 
 /// GET v2/projects/{projectsId}/locations/{locationsId}/keys
-/// Lists the API keys owned by a project. The key string of the API key isn't included in the response. NOTE: Key is a global resource; hence the only supported value for location is global.
+/// Lists the API keys owned by a project. The key string of the API key isn''t included in the response. NOTE: Key is a global resource; hence the only supported value for location is global.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apikeys_projects_locations_keys_list_execute()` to send, or `apikeys_projects_locations_keys_list` for simplest API.
@@ -1071,7 +1071,7 @@ where
 }
 
 /// GET v2/projects/{projectsId}/locations/{locationsId}/keys
-/// Lists the API keys owned by a project. The key string of the API key isn't included in the response. NOTE: Key is a global resource; hence the only supported value for location is global.
+/// Lists the API keys owned by a project. The key string of the API key isn''t included in the response. NOTE: Key is a global resource; hence the only supported value for location is global.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -1145,7 +1145,7 @@ pub fn apikeys_projects_locations_keys_list_task(
 }
 
 /// GET v2/projects/{projectsId}/locations/{locationsId}/keys
-/// Lists the API keys owned by a project. The key string of the API key isn't included in the response. NOTE: Key is a global resource; hence the only supported value for location is global.
+/// Lists the API keys owned by a project. The key string of the API key isn''t included in the response. NOTE: Key is a global resource; hence the only supported value for location is global.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -1190,7 +1190,7 @@ pub struct ApikeysProjectsLocationsKeysListArgs {
 }
 
 /// GET v2/projects/{projectsId}/locations/{locationsId}/keys
-/// Lists the API keys owned by a project. The key string of the API key isn't included in the response. NOTE: Key is a global resource; hence the only supported value for location is global.
+/// Lists the API keys owned by a project. The key string of the API key isn''t included in the response. NOTE: Key is a global resource; hence the only supported value for location is global.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `apikeys_projects_locations_keys_list_builder()` + `apikeys_projects_locations_keys_list_execute()`.
@@ -1220,7 +1220,7 @@ pub fn apikeys_projects_locations_keys_list(
 }
 
 /// PATCH v2/projects/{projectsId}/locations/{locationsId}/keys/{keysId}
-/// Patches the modifiable fields of an API key. The key string of the API key isn't included in the response. NOTE: Key is a global resource; hence the only supported value for location is global.
+/// Patches the modifiable fields of an API key. The key string of the API key isn''t included in the response. NOTE: Key is a global resource; hence the only supported value for location is global.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apikeys_projects_locations_keys_patch_execute()` to send, or `apikeys_projects_locations_keys_patch` for simplest API.
@@ -1259,7 +1259,7 @@ where
 }
 
 /// PATCH v2/projects/{projectsId}/locations/{locationsId}/keys/{keysId}
-/// Patches the modifiable fields of an API key. The key string of the API key isn't included in the response. NOTE: Key is a global resource; hence the only supported value for location is global.
+/// Patches the modifiable fields of an API key. The key string of the API key isn''t included in the response. NOTE: Key is a global resource; hence the only supported value for location is global.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -1333,7 +1333,7 @@ pub fn apikeys_projects_locations_keys_patch_task(
 }
 
 /// PATCH v2/projects/{projectsId}/locations/{locationsId}/keys/{keysId}
-/// Patches the modifiable fields of an API key. The key string of the API key isn't included in the response. NOTE: Key is a global resource; hence the only supported value for location is global.
+/// Patches the modifiable fields of an API key. The key string of the API key isn''t included in the response. NOTE: Key is a global resource; hence the only supported value for location is global.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -1372,7 +1372,7 @@ pub struct ApikeysProjectsLocationsKeysPatchArgs {
 }
 
 /// PATCH v2/projects/{projectsId}/locations/{locationsId}/keys/{keysId}
-/// Patches the modifiable fields of an API key. The key string of the API key isn't included in the response. NOTE: Key is a global resource; hence the only supported value for location is global.
+/// Patches the modifiable fields of an API key. The key string of the API key isn''t included in the response. NOTE: Key is a global resource; hence the only supported value for location is global.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `apikeys_projects_locations_keys_patch_builder()` + `apikeys_projects_locations_keys_patch_execute()`.

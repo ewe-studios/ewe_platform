@@ -3272,7 +3272,7 @@ pub fn cloudfunctions_projects_locations_operations_get(
 }
 
 /// GET v2/projects/{projectsId}/locations/{locationsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `cloudfunctions_projects_locations_operations_list_execute()` to send, or `cloudfunctions_projects_locations_operations_list` for simplest API.
@@ -3323,7 +3323,7 @@ where
 }
 
 /// GET v2/projects/{projectsId}/locations/{locationsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -3397,7 +3397,7 @@ pub fn cloudfunctions_projects_locations_operations_list_task(
 }
 
 /// GET v2/projects/{projectsId}/locations/{locationsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -3444,7 +3444,7 @@ pub struct CloudfunctionsProjectsLocationsOperationsListArgs {
 }
 
 /// GET v2/projects/{projectsId}/locations/{locationsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `cloudfunctions_projects_locations_operations_list_builder()` + `cloudfunctions_projects_locations_operations_list_execute()`.

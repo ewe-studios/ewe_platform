@@ -2245,7 +2245,7 @@ pub fn sql_databases_get(
 }
 
 /// POST v1/projects/{project}/instances/{instance}/databases
-/// Inserts a resource containing information about a database inside a Cloud SQL instance. **Note:** You can't modify the default character set and collation.
+/// Inserts a resource containing information about a database inside a Cloud SQL instance. **Note:** You can''t modify the default character set and collation.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `sql_databases_insert_execute()` to send, or `sql_databases_insert` for simplest API.
@@ -2273,7 +2273,7 @@ where
 }
 
 /// POST v1/projects/{project}/instances/{instance}/databases
-/// Inserts a resource containing information about a database inside a Cloud SQL instance. **Note:** You can't modify the default character set and collation.
+/// Inserts a resource containing information about a database inside a Cloud SQL instance. **Note:** You can''t modify the default character set and collation.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -2347,7 +2347,7 @@ pub fn sql_databases_insert_task(
 }
 
 /// POST v1/projects/{project}/instances/{instance}/databases
-/// Inserts a resource containing information about a database inside a Cloud SQL instance. **Note:** You can't modify the default character set and collation.
+/// Inserts a resource containing information about a database inside a Cloud SQL instance. **Note:** You can''t modify the default character set and collation.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -2386,7 +2386,7 @@ pub struct SqlDatabasesInsertArgs {
 }
 
 /// POST v1/projects/{project}/instances/{instance}/databases
-/// Inserts a resource containing information about a database inside a Cloud SQL instance. **Note:** You can't modify the default character set and collation.
+/// Inserts a resource containing information about a database inside a Cloud SQL instance. **Note:** You can''t modify the default character set and collation.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `sql_databases_insert_builder()` + `sql_databases_insert_execute()`.

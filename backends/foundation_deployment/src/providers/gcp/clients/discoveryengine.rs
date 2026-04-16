@@ -1250,7 +1250,7 @@ pub fn discoveryengine_projects_locations_set_up_data_connector_v2(
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/aclConfig
-/// Default ACL configuration for use in a location of a customer's project. Updates will only reflect to new data stores. Existing data stores will still use the old value.
+/// Default ACL configuration for use in a location of a customer''s project. Updates will only reflect to new data stores. Existing data stores will still use the old value.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_update_acl_config_execute()` to send, or `discoveryengine_projects_locations_update_acl_config` for simplest API.
@@ -1277,7 +1277,7 @@ where
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/aclConfig
-/// Default ACL configuration for use in a location of a customer's project. Updates will only reflect to new data stores. Existing data stores will still use the old value.
+/// Default ACL configuration for use in a location of a customer''s project. Updates will only reflect to new data stores. Existing data stores will still use the old value.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -1351,7 +1351,7 @@ pub fn discoveryengine_projects_locations_update_acl_config_task(
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/aclConfig
-/// Default ACL configuration for use in a location of a customer's project. Updates will only reflect to new data stores. Existing data stores will still use the old value.
+/// Default ACL configuration for use in a location of a customer''s project. Updates will only reflect to new data stores. Existing data stores will still use the old value.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -1392,7 +1392,7 @@ pub struct DiscoveryengineProjectsLocationsUpdateAclConfigArgs {
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/aclConfig
-/// Default ACL configuration for use in a location of a customer's project. Updates will only reflect to new data stores. Existing data stores will still use the old value.
+/// Default ACL configuration for use in a location of a customer''s project. Updates will only reflect to new data stores. Existing data stores will still use the old value.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `discoveryengine_projects_locations_update_acl_config_builder()` + `discoveryengine_projects_locations_update_acl_config_execute()`.
@@ -1418,7 +1418,7 @@ pub fn discoveryengine_projects_locations_update_acl_config(
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/cmekConfig
-/// Provisions a CMEK key for use in a location of a customer's project. This method will also conduct location validation on the provided `cmekConfig` to make sure the key is valid and can be used in the selected location.
+/// Provisions a CMEK key for use in a location of a customer''s project. This method will also conduct location validation on the provided `cmekConfig` to make sure the key is valid and can be used in the selected location.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_update_cmek_config_execute()` to send, or `discoveryengine_projects_locations_update_cmek_config` for simplest API.
@@ -1457,7 +1457,7 @@ where
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/cmekConfig
-/// Provisions a CMEK key for use in a location of a customer's project. This method will also conduct location validation on the provided `cmekConfig` to make sure the key is valid and can be used in the selected location.
+/// Provisions a CMEK key for use in a location of a customer''s project. This method will also conduct location validation on the provided `cmekConfig` to make sure the key is valid and can be used in the selected location.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -1531,7 +1531,7 @@ pub fn discoveryengine_projects_locations_update_cmek_config_task(
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/cmekConfig
-/// Provisions a CMEK key for use in a location of a customer's project. This method will also conduct location validation on the provided `cmekConfig` to make sure the key is valid and can be used in the selected location.
+/// Provisions a CMEK key for use in a location of a customer''s project. This method will also conduct location validation on the provided `cmekConfig` to make sure the key is valid and can be used in the selected location.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -1574,7 +1574,7 @@ pub struct DiscoveryengineProjectsLocationsUpdateCmekConfigArgs {
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/cmekConfig
-/// Provisions a CMEK key for use in a location of a customer's project. This method will also conduct location validation on the provided `cmekConfig` to make sure the key is valid and can be used in the selected location.
+/// Provisions a CMEK key for use in a location of a customer''s project. This method will also conduct location validation on the provided `cmekConfig` to make sure the key is valid and can be used in the selected location.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `discoveryengine_projects_locations_update_cmek_config_builder()` + `discoveryengine_projects_locations_update_cmek_config_execute()`.
@@ -2114,7 +2114,7 @@ pub fn discoveryengine_projects_locations_cmek_configs_list(
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/cmekConfigs/{cmekConfigsId}
-/// Provisions a CMEK key for use in a location of a customer's project. This method will also conduct location validation on the provided `cmekConfig` to make sure the key is valid and can be used in the selected location.
+/// Provisions a CMEK key for use in a location of a customer''s project. This method will also conduct location validation on the provided `cmekConfig` to make sure the key is valid and can be used in the selected location.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_cmek_configs_patch_execute()` to send, or `discoveryengine_projects_locations_cmek_configs_patch` for simplest API.
@@ -2153,7 +2153,7 @@ where
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/cmekConfigs/{cmekConfigsId}
-/// Provisions a CMEK key for use in a location of a customer's project. This method will also conduct location validation on the provided `cmekConfig` to make sure the key is valid and can be used in the selected location.
+/// Provisions a CMEK key for use in a location of a customer''s project. This method will also conduct location validation on the provided `cmekConfig` to make sure the key is valid and can be used in the selected location.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -2227,7 +2227,7 @@ pub fn discoveryengine_projects_locations_cmek_configs_patch_task(
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/cmekConfigs/{cmekConfigsId}
-/// Provisions a CMEK key for use in a location of a customer's project. This method will also conduct location validation on the provided `cmekConfig` to make sure the key is valid and can be used in the selected location.
+/// Provisions a CMEK key for use in a location of a customer''s project. This method will also conduct location validation on the provided `cmekConfig` to make sure the key is valid and can be used in the selected location.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -2270,7 +2270,7 @@ pub struct DiscoveryengineProjectsLocationsCmekConfigsPatchArgs {
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/cmekConfigs/{cmekConfigsId}
-/// Provisions a CMEK key for use in a location of a customer's project. This method will also conduct location validation on the provided `cmekConfig` to make sure the key is valid and can be used in the selected location.
+/// Provisions a CMEK key for use in a location of a customer''s project. This method will also conduct location validation on the provided `cmekConfig` to make sure the key is valid and can be used in the selected location.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `discoveryengine_projects_locations_cmek_configs_patch_builder()` + `discoveryengine_projects_locations_cmek_configs_patch_execute()`.
@@ -3203,7 +3203,7 @@ pub fn discoveryengine_projects_locations_collections_data_connector_operations_
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataConnector/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_data_connector_operations_list_execute()` to send, or `discoveryengine_projects_locations_collections_data_connector_operations_list` for simplest API.
@@ -3254,7 +3254,7 @@ where
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataConnector/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -3329,7 +3329,7 @@ pub fn discoveryengine_projects_locations_collections_data_connector_operations_
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataConnector/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -3380,7 +3380,7 @@ pub struct DiscoveryengineProjectsLocationsCollectionsDataConnectorOperationsLis
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataConnector/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `discoveryengine_projects_locations_collections_data_connector_operations_list_builder()` + `discoveryengine_projects_locations_collections_data_connector_operations_list_execute()`.
@@ -6412,7 +6412,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_branches_docum
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/branches/{branchesId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_data_stores_branches_operations_cancel_execute()` to send, or `discoveryengine_projects_locations_collections_data_stores_branches_operations_cancel` for simplest API.
@@ -6441,7 +6441,7 @@ where
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/branches/{branchesId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -6515,7 +6515,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_branches_opera
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/branches/{branchesId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -6557,7 +6557,7 @@ pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresBranchesOperatio
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/branches/{branchesId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `discoveryengine_projects_locations_collections_data_stores_branches_operations_cancel_builder()` + `discoveryengine_projects_locations_collections_data_stores_branches_operations_cancel_execute()`.
@@ -6761,7 +6761,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_branches_opera
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/branches/{branchesId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_data_stores_branches_operations_list_execute()` to send, or `discoveryengine_projects_locations_collections_data_stores_branches_operations_list` for simplest API.
@@ -6814,7 +6814,7 @@ where
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/branches/{branchesId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -6889,7 +6889,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_branches_opera
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/branches/{branchesId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -6941,7 +6941,7 @@ pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresBranchesOperatio
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/branches/{branchesId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `discoveryengine_projects_locations_collections_data_stores_branches_operations_list_builder()` + `discoveryengine_projects_locations_collections_data_stores_branches_operations_list_execute()`.
@@ -9878,7 +9878,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_models_operati
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/models/{modelsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_data_stores_models_operations_list_execute()` to send, or `discoveryengine_projects_locations_collections_data_stores_models_operations_list` for simplest API.
@@ -9931,7 +9931,7 @@ where
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/models/{modelsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -10006,7 +10006,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_models_operati
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/models/{modelsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -10058,7 +10058,7 @@ pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresModelsOperations
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/models/{modelsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `discoveryengine_projects_locations_collections_data_stores_models_operations_list_builder()` + `discoveryengine_projects_locations_collections_data_stores_models_operations_list_execute()`.
@@ -10266,7 +10266,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_operations_get
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_data_stores_operations_list_execute()` to send, or `discoveryengine_projects_locations_collections_data_stores_operations_list` for simplest API.
@@ -10317,7 +10317,7 @@ where
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -10392,7 +10392,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_operations_lis
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -10442,7 +10442,7 @@ pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresOperationsListAr
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `discoveryengine_projects_locations_collections_data_stores_operations_list_builder()` + `discoveryengine_projects_locations_collections_data_stores_operations_list_execute()`.
@@ -11567,7 +11567,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_schemas_operat
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/schemas/{schemasId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_data_stores_schemas_operations_list_execute()` to send, or `discoveryengine_projects_locations_collections_data_stores_schemas_operations_list` for simplest API.
@@ -11620,7 +11620,7 @@ where
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/schemas/{schemasId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -11695,7 +11695,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_schemas_operat
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/schemas/{schemasId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -11747,7 +11747,7 @@ pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresSchemasOperation
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/schemas/{schemasId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `discoveryengine_projects_locations_collections_data_stores_schemas_operations_list_builder()` + `discoveryengine_projects_locations_collections_data_stores_schemas_operations_list_execute()`.
@@ -14719,7 +14719,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_sessions_answe
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/siteSearchEngine:batchVerifyTargetSites
-/// Verify target sites' ownership and validity. This API sends all the target sites under site search engine for verification.
+/// Verify target sites'' ownership and validity. This API sends all the target sites under site search engine for verification.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_data_stores_site_search_engine_batch_verify_target_sites_execute()` to send, or `discoveryengine_projects_locations_collections_data_stores_site_search_engine_batch_verify_target_sites` for simplest API.
@@ -14748,7 +14748,7 @@ where
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/siteSearchEngine:batchVerifyTargetSites
-/// Verify target sites' ownership and validity. This API sends all the target sites under site search engine for verification.
+/// Verify target sites'' ownership and validity. This API sends all the target sites under site search engine for verification.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -14822,7 +14822,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_site_search_en
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/siteSearchEngine:batchVerifyTargetSites
-/// Verify target sites' ownership and validity. This API sends all the target sites under site search engine for verification.
+/// Verify target sites'' ownership and validity. This API sends all the target sites under site search engine for verification.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -14864,7 +14864,7 @@ pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresSiteSearchEngine
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/siteSearchEngine:batchVerifyTargetSites
-/// Verify target sites' ownership and validity. This API sends all the target sites under site search engine for verification.
+/// Verify target sites'' ownership and validity. This API sends all the target sites under site search engine for verification.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `discoveryengine_projects_locations_collections_data_stores_site_search_engine_batch_verify_target_sites_builder()` + `discoveryengine_projects_locations_collections_data_stores_site_search_engine_batch_verify_target_sites_execute()`.
@@ -15773,7 +15773,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_site_search_en
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/siteSearchEngine/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_data_stores_site_search_engine_operations_list_execute()` to send, or `discoveryengine_projects_locations_collections_data_stores_site_search_engine_operations_list` for simplest API.
@@ -15826,7 +15826,7 @@ where
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/siteSearchEngine/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -15901,7 +15901,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_site_search_en
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/siteSearchEngine/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -15950,7 +15950,7 @@ pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresSiteSearchEngine
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/siteSearchEngine/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `discoveryengine_projects_locations_collections_data_stores_site_search_engine_operations_list_builder()` + `discoveryengine_projects_locations_collections_data_stores_site_search_engine_operations_list_execute()`.
@@ -17724,7 +17724,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_site_search_en
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/siteSearchEngine/targetSites/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_data_stores_site_search_engine_target_sites_operations_list_execute()` to send, or `discoveryengine_projects_locations_collections_data_stores_site_search_engine_target_sites_operations_list` for simplest API.
@@ -17777,7 +17777,7 @@ where
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/siteSearchEngine/targetSites/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -17852,7 +17852,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_site_search_en
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/siteSearchEngine/targetSites/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -17902,7 +17902,7 @@ pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresSiteSearchEngine
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/siteSearchEngine/targetSites/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `discoveryengine_projects_locations_collections_data_stores_site_search_engine_target_sites_operations_list_builder()` + `discoveryengine_projects_locations_collections_data_stores_site_search_engine_target_sites_operations_list_execute()`.
@@ -25852,7 +25852,7 @@ pub fn discoveryengine_projects_locations_collections_engines_conversations_patc
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_engines_operations_cancel_execute()` to send, or `discoveryengine_projects_locations_collections_engines_operations_cancel` for simplest API.
@@ -25879,7 +25879,7 @@ where
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -25953,7 +25953,7 @@ pub fn discoveryengine_projects_locations_collections_engines_operations_cancel_
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -25993,7 +25993,7 @@ pub struct DiscoveryengineProjectsLocationsCollectionsEnginesOperationsCancelArg
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `discoveryengine_projects_locations_collections_engines_operations_cancel_builder()` + `discoveryengine_projects_locations_collections_engines_operations_cancel_execute()`.
@@ -26189,7 +26189,7 @@ pub fn discoveryengine_projects_locations_collections_engines_operations_get(
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_engines_operations_list_execute()` to send, or `discoveryengine_projects_locations_collections_engines_operations_list` for simplest API.
@@ -26240,7 +26240,7 @@ where
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -26315,7 +26315,7 @@ pub fn discoveryengine_projects_locations_collections_engines_operations_list_ta
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -26365,7 +26365,7 @@ pub struct DiscoveryengineProjectsLocationsCollectionsEnginesOperationsListArgs 
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `discoveryengine_projects_locations_collections_engines_operations_list_builder()` + `discoveryengine_projects_locations_collections_engines_operations_list_execute()`.
@@ -29866,7 +29866,7 @@ pub fn discoveryengine_projects_locations_collections_operations_get(
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_collections_operations_list_execute()` to send, or `discoveryengine_projects_locations_collections_operations_list` for simplest API.
@@ -29917,7 +29917,7 @@ where
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -29992,7 +29992,7 @@ pub fn discoveryengine_projects_locations_collections_operations_list_task(
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -30041,7 +30041,7 @@ pub struct DiscoveryengineProjectsLocationsCollectionsOperationsListArgs {
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `discoveryengine_projects_locations_collections_operations_list_builder()` + `discoveryengine_projects_locations_collections_operations_list_execute()`.
@@ -32862,7 +32862,7 @@ pub fn discoveryengine_projects_locations_data_stores_branches_documents_purge(
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/dataStores/{dataStoresId}/branches/{branchesId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_data_stores_branches_operations_cancel_execute()` to send, or `discoveryengine_projects_locations_data_stores_branches_operations_cancel` for simplest API.
@@ -32889,7 +32889,7 @@ where
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/dataStores/{dataStoresId}/branches/{branchesId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -32963,7 +32963,7 @@ pub fn discoveryengine_projects_locations_data_stores_branches_operations_cancel
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/dataStores/{dataStoresId}/branches/{branchesId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -33003,7 +33003,7 @@ pub struct DiscoveryengineProjectsLocationsDataStoresBranchesOperationsCancelArg
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/dataStores/{dataStoresId}/branches/{branchesId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `discoveryengine_projects_locations_data_stores_branches_operations_cancel_builder()` + `discoveryengine_projects_locations_data_stores_branches_operations_cancel_execute()`.
@@ -33201,7 +33201,7 @@ pub fn discoveryengine_projects_locations_data_stores_branches_operations_get(
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataStores/{dataStoresId}/branches/{branchesId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_data_stores_branches_operations_list_execute()` to send, or `discoveryengine_projects_locations_data_stores_branches_operations_list` for simplest API.
@@ -33252,7 +33252,7 @@ where
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataStores/{dataStoresId}/branches/{branchesId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -33327,7 +33327,7 @@ pub fn discoveryengine_projects_locations_data_stores_branches_operations_list_t
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataStores/{dataStoresId}/branches/{branchesId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -33377,7 +33377,7 @@ pub struct DiscoveryengineProjectsLocationsDataStoresBranchesOperationsListArgs 
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataStores/{dataStoresId}/branches/{branchesId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `discoveryengine_projects_locations_data_stores_branches_operations_list_builder()` + `discoveryengine_projects_locations_data_stores_branches_operations_list_execute()`.
@@ -36108,7 +36108,7 @@ pub fn discoveryengine_projects_locations_data_stores_models_operations_get(
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataStores/{dataStoresId}/models/{modelsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_data_stores_models_operations_list_execute()` to send, or `discoveryengine_projects_locations_data_stores_models_operations_list` for simplest API.
@@ -36159,7 +36159,7 @@ where
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataStores/{dataStoresId}/models/{modelsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -36234,7 +36234,7 @@ pub fn discoveryengine_projects_locations_data_stores_models_operations_list_tas
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataStores/{dataStoresId}/models/{modelsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -36283,7 +36283,7 @@ pub struct DiscoveryengineProjectsLocationsDataStoresModelsOperationsListArgs {
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataStores/{dataStoresId}/models/{modelsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `discoveryengine_projects_locations_data_stores_models_operations_list_builder()` + `discoveryengine_projects_locations_data_stores_models_operations_list_execute()`.
@@ -36485,7 +36485,7 @@ pub fn discoveryengine_projects_locations_data_stores_operations_get(
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataStores/{dataStoresId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_data_stores_operations_list_execute()` to send, or `discoveryengine_projects_locations_data_stores_operations_list` for simplest API.
@@ -36536,7 +36536,7 @@ where
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataStores/{dataStoresId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -36611,7 +36611,7 @@ pub fn discoveryengine_projects_locations_data_stores_operations_list_task(
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataStores/{dataStoresId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -36660,7 +36660,7 @@ pub struct DiscoveryengineProjectsLocationsDataStoresOperationsListArgs {
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataStores/{dataStoresId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `discoveryengine_projects_locations_data_stores_operations_list_builder()` + `discoveryengine_projects_locations_data_stores_operations_list_execute()`.
@@ -45733,7 +45733,7 @@ pub fn discoveryengine_projects_locations_identity_mapping_stores_operations_get
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/identityMappingStores/{identityMappingStoresId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_identity_mapping_stores_operations_list_execute()` to send, or `discoveryengine_projects_locations_identity_mapping_stores_operations_list` for simplest API.
@@ -45784,7 +45784,7 @@ where
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/identityMappingStores/{identityMappingStoresId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -45859,7 +45859,7 @@ pub fn discoveryengine_projects_locations_identity_mapping_stores_operations_lis
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/identityMappingStores/{identityMappingStoresId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -45909,7 +45909,7 @@ pub struct DiscoveryengineProjectsLocationsIdentityMappingStoresOperationsListAr
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/identityMappingStores/{identityMappingStoresId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `discoveryengine_projects_locations_identity_mapping_stores_operations_list_builder()` + `discoveryengine_projects_locations_identity_mapping_stores_operations_list_execute()`.
@@ -46652,7 +46652,7 @@ pub fn discoveryengine_projects_locations_operations_get(
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_locations_operations_list_execute()` to send, or `discoveryengine_projects_locations_operations_list` for simplest API.
@@ -46703,7 +46703,7 @@ where
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -46778,7 +46778,7 @@ pub fn discoveryengine_projects_locations_operations_list_task(
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -46827,7 +46827,7 @@ pub struct DiscoveryengineProjectsLocationsOperationsListArgs {
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `discoveryengine_projects_locations_operations_list_builder()` + `discoveryengine_projects_locations_operations_list_execute()`.
@@ -48674,7 +48674,7 @@ pub fn discoveryengine_projects_locations_user_stores_user_licenses_list(
 }
 
 /// POST v1/projects/{projectsId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_operations_cancel_execute()` to send, or `discoveryengine_projects_operations_cancel` for simplest API.
@@ -48701,7 +48701,7 @@ where
 }
 
 /// POST v1/projects/{projectsId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -48775,7 +48775,7 @@ pub fn discoveryengine_projects_operations_cancel_task(
 }
 
 /// POST v1/projects/{projectsId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -48814,7 +48814,7 @@ pub struct DiscoveryengineProjectsOperationsCancelArgs {
 }
 
 /// POST v1/projects/{projectsId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn''t support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `discoveryengine_projects_operations_cancel_builder()` + `discoveryengine_projects_operations_cancel_execute()`.
@@ -49006,7 +49006,7 @@ pub fn discoveryengine_projects_operations_get(
 }
 
 /// GET v1/projects/{projectsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `discoveryengine_projects_operations_list_execute()` to send, or `discoveryengine_projects_operations_list` for simplest API.
@@ -49057,7 +49057,7 @@ where
 }
 
 /// GET v1/projects/{projectsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -49132,7 +49132,7 @@ pub fn discoveryengine_projects_operations_list_task(
 }
 
 /// GET v1/projects/{projectsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -49181,7 +49181,7 @@ pub struct DiscoveryengineProjectsOperationsListArgs {
 }
 
 /// GET v1/projects/{projectsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// Lists operations that match the specified filter in the request. If the server doesn''t support this method, it returns UNIMPLEMENTED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `discoveryengine_projects_operations_list_builder()` + `discoveryengine_projects_operations_list_execute()`.

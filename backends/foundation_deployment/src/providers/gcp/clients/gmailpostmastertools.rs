@@ -22,7 +22,7 @@ use foundation_macros::JsonHash;
 use serde::Serialize;
 
 /// POST v2/domainStats:batchQuery
-/// Executes a batch of QueryDomainStats requests for multiple domains. Returns PERMISSION_DENIED if you don't have permission to access DomainStats for any of the requested domains.
+/// Executes a batch of QueryDomainStats requests for multiple domains. Returns PERMISSION_DENIED if you don''t have permission to access DomainStats for any of the requested domains.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gmailpostmastertools_domain_stats_batch_query_execute()` to send, or `gmailpostmastertools_domain_stats_batch_query` for simplest API.
@@ -46,7 +46,7 @@ where
 }
 
 /// POST v2/domainStats:batchQuery
-/// Executes a batch of QueryDomainStats requests for multiple domains. Returns PERMISSION_DENIED if you don't have permission to access DomainStats for any of the requested domains.
+/// Executes a batch of QueryDomainStats requests for multiple domains. Returns PERMISSION_DENIED if you don''t have permission to access DomainStats for any of the requested domains.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -120,7 +120,7 @@ pub fn gmailpostmastertools_domain_stats_batch_query_task(
 }
 
 /// POST v2/domainStats:batchQuery
-/// Executes a batch of QueryDomainStats requests for multiple domains. Returns PERMISSION_DENIED if you don't have permission to access DomainStats for any of the requested domains.
+/// Executes a batch of QueryDomainStats requests for multiple domains. Returns PERMISSION_DENIED if you don''t have permission to access DomainStats for any of the requested domains.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -154,7 +154,7 @@ pub fn gmailpostmastertools_domain_stats_batch_query_execute(
 }
 
 /// POST v2/domainStats:batchQuery
-/// Executes a batch of QueryDomainStats requests for multiple domains. Returns PERMISSION_DENIED if you don't have permission to access DomainStats for any of the requested domains.
+/// Executes a batch of QueryDomainStats requests for multiple domains. Returns PERMISSION_DENIED if you don''t have permission to access DomainStats for any of the requested domains.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `gmailpostmastertools_domain_stats_batch_query_builder()` + `gmailpostmastertools_domain_stats_batch_query_execute()`.
@@ -339,7 +339,7 @@ pub fn gmailpostmastertools_domains_get(
 }
 
 /// GET v2/domains/{domainsId}/complianceStatus
-/// Retrieves the compliance status for a given domain. Returns PERMISSION_DENIED if you don't have permission to access compliance status for the domain.
+/// Retrieves the compliance status for a given domain. Returns PERMISSION_DENIED if you don''t have permission to access compliance status for the domain.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gmailpostmastertools_domains_get_compliance_status_execute()` to send, or `gmailpostmastertools_domains_get_compliance_status` for simplest API.
@@ -366,7 +366,7 @@ where
 }
 
 /// GET v2/domains/{domainsId}/complianceStatus
-/// Retrieves the compliance status for a given domain. Returns PERMISSION_DENIED if you don't have permission to access compliance status for the domain.
+/// Retrieves the compliance status for a given domain. Returns PERMISSION_DENIED if you don''t have permission to access compliance status for the domain.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -440,7 +440,7 @@ pub fn gmailpostmastertools_domains_get_compliance_status_task(
 }
 
 /// GET v2/domains/{domainsId}/complianceStatus
-/// Retrieves the compliance status for a given domain. Returns PERMISSION_DENIED if you don't have permission to access compliance status for the domain.
+/// Retrieves the compliance status for a given domain. Returns PERMISSION_DENIED if you don''t have permission to access compliance status for the domain.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -479,7 +479,7 @@ pub struct GmailpostmastertoolsDomainsGetComplianceStatusArgs {
 }
 
 /// GET v2/domains/{domainsId}/complianceStatus
-/// Retrieves the compliance status for a given domain. Returns PERMISSION_DENIED if you don't have permission to access compliance status for the domain.
+/// Retrieves the compliance status for a given domain. Returns PERMISSION_DENIED if you don''t have permission to access compliance status for the domain.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `gmailpostmastertools_domains_get_compliance_status_builder()` + `gmailpostmastertools_domains_get_compliance_status_execute()`.
@@ -682,7 +682,7 @@ pub fn gmailpostmastertools_domains_list(
 }
 
 /// POST v2/domains/{domainsId}/domainStats:query
-/// Retrieves a list of domain statistics for a given domain and time period. Returns statistics only for dates where data is available. Returns PERMISSION_DENIED if you don't have permission to access DomainStats for the domain.
+/// Retrieves a list of domain statistics for a given domain and time period. Returns statistics only for dates where data is available. Returns PERMISSION_DENIED if you don''t have permission to access DomainStats for the domain.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `gmailpostmastertools_domains_domain_stats_query_execute()` to send, or `gmailpostmastertools_domains_domain_stats_query` for simplest API.
@@ -709,7 +709,7 @@ where
 }
 
 /// POST v2/domains/{domainsId}/domainStats:query
-/// Retrieves a list of domain statistics for a given domain and time period. Returns statistics only for dates where data is available. Returns PERMISSION_DENIED if you don't have permission to access DomainStats for the domain.
+/// Retrieves a list of domain statistics for a given domain and time period. Returns statistics only for dates where data is available. Returns PERMISSION_DENIED if you don''t have permission to access DomainStats for the domain.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -783,7 +783,7 @@ pub fn gmailpostmastertools_domains_domain_stats_query_task(
 }
 
 /// POST v2/domains/{domainsId}/domainStats:query
-/// Retrieves a list of domain statistics for a given domain and time period. Returns statistics only for dates where data is available. Returns PERMISSION_DENIED if you don't have permission to access DomainStats for the domain.
+/// Retrieves a list of domain statistics for a given domain and time period. Returns statistics only for dates where data is available. Returns PERMISSION_DENIED if you don''t have permission to access DomainStats for the domain.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -822,7 +822,7 @@ pub struct GmailpostmastertoolsDomainsDomainStatsQueryArgs {
 }
 
 /// POST v2/domains/{domainsId}/domainStats:query
-/// Retrieves a list of domain statistics for a given domain and time period. Returns statistics only for dates where data is available. Returns PERMISSION_DENIED if you don't have permission to access DomainStats for the domain.
+/// Retrieves a list of domain statistics for a given domain and time period. Returns statistics only for dates where data is available. Returns PERMISSION_DENIED if you don''t have permission to access DomainStats for the domain.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `gmailpostmastertools_domains_domain_stats_query_builder()` + `gmailpostmastertools_domains_domain_stats_query_execute()`.

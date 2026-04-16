@@ -38837,7 +38837,7 @@ pub fn compute_instance_group_managers_list_errors(
 }
 
 /// POST projects/{project}/zones/{zone}/instanceGroupManagers/{instanceGroupManager}/listManagedInstances
-/// Lists all of the instances in the managed instance group. Each instance in the list has a `currentAction`, which indicates the action that the managed instance group is performing on the instance. For example, if the group is still creating an instance, the `currentAction` is CREATING. If a previous action failed, the list displays the errors for that failed action. The `orderBy` query parameter is not supported. The `pageToken` query parameter is supported only if the group's `listManagedInstancesResults` field is set to PAGINATED.
+/// Lists all of the instances in the managed instance group. Each instance in the list has a `currentAction`, which indicates the action that the managed instance group is performing on the instance. For example, if the group is still creating an instance, the `currentAction` is CREATING. If a previous action failed, the list displays the errors for that failed action. The `orderBy` query parameter is not supported. The `pageToken` query parameter is supported only if the group''s `listManagedInstancesResults` field is set to PAGINATED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instance_group_managers_list_managed_instances_execute()` to send, or `compute_instance_group_managers_list_managed_instances` for simplest API.
@@ -38896,7 +38896,7 @@ where
 }
 
 /// POST projects/{project}/zones/{zone}/instanceGroupManagers/{instanceGroupManager}/listManagedInstances
-/// Lists all of the instances in the managed instance group. Each instance in the list has a `currentAction`, which indicates the action that the managed instance group is performing on the instance. For example, if the group is still creating an instance, the `currentAction` is CREATING. If a previous action failed, the list displays the errors for that failed action. The `orderBy` query parameter is not supported. The `pageToken` query parameter is supported only if the group's `listManagedInstancesResults` field is set to PAGINATED.
+/// Lists all of the instances in the managed instance group. Each instance in the list has a `currentAction`, which indicates the action that the managed instance group is performing on the instance. For example, if the group is still creating an instance, the `currentAction` is CREATING. If a previous action failed, the list displays the errors for that failed action. The `orderBy` query parameter is not supported. The `pageToken` query parameter is supported only if the group''s `listManagedInstancesResults` field is set to PAGINATED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -38974,7 +38974,7 @@ pub fn compute_instance_group_managers_list_managed_instances_task(
 }
 
 /// POST projects/{project}/zones/{zone}/instanceGroupManagers/{instanceGroupManager}/listManagedInstances
-/// Lists all of the instances in the managed instance group. Each instance in the list has a `currentAction`, which indicates the action that the managed instance group is performing on the instance. For example, if the group is still creating an instance, the `currentAction` is CREATING. If a previous action failed, the list displays the errors for that failed action. The `orderBy` query parameter is not supported. The `pageToken` query parameter is supported only if the group's `listManagedInstancesResults` field is set to PAGINATED.
+/// Lists all of the instances in the managed instance group. Each instance in the list has a `currentAction`, which indicates the action that the managed instance group is performing on the instance. For example, if the group is still creating an instance, the `currentAction` is CREATING. If a previous action failed, the list displays the errors for that failed action. The `orderBy` query parameter is not supported. The `pageToken` query parameter is supported only if the group''s `listManagedInstancesResults` field is set to PAGINATED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -39029,7 +39029,7 @@ pub struct ComputeInstanceGroupManagersListManagedInstancesArgs {
 }
 
 /// POST projects/{project}/zones/{zone}/instanceGroupManagers/{instanceGroupManager}/listManagedInstances
-/// Lists all of the instances in the managed instance group. Each instance in the list has a `currentAction`, which indicates the action that the managed instance group is performing on the instance. For example, if the group is still creating an instance, the `currentAction` is CREATING. If a previous action failed, the list displays the errors for that failed action. The `orderBy` query parameter is not supported. The `pageToken` query parameter is supported only if the group's `listManagedInstancesResults` field is set to PAGINATED.
+/// Lists all of the instances in the managed instance group. Each instance in the list has a `currentAction`, which indicates the action that the managed instance group is performing on the instance. For example, if the group is still creating an instance, the `currentAction` is CREATING. If a previous action failed, the list displays the errors for that failed action. The `orderBy` query parameter is not supported. The `pageToken` query parameter is supported only if the group''s `listManagedInstancesResults` field is set to PAGINATED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `compute_instance_group_managers_list_managed_instances_builder()` + `compute_instance_group_managers_list_managed_instances_execute()`.
@@ -39290,7 +39290,7 @@ pub fn compute_instance_group_managers_list_per_instance_configs(
 }
 
 /// PATCH projects/{project}/zones/{zone}/instanceGroupManagers/{instanceGroupManager}
-/// Updates a managed instance group using the information that you specify in the request. This operation is marked as DONE when the group is patched even if the instances in the group are still in the process of being patched. You must separately verify the status of the individual instances with `thelistManagedInstances` method. This method `supportsPATCH` semantics and uses `theJSON` merge patch format and processing rules.  If you update your group to specify a new template or instance configuration, it's possible that your intended specification for each VM in the group is different from the current state of that VM. To learn how to apply an updated configuration to the VMs in a MIG, `seeUpdating` instances in a MIG.
+/// Updates a managed instance group using the information that you specify in the request. This operation is marked as DONE when the group is patched even if the instances in the group are still in the process of being patched. You must separately verify the status of the individual instances with `thelistManagedInstances` method. This method `supportsPATCH` semantics and uses `theJSON` merge patch format and processing rules.  If you update your group to specify a new template or instance configuration, it''s possible that your intended specification for each VM in the group is different from the current state of that VM. To learn how to apply an updated configuration to the VMs in a MIG, `seeUpdating` instances in a MIG.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instance_group_managers_patch_execute()` to send, or `compute_instance_group_managers_patch` for simplest API.
@@ -39331,7 +39331,7 @@ where
 }
 
 /// PATCH projects/{project}/zones/{zone}/instanceGroupManagers/{instanceGroupManager}
-/// Updates a managed instance group using the information that you specify in the request. This operation is marked as DONE when the group is patched even if the instances in the group are still in the process of being patched. You must separately verify the status of the individual instances with `thelistManagedInstances` method. This method `supportsPATCH` semantics and uses `theJSON` merge patch format and processing rules.  If you update your group to specify a new template or instance configuration, it's possible that your intended specification for each VM in the group is different from the current state of that VM. To learn how to apply an updated configuration to the VMs in a MIG, `seeUpdating` instances in a MIG.
+/// Updates a managed instance group using the information that you specify in the request. This operation is marked as DONE when the group is patched even if the instances in the group are still in the process of being patched. You must separately verify the status of the individual instances with `thelistManagedInstances` method. This method `supportsPATCH` semantics and uses `theJSON` merge patch format and processing rules.  If you update your group to specify a new template or instance configuration, it''s possible that your intended specification for each VM in the group is different from the current state of that VM. To learn how to apply an updated configuration to the VMs in a MIG, `seeUpdating` instances in a MIG.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -39405,7 +39405,7 @@ pub fn compute_instance_group_managers_patch_task(
 }
 
 /// PATCH projects/{project}/zones/{zone}/instanceGroupManagers/{instanceGroupManager}
-/// Updates a managed instance group using the information that you specify in the request. This operation is marked as DONE when the group is patched even if the instances in the group are still in the process of being patched. You must separately verify the status of the individual instances with `thelistManagedInstances` method. This method `supportsPATCH` semantics and uses `theJSON` merge patch format and processing rules.  If you update your group to specify a new template or instance configuration, it's possible that your intended specification for each VM in the group is different from the current state of that VM. To learn how to apply an updated configuration to the VMs in a MIG, `seeUpdating` instances in a MIG.
+/// Updates a managed instance group using the information that you specify in the request. This operation is marked as DONE when the group is patched even if the instances in the group are still in the process of being patched. You must separately verify the status of the individual instances with `thelistManagedInstances` method. This method `supportsPATCH` semantics and uses `theJSON` merge patch format and processing rules.  If you update your group to specify a new template or instance configuration, it''s possible that your intended specification for each VM in the group is different from the current state of that VM. To learn how to apply an updated configuration to the VMs in a MIG, `seeUpdating` instances in a MIG.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -39448,7 +39448,7 @@ pub struct ComputeInstanceGroupManagersPatchArgs {
 }
 
 /// PATCH projects/{project}/zones/{zone}/instanceGroupManagers/{instanceGroupManager}
-/// Updates a managed instance group using the information that you specify in the request. This operation is marked as DONE when the group is patched even if the instances in the group are still in the process of being patched. You must separately verify the status of the individual instances with `thelistManagedInstances` method. This method `supportsPATCH` semantics and uses `theJSON` merge patch format and processing rules.  If you update your group to specify a new template or instance configuration, it's possible that your intended specification for each VM in the group is different from the current state of that VM. To learn how to apply an updated configuration to the VMs in a MIG, `seeUpdating` instances in a MIG.
+/// Updates a managed instance group using the information that you specify in the request. This operation is marked as DONE when the group is patched even if the instances in the group are still in the process of being patched. You must separately verify the status of the individual instances with `thelistManagedInstances` method. This method `supportsPATCH` semantics and uses `theJSON` merge patch format and processing rules.  If you update your group to specify a new template or instance configuration, it''s possible that your intended specification for each VM in the group is different from the current state of that VM. To learn how to apply an updated configuration to the VMs in a MIG, `seeUpdating` instances in a MIG.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `compute_instance_group_managers_patch_builder()` + `compute_instance_group_managers_patch_execute()`.
@@ -39664,7 +39664,7 @@ pub fn compute_instance_group_managers_patch_per_instance_configs(
 }
 
 /// POST projects/{project}/zones/{zone}/instanceGroupManagers/{instanceGroupManager}/recreateInstances
-/// Flags the specified VM instances in the managed instance group to be immediately recreated. Each instance is recreated using the group's current configuration. This operation is marked as DONE when the flag is set even if the instances have not yet been recreated. You must separately verify the status of each instance by checking `itscurrentAction` field; for more information, see Checking the status of managed instances.  If the group is part of a backend service that has enabled connection draining, it can take up to 60 seconds after the connection draining duration has elapsed before the VM instance is removed or deleted.  You can specify a maximum of 1000 instances with this method per request.
+/// Flags the specified VM instances in the managed instance group to be immediately recreated. Each instance is recreated using the group''s current configuration. This operation is marked as DONE when the flag is set even if the instances have not yet been recreated. You must separately verify the status of each instance by checking `itscurrentAction` field; for more information, see Checking the status of managed instances.  If the group is part of a backend service that has enabled connection draining, it can take up to 60 seconds after the connection draining duration has elapsed before the VM instance is removed or deleted.  You can specify a maximum of 1000 instances with this method per request.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instance_group_managers_recreate_instances_execute()` to send, or `compute_instance_group_managers_recreate_instances` for simplest API.
@@ -39707,7 +39707,7 @@ where
 }
 
 /// POST projects/{project}/zones/{zone}/instanceGroupManagers/{instanceGroupManager}/recreateInstances
-/// Flags the specified VM instances in the managed instance group to be immediately recreated. Each instance is recreated using the group's current configuration. This operation is marked as DONE when the flag is set even if the instances have not yet been recreated. You must separately verify the status of each instance by checking `itscurrentAction` field; for more information, see Checking the status of managed instances.  If the group is part of a backend service that has enabled connection draining, it can take up to 60 seconds after the connection draining duration has elapsed before the VM instance is removed or deleted.  You can specify a maximum of 1000 instances with this method per request.
+/// Flags the specified VM instances in the managed instance group to be immediately recreated. Each instance is recreated using the group''s current configuration. This operation is marked as DONE when the flag is set even if the instances have not yet been recreated. You must separately verify the status of each instance by checking `itscurrentAction` field; for more information, see Checking the status of managed instances.  If the group is part of a backend service that has enabled connection draining, it can take up to 60 seconds after the connection draining duration has elapsed before the VM instance is removed or deleted.  You can specify a maximum of 1000 instances with this method per request.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -39781,7 +39781,7 @@ pub fn compute_instance_group_managers_recreate_instances_task(
 }
 
 /// POST projects/{project}/zones/{zone}/instanceGroupManagers/{instanceGroupManager}/recreateInstances
-/// Flags the specified VM instances in the managed instance group to be immediately recreated. Each instance is recreated using the group's current configuration. This operation is marked as DONE when the flag is set even if the instances have not yet been recreated. You must separately verify the status of each instance by checking `itscurrentAction` field; for more information, see Checking the status of managed instances.  If the group is part of a backend service that has enabled connection draining, it can take up to 60 seconds after the connection draining duration has elapsed before the VM instance is removed or deleted.  You can specify a maximum of 1000 instances with this method per request.
+/// Flags the specified VM instances in the managed instance group to be immediately recreated. Each instance is recreated using the group''s current configuration. This operation is marked as DONE when the flag is set even if the instances have not yet been recreated. You must separately verify the status of each instance by checking `itscurrentAction` field; for more information, see Checking the status of managed instances.  If the group is part of a backend service that has enabled connection draining, it can take up to 60 seconds after the connection draining duration has elapsed before the VM instance is removed or deleted.  You can specify a maximum of 1000 instances with this method per request.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -39824,7 +39824,7 @@ pub struct ComputeInstanceGroupManagersRecreateInstancesArgs {
 }
 
 /// POST projects/{project}/zones/{zone}/instanceGroupManagers/{instanceGroupManager}/recreateInstances
-/// Flags the specified VM instances in the managed instance group to be immediately recreated. Each instance is recreated using the group's current configuration. This operation is marked as DONE when the flag is set even if the instances have not yet been recreated. You must separately verify the status of each instance by checking `itscurrentAction` field; for more information, see Checking the status of managed instances.  If the group is part of a backend service that has enabled connection draining, it can take up to 60 seconds after the connection draining duration has elapsed before the VM instance is removed or deleted.  You can specify a maximum of 1000 instances with this method per request.
+/// Flags the specified VM instances in the managed instance group to be immediately recreated. Each instance is recreated using the group''s current configuration. This operation is marked as DONE when the flag is set even if the instances have not yet been recreated. You must separately verify the status of each instance by checking `itscurrentAction` field; for more information, see Checking the status of managed instances.  If the group is part of a backend service that has enabled connection draining, it can take up to 60 seconds after the connection draining duration has elapsed before the VM instance is removed or deleted.  You can specify a maximum of 1000 instances with this method per request.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `compute_instance_group_managers_recreate_instances_builder()` + `compute_instance_group_managers_recreate_instances_execute()`.
@@ -40235,7 +40235,7 @@ pub fn compute_instance_group_managers_resume_instances(
 }
 
 /// POST projects/{project}/zones/{zone}/instanceGroupManagers/{instanceGroupManager}/setInstanceTemplate
-/// Specifies the instance template to use when creating new instances in this group. The templates for existing instances in the group do not change unless you run `recreateInstances`, `runapplyUpdatesToInstances`, or set the group'`supdatePolicy`.type to PROACTIVE.
+/// Specifies the instance template to use when creating new instances in this group. The templates for existing instances in the group do not change unless you run `recreateInstances`, `runapplyUpdatesToInstances`, or set the group''`supdatePolicy`.type to PROACTIVE.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instance_group_managers_set_instance_template_execute()` to send, or `compute_instance_group_managers_set_instance_template` for simplest API.
@@ -40278,7 +40278,7 @@ where
 }
 
 /// POST projects/{project}/zones/{zone}/instanceGroupManagers/{instanceGroupManager}/setInstanceTemplate
-/// Specifies the instance template to use when creating new instances in this group. The templates for existing instances in the group do not change unless you run `recreateInstances`, `runapplyUpdatesToInstances`, or set the group'`supdatePolicy`.type to PROACTIVE.
+/// Specifies the instance template to use when creating new instances in this group. The templates for existing instances in the group do not change unless you run `recreateInstances`, `runapplyUpdatesToInstances`, or set the group''`supdatePolicy`.type to PROACTIVE.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -40352,7 +40352,7 @@ pub fn compute_instance_group_managers_set_instance_template_task(
 }
 
 /// POST projects/{project}/zones/{zone}/instanceGroupManagers/{instanceGroupManager}/setInstanceTemplate
-/// Specifies the instance template to use when creating new instances in this group. The templates for existing instances in the group do not change unless you run `recreateInstances`, `runapplyUpdatesToInstances`, or set the group'`supdatePolicy`.type to PROACTIVE.
+/// Specifies the instance template to use when creating new instances in this group. The templates for existing instances in the group do not change unless you run `recreateInstances`, `runapplyUpdatesToInstances`, or set the group''`supdatePolicy`.type to PROACTIVE.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -40395,7 +40395,7 @@ pub struct ComputeInstanceGroupManagersSetInstanceTemplateArgs {
 }
 
 /// POST projects/{project}/zones/{zone}/instanceGroupManagers/{instanceGroupManager}/setInstanceTemplate
-/// Specifies the instance template to use when creating new instances in this group. The templates for existing instances in the group do not change unless you run `recreateInstances`, `runapplyUpdatesToInstances`, or set the group'`supdatePolicy`.type to PROACTIVE.
+/// Specifies the instance template to use when creating new instances in this group. The templates for existing instances in the group do not change unless you run `recreateInstances`, `runapplyUpdatesToInstances`, or set the group''`supdatePolicy`.type to PROACTIVE.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `compute_instance_group_managers_set_instance_template_builder()` + `compute_instance_group_managers_set_instance_template_execute()`.
@@ -45148,7 +45148,7 @@ pub fn compute_instance_templates_test_iam_permissions(
 }
 
 /// POST projects/{project}/zones/{zone}/instances/{instance}/addAccessConfig
-/// Adds an access config to an instance's network interface.
+/// Adds an access config to an instance''s network interface.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instances_add_access_config_execute()` to send, or `compute_instances_add_access_config` for simplest API.
@@ -45195,7 +45195,7 @@ where
 }
 
 /// POST projects/{project}/zones/{zone}/instances/{instance}/addAccessConfig
-/// Adds an access config to an instance's network interface.
+/// Adds an access config to an instance''s network interface.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -45269,7 +45269,7 @@ pub fn compute_instances_add_access_config_task(
 }
 
 /// POST projects/{project}/zones/{zone}/instances/{instance}/addAccessConfig
-/// Adds an access config to an instance's network interface.
+/// Adds an access config to an instance''s network interface.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -45314,7 +45314,7 @@ pub struct ComputeInstancesAddAccessConfigArgs {
 }
 
 /// POST projects/{project}/zones/{zone}/instances/{instance}/addAccessConfig
-/// Adds an access config to an instance's network interface.
+/// Adds an access config to an instance''s network interface.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `compute_instances_add_access_config_builder()` + `compute_instances_add_access_config_execute()`.
@@ -46500,7 +46500,7 @@ pub fn compute_instances_delete(
 }
 
 /// POST projects/{project}/zones/{zone}/instances/{instance}/deleteAccessConfig
-/// Deletes an access config from an instance's network interface.
+/// Deletes an access config from an instance''s network interface.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instances_delete_access_config_execute()` to send, or `compute_instances_delete_access_config` for simplest API.
@@ -46551,7 +46551,7 @@ where
 }
 
 /// POST projects/{project}/zones/{zone}/instances/{instance}/deleteAccessConfig
-/// Deletes an access config from an instance's network interface.
+/// Deletes an access config from an instance''s network interface.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -46625,7 +46625,7 @@ pub fn compute_instances_delete_access_config_task(
 }
 
 /// POST projects/{project}/zones/{zone}/instances/{instance}/deleteAccessConfig
-/// Deletes an access config from an instance's network interface.
+/// Deletes an access config from an instance''s network interface.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -46672,7 +46672,7 @@ pub struct ComputeInstancesDeleteAccessConfigArgs {
 }
 
 /// POST projects/{project}/zones/{zone}/instances/{instance}/deleteAccessConfig
-/// Deletes an access config from an instance's network interface.
+/// Deletes an access config from an instance''s network interface.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `compute_instances_delete_access_config_builder()` + `compute_instances_delete_access_config_execute()`.
@@ -51806,7 +51806,7 @@ pub fn compute_instances_set_name(
 }
 
 /// POST projects/{project}/zones/{zone}/instances/{instance}/setScheduling
-/// Sets an instance's scheduling options. You can only call this method on astopped instance, that is, a VM instance that is in a TERMINATED state. SeeInstance Life Cycle for more information on the possible instance states. For more information about setting scheduling options for a VM, `seeSet` VM host maintenance policy.
+/// Sets an instance''s scheduling options. You can only call this method on astopped instance, that is, a VM instance that is in a TERMINATED state. SeeInstance Life Cycle for more information on the possible instance states. For more information about setting scheduling options for a VM, `seeSet` VM host maintenance policy.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instances_set_scheduling_execute()` to send, or `compute_instances_set_scheduling` for simplest API.
@@ -51847,7 +51847,7 @@ where
 }
 
 /// POST projects/{project}/zones/{zone}/instances/{instance}/setScheduling
-/// Sets an instance's scheduling options. You can only call this method on astopped instance, that is, a VM instance that is in a TERMINATED state. SeeInstance Life Cycle for more information on the possible instance states. For more information about setting scheduling options for a VM, `seeSet` VM host maintenance policy.
+/// Sets an instance''s scheduling options. You can only call this method on astopped instance, that is, a VM instance that is in a TERMINATED state. SeeInstance Life Cycle for more information on the possible instance states. For more information about setting scheduling options for a VM, `seeSet` VM host maintenance policy.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -51921,7 +51921,7 @@ pub fn compute_instances_set_scheduling_task(
 }
 
 /// POST projects/{project}/zones/{zone}/instances/{instance}/setScheduling
-/// Sets an instance's scheduling options. You can only call this method on astopped instance, that is, a VM instance that is in a TERMINATED state. SeeInstance Life Cycle for more information on the possible instance states. For more information about setting scheduling options for a VM, `seeSet` VM host maintenance policy.
+/// Sets an instance''s scheduling options. You can only call this method on astopped instance, that is, a VM instance that is in a TERMINATED state. SeeInstance Life Cycle for more information on the possible instance states. For more information about setting scheduling options for a VM, `seeSet` VM host maintenance policy.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -51964,7 +51964,7 @@ pub struct ComputeInstancesSetSchedulingArgs {
 }
 
 /// POST projects/{project}/zones/{zone}/instances/{instance}/setScheduling
-/// Sets an instance's scheduling options. You can only call this method on astopped instance, that is, a VM instance that is in a TERMINATED state. SeeInstance Life Cycle for more information on the possible instance states. For more information about setting scheduling options for a VM, `seeSet` VM host maintenance policy.
+/// Sets an instance''s scheduling options. You can only call this method on astopped instance, that is, a VM instance that is in a TERMINATED state. SeeInstance Life Cycle for more information on the possible instance states. For more information about setting scheduling options for a VM, `seeSet` VM host maintenance policy.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `compute_instances_set_scheduling_builder()` + `compute_instances_set_scheduling_execute()`.
@@ -54081,7 +54081,7 @@ pub fn compute_instances_update(
 }
 
 /// POST projects/{project}/zones/{zone}/instances/{instance}/updateAccessConfig
-/// Updates the specified access config from an instance's network interface with the data included in the request. This method `supportsPATCH` semantics and uses `theJSON` merge patch format and processing rules.
+/// Updates the specified access config from an instance''s network interface with the data included in the request. This method `supportsPATCH` semantics and uses `theJSON` merge patch format and processing rules.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instances_update_access_config_execute()` to send, or `compute_instances_update_access_config` for simplest API.
@@ -54128,7 +54128,7 @@ where
 }
 
 /// POST projects/{project}/zones/{zone}/instances/{instance}/updateAccessConfig
-/// Updates the specified access config from an instance's network interface with the data included in the request. This method `supportsPATCH` semantics and uses `theJSON` merge patch format and processing rules.
+/// Updates the specified access config from an instance''s network interface with the data included in the request. This method `supportsPATCH` semantics and uses `theJSON` merge patch format and processing rules.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -54202,7 +54202,7 @@ pub fn compute_instances_update_access_config_task(
 }
 
 /// POST projects/{project}/zones/{zone}/instances/{instance}/updateAccessConfig
-/// Updates the specified access config from an instance's network interface with the data included in the request. This method `supportsPATCH` semantics and uses `theJSON` merge patch format and processing rules.
+/// Updates the specified access config from an instance''s network interface with the data included in the request. This method `supportsPATCH` semantics and uses `theJSON` merge patch format and processing rules.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -54247,7 +54247,7 @@ pub struct ComputeInstancesUpdateAccessConfigArgs {
 }
 
 /// POST projects/{project}/zones/{zone}/instances/{instance}/updateAccessConfig
-/// Updates the specified access config from an instance's network interface with the data included in the request. This method `supportsPATCH` semantics and uses `theJSON` merge patch format and processing rules.
+/// Updates the specified access config from an instance''s network interface with the data included in the request. This method `supportsPATCH` semantics and uses `theJSON` merge patch format and processing rules.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `compute_instances_update_access_config_builder()` + `compute_instances_update_access_config_execute()`.
@@ -54464,7 +54464,7 @@ pub fn compute_instances_update_display_device(
 }
 
 /// PATCH projects/{project}/zones/{zone}/instances/{instance}/updateNetworkInterface
-/// Updates an instance's network interface. This method can only update an interface's alias IP range and attached network. See Modifying alias IP ranges for an existing instance for instructions on changing alias IP ranges. See Migrating a VM between networks for instructions on migrating an interface. This method follows PATCH semantics.
+/// Updates an instance''s network interface. This method can only update an interface''s alias IP range and attached network. See Modifying alias IP ranges for an existing instance for instructions on changing alias IP ranges. See Migrating a VM between networks for instructions on migrating an interface. This method follows PATCH semantics.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_instances_update_network_interface_execute()` to send, or `compute_instances_update_network_interface` for simplest API.
@@ -54511,7 +54511,7 @@ where
 }
 
 /// PATCH projects/{project}/zones/{zone}/instances/{instance}/updateNetworkInterface
-/// Updates an instance's network interface. This method can only update an interface's alias IP range and attached network. See Modifying alias IP ranges for an existing instance for instructions on changing alias IP ranges. See Migrating a VM between networks for instructions on migrating an interface. This method follows PATCH semantics.
+/// Updates an instance''s network interface. This method can only update an interface''s alias IP range and attached network. See Modifying alias IP ranges for an existing instance for instructions on changing alias IP ranges. See Migrating a VM between networks for instructions on migrating an interface. This method follows PATCH semantics.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -54585,7 +54585,7 @@ pub fn compute_instances_update_network_interface_task(
 }
 
 /// PATCH projects/{project}/zones/{zone}/instances/{instance}/updateNetworkInterface
-/// Updates an instance's network interface. This method can only update an interface's alias IP range and attached network. See Modifying alias IP ranges for an existing instance for instructions on changing alias IP ranges. See Migrating a VM between networks for instructions on migrating an interface. This method follows PATCH semantics.
+/// Updates an instance''s network interface. This method can only update an interface''s alias IP range and attached network. See Modifying alias IP ranges for an existing instance for instructions on changing alias IP ranges. See Migrating a VM between networks for instructions on migrating an interface. This method follows PATCH semantics.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -54630,7 +54630,7 @@ pub struct ComputeInstancesUpdateNetworkInterfaceArgs {
 }
 
 /// PATCH projects/{project}/zones/{zone}/instances/{instance}/updateNetworkInterface
-/// Updates an instance's network interface. This method can only update an interface's alias IP range and attached network. See Modifying alias IP ranges for an existing instance for instructions on changing alias IP ranges. See Migrating a VM between networks for instructions on migrating an interface. This method follows PATCH semantics.
+/// Updates an instance''s network interface. This method can only update an interface''s alias IP range and attached network. See Modifying alias IP ranges for an existing instance for instructions on changing alias IP ranges. See Migrating a VM between networks for instructions on migrating an interface. This method follows PATCH semantics.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `compute_instances_update_network_interface_builder()` + `compute_instances_update_network_interface_execute()`.
@@ -90244,7 +90244,7 @@ pub fn compute_projects_enable_xpn_resource(
 }
 
 /// GET projects/{project}
-/// Returns the specified Project resource.  To decrease latency for this method, you can optionally omit any unneeded information from the response by using a field mask. This practice is especially recommended for unused quota information (the quotas field). To exclude one or more fields, set your request's fields query parameter to only include the fields you need. For example, to only include the id and `selfLink` fields, add the query parameter ?fields=id,`selfLink` to your request.
+/// Returns the specified Project resource.  To decrease latency for this method, you can optionally omit any unneeded information from the response by using a field mask. This practice is especially recommended for unused quota information (the quotas field). To exclude one or more fields, set your request''s fields query parameter to only include the fields you need. For example, to only include the id and `selfLink` fields, add the query parameter ?fields=id,`selfLink` to your request.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_projects_get_execute()` to send, or `compute_projects_get` for simplest API.
@@ -90271,7 +90271,7 @@ where
 }
 
 /// GET projects/{project}
-/// Returns the specified Project resource.  To decrease latency for this method, you can optionally omit any unneeded information from the response by using a field mask. This practice is especially recommended for unused quota information (the quotas field). To exclude one or more fields, set your request's fields query parameter to only include the fields you need. For example, to only include the id and `selfLink` fields, add the query parameter ?fields=id,`selfLink` to your request.
+/// Returns the specified Project resource.  To decrease latency for this method, you can optionally omit any unneeded information from the response by using a field mask. This practice is especially recommended for unused quota information (the quotas field). To exclude one or more fields, set your request''s fields query parameter to only include the fields you need. For example, to only include the id and `selfLink` fields, add the query parameter ?fields=id,`selfLink` to your request.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -90345,7 +90345,7 @@ pub fn compute_projects_get_task(
 }
 
 /// GET projects/{project}
-/// Returns the specified Project resource.  To decrease latency for this method, you can optionally omit any unneeded information from the response by using a field mask. This practice is especially recommended for unused quota information (the quotas field). To exclude one or more fields, set your request's fields query parameter to only include the fields you need. For example, to only include the id and `selfLink` fields, add the query parameter ?fields=id,`selfLink` to your request.
+/// Returns the specified Project resource.  To decrease latency for this method, you can optionally omit any unneeded information from the response by using a field mask. This practice is especially recommended for unused quota information (the quotas field). To exclude one or more fields, set your request''s fields query parameter to only include the fields you need. For example, to only include the id and `selfLink` fields, add the query parameter ?fields=id,`selfLink` to your request.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -90382,7 +90382,7 @@ pub struct ComputeProjectsGetArgs {
 }
 
 /// GET projects/{project}
-/// Returns the specified Project resource.  To decrease latency for this method, you can optionally omit any unneeded information from the response by using a field mask. This practice is especially recommended for unused quota information (the quotas field). To exclude one or more fields, set your request's fields query parameter to only include the fields you need. For example, to only include the id and `selfLink` fields, add the query parameter ?fields=id,`selfLink` to your request.
+/// Returns the specified Project resource.  To decrease latency for this method, you can optionally omit any unneeded information from the response by using a field mask. This practice is especially recommended for unused quota information (the quotas field). To exclude one or more fields, set your request''s fields query parameter to only include the fields you need. For example, to only include the id and `selfLink` fields, add the query parameter ?fields=id,`selfLink` to your request.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `compute_projects_get_builder()` + `compute_projects_get_execute()`.
@@ -90980,7 +90980,7 @@ pub fn compute_projects_list_xpn_hosts(
 }
 
 /// POST projects/{project}/moveDisk
-/// Moves a persistent disk from one zone to another. *Note*: The `moveDisk` API will be deprecated on September 29, 2026.  Starting September 29, 2025, you can't use the `moveDisk` API on new projects. To move a disk to a different region or zone, follow the steps in [Change the location of a disk](<https://cloud.google.`com/compute/docs/disks/migrate-to-hyperdisk`#migrate-to-hd>).  Projects that already use the `moveDisk` API can continue usage until September 29, 2026.  Starting November 1, 2025, API responses will include a warning message in the response body about the upcoming deprecation. You can skip the message to continue using the service without interruption.
+/// Moves a persistent disk from one zone to another. *Note*: The `moveDisk` API will be deprecated on September 29, 2026.  Starting September 29, 2025, you can''t use the `moveDisk` API on new projects. To move a disk to a different region or zone, follow the steps in [Change the location of a disk](<https://cloud.google.`com/compute/docs/disks/migrate-to-hyperdisk`#migrate-to-hd>).  Projects that already use the `moveDisk` API can continue usage until September 29, 2026.  Starting November 1, 2025, API responses will include a warning message in the response body about the upcoming deprecation. You can skip the message to continue using the service without interruption.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_projects_move_disk_execute()` to send, or `compute_projects_move_disk` for simplest API.
@@ -91019,7 +91019,7 @@ where
 }
 
 /// POST projects/{project}/moveDisk
-/// Moves a persistent disk from one zone to another. *Note*: The `moveDisk` API will be deprecated on September 29, 2026.  Starting September 29, 2025, you can't use the `moveDisk` API on new projects. To move a disk to a different region or zone, follow the steps in [Change the location of a disk](<https://cloud.google.`com/compute/docs/disks/migrate-to-hyperdisk`#migrate-to-hd>).  Projects that already use the `moveDisk` API can continue usage until September 29, 2026.  Starting November 1, 2025, API responses will include a warning message in the response body about the upcoming deprecation. You can skip the message to continue using the service without interruption.
+/// Moves a persistent disk from one zone to another. *Note*: The `moveDisk` API will be deprecated on September 29, 2026.  Starting September 29, 2025, you can''t use the `moveDisk` API on new projects. To move a disk to a different region or zone, follow the steps in [Change the location of a disk](<https://cloud.google.`com/compute/docs/disks/migrate-to-hyperdisk`#migrate-to-hd>).  Projects that already use the `moveDisk` API can continue usage until September 29, 2026.  Starting November 1, 2025, API responses will include a warning message in the response body about the upcoming deprecation. You can skip the message to continue using the service without interruption.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -91093,7 +91093,7 @@ pub fn compute_projects_move_disk_task(
 }
 
 /// POST projects/{project}/moveDisk
-/// Moves a persistent disk from one zone to another. *Note*: The `moveDisk` API will be deprecated on September 29, 2026.  Starting September 29, 2025, you can't use the `moveDisk` API on new projects. To move a disk to a different region or zone, follow the steps in [Change the location of a disk](<https://cloud.google.`com/compute/docs/disks/migrate-to-hyperdisk`#migrate-to-hd>).  Projects that already use the `moveDisk` API can continue usage until September 29, 2026.  Starting November 1, 2025, API responses will include a warning message in the response body about the upcoming deprecation. You can skip the message to continue using the service without interruption.
+/// Moves a persistent disk from one zone to another. *Note*: The `moveDisk` API will be deprecated on September 29, 2026.  Starting September 29, 2025, you can''t use the `moveDisk` API on new projects. To move a disk to a different region or zone, follow the steps in [Change the location of a disk](<https://cloud.google.`com/compute/docs/disks/migrate-to-hyperdisk`#migrate-to-hd>).  Projects that already use the `moveDisk` API can continue usage until September 29, 2026.  Starting November 1, 2025, API responses will include a warning message in the response body about the upcoming deprecation. You can skip the message to continue using the service without interruption.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -91132,7 +91132,7 @@ pub struct ComputeProjectsMoveDiskArgs {
 }
 
 /// POST projects/{project}/moveDisk
-/// Moves a persistent disk from one zone to another. *Note*: The `moveDisk` API will be deprecated on September 29, 2026.  Starting September 29, 2025, you can't use the `moveDisk` API on new projects. To move a disk to a different region or zone, follow the steps in [Change the location of a disk](<https://cloud.google.`com/compute/docs/disks/migrate-to-hyperdisk`#migrate-to-hd>).  Projects that already use the `moveDisk` API can continue usage until September 29, 2026.  Starting November 1, 2025, API responses will include a warning message in the response body about the upcoming deprecation. You can skip the message to continue using the service without interruption.
+/// Moves a persistent disk from one zone to another. *Note*: The `moveDisk` API will be deprecated on September 29, 2026.  Starting September 29, 2025, you can''t use the `moveDisk` API on new projects. To move a disk to a different region or zone, follow the steps in [Change the location of a disk](<https://cloud.google.`com/compute/docs/disks/migrate-to-hyperdisk`#migrate-to-hd>).  Projects that already use the `moveDisk` API can continue usage until September 29, 2026.  Starting November 1, 2025, API responses will include a warning message in the response body about the upcoming deprecation. You can skip the message to continue using the service without interruption.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `compute_projects_move_disk_builder()` + `compute_projects_move_disk_execute()`.
@@ -114792,7 +114792,7 @@ pub fn compute_region_instance_group_managers_list_errors(
 }
 
 /// POST projects/{project}/regions/{region}/instanceGroupManagers/{instanceGroupManager}/listManagedInstances
-/// Lists the instances in the managed instance group and instances that are scheduled to be created. The list includes any current actions that the group has scheduled for its instances. The `orderBy` query parameter is not supported.   The `pageToken` query parameter is supported only if the group's `listManagedInstancesResults` field is set to PAGINATED.
+/// Lists the instances in the managed instance group and instances that are scheduled to be created. The list includes any current actions that the group has scheduled for its instances. The `orderBy` query parameter is not supported.   The `pageToken` query parameter is supported only if the group''s `listManagedInstancesResults` field is set to PAGINATED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_instance_group_managers_list_managed_instances_execute()` to send, or `compute_region_instance_group_managers_list_managed_instances` for simplest API.
@@ -114851,7 +114851,7 @@ where
 }
 
 /// POST projects/{project}/regions/{region}/instanceGroupManagers/{instanceGroupManager}/listManagedInstances
-/// Lists the instances in the managed instance group and instances that are scheduled to be created. The list includes any current actions that the group has scheduled for its instances. The `orderBy` query parameter is not supported.   The `pageToken` query parameter is supported only if the group's `listManagedInstancesResults` field is set to PAGINATED.
+/// Lists the instances in the managed instance group and instances that are scheduled to be created. The list includes any current actions that the group has scheduled for its instances. The `orderBy` query parameter is not supported.   The `pageToken` query parameter is supported only if the group''s `listManagedInstancesResults` field is set to PAGINATED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -114926,7 +114926,7 @@ pub fn compute_region_instance_group_managers_list_managed_instances_task(
 }
 
 /// POST projects/{project}/regions/{region}/instanceGroupManagers/{instanceGroupManager}/listManagedInstances
-/// Lists the instances in the managed instance group and instances that are scheduled to be created. The list includes any current actions that the group has scheduled for its instances. The `orderBy` query parameter is not supported.   The `pageToken` query parameter is supported only if the group's `listManagedInstancesResults` field is set to PAGINATED.
+/// Lists the instances in the managed instance group and instances that are scheduled to be created. The list includes any current actions that the group has scheduled for its instances. The `orderBy` query parameter is not supported.   The `pageToken` query parameter is supported only if the group''s `listManagedInstancesResults` field is set to PAGINATED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -114981,7 +114981,7 @@ pub struct ComputeRegionInstanceGroupManagersListManagedInstancesArgs {
 }
 
 /// POST projects/{project}/regions/{region}/instanceGroupManagers/{instanceGroupManager}/listManagedInstances
-/// Lists the instances in the managed instance group and instances that are scheduled to be created. The list includes any current actions that the group has scheduled for its instances. The `orderBy` query parameter is not supported.   The `pageToken` query parameter is supported only if the group's `listManagedInstancesResults` field is set to PAGINATED.
+/// Lists the instances in the managed instance group and instances that are scheduled to be created. The list includes any current actions that the group has scheduled for its instances. The `orderBy` query parameter is not supported.   The `pageToken` query parameter is supported only if the group''s `listManagedInstancesResults` field is set to PAGINATED.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `compute_region_instance_group_managers_list_managed_instances_builder()` + `compute_region_instance_group_managers_list_managed_instances_execute()`.
@@ -115245,7 +115245,7 @@ pub fn compute_region_instance_group_managers_list_per_instance_configs(
 }
 
 /// PATCH projects/{project}/regions/{region}/instanceGroupManagers/{instanceGroupManager}
-/// Updates a managed instance group using the information that you specify in the request. This operation is marked as DONE when the group is patched even if the instances in the group are still in the process of being patched. You must separately verify the status of the individual instances with the listmanagedinstances method. This method `supportsPATCH` semantics and uses `theJSON` merge patch format and processing rules.  If you update your group to specify a new template or instance configuration, it's possible that your intended specification for each VM in the group is different from the current state of that VM. To learn how to apply an updated configuration to the VMs in a MIG, `seeUpdating` instances in a MIG.
+/// Updates a managed instance group using the information that you specify in the request. This operation is marked as DONE when the group is patched even if the instances in the group are still in the process of being patched. You must separately verify the status of the individual instances with the listmanagedinstances method. This method `supportsPATCH` semantics and uses `theJSON` merge patch format and processing rules.  If you update your group to specify a new template or instance configuration, it''s possible that your intended specification for each VM in the group is different from the current state of that VM. To learn how to apply an updated configuration to the VMs in a MIG, `seeUpdating` instances in a MIG.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_instance_group_managers_patch_execute()` to send, or `compute_region_instance_group_managers_patch` for simplest API.
@@ -115286,7 +115286,7 @@ where
 }
 
 /// PATCH projects/{project}/regions/{region}/instanceGroupManagers/{instanceGroupManager}
-/// Updates a managed instance group using the information that you specify in the request. This operation is marked as DONE when the group is patched even if the instances in the group are still in the process of being patched. You must separately verify the status of the individual instances with the listmanagedinstances method. This method `supportsPATCH` semantics and uses `theJSON` merge patch format and processing rules.  If you update your group to specify a new template or instance configuration, it's possible that your intended specification for each VM in the group is different from the current state of that VM. To learn how to apply an updated configuration to the VMs in a MIG, `seeUpdating` instances in a MIG.
+/// Updates a managed instance group using the information that you specify in the request. This operation is marked as DONE when the group is patched even if the instances in the group are still in the process of being patched. You must separately verify the status of the individual instances with the listmanagedinstances method. This method `supportsPATCH` semantics and uses `theJSON` merge patch format and processing rules.  If you update your group to specify a new template or instance configuration, it''s possible that your intended specification for each VM in the group is different from the current state of that VM. To learn how to apply an updated configuration to the VMs in a MIG, `seeUpdating` instances in a MIG.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -115360,7 +115360,7 @@ pub fn compute_region_instance_group_managers_patch_task(
 }
 
 /// PATCH projects/{project}/regions/{region}/instanceGroupManagers/{instanceGroupManager}
-/// Updates a managed instance group using the information that you specify in the request. This operation is marked as DONE when the group is patched even if the instances in the group are still in the process of being patched. You must separately verify the status of the individual instances with the listmanagedinstances method. This method `supportsPATCH` semantics and uses `theJSON` merge patch format and processing rules.  If you update your group to specify a new template or instance configuration, it's possible that your intended specification for each VM in the group is different from the current state of that VM. To learn how to apply an updated configuration to the VMs in a MIG, `seeUpdating` instances in a MIG.
+/// Updates a managed instance group using the information that you specify in the request. This operation is marked as DONE when the group is patched even if the instances in the group are still in the process of being patched. You must separately verify the status of the individual instances with the listmanagedinstances method. This method `supportsPATCH` semantics and uses `theJSON` merge patch format and processing rules.  If you update your group to specify a new template or instance configuration, it''s possible that your intended specification for each VM in the group is different from the current state of that VM. To learn how to apply an updated configuration to the VMs in a MIG, `seeUpdating` instances in a MIG.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -115403,7 +115403,7 @@ pub struct ComputeRegionInstanceGroupManagersPatchArgs {
 }
 
 /// PATCH projects/{project}/regions/{region}/instanceGroupManagers/{instanceGroupManager}
-/// Updates a managed instance group using the information that you specify in the request. This operation is marked as DONE when the group is patched even if the instances in the group are still in the process of being patched. You must separately verify the status of the individual instances with the listmanagedinstances method. This method `supportsPATCH` semantics and uses `theJSON` merge patch format and processing rules.  If you update your group to specify a new template or instance configuration, it's possible that your intended specification for each VM in the group is different from the current state of that VM. To learn how to apply an updated configuration to the VMs in a MIG, `seeUpdating` instances in a MIG.
+/// Updates a managed instance group using the information that you specify in the request. This operation is marked as DONE when the group is patched even if the instances in the group are still in the process of being patched. You must separately verify the status of the individual instances with the listmanagedinstances method. This method `supportsPATCH` semantics and uses `theJSON` merge patch format and processing rules.  If you update your group to specify a new template or instance configuration, it''s possible that your intended specification for each VM in the group is different from the current state of that VM. To learn how to apply an updated configuration to the VMs in a MIG, `seeUpdating` instances in a MIG.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `compute_region_instance_group_managers_patch_builder()` + `compute_region_instance_group_managers_patch_execute()`.
@@ -115619,7 +115619,7 @@ pub fn compute_region_instance_group_managers_patch_per_instance_configs(
 }
 
 /// POST projects/{project}/regions/{region}/instanceGroupManagers/{instanceGroupManager}/recreateInstances
-/// Flags the specified VM instances in the managed instance group to be immediately recreated. Each instance is recreated using the group's current configuration. This operation is marked as DONE when the flag is set even if the instances have not yet been recreated. You must separately verify the status of each instance by checking `itscurrentAction` field; for more information, see Checking the status of managed instances.  If the group is part of a backend service that has enabled connection draining, it can take up to 60 seconds after the connection draining duration has elapsed before the VM instance is removed or deleted.  You can specify a maximum of 1000 instances with this method per request.
+/// Flags the specified VM instances in the managed instance group to be immediately recreated. Each instance is recreated using the group''s current configuration. This operation is marked as DONE when the flag is set even if the instances have not yet been recreated. You must separately verify the status of each instance by checking `itscurrentAction` field; for more information, see Checking the status of managed instances.  If the group is part of a backend service that has enabled connection draining, it can take up to 60 seconds after the connection draining duration has elapsed before the VM instance is removed or deleted.  You can specify a maximum of 1000 instances with this method per request.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_region_instance_group_managers_recreate_instances_execute()` to send, or `compute_region_instance_group_managers_recreate_instances` for simplest API.
@@ -115662,7 +115662,7 @@ where
 }
 
 /// POST projects/{project}/regions/{region}/instanceGroupManagers/{instanceGroupManager}/recreateInstances
-/// Flags the specified VM instances in the managed instance group to be immediately recreated. Each instance is recreated using the group's current configuration. This operation is marked as DONE when the flag is set even if the instances have not yet been recreated. You must separately verify the status of each instance by checking `itscurrentAction` field; for more information, see Checking the status of managed instances.  If the group is part of a backend service that has enabled connection draining, it can take up to 60 seconds after the connection draining duration has elapsed before the VM instance is removed or deleted.  You can specify a maximum of 1000 instances with this method per request.
+/// Flags the specified VM instances in the managed instance group to be immediately recreated. Each instance is recreated using the group''s current configuration. This operation is marked as DONE when the flag is set even if the instances have not yet been recreated. You must separately verify the status of each instance by checking `itscurrentAction` field; for more information, see Checking the status of managed instances.  If the group is part of a backend service that has enabled connection draining, it can take up to 60 seconds after the connection draining duration has elapsed before the VM instance is removed or deleted.  You can specify a maximum of 1000 instances with this method per request.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -115736,7 +115736,7 @@ pub fn compute_region_instance_group_managers_recreate_instances_task(
 }
 
 /// POST projects/{project}/regions/{region}/instanceGroupManagers/{instanceGroupManager}/recreateInstances
-/// Flags the specified VM instances in the managed instance group to be immediately recreated. Each instance is recreated using the group's current configuration. This operation is marked as DONE when the flag is set even if the instances have not yet been recreated. You must separately verify the status of each instance by checking `itscurrentAction` field; for more information, see Checking the status of managed instances.  If the group is part of a backend service that has enabled connection draining, it can take up to 60 seconds after the connection draining duration has elapsed before the VM instance is removed or deleted.  You can specify a maximum of 1000 instances with this method per request.
+/// Flags the specified VM instances in the managed instance group to be immediately recreated. Each instance is recreated using the group''s current configuration. This operation is marked as DONE when the flag is set even if the instances have not yet been recreated. You must separately verify the status of each instance by checking `itscurrentAction` field; for more information, see Checking the status of managed instances.  If the group is part of a backend service that has enabled connection draining, it can take up to 60 seconds after the connection draining duration has elapsed before the VM instance is removed or deleted.  You can specify a maximum of 1000 instances with this method per request.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -115779,7 +115779,7 @@ pub struct ComputeRegionInstanceGroupManagersRecreateInstancesArgs {
 }
 
 /// POST projects/{project}/regions/{region}/instanceGroupManagers/{instanceGroupManager}/recreateInstances
-/// Flags the specified VM instances in the managed instance group to be immediately recreated. Each instance is recreated using the group's current configuration. This operation is marked as DONE when the flag is set even if the instances have not yet been recreated. You must separately verify the status of each instance by checking `itscurrentAction` field; for more information, see Checking the status of managed instances.  If the group is part of a backend service that has enabled connection draining, it can take up to 60 seconds after the connection draining duration has elapsed before the VM instance is removed or deleted.  You can specify a maximum of 1000 instances with this method per request.
+/// Flags the specified VM instances in the managed instance group to be immediately recreated. Each instance is recreated using the group''s current configuration. This operation is marked as DONE when the flag is set even if the instances have not yet been recreated. You must separately verify the status of each instance by checking `itscurrentAction` field; for more information, see Checking the status of managed instances.  If the group is part of a backend service that has enabled connection draining, it can take up to 60 seconds after the connection draining duration has elapsed before the VM instance is removed or deleted.  You can specify a maximum of 1000 instances with this method per request.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `compute_region_instance_group_managers_recreate_instances_builder()` + `compute_region_instance_group_managers_recreate_instances_execute()`.
@@ -138877,7 +138877,7 @@ pub fn compute_region_zones_list(
 }
 
 /// GET projects/{project}/regions/{region}
-/// Returns the specified Region resource.  To decrease latency for this method, you can optionally omit any unneeded information from the response by using a field mask. This practice is especially recommended for unused quota information (the quotas field). To exclude one or more fields, set your request's fields query parameter to only include the fields you need. For example, to only include the id and `selfLink` fields, add the query parameter ?fields=id,`selfLink` to your request.  This method fails if the quota information is unavailable for the region and if the organization policy constraint compute.`requireBasicQuotaInResponse` is enforced. This constraint, when enforced, disables the fail-open behaviour when quota information (the items.quotas field) is unavailable for the region. It is recommended to use the default setting for the constraint unless your application requires the fail-closed behaviour for this method.
+/// Returns the specified Region resource.  To decrease latency for this method, you can optionally omit any unneeded information from the response by using a field mask. This practice is especially recommended for unused quota information (the quotas field). To exclude one or more fields, set your request''s fields query parameter to only include the fields you need. For example, to only include the id and `selfLink` fields, add the query parameter ?fields=id,`selfLink` to your request.  This method fails if the quota information is unavailable for the region and if the organization policy constraint compute.`requireBasicQuotaInResponse` is enforced. This constraint, when enforced, disables the fail-open behaviour when quota information (the items.quotas field) is unavailable for the region. It is recommended to use the default setting for the constraint unless your application requires the fail-closed behaviour for this method.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_regions_get_execute()` to send, or `compute_regions_get` for simplest API.
@@ -138905,7 +138905,7 @@ where
 }
 
 /// GET projects/{project}/regions/{region}
-/// Returns the specified Region resource.  To decrease latency for this method, you can optionally omit any unneeded information from the response by using a field mask. This practice is especially recommended for unused quota information (the quotas field). To exclude one or more fields, set your request's fields query parameter to only include the fields you need. For example, to only include the id and `selfLink` fields, add the query parameter ?fields=id,`selfLink` to your request.  This method fails if the quota information is unavailable for the region and if the organization policy constraint compute.`requireBasicQuotaInResponse` is enforced. This constraint, when enforced, disables the fail-open behaviour when quota information (the items.quotas field) is unavailable for the region. It is recommended to use the default setting for the constraint unless your application requires the fail-closed behaviour for this method.
+/// Returns the specified Region resource.  To decrease latency for this method, you can optionally omit any unneeded information from the response by using a field mask. This practice is especially recommended for unused quota information (the quotas field). To exclude one or more fields, set your request''s fields query parameter to only include the fields you need. For example, to only include the id and `selfLink` fields, add the query parameter ?fields=id,`selfLink` to your request.  This method fails if the quota information is unavailable for the region and if the organization policy constraint compute.`requireBasicQuotaInResponse` is enforced. This constraint, when enforced, disables the fail-open behaviour when quota information (the items.quotas field) is unavailable for the region. It is recommended to use the default setting for the constraint unless your application requires the fail-closed behaviour for this method.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -138979,7 +138979,7 @@ pub fn compute_regions_get_task(
 }
 
 /// GET projects/{project}/regions/{region}
-/// Returns the specified Region resource.  To decrease latency for this method, you can optionally omit any unneeded information from the response by using a field mask. This practice is especially recommended for unused quota information (the quotas field). To exclude one or more fields, set your request's fields query parameter to only include the fields you need. For example, to only include the id and `selfLink` fields, add the query parameter ?fields=id,`selfLink` to your request.  This method fails if the quota information is unavailable for the region and if the organization policy constraint compute.`requireBasicQuotaInResponse` is enforced. This constraint, when enforced, disables the fail-open behaviour when quota information (the items.quotas field) is unavailable for the region. It is recommended to use the default setting for the constraint unless your application requires the fail-closed behaviour for this method.
+/// Returns the specified Region resource.  To decrease latency for this method, you can optionally omit any unneeded information from the response by using a field mask. This practice is especially recommended for unused quota information (the quotas field). To exclude one or more fields, set your request''s fields query parameter to only include the fields you need. For example, to only include the id and `selfLink` fields, add the query parameter ?fields=id,`selfLink` to your request.  This method fails if the quota information is unavailable for the region and if the organization policy constraint compute.`requireBasicQuotaInResponse` is enforced. This constraint, when enforced, disables the fail-open behaviour when quota information (the items.quotas field) is unavailable for the region. It is recommended to use the default setting for the constraint unless your application requires the fail-closed behaviour for this method.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -139018,7 +139018,7 @@ pub struct ComputeRegionsGetArgs {
 }
 
 /// GET projects/{project}/regions/{region}
-/// Returns the specified Region resource.  To decrease latency for this method, you can optionally omit any unneeded information from the response by using a field mask. This practice is especially recommended for unused quota information (the quotas field). To exclude one or more fields, set your request's fields query parameter to only include the fields you need. For example, to only include the id and `selfLink` fields, add the query parameter ?fields=id,`selfLink` to your request.  This method fails if the quota information is unavailable for the region and if the organization policy constraint compute.`requireBasicQuotaInResponse` is enforced. This constraint, when enforced, disables the fail-open behaviour when quota information (the items.quotas field) is unavailable for the region. It is recommended to use the default setting for the constraint unless your application requires the fail-closed behaviour for this method.
+/// Returns the specified Region resource.  To decrease latency for this method, you can optionally omit any unneeded information from the response by using a field mask. This practice is especially recommended for unused quota information (the quotas field). To exclude one or more fields, set your request''s fields query parameter to only include the fields you need. For example, to only include the id and `selfLink` fields, add the query parameter ?fields=id,`selfLink` to your request.  This method fails if the quota information is unavailable for the region and if the organization policy constraint compute.`requireBasicQuotaInResponse` is enforced. This constraint, when enforced, disables the fail-open behaviour when quota information (the items.quotas field) is unavailable for the region. It is recommended to use the default setting for the constraint unless your application requires the fail-closed behaviour for this method.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `compute_regions_get_builder()` + `compute_regions_get_execute()`.
@@ -139040,7 +139040,7 @@ pub fn compute_regions_get(
 }
 
 /// GET projects/{project}/regions
-/// Retrieves the list of region resources available to the specified project.  To decrease latency for this method, you can optionally omit any unneeded information from the response by using a field mask. This practice is especially recommended for unused quota information (the items.quotas field). To exclude one or more fields, set your request's fields query parameter to only include the fields you need. For example, to only include the id and `selfLink` fields, add the query parameter ?fields=id,`selfLink` to your request.  This method fails if the quota information is unavailable for the region and if the organization policy constraint compute.`requireBasicQuotaInResponse` is enforced. This constraint, when enforced, disables the fail-open behaviour when quota information (the items.quotas field) is unavailable for the region. It is recommended to use the default setting for the constraint unless your application requires the fail-closed behaviour for this method.
+/// Retrieves the list of region resources available to the specified project.  To decrease latency for this method, you can optionally omit any unneeded information from the response by using a field mask. This practice is especially recommended for unused quota information (the items.quotas field). To exclude one or more fields, set your request''s fields query parameter to only include the fields you need. For example, to only include the id and `selfLink` fields, add the query parameter ?fields=id,`selfLink` to your request.  This method fails if the quota information is unavailable for the region and if the organization policy constraint compute.`requireBasicQuotaInResponse` is enforced. This constraint, when enforced, disables the fail-open behaviour when quota information (the items.quotas field) is unavailable for the region. It is recommended to use the default setting for the constraint unless your application requires the fail-closed behaviour for this method.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_regions_list_execute()` to send, or `compute_regions_list` for simplest API.
@@ -139095,7 +139095,7 @@ where
 }
 
 /// GET projects/{project}/regions
-/// Retrieves the list of region resources available to the specified project.  To decrease latency for this method, you can optionally omit any unneeded information from the response by using a field mask. This practice is especially recommended for unused quota information (the items.quotas field). To exclude one or more fields, set your request's fields query parameter to only include the fields you need. For example, to only include the id and `selfLink` fields, add the query parameter ?fields=id,`selfLink` to your request.  This method fails if the quota information is unavailable for the region and if the organization policy constraint compute.`requireBasicQuotaInResponse` is enforced. This constraint, when enforced, disables the fail-open behaviour when quota information (the items.quotas field) is unavailable for the region. It is recommended to use the default setting for the constraint unless your application requires the fail-closed behaviour for this method.
+/// Retrieves the list of region resources available to the specified project.  To decrease latency for this method, you can optionally omit any unneeded information from the response by using a field mask. This practice is especially recommended for unused quota information (the items.quotas field). To exclude one or more fields, set your request''s fields query parameter to only include the fields you need. For example, to only include the id and `selfLink` fields, add the query parameter ?fields=id,`selfLink` to your request.  This method fails if the quota information is unavailable for the region and if the organization policy constraint compute.`requireBasicQuotaInResponse` is enforced. This constraint, when enforced, disables the fail-open behaviour when quota information (the items.quotas field) is unavailable for the region. It is recommended to use the default setting for the constraint unless your application requires the fail-closed behaviour for this method.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -139169,7 +139169,7 @@ pub fn compute_regions_list_task(
 }
 
 /// GET projects/{project}/regions
-/// Retrieves the list of region resources available to the specified project.  To decrease latency for this method, you can optionally omit any unneeded information from the response by using a field mask. This practice is especially recommended for unused quota information (the items.quotas field). To exclude one or more fields, set your request's fields query parameter to only include the fields you need. For example, to only include the id and `selfLink` fields, add the query parameter ?fields=id,`selfLink` to your request.  This method fails if the quota information is unavailable for the region and if the organization policy constraint compute.`requireBasicQuotaInResponse` is enforced. This constraint, when enforced, disables the fail-open behaviour when quota information (the items.quotas field) is unavailable for the region. It is recommended to use the default setting for the constraint unless your application requires the fail-closed behaviour for this method.
+/// Retrieves the list of region resources available to the specified project.  To decrease latency for this method, you can optionally omit any unneeded information from the response by using a field mask. This practice is especially recommended for unused quota information (the items.quotas field). To exclude one or more fields, set your request''s fields query parameter to only include the fields you need. For example, to only include the id and `selfLink` fields, add the query parameter ?fields=id,`selfLink` to your request.  This method fails if the quota information is unavailable for the region and if the organization policy constraint compute.`requireBasicQuotaInResponse` is enforced. This constraint, when enforced, disables the fail-open behaviour when quota information (the items.quotas field) is unavailable for the region. It is recommended to use the default setting for the constraint unless your application requires the fail-closed behaviour for this method.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -139216,7 +139216,7 @@ pub struct ComputeRegionsListArgs {
 }
 
 /// GET projects/{project}/regions
-/// Retrieves the list of region resources available to the specified project.  To decrease latency for this method, you can optionally omit any unneeded information from the response by using a field mask. This practice is especially recommended for unused quota information (the items.quotas field). To exclude one or more fields, set your request's fields query parameter to only include the fields you need. For example, to only include the id and `selfLink` fields, add the query parameter ?fields=id,`selfLink` to your request.  This method fails if the quota information is unavailable for the region and if the organization policy constraint compute.`requireBasicQuotaInResponse` is enforced. This constraint, when enforced, disables the fail-open behaviour when quota information (the items.quotas field) is unavailable for the region. It is recommended to use the default setting for the constraint unless your application requires the fail-closed behaviour for this method.
+/// Retrieves the list of region resources available to the specified project.  To decrease latency for this method, you can optionally omit any unneeded information from the response by using a field mask. This practice is especially recommended for unused quota information (the items.quotas field). To exclude one or more fields, set your request''s fields query parameter to only include the fields you need. For example, to only include the id and `selfLink` fields, add the query parameter ?fields=id,`selfLink` to your request.  This method fails if the quota information is unavailable for the region and if the organization policy constraint compute.`requireBasicQuotaInResponse` is enforced. This constraint, when enforced, disables the fail-open behaviour when quota information (the items.quotas field) is unavailable for the region. It is recommended to use the default setting for the constraint unless your application requires the fail-closed behaviour for this method.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `compute_regions_list_builder()` + `compute_regions_list_execute()`.
@@ -171478,7 +171478,7 @@ pub fn compute_target_pools_remove_instance(
 }
 
 /// POST projects/{project}/regions/{region}/targetPools/{targetPool}/setBackup
-/// Changes a backup target pool's configurations.
+/// Changes a backup target pool''s configurations.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `compute_target_pools_set_backup_execute()` to send, or `compute_target_pools_set_backup` for simplest API.
@@ -171523,7 +171523,7 @@ where
 }
 
 /// POST projects/{project}/regions/{region}/targetPools/{targetPool}/setBackup
-/// Changes a backup target pool's configurations.
+/// Changes a backup target pool''s configurations.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -171597,7 +171597,7 @@ pub fn compute_target_pools_set_backup_task(
 }
 
 /// POST projects/{project}/regions/{region}/targetPools/{targetPool}/setBackup
-/// Changes a backup target pool's configurations.
+/// Changes a backup target pool''s configurations.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -171642,7 +171642,7 @@ pub struct ComputeTargetPoolsSetBackupArgs {
 }
 
 /// POST projects/{project}/regions/{region}/targetPools/{targetPool}/setBackup
-/// Changes a backup target pool's configurations.
+/// Changes a backup target pool''s configurations.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `compute_target_pools_set_backup_builder()` + `compute_target_pools_set_backup_execute()`.

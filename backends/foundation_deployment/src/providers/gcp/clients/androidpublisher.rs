@@ -4508,7 +4508,7 @@ pub fn androidpublisher_edits_expansionfiles_get(
 }
 
 /// PATCH androidpublisher/v3/applications/{packageName}/edits/{editId}/apks/{apkVersionCode}/expansionFiles/{expansionFileType}
-/// Patches the APK's expansion file configuration to reference another APK's expansion file. To add a new expansion file use the Upload method.
+/// Patches the APK''s expansion file configuration to reference another APK''s expansion file. To add a new expansion file use the Upload method.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_edits_expansionfiles_patch_execute()` to send, or `androidpublisher_edits_expansionfiles_patch` for simplest API.
@@ -4541,7 +4541,7 @@ where
 }
 
 /// PATCH androidpublisher/v3/applications/{packageName}/edits/{editId}/apks/{apkVersionCode}/expansionFiles/{expansionFileType}
-/// Patches the APK's expansion file configuration to reference another APK's expansion file. To add a new expansion file use the Upload method.
+/// Patches the APK''s expansion file configuration to reference another APK''s expansion file. To add a new expansion file use the Upload method.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -4615,7 +4615,7 @@ pub fn androidpublisher_edits_expansionfiles_patch_task(
 }
 
 /// PATCH androidpublisher/v3/applications/{packageName}/edits/{editId}/apks/{apkVersionCode}/expansionFiles/{expansionFileType}
-/// Patches the APK's expansion file configuration to reference another APK's expansion file. To add a new expansion file use the Upload method.
+/// Patches the APK''s expansion file configuration to reference another APK''s expansion file. To add a new expansion file use the Upload method.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -4660,7 +4660,7 @@ pub struct AndroidpublisherEditsExpansionfilesPatchArgs {
 }
 
 /// PATCH androidpublisher/v3/applications/{packageName}/edits/{editId}/apks/{apkVersionCode}/expansionFiles/{expansionFileType}
-/// Patches the APK's expansion file configuration to reference another APK's expansion file. To add a new expansion file use the Upload method.
+/// Patches the APK''s expansion file configuration to reference another APK''s expansion file. To add a new expansion file use the Upload method.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `androidpublisher_edits_expansionfiles_patch_builder()` + `androidpublisher_edits_expansionfiles_patch_execute()`.
@@ -4690,7 +4690,7 @@ pub fn androidpublisher_edits_expansionfiles_patch(
 }
 
 /// PUT androidpublisher/v3/applications/{packageName}/edits/{editId}/apks/{apkVersionCode}/expansionFiles/{expansionFileType}
-/// Updates the APK's expansion file configuration to reference another APK's expansion file. To add a new expansion file use the Upload method.
+/// Updates the APK''s expansion file configuration to reference another APK''s expansion file. To add a new expansion file use the Upload method.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_edits_expansionfiles_update_execute()` to send, or `androidpublisher_edits_expansionfiles_update` for simplest API.
@@ -4723,7 +4723,7 @@ where
 }
 
 /// PUT androidpublisher/v3/applications/{packageName}/edits/{editId}/apks/{apkVersionCode}/expansionFiles/{expansionFileType}
-/// Updates the APK's expansion file configuration to reference another APK's expansion file. To add a new expansion file use the Upload method.
+/// Updates the APK''s expansion file configuration to reference another APK''s expansion file. To add a new expansion file use the Upload method.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -4797,7 +4797,7 @@ pub fn androidpublisher_edits_expansionfiles_update_task(
 }
 
 /// PUT androidpublisher/v3/applications/{packageName}/edits/{editId}/apks/{apkVersionCode}/expansionFiles/{expansionFileType}
-/// Updates the APK's expansion file configuration to reference another APK's expansion file. To add a new expansion file use the Upload method.
+/// Updates the APK''s expansion file configuration to reference another APK''s expansion file. To add a new expansion file use the Upload method.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -4842,7 +4842,7 @@ pub struct AndroidpublisherEditsExpansionfilesUpdateArgs {
 }
 
 /// PUT androidpublisher/v3/applications/{packageName}/edits/{editId}/apks/{apkVersionCode}/expansionFiles/{expansionFileType}
-/// Updates the APK's expansion file configuration to reference another APK's expansion file. To add a new expansion file use the Upload method.
+/// Updates the APK''s expansion file configuration to reference another APK''s expansion file. To add a new expansion file use the Upload method.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `androidpublisher_edits_expansionfiles_update_builder()` + `androidpublisher_edits_expansionfiles_update_execute()`.
@@ -11488,7 +11488,7 @@ pub fn androidpublisher_internalappsharingartifacts_uploadbundle(
 }
 
 /// POST androidpublisher/v3/applications/{packageName}/pricing:convertRegionPrices
-/// Calculates the region prices, using today's exchange rate and country-specific pricing patterns, based on the price in the request for a set of regions.
+/// Calculates the region prices, using today''s exchange rate and country-specific pricing patterns, based on the price in the request for a set of regions.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_monetization_convert_region_prices_execute()` to send, or `androidpublisher_monetization_convert_region_prices` for simplest API.
@@ -11515,7 +11515,7 @@ where
 }
 
 /// POST androidpublisher/v3/applications/{packageName}/pricing:convertRegionPrices
-/// Calculates the region prices, using today's exchange rate and country-specific pricing patterns, based on the price in the request for a set of regions.
+/// Calculates the region prices, using today''s exchange rate and country-specific pricing patterns, based on the price in the request for a set of regions.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -11589,7 +11589,7 @@ pub fn androidpublisher_monetization_convert_region_prices_task(
 }
 
 /// POST androidpublisher/v3/applications/{packageName}/pricing:convertRegionPrices
-/// Calculates the region prices, using today's exchange rate and country-specific pricing patterns, based on the price in the request for a set of regions.
+/// Calculates the region prices, using today''s exchange rate and country-specific pricing patterns, based on the price in the request for a set of regions.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -11630,7 +11630,7 @@ pub struct AndroidpublisherMonetizationConvertRegionPricesArgs {
 }
 
 /// POST androidpublisher/v3/applications/{packageName}/pricing:convertRegionPrices
-/// Calculates the region prices, using today's exchange rate and country-specific pricing patterns, based on the price in the request for a set of regions.
+/// Calculates the region prices, using today''s exchange rate and country-specific pricing patterns, based on the price in the request for a set of regions.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `androidpublisher_monetization_convert_region_prices_builder()` + `androidpublisher_monetization_convert_region_prices_execute()`.
@@ -19533,7 +19533,7 @@ pub fn androidpublisher_orders_get(
 }
 
 /// POST androidpublisher/v3/applications/{packageName}/orders/{orderId}:refund
-/// Refunds a user's subscription or in-app purchase order. Orders older than 3 years cannot be refunded.
+/// Refunds a user''s subscription or in-app purchase order. Orders older than 3 years cannot be refunded.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_orders_refund_execute()` to send, or `androidpublisher_orders_refund` for simplest API.
@@ -19574,7 +19574,7 @@ where
 }
 
 /// POST androidpublisher/v3/applications/{packageName}/orders/{orderId}:refund
-/// Refunds a user's subscription or in-app purchase order. Orders older than 3 years cannot be refunded.
+/// Refunds a user''s subscription or in-app purchase order. Orders older than 3 years cannot be refunded.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -19645,7 +19645,7 @@ pub fn androidpublisher_orders_refund_task(
 }
 
 /// POST androidpublisher/v3/applications/{packageName}/orders/{orderId}:refund
-/// Refunds a user's subscription or in-app purchase order. Orders older than 3 years cannot be refunded.
+/// Refunds a user''s subscription or in-app purchase order. Orders older than 3 years cannot be refunded.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -19686,7 +19686,7 @@ pub struct AndroidpublisherOrdersRefundArgs {
 }
 
 /// POST androidpublisher/v3/applications/{packageName}/orders/{orderId}:refund
-/// Refunds a user's subscription or in-app purchase order. Orders older than 3 years cannot be refunded.
+/// Refunds a user''s subscription or in-app purchase order. Orders older than 3 years cannot be refunded.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `androidpublisher_orders_refund_builder()` + `androidpublisher_orders_refund_execute()`.
@@ -20572,7 +20572,7 @@ pub fn androidpublisher_purchases_subscriptions_acknowledge(
 }
 
 /// POST androidpublisher/v3/applications/{packageName}/purchases/subscriptions/{subscriptionId}/tokens/{token}:cancel
-/// Cancels a user's subscription purchase. The subscription remains valid until its expiration time. Newer version is available at purchases.subscriptionsv2.cancel for better client library support.
+/// Cancels a user''s subscription purchase. The subscription remains valid until its expiration time. Newer version is available at purchases.subscriptionsv2.cancel for better client library support.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_purchases_subscriptions_cancel_execute()` to send, or `androidpublisher_purchases_subscriptions_cancel` for simplest API.
@@ -20603,7 +20603,7 @@ where
 }
 
 /// POST androidpublisher/v3/applications/{packageName}/purchases/subscriptions/{subscriptionId}/tokens/{token}:cancel
-/// Cancels a user's subscription purchase. The subscription remains valid until its expiration time. Newer version is available at purchases.subscriptionsv2.cancel for better client library support.
+/// Cancels a user''s subscription purchase. The subscription remains valid until its expiration time. Newer version is available at purchases.subscriptionsv2.cancel for better client library support.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -20674,7 +20674,7 @@ pub fn androidpublisher_purchases_subscriptions_cancel_task(
 }
 
 /// POST androidpublisher/v3/applications/{packageName}/purchases/subscriptions/{subscriptionId}/tokens/{token}:cancel
-/// Cancels a user's subscription purchase. The subscription remains valid until its expiration time. Newer version is available at purchases.subscriptionsv2.cancel for better client library support.
+/// Cancels a user''s subscription purchase. The subscription remains valid until its expiration time. Newer version is available at purchases.subscriptionsv2.cancel for better client library support.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -20715,7 +20715,7 @@ pub struct AndroidpublisherPurchasesSubscriptionsCancelArgs {
 }
 
 /// POST androidpublisher/v3/applications/{packageName}/purchases/subscriptions/{subscriptionId}/tokens/{token}:cancel
-/// Cancels a user's subscription purchase. The subscription remains valid until its expiration time. Newer version is available at purchases.subscriptionsv2.cancel for better client library support.
+/// Cancels a user''s subscription purchase. The subscription remains valid until its expiration time. Newer version is available at purchases.subscriptionsv2.cancel for better client library support.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `androidpublisher_purchases_subscriptions_cancel_builder()` + `androidpublisher_purchases_subscriptions_cancel_execute()`.
@@ -20742,7 +20742,7 @@ pub fn androidpublisher_purchases_subscriptions_cancel(
 }
 
 /// POST androidpublisher/v3/applications/{packageName}/purchases/subscriptions/{subscriptionId}/tokens/{token}:defer
-/// Defers a user's subscription purchase until a specified future expiration time.
+/// Defers a user''s subscription purchase until a specified future expiration time.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_purchases_subscriptions_defer_execute()` to send, or `androidpublisher_purchases_subscriptions_defer` for simplest API.
@@ -20773,7 +20773,7 @@ where
 }
 
 /// POST androidpublisher/v3/applications/{packageName}/purchases/subscriptions/{subscriptionId}/tokens/{token}:defer
-/// Defers a user's subscription purchase until a specified future expiration time.
+/// Defers a user''s subscription purchase until a specified future expiration time.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -20847,7 +20847,7 @@ pub fn androidpublisher_purchases_subscriptions_defer_task(
 }
 
 /// POST androidpublisher/v3/applications/{packageName}/purchases/subscriptions/{subscriptionId}/tokens/{token}:defer
-/// Defers a user's subscription purchase until a specified future expiration time.
+/// Defers a user''s subscription purchase until a specified future expiration time.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -20892,7 +20892,7 @@ pub struct AndroidpublisherPurchasesSubscriptionsDeferArgs {
 }
 
 /// POST androidpublisher/v3/applications/{packageName}/purchases/subscriptions/{subscriptionId}/tokens/{token}:defer
-/// Defers a user's subscription purchase until a specified future expiration time.
+/// Defers a user''s subscription purchase until a specified future expiration time.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `androidpublisher_purchases_subscriptions_defer_builder()` + `androidpublisher_purchases_subscriptions_defer_execute()`.
@@ -20923,7 +20923,7 @@ pub fn androidpublisher_purchases_subscriptions_defer(
 }
 
 /// GET androidpublisher/v3/applications/{packageName}/purchases/subscriptions/{subscriptionId}/tokens/{token}
-/// Deprecated: Use purchases.subscriptionsv2.get instead. Checks whether a user's subscription purchase is valid and returns its expiry time.
+/// Deprecated: Use purchases.subscriptionsv2.get instead. Checks whether a user''s subscription purchase is valid and returns its expiry time.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_purchases_subscriptions_get_execute()` to send, or `androidpublisher_purchases_subscriptions_get` for simplest API.
@@ -20954,7 +20954,7 @@ where
 }
 
 /// GET androidpublisher/v3/applications/{packageName}/purchases/subscriptions/{subscriptionId}/tokens/{token}
-/// Deprecated: Use purchases.subscriptionsv2.get instead. Checks whether a user's subscription purchase is valid and returns its expiry time.
+/// Deprecated: Use purchases.subscriptionsv2.get instead. Checks whether a user''s subscription purchase is valid and returns its expiry time.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -21028,7 +21028,7 @@ pub fn androidpublisher_purchases_subscriptions_get_task(
 }
 
 /// GET androidpublisher/v3/applications/{packageName}/purchases/subscriptions/{subscriptionId}/tokens/{token}
-/// Deprecated: Use purchases.subscriptionsv2.get instead. Checks whether a user's subscription purchase is valid and returns its expiry time.
+/// Deprecated: Use purchases.subscriptionsv2.get instead. Checks whether a user''s subscription purchase is valid and returns its expiry time.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -21071,7 +21071,7 @@ pub struct AndroidpublisherPurchasesSubscriptionsGetArgs {
 }
 
 /// GET androidpublisher/v3/applications/{packageName}/purchases/subscriptions/{subscriptionId}/tokens/{token}
-/// Deprecated: Use purchases.subscriptionsv2.get instead. Checks whether a user's subscription purchase is valid and returns its expiry time.
+/// Deprecated: Use purchases.subscriptionsv2.get instead. Checks whether a user''s subscription purchase is valid and returns its expiry time.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `androidpublisher_purchases_subscriptions_get_builder()` + `androidpublisher_purchases_subscriptions_get_execute()`.
@@ -21100,7 +21100,7 @@ pub fn androidpublisher_purchases_subscriptions_get(
 }
 
 /// POST androidpublisher/v3/applications/{packageName}/purchases/subscriptions/{subscriptionId}/tokens/{token}:refund
-/// Deprecated: Use orders.refund instead. Refunds a user's subscription purchase, but the subscription remains valid until its expiration time and it will continue to recur.
+/// Deprecated: Use orders.refund instead. Refunds a user''s subscription purchase, but the subscription remains valid until its expiration time and it will continue to recur.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_purchases_subscriptions_refund_execute()` to send, or `androidpublisher_purchases_subscriptions_refund` for simplest API.
@@ -21131,7 +21131,7 @@ where
 }
 
 /// POST androidpublisher/v3/applications/{packageName}/purchases/subscriptions/{subscriptionId}/tokens/{token}:refund
-/// Deprecated: Use orders.refund instead. Refunds a user's subscription purchase, but the subscription remains valid until its expiration time and it will continue to recur.
+/// Deprecated: Use orders.refund instead. Refunds a user''s subscription purchase, but the subscription remains valid until its expiration time and it will continue to recur.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -21202,7 +21202,7 @@ pub fn androidpublisher_purchases_subscriptions_refund_task(
 }
 
 /// POST androidpublisher/v3/applications/{packageName}/purchases/subscriptions/{subscriptionId}/tokens/{token}:refund
-/// Deprecated: Use orders.refund instead. Refunds a user's subscription purchase, but the subscription remains valid until its expiration time and it will continue to recur.
+/// Deprecated: Use orders.refund instead. Refunds a user''s subscription purchase, but the subscription remains valid until its expiration time and it will continue to recur.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -21243,7 +21243,7 @@ pub struct AndroidpublisherPurchasesSubscriptionsRefundArgs {
 }
 
 /// POST androidpublisher/v3/applications/{packageName}/purchases/subscriptions/{subscriptionId}/tokens/{token}:refund
-/// Deprecated: Use orders.refund instead. Refunds a user's subscription purchase, but the subscription remains valid until its expiration time and it will continue to recur.
+/// Deprecated: Use orders.refund instead. Refunds a user''s subscription purchase, but the subscription remains valid until its expiration time and it will continue to recur.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `androidpublisher_purchases_subscriptions_refund_builder()` + `androidpublisher_purchases_subscriptions_refund_execute()`.
@@ -21270,7 +21270,7 @@ pub fn androidpublisher_purchases_subscriptions_refund(
 }
 
 /// POST androidpublisher/v3/applications/{packageName}/purchases/subscriptions/{subscriptionId}/tokens/{token}:revoke
-/// Deprecated: Use purchases.subscriptionsv2.revoke instead. Refunds and immediately revokes a user's subscription purchase. Access to the subscription will be terminated immediately and it will stop recurring.
+/// Deprecated: Use purchases.subscriptionsv2.revoke instead. Refunds and immediately revokes a user''s subscription purchase. Access to the subscription will be terminated immediately and it will stop recurring.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `androidpublisher_purchases_subscriptions_revoke_execute()` to send, or `androidpublisher_purchases_subscriptions_revoke` for simplest API.
@@ -21301,7 +21301,7 @@ where
 }
 
 /// POST androidpublisher/v3/applications/{packageName}/purchases/subscriptions/{subscriptionId}/tokens/{token}:revoke
-/// Deprecated: Use purchases.subscriptionsv2.revoke instead. Refunds and immediately revokes a user's subscription purchase. Access to the subscription will be terminated immediately and it will stop recurring.
+/// Deprecated: Use purchases.subscriptionsv2.revoke instead. Refunds and immediately revokes a user''s subscription purchase. Access to the subscription will be terminated immediately and it will stop recurring.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -21372,7 +21372,7 @@ pub fn androidpublisher_purchases_subscriptions_revoke_task(
 }
 
 /// POST androidpublisher/v3/applications/{packageName}/purchases/subscriptions/{subscriptionId}/tokens/{token}:revoke
-/// Deprecated: Use purchases.subscriptionsv2.revoke instead. Refunds and immediately revokes a user's subscription purchase. Access to the subscription will be terminated immediately and it will stop recurring.
+/// Deprecated: Use purchases.subscriptionsv2.revoke instead. Refunds and immediately revokes a user''s subscription purchase. Access to the subscription will be terminated immediately and it will stop recurring.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -21413,7 +21413,7 @@ pub struct AndroidpublisherPurchasesSubscriptionsRevokeArgs {
 }
 
 /// POST androidpublisher/v3/applications/{packageName}/purchases/subscriptions/{subscriptionId}/tokens/{token}:revoke
-/// Deprecated: Use purchases.subscriptionsv2.revoke instead. Refunds and immediately revokes a user's subscription purchase. Access to the subscription will be terminated immediately and it will stop recurring.
+/// Deprecated: Use purchases.subscriptionsv2.revoke instead. Refunds and immediately revokes a user''s subscription purchase. Access to the subscription will be terminated immediately and it will stop recurring.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `androidpublisher_purchases_subscriptions_revoke_builder()` + `androidpublisher_purchases_subscriptions_revoke_execute()`.
