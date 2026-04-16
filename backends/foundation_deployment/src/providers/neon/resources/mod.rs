@@ -8,6 +8,8 @@
 #![cfg(feature = "neon")]
 
 use super::*;
+use crate::providers::neon::clients::*;
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
@@ -40,7 +42,7 @@ pub struct AddProjectJWKSRequest {
     /// DEPRECATED. This field should only be used when using Neon RLS. The roles the JWKS should be mapped to. By default, the JWKS is mapped to the authenticator, authenticated and anonymous roles.
     #[serde(default)]
     pub role_names: ::core::option::Option<::std::vec::Vec<String>>,
-    /// DEPRECATED. This field should only be used when using Neon RLS. If true, the role creation will be skipped.
+    /// DEPRECATED. This field should only be used when using Neon RLS. If `true`, the role creation will be skipped.
     #[serde(default)]
     pub skip_role_creation: ::core::option::Option<bool>,
 }
@@ -150,7 +152,7 @@ pub struct ApiKeyRevokeResponse {
     pub last_used_from_addr: String,
     /// The user-specified API key name
     pub name: String,
-    /// A true or false value indicating whether the API key is revoked
+    /// A `true` or `false` value indicating whether the API key is revoked
     pub revoked: bool,
 }
 
@@ -202,7 +204,7 @@ pub struct BranchAnonymizedCreateRequest {
     /// List of masking rules to apply to the branch.
     #[serde(default)]
     pub masking_rules: ::core::option::Option<::std::vec::Vec<MaskingRule>>,
-    /// If true, automatically start anonymization after the branch is created.
+    /// If `true`, automatically start anonymization after the branch is created. Defaults to `false`.
     #[serde(default)]
     pub start_anonymization: ::core::option::Option<bool>,
 }
@@ -228,15 +230,15 @@ pub struct BranchResponse {
 /// BranchRestoreRequest resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BranchRestoreRequest {
-    /// If not empty, the previous state of the branch will be saved to a branch with this name.
+    /// If not empty, the previous state of the branch will be saved to a branch with this name. If the branch has children or the source_branch_id is equal to the branch id, this field is required. All existing child branches will be moved to the newly created branch under the name preserve_under_name.
     #[serde(default)]
     pub preserve_under_name: ::core::option::Option<String>,
-    /// The branch_id of the restore source branch.
+    /// The branch_id of the restore source branch. If source_timestamp and source_lsn are omitted, the branch will be restored to head. If source_branch_id is equal to the branch''s id, source_timestamp or source_lsn is required.
     pub source_branch_id: String,
     /// A Log Sequence Number (LSN) on the source branch. The branch will be restored with data from this LSN.
     #[serde(default)]
     pub source_lsn: ::core::option::Option<String>,
-    /// A timestamp identifying a point in time on the source branch. The branch will be restored with data starting from this point in time.
+    /// A timestamp identifying a point in time on the source branch. The branch will be restored with data starting from this point in time. The timestamp must be provided in ISO 8601 format; for example: 2024-02-26T12:00:00Z.
     #[serde(default)]
     pub source_timestamp: ::core::option::Option<String>,
 }
@@ -353,7 +355,7 @@ pub struct CurrentUserInfoResponse {
     pub last_name: String,
     /// DEPRECATED. Use email field.
     pub login: String,
-    /// The maximum autoscaling limit in Compute Units.
+    /// The maximum autoscaling limit in Compute Units. A value of 0 indicates no limit is configured.
     pub max_autoscaling_limit: f64,
     pub name: String,
     pub plan: String,
@@ -379,7 +381,7 @@ pub struct DataAPICreateRequest {
     /// The URL that lists the JWKS
     #[serde(default)]
     pub jwks_url: ::core::option::Option<String>,
-    /// WARNING - using this setting will only reject tokens with a
+    /// WARNING - using this setting will only reject tokens with a different audience claim. Tokens without audience claim will still be accepted.
     #[serde(default)]
     pub jwt_audience: ::core::option::Option<String>,
     /// The name of the authentication provider (e.g., Clerk, Stytch, Auth0)
@@ -528,7 +530,7 @@ pub struct GeneralError {
     pub code: serde_json::Value,
     /// Error message
     pub message: String,
-    /// Unique identifier for the request, useful for debugging.
+    /// Unique identifier for the request, useful for debugging. You can set this value manually by including an X-Request-ID header in the request. If not provided, the value will be generated automatically.
     #[serde(default)]
     pub request_id: ::core::option::Option<String>,
 }
@@ -594,7 +596,7 @@ pub struct MaskingRulesResponse {
 /// MaskingRulesUpdateRequest resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MaskingRulesUpdateRequest {
-    /// List of masking rules to apply to the branch.
+    /// List of masking rules to apply to the branch. This will replace all existing masking rules for the branch.
     pub masking_rules: ::std::vec::Vec<MaskingRule>,
 }
 
@@ -840,7 +842,6 @@ pub struct OrganizationCreateRequest {
 }
 
 /// Details of an organization guest, who is not directly a member of
-/// an organization but has been shared one of the projects it owns
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OrganizationGuest {
     pub permission_id: String,
@@ -1000,7 +1001,7 @@ pub struct ProjectsIntegrationsMapResponse {
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProjectsResponse {
     pub projects: ::std::vec::Vec<ProjectListItem>,
-    /// A list of project IDs indicating which projects are known to exist, but whose details could not
+    /// A list of project IDs indicating which projects are known to exist, but whose details could not be fetched within the requested (or implicit) time limit
     #[serde(default)]
     pub unavailable_project_ids: ::core::option::Option<::std::vec::Vec<String>>,
 }
@@ -1136,10 +1137,10 @@ pub struct SystemStatusSummaryResponse {
 /// TelemetryConfig resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TelemetryConfig {
-    /// Optional. Overrides the default endpoint for logs (e.g., https://logs.customer.com:4318).
+    /// Optional. Overrides the default endpoint for logs (e.g., <https://logs.customer.com:4318>).
     #[serde(default)]
     pub logs_endpoint_override: ::core::option::Option<String>,
-    /// Optional. Overrides the default endpoint for metrics (e.g., https://metrics.customer.com:4317).
+    /// Optional. Overrides the default endpoint for metrics (e.g., <https://metrics.customer.com:4317>).
     #[serde(default)]
     pub metrics_endpoint_override: ::core::option::Option<String>,
     /// Required. The telemetry data types to enable. One or both of: metrics, logs.
@@ -1149,18 +1150,18 @@ pub struct TelemetryConfig {
 /// TelemetryConnection resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TelemetryConnection {
-    /// Required. Authentication configuration to securely send telemetry.
+    /// Required. Authentication configuration to securely send telemetry. Options include bearer token, basic auth, or API key.
     pub authentication: TelemetryAuthentication,
-    /// Required. URI of the OpenTelemetry Collector (e.g., https://collector.customer.com:4317).
+    /// Required. URI of the OpenTelemetry Collector (e.g., <https://collector.customer.com:4317>).
     pub endpoint: String,
-    /// Required. Communication protocol used to send telemetry data. Options: grpc, http.
+    /// Required. Communication protocol used to send telemetry data. Options: grpc, http. // TODO: enum values: ["grpc", "http"]
     pub protocol: String,
 }
 
 /// TelemetryResource resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TelemetryResource {
-    /// Optional. Key-value attributes that describe the source of telemetry (e.g., service.name: neon-test).
+    /// Optional. Key-value attributes that describe the source of telemetry (e.g., service.name: neon-test). See: @<https://opentelemetry.`io/docs/specs/semconv/resource/`#services>
     #[serde(default)]
     pub attributes: ::core::option::Option<serde_json::Value>,
 }
@@ -1223,13 +1224,13 @@ pub struct VPCEndpointAssignment {
 /// VPCEndpointDetails resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VPCEndpointDetails {
-    /// A list of example projects that are restricted to use this VPC endpoint.
+    /// A list of example projects that are restricted to use this VPC endpoint. There are at most 3 projects in the list, even if more projects are restricted.
     pub example_restricted_projects: ::std::vec::Vec<String>,
     /// A descriptive label for the VPC endpoint
     pub label: String,
     /// The number of projects that are restricted to use this VPC endpoint.
     pub num_restricted_projects: i64,
-    /// The current state of the VPC endpoint. Possible values are
+    /// The current state of the VPC endpoint. Possible values are new (just configured, pending acceptance) or accepted (VPC connection was accepted by Neon).
     pub state: String,
     /// The VPC endpoint ID
     pub vpc_endpoint_id: String,
@@ -1282,7 +1283,7 @@ pub struct AnnotationData {
 /// Metadata about the most recent anonymization attempt for the branch.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AnonymizationRunMetadata {
-    /// Timestamp indicating when the latest anonymization attempt completed.
+    /// Timestamp indicating when the latest anonymization attempt completed. Populated even if the attempt failed.
     #[serde(default)]
     pub completed_at: ::core::option::Option<String>,
     /// Number of columns that had masking rules applied during the attempt.
@@ -1326,7 +1327,7 @@ pub struct BackupScheduleItem {
     /// The day of the week or month to take the snapshot (if applicable).
     #[serde(default)]
     pub day: ::core::option::Option<i64>,
-    /// How often to take snapshots. Must be one of the following values:
+    /// How often to take snapshots. Must be one of the following values: - hourly - daily - weekly - monthly - yearly
     pub frequency: String,
     /// The hour of the day to take the snapshot (if applicable).
     #[serde(default)]
@@ -1334,7 +1335,7 @@ pub struct BackupScheduleItem {
     /// The month of the year to take the snapshot (if applicable).
     #[serde(default)]
     pub month: ::core::option::Option<i64>,
-    /// How long to keep a snapshot (in seconds) before it''s automatically deleted.
+    /// How long to keep a snapshot (in seconds) before it''s automatically deleted. If not set, the snapshot is kept indefinitely.
     #[serde(default)]
     pub retention_seconds: ::core::option::Option<i64>,
 }
@@ -1374,11 +1375,11 @@ pub struct BranchSchemaJSON {
 pub struct Branch {
     pub active_time_seconds: i64,
     pub compute_time_seconds: i64,
-    /// CPU seconds used by all of the branch''s compute endpoints, including deleted ones.
+    /// CPU seconds used by all of the branch''s compute endpoints, including deleted ones. This value is reset at the beginning of each billing period. Examples: 1. A branch that uses 1 CPU for 1 second is equal to cpu_used_sec=1. 2. A branch that uses 2 CPUs simultaneously for 1 second is equal to cpu_used_sec=2.
     pub cpu_used_sec: i64,
     /// A timestamp indicating when the branch was created
     pub created_at: String,
-    /// The resolved user model that contains details of the user/org/integration/api_key used for branch creation. This field is filled only in listing/get/create/get/update/delete methods, if it is empty when calling other handlers, it does not mean that it is empty in the system.
+    /// The resolved user model that contains details of the `user/org/integration/api_key` used for branch creation. This field is filled only in `listing/get/create/get/update/delete` methods, if it is empty when calling other handlers, it does not mean that it is empty in the system.
     #[serde(default)]
     pub created_by: ::core::option::Option<serde_json::Value>,
     /// The branch creation source
@@ -1387,12 +1388,12 @@ pub struct Branch {
     pub data_transfer_bytes: i64,
     /// Whether the branch is the project''s default branch
     pub default: bool,
-    /// The timestamp when the branch is scheduled to expire and be automatically deleted. Must be set by the client following the [RFC 3339, section 5.6](https://tools.ietf.org/html/rfc3339#section-5.6) format with precision up to seconds (such as 2025-06-09T18:02:16Z). Deletion is performed by a background job and may not occur exactly at the specified time.
+    /// The timestamp when the branch is scheduled to expire and be automatically deleted. Must be set by the client following the [RFC 3339, section 5.6](<https://tools.ietf.`org/html/rfc3339`#section-5.6>) format with precision up to seconds (such as 2025-06-09T18:02:16Z). Deletion is performed by a background job and may not occur exactly at the specified time.  Access to this feature is currently limited to participants in the Early Access Program.
     #[serde(default)]
     pub expires_at: ::core::option::Option<String>,
     /// The branch ID. This value is generated when a branch is created. A branch_id value has a br prefix. For example: br-small-term-683261.
     pub id: String,
-    /// The source of initialization for the branch. Valid values are schema-only and parent-data (default).
+    /// The source of initialization for the branch. Valid values are schema-only and parent-data (default). * schema-only - creates a new root branch containing only the schema. Use parent_id to specify the source branch. Optionally, you can provide parent_lsn or parent_timestamp to branch from a specific point in time or LSN. These fields define which branch to copy the schema from and at what point—they do not establish a parent-child relationship between the parent_id branch and the new schema-only branch. * parent-data - creates the branch with both schema and data from the parent.
     #[serde(default)]
     pub init_source: ::core::option::Option<String>,
     /// A timestamp indicating when the branch was last reset
@@ -1406,15 +1407,15 @@ pub struct Branch {
     /// The branch_id of the parent branch
     #[serde(default)]
     pub parent_id: ::core::option::Option<String>,
-    /// The Log Sequence Number (LSN) on the parent branch from which this branch was created.
+    /// The Log Sequence Number (LSN) on the parent branch from which this branch was created. When restoring a branch using the [Restore branch](<https://api-docs.neon.`tech/reference/restoreprojectbranch`>) endpoint, this value isn’t finalized until all operations related to the restore have completed successfully.
     #[serde(default)]
     pub parent_lsn: ::core::option::Option<String>,
-    /// The point in time on the parent branch from which this branch was created.
+    /// The point in time on the parent branch from which this branch was created. When restoring a branch using the [Restore branch](<https://api-docs.neon.`tech/reference/restoreprojectbranch`>) endpoint, this value isn’t finalized until all operations related to the restore have completed successfully. After all the operations completed, this value might stay empty.
     #[serde(default)]
     pub parent_timestamp: ::core::option::Option<String>,
     #[serde(default)]
     pub pending_state: ::core::option::Option<serde_json::Value>,
-    /// DEPRECATED. Use default field.
+    /// DEPRECATED. Use default field. Whether the branch is the project''s primary branch
     #[serde(default)]
     pub primary: ::core::option::Option<bool>,
     /// The ID of the project to which the branch belongs
@@ -1434,7 +1435,7 @@ pub struct Branch {
     pub restricted_actions: ::core::option::Option<::std::vec::Vec<BranchRestrictedAction>>,
     /// A UTC timestamp indicating when the current_state began
     pub state_changed_at: String,
-    /// The time-to-live (TTL) duration originally configured for the branch, in seconds. This read-only value represents the interval between the time expires_at was set and the expiration timestamp itself. It is preserved to ensure the same TTL duration is reapplied when resetting the branch from its parent, and only updates when a new expires_at value is set.
+    /// The time-to-live (TTL) duration originally configured for the branch, in seconds. This read-only value represents the interval between the time expires_at was set and the expiration timestamp itself. It is preserved to ensure the same TTL duration is reapplied when resetting the branch from its parent, and only updates when a new expires_at value is set.  Access to this feature is currently limited to participants in the Early Access Program.
     #[serde(default)]
     pub ttl_interval_seconds: ::core::option::Option<i64>,
     /// A timestamp indicating when the branch was last updated
@@ -1446,7 +1447,7 @@ pub struct Branch {
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConnectionDetails {
     pub connection_parameters: ConnectionParameters,
-    /// The connection URI is defined as specified here: [Connection URIs](https://www.postgresql.org/docs/current/libpq-connect.html#LIBPQ-CONNSTRING-URIS)
+    /// The connection URI is defined as specified here: [Connection URIs](<https://www.postgresql.`org/docs/current/libpq-connect`.html#LIBPQ-CONNSTRING-URIS>) The connection URI can be used to connect to a Postgres database with psql or defined in a DATABASE_URL environment variable. When creating a branch from a parent with more than one role or database, the response body does not include a connection URI.
     pub connection_uri: String,
 }
 
@@ -1606,7 +1607,7 @@ pub struct Endpoint {
     /// The compute endpoint creation source
     pub creation_source: String,
     pub current_state: serde_json::Value,
-    /// Whether to restrict connections to the compute endpoint.
+    /// Whether to restrict connections to the compute endpoint. Enabling this option schedules a suspend compute operation. A disabled compute endpoint cannot be enabled by a connection or console action.
     pub disabled: bool,
     /// The hostname of the compute endpoint. This is the hostname specified when connecting to a Neon database.
     pub host: String,
@@ -1669,7 +1670,7 @@ pub struct MaskingRule {
     pub column_name: String,
     /// The name of the database containing the table to be masked
     pub database_name: String,
-    /// The PostgreSQL Anonymizer masking function to apply.
+    /// The PostgreSQL Anonymizer masking function to apply. Can be a predefined function (e.g., ''anon.random_string(10)'', ''anon.fake_email()'') or a custom function definition (e.g., ''anon.hash(column_name)'')
     #[serde(default)]
     pub masking_function: ::core::option::Option<String>,
     /// A literal value to set on the column when masking.
@@ -1814,8 +1815,6 @@ pub struct OrganizationMembership {
 }
 
 /// Cursor based pagination is used. The user must pass the cursor as is to the backend.
-/// For more information about cursor based pagination, see
-/// https://learn.microsoft.com/en-us/ef/core/querying/pagination#keyset-pagination
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Pagination {
     pub cursor: String,
@@ -1900,16 +1899,16 @@ pub struct ProjectPermission {
 /// Project resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Project {
-    /// Seconds. Control plane observed endpoints of this project being active this amount of wall-clock time.
+    /// Seconds. Control plane observed endpoints of this project being active this amount of wall-clock time. The value has some lag. The value is reset at the beginning of each billing period.
     pub active_time_seconds: i64,
     /// The logical size limit for a branch. The value is in MiB.
     pub branch_logical_size_limit: i64,
     /// The logical size limit for a branch. The value is in B.
     pub branch_logical_size_limit_bytes: i64,
-    /// The most recent time when any endpoint of this project was active.
+    /// The most recent time when any endpoint of this project was active.  Omitted when observed no activity for endpoints of this project.
     #[serde(default)]
     pub compute_last_active_at: ::core::option::Option<String>,
-    /// Seconds. The number of CPU seconds used by the project''s compute endpoints, including compute endpoints that have been deleted.
+    /// Seconds. The number of CPU seconds used by the project''s compute endpoints, including compute endpoints that have been deleted. The value has some lag. The value is reset at the beginning of each billing period. Examples: 1. An endpoint that uses 1 CPU for 1 second is equal to compute_time=1. 2. An endpoint that uses 2 CPUs simultaneously for 1 second is equal to compute_time=2.
     pub compute_time_seconds: i64,
     /// A date-time indicating when Neon Cloud plans to stop measuring consumption for current consumption period.
     pub consumption_period_end: String,
@@ -1921,9 +1920,9 @@ pub struct Project {
     pub created_at: String,
     /// The project creation source
     pub creation_source: String,
-    /// Bytes-Hour. Project consumed that much storage hourly during the billing period. The value has some lag.
+    /// Bytes-Hour. Project consumed that much storage hourly during the billing period. The value has some lag. The value is reset at the beginning of each billing period.
     pub data_storage_bytes_hour: i64,
-    /// Bytes. Egress traffic from the Neon cloud to the client for given project over the billing period.
+    /// Bytes. Egress traffic from the Neon cloud to the client for given project over the billing period. Includes deleted endpoints. The value has some lag. The value is reset at the beginning of each billing period.
     pub data_transfer_bytes: i64,
     #[serde(default)]
     pub default_endpoint_settings: ::core::option::Option<DefaultEndpointSettings>,
@@ -1953,7 +1952,7 @@ pub struct Project {
     pub provisioner: serde_json::Value,
     /// The proxy host for the project. This value combines the region_id, the platform_id, and the Neon domain (neon.tech).
     pub proxy_host: String,
-    /// DEPRECATED. Use consumption_period_end from the getProject endpoint instead.
+    /// DEPRECATED. Use consumption_period_end from the `getProject` endpoint instead. A timestamp indicating when the project quota resets.
     #[serde(default)]
     pub quota_reset_at: ::core::option::Option<String>,
     /// The region identifier
@@ -1967,11 +1966,11 @@ pub struct Project {
     pub synthetic_storage_size: ::core::option::Option<i64>,
     /// A timestamp indicating when the project was last updated
     pub updated_at: String,
-    /// Bytes. Amount of WAL that travelled through storage for given project across all branches.
+    /// Bytes. Amount of WAL that travelled through storage for given project across all branches. The value has some lag. The value is reset at the beginning of each billing period.
     pub written_data_bytes: i64,
 }
 
-/// Essential data about the project. Full data is available at the getProject endpoint.
+/// Essential data about the project. Full data is available at the `getProject` endpoint.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProjectListItem {
     /// Control plane observed endpoints of this project being active this amount of wall-clock time.
@@ -1980,10 +1979,10 @@ pub struct ProjectListItem {
     pub branch_logical_size_limit: i64,
     /// The logical size limit for a branch. The value is in B.
     pub branch_logical_size_limit_bytes: i64,
-    /// The most recent time when any endpoint of this project was active.
+    /// The most recent time when any endpoint of this project was active.  Omitted when observed no activity for endpoints of this project.
     #[serde(default)]
     pub compute_last_active_at: ::core::option::Option<String>,
-    /// DEPRECATED. Use data from the getProject endpoint instead.
+    /// DEPRECATED. Use data from the `getProject` endpoint instead.
     pub cpu_used_sec: i64,
     /// A timestamp indicating when the project was created
     pub created_at: String,
@@ -2007,7 +2006,7 @@ pub struct ProjectListItem {
     pub maintenance_starts_at: ::core::option::Option<String>,
     /// The project name
     pub name: String,
-    /// Organization id if the project belongs to an organization.
+    /// Organization id if the project belongs to an organization. Permissions for the project will be given to organization members as defined by the organization admins. The permissions of the project do not depend on the user that created the project if a project belongs to an organization.
     #[serde(default)]
     pub org_id: ::core::option::Option<String>,
     /// Organization name if the project belongs to an organization.
@@ -2020,7 +2019,7 @@ pub struct ProjectListItem {
     pub provisioner: serde_json::Value,
     /// The proxy host for the project. This value combines the region_id, the platform_id, and the Neon domain (neon.tech).
     pub proxy_host: String,
-    /// DEPRECATED. Use consumption_period_end from the getProject endpoint instead.
+    /// DEPRECATED. Use consumption_period_end from the `getProject` endpoint instead. A timestamp indicating when the project quota resets
     #[serde(default)]
     pub quota_reset_at: ::core::option::Option<String>,
     /// A timestamp indicating the project will be recoverable until this date and time.
@@ -2075,7 +2074,7 @@ pub struct StatementData {
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExplainData {
     #[serde(rename = "QUERY PLAN")]
-    pub q_u_e_r_y_p_l_a_n: String,
+    pub query_plan: String,
 }
 
 /// TelemetryAuthentication resource type.
@@ -2123,10 +2122,10 @@ pub struct AnnotationValueData {
 /// BranchCreateRequestEndpointOptions resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BranchCreateRequestEndpointOptions {
-    /// The maximum number of Compute Units.
+    /// The maximum number of Compute Units. See [Compute size and Autoscaling configuration](<https://neon.`tech/docs/manage/endpoints`#compute-size-and-autoscaling-configuration>) for more information.
     #[serde(default)]
     pub autoscaling_limit_max_cu: ::core::option::Option<serde_json::Value>,
-    /// The minimum number of Compute Units. The minimum value is 0.25.
+    /// The minimum number of Compute Units. The minimum value is 0.25. See [Compute size and Autoscaling configuration](<https://neon.`tech/docs/manage/endpoints`#compute-size-and-autoscaling-configuration>) for more information.
     #[serde(default)]
     pub autoscaling_limit_min_cu: ::core::option::Option<serde_json::Value>,
     #[serde(default)]
@@ -2234,14 +2233,14 @@ pub struct MemberUserInfo {
 /// Organization resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Organization {
-    /// If true, allow account to mark projects as HIPAA
+    /// If `true`, allow account to mark projects as HIPAA
     #[serde(default)]
     pub allow_hipaa_projects: ::core::option::Option<bool>,
     /// A timestamp indicting when the organization was created
     pub created_at: String,
     pub handle: String,
     pub id: String,
-    /// Organizations created via the Console or the API are managed by console.
+    /// Organizations created via the Console or the API are managed by console. Organizations created by other methods can''t be deleted via the Console or the API.
     pub managed_by: String,
     pub name: String,
     pub plan: String,
@@ -2261,10 +2260,10 @@ pub struct ProjectOwnerData {
 /// A collection of settings for a Neon endpoint
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DefaultEndpointSettings {
-    /// The maximum number of Compute Units. See [Compute size and Autoscaling configuration](https://neon.tech/docs/manage/endpoints#compute-size-and-autoscaling-configuration)
+    /// The maximum number of Compute Units. See [Compute size and Autoscaling configuration](<https://neon.`tech/docs/manage/endpoints`#compute-size-and-autoscaling-configuration>) for more information.
     #[serde(default)]
     pub autoscaling_limit_max_cu: ::core::option::Option<serde_json::Value>,
-    /// The minimum number of Compute Units. The minimum value is 0.25.
+    /// The minimum number of Compute Units. The minimum value is 0.25. See [Compute size and Autoscaling configuration](<https://neon.`tech/docs/manage/endpoints`#compute-size-and-autoscaling-configuration>) for more information.
     #[serde(default)]
     pub autoscaling_limit_min_cu: ::core::option::Option<serde_json::Value>,
     #[serde(default)]
@@ -2282,13 +2281,13 @@ pub struct ProjectSettingsData {
     pub allowed_ips: ::core::option::Option<AllowedIps>,
     #[serde(default)]
     pub audit_log_level: ::core::option::Option<serde_json::Value>,
-    /// When set, connections from the public internet
+    /// When set, connections from the public internet are disallowed. This supersedes the AllowedIPs list. This parameter is under active development and its semantics may change in the future.
     #[serde(default)]
     pub block_public_connections: ::core::option::Option<bool>,
-    /// When set, connections using VPC endpoints are disallowed.
+    /// When set, connections using VPC endpoints are disallowed. This parameter is under active development and its semantics may change in the future.
     #[serde(default)]
     pub block_vpc_connections: ::core::option::Option<bool>,
-    /// Sets wal_level=logical for all compute endpoints in this project.
+    /// Sets wal_level=logical for all compute endpoints in this project. All active endpoints will be suspended. Once enabled, logical replication cannot be disabled.
     #[serde(default)]
     pub enable_logical_replication: ::core::option::Option<bool>,
     #[serde(default)]
@@ -2354,7 +2353,7 @@ pub struct ConsumptionHistoryPerTimeframeV2 {
 /// PaymentSourceBankCard resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentSourceBankCard {
-    /// Brand of credit card.
+    /// Brand of credit card. // TODO: enum values: ["amex", "diners", "discover", "jcb", "mastercard", "unionpay", "unknown", "visa"]
     #[serde(default)]
     pub brand: ::core::option::Option<String>,
     /// Credit card expiration month
@@ -2375,46 +2374,28 @@ pub struct PlanVersion {
 }
 
 /// A list of IP addresses that are allowed to connect to the compute endpoint.
-/// If the list is empty or not set, all IP addresses are allowed.
-/// If protected_branches_only is true, the list will be applied only to protected branches.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AllowedIps {
     /// A list of IP addresses that are allowed to connect to the endpoint.
     #[serde(default)]
     pub ips: ::core::option::Option<::std::vec::Vec<String>>,
-    /// If true, the list will be applied only to protected branches.
+    /// If `true`, the list will be applied only to protected branches.
     #[serde(default)]
     pub protected_branches_only: ::core::option::Option<bool>,
 }
 
 /// A maintenance window is a time period during which Neon may perform maintenance on the project''s infrastructure.
-/// During this time, the project''s compute endpoints may be unavailable and existing connections can be
-/// interrupted.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MaintenanceWindow {
     /// End time of the maintenance window, in the format of "HH:MM". Uses UTC.
     pub end_time: String,
     /// Start time of the maintenance window, in the format of "HH:MM". Uses UTC.
     pub start_time: String,
-    /// A list of weekdays when the maintenance window is active.
+    /// A list of weekdays when the maintenance window is active. Encoded as ints, where 1 - Monday, and 7 - Sunday.
     pub weekdays: ::std::vec::Vec<i64>,
 }
 
 /// Per-project consumption quotas. If a quota is exceeded, all active computes
-/// are automatically suspended and cannot be started via API calls or incoming connections.
-///
-/// The exception is logical_size_bytes, which is enforced per branch.
-/// If a branch exceeds its logical_size_bytes quota, computes can still be started,
-/// but write operations will fail—allowing data to be deleted to free up space.
-/// Computes on other branches are not affected.
-///
-/// Setting logical_size_bytes overrides any lower value set by the neon.max_cluster_size Postgres setting.
-///
-/// Quotas are enforced using per-project consumption metrics with the same names.
-/// These metrics reset at the start of each billing period. logical_size_bytes
-/// is also an exception—it reflects the total data stored in a branch and does not reset.
-///
-/// A zero or empty quota value means “unlimited.”
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProjectQuota {
     /// The total amount of wall-clock time allowed to be spent by the project''s compute endpoints.
@@ -2426,7 +2407,7 @@ pub struct ProjectQuota {
     /// Total amount of data transferred from all of a project''s branches using the proxy.
     #[serde(default)]
     pub data_transfer_bytes: ::core::option::Option<i64>,
-    /// Limit on the logical size of every project''s branch.
+    /// Limit on the logical size of every project''s branch.  If a branch exceeds its logical_size_bytes quota, computes can still be started, but write operations will fail—allowing data to be deleted to free up space. Computes on other branches are not affected.  Setting logical_size_bytes overrides any lower value set by the neon.max_cluster_size Postgres setting.
     #[serde(default)]
     pub logical_size_bytes: ::core::option::Option<i64>,
     /// Total amount of data written to all of a project''s branches.

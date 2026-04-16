@@ -8,6 +8,8 @@
 #![cfg(feature = "fly_io")]
 
 use super::*;
+use crate::providers::fly_io::clients::*;
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
@@ -162,7 +164,7 @@ pub struct CreateOIDCTokenRequest {
 /// CreateVolumeRequest resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreateVolumeRequest {
-    /// enable scheduled automatic snapshots. Defaults to true
+    /// enable scheduled automatic snapshots. Defaults to `true`
     #[serde(default)]
     pub auto_backup_enabled: ::core::option::Option<bool>,
     #[serde(default)]
@@ -721,11 +723,11 @@ pub struct MainGetPlacementsRequest {
     /// Resource requirements for the Machine to simulate. Defaults to a performance-1x machine
     #[serde(default)]
     pub compute: ::core::option::Option<serde_json::Value>,
-    /// Number of machines to simulate placement.
+    /// Number of machines to simulate placement. Defaults to 0, which returns the org-specific limit for each region.
     #[serde(default)]
     pub count: ::core::option::Option<i64>,
     pub org_slug: String,
-    /// Region expression for placement as a comma-delimited set of regions or aliases.
+    /// Region expression for placement as a comma-delimited set of regions or aliases. Defaults to "[region],any", to prefer the API endpoint''s local region with any other region as fallback.
     #[serde(default)]
     pub region: ::core::option::Option<String>,
     #[serde(default)]
@@ -990,13 +992,13 @@ pub struct ImageRef {
 /// FlyMachineConfig resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FlyMachineConfig {
-    /// Optional boolean telling the Machine to destroy itself once it’s complete (default false)
+    /// Optional boolean telling the Machine to destroy itself once it’s complete (default `false`)
     #[serde(default)]
     pub auto_destroy: ::core::option::Option<bool>,
     /// An optional object that defines one or more named top-level checks. The key for each check is the check name.
     #[serde(default)]
     pub checks: ::core::option::Option<serde_json::Value>,
-    /// Containers are a list of containers that will run in the machine. Currently restricted to
+    /// Containers are a list of containers that will run in the machine. Currently restricted to only specific organizations.
     #[serde(default)]
     pub containers: ::core::option::Option<::std::vec::Vec<FlyContainerConfig>>,
     /// Deprecated: use Service.Autostart instead
@@ -1004,7 +1006,7 @@ pub struct FlyMachineConfig {
     pub disable_machine_autostart: ::core::option::Option<bool>,
     #[serde(default)]
     pub dns: ::core::option::Option<FlyDNSConfig>,
-    /// An object filled with key/value pairs to be set as environment variables
+    /// An object filled with `key/value` pairs to be set as environment variables
     #[serde(default)]
     pub env: ::core::option::Option<serde_json::Value>,
     #[serde(default)]
@@ -1035,7 +1037,7 @@ pub struct FlyMachineConfig {
     /// Deprecated: use Guest instead
     #[serde(default)]
     pub size: ::core::option::Option<String>,
-    /// Standbys enable a machine to be a standby for another. In the event of a hardware failure,
+    /// Standbys enable a machine to be a standby for another. In the event of a hardware failure, the standby machine will be started.
     #[serde(default)]
     pub standbys: ::core::option::Option<::std::vec::Vec<String>>,
     #[serde(default)]
@@ -1304,7 +1306,7 @@ pub struct FlyContainerConfig {
     /// CmdOverride is used to override the default command of the image.
     #[serde(default)]
     pub cmd: ::core::option::Option<::std::vec::Vec<String>>,
-    /// DependsOn can be used to define dependencies between containers. The container will only be
+    /// DependsOn can be used to define dependencies between containers. The container will only be started after all of its dependent conditions have been satisfied.
     #[serde(default)]
     pub depends_on: ::core::option::Option<::std::vec::Vec<FlyContainerDependency>>,
     /// EntrypointOverride is used to override the default entrypoint of the image.
@@ -1316,7 +1318,7 @@ pub struct FlyContainerConfig {
     /// EnvFrom can be provided to set environment variables from machine fields.
     #[serde(default)]
     pub env_from: ::core::option::Option<::std::vec::Vec<FlyEnvFrom>>,
-    /// Image Config overrides - these fields are used to override the image configuration.
+    /// Image Config overrides - these fields are used to override the image configuration. If not provided, the image configuration will be used. ExecOverride is used to override the default command of the image.
     #[serde(default)]
     pub exec: ::core::option::Option<::std::vec::Vec<String>>,
     /// Files are files that will be written to the container file system.
@@ -1331,10 +1333,10 @@ pub struct FlyContainerConfig {
     /// Name is used to identify the container in the machine.
     #[serde(default)]
     pub name: ::core::option::Option<String>,
-    /// Restart is used to define the restart policy for the container. NOTE: spot-price is not
+    /// Restart is used to define the restart policy for the container. NOTE: spot-price is not supported for containers.
     #[serde(default)]
     pub restart: ::core::option::Option<serde_json::Value>,
-    /// Secrets can be provided at the process level to explicitly indicate which secrets should be
+    /// Secrets can be provided at the process level to explicitly indicate which secrets should be used for the process. If not provided, the secrets provided at the machine level will be used.
     #[serde(default)]
     pub secrets: ::core::option::Option<::std::vec::Vec<FlyMachineSecret>>,
     /// Stop is used to define the signal and timeout for stopping the container.
@@ -1427,17 +1429,17 @@ pub struct FlyMachineProcess {
     pub env_from: ::core::option::Option<::std::vec::Vec<FlyEnvFrom>>,
     #[serde(default)]
     pub exec: ::core::option::Option<::std::vec::Vec<String>>,
-    /// IgnoreAppSecrets can be set to true to ignore the secrets for the App the Machine belongs to
+    /// IgnoreAppSecrets can be set to `true` to ignore the secrets for the App the Machine belongs to and only use the secrets provided at the process level. The `default/legacy` behavior is to use the secrets provided at the App level.
     #[serde(default)]
     pub ignore_app_secrets: ::core::option::Option<bool>,
-    /// Secrets can be provided at the process level to explicitly indicate which secrets should be
+    /// Secrets can be provided at the process level to explicitly indicate which secrets should be used for the process. If not provided, the secrets provided at the machine level will be used.
     #[serde(default)]
     pub secrets: ::core::option::Option<::std::vec::Vec<FlyMachineSecret>>,
     #[serde(default)]
     pub user: ::core::option::Option<String>,
 }
 
-/// The Machine restart policy defines whether and how flyd restarts a Machine after its main process exits. See https://fly.io/docs/machines/guides-examples/machine-restart-policy/.
+/// The Machine restart policy defines whether and how flyd restarts a Machine after its main process exits. See <https://fly.`io/docs/machines/guides-examples/machine-restart-policy/`.>
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FlyMachineRestart {
     /// GPU bid price for spot Machines.
@@ -1446,7 +1448,7 @@ pub struct FlyMachineRestart {
     /// When policy is on-failure, the maximum number of times to attempt to restart the Machine before letting it stop.
     #[serde(default)]
     pub max_retries: ::core::option::Option<i64>,
-    /// * no - Never try to restart a Machine automatically when its main process exits, whether that’s on purpose or on a crash.
+    /// * no - Never try to restart a Machine automatically when its main process exits, whether that’s on purpose or on a crash. * always - Always restart a Machine automatically and never let it enter a stopped state, even when the main process exits cleanly. * on-failure - Try up to MaxRetries times to automatically restart the Machine if it exits with a non-zero exit code. Default when no explicit policy is set, and for Machines with schedules. * spot-price - Starts the Machine only when there is capacity and the spot price is less than or equal to the bid price. // TODO: enum values: ["no", "always", "on-failure", "spot-price"]
     #[serde(default)]
     pub policy: ::core::option::Option<String>,
 }
@@ -1468,7 +1470,7 @@ pub struct FlyMachineRootfs {
 pub struct FlyMachineService {
     #[serde(default)]
     pub autostart: ::core::option::Option<bool>,
-    /// Accepts a string (new format) or a boolean (old format). For backward compatibility with older clients, the API continues to use booleans for "off" and "stop" in responses.
+    /// Accepts a string (new format) or a boolean (old format). For backward compatibility with older clients, the API continues to use booleans for "off" and "stop" in responses. * "off" or `false` - Do not autostop the Machine. * "stop" or `true` - Automatically stop the Machine. * "suspend" - Automatically suspend the Machine, falling back to a full stop if this is not possible. // TODO: enum values: ["off", "stop", "suspend"]
     #[serde(default)]
     pub autostop: ::core::option::Option<String>,
     /// An optional list of service checks
@@ -1565,7 +1567,7 @@ pub struct FlyContainerDependency {
 /// A file that will be written to the Machine. One of RawValue or SecretName must be set.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FlyFile {
-    /// GuestPath is the path on the machine where the file will be written and must be an absolute path.
+    /// GuestPath is the path on the machine where the file will be written and must be an absolute path. For example: /`full/path/to/file`.json
     #[serde(default)]
     pub guest_path: ::core::option::Option<String>,
     /// The name of an image to use the OCI image config as the file contents.
@@ -1638,7 +1640,7 @@ pub struct FlyDnsOption {
 /// EnvVar defines an environment variable to be populated from a machine field, env_var
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FlyEnvFrom {
-    /// EnvVar is required and is the name of the environment variable that will be set from the
+    /// EnvVar is required and is the name of the environment variable that will be set from the secret. It must be a valid environment variable name.
     #[serde(default)]
     pub env_var: ::core::option::Option<String>,
     /// FieldRef selects a field of the Machine: supports id, version, app_name, private_ip, region, image. // TODO: enum values: ["id", "version", "app_name", "private_ip", "region", "image"]
@@ -1649,10 +1651,10 @@ pub struct FlyEnvFrom {
 /// A Secret needing to be set in the environment of the Machine. env_var is required
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FlyMachineSecret {
-    /// EnvVar is required and is the name of the environment variable that will be set from the
+    /// EnvVar is required and is the name of the environment variable that will be set from the secret. It must be a valid environment variable name.
     #[serde(default)]
     pub env_var: ::core::option::Option<String>,
-    /// Name is optional and when provided is used to reference a secret name where the EnvVar is
+    /// Name is optional and when provided is used to reference a secret name where the EnvVar is different from what was set as the secret name.
     #[serde(default)]
     pub name: ::core::option::Option<String>,
 }
@@ -1760,7 +1762,7 @@ pub struct FlyMachineGuest {
 /// FlyExecHealthcheck resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FlyExecHealthcheck {
-    /// The command to run to check the health of the container (e.g. ["cat", "/tmp/healthy"])
+    /// The command to run to check the health of the container (e.g. ["cat", "/`tmp/healthy`"])
     #[serde(default)]
     pub command: ::core::option::Option<::std::vec::Vec<String>>,
 }
@@ -1834,7 +1836,7 @@ pub struct FlyTLSOptions {
     pub versions: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
-/// For http checks, an array of objects with string field Name and array of strings field Values. The key/value pairs specify header and header values that will get passed with the check call.
+/// For http checks, an array of objects with string field Name and array of strings field Values. The `key/value` pairs specify header and header values that will get passed with the check call.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FlyMachineHTTPHeader {
     /// The header name
@@ -1869,718 +1871,4 @@ pub struct FlyHTTPResponseOptions {
     pub headers: ::core::option::Option<serde_json::Value>,
     #[serde(default)]
     pub pristine: ::core::option::Option<bool>,
-}
-
-// =============================================================================
-// ResourceIdentifier implementations
-// =============================================================================
-
-/// ResourceIdentifier implementation for ListAppsResponse.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<AppsListArgs> for ListAppsResponse {
-    fn generate_resource_id(&self, input: &AppsListArgs) -> String {
-        "fly_io::ListAppsResponse".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "fly_io::ListAppsResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "fly_io"
-    }
-}
-
-/// ResourceIdentifier implementation for App.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<AppsShowArgs> for App {
-    fn generate_resource_id(&self, input: &AppsShowArgs) -> String {
-        format!("fly_io::App/{}", input.app_name)
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "fly_io::App"
-    }
-
-    fn provider(&self) -> &'static str {
-        "fly_io"
-    }
-}
-
-/// ResourceIdentifier implementation for ListCertificatesResponse.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<AppCertificatesListArgs> for ListCertificatesResponse {
-    fn generate_resource_id(&self, input: &AppCertificatesListArgs) -> String {
-        format!("fly_io::ListCertificatesResponse/{}", input.app_name)
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "fly_io::ListCertificatesResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "fly_io"
-    }
-}
-
-/// ResourceIdentifier implementation for CertificateDetail.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<AppCertificatesAcmeCreateArgs> for CertificateDetail {
-    fn generate_resource_id(&self, input: &AppCertificatesAcmeCreateArgs) -> String {
-        format!("fly_io::CertificateDetail/{}", input.app_name)
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "fly_io::CertificateDetail"
-    }
-
-    fn provider(&self) -> &'static str {
-        "fly_io"
-    }
-}
-
-/// ResourceIdentifier implementation for CertificateCheckResponse.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<AppCertificatesCheckArgs> for CertificateCheckResponse {
-    fn generate_resource_id(&self, input: &AppCertificatesCheckArgs) -> String {
-        format!(
-            "fly_io::CertificateCheckResponse/{}/{}",
-            input.app_name, input.hostname
-        )
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "fly_io::CertificateCheckResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "fly_io"
-    }
-}
-
-/// ResourceIdentifier implementation for DestroyCustomCertificateResponse.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<AppCertificatesCustomDeleteArgs> for DestroyCustomCertificateResponse {
-    fn generate_resource_id(&self, input: &AppCertificatesCustomDeleteArgs) -> String {
-        format!(
-            "fly_io::DestroyCustomCertificateResponse/{}/{}",
-            input.app_name, input.hostname
-        )
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "fly_io::DestroyCustomCertificateResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "fly_io"
-    }
-}
-
-/// ResourceIdentifier implementation for CreateAppResponse.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<AppCreateDeployTokenArgs> for CreateAppResponse {
-    fn generate_resource_id(&self, input: &AppCreateDeployTokenArgs) -> String {
-        format!("fly_io::CreateAppResponse/{}", input.app_name)
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "fly_io::CreateAppResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "fly_io"
-    }
-}
-
-/// ResourceIdentifier implementation for ListIPAssignmentsResponse.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<AppIPAssignmentsListArgs> for ListIPAssignmentsResponse {
-    fn generate_resource_id(&self, input: &AppIPAssignmentsListArgs) -> String {
-        format!("fly_io::ListIPAssignmentsResponse/{}", input.app_name)
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "fly_io::ListIPAssignmentsResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "fly_io"
-    }
-}
-
-/// ResourceIdentifier implementation for IPAssignment.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<AppIPAssignmentsCreateArgs> for IPAssignment {
-    fn generate_resource_id(&self, input: &AppIPAssignmentsCreateArgs) -> String {
-        format!("fly_io::IPAssignment/{}", input.app_name)
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "fly_io::IPAssignment"
-    }
-
-    fn provider(&self) -> &'static str {
-        "fly_io"
-    }
-}
-
-/// ResourceIdentifier implementation for Machine.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<MachinesCreateArgs> for Machine {
-    fn generate_resource_id(&self, input: &MachinesCreateArgs) -> String {
-        format!("fly_io::Machine/{}", input.app_name)
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "fly_io::Machine"
-    }
-
-    fn provider(&self) -> &'static str {
-        "fly_io"
-    }
-}
-
-/// ResourceIdentifier implementation for Flydv1ExecResponse.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<MachinesExecArgs> for Flydv1ExecResponse {
-    fn generate_resource_id(&self, input: &MachinesExecArgs) -> String {
-        format!(
-            "fly_io::Flydv1ExecResponse/{}/{}",
-            input.app_name, input.machine_id
-        )
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "fly_io::Flydv1ExecResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "fly_io"
-    }
-}
-
-/// ResourceIdentifier implementation for Lease.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<MachinesShowLeaseArgs> for Lease {
-    fn generate_resource_id(&self, input: &MachinesShowLeaseArgs) -> String {
-        format!("fly_io::Lease/{}/{}", input.app_name, input.machine_id)
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "fly_io::Lease"
-    }
-
-    fn provider(&self) -> &'static str {
-        "fly_io"
-    }
-}
-
-/// ResourceIdentifier implementation for MainMemoryResponse.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<MachinesGetMemoryArgs> for MainMemoryResponse {
-    fn generate_resource_id(&self, input: &MachinesGetMemoryArgs) -> String {
-        format!(
-            "fly_io::MainMemoryResponse/{}/{}",
-            input.app_name, input.machine_id
-        )
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "fly_io::MainMemoryResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "fly_io"
-    }
-}
-
-/// ResourceIdentifier implementation for MainReclaimMemoryResponse.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<MachinesReclaimMemoryArgs> for MainReclaimMemoryResponse {
-    fn generate_resource_id(&self, input: &MachinesReclaimMemoryArgs) -> String {
-        format!(
-            "fly_io::MainReclaimMemoryResponse/{}/{}",
-            input.app_name, input.machine_id
-        )
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "fly_io::MainReclaimMemoryResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "fly_io"
-    }
-}
-
-/// ResourceIdentifier implementation for MetadataValueResponse.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<MachinesGetMetadataKeyArgs> for MetadataValueResponse {
-    fn generate_resource_id(&self, input: &MachinesGetMetadataKeyArgs) -> String {
-        format!(
-            "fly_io::MetadataValueResponse/{}/{}/{}",
-            input.app_name, input.machine_id, input.key
-        )
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "fly_io::MetadataValueResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "fly_io"
-    }
-}
-
-/// ResourceIdentifier implementation for WaitMachineResponse.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<MachinesWaitArgs> for WaitMachineResponse {
-    fn generate_resource_id(&self, input: &MachinesWaitArgs) -> String {
-        format!(
-            "fly_io::WaitMachineResponse/{}/{}",
-            input.app_name, input.machine_id
-        )
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "fly_io::WaitMachineResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "fly_io"
-    }
-}
-
-/// ResourceIdentifier implementation for SecretKeys.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<SecretkeysListArgs> for SecretKeys {
-    fn generate_resource_id(&self, input: &SecretkeysListArgs) -> String {
-        format!("fly_io::SecretKeys/{}", input.app_name)
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "fly_io::SecretKeys"
-    }
-
-    fn provider(&self) -> &'static str {
-        "fly_io"
-    }
-}
-
-/// ResourceIdentifier implementation for SecretKey.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<SecretkeyGetArgs> for SecretKey {
-    fn generate_resource_id(&self, input: &SecretkeyGetArgs) -> String {
-        format!("fly_io::SecretKey/{}/{}", input.app_name, input.secret_name)
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "fly_io::SecretKey"
-    }
-
-    fn provider(&self) -> &'static str {
-        "fly_io"
-    }
-}
-
-/// ResourceIdentifier implementation for SetSecretkeyResponse.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<SecretkeySetArgs> for SetSecretkeyResponse {
-    fn generate_resource_id(&self, input: &SecretkeySetArgs) -> String {
-        format!(
-            "fly_io::SetSecretkeyResponse/{}/{}",
-            input.app_name, input.secret_name
-        )
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "fly_io::SetSecretkeyResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "fly_io"
-    }
-}
-
-/// ResourceIdentifier implementation for DeleteSecretkeyResponse.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<SecretkeyDeleteArgs> for DeleteSecretkeyResponse {
-    fn generate_resource_id(&self, input: &SecretkeyDeleteArgs) -> String {
-        format!(
-            "fly_io::DeleteSecretkeyResponse/{}/{}",
-            input.app_name, input.secret_name
-        )
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "fly_io::DeleteSecretkeyResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "fly_io"
-    }
-}
-
-/// ResourceIdentifier implementation for DecryptSecretkeyResponse.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<SecretkeyDecryptArgs> for DecryptSecretkeyResponse {
-    fn generate_resource_id(&self, input: &SecretkeyDecryptArgs) -> String {
-        format!(
-            "fly_io::DecryptSecretkeyResponse/{}/{}",
-            input.app_name, input.secret_name
-        )
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "fly_io::DecryptSecretkeyResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "fly_io"
-    }
-}
-
-/// ResourceIdentifier implementation for EncryptSecretkeyResponse.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<SecretkeyEncryptArgs> for EncryptSecretkeyResponse {
-    fn generate_resource_id(&self, input: &SecretkeyEncryptArgs) -> String {
-        format!(
-            "fly_io::EncryptSecretkeyResponse/{}/{}",
-            input.app_name, input.secret_name
-        )
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "fly_io::EncryptSecretkeyResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "fly_io"
-    }
-}
-
-/// ResourceIdentifier implementation for SignSecretkeyResponse.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<SecretkeySignArgs> for SignSecretkeyResponse {
-    fn generate_resource_id(&self, input: &SecretkeySignArgs) -> String {
-        format!(
-            "fly_io::SignSecretkeyResponse/{}/{}",
-            input.app_name, input.secret_name
-        )
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "fly_io::SignSecretkeyResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "fly_io"
-    }
-}
-
-/// ResourceIdentifier implementation for AppSecrets.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<SecretsListArgs> for AppSecrets {
-    fn generate_resource_id(&self, input: &SecretsListArgs) -> String {
-        format!("fly_io::AppSecrets/{}", input.app_name)
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "fly_io::AppSecrets"
-    }
-
-    fn provider(&self) -> &'static str {
-        "fly_io"
-    }
-}
-
-/// ResourceIdentifier implementation for AppSecretsUpdateResp.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<SecretsUpdateArgs> for AppSecretsUpdateResp {
-    fn generate_resource_id(&self, input: &SecretsUpdateArgs) -> String {
-        format!("fly_io::AppSecretsUpdateResp/{}", input.app_name)
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "fly_io::AppSecretsUpdateResp"
-    }
-
-    fn provider(&self) -> &'static str {
-        "fly_io"
-    }
-}
-
-/// ResourceIdentifier implementation for AppSecret.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<SecretGetArgs> for AppSecret {
-    fn generate_resource_id(&self, input: &SecretGetArgs) -> String {
-        format!("fly_io::AppSecret/{}/{}", input.app_name, input.secret_name)
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "fly_io::AppSecret"
-    }
-
-    fn provider(&self) -> &'static str {
-        "fly_io"
-    }
-}
-
-/// ResourceIdentifier implementation for SetAppSecretResponse.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<SecretCreateArgs> for SetAppSecretResponse {
-    fn generate_resource_id(&self, input: &SecretCreateArgs) -> String {
-        format!(
-            "fly_io::SetAppSecretResponse/{}/{}",
-            input.app_name, input.secret_name
-        )
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "fly_io::SetAppSecretResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "fly_io"
-    }
-}
-
-/// ResourceIdentifier implementation for DeleteAppSecretResponse.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<SecretDeleteArgs> for DeleteAppSecretResponse {
-    fn generate_resource_id(&self, input: &SecretDeleteArgs) -> String {
-        format!(
-            "fly_io::DeleteAppSecretResponse/{}/{}",
-            input.app_name, input.secret_name
-        )
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "fly_io::DeleteAppSecretResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "fly_io"
-    }
-}
-
-/// ResourceIdentifier implementation for Volume.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<VolumesCreateArgs> for Volume {
-    fn generate_resource_id(&self, input: &VolumesCreateArgs) -> String {
-        format!("fly_io::Volume/{}", input.app_name)
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "fly_io::Volume"
-    }
-
-    fn provider(&self) -> &'static str {
-        "fly_io"
-    }
-}
-
-/// ResourceIdentifier implementation for ExtendVolumeResponse.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<VolumesExtendArgs> for ExtendVolumeResponse {
-    fn generate_resource_id(&self, input: &VolumesExtendArgs) -> String {
-        format!(
-            "fly_io::ExtendVolumeResponse/{}/{}",
-            input.app_name, input.volume_id
-        )
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "fly_io::ExtendVolumeResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "fly_io"
-    }
-}
-
-/// ResourceIdentifier implementation for OrgMachinesResponse.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<MachinesOrgListArgs> for OrgMachinesResponse {
-    fn generate_resource_id(&self, input: &MachinesOrgListArgs) -> String {
-        format!("fly_io::OrgMachinesResponse/{}", input.org_slug)
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "fly_io::OrgMachinesResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "fly_io"
-    }
-}
-
-/// ResourceIdentifier implementation for OrgVolumesResponse.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<VolumesOrgListArgs> for OrgVolumesResponse {
-    fn generate_resource_id(&self, input: &VolumesOrgListArgs) -> String {
-        format!("fly_io::OrgVolumesResponse/{}", input.org_slug)
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "fly_io::OrgVolumesResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "fly_io"
-    }
-}
-
-/// ResourceIdentifier implementation for MainGetPlacementsResponse.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<PlatformPlacementsPostArgs> for MainGetPlacementsResponse {
-    fn generate_resource_id(&self, input: &PlatformPlacementsPostArgs) -> String {
-        "fly_io::MainGetPlacementsResponse".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "fly_io::MainGetPlacementsResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "fly_io"
-    }
-}
-
-/// ResourceIdentifier implementation for MainRegionResponse.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<PlatformRegionsGetArgs> for MainRegionResponse {
-    fn generate_resource_id(&self, input: &PlatformRegionsGetArgs) -> String {
-        "fly_io::MainRegionResponse".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "fly_io::MainRegionResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "fly_io"
-    }
-}
-
-/// ResourceIdentifier implementation for CurrentTokenResponse.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<CurrentTokenShowArgs> for CurrentTokenResponse {
-    fn generate_resource_id(&self, input: &CurrentTokenShowArgs) -> String {
-        "fly_io::CurrentTokenResponse".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "fly_io::CurrentTokenResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "fly_io"
-    }
 }

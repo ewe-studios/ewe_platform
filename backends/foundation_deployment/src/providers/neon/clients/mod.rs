@@ -7,6 +7,8 @@
 
 #![cfg(feature = "neon")]
 
+pub mod types;
+
 use crate::providers::neon::clients::types::*;
 use crate::providers::neon::resources::*;
 use foundation_core::valtron::{
@@ -657,12 +659,12 @@ pub fn get_auth_details(
 
 pub fn get_consumption_history_per_account_builder<R>(
     client: &SimpleHttpClient<R>,
-    from: &Option<Option<String>>,
-    to: &Option<Option<String>>,
-    granularity: &Option<Option<String>>,
-    org_id: &Option<Option<String>>,
-    include_v1_metrics: &Option<Option<String>>,
-    metrics: &Option<Option<String>>,
+    from: &Option<String>,
+    to: &Option<String>,
+    granularity: &Option<String>,
+    org_id: &Option<String>,
+    include_v1_metrics: &Option<String>,
+    metrics: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -816,17 +818,17 @@ pub fn get_consumption_history_per_account_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetConsumptionHistoryPerAccountArgs {
     /// Query parameter: from
-    pub from: Option<Option<String>>,
+    pub from: Option<String>,
     /// Query parameter: to
-    pub to: Option<Option<String>>,
+    pub to: Option<String>,
     /// Query parameter: granularity
-    pub granularity: Option<Option<String>>,
+    pub granularity: Option<String>,
     /// Query parameter: org_id
-    pub org_id: Option<Option<String>>,
+    pub org_id: Option<String>,
     /// Query parameter: include_v1_metrics
-    pub include_v1_metrics: Option<Option<String>>,
+    pub include_v1_metrics: Option<String>,
     /// Query parameter: metrics
-    pub metrics: Option<Option<String>>,
+    pub metrics: Option<String>,
 }
 
 /// GET /consumption_history/account
@@ -871,15 +873,15 @@ pub fn get_consumption_history_per_account(
 
 pub fn get_consumption_history_per_project_builder<R>(
     client: &SimpleHttpClient<R>,
-    cursor: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    project_ids: &Option<Option<String>>,
-    from: &Option<Option<String>>,
-    to: &Option<Option<String>>,
-    granularity: &Option<Option<String>>,
-    org_id: &Option<Option<String>>,
-    include_v1_metrics: &Option<Option<String>>,
-    metrics: &Option<Option<String>>,
+    cursor: &Option<String>,
+    limit: &Option<String>,
+    project_ids: &Option<String>,
+    from: &Option<String>,
+    to: &Option<String>,
+    granularity: &Option<String>,
+    org_id: &Option<String>,
+    include_v1_metrics: &Option<String>,
+    metrics: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1035,23 +1037,23 @@ pub fn get_consumption_history_per_project_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetConsumptionHistoryPerProjectArgs {
     /// Query parameter: cursor
-    pub cursor: Option<Option<String>>,
+    pub cursor: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: project_ids
-    pub project_ids: Option<Option<String>>,
+    pub project_ids: Option<String>,
     /// Query parameter: from
-    pub from: Option<Option<String>>,
+    pub from: Option<String>,
     /// Query parameter: to
-    pub to: Option<Option<String>>,
+    pub to: Option<String>,
     /// Query parameter: granularity
-    pub granularity: Option<Option<String>>,
+    pub granularity: Option<String>,
     /// Query parameter: org_id
-    pub org_id: Option<Option<String>>,
+    pub org_id: Option<String>,
     /// Query parameter: include_v1_metrics
-    pub include_v1_metrics: Option<Option<String>>,
+    pub include_v1_metrics: Option<String>,
     /// Query parameter: metrics
-    pub metrics: Option<Option<String>>,
+    pub metrics: Option<String>,
 }
 
 /// GET /consumption_history/projects
@@ -1095,14 +1097,14 @@ pub fn get_consumption_history_per_project(
 
 pub fn get_consumption_history_per_project_v2_builder<R>(
     client: &SimpleHttpClient<R>,
-    cursor: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    project_ids: &Option<Option<String>>,
-    from: &Option<Option<String>>,
-    to: &Option<Option<String>>,
-    granularity: &Option<Option<String>>,
-    org_id: &Option<Option<String>>,
-    metrics: &Option<Option<String>>,
+    cursor: &Option<String>,
+    limit: &Option<String>,
+    project_ids: &Option<String>,
+    from: &Option<String>,
+    to: &Option<String>,
+    granularity: &Option<String>,
+    org_id: &Option<String>,
+    metrics: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1255,21 +1257,21 @@ pub fn get_consumption_history_per_project_v2_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetConsumptionHistoryPerProjectV2Args {
     /// Query parameter: cursor
-    pub cursor: Option<Option<String>>,
+    pub cursor: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: project_ids
-    pub project_ids: Option<Option<String>>,
+    pub project_ids: Option<String>,
     /// Query parameter: from
-    pub from: Option<Option<String>>,
+    pub from: Option<String>,
     /// Query parameter: to
-    pub to: Option<Option<String>>,
+    pub to: Option<String>,
     /// Query parameter: granularity
-    pub granularity: Option<Option<String>>,
+    pub granularity: Option<String>,
     /// Query parameter: org_id
-    pub org_id: Option<Option<String>>,
+    pub org_id: Option<String>,
     /// Query parameter: metrics
-    pub metrics: Option<Option<String>>,
+    pub metrics: Option<String>,
 }
 
 /// GET /consumption_history/v2/projects
@@ -2312,8 +2314,8 @@ pub fn create_organization_invitations(
 pub fn get_organization_members_builder<R>(
     client: &SimpleHttpClient<R>,
     org_id: &String,
-    sort_by: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
+    sort_by: &Option<String>,
+    limit: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2453,9 +2455,9 @@ pub struct GetOrganizationMembersArgs {
     /// Path parameter: org_id
     pub org_id: String,
     /// Query parameter: sort_by
-    pub sort_by: Option<Option<String>>,
+    pub sort_by: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
 }
 
 /// GET /organizations/{org_id}/members
@@ -4010,11 +4012,11 @@ pub fn transfer_projects_from_org_to_org(
 
 pub fn list_projects_builder<R>(
     client: &SimpleHttpClient<R>,
-    cursor: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    search: &Option<Option<String>>,
-    org_id: &Option<Option<String>>,
-    recoverable: &Option<Option<String>>,
+    cursor: &Option<String>,
+    limit: &Option<String>,
+    search: &Option<String>,
+    org_id: &Option<String>,
+    recoverable: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4158,15 +4160,15 @@ pub fn list_projects_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ListProjectsArgs {
     /// Query parameter: cursor
-    pub cursor: Option<Option<String>>,
+    pub cursor: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: search
-    pub search: Option<Option<String>>,
+    pub search: Option<String>,
     /// Query parameter: org_id
-    pub org_id: Option<Option<String>>,
+    pub org_id: Option<String>,
     /// Query parameter: recoverable
-    pub recoverable: Option<Option<String>>,
+    pub recoverable: Option<String>,
 }
 
 /// GET /projects
@@ -5032,9 +5034,9 @@ pub fn create_neon_auth_new_user(
 
 pub fn list_shared_projects_builder<R>(
     client: &SimpleHttpClient<R>,
-    cursor: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    search: &Option<Option<String>>,
+    cursor: &Option<String>,
+    limit: &Option<String>,
+    search: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5172,11 +5174,11 @@ pub fn list_shared_projects_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ListSharedProjectsArgs {
     /// Query parameter: cursor
-    pub cursor: Option<Option<String>>,
+    pub cursor: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: search
-    pub search: Option<Option<String>>,
+    pub search: Option<String>,
 }
 
 /// GET /projects/shared
@@ -5691,10 +5693,10 @@ pub fn delete_project(
 pub fn get_project_advisor_security_issues_builder<R>(
     client: &SimpleHttpClient<R>,
     project_id: &String,
-    branch_id: &Option<Option<String>>,
-    database_name: &Option<Option<String>>,
-    category: &Option<Option<String>>,
-    min_severity: &Option<Option<String>>,
+    branch_id: &Option<String>,
+    database_name: &Option<String>,
+    category: &Option<String>,
+    min_severity: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5840,13 +5842,13 @@ pub struct GetProjectAdvisorSecurityIssuesArgs {
     /// Path parameter: project_id
     pub project_id: String,
     /// Query parameter: branch_id
-    pub branch_id: Option<Option<String>>,
+    pub branch_id: Option<String>,
     /// Query parameter: database_name
-    pub database_name: Option<Option<String>>,
+    pub database_name: Option<String>,
     /// Query parameter: category
-    pub category: Option<Option<String>>,
+    pub category: Option<String>,
     /// Query parameter: min_severity
-    pub min_severity: Option<Option<String>>,
+    pub min_severity: Option<String>,
 }
 
 /// GET /projects/{project_id}/advisors
@@ -8210,8 +8212,8 @@ pub fn create_project_branch_anonymized(
 pub fn list_project_branches_builder<R>(
     client: &SimpleHttpClient<R>,
     project_id: &String,
-    search: &Option<Option<String>>,
-    sort_by: &Option<Option<String>>,
+    search: &Option<String>,
+    sort_by: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8351,9 +8353,9 @@ pub struct ListProjectBranchesArgs {
     /// Path parameter: project_id
     pub project_id: String,
     /// Query parameter: search
-    pub search: Option<Option<String>>,
+    pub search: Option<String>,
     /// Query parameter: sort_by
-    pub sort_by: Option<Option<String>>,
+    pub sort_by: Option<String>,
 }
 
 /// GET /projects/{project_id}/branches
@@ -8545,7 +8547,7 @@ pub fn create_project_branch(
 pub fn count_project_branches_builder<R>(
     client: &SimpleHttpClient<R>,
     project_id: &String,
-    search: &Option<Option<String>>,
+    search: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8682,7 +8684,7 @@ pub struct CountProjectBranchesArgs {
     /// Path parameter: project_id
     pub project_id: String,
     /// Query parameter: search
-    pub search: Option<Option<String>>,
+    pub search: Option<String>,
 }
 
 /// GET /projects/{project_id}/branches/count
@@ -14050,12 +14052,12 @@ pub fn get_project_branch_schema_comparison_builder<R>(
     client: &SimpleHttpClient<R>,
     project_id: &String,
     branch_id: &String,
-    base_branch_id: &Option<Option<String>>,
-    db_name: &Option<Option<String>>,
-    lsn: &Option<Option<String>>,
-    timestamp: &Option<Option<String>>,
-    base_lsn: &Option<Option<String>>,
-    base_timestamp: &Option<Option<String>>,
+    base_branch_id: &Option<String>,
+    db_name: &Option<String>,
+    lsn: &Option<String>,
+    timestamp: &Option<String>,
+    base_lsn: &Option<String>,
+    base_timestamp: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -14216,17 +14218,17 @@ pub struct GetProjectBranchSchemaComparisonArgs {
     /// Path parameter: branch_id
     pub branch_id: String,
     /// Query parameter: base_branch_id
-    pub base_branch_id: Option<Option<String>>,
+    pub base_branch_id: Option<String>,
     /// Query parameter: db_name
-    pub db_name: Option<Option<String>>,
+    pub db_name: Option<String>,
     /// Query parameter: lsn
-    pub lsn: Option<Option<String>>,
+    pub lsn: Option<String>,
     /// Query parameter: timestamp
-    pub timestamp: Option<Option<String>>,
+    pub timestamp: Option<String>,
     /// Query parameter: base_lsn
-    pub base_lsn: Option<Option<String>>,
+    pub base_lsn: Option<String>,
     /// Query parameter: base_timestamp
-    pub base_timestamp: Option<Option<String>>,
+    pub base_timestamp: Option<String>,
 }
 
 /// GET /projects/{project_id}/branches/{branch_id}/compare_schema
@@ -17749,10 +17751,10 @@ pub fn get_project_branch_schema_builder<R>(
     client: &SimpleHttpClient<R>,
     project_id: &String,
     branch_id: &String,
-    db_name: &Option<Option<String>>,
-    lsn: &Option<Option<String>>,
-    timestamp: &Option<Option<String>>,
-    format: &Option<Option<String>>,
+    db_name: &Option<String>,
+    lsn: &Option<String>,
+    timestamp: &Option<String>,
+    format: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -17905,13 +17907,13 @@ pub struct GetProjectBranchSchemaArgs {
     /// Path parameter: branch_id
     pub branch_id: String,
     /// Query parameter: db_name
-    pub db_name: Option<Option<String>>,
+    pub db_name: Option<String>,
     /// Query parameter: lsn
-    pub lsn: Option<Option<String>>,
+    pub lsn: Option<String>,
     /// Query parameter: timestamp
-    pub timestamp: Option<Option<String>>,
+    pub timestamp: Option<String>,
     /// Query parameter: format
-    pub format: Option<Option<String>>,
+    pub format: Option<String>,
 }
 
 /// GET /projects/{project_id}/branches/{branch_id}/schema
@@ -18123,10 +18125,10 @@ pub fn create_snapshot_builder<R>(
     client: &SimpleHttpClient<R>,
     project_id: &String,
     branch_id: &String,
-    lsn: &Option<Option<String>>,
-    timestamp: &Option<Option<String>>,
-    name: &Option<Option<String>>,
-    expires_at: &Option<Option<String>>,
+    lsn: &Option<String>,
+    timestamp: &Option<String>,
+    name: &Option<String>,
+    expires_at: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -18274,13 +18276,13 @@ pub struct CreateSnapshotArgs {
     /// Path parameter: branch_id
     pub branch_id: String,
     /// Query parameter: lsn
-    pub lsn: Option<Option<String>>,
+    pub lsn: Option<String>,
     /// Query parameter: timestamp
-    pub timestamp: Option<Option<String>>,
+    pub timestamp: Option<String>,
     /// Query parameter: name
-    pub name: Option<Option<String>>,
+    pub name: Option<String>,
     /// Query parameter: expires_at
-    pub expires_at: Option<Option<String>>,
+    pub expires_at: Option<String>,
 }
 
 /// POST /projects/{project_id}/branches/{branch_id}/snapshot
@@ -18322,11 +18324,11 @@ pub fn create_snapshot(
 pub fn get_connection_uri_builder<R>(
     client: &SimpleHttpClient<R>,
     project_id: &String,
-    branch_id: &Option<Option<String>>,
-    endpoint_id: &Option<Option<String>>,
-    database_name: &Option<Option<String>>,
-    role_name: &Option<Option<String>>,
-    pooled: &Option<Option<String>>,
+    branch_id: &Option<String>,
+    endpoint_id: &Option<String>,
+    database_name: &Option<String>,
+    role_name: &Option<String>,
+    pooled: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -18480,15 +18482,15 @@ pub struct GetConnectionUriArgs {
     /// Path parameter: project_id
     pub project_id: String,
     /// Query parameter: branch_id
-    pub branch_id: Option<Option<String>>,
+    pub branch_id: Option<String>,
     /// Query parameter: endpoint_id
-    pub endpoint_id: Option<Option<String>>,
+    pub endpoint_id: Option<String>,
     /// Query parameter: database_name
-    pub database_name: Option<Option<String>>,
+    pub database_name: Option<String>,
     /// Query parameter: role_name
-    pub role_name: Option<Option<String>>,
+    pub role_name: Option<String>,
     /// Query parameter: pooled
-    pub pooled: Option<Option<String>>,
+    pub pooled: Option<String>,
 }
 
 /// GET /projects/{project_id}/connection_uri
@@ -20369,8 +20371,8 @@ pub fn delete_project_jwks(
 pub fn list_project_operations_builder<R>(
     client: &SimpleHttpClient<R>,
     project_id: &String,
-    cursor: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
+    cursor: &Option<String>,
+    limit: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -20510,9 +20512,9 @@ pub struct ListProjectOperationsArgs {
     /// Path parameter: project_id
     pub project_id: String,
     /// Query parameter: cursor
-    pub cursor: Option<Option<String>>,
+    pub cursor: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
 }
 
 /// GET /projects/{project_id}/operations
@@ -22033,7 +22035,7 @@ pub fn restore_snapshot_builder<R>(
     client: &SimpleHttpClient<R>,
     project_id: &String,
     snapshot_id: &String,
-    name: &Option<Option<String>>,
+    name: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -22172,7 +22174,7 @@ pub struct RestoreSnapshotArgs {
     /// Path parameter: snapshot_id
     pub snapshot_id: String,
     /// Query parameter: name
-    pub name: Option<Option<String>>,
+    pub name: Option<String>,
 }
 
 /// POST /projects/{project_id}/snapshots/{snapshot_id}/restore
@@ -23030,7 +23032,7 @@ pub fn delete_project_vpcendpoint(
 
 pub fn get_active_regions_builder<R>(
     client: &SimpleHttpClient<R>,
-    org_id: &Option<Option<String>>,
+    org_id: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -23167,7 +23169,7 @@ pub fn get_active_regions_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetActiveRegionsArgs {
     /// Query parameter: org_id
-    pub org_id: Option<Option<String>>,
+    pub org_id: Option<String>,
 }
 
 /// GET /regions
@@ -23662,29 +23664,6 @@ pub fn transfer_projects_from_user_to_org(
 }
 
 // =============================================================================
-// ResourceIdentifier implementation for serde_json::Value
-// =============================================================================
-
-/// ResourceIdentifier implementation for serde_json::Value with ListApiKeysArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<ListApiKeysArgs> for serde_json::Value {
-    fn generate_resource_id(&self, input: &ListApiKeysArgs) -> String {
-        "neon::serde_json::Value".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "neon::serde_json::Value"
-    }
-
-    fn provider(&self) -> &'static str {
-        "neon"
-    }
-}
-
-// =============================================================================
 // ResourceIdentifier implementation for ApiKeyCreateResponse
 // =============================================================================
 
@@ -23723,29 +23702,6 @@ impl ResourceIdentifier<RevokeApiKeyArgs> for ApiKeyRevokeResponse {
 
     fn resource_kind(&self) -> &'static str {
         "neon::ApiKeyRevokeResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "neon"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for AuthDetailsResponse
-// =============================================================================
-
-/// ResourceIdentifier implementation for AuthDetailsResponse with GetAuthDetailsArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<GetAuthDetailsArgs> for AuthDetailsResponse {
-    fn generate_resource_id(&self, input: &GetAuthDetailsArgs) -> String {
-        "neon::AuthDetailsResponse".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "neon::AuthDetailsResponse"
     }
 
     fn provider(&self) -> &'static str {
@@ -26223,52 +26179,6 @@ impl ResourceIdentifier<GetActiveRegionsArgs> for ActiveRegionsResponse {
 
     fn resource_kind(&self) -> &'static str {
         "neon::ActiveRegionsResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "neon"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for CurrentUserInfoResponse
-// =============================================================================
-
-/// ResourceIdentifier implementation for CurrentUserInfoResponse with GetCurrentUserInfoArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<GetCurrentUserInfoArgs> for CurrentUserInfoResponse {
-    fn generate_resource_id(&self, input: &GetCurrentUserInfoArgs) -> String {
-        "neon::CurrentUserInfoResponse".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "neon::CurrentUserInfoResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "neon"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for OrganizationsResponse
-// =============================================================================
-
-/// ResourceIdentifier implementation for OrganizationsResponse with GetCurrentUserOrganizationsArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<GetCurrentUserOrganizationsArgs> for OrganizationsResponse {
-    fn generate_resource_id(&self, input: &GetCurrentUserOrganizationsArgs) -> String {
-        "neon::OrganizationsResponse".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "neon::OrganizationsResponse"
     }
 
     fn provider(&self) -> &'static str {

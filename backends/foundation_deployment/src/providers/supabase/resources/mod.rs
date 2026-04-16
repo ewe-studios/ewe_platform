@@ -8,6 +8,8 @@
 #![cfg(feature = "supabase")]
 
 use super::*;
+use crate::providers::supabase::clients::*;
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
@@ -257,7 +259,7 @@ pub struct AuthConfigResponse {
     pub passkey_enabled: bool,
     pub password_hibp_enabled: bool,
     pub password_min_length: i64,
-    /// TODO: enum values: ["abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ:0123456789", "abcdefghijklmnopqrstuvwxyz:ABCDEFGHIJKLMNOPQRSTUVWXYZ:0123456789", "abcdefghijklmnopqrstuvwxyz:ABCDEFGHIJKLMNOPQRSTUVWXYZ:0123456789:!@#$%^&*()_+-=[]{};''\\:"|&lt;&gt;?,./~", ""]
+    /// TODO: enum values: ["`abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ`:0123456789", "abcdefghijklmnopqrstuvwxyz:ABCDEFGHIJKLMNOPQRSTUVWXYZ:0123456789", "abcdefghijklmnopqrstuvwxyz:ABCDEFGHIJKLMNOPQRSTUVWXYZ:0123456789:!@#$%^&*()_+-=[]{};''\\:"|&lt;&gt;?,./~", ""]
     pub password_required_characters: String,
     pub rate_limit_anonymous_users: i64,
     pub rate_limit_email_sent: i64,
@@ -356,7 +358,7 @@ pub struct BranchDetailResponse {
     #[serde(rename = "ref")]
     pub ref_: String,
     pub release_channel: String,
-    /// TODO: enum values: ["INACTIVE", "ACTIVE_HEALTHY", "ACTIVE_UNHEALTHY", "COMING_UP", "UNKNOWN", "GOING_DOWN", "INIT_FAILED", "REMOVED", "RESTORING", "UPGRADING", "PAUSING", "RESTORE_FAILED", "RESTARTING", "PAUSE_FAILED", "RESIZING"]
+    /// TODO: enum values: ["`INACTIVE`", "ACTIVE_HEALTHY", "ACTIVE_UNHEALTHY", "COMING_UP", "UNKNOWN", "GOING_DOWN", "INIT_FAILED", "REMOVED", "RESTORING", "UPGRADING", "PAUSING", "RESTORE_FAILED", "RESTARTING", "PAUSE_FAILED", "RESIZING"]
     pub status: String,
 }
 
@@ -380,7 +382,7 @@ pub struct BranchResponse {
     pub persistent: bool,
     #[serde(default)]
     pub pr_number: ::core::option::Option<i32>,
-    /// TODO: enum values: ["INACTIVE", "ACTIVE_HEALTHY", "ACTIVE_UNHEALTHY", "COMING_UP", "UNKNOWN", "GOING_DOWN", "INIT_FAILED", "REMOVED", "RESTORING", "UPGRADING", "PAUSING", "RESTORE_FAILED", "RESTARTING", "PAUSE_FAILED", "RESIZING"]
+    /// TODO: enum values: ["`INACTIVE`", "ACTIVE_HEALTHY", "ACTIVE_UNHEALTHY", "COMING_UP", "UNKNOWN", "GOING_DOWN", "INIT_FAILED", "REMOVED", "RESTORING", "UPGRADING", "PAUSING", "RESTORE_FAILED", "RESTARTING", "PAUSE_FAILED", "RESIZING"]
     #[serde(default)]
     pub preview_project_status: ::core::option::Option<String>,
     pub project_ref: String,
@@ -483,7 +485,7 @@ pub struct CreateProviderBody {
     pub metadata_url: ::core::option::Option<String>,
     #[serde(default)]
     pub metadata_xml: ::core::option::Option<String>,
-    /// TODO: enum values: ["urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified", "urn:oasis:names:tc:SAML:2.0:nameid-format:transient", "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress", "urn:oasis:names:tc:SAML:2.0:nameid-format:persistent"]
+    /// TODO: enum values: ["urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified", "urn:oasis:names:tc:SAML:2.0:nameid-format:transient", "urn:oasis:names:tc:SAML:1.1:nameid-format:`emailAddress`", "urn:oasis:names:tc:SAML:2.0:nameid-format:persistent"]
     #[serde(default)]
     pub name_id_format: ::core::option::Option<String>,
     /// What type of provider will be created // TODO: enum values: ["saml"]
@@ -586,7 +588,7 @@ pub struct DeployFunctionResponse {
     pub import_map_path: ::core::option::Option<String>,
     pub name: String,
     pub slug: String,
-    /// TODO: enum values: ["ACTIVE", "REMOVED", "THROTTLED"]
+    /// TODO: enum values: ["`ACTIVE`", "REMOVED", "THROTTLED"]
     pub status: String,
     #[serde(default)]
     pub updated_at: ::core::option::Option<i64>,
@@ -650,7 +652,7 @@ pub struct FunctionResponse {
     pub import_map_path: ::core::option::Option<String>,
     pub name: String,
     pub slug: String,
-    /// TODO: enum values: ["ACTIVE", "REMOVED", "THROTTLED"]
+    /// TODO: enum values: ["`ACTIVE`", "REMOVED", "THROTTLED"]
     pub status: String,
     pub updated_at: i64,
     #[serde(default)]
@@ -673,7 +675,7 @@ pub struct FunctionSlugResponse {
     pub import_map_path: ::core::option::Option<String>,
     pub name: String,
     pub slug: String,
-    /// TODO: enum values: ["ACTIVE", "REMOVED", "THROTTLED"]
+    /// TODO: enum values: ["`ACTIVE`", "REMOVED", "THROTTLED"]
     pub status: String,
     pub updated_at: i64,
     #[serde(default)]
@@ -964,7 +966,7 @@ pub struct PostgresConfigResponse {
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PostgrestConfigWithJWTSecretResponse {
     pub db_extra_search_path: String,
-    /// If null, the value is automatically configured based on compute size.
+    /// If `null`, the value is automatically configured based on compute size.
     pub db_pool: i64,
     pub db_schema: String,
     #[serde(default)]
@@ -1038,7 +1040,7 @@ pub struct RealtimeConfigResponse {
     pub presence_enabled: bool,
     /// Whether to only allow private channels
     pub private_only: bool,
-    /// Disables the Realtime service for this project when true. Set to false to re-enable it.
+    /// Disables the Realtime service for this project when `true`. Set to `false` to re-enable it.
     pub suspend: bool,
 }
 
@@ -1590,7 +1592,7 @@ pub struct UpdateAuthConfigBody {
     pub password_hibp_enabled: ::core::option::Option<bool>,
     #[serde(default)]
     pub password_min_length: ::core::option::Option<i64>,
-    /// TODO: enum values: ["abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ:0123456789", "abcdefghijklmnopqrstuvwxyz:ABCDEFGHIJKLMNOPQRSTUVWXYZ:0123456789", "abcdefghijklmnopqrstuvwxyz:ABCDEFGHIJKLMNOPQRSTUVWXYZ:0123456789:!@#$%^&*()_+-=[]{};''\\:"|&lt;&gt;?,./~", ""]
+    /// TODO: enum values: ["`abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ`:0123456789", "abcdefghijklmnopqrstuvwxyz:ABCDEFGHIJKLMNOPQRSTUVWXYZ:0123456789", "abcdefghijklmnopqrstuvwxyz:ABCDEFGHIJKLMNOPQRSTUVWXYZ:0123456789:!@#$%^&*()_+-=[]{};''\\:"|&lt;&gt;?,./~", ""]
     #[serde(default)]
     pub password_required_characters: ::core::option::Option<String>,
     #[serde(default)]
@@ -1829,7 +1831,7 @@ pub struct UpdateProviderBody {
     pub metadata_url: ::core::option::Option<String>,
     #[serde(default)]
     pub metadata_xml: ::core::option::Option<String>,
-    /// TODO: enum values: ["urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified", "urn:oasis:names:tc:SAML:2.0:nameid-format:transient", "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress", "urn:oasis:names:tc:SAML:2.0:nameid-format:persistent"]
+    /// TODO: enum values: ["urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified", "urn:oasis:names:tc:SAML:2.0:nameid-format:transient", "urn:oasis:names:tc:SAML:1.1:nameid-format:`emailAddress`", "urn:oasis:names:tc:SAML:2.0:nameid-format:persistent"]
     #[serde(default)]
     pub name_id_format: ::core::option::Option<String>,
 }
@@ -1881,7 +1883,7 @@ pub struct UpdateRealtimeConfigBody {
     /// Whether to only allow private channels
     #[serde(default)]
     pub private_only: ::core::option::Option<bool>,
-    /// Disables the Realtime service for this project when true. Set to false to re-enable it.
+    /// Disables the Realtime service for this project when `true`. Set to `false` to re-enable it.
     #[serde(default)]
     pub suspend: ::core::option::Option<bool>,
 }
@@ -2138,7 +2140,7 @@ pub struct V1PgbouncerConfigResponse {
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct V1PostgrestConfigResponse {
     pub db_extra_search_path: String,
-    /// If null, the value is automatically configured based on compute size.
+    /// If `null`, the value is automatically configured based on compute size.
     pub db_pool: i64,
     pub db_schema: String,
     pub max_rows: i64,
@@ -2185,7 +2187,7 @@ pub struct V1ProjectResponse {
     pub ref_: String,
     /// Region of your project
     pub region: String,
-    /// TODO: enum values: ["INACTIVE", "ACTIVE_HEALTHY", "ACTIVE_UNHEALTHY", "COMING_UP", "UNKNOWN", "GOING_DOWN", "INIT_FAILED", "REMOVED", "RESTORING", "UPGRADING", "PAUSING", "RESTORE_FAILED", "RESTARTING", "PAUSE_FAILED", "RESIZING"]
+    /// TODO: enum values: ["`INACTIVE`", "ACTIVE_HEALTHY", "ACTIVE_UNHEALTHY", "COMING_UP", "UNKNOWN", "GOING_DOWN", "INIT_FAILED", "REMOVED", "RESTORING", "UPGRADING", "PAUSING", "RESTORE_FAILED", "RESTARTING", "PAUSE_FAILED", "RESIZING"]
     pub status: String,
 }
 
@@ -2208,7 +2210,7 @@ pub struct V1ProjectWithDatabaseResponse {
     pub ref_: String,
     /// Region of your project
     pub region: String,
-    /// TODO: enum values: ["INACTIVE", "ACTIVE_HEALTHY", "ACTIVE_UNHEALTHY", "COMING_UP", "UNKNOWN", "GOING_DOWN", "INIT_FAILED", "REMOVED", "RESTORING", "UPGRADING", "PAUSING", "RESTORE_FAILED", "RESTARTING", "PAUSE_FAILED", "RESIZING"]
+    /// TODO: enum values: ["`INACTIVE`", "ACTIVE_HEALTHY", "ACTIVE_UNHEALTHY", "COMING_UP", "UNKNOWN", "GOING_DOWN", "INIT_FAILED", "REMOVED", "RESTORING", "UPGRADING", "PAUSING", "RESTORE_FAILED", "RESTARTING", "PAUSE_FAILED", "RESIZING"]
     pub status: String,
 }
 
@@ -2237,7 +2239,7 @@ pub struct V1RestorePointPostBody {
 pub struct V1RestorePointResponse {
     pub completed_on: String,
     pub name: String,
-    /// TODO: enum values: ["AVAILABLE", "PENDING", "REMOVED", "FAILED"]
+    /// TODO: enum values: ["AVAILABLE", "`PENDING`", "REMOVED", "FAILED"]
     pub status: String,
 }
 

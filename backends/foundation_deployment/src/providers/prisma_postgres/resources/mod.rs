@@ -8,6 +8,8 @@
 #![cfg(feature = "prisma_postgres")]
 
 use super::*;
+use crate::providers::prisma_postgres::clients::*;
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
@@ -465,7 +467,7 @@ pub struct Connections {
 /// ConnectionsRotate resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConnectionsRotate {
-    /// Deprecated: use endpoints.direct.connectionString or endpoints.pooled.connectionString instead.
+    /// Deprecated: use endpoints.direct.`connectionString` or endpoints.pooled.`connectionString` instead.
     #[serde(rename = "connectionString")]
     pub connection_string: String,
     #[serde(rename = "createdAt")]
@@ -481,12 +483,12 @@ pub struct ConnectionsRotate {
     /// TODO: enum values: ["postgres", "accelerate"]
     pub kind: String,
     pub name: String,
-    /// Deprecated: use endpoints.direct.connectionString or endpoints.pooled.connectionString instead.
+    /// Deprecated: use endpoints.direct.`connectionString` or endpoints.pooled.`connectionString` instead.
     pub pass: String,
     #[serde(rename = "type")]
     pub type_: String,
     pub url: String,
-    /// Deprecated: use endpoints.direct.connectionString or endpoints.pooled.connectionString instead.
+    /// Deprecated: use endpoints.direct.`connectionString` or endpoints.pooled.`connectionString` instead.
     pub user: String,
 }
 
@@ -513,7 +515,7 @@ pub struct DatabasesBackups {
 /// DatabasesConnections resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DatabasesConnections {
-    /// Deprecated: use endpoints.direct.connectionString or endpoints.pooled.connectionString instead.
+    /// Deprecated: use endpoints.direct.`connectionString` or endpoints.pooled.`connectionString` instead.
     #[serde(rename = "connectionString")]
     pub connection_string: String,
     #[serde(rename = "createdAt")]
@@ -529,12 +531,12 @@ pub struct DatabasesConnections {
     /// TODO: enum values: ["postgres", "accelerate"]
     pub kind: String,
     pub name: String,
-    /// Deprecated: use endpoints.direct.connectionString or endpoints.pooled.connectionString instead.
+    /// Deprecated: use endpoints.direct.`connectionString` or endpoints.pooled.`connectionString` instead.
     pub pass: String,
     #[serde(rename = "type")]
     pub type_: String,
     pub url: String,
-    /// Deprecated: use endpoints.direct.connectionString or endpoints.pooled.connectionString instead.
+    /// Deprecated: use endpoints.direct.`connectionString` or endpoints.pooled.`connectionString` instead.
     pub user: String,
 }
 
@@ -664,7 +666,7 @@ pub struct ProjectsDatabasesPostRequestFromDatabase {
 pub struct ProjectsDatabases {
     #[serde(rename = "apiKeys")]
     pub api_keys: ::std::vec::Vec<ProjectsDatabasesApiKeysItem>,
-    /// Deprecated: use connections[].endpoints.direct.connectionString or connections[].endpoints.pooled.connectionString.
+    /// Deprecated: use connections[].endpoints.direct.`connectionString` or connections[].endpoints.pooled.`connectionString`.
     #[serde(rename = "connectionString")]
     pub connection_string: String,
     pub connections: ::std::vec::Vec<ProjectsDatabasesConnectionsItem>,
@@ -968,7 +970,7 @@ pub struct ProjectsComputeservicesRegion {
 /// ProjectsDatabasesApiKeysItem resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProjectsDatabasesApiKeysItem {
-    /// Deprecated: use endpoints.direct.connectionString or endpoints.pooled.connectionString instead.
+    /// Deprecated: use endpoints.direct.`connectionString` or endpoints.pooled.`connectionString` instead.
     #[serde(rename = "connectionString")]
     pub connection_string: String,
     #[serde(rename = "createdAt")]

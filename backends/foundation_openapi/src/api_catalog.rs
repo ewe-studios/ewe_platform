@@ -566,7 +566,7 @@ pub fn to_sentence_case(s: &str) -> String {
 /// ```
 #[must_use]
 pub fn sanitize_identifier(s: &str) -> String {
-    s.replace(['-', '.', '@', ':', '<', '>', '[', ']', '(', ')', '\'', ',', '~', '/'], "_")
+    s.replace(['-', '.', '@', ':', '<', '>', '[', ']', '(', ')', '\'', ',', '~', '/', ' '], "_")
 }
 
 /// Convert an API path to a snake_case function name suffix.
@@ -863,6 +863,9 @@ mod tests {
         assert_eq!(sanitize_identifier("foo-bar@baz"), "foo_bar_baz");
         assert_eq!(sanitize_identifier("test:id<ok>"), "test_id_ok_");
         assert_eq!(sanitize_identifier("a[b]c(d)e"), "a_b_c_d_e");
+        // Test field names with spaces (e.g., "QUERY PLAN")
+        assert_eq!(sanitize_identifier("QUERY PLAN"), "QUERY_PLAN");
+        assert_eq!(to_snake_case(&sanitize_identifier("QUERY PLAN")), "query_plan");
     }
 
     #[test]
@@ -892,6 +895,8 @@ mod tests {
         assert_eq!(sanitize_field_name("camelCase"), "camel_case");
         assert_eq!(sanitize_field_name("123"), "field_123");
         assert_eq!(sanitize_field_name("async"), "async_");
+        // Test field names with spaces (e.g., "QUERY PLAN" from OpenAPI specs)
+        assert_eq!(sanitize_field_name("QUERY PLAN"), "query_plan");
     }
 
     #[test]

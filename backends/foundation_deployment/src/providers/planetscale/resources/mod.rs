@@ -8,6 +8,8 @@
 #![cfg(feature = "planetscale")]
 
 use super::*;
+use crate::providers::planetscale::clients::*;
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
@@ -130,7 +132,7 @@ pub struct BranchMaintenanceSchedule {
 /// ClusterSizeSkuSerializer resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ClusterSizeSkuSerializer {
-    /// The architecture of the cluster SKU (null, x86_64 or arm64)
+    /// The architecture of the cluster SKU (`null`, x86_64 or arm64)
     pub architecture: String,
     /// The number of CPUs
     pub cpu: String,

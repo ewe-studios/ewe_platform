@@ -360,7 +360,7 @@ impl ClientGenerator {
                     query_params: ep.query_params.iter().map(|p| ParameterInfo {
                         name: p.replace(['-', '.', '~', '/', '@', ':', '<', '>', '[', ']'], "_"),
                         original_name: p.clone(),
-                        rust_type: "Option<String>".to_string(),
+                        rust_type: "String".to_string(),
                         required: false,
                         description: None,
                     }).collect(),
@@ -401,6 +401,8 @@ impl ClientGenerator {
         writeln!(out, "//! Feature flag: `{}`", feature_name)?;
         writeln!(out)?;
         writeln!(out, "#![cfg(feature = \"{}\")]", feature_name)?;
+        writeln!(out)?;
+        writeln!(out, "pub mod types;")?;
         writeln!(out)?;
 
         // Imports
@@ -895,6 +897,14 @@ impl ClientGenerator {
         response_type: &str,
         label: &str,
     ) -> Result<(), GenClientError> {
+        // Skip endpoints without params - they don't have Args types
+        let has_params = !endpoint.path_params.is_empty()
+            || !endpoint.query_params.is_empty()
+            || endpoint.request_body_type.is_some();
+        if !has_params {
+            return Ok(());
+        }
+
         let fn_name = self.endpoint_to_fn_name(endpoint);
         let args_struct_name = format!("{}Args", to_pascal_case(&fn_name));
 

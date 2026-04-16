@@ -8,23 +8,12 @@
 #![cfg(feature = "stripe")]
 
 use super::*;
+use crate::providers::stripe::clients::*;
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-/// For new integrations, we recommend using the [Accounts v2 API](/api/v2/core/accounts), in place of /v1/accounts and /v1/customers to represent a user.
-///
-/// This is an object representing a Stripe account. You can retrieve it to see
-/// properties on the account like its current requirements or if the account is
-/// enabled to make live charges or receive payouts.
-///
-/// For accounts where [controller.requirement_collection](/api/accounts/object#account_object-controller-requirement_collection)
-/// is application, which includes Custom accounts, the properties below are always
-/// returned.
-///
-/// For accounts where [controller.requirement_collection](/api/accounts/object#account_object-controller-requirement_collection)
-/// is stripe, which includes Standard and Express accounts, some properties are only returned
-/// until you create an [Account Link](/api/account_links) or [Account Session](/api/account_sessions)
-/// to start Connect Onboarding. Learn about the [differences between accounts](/connect/accounts).
+/// For new integrations, we recommend using the [Accounts v2 API](/`api/v2/core/accounts`), in place of /v1/accounts and /v1/customers to represent a user.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Account {
     /// Business information about the account.
@@ -48,16 +37,16 @@ pub struct Account {
     /// Time at which the account was connected. Measured in seconds since the Unix epoch.
     #[serde(default)]
     pub created: ::core::option::Option<i64>,
-    /// Three-letter ISO currency code representing the default currency for the account. This must be a currency that [Stripe supports in the account''s country](https://stripe.com/docs/payouts).
+    /// Three-letter ISO currency code representing the default currency for the account. This must be a currency that [Stripe supports in the account''s country](<https://stripe.`com/docs/payouts`>).
     #[serde(default)]
     pub default_currency: ::core::option::Option<String>,
-    /// Whether account details have been submitted. Accounts with Stripe Dashboard access, which includes Standard accounts, cannot receive payouts before this is true. Accounts where this is false should be directed to [an onboarding flow](/connect/onboarding) to finish submitting account details.
+    /// Whether account details have been submitted. Accounts with Stripe Dashboard access, which includes Standard accounts, cannot receive payouts before this is `true`. Accounts where this is `false` should be directed to [an onboarding flow](/`connect/onboarding`) to finish submitting account details.
     #[serde(default)]
     pub details_submitted: ::core::option::Option<bool>,
     /// An email address associated with the account. It''s not used for authentication and Stripe doesn''t market to this field without explicit approval from the platform.
     #[serde(default)]
     pub email: ::core::option::Option<String>,
-    /// External accounts (bank accounts and debit cards) currently attached to this account. External accounts are only returned for requests where controller[is_controller] is true.
+    /// External accounts (bank accounts and debit cards) currently attached to this account. External accounts are only returned for requests where controller[is_controller] is `true`.
     #[serde(default)]
     pub external_accounts: ::core::option::Option<serde_json::Value>,
     #[serde(default)]
@@ -69,10 +58,10 @@ pub struct Account {
     pub id: String,
     #[serde(default)]
     pub individual: ::core::option::Option<Person>,
-    /// Set of [key-value pairs](https://docs.stripe.com/api/metadata) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
+    /// Set of [key-value pairs](<https://docs.stripe.`com/api/metadata`>) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
     #[serde(default)]
     pub metadata: ::core::option::Option<serde_json::Value>,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["account"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["account"]
     pub object: String,
     /// Whether the funds in this account can be paid out.
     #[serde(default)]
@@ -94,7 +83,7 @@ pub struct AccountAnnualRevenue {
     /// A non-negative integer representing the amount in the [smallest currency unit](/currencies#zero-decimal).
     #[serde(default)]
     pub amount: ::core::option::Option<i64>,
-    /// Three-letter [ISO currency code](https://www.iso.org/iso-4217-currency-codes.html), in lowercase. Must be a [supported currency](https://stripe.com/docs/currencies).
+    /// Three-letter [ISO currency code](<https://www.iso.`org/iso-4217-currency-codes`.html>), in lowercase. Must be a [supported currency](<https://stripe.`com/docs/currencies`>).
     #[serde(default)]
     pub currency: ::core::option::Option<String>,
     /// The close-out date of the preceding fiscal year in ISO 8601 format. E.g. 2023-12-31 for the 31st of December, 2023.
@@ -110,10 +99,10 @@ pub struct AccountBusinessProfile {
     /// An estimated upper bound of employees, contractors, vendors, etc. currently working for the business.
     #[serde(default)]
     pub estimated_worker_count: ::core::option::Option<i64>,
-    /// [The merchant category code for the account](/connect/setting-mcc). MCCs are used to classify businesses based on the goods or services they provide.
+    /// [The merchant category code for the account](/`connect/setting-mcc`). MCCs are used to classify businesses based on the goods or services they provide.
     #[serde(default)]
     pub mcc: ::core::option::Option<String>,
-    /// Whether the business is a minority-owned, women-owned, and/or LGBTQI+ -owned business.
+    /// Whether the business is a minority-owned, women-owned, `and/or` LGBTQI+ -owned business.
     #[serde(default)]
     pub minority_owned_business_designation: ::core::option::Option<::std::vec::Vec<String>>,
     #[serde(default)]
@@ -143,46 +132,37 @@ pub struct AccountBusinessProfile {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccountGroupMembership {
-    /// The group the account is in to determine their payments pricing, and null if the account is on customized pricing. [See the Platform pricing tool documentation](https://docs.stripe.com/connect/platform-pricing-tools) for details.
+    /// The group the account is in to determine their payments pricing, and `null` if the account is on customized pricing. [See the Platform pricing tool documentation](<https://docs.stripe.`com/connect/platform-pricing-tools`>) for details.
     #[serde(default)]
     pub payments_pricing: ::core::option::Option<String>,
 }
 
 /// Account Links are the means by which a Connect platform grants a connected account permission to access
-/// Stripe-hosted applications, such as Connect Onboarding.
-///
-/// Related guide: [Connect Onboarding](https://docs.stripe.com/connect/custom/hosted-onboarding)
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccountLink {
     /// Time at which the object was created. Measured in seconds since the Unix epoch.
     pub created: i64,
     /// The timestamp at which this account link will expire.
     pub expires_at: i64,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["account_link"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["account_link"]
     pub object: String,
     /// The URL for the account link.
     pub url: String,
 }
 
 /// An AccountSession allows a Connect platform to grant access to a connected account in Connect embedded components.
-///
-/// We recommend that you create an AccountSession each time you need to display an embedded component
-/// to your user. Do not save AccountSessions to your database as they expire relatively
-/// quickly, and cannot be used more than once.
-///
-/// Related guide: [Connect embedded components](https://docs.stripe.com/connect/get-started-connect-embedded-components)
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccountSession {
     /// The ID of the account the AccountSession was created for
     pub account: String,
-    /// The client secret of this AccountSession. Used on the client to set up secure access to the given account.
+    /// The client secret of this AccountSession. Used on the client to set up secure access to the given account.  The client secret can be used to provide access to account from your frontend. It should not be stored, logged, or exposed to anyone other than the connected account. Make sure that you have TLS enabled on any page that includes the client secret.  Refer to our docs to [setup Connect embedded components](<https://docs.stripe.`com/connect/get-started-connect-embedded-components`>) and learn about how client_secret should be handled.
     pub client_secret: String,
     pub components: ConnectEmbeddedAccountSessionCreateComponents,
     /// The timestamp at which this AccountSession will expire.
     pub expires_at: i64,
-    /// If the object exists in live mode, the value is true. If the object exists in test mode, the value is false.
+    /// If the object exists in live mode, the value is `true`. If the object exists in test mode, the value is `false`.
     pub livemode: bool,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["account_session"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["account_session"]
     pub object: String,
 }
 
@@ -213,9 +193,9 @@ pub struct ApplePayDomain {
     pub domain_name: String,
     /// Unique identifier for the object.
     pub id: String,
-    /// If the object exists in live mode, the value is true. If the object exists in test mode, the value is false.
+    /// If the object exists in live mode, the value is `true`. If the object exists in test mode, the value is `false`.
     pub livemode: bool,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["apple_pay_domain"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["apple_pay_domain"]
     pub object: String,
 }
 
@@ -226,7 +206,7 @@ pub struct Application {
     /// The name of the application.
     #[serde(default)]
     pub name: ::core::option::Option<String>,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["application"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["application"]
     pub object: String,
 }
 
@@ -247,40 +227,32 @@ pub struct ApplicationFee {
     pub charge: serde_json::Value,
     /// Time at which the object was created. Measured in seconds since the Unix epoch.
     pub created: i64,
-    /// Three-letter [ISO currency code](https://www.iso.org/iso-4217-currency-codes.html), in lowercase. Must be a [supported currency](https://stripe.com/docs/currencies).
+    /// Three-letter [ISO currency code](<https://www.iso.`org/iso-4217-currency-codes`.html>), in lowercase. Must be a [supported currency](<https://stripe.`com/docs/currencies`>).
     pub currency: String,
     /// Polymorphic source of the application fee. Includes the ID of the object the application fee was created from.
     #[serde(default)]
     pub fee_source: ::core::option::Option<serde_json::Value>,
     /// Unique identifier for the object.
     pub id: String,
-    /// If the object exists in live mode, the value is true. If the object exists in test mode, the value is false.
+    /// If the object exists in live mode, the value is `true`. If the object exists in test mode, the value is `false`.
     pub livemode: bool,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["application_fee"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["application_fee"]
     pub object: String,
     /// ID of the corresponding charge on the platform account, if this fee was the result of a charge using the destination parameter.
     #[serde(default)]
     pub originating_transaction: ::core::option::Option<serde_json::Value>,
-    /// Whether the fee has been fully refunded. If the fee is only partially refunded, this attribute will still be false.
+    /// Whether the fee has been fully refunded. If the fee is only partially refunded, this attribute will still be `false`.
     pub refunded: bool,
     /// A list of refunds that have been applied to the fee.
     pub refunds: serde_json::Value,
 }
 
 /// Secret Store is an API that allows Stripe Apps developers to securely persist secrets for use by UI Extensions and app backends.
-///
-/// The primary resource in Secret Store is a secret. Other apps can''t view secrets created by an app. Additionally, secrets are scoped to provide further permission control.
-///
-/// All Dashboard users and the app backend share account scoped secrets. Use the account scope for secrets that don''t change per-user, like a third-party API key.
-///
-/// A user scoped secret is accessible by the app backend and one specific Dashboard user. Use the user scope for per-user secrets like per-user OAuth tokens, where different users might have different permissions.
-///
-/// Related guide: [Store data between page reloads](https://docs.stripe.com/stripe-apps/store-auth-data-custom-objects)
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AppsSecret {
     /// Time at which the object was created. Measured in seconds since the Unix epoch.
     pub created: i64,
-    /// If true, indicates that this secret has been deleted
+    /// If `true`, indicates that this secret has been deleted
     #[serde(default)]
     pub deleted: ::core::option::Option<bool>,
     /// The Unix timestamp for the expiry time of the secret, after which the secret deletes.
@@ -288,11 +260,11 @@ pub struct AppsSecret {
     pub expires_at: ::core::option::Option<i64>,
     /// Unique identifier for the object.
     pub id: String,
-    /// If the object exists in live mode, the value is true. If the object exists in test mode, the value is false.
+    /// If the object exists in live mode, the value is `true`. If the object exists in test mode, the value is `false`.
     pub livemode: bool,
     /// A name for the secret that''s unique within the scope.
     pub name: String,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["apps.secret"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["apps.secret"]
     pub object: String,
     /// The plaintext secret value to be stored.
     #[serde(default)]
@@ -301,16 +273,11 @@ pub struct AppsSecret {
 }
 
 /// This is an object representing your Stripe balance. You can retrieve it to see
-/// the balance currently on your Stripe account.
-///
-/// The top-level available and pending comprise your "payments balance."
-///
-/// Related guide: [Balances and settlement time](https://docs.stripe.com/payments/balances), [Understanding Connect account balances](https://docs.stripe.com/connect/account-balances)
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Balance {
-    /// Available funds that you can transfer or pay out automatically by Stripe or explicitly through the [Transfers API](https://api.stripe.com#transfers) or [Payouts API](https://api.stripe.com#payouts). You can find the available balance for each currency and payment type in the source_types property.
+    /// Available funds that you can transfer or pay out automatically by Stripe or explicitly through the [Transfers API](<https://api.stripe.com#transfers>) or [Payouts API](<https://api.stripe.com#payouts>). You can find the available balance for each currency and payment type in the source_types property.
     pub available: ::std::vec::Vec<BalanceAmount>,
-    /// Funds held due to negative balances on connected accounts where [account.controller.requirement_collection](/api/accounts/object#account_object-controller-requirement_collection) is application, which includes Custom accounts. You can find the connect reserve balance for each currency and payment type in the source_types property.
+    /// Funds held due to negative balances on connected accounts where [account.controller.requirement_collection](/`api/accounts/object`#account_object-controller-requirement_collection) is application, which includes Custom accounts. You can find the connect reserve balance for each currency and payment type in the source_types property.
     #[serde(default)]
     pub connect_reserved: ::core::option::Option<::std::vec::Vec<BalanceAmount>>,
     /// Funds that you can pay out using Instant Payouts.
@@ -318,9 +285,9 @@ pub struct Balance {
     pub instant_available: ::core::option::Option<::std::vec::Vec<BalanceAmountNet>>,
     #[serde(default)]
     pub issuing: ::core::option::Option<BalanceDetail>,
-    /// If the object exists in live mode, the value is true. If the object exists in test mode, the value is false.
+    /// If the object exists in live mode, the value is `true`. If the object exists in test mode, the value is `false`.
     pub livemode: bool,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["balance"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["balance"]
     pub object: String,
     /// Funds that aren''t available in the balance yet. You can find the pending balance for each currency and each payment type in the source_types property.
     pub pending: ::std::vec::Vec<BalanceAmount>,
@@ -331,7 +298,7 @@ pub struct Balance {
 /// Options for customizing account balances and payout settings for a Stripe platform’s connected accounts.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BalanceSettings {
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["balance_settings"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["balance_settings"]
     pub object: String,
     pub payments: BalanceSettingsResourcePayments,
 }
@@ -351,10 +318,10 @@ pub struct BalanceSettingsResourcePayoutSchedule {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BalanceSettingsResourcePayouts {
-    /// The minimum balance amount to retain per currency after automatic payouts. Only funds that exceed these amounts are paid out. Learn more about the [minimum balances for automatic payouts](/payouts/minimum-balances-for-automatic-payouts).
+    /// The minimum balance amount to retain per currency after automatic payouts. Only funds that exceed these amounts are paid out. Learn more about the [minimum balances for automatic payouts](/`payouts/minimum-balances-for-automatic-payouts`).
     #[serde(default)]
     pub minimum_balance_by_currency: ::core::option::Option<serde_json::Value>,
-    /// Details on when funds from charges are available, and when they are paid out to an external account. See our [Setting Bank and Debit Card Payouts](https://docs.stripe.com/connect/bank-transfers#payout-information) documentation for details.
+    /// Details on when funds from charges are available, and when they are paid out to an external account. See our [Setting Bank and Debit Card Payouts](<https://docs.stripe.`com/connect/bank-transfers`#payout-information>) documentation for details.
     #[serde(default)]
     pub schedule: ::core::option::Option<serde_json::Value>,
     /// The text that appears on the bank account statement for payouts. If not set, this defaults to the platform''s bank descriptor as set in the Dashboard.
@@ -387,7 +354,7 @@ pub struct BankConnectionsResourceBalance {
     pub cash: ::core::option::Option<BankConnectionsResourceBalanceApiResourceCashBalance>,
     #[serde(default)]
     pub credit: ::core::option::Option<BankConnectionsResourceBalanceApiResourceCreditBalance>,
-    /// The balances owed to (or by) the account holder, before subtracting any outbound pending transactions or adding any inbound pending transactions.
+    /// The balances owed to (or by) the account holder, before subtracting any outbound pending transactions or adding any inbound pending transactions.  Each key is a three-letter [ISO currency code](<https://www.iso.`org/iso-4217-currency-codes`.html>), in lowercase.  Each value is a integer amount. A positive amount indicates money owed to the account holder. A negative amount indicates money owed by the account holder.
     pub current: serde_json::Value,
     /// The type of the balance. An additional hash is included on the balance with a name matching this value. // TODO: enum values: ["cash", "credit"]
     #[serde(rename = "type")]
@@ -398,7 +365,7 @@ pub struct BankConnectionsResourceBalance {
 pub struct BankConnectionsResourceBalanceRefresh {
     /// The time at which the last refresh attempt was initiated. Measured in seconds since the Unix epoch.
     pub last_attempted_at: i64,
-    /// Time at which the next balance refresh can be initiated. This value will be null when status is pending. Measured in seconds since the Unix epoch.
+    /// Time at which the next balance refresh can be initiated. This value will be `null` when status is pending. Measured in seconds since the Unix epoch.
     #[serde(default)]
     pub next_refresh_available_at: ::core::option::Option<i64>,
     /// The status of the last refresh attempt. // TODO: enum values: ["failed", "pending", "succeeded"]
@@ -409,7 +376,7 @@ pub struct BankConnectionsResourceBalanceRefresh {
 pub struct BankConnectionsResourceOwnershipRefresh {
     /// The time at which the last refresh attempt was initiated. Measured in seconds since the Unix epoch.
     pub last_attempted_at: i64,
-    /// Time at which the next ownership refresh can be initiated. This value will be null when status is pending. Measured in seconds since the Unix epoch.
+    /// Time at which the next ownership refresh can be initiated. This value will be `null` when status is pending. Measured in seconds since the Unix epoch.
     #[serde(default)]
     pub next_refresh_available_at: ::core::option::Option<i64>,
     /// The status of the last refresh attempt. // TODO: enum values: ["failed", "pending", "succeeded"]
@@ -422,7 +389,7 @@ pub struct BankConnectionsResourceTransactionRefresh {
     pub id: String,
     /// The time at which the last refresh attempt was initiated. Measured in seconds since the Unix epoch.
     pub last_attempted_at: i64,
-    /// Time at which the next transaction refresh can be initiated. This value will be null when status is pending. Measured in seconds since the Unix epoch.
+    /// Time at which the next transaction refresh can be initiated. This value will be `null` when status is pending. Measured in seconds since the Unix epoch.
     #[serde(default)]
     pub next_refresh_available_at: ::core::option::Option<i64>,
     /// The status of the last refresh attempt. // TODO: enum values: ["failed", "pending", "succeeded"]
@@ -436,16 +403,16 @@ pub struct BillingAlert {
     pub alert_type: String,
     /// Unique identifier for the object.
     pub id: String,
-    /// If the object exists in live mode, the value is true. If the object exists in test mode, the value is false.
+    /// If the object exists in live mode, the value is `true`. If the object exists in test mode, the value is `false`.
     pub livemode: bool,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["billing.alert"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["billing.alert"]
     pub object: String,
     /// Status of the alert. This can be active, inactive or archived. // TODO: enum values: ["active", "archived", "inactive"]
     #[serde(default)]
     pub status: ::core::option::Option<String>,
     /// Title of the alert.
     pub title: String,
-    /// Encapsulates configuration of the alert to monitor usage on a specific [Billing Meter](https://docs.stripe.com/api/billing/meter).
+    /// Encapsulates configuration of the alert to monitor usage on a specific [Billing Meter](<https://docs.stripe.`com/api/billing/meter`>).
     #[serde(default)]
     pub usage_threshold: ::core::option::Option<serde_json::Value>,
 }
@@ -460,9 +427,9 @@ pub struct BillingCreditBalanceSummary {
     /// The account the balance is for.
     #[serde(default)]
     pub customer_account: ::core::option::Option<String>,
-    /// If the object exists in live mode, the value is true. If the object exists in test mode, the value is false.
+    /// If the object exists in live mode, the value is `true`. If the object exists in test mode, the value is `false`.
     pub livemode: bool,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["billing.credit_balance_summary"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["billing.credit_balance_summary"]
     pub object: String,
 }
 
@@ -483,9 +450,9 @@ pub struct BillingCreditBalanceTransaction {
     pub effective_at: i64,
     /// Unique identifier for the object.
     pub id: String,
-    /// If the object exists in live mode, the value is true. If the object exists in test mode, the value is false.
+    /// If the object exists in live mode, the value is `true`. If the object exists in test mode, the value is `false`.
     pub livemode: bool,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["billing.credit_balance_transaction"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["billing.credit_balance_transaction"]
     pub object: String,
     /// ID of the test clock this credit balance transaction belongs to.
     #[serde(default)]
@@ -496,8 +463,6 @@ pub struct BillingCreditBalanceTransaction {
 }
 
 /// A credit grant is an API resource that documents the allocation of some billing credits to a customer.
-///
-/// Related guide: [Billing credits](https://docs.stripe.com/billing/subscriptions/usage-based/billing-credits)
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BillingCreditGrant {
     pub amount: BillingCreditGrantsResourceAmount,
@@ -519,14 +484,14 @@ pub struct BillingCreditGrant {
     pub expires_at: ::core::option::Option<i64>,
     /// Unique identifier for the object.
     pub id: String,
-    /// If the object exists in live mode, the value is true. If the object exists in test mode, the value is false.
+    /// If the object exists in live mode, the value is `true`. If the object exists in test mode, the value is `false`.
     pub livemode: bool,
-    /// Set of [key-value pairs](https://docs.stripe.com/api/metadata) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
+    /// Set of [key-value pairs](<https://docs.stripe.`com/api/metadata`>) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
     pub metadata: serde_json::Value,
     /// A descriptive name shown in dashboard.
     #[serde(default)]
     pub name: ::core::option::Option<String>,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["billing.credit_grant"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["billing.credit_grant"]
     pub object: String,
     /// The priority for applying this credit grant. The highest priority is 0 and the lowest is 100.
     #[serde(default)]
@@ -542,8 +507,6 @@ pub struct BillingCreditGrant {
 }
 
 /// Meters specify how to aggregate meter events over a billing period. Meter events represent the actions that customers take in your system. Meters attach to prices and form the basis of the bill.
-///
-/// Related guide: [Usage based billing](https://docs.stripe.com/billing/subscriptions/usage-based)
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BillingMeter {
     /// Time at which the object was created. Measured in seconds since the Unix epoch.
@@ -559,9 +522,9 @@ pub struct BillingMeter {
     pub event_time_window: ::core::option::Option<String>,
     /// Unique identifier for the object.
     pub id: String,
-    /// If the object exists in live mode, the value is true. If the object exists in test mode, the value is false.
+    /// If the object exists in live mode, the value is `true`. If the object exists in test mode, the value is `false`.
     pub livemode: bool,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["billing.meter"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["billing.meter"]
     pub object: String,
     /// The meter''s status. // TODO: enum values: ["active", "inactive"]
     pub status: String,
@@ -580,11 +543,11 @@ pub struct BillingMeterEvent {
     pub event_name: String,
     /// A unique identifier for the event.
     pub identifier: String,
-    /// If the object exists in live mode, the value is true. If the object exists in test mode, the value is false.
+    /// If the object exists in live mode, the value is `true`. If the object exists in test mode, the value is `false`.
     pub livemode: bool,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["billing.meter_event"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["billing.meter_event"]
     pub object: String,
-    /// The payload of the event. This contains the fields corresponding to a meter''s customer_mapping.event_payload_key (default is stripe_customer_id) and value_settings.event_payload_key (default is value). Read more about the [payload](https://docs.stripe.com/billing/subscriptions/usage-based/meters/configure#meter-configuration-attributes).
+    /// The payload of the event. This contains the fields corresponding to a meter''s customer_mapping.event_payload_key (default is stripe_customer_id) and value_settings.event_payload_key (default is value). Read more about the [payload](<https://docs.stripe.`com/billing/subscriptions/usage-based/meters/configure`#meter-configuration-attributes>).
     pub payload: serde_json::Value,
     /// The timestamp passed in when creating the event. Measured in seconds since the Unix epoch.
     pub timestamp: i64,
@@ -598,9 +561,9 @@ pub struct BillingMeterEventAdjustment {
     pub cancel: ::core::option::Option<serde_json::Value>,
     /// The name of the meter event. Corresponds with the event_name field on a meter.
     pub event_name: String,
-    /// If the object exists in live mode, the value is true. If the object exists in test mode, the value is false.
+    /// If the object exists in live mode, the value is `true`. If the object exists in test mode, the value is `false`.
     pub livemode: bool,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["billing.meter_event_adjustment"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["billing.meter_event_adjustment"]
     pub object: String,
     /// The meter event adjustment''s status. // TODO: enum values: ["complete", "pending"]
     pub status: String,
@@ -610,9 +573,6 @@ pub struct BillingMeterEventAdjustment {
 }
 
 /// A billing meter event summary represents an aggregated view of a customer''s billing meter events within a specified timeframe. It indicates how much
-/// usage was accrued by a customer for that period.
-///
-/// Note: Meters events are aggregated asynchronously so the meter event summaries provide an eventually consistent view of the reported usage.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BillingMeterEventSummary {
     /// Aggregated value of all the events within start_time (inclusive) and end_time (inclusive). The aggregation strategy is defined on meter via default_aggregation.
@@ -621,11 +581,11 @@ pub struct BillingMeterEventSummary {
     pub end_time: i64,
     /// Unique identifier for the object.
     pub id: String,
-    /// If the object exists in live mode, the value is true. If the object exists in test mode, the value is false.
+    /// If the object exists in live mode, the value is `true`. If the object exists in test mode, the value is `false`.
     pub livemode: bool,
     /// The meter associated with this event summary.
     pub meter: String,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["billing.meter_event_summary"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["billing.meter_event_summary"]
     pub object: String,
     /// Start timestamp for this event summary (inclusive). Must be aligned with minute boundaries.
     pub start_time: i64,
@@ -730,7 +690,7 @@ pub struct BillingBillResourceInvoicingParentsInvoiceQuoteParent {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BillingBillResourceInvoicingParentsInvoiceSubscriptionParent {
-    /// Set of [key-value pairs](https://docs.stripe.com/api/metadata) defined as subscription metadata when an invoice is created. Becomes an immutable snapshot of the subscription metadata at the time of invoice finalization.
+    /// Set of [key-value pairs](<https://docs.stripe.`com/api/metadata`>) defined as subscription metadata when an invoice is created. Becomes an immutable snapshot of the subscription metadata at the time of invoice finalization. *Note: This attribute is populated only for invoices created on or after June 29, 2023.*
     #[serde(default)]
     pub metadata: ::core::option::Option<serde_json::Value>,
     /// The subscription that generated this invoice
@@ -799,7 +759,7 @@ pub struct BillingCreditGrantsResourceBalanceDebit {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BillingCreditGrantsResourceMonetaryAmount {
-    /// Three-letter [ISO currency code](https://www.iso.org/iso-4217-currency-codes.html), in lowercase. Must be a [supported currency](https://stripe.com/docs/currencies).
+    /// Three-letter [ISO currency code](<https://www.iso.`org/iso-4217-currency-codes`.html>), in lowercase. Must be a [supported currency](<https://stripe.`com/docs/currencies`>).
     pub currency: String,
     /// A positive integer representing the amount.
     pub value: i64,
@@ -812,7 +772,7 @@ pub struct BillingMeterResourceBillingMeterEventAdjustmentCancel {
     pub identifier: ::core::option::Option<String>,
 }
 
-/// A portal configuration describes the functionality and behavior you embed in a portal session. Related guide: [Configure the customer portal](/customer-management/configure-portal).
+/// A portal configuration describes the functionality and behavior you embed in a portal session. Related guide: [Configure the customer portal](/customer-`management/configure-portal`).
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BillingPortalConfiguration {
     /// Whether the configuration is active and can be used to create portal sessions.
@@ -823,43 +783,30 @@ pub struct BillingPortalConfiguration {
     pub business_profile: PortalBusinessProfile,
     /// Time at which the object was created. Measured in seconds since the Unix epoch.
     pub created: i64,
-    /// The default URL to redirect customers to when they click on the portal''s link to return to your website. This can be [overriden](https://docs.stripe.com/api/customer_portal/sessions/create#create_portal_session-return_url) when creating the session.
+    /// The default URL to redirect customers to when they click on the portal''s link to return to your website. This can be [overriden](<https://docs.stripe.`com/api/customer_portal/sessions/create`#create_portal_session-return_url>) when creating the session.
     #[serde(default)]
     pub default_return_url: ::core::option::Option<String>,
     pub features: PortalFeatures,
     /// Unique identifier for the object.
     pub id: String,
-    /// Whether the configuration is the default. If true, this configuration can be managed in the Dashboard and portal sessions will use this configuration unless it is overriden when creating the session.
+    /// Whether the configuration is the default. If `true`, this configuration can be managed in the Dashboard and portal sessions will use this configuration unless it is overriden when creating the session.
     pub is_default: bool,
-    /// If the object exists in live mode, the value is true. If the object exists in test mode, the value is false.
+    /// If the object exists in live mode, the value is `true`. If the object exists in test mode, the value is `false`.
     pub livemode: bool,
     pub login_page: PortalLoginPage,
-    /// Set of [key-value pairs](https://docs.stripe.com/api/metadata) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
+    /// Set of [key-value pairs](<https://docs.stripe.`com/api/metadata`>) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
     #[serde(default)]
     pub metadata: ::core::option::Option<serde_json::Value>,
     /// The name of the configuration.
     #[serde(default)]
     pub name: ::core::option::Option<String>,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["billing_portal.configuration"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["billing_portal.configuration"]
     pub object: String,
     /// Time at which the object was last updated. Measured in seconds since the Unix epoch.
     pub updated: i64,
 }
 
 /// The Billing customer portal is a Stripe-hosted UI for subscription and
-/// billing management.
-///
-/// A portal configuration describes the functionality and features that you
-/// want to provide to your customers through the portal.
-///
-/// A portal session describes the instantiation of the customer portal for
-/// a particular customer. By visiting the session''s URL, the customer
-/// can manage their subscriptions and billing details. For security reasons,
-/// sessions are short-lived and will expire if the customer does not visit the URL.
-/// Create sessions on-demand when customers intend to manage their subscriptions
-/// and billing details.
-///
-/// Related guide: [Customer management](/customer-management)
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BillingPortalSession {
     /// The configuration used by this session, describing the features available.
@@ -871,19 +818,19 @@ pub struct BillingPortalSession {
     /// The ID of the account for this session.
     #[serde(default)]
     pub customer_account: ::core::option::Option<String>,
-    /// Information about a specific flow for the customer to go through. See the [docs](https://docs.stripe.com/customer-management/portal-deep-links) to learn more about using customer portal deep links and flows.
+    /// Information about a specific flow for the customer to go through. See the [docs](<https://docs.stripe.`com/customer-management/portal-deep-links`>) to learn more about using customer portal deep links and flows.
     #[serde(default)]
     pub flow: ::core::option::Option<serde_json::Value>,
     /// Unique identifier for the object.
     pub id: String,
-    /// If the object exists in live mode, the value is true. If the object exists in test mode, the value is false.
+    /// If the object exists in live mode, the value is `true`. If the object exists in test mode, the value is `false`.
     pub livemode: bool,
     /// The IETF language tag of the locale Customer Portal is displayed in. If blank or auto, the customer’s preferred_locales or browser’s locale is used. // TODO: enum values: ["auto", "bg", "cs", "da", "de", "el", "en", "en-AU", "en-CA", "en-GB", "en-IE", "en-IN", "en-NZ", "en-SG", "es", "es-419", "et", "fi", "fil", "fr", "fr-CA", "hr", "hu", "id", "it", "ja", "ko", "lt", "lv", "ms", "mt", "nb", "nl", "pl", "pt", "pt-BR", "ro", "ru", "sk", "sl", "sv", "th", "tr", "vi", "zh", "zh-HK", "zh-TW"]
     #[serde(default)]
     pub locale: ::core::option::Option<String>,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["billing_portal.session"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["billing_portal.session"]
     pub object: String,
-    /// The account for which the session was created on behalf of. When specified, only subscriptions and invoices with this on_behalf_of account appear in the portal. For more information, see the [docs](https://docs.stripe.com/connect/separate-charges-and-transfers#settlement-merchant). Use the [Accounts API](https://docs.stripe.com/api/accounts/object#account_object-settings-branding) to modify the on_behalf_of account''s branding settings, which the portal displays.
+    /// The account for which the session was created on behalf of. When specified, only subscriptions and invoices with this on_behalf_of account appear in the portal. For more information, see the [docs](<https://docs.stripe.`com/connect/separate-charges-and-transfers`#settlement-merchant>). Use the [Accounts API](<https://docs.stripe.`com/api/accounts/object`#account_object-settings-branding>) to modify the on_behalf_of account''s branding settings, which the portal displays.
     #[serde(default)]
     pub on_behalf_of: ::core::option::Option<String>,
     /// The URL to redirect customers to when they click on the portal''s link to return to your website.
@@ -907,8 +854,6 @@ pub struct CancellationDetails {
 }
 
 /// This is an object representing a capability for a Stripe account.
-///
-/// Related guide: [Account capabilities](https://docs.stripe.com/connect/account-capabilities)
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Capability {
     /// The account for which the capability enables functionality.
@@ -917,7 +862,7 @@ pub struct Capability {
     pub future_requirements: ::core::option::Option<AccountCapabilityFutureRequirements>,
     /// The identifier for the capability.
     pub id: String,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["capability"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["capability"]
     pub object: String,
     /// Whether the capability has been requested.
     pub requested: bool,
@@ -942,7 +887,7 @@ pub struct CardGeneratedFromPaymentMethodDetails {
 /// A customer''s Cash balance represents real funds. Customers can add funds to their cash balance by sending a bank transfer. These funds can be used for payment and can eventually be paid out to your bank account.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CashBalance {
-    /// A hash of all cash balances available to this customer. You cannot delete a customer with any cash balances, even if the balance is 0. Amounts are represented in the [smallest currency unit](https://docs.stripe.com/currencies#zero-decimal).
+    /// A hash of all cash balances available to this customer. You cannot delete a customer with any cash balances, even if the balance is 0. Amounts are represented in the [smallest currency unit](<https://docs.stripe.`com/currencies`#zero-decimal>).
     #[serde(default)]
     pub available: ::core::option::Option<serde_json::Value>,
     /// The ID of the customer whose cash balance this object represents.
@@ -950,19 +895,17 @@ pub struct CashBalance {
     /// The ID of an Account representing a customer whose cash balance this object represents.
     #[serde(default)]
     pub customer_account: ::core::option::Option<String>,
-    /// If the object exists in live mode, the value is true. If the object exists in test mode, the value is false.
+    /// If the object exists in live mode, the value is `true`. If the object exists in test mode, the value is `false`.
     pub livemode: bool,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["cash_balance"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["cash_balance"]
     pub object: String,
     pub settings: CustomerBalanceCustomerBalanceSettings,
 }
 
 /// The Charge object represents a single attempt to move money into your Stripe account.
-/// PaymentIntent confirmation is the most common way to create Charges, but [Account Debits](https://docs.stripe.com/connect/account-debits) may also create Charges.
-/// Some legacy payment flows create Charges directly, which is not recommended for new integrations.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Charge {
-    /// Amount intended to be collected by this payment. A positive integer representing how much to charge in the [smallest currency unit](https://docs.stripe.com/currencies#zero-decimal) (e.g., 100 cents to charge $1.00 or 100 to charge ¥100, a zero-decimal currency). The minimum amount is $0.50 US or [equivalent in charge currency](https://docs.stripe.com/currencies#minimum-and-maximum-charge-amounts). The amount value supports up to eight digits (e.g., a value of 99999999 for a USD charge of $999,999.99).
+    /// Amount intended to be collected by this payment. A positive integer representing how much to charge in the [smallest currency unit](<https://docs.stripe.`com/currencies`#zero-decimal>) (e.g., 100 cents to charge $1.00 or 100 to charge ¥100, a zero-decimal currency). The minimum amount is $0.50 US or [equivalent in charge currency](<https://docs.stripe.`com/currencies`#minimum-and-maximum-charge-amounts>). The amount value supports up to eight digits (e.g., a value of 99999999 for a USD charge of $999,999.99).
     pub amount: i64,
     /// Amount in cents (or local equivalent) captured (can be less than the amount attribute on the charge if a partial capture was made).
     pub amount_captured: i64,
@@ -971,10 +914,10 @@ pub struct Charge {
     /// ID of the Connect application that created the charge.
     #[serde(default)]
     pub application: ::core::option::Option<serde_json::Value>,
-    /// The application fee (if any) for the charge. [See the Connect documentation](https://docs.stripe.com/connect/direct-charges#collect-fees) for details.
+    /// The application fee (if any) for the charge. [See the Connect documentation](<https://docs.stripe.`com/connect/direct-charges`#collect-fees>) for details.
     #[serde(default)]
     pub application_fee: ::core::option::Option<serde_json::Value>,
-    /// The amount of the application fee (if any) requested for the charge. [See the Connect documentation](https://docs.stripe.com/connect/direct-charges#collect-fees) for details.
+    /// The amount of the application fee (if any) requested for the charge. [See the Connect documentation](<https://docs.stripe.`com/connect/direct-charges`#collect-fees>) for details.
     #[serde(default)]
     pub application_fee_amount: ::core::option::Option<i64>,
     /// ID of the balance transaction that describes the impact of this charge on your account balance (not including refunds or disputes).
@@ -988,7 +931,7 @@ pub struct Charge {
     pub captured: bool,
     /// Time at which the object was created. Measured in seconds since the Unix epoch.
     pub created: i64,
-    /// Three-letter [ISO currency code](https://www.iso.org/iso-4217-currency-codes.html), in lowercase. Must be a [supported currency](https://stripe.com/docs/currencies).
+    /// Three-letter [ISO currency code](<https://www.iso.`org/iso-4217-currency-codes`.html>), in lowercase. Must be a [supported currency](<https://stripe.`com/docs/currencies`>).
     pub currency: String,
     /// ID of the customer this charge is for if one exists.
     #[serde(default)]
@@ -1001,7 +944,7 @@ pub struct Charge {
     /// ID of the balance transaction that describes the reversal of the balance on your account due to payment failure.
     #[serde(default)]
     pub failure_balance_transaction: ::core::option::Option<serde_json::Value>,
-    /// Error code explaining reason for charge failure if available (see [the errors section](https://docs.stripe.com/error-codes) for a list of codes).
+    /// Error code explaining reason for charge failure if available (see [the errors section](<https://docs.stripe.`com/error-codes`>) for a list of codes).
     #[serde(default)]
     pub failure_code: ::core::option::Option<String>,
     /// Message to user further explaining reason for charge failure if available.
@@ -1012,19 +955,19 @@ pub struct Charge {
     pub fraud_details: ::core::option::Option<serde_json::Value>,
     /// Unique identifier for the object.
     pub id: String,
-    /// If the object exists in live mode, the value is true. If the object exists in test mode, the value is false.
+    /// If the object exists in live mode, the value is `true`. If the object exists in test mode, the value is `false`.
     pub livemode: bool,
-    /// Set of [key-value pairs](https://docs.stripe.com/api/metadata) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
+    /// Set of [key-value pairs](<https://docs.stripe.`com/api/metadata`>) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
     pub metadata: serde_json::Value,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["charge"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["charge"]
     pub object: String,
-    /// The account (if any) the charge was made on behalf of without triggering an automatic transfer. See the [Connect documentation](https://docs.stripe.com/connect/separate-charges-and-transfers) for details.
+    /// The account (if any) the charge was made on behalf of without triggering an automatic transfer. See the [Connect documentation](<https://docs.stripe.`com/connect/separate-charges-and-transfers`>) for details.
     #[serde(default)]
     pub on_behalf_of: ::core::option::Option<serde_json::Value>,
-    /// Details about whether the payment was accepted, and why. See [understanding declines](https://docs.stripe.com/declines) for details.
+    /// Details about whether the payment was accepted, and why. See [understanding declines](<https://docs.stripe.`com/declines`>) for details.
     #[serde(default)]
     pub outcome: ::core::option::Option<serde_json::Value>,
-    /// true if the charge succeeded, or was successfully authorized for later capture.
+    /// `true` if the charge succeeded, or was successfully authorized for later capture.
     pub paid: bool,
     /// ID of the PaymentIntent associated with this charge, if one exists.
     #[serde(default)]
@@ -1042,13 +985,13 @@ pub struct Charge {
     /// This is the email address that the receipt for this charge was sent to.
     #[serde(default)]
     pub receipt_email: ::core::option::Option<String>,
-    /// This is the transaction number that appears on email receipts sent for this charge. This attribute will be null until a receipt has been sent.
+    /// This is the transaction number that appears on email receipts sent for this charge. This attribute will be `null` until a receipt has been sent.
     #[serde(default)]
     pub receipt_number: ::core::option::Option<String>,
     /// This is the URL to view the receipt for this charge. The receipt is kept up-to-date to the latest state of the charge, including any refunds. If the charge is for an Invoice, the receipt will be stylized as an Invoice receipt.
     #[serde(default)]
     pub receipt_url: ::core::option::Option<String>,
-    /// Whether the charge has been fully refunded. If the charge is only partially refunded, this attribute will still be false.
+    /// Whether the charge has been fully refunded. If the charge is only partially refunded, this attribute will still be `false`.
     pub refunded: bool,
     /// A list of refunds that have been applied to the charge.
     #[serde(default)]
@@ -1059,13 +1002,13 @@ pub struct Charge {
     /// Shipping information for the charge.
     #[serde(default)]
     pub shipping: ::core::option::Option<serde_json::Value>,
-    /// The transfer ID which created this charge. Only present if the charge came from another Stripe account. [See the Connect documentation](https://docs.stripe.com/connect/destination-charges) for details.
+    /// The transfer ID which created this charge. Only present if the charge came from another Stripe account. [See the Connect documentation](<https://docs.stripe.`com/connect/destination-charges`>) for details.
     #[serde(default)]
     pub source_transfer: ::core::option::Option<serde_json::Value>,
-    /// For a non-card charge, text that appears on the customer''s statement as the statement descriptor. This value overrides the account''s default statement descriptor. For information about requirements, including the 22-character limit, see [the Statement Descriptor docs](https://docs.stripe.com/get-started/account/statement-descriptors).
+    /// For a non-card charge, text that appears on the customer''s statement as the statement descriptor. This value overrides the account''s default statement descriptor. For information about requirements, including the 22-character limit, see [the Statement Descriptor docs](<https://docs.stripe.`com/get-started/account/statement-descriptors`>).  For a card charge, this value is ignored unless you don''t specify a statement_descriptor_suffix, in which case this value is used as the suffix.
     #[serde(default)]
     pub statement_descriptor: ::core::option::Option<String>,
-    /// Provides information about a card charge. Concatenated to the account''s [statement descriptor prefix](https://docs.stripe.com/get-started/account/statement-descriptors#static) to form the complete statement descriptor that appears on the customer''s statement. If the account has no prefix value, the suffix is concatenated to the account''s statement descriptor.
+    /// Provides information about a card charge. Concatenated to the account''s [statement descriptor prefix](<https://docs.stripe.`com/get-started/account/statement-descriptors`#static>) to form the complete statement descriptor that appears on the customer''s statement. If the account has no prefix value, the suffix is concatenated to the account''s statement descriptor.
     #[serde(default)]
     pub statement_descriptor_suffix: ::core::option::Option<String>,
     /// The status of the payment is either succeeded, pending, or failed. // TODO: enum values: ["failed", "pending", "succeeded"]
@@ -1073,10 +1016,10 @@ pub struct Charge {
     /// ID of the transfer to the destination account (only applicable if the charge was created using the destination parameter).
     #[serde(default)]
     pub transfer: ::core::option::Option<serde_json::Value>,
-    /// An optional dictionary including the account to automatically transfer to as part of a destination charge. [See the Connect documentation](https://docs.stripe.com/connect/destination-charges) for details.
+    /// An optional dictionary including the account to automatically transfer to as part of a destination charge. [See the Connect documentation](<https://docs.stripe.`com/connect/destination-charges`>) for details.
     #[serde(default)]
     pub transfer_data: ::core::option::Option<serde_json::Value>,
-    /// A string that identifies this transaction as part of a group. See the [Connect documentation](https://docs.stripe.com/connect/separate-charges-and-transfers#transfer-options) for details.
+    /// A string that identifies this transaction as part of a group. See the [Connect documentation](<https://docs.stripe.`com/connect/separate-charges-and-transfers`#transfer-options>) for details.
     #[serde(default)]
     pub transfer_group: ::core::option::Option<String>,
 }
@@ -1093,7 +1036,7 @@ pub struct ChargeFraudDetails {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ChargeOutcome {
-    /// An enumerated value providing a more detailed explanation on [how to proceed with an error](https://docs.stripe.com/declines#retrying-issuer-declines). // TODO: enum values: ["confirm_card_data", "do_not_try_again", "try_again_later"]
+    /// An enumerated value providing a more detailed explanation on [how to proceed with an error](<https://docs.stripe.`com/declines`#retrying-issuer-declines>). // TODO: enum values: ["confirm_card_data", "do_not_try_again", "try_again_later"]
     #[serde(default)]
     pub advice_code: ::core::option::Option<String>,
     /// For charges declined by the network, a 2 digit code which indicates the advice returned by the network on how to proceed with an error.
@@ -1102,10 +1045,10 @@ pub struct ChargeOutcome {
     /// For charges declined by the network, an alphanumeric code which indicates the reason the charge failed.
     #[serde(default)]
     pub network_decline_code: ::core::option::Option<String>,
-    /// Possible values are approved_by_network, declined_by_network, not_sent_to_network, and reversed_after_approval. The value reversed_after_approval indicates the payment was [blocked by Stripe](https://docs.stripe.com/declines#blocked-payments) after bank authorization, and may temporarily appear as "pending" on a cardholder''s statement.
+    /// Possible values are approved_by_network, declined_by_network, not_sent_to_network, and reversed_after_approval. The value reversed_after_approval indicates the payment was [blocked by Stripe](<https://docs.stripe.`com/declines`#blocked-payments>) after bank authorization, and may temporarily appear as "pending" on a cardholder''s statement.
     #[serde(default)]
     pub network_status: ::core::option::Option<String>,
-    /// An enumerated value providing a more detailed explanation of the outcome''s type. Charges blocked by Radar''s default block rule have the value highest_risk_level. Charges placed in review by Radar''s default review rule have the value elevated_risk_level. Charges blocked because the payment is unlikely to be authorized have the value low_probability_of_authorization. Charges authorized, blocked, or placed in review by custom rules have the value rule. See [understanding declines](https://docs.stripe.com/declines) for more details.
+    /// An enumerated value providing a more detailed explanation of the outcome''s type. Charges blocked by Radar''s default block rule have the value highest_risk_level. Charges placed in review by Radar''s default review rule have the value elevated_risk_level. Charges blocked because the payment is unlikely to be authorized have the value low_probability_of_authorization. Charges authorized, blocked, or placed in review by custom rules have the value rule. See [understanding declines](<https://docs.stripe.`com/declines`>) for more details.
     #[serde(default)]
     pub reason: ::core::option::Option<String>,
     /// Stripe Radar''s evaluation of the riskiness of the payment. Possible values for evaluated payments are normal, elevated, highest. For non-card payments, and card-based payments predating the public assignment of risk levels, this field will have the value not_assessed. In the event of an error in the evaluation, this field will have the value unknown. This field is only available with Radar.
@@ -1120,7 +1063,7 @@ pub struct ChargeOutcome {
     /// A human-readable description of the outcome type and reason, designed for you (the recipient of the payment), not your customer.
     #[serde(default)]
     pub seller_message: ::core::option::Option<String>,
-    /// Possible values are authorized, manual_review, issuer_declined, blocked, and invalid. See [understanding declines](https://docs.stripe.com/declines) and [Radar reviews](https://docs.stripe.com/radar/reviews) for details.
+    /// Possible values are authorized, manual_review, issuer_declined, blocked, and invalid. See [understanding declines](<https://docs.stripe.`com/declines`>) and [Radar reviews](<https://docs.stripe.`com/radar/reviews`>) for details.
     #[serde(rename = "type")]
     pub type_: String,
 }
@@ -1135,22 +1078,9 @@ pub struct ChargeTransferData {
 }
 
 /// A Checkout Session represents your customer''s session as they pay for
-/// one-time purchases or subscriptions through [Checkout](https://docs.stripe.com/payments/checkout)
-/// or [Payment Links](https://docs.stripe.com/payments/payment-links). We recommend creating a
-/// new Session each time your customer attempts to pay.
-///
-/// Once payment is successful, the Checkout Session will contain a reference
-/// to the [Customer](https://docs.stripe.com/api/customers), and either the successful
-/// [PaymentIntent](https://docs.stripe.com/api/payment_intents) or an active
-/// [Subscription](https://docs.stripe.com/api/subscriptions).
-///
-/// You can create a Checkout Session on your server and redirect to its URL
-/// to begin Checkout.
-///
-/// Related guide: [Checkout quickstart](https://docs.stripe.com/checkout/quickstart)
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CheckoutSession {
-    /// Settings for price localization with [Adaptive Pricing](https://docs.stripe.com/payments/checkout/adaptive-pricing).
+    /// Settings for price localization with [Adaptive Pricing](<https://docs.stripe.`com/payments/checkout/adaptive-pricing`>).
     #[serde(default)]
     pub adaptive_pricing: ::core::option::Option<serde_json::Value>,
     /// When set, provides configuration for actions to take if this Checkout Session expires.
@@ -1174,10 +1104,10 @@ pub struct CheckoutSession {
     /// If set, Checkout displays a back button and customers will be directed to this URL if they decide to cancel payment and return to your website.
     #[serde(default)]
     pub cancel_url: ::core::option::Option<String>,
-    /// A unique string to reference the Checkout Session. This can be a
+    /// A unique string to reference the Checkout Session. This can be a customer ID, a cart ID, or similar, and can be used to reconcile the Session with your internal systems.
     #[serde(default)]
     pub client_reference_id: ::core::option::Option<String>,
-    /// The client secret of your Checkout Session. Applies to Checkout Sessions with ui_mode: embedded or ui_mode: custom. For ui_mode: embedded, the client secret is to be used when initializing Stripe.js embedded checkout.
+    /// The client secret of your Checkout Session. Applies to Checkout Sessions with ui_mode: embedded or ui_mode: custom. For ui_mode: embedded, the client secret is to be used when initializing Stripe.js embedded checkout. For ui_mode: custom, use the client secret with [`initCheckout`](<https://docs.stripe.`com/js/custom_checkout/init`>) on your front end.
     #[serde(default)]
     pub client_secret: ::core::option::Option<String>,
     /// Information about the customer collected within the Checkout Session.
@@ -1191,16 +1121,16 @@ pub struct CheckoutSession {
     pub consent_collection: ::core::option::Option<serde_json::Value>,
     /// Time at which the object was created. Measured in seconds since the Unix epoch.
     pub created: i64,
-    /// Three-letter [ISO currency code](https://www.iso.org/iso-4217-currency-codes.html), in lowercase. Must be a [supported currency](https://stripe.com/docs/currencies).
+    /// Three-letter [ISO currency code](<https://www.iso.`org/iso-4217-currency-codes`.html>), in lowercase. Must be a [supported currency](<https://stripe.`com/docs/currencies`>).
     #[serde(default)]
     pub currency: ::core::option::Option<String>,
-    /// Currency conversion details for [Adaptive Pricing](https://docs.stripe.com/payments/checkout/adaptive-pricing) sessions created before 2025-03-31.
+    /// Currency conversion details for [Adaptive Pricing](<https://docs.stripe.`com/payments/checkout/adaptive-pricing`>) sessions created before 2025-03-31.
     #[serde(default)]
     pub currency_conversion: ::core::option::Option<serde_json::Value>,
     /// Collect additional information from your customer using custom fields. Up to 3 fields are supported. You can''t set this parameter if ui_mode is custom.
     pub custom_fields: ::std::vec::Vec<PaymentPagesCheckoutSessionCustomFields>,
     pub custom_text: PaymentPagesCheckoutSessionCustomText,
-    /// The ID of the customer for this Session.
+    /// The ID of the customer for this Session. For Checkout Sessions in subscription mode or Checkout Sessions with customer_creation set as always in payment mode, Checkout will create a new customer object based on information provided during the payment flow unless an existing customer was provided when the Session was created.
     #[serde(default)]
     pub customer: ::core::option::Option<serde_json::Value>,
     /// The ID of the account for this Session.
@@ -1212,13 +1142,13 @@ pub struct CheckoutSession {
     /// The customer details including the customer''s tax exempt status and the customer''s tax IDs. Customer''s address details are not present on Sessions in setup mode.
     #[serde(default)]
     pub customer_details: ::core::option::Option<serde_json::Value>,
-    /// If provided, this value will be used when the Customer object is created.
+    /// If provided, this value will be used when the Customer object is created. If not provided, customers will be asked to enter their email address. Use this parameter to prefill customer data if you already have an email on file. To access information about the customer once the payment flow is complete, use the customer attribute.
     #[serde(default)]
     pub customer_email: ::core::option::Option<String>,
     /// List of coupons and promotion codes attached to the Checkout Session.
     #[serde(default)]
     pub discounts: ::core::option::Option<::std::vec::Vec<PaymentPagesCheckoutSessionDiscount>>,
-    /// A list of the types of payment methods (e.g., card) that should be excluded from this Checkout Session. This should only be used when payment methods for this Checkout Session are managed through the [Stripe Dashboard](https://dashboard.stripe.com/settings/payment_methods).
+    /// A list of the types of payment methods (e.g., card) that should be excluded from this Checkout Session. This should only be used when payment methods for this Checkout Session are managed through the [Stripe Dashboard](<https://dashboard.stripe.`com/settings/payment_methods`>).
     #[serde(default)]
     pub excluded_payment_method_types: ::core::option::Option<::std::vec::Vec<String>>,
     /// The timestamp at which the Checkout Session will expire.
@@ -1237,19 +1167,19 @@ pub struct CheckoutSession {
     /// The line items purchased by the customer.
     #[serde(default)]
     pub line_items: ::core::option::Option<serde_json::Value>,
-    /// If the object exists in live mode, the value is true. If the object exists in test mode, the value is false.
+    /// If the object exists in live mode, the value is `true`. If the object exists in test mode, the value is `false`.
     pub livemode: bool,
     /// The IETF language tag of the locale Checkout is displayed in. If blank or auto, the browser''s locale is used. // TODO: enum values: ["auto", "bg", "cs", "da", "de", "el", "en", "en-GB", "es", "es-419", "et", "fi", "fil", "fr", "fr-CA", "hr", "hu", "id", "it", "ja", "ko", "lt", "lv", "ms", "mt", "nb", "nl", "pl", "pt", "pt-BR", "ro", "ru", "sk", "sl", "sv", "th", "tr", "vi", "zh", "zh-HK", "zh-TW"]
     #[serde(default)]
     pub locale: ::core::option::Option<String>,
-    /// Set of [key-value pairs](https://docs.stripe.com/api/metadata) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
+    /// Set of [key-value pairs](<https://docs.stripe.`com/api/metadata`>) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
     #[serde(default)]
     pub metadata: ::core::option::Option<serde_json::Value>,
     /// The mode of the Checkout Session. // TODO: enum values: ["payment", "setup", "subscription"]
     pub mode: String,
     #[serde(default)]
     pub name_collection: ::core::option::Option<PaymentPagesCheckoutSessionNameCollection>,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["checkout.session"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["checkout.session"]
     pub object: String,
     /// The optional items presented to the customer at checkout.
     #[serde(default)]
@@ -1258,7 +1188,7 @@ pub struct CheckoutSession {
     /// Where the user is coming from. This informs the optimizations that are applied to the session. // TODO: enum values: ["mobile_app", "web"]
     #[serde(default)]
     pub origin_context: ::core::option::Option<String>,
-    /// The ID of the PaymentIntent for Checkout Sessions in payment mode. You can''t confirm or cancel the PaymentIntent for a Checkout Session. To cancel, [expire the Checkout Session](https://docs.stripe.com/api/checkout/sessions/expire) instead.
+    /// The ID of the PaymentIntent for Checkout Sessions in payment mode. You can''t confirm or cancel the PaymentIntent for a Checkout Session. To cancel, [expire the Checkout Session](<https://docs.stripe.`com/api/checkout/sessions/expire`>) instead.
     #[serde(default)]
     pub payment_intent: ::core::option::Option<serde_json::Value>,
     /// The ID of the Payment Link that created this Session.
@@ -1273,11 +1203,11 @@ pub struct CheckoutSession {
     /// Payment-method-specific configuration for the PaymentIntent or SetupIntent of this CheckoutSession.
     #[serde(default)]
     pub payment_method_options: ::core::option::Option<serde_json::Value>,
-    /// A list of the types of payment methods (e.g. card) this Checkout
+    /// A list of the types of payment methods (e.g. card) this Checkout Session is allowed to accept.
     pub payment_method_types: ::std::vec::Vec<String>,
-    /// The payment status of the Checkout Session, one of paid, unpaid, or no_payment_required.
+    /// The payment status of the Checkout Session, one of paid, unpaid, or no_payment_required. You can use this value to decide when to fulfill your customer''s order. // TODO: enum values: ["no_payment_required", "paid", "unpaid"]
     pub payment_status: String,
-    /// This property is used to set up permissions for various actions (e.g., update) on the CheckoutSession object.
+    /// This property is used to set up permissions for various actions (e.g., update) on the CheckoutSession object.  For specific permissions, please refer to their dedicated subsections, such as permissions.update_shipping_details.
     #[serde(default)]
     pub permissions: ::core::option::Option<serde_json::Value>,
     #[serde(default)]
@@ -1288,7 +1218,7 @@ pub struct CheckoutSession {
     /// The ID of the original expired Checkout Session that triggered the recovery flow.
     #[serde(default)]
     pub recovered_from: ::core::option::Option<String>,
-    /// This parameter applies to ui_mode: embedded. Learn more about the [redirect behavior](https://docs.stripe.com/payments/checkout/custom-success-page?payment-ui=embedded-form) of embedded sessions. Defaults to always. // TODO: enum values: ["always", "if_required", "never"]
+    /// This parameter applies to ui_mode: embedded. Learn more about the [redirect behavior](<https://docs.stripe.`com/payments/checkout/custom-success-page`?payment-ui=embedded-form>) of embedded sessions. Defaults to always. // TODO: enum values: ["always", "if_required", "never"]
     #[serde(default)]
     pub redirect_on_completion: ::core::option::Option<String>,
     /// Applies to Checkout Sessions with ui_mode: embedded or ui_mode: custom. The URL to redirect your customer back to after they authenticate or cancel their payment on the payment method''s app or site.
@@ -1297,7 +1227,7 @@ pub struct CheckoutSession {
     /// Controls saved payment method settings for the session. Only available in payment and subscription mode.
     #[serde(default)]
     pub saved_payment_method_options: ::core::option::Option<serde_json::Value>,
-    /// The ID of the SetupIntent for Checkout Sessions in setup mode. You can''t confirm or cancel the SetupIntent for a Checkout Session. To cancel, [expire the Checkout Session](https://docs.stripe.com/api/checkout/sessions/expire) instead.
+    /// The ID of the SetupIntent for Checkout Sessions in setup mode. You can''t confirm or cancel the SetupIntent for a Checkout Session. To cancel, [expire the Checkout Session](<https://docs.stripe.`com/api/checkout/sessions/expire`>) instead.
     #[serde(default)]
     pub setup_intent: ::core::option::Option<serde_json::Value>,
     /// When set, provides configuration for Checkout to collect a shipping address from a customer.
@@ -1311,13 +1241,13 @@ pub struct CheckoutSession {
     /// The status of the Checkout Session, one of open, complete, or expired. // TODO: enum values: ["complete", "expired", "open"]
     #[serde(default)]
     pub status: ::core::option::Option<String>,
-    /// Describes the type of transaction being performed by Checkout in order to customize
+    /// Describes the type of transaction being performed by Checkout in order to customize relevant text on the page, such as the submit button. submit_type can only be specified on Checkout Sessions in payment mode. If blank or auto, pay is used. // TODO: enum values: ["auto", "book", "donate", "pay", "subscribe"]
     #[serde(default)]
     pub submit_type: ::core::option::Option<String>,
-    /// The ID of the [Subscription](https://docs.stripe.com/api/subscriptions) for Checkout Sessions in subscription mode.
+    /// The ID of the [Subscription](<https://docs.stripe.`com/api/subscriptions`>) for Checkout Sessions in subscription mode.
     #[serde(default)]
     pub subscription: ::core::option::Option<serde_json::Value>,
-    /// The URL the customer will be directed to after the payment or
+    /// The URL the customer will be directed to after the payment or subscription creation is successful.
     #[serde(default)]
     pub success_url: ::core::option::Option<String>,
     #[serde(default)]
@@ -1328,7 +1258,7 @@ pub struct CheckoutSession {
     /// The UI mode of the Session. Defaults to hosted_page. // TODO: enum values: ["elements", "embedded_page", "hosted_page"]
     #[serde(default)]
     pub ui_mode: ::core::option::Option<String>,
-    /// The URL to the Checkout Session. Applies to Checkout Sessions with ui_mode: hosted. Redirect customers to this URL to take them to Checkout. If you’re using [Custom Domains](https://docs.stripe.com/payments/checkout/custom-domains), the URL will use your subdomain. Otherwise, it’ll use checkout.stripe.com.
+    /// The URL to the Checkout Session. Applies to Checkout Sessions with ui_mode: hosted. Redirect customers to this URL to take them to Checkout. If you’re using [Custom Domains](<https://docs.stripe.`com/payments/checkout/custom-domains`>), the URL will use your subdomain. Otherwise, it’ll use checkout.stripe.com. This value is only present when the session is active.
     #[serde(default)]
     pub url: ::core::option::Option<String>,
     /// Wallet-specific configuration for this Checkout Session.
@@ -1433,10 +1363,9 @@ pub struct CheckoutSessionWalletOptions {
 }
 
 /// Orders represent your intent to purchase a particular Climate product. When you create an order, the
-/// payment is deducted from your merchant balance.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ClimateOrder {
-    /// Total amount of [Frontier](https://frontierclimate.com/)''s service fees in the currency''s smallest unit.
+    /// Total amount of [Frontier](<https://frontierclimate.com/>)''s service fees in the currency''s smallest unit.
     pub amount_fees: i64,
     /// Total amount of the carbon removal in the currency''s smallest unit.
     pub amount_subtotal: i64,
@@ -1458,7 +1387,7 @@ pub struct ClimateOrder {
     pub confirmed_at: ::core::option::Option<i64>,
     /// Time at which the object was created. Measured in seconds since the Unix epoch.
     pub created: i64,
-    /// Three-letter [ISO currency code](https://www.iso.org/iso-4217-currency-codes.html), in lowercase, representing the currency for this order.
+    /// Three-letter [ISO currency code](<https://www.iso.`org/iso-4217-currency-codes`.html>), in lowercase, representing the currency for this order.
     pub currency: String,
     /// Time at which the order''s expected_delivery_year was delayed. Measured in seconds since the Unix epoch.
     #[serde(default)]
@@ -1472,13 +1401,13 @@ pub struct ClimateOrder {
     pub expected_delivery_year: i64,
     /// Unique identifier for the object.
     pub id: String,
-    /// Has the value true if the object exists in live mode or the value false if the object exists in test mode.
+    /// Has the value `true` if the object exists in live mode or the value `false` if the object exists in test mode.
     pub livemode: bool,
-    /// Set of [key-value pairs](https://docs.stripe.com/api/metadata) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
+    /// Set of [key-value pairs](<https://docs.stripe.`com/api/metadata`>) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
     pub metadata: serde_json::Value,
     /// Quantity of carbon removal that is included in this order.
     pub metric_tons: String,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["climate.order"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["climate.order"]
     pub object: String,
     /// Unique ID for the Climate Product this order is purchasing.
     pub product: serde_json::Value,
@@ -1490,7 +1419,6 @@ pub struct ClimateOrder {
 }
 
 /// A Climate product represents a type of carbon removal unit available for reservation.
-/// You can retrieve it to see the current price and availability.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ClimateProduct {
     /// Time at which the object was created. Measured in seconds since the Unix epoch.
@@ -1500,15 +1428,15 @@ pub struct ClimateProduct {
     /// The year in which the carbon removal is expected to be delivered.
     #[serde(default)]
     pub delivery_year: ::core::option::Option<i64>,
-    /// Unique identifier for the object. For convenience, Climate product IDs are human-readable strings
+    /// Unique identifier for the object. For convenience, Climate product IDs are human-readable strings that start with climsku_. See [carbon removal inventory](<https://stripe.`com/docs/climate/orders/carbon-removal-inventory`>) for a list of available carbon removal products.
     pub id: String,
-    /// Has the value true if the object exists in live mode or the value false if the object exists in test mode.
+    /// Has the value `true` if the object exists in live mode or the value `false` if the object exists in test mode.
     pub livemode: bool,
     /// The quantity of metric tons available for reservation.
     pub metric_tons_available: String,
     /// The Climate product''s name.
     pub name: String,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["climate.product"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["climate.product"]
     pub object: String,
     /// The carbon removal suppliers that fulfill orders for this Climate product.
     pub suppliers: ::std::vec::Vec<ClimateSupplier>,
@@ -1525,12 +1453,6 @@ pub struct ClimateRemovalsProductsPrice {
 }
 
 /// ConfirmationTokens help transport client side data collected by Stripe JS over
-/// to your server for confirming a PaymentIntent or SetupIntent. If the confirmation
-/// is successful, values present on the ConfirmationToken are written onto the Intent.
-///
-/// To learn more about how to use ConfirmationToken, visit the related guides:
-/// - [Finalize payments on the server](https://docs.stripe.com/payments/finalize-payments-on-the-server)
-/// - [Build two-step confirmation](https://docs.stripe.com/payments/build-a-two-step-confirmation).
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConfirmationToken {
     /// Time at which the object was created. Measured in seconds since the Unix epoch.
@@ -1540,14 +1462,14 @@ pub struct ConfirmationToken {
     pub expires_at: ::core::option::Option<i64>,
     /// Unique identifier for the object.
     pub id: String,
-    /// If the object exists in live mode, the value is true. If the object exists in test mode, the value is false.
+    /// If the object exists in live mode, the value is `true`. If the object exists in test mode, the value is `false`.
     pub livemode: bool,
     /// Data used for generating a Mandate.
     #[serde(default)]
     pub mandate_data: ::core::option::Option<serde_json::Value>,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["confirmation_token"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["confirmation_token"]
     pub object: String,
-    /// ID of the PaymentIntent that this ConfirmationToken was used to confirm, or null if this ConfirmationToken has not yet been used.
+    /// ID of the PaymentIntent that this ConfirmationToken was used to confirm, or `null` if this ConfirmationToken has not yet been used.
     #[serde(default)]
     pub payment_intent: ::core::option::Option<String>,
     /// Payment-method-specific configuration for this ConfirmationToken.
@@ -1559,16 +1481,16 @@ pub struct ConfirmationToken {
     /// Return URL used to confirm the Intent.
     #[serde(default)]
     pub return_url: ::core::option::Option<String>,
-    /// Indicates that you intend to make future payments with this ConfirmationToken''s payment method.
+    /// Indicates that you intend to make future payments with this ConfirmationToken''s payment method.  The presence of this property will [attach the payment method](<https://docs.stripe.`com/payments/save-during-payment`>) to the PaymentIntent''s Customer, if present, after the PaymentIntent is confirmed and any required actions from the user are complete. // TODO: enum values: ["off_session", "on_session"]
     #[serde(default)]
     pub setup_future_usage: ::core::option::Option<String>,
-    /// ID of the SetupIntent that this ConfirmationToken was used to confirm, or null if this ConfirmationToken has not yet been used.
+    /// ID of the SetupIntent that this ConfirmationToken was used to confirm, or `null` if this ConfirmationToken has not yet been used.
     #[serde(default)]
     pub setup_intent: ::core::option::Option<String>,
     /// Shipping information collected on this ConfirmationToken.
     #[serde(default)]
     pub shipping: ::core::option::Option<serde_json::Value>,
-    /// Indicates whether the Stripe SDK is used to handle confirmation flow. Defaults to true on ConfirmationToken.
+    /// Indicates whether the Stripe SDK is used to handle confirmation flow. Defaults to `true` on ConfirmationToken.
     pub use_stripe_sdk: bool,
 }
 
@@ -1746,37 +1668,32 @@ pub struct ConfirmationTokensResourceShipping {
 pub struct ConnectCollectionTransfer {
     /// Amount transferred, in cents (or local equivalent).
     pub amount: i64,
-    /// Three-letter [ISO currency code](https://www.iso.org/iso-4217-currency-codes.html), in lowercase. Must be a [supported currency](https://stripe.com/docs/currencies).
+    /// Three-letter [ISO currency code](<https://www.iso.`org/iso-4217-currency-codes`.html>), in lowercase. Must be a [supported currency](<https://stripe.`com/docs/currencies`>).
     pub currency: String,
     /// ID of the account that funds are being collected for.
     pub destination: serde_json::Value,
     /// Unique identifier for the object.
     pub id: String,
-    /// If the object exists in live mode, the value is true. If the object exists in test mode, the value is false.
+    /// If the object exists in live mode, the value is `true`. If the object exists in test mode, the value is `false`.
     pub livemode: bool,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["connect_collection_transfer"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["connect_collection_transfer"]
     pub object: String,
 }
 
 /// Stripe needs to collect certain pieces of information about each account
-/// created. These requirements can differ depending on the account''s country. The
-/// Country Specs API makes these rules available to your integration.
-///
-/// You can also view the information from this API call as [an online
-/// guide](/docs/connect/required-verification-information).
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CountrySpec {
     /// The default currency for this country. This applies to both payment methods and bank accounts.
     pub default_currency: String,
     /// Unique identifier for the object. Represented as the ISO country code for this country.
     pub id: String,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["country_spec"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["country_spec"]
     pub object: String,
     /// Currencies that can be accepted in the specific country (for transfers).
     pub supported_bank_account_currencies: serde_json::Value,
     /// Currencies that can be accepted in the specified country (for payments).
     pub supported_payment_currencies: ::std::vec::Vec<String>,
-    /// Payment methods available in the specified country. You may need to enable some payment methods (e.g., [ACH](https://stripe.com/docs/ach)) on your account before they appear in this list. The stripe payment method refers to [charging through your platform](https://stripe.com/docs/connect/destination-charges).
+    /// Payment methods available in the specified country. You may need to enable some payment methods (e.g., [ACH](<https://stripe.`com/docs/ach`>)) on your account before they appear in this list. The stripe payment method refers to [charging through your platform](<https://stripe.`com/docs/connect/destination-charges`>).
     pub supported_payment_methods: ::std::vec::Vec<String>,
     /// Countries that can accept transfers from the specified country.
     pub supported_transfer_countries: ::std::vec::Vec<String>,
@@ -1784,8 +1701,6 @@ pub struct CountrySpec {
 }
 
 /// A coupon contains information about a percent-off or amount-off discount you
-/// might want to apply to a customer. Coupons may be applied to [subscriptions](https://api.stripe.com#subscriptions), [invoices](https://api.stripe.com#invoices),
-/// [checkout sessions](https://docs.stripe.com/api/checkout/sessions), [quotes](https://api.stripe.com#quotes), and more. Coupons do not work with conventional one-off [charges](/api/charges/create) or [payment intents](https://docs.stripe.com/api/payment_intents).
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Coupon {
     /// Amount (in the currency specified) that will be taken off the subtotal of any invoices for this customer.
@@ -1795,10 +1710,10 @@ pub struct Coupon {
     pub applies_to: ::core::option::Option<CouponAppliesTo>,
     /// Time at which the object was created. Measured in seconds since the Unix epoch.
     pub created: i64,
-    /// If amount_off has been set, the three-letter [ISO code for the currency](https://stripe.com/docs/currencies) of the amount to take off.
+    /// If amount_off has been set, the three-letter [ISO code for the currency](<https://stripe.`com/docs/currencies`>) of the amount to take off.
     #[serde(default)]
     pub currency: ::core::option::Option<String>,
-    /// Coupons defined in each available currency option. Each key must be a three-letter [ISO currency code](https://www.iso.org/iso-4217-currency-codes.html) and a [supported currency](https://stripe.com/docs/currencies).
+    /// Coupons defined in each available currency option. Each key must be a three-letter [ISO currency code](<https://www.iso.`org/iso-4217-currency-codes`.html>) and a [supported currency](<https://stripe.`com/docs/currencies`>).
     #[serde(default)]
     pub currency_options: ::core::option::Option<serde_json::Value>,
     /// One of forever, once, or repeating. Describes how long a customer who applies this coupon will get the discount. // TODO: enum values: ["forever", "once", "repeating"]
@@ -1808,18 +1723,18 @@ pub struct Coupon {
     pub duration_in_months: ::core::option::Option<i64>,
     /// Unique identifier for the object.
     pub id: String,
-    /// If the object exists in live mode, the value is true. If the object exists in test mode, the value is false.
+    /// If the object exists in live mode, the value is `true`. If the object exists in test mode, the value is `false`.
     pub livemode: bool,
     /// Maximum number of times this coupon can be redeemed, in total, across all customers, before it is no longer valid.
     #[serde(default)]
     pub max_redemptions: ::core::option::Option<i64>,
-    /// Set of [key-value pairs](https://docs.stripe.com/api/metadata) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
+    /// Set of [key-value pairs](<https://docs.stripe.`com/api/metadata`>) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
     #[serde(default)]
     pub metadata: ::core::option::Option<serde_json::Value>,
     /// Name of the coupon displayed to customers on for instance invoices or receipts.
     #[serde(default)]
     pub name: ::core::option::Option<String>,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["coupon"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["coupon"]
     pub object: String,
     /// Percent that will be taken off the subtotal of any invoices for this customer for the duration of the coupon. For example, a coupon with percent_off of 50 will make a $ (or local equivalent)100 invoice $ (or local equivalent)50 instead.
     #[serde(default)]
@@ -1840,8 +1755,6 @@ pub struct CouponCurrencyOption {
 }
 
 /// Issue a credit note to adjust an invoice''s amount after the invoice is finalized.
-///
-/// Related guide: [Credit notes](https://docs.stripe.com/billing/invoices/credit-notes)
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreditNote {
     /// The integer amount in cents (or local equivalent) representing the total amount of the credit note, including tax.
@@ -1850,7 +1763,7 @@ pub struct CreditNote {
     pub amount_shipping: i64,
     /// Time at which the object was created. Measured in seconds since the Unix epoch.
     pub created: i64,
-    /// Three-letter [ISO currency code](https://www.iso.org/iso-4217-currency-codes.html), in lowercase. Must be a [supported currency](https://stripe.com/docs/currencies).
+    /// Three-letter [ISO currency code](<https://www.iso.`org/iso-4217-currency-codes`.html>), in lowercase. Must be a [supported currency](<https://stripe.`com/docs/currencies`>).
     pub currency: String,
     /// ID of the customer.
     pub customer: serde_json::Value,
@@ -1873,17 +1786,17 @@ pub struct CreditNote {
     pub invoice: serde_json::Value,
     /// Line items that make up the credit note
     pub lines: serde_json::Value,
-    /// If the object exists in live mode, the value is true. If the object exists in test mode, the value is false.
+    /// If the object exists in live mode, the value is `true`. If the object exists in test mode, the value is `false`.
     pub livemode: bool,
     /// Customer-facing text that appears on the credit note PDF.
     #[serde(default)]
     pub memo: ::core::option::Option<String>,
-    /// Set of [key-value pairs](https://docs.stripe.com/api/metadata) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
+    /// Set of [key-value pairs](<https://docs.stripe.`com/api/metadata`>) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
     #[serde(default)]
     pub metadata: ::core::option::Option<serde_json::Value>,
     /// A unique number that identifies this particular credit note and appears on the PDF of the credit note and its associated invoice.
     pub number: String,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["credit_note"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["credit_note"]
     pub object: String,
     /// Amount that was credited outside of Stripe.
     #[serde(default)]
@@ -1904,7 +1817,7 @@ pub struct CreditNote {
     /// The details of the cost of shipping, including the ShippingRate applied to the invoice.
     #[serde(default)]
     pub shipping_cost: ::core::option::Option<serde_json::Value>,
-    /// Status of this credit note, one of issued or void. Learn more about [voiding credit notes](https://docs.stripe.com/billing/invoices/credit-notes#voiding). // TODO: enum values: ["issued", "void"]
+    /// Status of this credit note, one of issued or void. Learn more about [voiding credit notes](<https://docs.stripe.`com/billing/invoices/credit-notes`#voiding>). // TODO: enum values: ["issued", "void"]
     pub status: String,
     /// The integer amount in cents (or local equivalent) representing the amount of the credit note, excluding exclusive tax and invoice level discounts.
     pub subtotal: i64,
@@ -1944,12 +1857,12 @@ pub struct CreditNoteLineItem {
     /// ID of the invoice line item being credited
     #[serde(default)]
     pub invoice_line_item: ::core::option::Option<String>,
-    /// If the object exists in live mode, the value is true. If the object exists in test mode, the value is false.
+    /// If the object exists in live mode, the value is `true`. If the object exists in test mode, the value is `false`.
     pub livemode: bool,
-    /// Set of [key-value pairs](https://docs.stripe.com/api/metadata) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
+    /// Set of [key-value pairs](<https://docs.stripe.`com/api/metadata`>) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
     #[serde(default)]
     pub metadata: ::core::option::Option<serde_json::Value>,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["credit_note_line_item"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["credit_note_line_item"]
     pub object: String,
     /// The pretax credit amounts (ex: discount, credit grants, etc) for this line item.
     pub pretax_credit_amounts: ::std::vec::Vec<CreditNotesPretaxCreditAmount>,
@@ -1985,7 +1898,7 @@ pub struct CurrencyOption {
     /// When set, provides configuration for the amount to be adjusted by the customer during Checkout Sessions and Payment Links.
     #[serde(default)]
     pub custom_unit_amount: ::core::option::Option<serde_json::Value>,
-    /// Only required if a [default tax behavior](https://docs.stripe.com/tax/products-prices-tax-categories-tax-behavior#setting-a-default-tax-behavior-(recommended)) was not provided in the Stripe Tax settings. Specifies whether the price is considered inclusive of taxes or exclusive of taxes. One of inclusive, exclusive, or unspecified. Once specified as either inclusive or exclusive, it cannot be changed. // TODO: enum values: ["exclusive", "inclusive", "unspecified"]
+    /// Only required if a [default tax behavior](<https://docs.stripe.`com/tax/products-prices-tax-categories-tax-behavior`#setting-a-default-tax-behavior->(recommended)) was not provided in the Stripe Tax settings. Specifies whether the price is considered inclusive of taxes or exclusive of taxes. One of inclusive, exclusive, or unspecified. Once specified as either inclusive or exclusive, it cannot be changed. // TODO: enum values: ["exclusive", "inclusive", "unspecified"]
     #[serde(default)]
     pub tax_behavior: ::core::option::Option<String>,
     /// Each element represents a pricing tier. This parameter requires billing_scheme to be set to tiered. See also the documentation for billing_scheme.
@@ -2021,14 +1934,13 @@ pub struct CustomUnitAmount {
     pub preset: ::core::option::Option<i64>,
 }
 
-/// This object represents a customer of your business. Use it to [create recurring charges](https://docs.stripe.com/invoicing/customer), [save payment](https://docs.stripe.com/payments/save-during-payment) and contact information,
-/// and track payments that belong to the same customer.
+/// This object represents a customer of your business. Use it to [create recurring charges](<https://docs.stripe.`com/invoicing/customer`>), [save payment](<https://docs.stripe.`com/payments/save-during-payment`>) and contact information,
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Customer {
     /// The customer''s address.
     #[serde(default)]
     pub address: ::core::option::Option<serde_json::Value>,
-    /// The current balance, if any, that''s stored on the customer in their default currency. If negative, the customer has credit to apply to their next invoice. If positive, the customer has an amount owed that''s added to their next invoice. The balance only considers amounts that Stripe hasn''t successfully applied to any invoice. It doesn''t reflect unpaid invoices. This balance is only taken into account after invoices finalize. For multi-currency balances, see [invoice_credit_balance](https://docs.stripe.com/api/customers/object#customer_object-invoice_credit_balance).
+    /// The current balance, if any, that''s stored on the customer in their default currency. If negative, the customer has credit to apply to their next invoice. If positive, the customer has an amount owed that''s added to their next invoice. The balance only considers amounts that Stripe hasn''t successfully applied to any invoice. It doesn''t reflect unpaid invoices. This balance is only taken into account after invoices finalize. For multi-currency balances, see [invoice_credit_balance](<https://docs.stripe.`com/api/customers/object`#customer_object-invoice_credit_balance>).
     #[serde(default)]
     pub balance: ::core::option::Option<i64>,
     /// The customer''s business name.
@@ -2039,16 +1951,16 @@ pub struct Customer {
     pub cash_balance: ::core::option::Option<serde_json::Value>,
     /// Time at which the object was created. Measured in seconds since the Unix epoch.
     pub created: i64,
-    /// Three-letter [ISO code for the currency](https://stripe.com/docs/currencies) the customer can be charged in for recurring billing purposes.
+    /// Three-letter [ISO code for the currency](<https://stripe.`com/docs/currencies`>) the customer can be charged in for recurring billing purposes.
     #[serde(default)]
     pub currency: ::core::option::Option<String>,
     /// The ID of an Account representing a customer. You can use this ID with any v1 API that accepts a customer_account parameter.
     #[serde(default)]
     pub customer_account: ::core::option::Option<String>,
-    /// ID of the default payment source for the customer.
+    /// ID of the default payment source for the customer.  If you use payment methods created through the PaymentMethods API, see the [invoice_settings.default_payment_method](<https://docs.stripe.`com/api/customers/object`#customer_object-invoice_settings-default_payment_method>) field instead.
     #[serde(default)]
     pub default_source: ::core::option::Option<serde_json::Value>,
-    /// Tracks the most recent state change on any invoice belonging to the customer. Paying an invoice or marking it uncollectible via the API will set this field to false. An automatic payment failure or passing the invoice.due_date will set this field to true.
+    /// Tracks the most recent state change on any invoice belonging to the customer. Paying an invoice or marking it uncollectible via the API will set this field to `false`. An automatic payment failure or passing the invoice.due_date will set this field to `true`.  If an invoice becomes uncollectible by [dunning](<https://docs.stripe.`com/billing/automatic-collection`>), delinquent doesn''t reset to `false`.  If you care whether the customer has paid their most recent subscription invoice, use subscription.status instead. Paying or marking uncollectible any customer invoice regardless of whether it is the latest invoice for a subscription will always set this field to `false`.
     #[serde(default)]
     pub delinquent: ::core::option::Option<bool>,
     /// An arbitrary string attached to the object. Often useful for displaying to users.
@@ -2073,9 +1985,9 @@ pub struct Customer {
     pub invoice_prefix: ::core::option::Option<String>,
     #[serde(default)]
     pub invoice_settings: ::core::option::Option<InvoiceSettingCustomerSetting>,
-    /// If the object exists in live mode, the value is true. If the object exists in test mode, the value is false.
+    /// If the object exists in live mode, the value is `true`. If the object exists in test mode, the value is `false`.
     pub livemode: bool,
-    /// Set of [key-value pairs](https://docs.stripe.com/api/metadata) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
+    /// Set of [key-value pairs](<https://docs.stripe.`com/api/metadata`>) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
     #[serde(default)]
     pub metadata: ::core::option::Option<serde_json::Value>,
     /// The customer''s full name or business name.
@@ -2084,7 +1996,7 @@ pub struct Customer {
     /// The suffix of the customer''s next invoice number (for example, 0001). When the account uses account level sequencing, this parameter is ignored in API requests and the field omitted in API responses.
     #[serde(default)]
     pub next_invoice_sequence: ::core::option::Option<i64>,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["customer"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["customer"]
     pub object: String,
     /// The customer''s phone number.
     #[serde(default)]
@@ -2114,12 +2026,7 @@ pub struct Customer {
     pub test_clock: ::core::option::Option<serde_json::Value>,
 }
 
-/// Each customer has a [Balance](https://docs.stripe.com/api/customers/object#customer_object-balance) value,
-/// which denotes a debit or credit that''s automatically applied to their next invoice upon finalization.
-/// You may modify the value directly by using the [update customer API](https://docs.stripe.com/api/customers/update),
-/// or by creating a Customer Balance Transaction, which increments or decrements the customer''s balance by the specified amount.
-///
-/// Related guide: [Customer balance](https://docs.stripe.com/billing/customer/balance)
+/// Each customer has a [Balance](<https://docs.stripe.`com/api/customers/object`#customer_object-balance>) value,
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomerBalanceTransaction {
     /// The amount of the transaction. A negative value is a credit for the customer''s balance, and a positive value is a debit to the customer''s balance.
@@ -2132,7 +2039,7 @@ pub struct CustomerBalanceTransaction {
     /// The ID of the credit note (if any) related to the transaction.
     #[serde(default)]
     pub credit_note: ::core::option::Option<serde_json::Value>,
-    /// Three-letter [ISO currency code](https://www.iso.org/iso-4217-currency-codes.html), in lowercase. Must be a [supported currency](https://stripe.com/docs/currencies).
+    /// Three-letter [ISO currency code](<https://www.iso.`org/iso-4217-currency-codes`.html>), in lowercase. Must be a [supported currency](<https://stripe.`com/docs/currencies`>).
     pub currency: String,
     /// The ID of the customer the transaction belongs to.
     pub customer: serde_json::Value,
@@ -2149,22 +2056,19 @@ pub struct CustomerBalanceTransaction {
     /// The ID of the invoice (if any) related to the transaction.
     #[serde(default)]
     pub invoice: ::core::option::Option<serde_json::Value>,
-    /// If the object exists in live mode, the value is true. If the object exists in test mode, the value is false.
+    /// If the object exists in live mode, the value is `true`. If the object exists in test mode, the value is `false`.
     pub livemode: bool,
-    /// Set of [key-value pairs](https://docs.stripe.com/api/metadata) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
+    /// Set of [key-value pairs](<https://docs.stripe.`com/api/metadata`>) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
     #[serde(default)]
     pub metadata: ::core::option::Option<serde_json::Value>,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["customer_balance_transaction"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["customer_balance_transaction"]
     pub object: String,
-    /// Transaction type: adjustment, applied_to_invoice, credit_note, initial, invoice_overpaid, invoice_too_large, invoice_too_small, unspent_receiver_credit, unapplied_from_invoice, checkout_session_subscription_payment, or checkout_session_subscription_payment_canceled. See the [Customer Balance page](https://docs.stripe.com/billing/customer/balance#types) to learn more about transaction types. // TODO: enum values: ["adjustment", "applied_to_invoice", "checkout_session_subscription_payment", "checkout_session_subscription_payment_canceled", "credit_note", "initial", "invoice_overpaid", "invoice_too_large", "invoice_too_small", "migration", "unapplied_from_invoice", "unspent_receiver_credit"]
+    /// Transaction type: adjustment, applied_to_invoice, credit_note, initial, invoice_overpaid, invoice_too_large, invoice_too_small, unspent_receiver_credit, unapplied_from_invoice, checkout_session_subscription_payment, or checkout_session_subscription_payment_canceled. See the [Customer Balance page](<https://docs.stripe.`com/billing/customer/balance`#types>) to learn more about transaction types. // TODO: enum values: ["adjustment", "applied_to_invoice", "checkout_session_subscription_payment", "checkout_session_subscription_payment_canceled", "credit_note", "initial", "invoice_overpaid", "invoice_too_large", "invoice_too_small", "migration", "unapplied_from_invoice", "unspent_receiver_credit"]
     #[serde(rename = "type")]
     pub type_: String,
 }
 
 /// Customers with certain payments enabled have a cash balance, representing funds that were paid
-/// by the customer to a merchant, but have not yet been allocated to a payment. Cash Balance Transactions
-/// represent when funds are moved into or out of this balance. This includes funding by the customer, allocation
-/// to payments, and refunds to the customer.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomerCashBalanceTransaction {
     #[serde(default)]
@@ -2177,14 +2081,14 @@ pub struct CustomerCashBalanceTransaction {
     >,
     /// Time at which the object was created. Measured in seconds since the Unix epoch.
     pub created: i64,
-    /// Three-letter [ISO currency code](https://www.iso.org/iso-4217-currency-codes.html), in lowercase. Must be a [supported currency](https://stripe.com/docs/currencies).
+    /// Three-letter [ISO currency code](<https://www.iso.`org/iso-4217-currency-codes`.html>), in lowercase. Must be a [supported currency](<https://stripe.`com/docs/currencies`>).
     pub currency: String,
     /// The customer whose available cash balance changed as a result of this transaction.
     pub customer: serde_json::Value,
     /// The ID of an Account representing a customer whose available cash balance changed as a result of this transaction.
     #[serde(default)]
     pub customer_account: ::core::option::Option<String>,
-    /// The total available cash balance for the specified currency after this transaction was applied. Represented in the [smallest currency unit](https://docs.stripe.com/currencies#zero-decimal).
+    /// The total available cash balance for the specified currency after this transaction was applied. Represented in the [smallest currency unit](<https://docs.stripe.`com/currencies`#zero-decimal>).
     pub ending_balance: i64,
     #[serde(default)]
     pub funded: ::core::option::Option<
@@ -2192,11 +2096,11 @@ pub struct CustomerCashBalanceTransaction {
     >,
     /// Unique identifier for the object.
     pub id: String,
-    /// If the object exists in live mode, the value is true. If the object exists in test mode, the value is false.
+    /// If the object exists in live mode, the value is `true`. If the object exists in test mode, the value is `false`.
     pub livemode: bool,
-    /// The amount by which the cash balance changed, represented in the [smallest currency unit](https://docs.stripe.com/currencies#zero-decimal). A positive value represents funds being added to the cash balance, a negative value represents funds being removed from the cash balance.
+    /// The amount by which the cash balance changed, represented in the [smallest currency unit](<https://docs.stripe.`com/currencies`#zero-decimal>). A positive value represents funds being added to the cash balance, a negative value represents funds being removed from the cash balance.
     pub net_amount: i64,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["customer_cash_balance_transaction"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["customer_cash_balance_transaction"]
     pub object: String,
     #[serde(default)]
     pub refunded_from_payment: ::core::option::Option<
@@ -2206,7 +2110,7 @@ pub struct CustomerCashBalanceTransaction {
     pub transferred_to_balance: ::core::option::Option<
         CustomerBalanceResourceCashBalanceTransactionResourceTransferredToBalance,
     >,
-    /// The type of the cash balance transaction. New types may be added in future. See [Customer Balance](https://docs.stripe.com/payments/customer-balance#types) to learn more about these types. // TODO: enum values: ["adjusted_for_overdraft", "applied_to_payment", "funded", "funding_reversed", "refunded_from_payment", "return_canceled", "return_initiated", "transferred_to_balance", "unapplied_from_payment"]
+    /// The type of the cash balance transaction. New types may be added in future. See [Customer Balance](<https://docs.stripe.`com/payments/customer-balance`#types>) to learn more about these types. // TODO: enum values: ["adjusted_for_overdraft", "applied_to_payment", "funded", "funding_reversed", "refunded_from_payment", "return_canceled", "return_initiated", "transferred_to_balance", "unapplied_from_payment"]
     #[serde(rename = "type")]
     pub type_: String,
     #[serde(default)]
@@ -2216,14 +2120,9 @@ pub struct CustomerCashBalanceTransaction {
 }
 
 /// A Customer Session allows you to grant Stripe''s frontend SDKs (like Stripe.js) client-side access
-/// control over a Customer.
-///
-/// Related guides: [Customer Session with the Payment Element](/payments/accept-a-payment-deferred?platform=web&type=payment#save-payment-methods),
-/// [Customer Session with the Pricing Table](/payments/checkout/pricing-table#customer-session),
-/// [Customer Session with the Buy Button](/payment-links/buy-button#pass-an-existing-customer).
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomerSession {
-    /// The client secret of this Customer Session. Used on the client to set up secure access to the given customer.
+    /// The client secret of this Customer Session. Used on the client to set up secure access to the given customer.  The client secret can be used to provide access to customer from your frontend. It should not be stored, logged, or exposed to anyone other than the relevant customer. Make sure that you have TLS enabled on any page that includes the client secret.
     pub client_secret: String,
     #[serde(default)]
     pub components: ::core::option::Option<CustomerSessionResourceComponents>,
@@ -2236,19 +2135,19 @@ pub struct CustomerSession {
     pub customer_account: ::core::option::Option<String>,
     /// The timestamp at which this Customer Session will expire.
     pub expires_at: i64,
-    /// If the object exists in live mode, the value is true. If the object exists in test mode, the value is false.
+    /// If the object exists in live mode, the value is `true`. If the object exists in test mode, the value is `false`.
     pub livemode: bool,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["customer_session"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["customer_session"]
     pub object: String,
 }
 
 /// This hash contains the features the customer sheet supports.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomerSessionResourceComponentsResourceCustomerSheetResourceFeatures {
-    /// A list of [allow_redisplay](https://docs.stripe.com/api/payment_methods/object#payment_method_object-allow_redisplay) values that controls which saved payment methods the customer sheet displays by filtering to only show payment methods with an allow_redisplay value that is present in this list.
+    /// A list of [allow_redisplay](<https://docs.stripe.`com/api/payment_methods/object`#payment_method_object-allow_redisplay>) values that controls which saved payment methods the customer sheet displays by filtering to only show payment methods with an allow_redisplay value that is present in this list.  If not specified, defaults to ["always"]. In order to display all saved payment methods, specify ["always", "limited", "unspecified"].
     #[serde(default)]
     pub payment_method_allow_redisplay_filters: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Controls whether the customer sheet displays the option to remove a saved payment method."
+    /// Controls whether the customer sheet displays the option to remove a saved payment method."  Allowing buyers to remove their saved payment methods impacts subscriptions that depend on that payment method. Removing the payment method detaches the [customer object](<https://docs.stripe.`com/api/payment_methods/object`#payment_method_object-customer>) from that [PaymentMethod](<https://docs.stripe.`com/api/payment_methods`>). // TODO: enum values: ["disabled", "enabled"]
     #[serde(default)]
     pub payment_method_remove: ::core::option::Option<String>,
 }
@@ -2256,19 +2155,19 @@ pub struct CustomerSessionResourceComponentsResourceCustomerSheetResourceFeature
 /// This hash contains the features the mobile payment element supports.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomerSessionResourceComponentsResourceMobilePaymentElementResourceFeatures {
-    /// A list of [allow_redisplay](https://docs.stripe.com/api/payment_methods/object#payment_method_object-allow_redisplay) values that controls which saved payment methods the mobile payment element displays by filtering to only show payment methods with an allow_redisplay value that is present in this list.
+    /// A list of [allow_redisplay](<https://docs.stripe.`com/api/payment_methods/object`#payment_method_object-allow_redisplay>) values that controls which saved payment methods the mobile payment element displays by filtering to only show payment methods with an allow_redisplay value that is present in this list.  If not specified, defaults to ["always"]. In order to display all saved payment methods, specify ["always", "limited", "unspecified"].
     #[serde(default)]
     pub payment_method_allow_redisplay_filters: ::core::option::Option<::std::vec::Vec<String>>,
     /// Controls whether or not the mobile payment element shows saved payment methods. // TODO: enum values: ["disabled", "enabled"]
     #[serde(default)]
     pub payment_method_redisplay: ::core::option::Option<String>,
-    /// Controls whether the mobile payment element displays the option to remove a saved payment method."
+    /// Controls whether the mobile payment element displays the option to remove a saved payment method."  Allowing buyers to remove their saved payment methods impacts subscriptions that depend on that payment method. Removing the payment method detaches the [customer object](<https://docs.stripe.`com/api/payment_methods/object`#payment_method_object-customer>) from that [PaymentMethod](<https://docs.stripe.`com/api/payment_methods`>). // TODO: enum values: ["disabled", "enabled"]
     #[serde(default)]
     pub payment_method_remove: ::core::option::Option<String>,
-    /// Controls whether the mobile payment element displays a checkbox offering to save a new payment method.
+    /// Controls whether the mobile payment element displays a checkbox offering to save a new payment method.  If a customer checks the box, the [allow_redisplay](<https://docs.stripe.`com/api/payment_methods/object`#payment_method_object-allow_redisplay>) value on the PaymentMethod is set to ''always'' at confirmation time. For PaymentIntents, the [setup_future_usage](<https://docs.stripe.`com/api/payment_intents/object`#payment_intent_object-setup_future_usage>) value is also set to the value defined in payment_method_save_usage. // TODO: enum values: ["disabled", "enabled"]
     #[serde(default)]
     pub payment_method_save: ::core::option::Option<String>,
-    /// Allows overriding the value of allow_override when saving a new payment method when payment_method_save is set to disabled. Use values: "always", "limited", or "unspecified".
+    /// Allows overriding the value of allow_override when saving a new payment method when payment_method_save is set to disabled. Use values: "always", "limited", or "unspecified".  If not specified, defaults to nil (no override value). // TODO: enum values: ["always", "limited", "unspecified"]
     #[serde(default)]
     pub payment_method_save_allow_redisplay_override: ::core::option::Option<String>,
 }
@@ -2276,18 +2175,18 @@ pub struct CustomerSessionResourceComponentsResourceMobilePaymentElementResource
 /// This hash contains the features the Payment Element supports.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomerSessionResourceComponentsResourcePaymentElementResourceFeatures {
-    /// A list of [allow_redisplay](https://docs.stripe.com/api/payment_methods/object#payment_method_object-allow_redisplay) values that controls which saved payment methods the Payment Element displays by filtering to only show payment methods with an allow_redisplay value that is present in this list.
+    /// A list of [allow_redisplay](<https://docs.stripe.`com/api/payment_methods/object`#payment_method_object-allow_redisplay>) values that controls which saved payment methods the Payment Element displays by filtering to only show payment methods with an allow_redisplay value that is present in this list.  If not specified, defaults to ["always"]. In order to display all saved payment methods, specify ["always", "limited", "unspecified"].
     pub payment_method_allow_redisplay_filters: ::std::vec::Vec<String>,
     /// Controls whether or not the Payment Element shows saved payment methods. This parameter defaults to disabled. // TODO: enum values: ["disabled", "enabled"]
     pub payment_method_redisplay: String,
     /// Determines the max number of saved payment methods for the Payment Element to display. This parameter defaults to 3. The maximum redisplay limit is 10.
     #[serde(default)]
     pub payment_method_redisplay_limit: ::core::option::Option<i64>,
-    /// Controls whether the Payment Element displays the option to remove a saved payment method. This parameter defaults to disabled.
+    /// Controls whether the Payment Element displays the option to remove a saved payment method. This parameter defaults to disabled.  Allowing buyers to remove their saved payment methods impacts subscriptions that depend on that payment method. Removing the payment method detaches the [customer object](<https://docs.stripe.`com/api/payment_methods/object`#payment_method_object-customer>) from that [PaymentMethod](<https://docs.stripe.`com/api/payment_methods`>). // TODO: enum values: ["disabled", "enabled"]
     pub payment_method_remove: String,
-    /// Controls whether the Payment Element displays a checkbox offering to save a new payment method. This parameter defaults to disabled.
+    /// Controls whether the Payment Element displays a checkbox offering to save a new payment method. This parameter defaults to disabled.  If a customer checks the box, the [allow_redisplay](<https://docs.stripe.`com/api/payment_methods/object`#payment_method_object-allow_redisplay>) value on the PaymentMethod is set to ''always'' at confirmation time. For PaymentIntents, the [setup_future_usage](<https://docs.stripe.`com/api/payment_intents/object`#payment_intent_object-setup_future_usage>) value is also set to the value defined in payment_method_save_usage. // TODO: enum values: ["disabled", "enabled"]
     pub payment_method_save: String,
-    /// When using PaymentIntents and the customer checks the save checkbox, this field determines the [setup_future_usage](https://docs.stripe.com/api/payment_intents/object#payment_intent_object-setup_future_usage) value used to confirm the PaymentIntent.
+    /// When using PaymentIntents and the customer checks the save checkbox, this field determines the [setup_future_usage](<https://docs.stripe.`com/api/payment_intents/object`#payment_intent_object-setup_future_usage>) value used to confirm the PaymentIntent.  When using SetupIntents, directly configure the [usage](<https://docs.stripe.`com/api/setup_intents/object`#setup_intent_object-usage>) value on SetupIntent creation. // TODO: enum values: ["off_session", "on_session"]
     #[serde(default)]
     pub payment_method_save_usage: ::core::option::Option<String>,
 }
@@ -2305,80 +2204,80 @@ pub struct CustomerTaxLocation {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeletedAccount {
-    /// Always true for a deleted object // TODO: enum values: [true]
+    /// Always `true` for a deleted object // TODO: enum values: [`true`]
     pub deleted: bool,
     /// Unique identifier for the object.
     pub id: String,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["account"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["account"]
     pub object: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeletedApplePayDomain {
-    /// Always true for a deleted object // TODO: enum values: [true]
+    /// Always `true` for a deleted object // TODO: enum values: [`true`]
     pub deleted: bool,
     /// Unique identifier for the object.
     pub id: String,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["apple_pay_domain"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["apple_pay_domain"]
     pub object: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeletedApplication {
-    /// Always true for a deleted object // TODO: enum values: [true]
+    /// Always `true` for a deleted object // TODO: enum values: [`true`]
     pub deleted: bool,
     /// Unique identifier for the object.
     pub id: String,
     /// The name of the application.
     #[serde(default)]
     pub name: ::core::option::Option<String>,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["application"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["application"]
     pub object: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeletedBankAccount {
-    /// Three-letter [ISO code for the currency](https://stripe.com/docs/payouts) paid out to the bank account.
+    /// Three-letter [ISO code for the currency](<https://stripe.`com/docs/payouts`>) paid out to the bank account.
     #[serde(default)]
     pub currency: ::core::option::Option<String>,
-    /// Always true for a deleted object // TODO: enum values: [true]
+    /// Always `true` for a deleted object // TODO: enum values: [`true`]
     pub deleted: bool,
     /// Unique identifier for the object.
     pub id: String,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["bank_account"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["bank_account"]
     pub object: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeletedCard {
-    /// Three-letter [ISO code for the currency](https://stripe.com/docs/payouts) paid out to the bank account.
+    /// Three-letter [ISO code for the currency](<https://stripe.`com/docs/payouts`>) paid out to the bank account.
     #[serde(default)]
     pub currency: ::core::option::Option<String>,
-    /// Always true for a deleted object // TODO: enum values: [true]
+    /// Always `true` for a deleted object // TODO: enum values: [`true`]
     pub deleted: bool,
     /// Unique identifier for the object.
     pub id: String,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["card"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["card"]
     pub object: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeletedCoupon {
-    /// Always true for a deleted object // TODO: enum values: [true]
+    /// Always `true` for a deleted object // TODO: enum values: [`true`]
     pub deleted: bool,
     /// Unique identifier for the object.
     pub id: String,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["coupon"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["coupon"]
     pub object: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeletedCustomer {
-    /// Always true for a deleted object // TODO: enum values: [true]
+    /// Always `true` for a deleted object // TODO: enum values: [`true`]
     pub deleted: bool,
     /// Unique identifier for the object.
     pub id: String,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["customer"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["customer"]
     pub object: String,
 }
 
@@ -2393,7 +2292,7 @@ pub struct DeletedDiscount {
     /// The ID of the account representing the customer associated with this discount.
     #[serde(default)]
     pub customer_account: ::core::option::Option<String>,
-    /// Always true for a deleted object // TODO: enum values: [true]
+    /// Always `true` for a deleted object // TODO: enum values: [`true`]
     pub deleted: bool,
     /// The ID of the discount object. Discounts cannot be fetched by ID. Use expand[]=discounts in API calls to expand discount IDs in an array.
     pub id: String,
@@ -2403,7 +2302,7 @@ pub struct DeletedDiscount {
     /// The invoice item id (or invoice line item id for invoice line items of type=''subscription'') that the discount''s coupon was applied to, if it was applied directly to a particular invoice item or invoice line item.
     #[serde(default)]
     pub invoice_item: ::core::option::Option<String>,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["discount"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["discount"]
     pub object: String,
     /// The promotion code applied to create this discount.
     #[serde(default)]
@@ -2427,21 +2326,21 @@ pub struct DeletedExternalAccount {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeletedInvoice {
-    /// Always true for a deleted object // TODO: enum values: [true]
+    /// Always `true` for a deleted object // TODO: enum values: [`true`]
     pub deleted: bool,
     /// Unique identifier for the object.
     pub id: String,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["invoice"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["invoice"]
     pub object: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeletedInvoiceitem {
-    /// Always true for a deleted object // TODO: enum values: [true]
+    /// Always `true` for a deleted object // TODO: enum values: [`true`]
     pub deleted: bool,
     /// Unique identifier for the object.
     pub id: String,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["invoiceitem"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["invoiceitem"]
     pub object: String,
 }
 
@@ -2453,123 +2352,123 @@ pub struct DeletedPaymentSource {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeletedPerson {
-    /// Always true for a deleted object // TODO: enum values: [true]
+    /// Always `true` for a deleted object // TODO: enum values: [`true`]
     pub deleted: bool,
     /// Unique identifier for the object.
     pub id: String,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["person"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["person"]
     pub object: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeletedPlan {
-    /// Always true for a deleted object // TODO: enum values: [true]
+    /// Always `true` for a deleted object // TODO: enum values: [`true`]
     pub deleted: bool,
     /// Unique identifier for the object.
     pub id: String,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["plan"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["plan"]
     pub object: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeletedPrice {
-    /// Always true for a deleted object // TODO: enum values: [true]
+    /// Always `true` for a deleted object // TODO: enum values: [`true`]
     pub deleted: bool,
     /// Unique identifier for the object.
     pub id: String,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["price"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["price"]
     pub object: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeletedProduct {
-    /// Always true for a deleted object // TODO: enum values: [true]
+    /// Always `true` for a deleted object // TODO: enum values: [`true`]
     pub deleted: bool,
     /// Unique identifier for the object.
     pub id: String,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["product"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["product"]
     pub object: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeletedProductFeature {
-    /// Always true for a deleted object // TODO: enum values: [true]
+    /// Always `true` for a deleted object // TODO: enum values: [`true`]
     pub deleted: bool,
     /// Unique identifier for the object.
     pub id: String,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["product_feature"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["product_feature"]
     pub object: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeletedRadarValueList {
-    /// Always true for a deleted object // TODO: enum values: [true]
+    /// Always `true` for a deleted object // TODO: enum values: [`true`]
     pub deleted: bool,
     /// Unique identifier for the object.
     pub id: String,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["radar.value_list"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["radar.value_list"]
     pub object: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeletedRadarValueListItem {
-    /// Always true for a deleted object // TODO: enum values: [true]
+    /// Always `true` for a deleted object // TODO: enum values: [`true`]
     pub deleted: bool,
     /// Unique identifier for the object.
     pub id: String,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["radar.value_list_item"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["radar.value_list_item"]
     pub object: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeletedSubscriptionItem {
-    /// Always true for a deleted object // TODO: enum values: [true]
+    /// Always `true` for a deleted object // TODO: enum values: [`true`]
     pub deleted: bool,
     /// Unique identifier for the object.
     pub id: String,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["subscription_item"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["subscription_item"]
     pub object: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeletedTaxId {
-    /// Always true for a deleted object // TODO: enum values: [true]
+    /// Always `true` for a deleted object // TODO: enum values: [`true`]
     pub deleted: bool,
     /// Unique identifier for the object.
     pub id: String,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["tax_id"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["tax_id"]
     pub object: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeletedTerminalConfiguration {
-    /// Always true for a deleted object // TODO: enum values: [true]
+    /// Always `true` for a deleted object // TODO: enum values: [`true`]
     pub deleted: bool,
     /// Unique identifier for the object.
     pub id: String,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["terminal.configuration"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["terminal.configuration"]
     pub object: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeletedTerminalLocation {
-    /// Always true for a deleted object // TODO: enum values: [true]
+    /// Always `true` for a deleted object // TODO: enum values: [`true`]
     pub deleted: bool,
     /// Unique identifier for the object.
     pub id: String,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["terminal.location"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["terminal.location"]
     pub object: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeletedTerminalReader {
-    /// Always true for a deleted object // TODO: enum values: [true]
+    /// Always `true` for a deleted object // TODO: enum values: [`true`]
     pub deleted: bool,
     /// Device type of the reader. // TODO: enum values: ["bbpos_chipper2x", "bbpos_wisepad3", "bbpos_wisepos_e", "mobile_phone_reader", "simulated_stripe_s700", "simulated_stripe_s710", "simulated_wisepos_e", "stripe_m2", "stripe_s700", "stripe_s710", "verifone_P400"]
     pub device_type: String,
     /// Unique identifier for the object.
     pub id: String,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["terminal.reader"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["terminal.reader"]
     pub object: String,
     /// Serial number of the reader.
     pub serial_number: String,
@@ -2577,29 +2476,25 @@ pub struct DeletedTerminalReader {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeletedTestHelpersTestClock {
-    /// Always true for a deleted object // TODO: enum values: [true]
+    /// Always `true` for a deleted object // TODO: enum values: [`true`]
     pub deleted: bool,
     /// Unique identifier for the object.
     pub id: String,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["test_helpers.test_clock"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["test_helpers.test_clock"]
     pub object: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeletedWebhookEndpoint {
-    /// Always true for a deleted object // TODO: enum values: [true]
+    /// Always `true` for a deleted object // TODO: enum values: [`true`]
     pub deleted: bool,
     /// Unique identifier for the object.
     pub id: String,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["webhook_endpoint"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["webhook_endpoint"]
     pub object: String,
 }
 
 /// A dispute occurs when a customer questions your charge with their card issuer.
-/// When this happens, you have the opportunity to respond to the dispute with
-/// evidence that shows that the charge is legitimate.
-///
-/// Related guide: [Disputes and fraud](https://docs.stripe.com/disputes)
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Dispute {
     /// Disputed amount. Usually the amount of the charge, but it can differ (usually because of currency fluctuation or because only part of the order is disputed).
@@ -2610,7 +2505,7 @@ pub struct Dispute {
     pub charge: serde_json::Value,
     /// Time at which the object was created. Measured in seconds since the Unix epoch.
     pub created: i64,
-    /// Three-letter [ISO currency code](https://www.iso.org/iso-4217-currency-codes.html), in lowercase. Must be a [supported currency](https://stripe.com/docs/currencies).
+    /// Three-letter [ISO currency code](<https://www.iso.`org/iso-4217-currency-codes`.html>), in lowercase. Must be a [supported currency](<https://stripe.`com/docs/currencies`>).
     pub currency: String,
     /// List of eligibility types that are included in enhanced_evidence.
     pub enhanced_eligibility_types: ::std::vec::Vec<String>,
@@ -2618,20 +2513,20 @@ pub struct Dispute {
     pub evidence_details: DisputeEvidenceDetails,
     /// Unique identifier for the object.
     pub id: String,
-    /// If true, it''s still possible to refund the disputed payment. After the payment has been fully refunded, no further funds are withdrawn from your Stripe account as a result of this dispute.
+    /// If `true`, it''s still possible to refund the disputed payment. After the payment has been fully refunded, no further funds are withdrawn from your Stripe account as a result of this dispute.
     pub is_charge_refundable: bool,
-    /// If the object exists in live mode, the value is true. If the object exists in test mode, the value is false.
+    /// If the object exists in live mode, the value is `true`. If the object exists in test mode, the value is `false`.
     pub livemode: bool,
-    /// Set of [key-value pairs](https://docs.stripe.com/api/metadata) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
+    /// Set of [key-value pairs](<https://docs.stripe.`com/api/metadata`>) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
     pub metadata: serde_json::Value,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["dispute"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["dispute"]
     pub object: String,
     /// ID of the PaymentIntent that''s disputed.
     #[serde(default)]
     pub payment_intent: ::core::option::Option<serde_json::Value>,
     #[serde(default)]
     pub payment_method_details: ::core::option::Option<DisputePaymentMethodDetails>,
-    /// Reason given by cardholder for dispute. Possible values are bank_cannot_process, check_returned, credit_not_processed, customer_initiated, debit_not_authorized, duplicate, fraudulent, general, incorrect_account_details, insufficient_funds, noncompliant, product_not_received, product_unacceptable, subscription_canceled, or unrecognized. Learn more about [dispute reasons](https://docs.stripe.com/disputes/categories).
+    /// Reason given by cardholder for dispute. Possible values are bank_cannot_process, check_returned, credit_not_processed, customer_initiated, debit_not_authorized, duplicate, fraudulent, general, incorrect_account_details, insufficient_funds, noncompliant, product_not_received, product_unacceptable, subscription_canceled, or unrecognized. Learn more about [dispute reasons](<https://docs.stripe.`com/disputes/categories`>).
     pub reason: String,
     /// The current status of a dispute. Possible values include:warning_needs_response, warning_under_review, warning_closed, needs_response, under_review, won, lost, or prevented. // TODO: enum values: ["lost", "needs_response", "prevented", "under_review", "warning_closed", "warning_needs_response", "warning_under_review", "won"]
     pub status: String,
@@ -2642,7 +2537,7 @@ pub struct DisputeTransactionShippingAddress {
     /// City, district, suburb, town, or village.
     #[serde(default)]
     pub city: ::core::option::Option<String>,
-    /// Two-letter country code ([ISO 3166-1 alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2)).
+    /// Two-letter country code ([ISO 3166-1 alpha-2](<https://en.wikipedia.`org/wiki/ISO_3166-1_alpha-2`>)).
     #[serde(default)]
     pub country: ::core::option::Option<String>,
     /// Address line 1, such as the street, PO Box, or company name.
@@ -2654,7 +2549,7 @@ pub struct DisputeTransactionShippingAddress {
     /// ZIP or postal code.
     #[serde(default)]
     pub postal_code: ::core::option::Option<String>,
-    /// State, county, province, or region ([ISO 3166-2](https://en.wikipedia.org/wiki/ISO_3166-2)).
+    /// State, county, province, or region ([ISO 3166-2](<https://en.wikipedia.`org/wiki/ISO_3166-2`>)).
     #[serde(default)]
     pub state: ::core::option::Option<String>,
 }
@@ -2690,15 +2585,15 @@ pub struct DisputeVisaCompellingEvidence3DisputedTransaction {
 /// An active entitlement describes access to a feature for a customer.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EntitlementsActiveEntitlement {
-    /// The [Feature](https://docs.stripe.com/api/entitlements/feature) that the customer is entitled to.
+    /// The [Feature](<https://docs.stripe.`com/api/entitlements/feature`>) that the customer is entitled to.
     pub feature: serde_json::Value,
     /// Unique identifier for the object.
     pub id: String,
-    /// If the object exists in live mode, the value is true. If the object exists in test mode, the value is false.
+    /// If the object exists in live mode, the value is `true`. If the object exists in test mode, the value is `false`.
     pub livemode: bool,
     /// A unique key you provide as your own system identifier. This may be up to 80 characters.
     pub lookup_key: String,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["entitlements.active_entitlement"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["entitlements.active_entitlement"]
     pub object: String,
 }
 
@@ -2710,9 +2605,9 @@ pub struct EphemeralKey {
     pub expires: i64,
     /// Unique identifier for the object.
     pub id: String,
-    /// If the object exists in live mode, the value is true. If the object exists in test mode, the value is false.
+    /// If the object exists in live mode, the value is `true`. If the object exists in test mode, the value is `false`.
     pub livemode: bool,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["ephemeral_key"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["ephemeral_key"]
     pub object: String,
     /// The key''s secret. You can use this value to make authorized requests to the Stripe API.
     #[serde(default)]
@@ -2726,23 +2621,6 @@ pub struct Error {
 }
 
 /// Snapshot events allow you to track and react to activity in your Stripe integration. When
-/// the state of another API resource changes, Stripe creates an Event object that contains
-/// all the relevant information associated with that action, including the affected API
-/// resource. For example, a successful payment triggers a charge.succeeded event, which
-/// contains the Charge in the event''s data property. Some actions trigger multiple events.
-/// For example, if you create a new subscription for a customer, it triggers both a
-/// customer.subscription.created event and a charge.succeeded event.
-///
-/// Configure an event destination in your account to listen for events that represent actions
-/// your integration needs to respond to. Additionally, you can retrieve an individual event or
-/// a list of events from the API.
-///
-/// [Connect](https://docs.stripe.com/connect) platforms can also receive event notifications
-/// that occur in their connected accounts. These events include an account attribute that
-/// identifies the relevant connected account.
-///
-/// You can access events through the [Retrieve Event API](https://docs.stripe.com/api/events#retrieve_event)
-/// for 30 days.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Event {
     /// The connected account that originates the event.
@@ -2759,9 +2637,9 @@ pub struct Event {
     pub data: NotificationEventData,
     /// Unique identifier for the object.
     pub id: String,
-    /// If the object exists in live mode, the value is true. If the object exists in test mode, the value is false.
+    /// If the object exists in live mode, the value is `true`. If the object exists in test mode, the value is `false`.
     pub livemode: bool,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["event"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["event"]
     pub object: String,
     /// Number of webhooks that haven''t been successfully delivered (for example, to return a 20x response) to the URLs you specify.
     pub pending_webhooks: i64,
@@ -2773,39 +2651,12 @@ pub struct Event {
     pub type_: String,
 }
 
-/// [Deprecated] The ExchangeRate APIs are deprecated. Please use the [FX Quotes API](https://docs.stripe.com/payments/currencies/localize-prices/fx-quotes-api) instead.
-///
-/// ExchangeRate objects allow you to determine the rates that Stripe is currently
-/// using to convert from one currency to another. Since this number is variable
-/// throughout the day, there are various reasons why you might want to know the current
-/// rate (for example, to dynamically price an item for a user with a default
-/// payment in a foreign currency).
-///
-/// Please refer to our [Exchange Rates API](https://docs.stripe.com/fx-rates) guide for more details.
-///
-/// *[Note: this integration path is supported but no longer recommended]* Additionally,
-/// you can guarantee that a charge is made with an exchange rate that you expect is
-/// current. To do so, you must pass in the exchange_rate to charges endpoints. If the
-/// value is no longer up to date, the charge won''t go through. Please refer to our
-/// [Using with charges](https://docs.stripe.com/exchange-rates) guide for more details.
-///
-/// -----
-///
-/// &nbsp;
-///
-/// *This Exchange Rates API is a Beta Service and is subject to Stripe''s terms of service. You may use the API solely for the purpose of transacting on Stripe. For example, the API may be queried in order to:*
-///
-/// - *localize prices for processing payments on Stripe*
-/// - *reconcile Stripe transactions*
-/// - *determine how much money to send to a connected account*
-/// - *determine app fees to charge a connected account*
-///
-/// *Using this Exchange Rates API beta for any purpose other than to transact on Stripe is strictly prohibited and constitutes a violation of Stripe''s terms of service.*
+/// [Deprecated] The ExchangeRate APIs are deprecated. Please use the [FX Quotes API](<https://docs.stripe.`com/payments/currencies/localize-prices/fx-quotes-api`>) instead.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExchangeRate {
-    /// Unique identifier for the object. Represented as the three-letter [ISO currency code](https://www.iso.org/iso-4217-currency-codes.html) in lowercase.
+    /// Unique identifier for the object. Represented as the three-letter [ISO currency code](<https://www.iso.`org/iso-4217-currency-codes`.html>) in lowercase.
     pub id: String,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["exchange_rate"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["exchange_rate"]
     pub object: String,
     /// Hash where the keys are supported currencies and the values are the exchange rate at which the base id currency converts to the key currency.
     pub rates: serde_json::Value,
@@ -2834,10 +2685,6 @@ pub struct ExternalAccountRequirements {
 }
 
 /// Application Fee Refund objects allow you to refund an application fee that
-/// has previously been created but not yet refunded. Funds will be refunded to
-/// the Stripe account from which the fee was originally collected.
-///
-/// Related guide: [Refunding application fees](https://docs.stripe.com/connect/destination-charges#refunding-app-fee)
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FeeRefund {
     /// Amount, in cents (or local equivalent).
@@ -2847,26 +2694,20 @@ pub struct FeeRefund {
     pub balance_transaction: ::core::option::Option<serde_json::Value>,
     /// Time at which the object was created. Measured in seconds since the Unix epoch.
     pub created: i64,
-    /// Three-letter [ISO currency code](https://www.iso.org/iso-4217-currency-codes.html), in lowercase. Must be a [supported currency](https://stripe.com/docs/currencies).
+    /// Three-letter [ISO currency code](<https://www.iso.`org/iso-4217-currency-codes`.html>), in lowercase. Must be a [supported currency](<https://stripe.`com/docs/currencies`>).
     pub currency: String,
     /// ID of the application fee that was refunded.
     pub fee: serde_json::Value,
     /// Unique identifier for the object.
     pub id: String,
-    /// Set of [key-value pairs](https://docs.stripe.com/api/metadata) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
+    /// Set of [key-value pairs](<https://docs.stripe.`com/api/metadata`>) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
     #[serde(default)]
     pub metadata: ::core::option::Option<serde_json::Value>,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["fee_refund"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["fee_refund"]
     pub object: String,
 }
 
 /// This object represents files hosted on Stripe''s servers. You can upload
-/// files with the [create file](https://api.stripe.com#create_file) request
-/// (for example, when uploading dispute evidence). Stripe also
-/// creates files independently (for example, the results of a [Sigma scheduled
-/// query](#scheduled_queries)).
-///
-/// Related guide: [File upload guide](https://docs.stripe.com/file-upload)
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct File {
     /// Time at which the object was created. Measured in seconds since the Unix epoch.
@@ -2879,12 +2720,12 @@ pub struct File {
     pub filename: ::core::option::Option<String>,
     /// Unique identifier for the object.
     pub id: String,
-    /// A list of [file links](https://api.stripe.com#file_links) that point at this file.
+    /// A list of [file links](<https://api.stripe.com#file_links>) that point at this file.
     #[serde(default)]
     pub links: ::core::option::Option<serde_json::Value>,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["file"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["file"]
     pub object: String,
-    /// The [purpose](https://docs.stripe.com/file-upload#uploading-a-file) of the uploaded file. // TODO: enum values: ["account_requirement", "additional_verification", "business_icon", "business_logo", "customer_signature", "dispute_evidence", "document_provider_identity_document", "finance_report_run", "financial_account_statement", "identity_document", "identity_document_downloadable", "issuing_regulatory_reporting", "pci_document", "platform_terms_of_service", "selfie", "sigma_scheduled_query", "tax_document_user_upload", "terminal_android_apk", "terminal_reader_splashscreen", "terminal_wifi_certificate", "terminal_wifi_private_key"]
+    /// The [purpose](<https://docs.stripe.`com/file-upload`#uploading-a-file>) of the uploaded file. // TODO: enum values: ["account_requirement", "additional_verification", "business_icon", "business_logo", "customer_signature", "dispute_evidence", "document_provider_identity_document", "finance_report_run", "financial_account_statement", "identity_document", "identity_document_downloadable", "issuing_regulatory_reporting", "pci_document", "platform_terms_of_service", "selfie", "sigma_scheduled_query", "tax_document_user_upload", "terminal_android_apk", "terminal_reader_splashscreen", "terminal_wifi_certificate", "terminal_wifi_private_key"]
     pub purpose: String,
     /// The size of the file object in bytes.
     pub size: i64,
@@ -2900,8 +2741,6 @@ pub struct File {
 }
 
 /// To share the contents of a File object with non-Stripe users, you can
-/// create a FileLink. FileLinks contain a URL that you can use to
-/// retrieve the contents of the file without authentication.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FileLink {
     /// Time at which the object was created. Measured in seconds since the Unix epoch.
@@ -2915,11 +2754,11 @@ pub struct FileLink {
     pub file: serde_json::Value,
     /// Unique identifier for the object.
     pub id: String,
-    /// If the object exists in live mode, the value is true. If the object exists in test mode, the value is false.
+    /// If the object exists in live mode, the value is `true`. If the object exists in test mode, the value is `false`.
     pub livemode: bool,
-    /// Set of [key-value pairs](https://docs.stripe.com/api/metadata) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
+    /// Set of [key-value pairs](<https://docs.stripe.`com/api/metadata`>) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
     pub metadata: serde_json::Value,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["file_link"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["file_link"]
     pub object: String,
     /// The publicly accessible URL to download the file.
     #[serde(default)]
@@ -2956,9 +2795,9 @@ pub struct FinancialConnectionsAccount {
     /// The last 4 digits of the account number. If present, this will be 4 numeric characters.
     #[serde(default)]
     pub last4: ::core::option::Option<String>,
-    /// If the object exists in live mode, the value is true. If the object exists in test mode, the value is false.
+    /// If the object exists in live mode, the value is `true`. If the object exists in test mode, the value is `false`.
     pub livemode: bool,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["financial_connections.account"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["financial_connections.account"]
     pub object: String,
     /// The most recent information about the account''s owners.
     #[serde(default)]
@@ -2971,12 +2810,12 @@ pub struct FinancialConnectionsAccount {
     pub permissions: ::core::option::Option<::std::vec::Vec<String>>,
     /// The status of the link to the account. // TODO: enum values: ["active", "disconnected", "inactive"]
     pub status: String,
-    /// If category is cash, one of:
+    /// If category is cash, one of:  - checking - savings - other  If category is credit, one of:  - mortgage - line_of_credit - credit_card - other  If category is investment or other, this will be other. // TODO: enum values: ["checking", "credit_card", "line_of_credit", "mortgage", "other", "savings"]
     pub subcategory: String,
     /// The list of data refresh subscriptions requested on this account.
     #[serde(default)]
     pub subscriptions: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The [PaymentMethod type](https://docs.stripe.com/api/payment_methods/object#payment_method_object-type)(s) that can be created from this account.
+    /// The [PaymentMethod type](<https://docs.stripe.`com/api/payment_methods/object`#payment_method_object-type>)(s) that can be created from this account.
     pub supported_payment_method_types: ::std::vec::Vec<String>,
     /// The state of the most recent attempt to refresh the account transactions.
     #[serde(default)]
@@ -2993,7 +2832,7 @@ pub struct FinancialConnectionsAccountOwner {
     pub id: String,
     /// The full name of the owner.
     pub name: String,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["financial_connections.account_owner"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["financial_connections.account_owner"]
     pub object: String,
     /// The ownership object that this owner belongs to.
     pub ownership: String,
@@ -3015,7 +2854,7 @@ pub struct FinancialConnectionsAccountOwnership {
     pub created: i64,
     /// Unique identifier for the object.
     pub id: String,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["financial_connections.account_ownership"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["financial_connections.account_ownership"]
     pub object: String,
     /// A paginated list of owners for this account.
     pub owners: serde_json::Value,
@@ -3036,9 +2875,9 @@ pub struct FinancialConnectionsSession {
     pub filters: ::core::option::Option<BankConnectionsResourceLinkAccountSessionFilters>,
     /// Unique identifier for the object.
     pub id: String,
-    /// If the object exists in live mode, the value is true. If the object exists in test mode, the value is false.
+    /// If the object exists in live mode, the value is `true`. If the object exists in test mode, the value is `false`.
     pub livemode: bool,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["financial_connections.session"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["financial_connections.session"]
     pub object: String,
     /// Permissions requested for accounts collected during this session.
     pub permissions: ::std::vec::Vec<String>,
@@ -3057,15 +2896,15 @@ pub struct FinancialConnectionsTransaction {
     pub account: String,
     /// The amount of this transaction, in cents (or local equivalent).
     pub amount: i64,
-    /// Three-letter [ISO currency code](https://www.iso.org/iso-4217-currency-codes.html), in lowercase. Must be a [supported currency](https://stripe.com/docs/currencies).
+    /// Three-letter [ISO currency code](<https://www.iso.`org/iso-4217-currency-codes`.html>), in lowercase. Must be a [supported currency](<https://stripe.`com/docs/currencies`>).
     pub currency: String,
     /// The description of this transaction.
     pub description: String,
     /// Unique identifier for the object.
     pub id: String,
-    /// If the object exists in live mode, the value is true. If the object exists in test mode, the value is false.
+    /// If the object exists in live mode, the value is `true`. If the object exists in test mode, the value is `false`.
     pub livemode: bool,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["financial_connections.transaction"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["financial_connections.transaction"]
     pub object: String,
     /// The status of the transaction. // TODO: enum values: ["pending", "posted", "void"]
     pub status: String,
@@ -3110,33 +2949,18 @@ pub struct ForwardedResponseDetails {
 }
 
 /// Instructs Stripe to make a request on your behalf using the destination URL. The destination URL
-/// is activated by Stripe at the time of onboarding. Stripe verifies requests with your credentials
-/// provided during onboarding, and injects card details from the payment_method into the request.
-///
-/// Stripe redacts all sensitive fields and headers, including authentication credentials and card numbers,
-/// before storing the request and response data in the forwarding Request object, which are subject to a
-/// 30-day retention period.
-///
-/// You can provide a Stripe idempotency key to make sure that requests with the same key result in only one
-/// outbound request. The Stripe idempotency key provided should be unique and different from any idempotency
-/// keys provided on the underlying third-party request.
-///
-/// Forwarding Requests are synchronous requests that return a response or time out according to
-/// Stripe’s limits.
-///
-/// Related guide: [Forward card details to third-party API endpoints](https://docs.stripe.com/payments/forwarding).
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ForwardingRequest {
     /// Time at which the object was created. Measured in seconds since the Unix epoch.
     pub created: i64,
     /// Unique identifier for the object.
     pub id: String,
-    /// If the object exists in live mode, the value is true. If the object exists in test mode, the value is false.
+    /// If the object exists in live mode, the value is `true`. If the object exists in test mode, the value is `false`.
     pub livemode: bool,
-    /// Set of [key-value pairs](https://docs.stripe.com/api/metadata) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
+    /// Set of [key-value pairs](<https://docs.stripe.`com/api/metadata`>) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
     #[serde(default)]
     pub metadata: ::core::option::Option<serde_json::Value>,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["forwarding.request"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["forwarding.request"]
     pub object: String,
     /// The PaymentMethod to insert into the forwarded request. Forwarding previously consumed PaymentMethods is allowed.
     pub payment_method: String,
@@ -3156,21 +2980,17 @@ pub struct ForwardingRequest {
     pub url: ::core::option::Option<String>,
 }
 
-/// Each customer has a [balance](https://docs.stripe.com/api/customers/object#customer_object-balance) that is
-/// automatically applied to future invoices and payments using the customer_balance payment method.
-/// Customers can fund this balance by initiating a bank transfer to any account in the
-/// financial_addresses field.
-/// Related guide: [Customer balance funding instructions](https://docs.stripe.com/payments/customer-balance/funding-instructions)
+/// Each customer has a [balance](<https://docs.stripe.`com/api/customers/object`#customer_object-balance>) that is
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FundingInstructions {
     pub bank_transfer: FundingInstructionsBankTransfer,
-    /// Three-letter [ISO currency code](https://www.iso.org/iso-4217-currency-codes.html), in lowercase. Must be a [supported currency](https://stripe.com/docs/currencies).
+    /// Three-letter [ISO currency code](<https://www.iso.`org/iso-4217-currency-codes`.html>), in lowercase. Must be a [supported currency](<https://stripe.`com/docs/currencies`>).
     pub currency: String,
     /// The funding_type of the returned instructions // TODO: enum values: ["bank_transfer"]
     pub funding_type: String,
-    /// If the object exists in live mode, the value is true. If the object exists in test mode, the value is false.
+    /// If the object exists in live mode, the value is `true`. If the object exists in test mode, the value is `false`.
     pub livemode: bool,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["funding_instructions"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["funding_instructions"]
     pub object: String,
 }
 
@@ -3367,16 +3187,6 @@ pub struct GelatoVerifiedOutputs {
 }
 
 /// A VerificationReport is the result of an attempt to collect and verify data from a user.
-/// The collection of verification checks performed is determined from the type and options
-/// parameters used. You can find the result of each verification check performed in the
-/// appropriate sub-resource: document, id_number, selfie.
-///
-/// Each VerificationReport contains a copy of any data collected by the user as well as
-/// reference IDs which can be used to access collected images through the [FileUpload](https://docs.stripe.com/api/files)
-/// API. To configure and create VerificationReports, use the
-/// [VerificationSession](https://docs.stripe.com/api/identity/verification_sessions) API.
-///
-/// Related guide: [Accessing verification results](https://docs.stripe.com/identity/verification-sessions#results).
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IdentityVerificationReport {
     /// A string to reference this user. This can be a customer ID, a session ID, or similar, and can be used to reconcile this verification with your internal systems.
@@ -3392,9 +3202,9 @@ pub struct IdentityVerificationReport {
     pub id: String,
     #[serde(default)]
     pub id_number: ::core::option::Option<GelatoIdNumberReport>,
-    /// If the object exists in live mode, the value is true. If the object exists in test mode, the value is false.
+    /// If the object exists in live mode, the value is `true`. If the object exists in test mode, the value is `false`.
     pub livemode: bool,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["identity.verification_report"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["identity.verification_report"]
     pub object: String,
     #[serde(default)]
     pub options: ::core::option::Option<GelatoVerificationReportOptions>,
@@ -3414,22 +3224,12 @@ pub struct IdentityVerificationReport {
 }
 
 /// A VerificationSession guides you through the process of collecting and verifying the identities
-/// of your users. It contains details about the type of verification, such as what [verification
-/// check](/docs/identity/verification-checks) to perform. Only create one VerificationSession for
-/// each verification in your system.
-///
-/// A VerificationSession transitions through [multiple
-/// statuses](/docs/identity/how-sessions-work) throughout its lifetime as it progresses through
-/// the verification flow. The VerificationSession contains the user''s verified data after
-/// verification checks are complete.
-///
-/// Related guide: [The Verification Sessions API](https://docs.stripe.com/identity/verification-sessions)
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IdentityVerificationSession {
     /// A string to reference this user. This can be a customer ID, a session ID, or similar, and can be used to reconcile this verification with your internal systems.
     #[serde(default)]
     pub client_reference_id: ::core::option::Option<String>,
-    /// The short-lived client secret used by Stripe.js to [show a verification modal](https://docs.stripe.com/js/identity/modal) inside your app. This client secret expires after 24 hours and can only be used once. Don’t store it, log it, embed it in a URL, or expose it to anyone other than the user. Make sure that you have TLS enabled on any page that includes the client secret. Refer to our docs on [passing the client secret to the frontend](https://docs.stripe.com/identity/verification-sessions#client-secret) to learn more.
+    /// The short-lived client secret used by Stripe.js to [show a verification modal](<https://docs.stripe.`com/js/identity/modal`>) inside your app. This client secret expires after 24 hours and can only be used once. Don’t store it, log it, embed it in a URL, or expose it to anyone other than the user. Make sure that you have TLS enabled on any page that includes the client secret. Refer to our docs on [passing the client secret to the frontend](<https://docs.stripe.`com/identity/verification-sessions`#client-secret>) to learn more.
     #[serde(default)]
     pub client_secret: ::core::option::Option<String>,
     /// Time at which the object was created. Measured in seconds since the Unix epoch.
@@ -3439,14 +3239,14 @@ pub struct IdentityVerificationSession {
     /// If present, this property tells you the last error encountered when processing the verification.
     #[serde(default)]
     pub last_error: ::core::option::Option<serde_json::Value>,
-    /// ID of the most recent VerificationReport. [Learn more about accessing detailed verification results.](https://docs.stripe.com/identity/verification-sessions#results)
+    /// ID of the most recent VerificationReport. [Learn more about accessing detailed verification results.](<https://docs.stripe.`com/identity/verification-sessions`#results>)
     #[serde(default)]
     pub last_verification_report: ::core::option::Option<serde_json::Value>,
-    /// If the object exists in live mode, the value is true. If the object exists in test mode, the value is false.
+    /// If the object exists in live mode, the value is `true`. If the object exists in test mode, the value is `false`.
     pub livemode: bool,
-    /// Set of [key-value pairs](https://docs.stripe.com/api/metadata) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
+    /// Set of [key-value pairs](<https://docs.stripe.`com/api/metadata`>) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
     pub metadata: serde_json::Value,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["identity.verification_session"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["identity.verification_session"]
     pub object: String,
     /// A set of options for the session’s verification checks.
     #[serde(default)]
@@ -3454,7 +3254,7 @@ pub struct IdentityVerificationSession {
     /// Details provided about the user being verified. These details may be shown to the user.
     #[serde(default)]
     pub provided_details: ::core::option::Option<serde_json::Value>,
-    /// Redaction status of this VerificationSession. If the VerificationSession is not redacted, this field will be null.
+    /// Redaction status of this VerificationSession. If the VerificationSession is not redacted, this field will be `null`.
     #[serde(default)]
     pub redaction: ::core::option::Option<serde_json::Value>,
     /// Customer ID
@@ -3465,12 +3265,12 @@ pub struct IdentityVerificationSession {
     pub related_customer_account: ::core::option::Option<String>,
     #[serde(default)]
     pub related_person: ::core::option::Option<GelatoRelatedPerson>,
-    /// Status of this VerificationSession. [Learn more about the lifecycle of sessions](https://docs.stripe.com/identity/how-sessions-work). // TODO: enum values: ["canceled", "processing", "requires_input", "verified"]
+    /// Status of this VerificationSession. [Learn more about the lifecycle of sessions](<https://docs.stripe.`com/identity/how-sessions-work`>). // TODO: enum values: ["canceled", "processing", "requires_input", "verified"]
     pub status: String,
-    /// The type of [verification check](https://docs.stripe.com/identity/verification-checks) to be performed. // TODO: enum values: ["document", "id_number", "verification_flow"]
+    /// The type of [verification check](<https://docs.stripe.`com/identity/verification-checks`>) to be performed. // TODO: enum values: ["document", "id_number", "verification_flow"]
     #[serde(rename = "type")]
     pub type_: String,
-    /// The short-lived URL that you use to redirect a user to Stripe to submit their identity information. This URL expires after 48 hours and can only be used once. Don’t store it, log it, send it in emails or expose it to anyone other than the user. Refer to our docs on [verifying identity documents](https://docs.stripe.com/identity/verify-identity-documents?platform=web&type=redirect) to learn how to redirect users to Stripe.
+    /// The short-lived URL that you use to redirect a user to Stripe to submit their identity information. This URL expires after 48 hours and can only be used once. Don’t store it, log it, send it in emails or expose it to anyone other than the user. Refer to our docs on [verifying identity documents](<https://docs.stripe.`com/identity/verify-identity-documents`?platform=web&type=redirect>) to learn how to redirect users to Stripe.
     #[serde(default)]
     pub url: ::core::option::Option<String>,
     /// The configuration token of a verification flow from the dashboard.
@@ -3586,37 +3386,6 @@ pub struct InternalCard {
 }
 
 /// Invoices are statements of amounts owed by a customer, and are either
-/// generated one-off, or generated periodically from a subscription.
-///
-/// They contain [invoice items](https://api.stripe.com#invoiceitems), and proration adjustments
-/// that may be caused by subscription upgrades/downgrades (if necessary).
-///
-/// If your invoice is configured to be billed through automatic charges,
-/// Stripe automatically finalizes your invoice and attempts payment. Note
-/// that finalizing the invoice,
-/// [when automatic](https://docs.stripe.com/invoicing/integration/automatic-advancement-collection), does
-/// not happen immediately as the invoice is created. Stripe waits
-/// until one hour after the last webhook was successfully sent (or the last
-/// webhook timed out after failing). If you (and the platforms you may have
-/// connected to) have no webhooks configured, Stripe waits one hour after
-/// creation to finalize the invoice.
-///
-/// If your invoice is configured to be billed by sending an email, then based on your
-/// [email settings](https://dashboard.stripe.com/account/billing/automatic),
-/// Stripe will email the invoice to your customer and await payment. These
-/// emails can contain a link to a hosted page to pay the invoice.
-///
-/// Stripe applies any customer credit on the account before determining the
-/// amount due for the invoice (i.e., the amount that will be actually
-/// charged). If the amount due for the invoice is less than Stripe''s [minimum allowed charge
-/// per currency](/docs/currencies#minimum-and-maximum-charge-amounts), the
-/// invoice is automatically marked paid, and we add the amount due to the
-/// customer''s credit balance which is applied to the next invoice.
-///
-/// More details on the customer''s credit balance are
-/// [here](https://docs.stripe.com/billing/customer/balance).
-///
-/// Related guide: [Send invoices to customers](https://docs.stripe.com/billing/invoices/sending)
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Invoice {
     /// The country of the business associated with this invoice, most often the business creating the invoice.
@@ -3645,13 +3414,13 @@ pub struct Invoice {
     pub attempt_count: i64,
     /// Whether an attempt has been made to pay the invoice. An invoice is not attempted until 1 hour after the invoice.created webhook, for example, so you might not want to display that invoice as unpaid to your users.
     pub attempted: bool,
-    /// Controls whether Stripe performs [automatic collection](https://docs.stripe.com/invoicing/integration/automatic-advancement-collection) of the invoice. If false, the invoice''s state doesn''t automatically advance without an explicit action.
+    /// Controls whether Stripe performs [automatic collection](<https://docs.stripe.`com/invoicing/integration/automatic-advancement-collection`>) of the invoice. If `false`, the invoice''s state doesn''t automatically advance without an explicit action.
     pub auto_advance: bool,
     pub automatic_tax: AutomaticTax,
-    /// The time when this invoice is currently scheduled to be automatically finalized. The field will be null if the invoice is not scheduled to finalize in the future. If the invoice is not in the draft state, this field will always be null - see finalized_at for the time when an already-finalized invoice was finalized.
+    /// The time when this invoice is currently scheduled to be automatically finalized. The field will be `null` if the invoice is not scheduled to finalize in the future. If the invoice is not in the draft state, this field will always be `null` - see finalized_at for the time when an already-finalized invoice was finalized.
     #[serde(default)]
     pub automatically_finalizes_at: ::core::option::Option<i64>,
-    /// Indicates the reason why the invoice was created.
+    /// Indicates the reason why the invoice was created.  * manual: Unrelated to a subscription, for example, created via the invoice editor. * subscription: No longer in use. Applies to subscriptions from before May 2018 where no distinction was made between updates, cycles, and thresholds. * subscription_create: A new subscription was created. * subscription_cycle: A subscription advanced into a new period. * subscription_threshold: A subscription reached a billing threshold. * subscription_update: A subscription was updated. * upcoming: Reserved for upcoming invoices created through the Create Preview Invoice API or when an invoice.upcoming event is generated for an upcoming invoice on a subscription. // TODO: enum values: ["automatic_pending_invoice_item_invoice", "manual", "quote_accept", "subscription", "subscription_create", "subscription_cycle", "subscription_threshold", "subscription_update", "upcoming"]
     #[serde(default)]
     pub billing_reason: ::core::option::Option<String>,
     /// Either charge_automatically, or send_invoice. When charging automatically, Stripe will attempt to pay this invoice using the default source attached to the customer. When sending an invoice, Stripe will email this invoice to the customer with payment instructions. // TODO: enum values: ["charge_automatically", "send_invoice"]
@@ -3661,7 +3430,7 @@ pub struct Invoice {
     pub confirmation_secret: ::core::option::Option<serde_json::Value>,
     /// Time at which the object was created. Measured in seconds since the Unix epoch.
     pub created: i64,
-    /// Three-letter [ISO currency code](https://www.iso.org/iso-4217-currency-codes.html), in lowercase. Must be a [supported currency](https://stripe.com/docs/currencies).
+    /// Three-letter [ISO currency code](<https://www.iso.`org/iso-4217-currency-codes`.html>), in lowercase. Must be a [supported currency](<https://stripe.`com/docs/currencies`>).
     pub currency: String,
     /// Custom fields displayed on the invoice.
     #[serde(default)]
@@ -3705,27 +3474,27 @@ pub struct Invoice {
     pub description: ::core::option::Option<String>,
     /// The discounts applied to the invoice. Line item discounts are applied before invoice discounts. Use expand[]=discounts to expand each discount.
     pub discounts: ::std::vec::Vec<serde_json::Value>,
-    /// The date on which payment for this invoice is due. This value will be null for invoices where collection_method=charge_automatically.
+    /// The date on which payment for this invoice is due. This value will be `null` for invoices where collection_method=charge_automatically.
     #[serde(default)]
     pub due_date: ::core::option::Option<i64>,
     /// The date when this invoice is in effect. Same as finalized_at unless overwritten. When defined, this value replaces the system-generated ''Date of issue'' printed on the invoice PDF and receipt.
     #[serde(default)]
     pub effective_at: ::core::option::Option<i64>,
-    /// Ending customer balance after the invoice is finalized. Invoices are finalized approximately an hour after successful webhook delivery or when payment collection is attempted for the invoice. If the invoice has not been finalized yet, this will be null.
+    /// Ending customer balance after the invoice is finalized. Invoices are finalized approximately an hour after successful webhook delivery or when payment collection is attempted for the invoice. If the invoice has not been finalized yet, this will be `null`.
     #[serde(default)]
     pub ending_balance: ::core::option::Option<i64>,
     /// Footer displayed on the invoice.
     #[serde(default)]
     pub footer: ::core::option::Option<String>,
-    /// Details of the invoice that was cloned. See the [revision documentation](https://docs.stripe.com/invoicing/invoice-revisions) for more details.
+    /// Details of the invoice that was cloned. See the [revision documentation](<https://docs.stripe.`com/invoicing/invoice-revisions`>) for more details.
     #[serde(default)]
     pub from_invoice: ::core::option::Option<serde_json::Value>,
-    /// The URL for the hosted invoice page, which allows customers to view and pay an invoice. If the invoice has not been finalized yet, this will be null.
+    /// The URL for the hosted invoice page, which allows customers to view and pay an invoice. If the invoice has not been finalized yet, this will be `null`.
     #[serde(default)]
     pub hosted_invoice_url: ::core::option::Option<String>,
-    /// Unique identifier for the object. For preview invoices created using the [create preview](https://stripe.com/docs/api/invoices/create_preview) endpoint, this id will be prefixed with upcoming_in.
+    /// Unique identifier for the object. For preview invoices created using the [create preview](<https://stripe.`com/docs/api/invoices/create_preview`>) endpoint, this id will be prefixed with upcoming_in.
     pub id: String,
-    /// The link to download the PDF for the invoice. If the invoice has not been finalized yet, this will be null.
+    /// The link to download the PDF for the invoice. If the invoice has not been finalized yet, this will be `null`.
     #[serde(default)]
     pub invoice_pdf: ::core::option::Option<String>,
     pub issuer: ConnectAccountReference,
@@ -3737,32 +3506,32 @@ pub struct Invoice {
     pub latest_revision: ::core::option::Option<serde_json::Value>,
     /// The individual line items that make up the invoice. lines is sorted as follows: (1) pending invoice items (including prorations) in reverse chronological order, (2) subscription items in reverse chronological order, and (3) invoice items added after invoice creation in chronological order.
     pub lines: serde_json::Value,
-    /// If the object exists in live mode, the value is true. If the object exists in test mode, the value is false.
+    /// If the object exists in live mode, the value is `true`. If the object exists in test mode, the value is `false`.
     pub livemode: bool,
-    /// Set of [key-value pairs](https://docs.stripe.com/api/metadata) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
+    /// Set of [key-value pairs](<https://docs.stripe.`com/api/metadata`>) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
     #[serde(default)]
     pub metadata: ::core::option::Option<serde_json::Value>,
-    /// The time at which payment will next be attempted. This value will be null for invoices where collection_method=send_invoice.
+    /// The time at which payment will next be attempted. This value will be `null` for invoices where collection_method=send_invoice.
     #[serde(default)]
     pub next_payment_attempt: ::core::option::Option<i64>,
     /// A unique, identifying string that appears on emails sent to the customer for this invoice. This starts with the customer''s unique invoice_prefix if it is specified.
     #[serde(default)]
     pub number: ::core::option::Option<String>,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["invoice"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["invoice"]
     pub object: String,
-    /// The account (if any) for which the funds of the invoice payment are intended. If set, the invoice will be presented with the branding and support information of the specified account. See the [Invoices with Connect](https://docs.stripe.com/billing/invoices/connect) documentation for details.
+    /// The account (if any) for which the funds of the invoice payment are intended. If set, the invoice will be presented with the branding and support information of the specified account. See the [Invoices with Connect](<https://docs.stripe.`com/billing/invoices/connect`>) documentation for details.
     #[serde(default)]
     pub on_behalf_of: ::core::option::Option<serde_json::Value>,
     /// The parent that generated this invoice
     #[serde(default)]
     pub parent: ::core::option::Option<serde_json::Value>,
     pub payment_settings: InvoicesPaymentSettings,
-    /// Payments for this invoice. Use [invoice payment](/api/invoice-payment) to get more details.
+    /// Payments for this invoice. Use [invoice payment](/`api/invoice-payment`) to get more details.
     #[serde(default)]
     pub payments: ::core::option::Option<serde_json::Value>,
-    /// End of the usage period during which invoice items were added to this invoice. This looks back one period for a subscription invoice. Use the [line item period](/api/invoices/line_item#invoice_line_item_object-period) to get the service period for each price.
+    /// End of the usage period during which invoice items were added to this invoice. This looks back one period for a subscription invoice. Use the [line item period](/`api/invoices/line_item`#invoice_line_item_object-period) to get the service period for each price.
     pub period_end: i64,
-    /// Start of the usage period during which invoice items were added to this invoice. This looks back one period for a subscription invoice. Use the [line item period](/api/invoices/line_item#invoice_line_item_object-period) to get the service period for each price.
+    /// Start of the usage period during which invoice items were added to this invoice. This looks back one period for a subscription invoice. Use the [line item period](/`api/invoices/line_item`#invoice_line_item_object-period) to get the service period for each price.
     pub period_start: i64,
     /// Total amount of all post-payment credit notes issued for this invoice.
     pub post_payment_credit_notes_amount: i64,
@@ -3785,7 +3554,7 @@ pub struct Invoice {
     /// Extra information about an invoice for the customer''s credit card statement.
     #[serde(default)]
     pub statement_descriptor: ::core::option::Option<String>,
-    /// The status of the invoice, one of draft, open, paid, uncollectible, or void. [Learn more](https://docs.stripe.com/billing/invoices/workflow#workflow-overview) // TODO: enum values: ["draft", "open", "paid", "uncollectible", "void"]
+    /// The status of the invoice, one of draft, open, paid, uncollectible, or void. [Learn more](<https://docs.stripe.`com/billing/invoices/workflow`#workflow-overview>) // TODO: enum values: ["draft", "open", "paid", "uncollectible", "void"]
     #[serde(default)]
     pub status: ::core::option::Option<String>,
     pub status_transitions: InvoicesResourceStatusTransitions,
@@ -3815,29 +3584,22 @@ pub struct Invoice {
     /// The aggregate tax information of all line items.
     #[serde(default)]
     pub total_taxes: ::core::option::Option<::std::vec::Vec<BillingBillResourceInvoicingTaxesTax>>,
-    /// Invoices are automatically paid or sent 1 hour after webhooks are delivered, or until all webhook delivery attempts have [been exhausted](https://docs.stripe.com/billing/webhooks#understand). This field tracks the time when webhooks for this invoice were successfully delivered. If the invoice had no webhooks to deliver, this will be set while the invoice is being created.
+    /// Invoices are automatically paid or sent 1 hour after webhooks are delivered, or until all webhook delivery attempts have [been exhausted](<https://docs.stripe.`com/billing/webhooks`#understand>). This field tracks the time when webhooks for this invoice were successfully delivered. If the invoice had no webhooks to deliver, this will be set while the invoice is being created.
     #[serde(default)]
     pub webhooks_delivered_at: ::core::option::Option<i64>,
 }
 
 /// Invoice Payments represent payments made against invoices. Invoice Payments can
-/// be accessed in two ways:
-/// 1. By expanding the payments field on the [Invoice](https://api.stripe.com#invoice) resource.
-/// 2. By using the Invoice Payment retrieve and list endpoints.
-///
-/// Invoice Payments include the mapping between payment objects, such as Payment Intent, and Invoices.
-/// This resource and its endpoints allows you to easily track if a payment is associated with a specific invoice and
-/// monitor the allocation details of the payments.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InvoicePayment {
-    /// Amount that was actually paid for this invoice, in cents (or local equivalent). This field is null until the payment is paid. This amount can be less than the amount_requested if the PaymentIntent’s amount_received is not sufficient to pay all of the invoices that it is attached to.
+    /// Amount that was actually paid for this invoice, in cents (or local equivalent). This field is `null` until the payment is paid. This amount can be less than the amount_requested if the PaymentIntent’s amount_received is not sufficient to pay all of the invoices that it is attached to.
     #[serde(default)]
     pub amount_paid: ::core::option::Option<i64>,
     /// Amount intended to be paid toward this invoice, in cents (or local equivalent)
     pub amount_requested: i64,
     /// Time at which the object was created. Measured in seconds since the Unix epoch.
     pub created: i64,
-    /// Three-letter [ISO currency code](https://www.iso.org/iso-4217-currency-codes.html), in lowercase. Must be a [supported currency](https://stripe.com/docs/currencies).
+    /// Three-letter [ISO currency code](<https://www.iso.`org/iso-4217-currency-codes`.html>), in lowercase. Must be a [supported currency](<https://stripe.`com/docs/currencies`>).
     pub currency: String,
     /// Unique identifier for the object.
     pub id: String,
@@ -3845,9 +3607,9 @@ pub struct InvoicePayment {
     pub invoice: serde_json::Value,
     /// Stripe automatically creates a default InvoicePayment when the invoice is finalized, and keeps it synchronized with the invoice’s amount_remaining. The PaymentIntent associated with the default payment can’t be edited or canceled directly.
     pub is_default: bool,
-    /// If the object exists in live mode, the value is true. If the object exists in test mode, the value is false.
+    /// If the object exists in live mode, the value is `true`. If the object exists in test mode, the value is `false`.
     pub livemode: bool,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["invoice_payment"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["invoice_payment"]
     pub object: String,
     pub payment: InvoicesPaymentsInvoicePaymentAssociatedPayment,
     /// The status of the payment, one of open, paid, or canceled.
@@ -3874,7 +3636,7 @@ pub struct InvoicePaymentMethodOptionsBancontact {
 pub struct InvoicePaymentMethodOptionsCard {
     #[serde(default)]
     pub installments: ::core::option::Option<InvoiceInstallmentsCard>,
-    /// We strongly recommend that you rely on our SCA Engine to automatically prompt your customers for authentication based on risk level and [other requirements](https://docs.stripe.com/strong-customer-authentication). However, if you wish to request 3D Secure based on logic from your own fraud engine, provide this option. Read our guide on [manually requesting 3D Secure](https://docs.stripe.com/payments/3d-secure/authentication-flow#manual-three-ds) for more information on how this configuration interacts with Radar and our SCA Engine. // TODO: enum values: ["any", "automatic", "challenge"]
+    /// We strongly recommend that you rely on our SCA Engine to automatically prompt your customers for authentication based on risk level and [other requirements](<https://docs.stripe.`com/strong-customer-authentication`>). However, if you wish to request 3D Secure based on logic from your own fraud engine, provide this option. Read our guide on [manually requesting 3D Secure](<https://docs.stripe.`com/payments/3d-secure/authentication-flow`#manual-three-ds>) for more information on how this configuration interacts with Radar and our SCA Engine. // TODO: enum values: ["any", "automatic", "challenge"]
     #[serde(default)]
     pub request_three_d_secure: ::core::option::Option<String>,
 }
@@ -3923,22 +3685,21 @@ pub struct InvoiceRenderingPdf {
 }
 
 /// Invoice Rendering Templates are used to configure how invoices are rendered on surfaces like the PDF. Invoice Rendering Templates
-/// can be created from within the Dashboard, and they can be used over the API when creating invoices.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InvoiceRenderingTemplate {
     /// Time at which the object was created. Measured in seconds since the Unix epoch.
     pub created: i64,
     /// Unique identifier for the object.
     pub id: String,
-    /// If the object exists in live mode, the value is true. If the object exists in test mode, the value is false.
+    /// If the object exists in live mode, the value is `true`. If the object exists in test mode, the value is `false`.
     pub livemode: bool,
-    /// Set of [key-value pairs](https://docs.stripe.com/api/metadata) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
+    /// Set of [key-value pairs](<https://docs.stripe.`com/api/metadata`>) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
     #[serde(default)]
     pub metadata: ::core::option::Option<serde_json::Value>,
     /// A brief description of the template, hidden from customers
     #[serde(default)]
     pub nickname: ::core::option::Option<String>,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["invoice_rendering_template"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["invoice_rendering_template"]
     pub object: String,
     /// The status of the template, one of active or archived. // TODO: enum values: ["active", "archived"]
     pub status: String,
@@ -3971,7 +3732,7 @@ pub struct InvoiceSettingSubscriptionSchedulePhaseSetting {
     /// The account tax IDs associated with this phase of the subscription schedule. Will be set on invoices generated by this phase of the subscription schedule.
     #[serde(default)]
     pub account_tax_ids: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
-    /// Number of days within which a customer must pay invoices generated by this subscription schedule. This value will be null for subscription schedules where billing=charge_automatically.
+    /// Number of days within which a customer must pay invoices generated by this subscription schedule. This value will be `null` for subscription schedules where billing=charge_automatically.
     #[serde(default)]
     pub days_until_due: ::core::option::Option<i64>,
     /// The connected account that issues the invoice. The invoice is presented with the branding and support information of the specified account.
@@ -3979,19 +3740,12 @@ pub struct InvoiceSettingSubscriptionSchedulePhaseSetting {
     pub issuer: ::core::option::Option<serde_json::Value>,
 }
 
-/// Invoice Items represent the component lines of an [invoice](https://docs.stripe.com/api/invoices). When you create an invoice item with an invoice field, it is attached to the specified invoice and included as [an invoice line item](https://docs.stripe.com/api/invoices/line_item) within [invoice.lines](https://docs.stripe.com/api/invoices/object#invoice_object-lines).
-///
-/// Invoice Items can be created before you are ready to actually send the invoice. This can be particularly useful when combined
-/// with a [subscription](https://docs.stripe.com/api/subscriptions). Sometimes you want to add a charge or credit to a customer, but actually charge
-/// or credit the customer''s card only at the end of a regular billing cycle. This is useful for combining several charges
-/// (to minimize per-transaction fees), or for having Stripe tabulate your usage-based billing totals.
-///
-/// Related guides: [Integrate with the Invoicing API](https://docs.stripe.com/invoicing/integration), [Subscription Invoices](https://docs.stripe.com/billing/invoices/subscription#adding-upcoming-invoice-items).
+/// Invoice Items represent the component lines of an [invoice](<https://docs.stripe.`com/api/invoices`>). When you create an invoice item with an invoice field, it is attached to the specified invoice and included as [an invoice line item](<https://docs.stripe.`com/api/invoices/line_item`>) within [invoice.lines](<https://docs.stripe.`com/api/invoices/object`#invoice_object-lines>).
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Invoiceitem {
     /// Amount (in the currency specified) of the invoice item. This should always be equal to unit_amount * quantity.
     pub amount: i64,
-    /// Three-letter [ISO currency code](https://www.iso.org/iso-4217-currency-codes.html), in lowercase. Must be a [supported currency](https://stripe.com/docs/currencies).
+    /// Three-letter [ISO currency code](<https://www.iso.`org/iso-4217-currency-codes`.html>), in lowercase. Must be a [supported currency](<https://stripe.`com/docs/currencies`>).
     pub currency: String,
     /// The ID of the customer to bill for this invoice item.
     pub customer: serde_json::Value,
@@ -4003,7 +3757,7 @@ pub struct Invoiceitem {
     /// An arbitrary string attached to the object. Often useful for displaying to users.
     #[serde(default)]
     pub description: ::core::option::Option<String>,
-    /// If true, discounts will apply to this invoice item. Always false for prorations.
+    /// If `true`, discounts will apply to this invoice item. Always `false` for prorations.
     pub discountable: bool,
     /// The discounts which apply to the invoice item. Item discounts are applied before invoice discounts. Use expand[]=discounts to expand each discount.
     #[serde(default)]
@@ -4013,15 +3767,15 @@ pub struct Invoiceitem {
     /// The ID of the invoice this invoice item belongs to.
     #[serde(default)]
     pub invoice: ::core::option::Option<serde_json::Value>,
-    /// If the object exists in live mode, the value is true. If the object exists in test mode, the value is false.
+    /// If the object exists in live mode, the value is `true`. If the object exists in test mode, the value is `false`.
     pub livemode: bool,
-    /// Set of [key-value pairs](https://docs.stripe.com/api/metadata) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
+    /// Set of [key-value pairs](<https://docs.stripe.`com/api/metadata`>) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
     #[serde(default)]
     pub metadata: ::core::option::Option<serde_json::Value>,
-    /// The amount after discounts, but before credits and taxes. This field is null for discountable=true items.
+    /// The amount after discounts, but before credits and taxes. This field is `null` for discountable=`true` items.
     #[serde(default)]
     pub net_amount: ::core::option::Option<i64>,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["invoiceitem"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["invoiceitem"]
     pub object: String,
     /// The parent that generated this invoice item.
     #[serde(default)]
@@ -4123,12 +3877,10 @@ pub struct InvoicesResourceShippingCost {
     pub taxes: ::core::option::Option<::std::vec::Vec<LineItemsTaxAmount>>,
 }
 
-/// As a [card issuer](https://docs.stripe.com/issuing), you can dispute transactions that the cardholder does not recognize, suspects to be fraudulent, or has other issues with.
-///
-/// Related guide: [Issuing disputes](https://docs.stripe.com/issuing/purchases/disputes)
+/// As a [card issuer](<https://docs.stripe.`com/issuing`>), you can dispute transactions that the cardholder does not recognize, suspects to be fraudulent, or has other issues with.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IssuingDispute {
-    /// Disputed amount in the card''s currency and in the [smallest currency unit](https://docs.stripe.com/currencies#zero-decimal). Usually the amount of the transaction, but can differ (usually because of currency fluctuation).
+    /// Disputed amount in the card''s currency and in the [smallest currency unit](<https://docs.stripe.`com/currencies`#zero-decimal>). Usually the amount of the transaction, but can differ (usually because of currency fluctuation).
     pub amount: i64,
     /// List of balance transactions associated with the dispute.
     #[serde(default)]
@@ -4140,20 +3892,20 @@ pub struct IssuingDispute {
     pub evidence: IssuingDisputeEvidence,
     /// Unique identifier for the object.
     pub id: String,
-    /// If the object exists in live mode, the value is true. If the object exists in test mode, the value is false.
+    /// If the object exists in live mode, the value is `true`. If the object exists in test mode, the value is `false`.
     pub livemode: bool,
     /// The enum that describes the dispute loss outcome. If the dispute is not lost, this field will be absent. New enum values may be added in the future, so be sure to handle unknown values. // TODO: enum values: ["cardholder_authentication_issuer_liability", "eci5_token_transaction_with_tavv", "excess_disputes_in_timeframe", "has_not_met_the_minimum_dispute_amount_requirements", "invalid_duplicate_dispute", "invalid_incorrect_amount_dispute", "invalid_no_authorization", "invalid_use_of_disputes", "merchandise_delivered_or_shipped", "merchandise_or_service_as_described", "not_cancelled", "other", "refund_issued", "submitted_beyond_allowable_time_limit", "transaction_3ds_required", "transaction_approved_after_prior_fraud_dispute", "transaction_authorized", "transaction_electronically_read", "transaction_qualifies_for_visa_easy_payment_service", "transaction_unattended"]
     #[serde(default)]
     pub loss_reason: ::core::option::Option<String>,
-    /// Set of [key-value pairs](https://docs.stripe.com/api/metadata) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
+    /// Set of [key-value pairs](<https://docs.stripe.`com/api/metadata`>) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
     pub metadata: serde_json::Value,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["issuing.dispute"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["issuing.dispute"]
     pub object: String,
     /// Current status of the dispute. // TODO: enum values: ["expired", "lost", "submitted", "unsubmitted", "won"]
     pub status: String,
     /// The transaction being disputed.
     pub transaction: serde_json::Value,
-    /// [Treasury](https://docs.stripe.com/api/treasury) details related to this dispute if it was created on a [FinancialAccount](/docs/api/treasury/financial_accounts
+    /// [Treasury](<https://docs.stripe.`com/api/treasury`>) details related to this dispute if it was created on a [FinancialAccount](/`docs/api/treasury/financial_accounts`
     #[serde(default)]
     pub treasury: ::core::option::Option<serde_json::Value>,
 }
@@ -4171,17 +3923,17 @@ pub struct IssuingPersonalizationDesign {
     pub created: i64,
     /// Unique identifier for the object.
     pub id: String,
-    /// If the object exists in live mode, the value is true. If the object exists in test mode, the value is false.
+    /// If the object exists in live mode, the value is `true`. If the object exists in test mode, the value is `false`.
     pub livemode: bool,
     /// A lookup key used to retrieve personalization designs dynamically from a static string. This may be up to 200 characters.
     #[serde(default)]
     pub lookup_key: ::core::option::Option<String>,
-    /// Set of [key-value pairs](https://docs.stripe.com/api/metadata) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
+    /// Set of [key-value pairs](<https://docs.stripe.`com/api/metadata`>) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
     pub metadata: serde_json::Value,
     /// Friendly display name.
     #[serde(default)]
     pub name: ::core::option::Option<String>,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["issuing.personalization_design"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["issuing.personalization_design"]
     pub object: String,
     /// The physical bundle object belonging to this personalization design.
     pub physical_bundle: serde_json::Value,
@@ -4197,11 +3949,11 @@ pub struct IssuingPhysicalBundle {
     pub features: IssuingPhysicalBundleFeatures,
     /// Unique identifier for the object.
     pub id: String,
-    /// If the object exists in live mode, the value is true. If the object exists in test mode, the value is false.
+    /// If the object exists in live mode, the value is `true`. If the object exists in test mode, the value is `false`.
     pub livemode: bool,
     /// Friendly display name.
     pub name: String,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["issuing.physical_bundle"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["issuing.physical_bundle"]
     pub object: String,
     /// Whether this physical bundle can be used to create cards. // TODO: enum values: ["active", "inactive", "review"]
     pub status: String,
@@ -4210,7 +3962,7 @@ pub struct IssuingPhysicalBundle {
     pub type_: String,
 }
 
-/// When a non-stripe BIN is used, any use of an [issued card](https://docs.stripe.com/issuing) must be settled directly with the card network. The net amount owed is represented by an Issuing Settlement object.
+/// When a non-stripe BIN is used, any use of an [issued card](<https://docs.stripe.`com/issuing`>) must be settled directly with the card network. The net amount owed is represented by an Issuing Settlement object.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IssuingSettlement {
     /// The Bank Identification Number reflecting this settlement record.
@@ -4219,15 +3971,15 @@ pub struct IssuingSettlement {
     pub clearing_date: i64,
     /// Time at which the object was created. Measured in seconds since the Unix epoch.
     pub created: i64,
-    /// Three-letter [ISO currency code](https://www.iso.org/iso-4217-currency-codes.html), in lowercase. Must be a [supported currency](https://stripe.com/docs/currencies).
+    /// Three-letter [ISO currency code](<https://www.iso.`org/iso-4217-currency-codes`.html>), in lowercase. Must be a [supported currency](<https://stripe.`com/docs/currencies`>).
     pub currency: String,
     /// Unique identifier for the object.
     pub id: String,
     /// The total interchange received as reimbursement for the transactions.
     pub interchange_fees_amount: i64,
-    /// If the object exists in live mode, the value is true. If the object exists in test mode, the value is false.
+    /// If the object exists in live mode, the value is `true`. If the object exists in test mode, the value is `false`.
     pub livemode: bool,
-    /// Set of [key-value pairs](https://docs.stripe.com/api/metadata) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
+    /// Set of [key-value pairs](<https://docs.stripe.`com/api/metadata`>) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
     pub metadata: serde_json::Value,
     /// The total net amount required to settle with the network.
     pub net_total_amount: i64,
@@ -4237,7 +3989,7 @@ pub struct IssuingSettlement {
     pub network_fees_amount: i64,
     /// The Settlement Identification Number assigned by the network.
     pub network_settlement_identifier: String,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["issuing.settlement"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["issuing.settlement"]
     pub object: String,
     /// One of international or uk_national_net.
     pub settlement_service: String,
@@ -4249,7 +4001,7 @@ pub struct IssuingSettlement {
     pub transaction_count: i64,
 }
 
-/// An issuing token object is created when an issued card is added to a digital wallet. As a [card issuer](https://docs.stripe.com/issuing), you can [view and manage these tokens](https://docs.stripe.com/issuing/controls/token-management) through Stripe.
+/// An issuing token object is created when an issued card is added to a digital wallet. As a [card issuer](<https://docs.stripe.`com/issuing`>), you can [view and manage these tokens](<https://docs.stripe.`com/issuing/controls/token-management`>) through Stripe.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IssuingToken {
     /// Card associated with this token.
@@ -4264,7 +4016,7 @@ pub struct IssuingToken {
     /// The last four digits of the token.
     #[serde(default)]
     pub last4: ::core::option::Option<String>,
-    /// If the object exists in live mode, the value is true. If the object exists in test mode, the value is false.
+    /// If the object exists in live mode, the value is `true`. If the object exists in test mode, the value is `false`.
     pub livemode: bool,
     /// The token service provider / card network associated with the token. // TODO: enum values: ["mastercard", "visa"]
     pub network: String,
@@ -4272,7 +4024,7 @@ pub struct IssuingToken {
     pub network_data: ::core::option::Option<IssuingNetworkTokenNetworkData>,
     /// Time at which the token was last updated by the card network. Measured in seconds since the Unix epoch.
     pub network_updated_at: i64,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["issuing.token"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["issuing.token"]
     pub object: String,
     /// The usage state of the token. // TODO: enum values: ["active", "deleted", "requested", "suspended"]
     pub status: String,
@@ -4367,17 +4119,17 @@ pub struct IssuingAuthorizationFleetReportedBreakdown {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IssuingAuthorizationFleetTaxData {
-    /// Amount of state or provincial Sales Tax included in the transaction amount. null if not reported by merchant or not subject to tax.
+    /// Amount of state or provincial Sales Tax included in the transaction amount. `null` if not reported by merchant or not subject to tax.
     #[serde(default)]
     pub local_amount_decimal: ::core::option::Option<String>,
-    /// Amount of national Sales Tax or VAT included in the transaction amount. null if not reported by merchant or not subject to tax.
+    /// Amount of national Sales Tax or VAT included in the transaction amount. `null` if not reported by merchant or not subject to tax.
     #[serde(default)]
     pub national_amount_decimal: ::core::option::Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IssuingAuthorizationFuelData {
-    /// [Conexxus Payment System Product Code](https://www.conexxus.org/conexxus-payment-system-product-codes) identifying the primary fuel product purchased.
+    /// [Conexxus Payment System Product Code](<https://www.conexxus.`org/conexxus-payment-system-product-codes`>) identifying the primary fuel product purchased.
     #[serde(default)]
     pub industry_product_code: ::core::option::Option<String>,
     /// The quantity of units of fuel that was dispensed, represented as a decimal string with at most 12 decimal places.
@@ -4396,7 +4148,7 @@ pub struct IssuingAuthorizationFuelData {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IssuingAuthorizationNetworkData {
-    /// Identifier assigned to the acquirer by the card network. Sometimes this value is not provided by the network; in this case, the value will be null.
+    /// Identifier assigned to the acquirer by the card network. Sometimes this value is not provided by the network; in this case, the value will be `null`.
     #[serde(default)]
     pub acquiring_institution_id: ::core::option::Option<String>,
     /// The System Trace Audit Number (STAN) is a 6-digit identifier assigned by the acquirer. Prefer network_data.transaction_id if present, unless you have special requirements.
@@ -4409,16 +4161,16 @@ pub struct IssuingAuthorizationNetworkData {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IssuingAuthorizationPendingRequest {
-    /// The additional amount Stripe will hold if the authorization is approved, in the card''s [currency](https://docs.stripe.com/api#issuing_authorization_object-pending-request-currency) and in the [smallest currency unit](https://docs.stripe.com/currencies#zero-decimal).
+    /// The additional amount Stripe will hold if the authorization is approved, in the card''s [currency](<https://docs.stripe.`com/api`#issuing_authorization_object-pending-request-currency>) and in the [smallest currency unit](<https://docs.stripe.`com/currencies`#zero-decimal>).
     pub amount: i64,
-    /// Detailed breakdown of amount components. These amounts are denominated in currency and in the [smallest currency unit](https://docs.stripe.com/currencies#zero-decimal).
+    /// Detailed breakdown of amount components. These amounts are denominated in currency and in the [smallest currency unit](<https://docs.stripe.`com/currencies`#zero-decimal>).
     #[serde(default)]
     pub amount_details: ::core::option::Option<serde_json::Value>,
-    /// Three-letter [ISO currency code](https://www.iso.org/iso-4217-currency-codes.html), in lowercase. Must be a [supported currency](https://stripe.com/docs/currencies).
+    /// Three-letter [ISO currency code](<https://www.iso.`org/iso-4217-currency-codes`.html>), in lowercase. Must be a [supported currency](<https://stripe.`com/docs/currencies`>).
     pub currency: String,
-    /// If set true, you may provide [amount](https://docs.stripe.com/api/issuing/authorizations/approve#approve_issuing_authorization-amount) to control how much to hold for the authorization.
+    /// If set `true`, you may provide [amount](<https://docs.stripe.`com/api/issuing/authorizations/approve`#approve_issuing_authorization-amount>) to control how much to hold for the authorization.
     pub is_amount_controllable: bool,
-    /// The amount the merchant is requesting to be authorized in the merchant_currency. The amount is in the [smallest currency unit](https://docs.stripe.com/currencies#zero-decimal).
+    /// The amount the merchant is requesting to be authorized in the merchant_currency. The amount is in the [smallest currency unit](<https://docs.stripe.`com/currencies`#zero-decimal>).
     pub merchant_amount: i64,
     /// The local currency the merchant is requesting to authorize.
     pub merchant_currency: String,
@@ -4435,11 +4187,11 @@ pub struct IssuingAuthorizationThreeDSecure {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IssuingAuthorizationTreasury {
-    /// The array of [ReceivedCredits](https://docs.stripe.com/api/treasury/received_credits) associated with this authorization
+    /// The array of [ReceivedCredits](<https://docs.stripe.`com/api/treasury/received_credits`>) associated with this authorization
     pub received_credits: ::std::vec::Vec<String>,
-    /// The array of [ReceivedDebits](https://docs.stripe.com/api/treasury/received_debits) associated with this authorization
+    /// The array of [ReceivedDebits](<https://docs.stripe.`com/api/treasury/received_debits`>) associated with this authorization
     pub received_debits: ::std::vec::Vec<String>,
-    /// The Treasury [Transaction](https://docs.stripe.com/api/treasury/transactions) associated with this authorization
+    /// The Treasury [Transaction](<https://docs.stripe.`com/api/treasury/transactions`>) associated with this authorization
     #[serde(default)]
     pub transaction: ::core::option::Option<String>,
 }
@@ -4479,7 +4231,7 @@ pub struct IssuingCardShipping {
     /// The phone number of the receiver of the shipment. Our courier partners will use this number to contact you in the event of card delivery issues. For individual shipments to the EU/UK, if this field is empty, we will provide them with the phone number provided when the cardholder was initially created.
     #[serde(default)]
     pub phone_number: ::core::option::Option<String>,
-    /// Whether a signature is required for card delivery. This feature is only supported for US users. Standard shipping service does not support signature on delivery. The default value for standard shipping service is false and for express and priority services is true.
+    /// Whether a signature is required for card delivery. This feature is only supported for US users. Standard shipping service does not support signature on delivery. The default value for standard shipping service is `false` and for express and priority services is `true`.
     #[serde(default)]
     pub require_signature: ::core::option::Option<bool>,
     /// Shipment service, such as standard or express. // TODO: enum values: ["express", "priority", "standard"]
@@ -4512,7 +4264,7 @@ pub struct IssuingCardShippingAddressValidation {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IssuingCardShippingCustoms {
-    /// A registration number used for customs in Europe. See [https://www.gov.uk/eori](https://www.gov.uk/eori) for the UK and [https://ec.europa.eu/taxation_customs/business/customs-procedures-import-and-export/customs-procedures/economic-operators-registration-and-identification-number-eori_en](https://ec.europa.eu/taxation_customs/business/customs-procedures-import-and-export/customs-procedures/economic-operators-registration-and-identification-number-eori_en) for the EU.
+    /// A registration number used for customs in Europe. See [<https://www.gov.`uk/eori`>](<https://www.gov.`uk/eori`>) for the UK and [<https://ec.europa.`eu/taxation_customs/business/customs-procedures-import-and-export/customs-procedures/economic-operators-registration-and-identification-number-eori_en`>](<https://ec.europa.`eu/taxation_customs/business/customs-procedures-import-and-export/customs-procedures/economic-operators-registration-and-identification-number-eori_en`>) for the EU.
     #[serde(default)]
     pub eori_number: ::core::option::Option<String>,
 }
@@ -4528,13 +4280,13 @@ pub struct IssuingCardWallets {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IssuingCardholderAuthorizationControls {
-    /// Array of strings containing [categories](https://docs.stripe.com/api#issuing_authorization_object-merchant_data-category) of authorizations to allow. All other categories will be blocked. Cannot be set with blocked_categories.
+    /// Array of strings containing [categories](<https://docs.stripe.`com/api`#issuing_authorization_object-merchant_data-category>) of authorizations to allow. All other categories will be blocked. Cannot be set with blocked_categories.
     #[serde(default)]
     pub allowed_categories: ::core::option::Option<::std::vec::Vec<String>>,
     /// Array of strings containing representing countries from which authorizations will be allowed. Authorizations from merchants in all other countries will be declined. Country codes should be ISO 3166 alpha-2 country codes (e.g. US). Cannot be set with blocked_merchant_countries. Provide an empty value to unset this control.
     #[serde(default)]
     pub allowed_merchant_countries: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Array of strings containing [categories](https://docs.stripe.com/api#issuing_authorization_object-merchant_data-category) of authorizations to decline. All other categories will be allowed. Cannot be set with allowed_categories.
+    /// Array of strings containing [categories](<https://docs.stripe.`com/api`#issuing_authorization_object-merchant_data-category>) of authorizations to decline. All other categories will be allowed. Cannot be set with allowed_categories.
     #[serde(default)]
     pub blocked_categories: ::core::option::Option<::std::vec::Vec<String>>,
     /// Array of strings containing representing countries from which authorizations will be declined. Country codes should be ISO 3166 alpha-2 country codes (e.g. US). Cannot be set with allowed_merchant_countries. Provide an empty value to unset this control.
@@ -4550,7 +4302,7 @@ pub struct IssuingCardholderAuthorizationControls {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IssuingCardholderCardIssuing {
-    /// Information about cardholder acceptance of Celtic [Authorized User Terms](https://stripe.com/docs/issuing/cards#accept-authorized-user-terms). Required for cards backed by a Celtic program.
+    /// Information about cardholder acceptance of Celtic [Authorized User Terms](<https://stripe.`com/docs/issuing/cards`#accept-authorized-user-terms>). Required for cards backed by a Celtic program.
     #[serde(default)]
     pub user_terms_acceptance: ::core::option::Option<serde_json::Value>,
 }
@@ -4563,10 +4315,10 @@ pub struct IssuingCardholderCompany {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IssuingCardholderIdDocument {
-    /// The back of a document returned by a [file upload](https://api.stripe.com#create_file) with a purpose value of identity_document.
+    /// The back of a document returned by a [file upload](<https://api.stripe.com#create_file>) with a purpose value of identity_document.
     #[serde(default)]
     pub back: ::core::option::Option<serde_json::Value>,
-    /// The front of a document returned by a [file upload](https://api.stripe.com#create_file) with a purpose value of identity_document.
+    /// The front of a document returned by a [file upload](<https://api.stripe.com#create_file>) with a purpose value of identity_document.
     #[serde(default)]
     pub front: ::core::option::Option<serde_json::Value>,
 }
@@ -4625,10 +4377,10 @@ pub struct IssuingCardholderVerification {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IssuingDisputeTreasury {
-    /// The Treasury [DebitReversal](https://docs.stripe.com/api/treasury/debit_reversals) representing this Issuing dispute
+    /// The Treasury [DebitReversal](<https://docs.stripe.`com/api/treasury/debit_reversals`>) representing this Issuing dispute
     #[serde(default)]
     pub debit_reversal: ::core::option::Option<String>,
-    /// The Treasury [ReceivedDebit](https://docs.stripe.com/api/treasury/received_debits) that is being disputed.
+    /// The Treasury [ReceivedDebit](<https://docs.stripe.`com/api/treasury/received_debits`>) that is being disputed.
     pub received_debit: String,
 }
 
@@ -4751,7 +4503,7 @@ pub struct IssuingTransactionFlightData {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IssuingTransactionFuelData {
-    /// [Conexxus Payment System Product Code](https://www.conexxus.org/conexxus-payment-system-product-codes) identifying the primary fuel product purchased.
+    /// [Conexxus Payment System Product Code](<https://www.conexxus.`org/conexxus-payment-system-product-codes`>) identifying the primary fuel product purchased.
     #[serde(default)]
     pub industry_product_code: ::core::option::Option<String>,
     /// The quantity of units of fuel that was dispensed, represented as a decimal string with at most 12 decimal places.
@@ -4813,10 +4565,10 @@ pub struct IssuingTransactionPurchaseDetails {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IssuingTransactionTreasury {
-    /// The Treasury [ReceivedCredit](https://docs.stripe.com/api/treasury/received_credits) representing this Issuing transaction if it is a refund
+    /// The Treasury [ReceivedCredit](<https://docs.stripe.`com/api/treasury/received_credits`>) representing this Issuing transaction if it is a refund
     #[serde(default)]
     pub received_credit: ::core::option::Option<String>,
-    /// The Treasury [ReceivedDebit](https://docs.stripe.com/api/treasury/received_debits) representing this Issuing transaction if it is a capture
+    /// The Treasury [ReceivedDebit](<https://docs.stripe.`com/api/treasury/received_debits`>) representing this Issuing transaction if it is a capture
     #[serde(default)]
     pub received_debit: ::core::option::Option<String>,
 }
@@ -4834,7 +4586,7 @@ pub struct Item {
     pub amount_tax: i64,
     /// Total after discounts and taxes.
     pub amount_total: i64,
-    /// Three-letter [ISO currency code](https://www.iso.org/iso-4217-currency-codes.html), in lowercase. Must be a [supported currency](https://stripe.com/docs/currencies).
+    /// Three-letter [ISO currency code](<https://www.iso.`org/iso-4217-currency-codes`.html>), in lowercase. Must be a [supported currency](<https://stripe.`com/docs/currencies`>).
     pub currency: String,
     /// An arbitrary string attached to the object. Often useful for displaying to users. Defaults to product name.
     #[serde(default)]
@@ -4844,10 +4596,10 @@ pub struct Item {
     pub discounts: ::core::option::Option<::std::vec::Vec<LineItemsDiscountAmount>>,
     /// Unique identifier for the object.
     pub id: String,
-    /// Set of [key-value pairs](https://docs.stripe.com/api/metadata) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
+    /// Set of [key-value pairs](<https://docs.stripe.`com/api/metadata`>) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
     #[serde(default)]
     pub metadata: ::core::option::Option<serde_json::Value>,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["item"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["item"]
     pub object: String,
     /// The price used to generate the line item.
     #[serde(default)]
@@ -4918,14 +4670,12 @@ pub struct LegalEntityUboDeclaration {
     pub user_agent: ::core::option::Option<String>,
 }
 
-/// Invoice Line Items represent the individual lines within an [invoice](https://docs.stripe.com/api/invoices) and only exist within the context of an invoice.
-///
-/// Each line item is backed by either an [invoice item](https://docs.stripe.com/api/invoiceitems) or a [subscription item](https://docs.stripe.com/api/subscription_items).
+/// Invoice Line Items represent the individual lines within an [invoice](<https://docs.stripe.`com/api/invoices`>) and only exist within the context of an invoice.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LineItem {
     /// The amount, in cents (or local equivalent).
     pub amount: i64,
-    /// Three-letter [ISO currency code](https://www.iso.org/iso-4217-currency-codes.html), in lowercase. Must be a [supported currency](https://stripe.com/docs/currencies).
+    /// Three-letter [ISO currency code](<https://www.iso.`org/iso-4217-currency-codes`.html>), in lowercase. Must be a [supported currency](<https://stripe.`com/docs/currencies`>).
     pub currency: String,
     /// An arbitrary string attached to the object. Often useful for displaying to users.
     #[serde(default)]
@@ -4933,7 +4683,7 @@ pub struct LineItem {
     /// The amount of discount calculated per discount for this line item.
     #[serde(default)]
     pub discount_amounts: ::core::option::Option<::std::vec::Vec<DiscountsResourceDiscountAmount>>,
-    /// If true, discounts will apply to this line item. Always false for prorations.
+    /// If `true`, discounts will apply to this line item. Always `false` for prorations.
     pub discountable: bool,
     /// The discounts applied to the invoice line item. Line item discounts are applied before invoice discounts. Use expand[]=discounts to expand each discount.
     pub discounts: ::std::vec::Vec<serde_json::Value>,
@@ -4942,11 +4692,11 @@ pub struct LineItem {
     /// The ID of the invoice that contains this line item.
     #[serde(default)]
     pub invoice: ::core::option::Option<String>,
-    /// If the object exists in live mode, the value is true. If the object exists in test mode, the value is false.
+    /// If the object exists in live mode, the value is `true`. If the object exists in test mode, the value is `false`.
     pub livemode: bool,
-    /// Set of [key-value pairs](https://docs.stripe.com/api/metadata) that you can attach to an object. This can be useful for storing additional information about the object in a structured format. Note that for line items with type=subscription, metadata reflects the current metadata from the subscription associated with the line item, unless the invoice line was directly updated with different metadata after creation.
+    /// Set of [key-value pairs](<https://docs.stripe.`com/api/metadata`>) that you can attach to an object. This can be useful for storing additional information about the object in a structured format. Note that for line items with type=subscription, metadata reflects the current metadata from the subscription associated with the line item, unless the invoice line was directly updated with different metadata after creation.
     pub metadata: serde_json::Value,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["line_item"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["line_item"]
     pub object: String,
     /// The parent that generated this line item.
     #[serde(default)]
@@ -4984,12 +4734,11 @@ pub struct LineItemsAdjustableQuantity {
 }
 
 /// Login Links are single-use URLs that takes an Express account to the login page for their Stripe dashboard.
-/// A Login Link differs from an [Account Link](https://docs.stripe.com/api/account_links) in that it takes the user directly to their [Express dashboard for the specified account](https://docs.stripe.com/connect/integrate-express-dashboard#create-login-link)
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LoginLink {
     /// Time at which the object was created. Measured in seconds since the Unix epoch.
     pub created: i64,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["login_link"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["login_link"]
     pub object: String,
     /// The URL for the login link.
     pub url: String,
@@ -5001,11 +4750,11 @@ pub struct Mandate {
     pub customer_acceptance: CustomerAcceptance,
     /// Unique identifier for the object.
     pub id: String,
-    /// If the object exists in live mode, the value is true. If the object exists in test mode, the value is false.
+    /// If the object exists in live mode, the value is `true`. If the object exists in test mode, the value is `false`.
     pub livemode: bool,
     #[serde(default)]
     pub multi_use: ::core::option::Option<MandateMultiUse>,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["mandate"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["mandate"]
     pub object: String,
     /// The account (if any) that the mandate is intended for.
     #[serde(default)]
@@ -5024,7 +4773,7 @@ pub struct Mandate {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Networks {
-    /// All networks available for selection via [payment_method_options.card.network](/api/payment_intents/confirm#confirm_payment_intent-payment_method_options-card-network).
+    /// All networks available for selection via [payment_method_options.card.network](/`api/payment_intents/confirm`#confirm_payment_intent-payment_method_options-card-network).
     pub available: ::std::vec::Vec<String>,
     /// The preferred network for co-branded cards. Can be cartes_bancaires, mastercard, visa or invalid_preference if requested network is not valid for the card.
     #[serde(default)]
@@ -5033,7 +4782,7 @@ pub struct Networks {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NotificationEventRequest {
-    /// ID of the API request that caused the event. If null, the event was automatic (e.g., Stripe''s automatic subscription handling). Request logs are available in the [dashboard](https://dashboard.stripe.com/logs), but currently not in the API.
+    /// ID of the API request that caused the event. If `null`, the event was automatic (e.g., Stripe''s automatic subscription handling). Request logs are available in the [dashboard](<https://dashboard.stripe.`com/logs`>), but currently not in the API.
     #[serde(default)]
     pub id: ::core::option::Option<String>,
     /// The idempotency key transmitted during the request, if any. *Note: This property is populated only for events on or after May 23, 2017*.
@@ -5067,9 +4816,6 @@ pub struct PackageDimensions {
 }
 
 /// A Payment Attempt Record represents an individual attempt at making a payment, on or off Stripe.
-/// Each payment attempt tries to collect a fixed amount of money from a fixed customer and payment
-/// method. Payment Attempt Records are attached to Payment Records. Only one attempt per Payment Record
-/// can have guaranteed funds.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentAttemptRecord {
     pub amount: PaymentsPrimitivesPaymentRecordsResourceAmount,
@@ -5095,11 +4841,11 @@ pub struct PaymentAttemptRecord {
     pub description: ::core::option::Option<String>,
     /// Unique identifier for the object.
     pub id: String,
-    /// If the object exists in live mode, the value is true. If the object exists in test mode, the value is false.
+    /// If the object exists in live mode, the value is `true`. If the object exists in test mode, the value is `false`.
     pub livemode: bool,
-    /// Set of [key-value pairs](https://docs.stripe.com/api/metadata) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
+    /// Set of [key-value pairs](<https://docs.stripe.`com/api/metadata`>) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
     pub metadata: serde_json::Value,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["payment_attempt_record"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["payment_attempt_record"]
     pub object: String,
     /// Information about the Payment Method debited for this payment.
     #[serde(default)]
@@ -5117,7 +4863,7 @@ pub struct PaymentAttemptRecord {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentFlowsAmountDetails {
-    /// The total discount applied on the transaction represented in the [smallest currency unit](https://docs.stripe.com/currencies#zero-decimal). An integer greater than 0.
+    /// The total discount applied on the transaction represented in the [smallest currency unit](<https://docs.stripe.`com/currencies`#zero-decimal>). An integer greater than 0.  This field is mutually exclusive with the amount_details[line_items][#][discount_amount] field.
     #[serde(default)]
     pub discount_amount: ::core::option::Option<i64>,
     #[serde(default)]
@@ -5153,13 +4899,13 @@ pub struct PaymentFlowsAmountDetailsResourceLineItemsListResourceLineItemResourc
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentFlowsAmountDetailsResourceLineItemsListResourceLineItemResourceTax {
-    /// The total amount of tax on the transaction represented in the [smallest currency unit](https://docs.stripe.com/currencies#zero-decimal). Required for L2 rates. An integer greater than or equal to 0.
+    /// The total amount of tax on the transaction represented in the [smallest currency unit](<https://docs.stripe.`com/currencies`#zero-decimal>). Required for L2 rates. An integer greater than or equal to 0.  This field is mutually exclusive with the amount_details[line_items][#][tax][total_tax_amount] field.
     pub total_tax_amount: i64,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentFlowsAutomaticPaymentMethodsPaymentIntent {
-    /// Controls whether this PaymentIntent will accept redirect-based payment methods.
+    /// Controls whether this PaymentIntent will accept redirect-based payment methods.  Redirect-based payment methods may require your customer to be redirected to a payment method''s app or site for authentication or additional steps. To [confirm](<https://docs.stripe.`com/api/payment_intents/confirm`>) this PaymentIntent, you may be required to provide a return_url to redirect customers back to your site after they authenticate or complete the payment. // TODO: enum values: ["always", "never"]
     #[serde(default)]
     pub allow_redirects: ::core::option::Option<String>,
     /// Automatically calculates compatible payment methods
@@ -5168,7 +4914,7 @@ pub struct PaymentFlowsAutomaticPaymentMethodsPaymentIntent {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentFlowsAutomaticPaymentMethodsSetupIntent {
-    /// Controls whether this SetupIntent will accept redirect-based payment methods.
+    /// Controls whether this SetupIntent will accept redirect-based payment methods.  Redirect-based payment methods may require your customer to be redirected to a payment method''s app or site for authentication or additional steps. To [confirm](<https://docs.stripe.`com/api/setup_intents/confirm`>) this SetupIntent, you may be required to provide a return_url to redirect customers back to your site after they authenticate or complete the setup. // TODO: enum values: ["always", "never"]
     #[serde(default)]
     pub allow_redirects: ::core::option::Option<String>,
     /// Automatically calculates compatible payment methods
@@ -5181,7 +4927,7 @@ pub struct PaymentFlowsPrivatePaymentMethodsKakaoPayPaymentMethodOptions {
     /// Controls when the funds will be captured from the customer''s account. // TODO: enum values: ["manual"]
     #[serde(default)]
     pub capture_method: ::core::option::Option<String>,
-    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.
+    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.  If you provide a Customer with the PaymentIntent, you can use this parameter to [attach the payment method](/`payments/save-during-payment`) to the Customer after the PaymentIntent is confirmed and the customer completes any required actions. If you don''t provide a Customer, you can still [attach](/`api/payment_methods/attach`) the payment method to a Customer after the transaction completes.  If the payment method is card_present and isn''t a digital wallet, Stripe creates and attaches a [generated_card](/`api/charges/object`#charge_object-payment_method_details-card_present-generated_card) payment method representing the card to the Customer instead.  When processing card payments, Stripe uses setup_future_usage to help you comply with regional legislation and network rules, such as [SCA](/strong-customer-authentication). // TODO: enum values: ["none", "off_session"]
     #[serde(default)]
     pub setup_future_usage: ::core::option::Option<String>,
 }
@@ -5204,7 +4950,7 @@ pub struct PaymentFlowsPrivatePaymentMethodsNaverPayPaymentMethodOptions {
     /// Controls when the funds will be captured from the customer''s account. // TODO: enum values: ["manual"]
     #[serde(default)]
     pub capture_method: ::core::option::Option<String>,
-    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.
+    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.  If you provide a Customer with the PaymentIntent, you can use this parameter to [attach the payment method](/`payments/save-during-payment`) to the Customer after the PaymentIntent is confirmed and the customer completes any required actions. If you don''t provide a Customer, you can still [attach](/`api/payment_methods/attach`) the payment method to a Customer after the transaction completes.  If the payment method is card_present and isn''t a digital wallet, Stripe creates and attaches a [generated_card](/`api/charges/object`#charge_object-payment_method_details-card_present-generated_card) payment method representing the card to the Customer instead.  When processing card payments, Stripe uses setup_future_usage to help you comply with regional legislation and network rules, such as [SCA](/strong-customer-authentication). // TODO: enum values: ["none", "off_session"]
     #[serde(default)]
     pub setup_future_usage: ::core::option::Option<String>,
 }
@@ -5225,12 +4971,12 @@ pub struct PaymentFlowsPrivatePaymentMethodsSamsungPayPaymentMethodOptions {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentIntentAmountDetailsLineItem {
-    /// The discount applied on this line item represented in the [smallest currency unit](https://docs.stripe.com/currencies#zero-decimal). An integer greater than 0.
+    /// The discount applied on this line item represented in the [smallest currency unit](<https://docs.stripe.`com/currencies`#zero-decimal>). An integer greater than 0.  This field is mutually exclusive with the amount_details[discount_amount] field.
     #[serde(default)]
     pub discount_amount: ::core::option::Option<i64>,
     /// Unique identifier for the object.
     pub id: String,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["payment_intent_amount_details_line_item"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["payment_intent_amount_details_line_item"]
     pub object: String,
     /// Payment method-specific information for line items.
     #[serde(default)]
@@ -5238,14 +4984,14 @@ pub struct PaymentIntentAmountDetailsLineItem {
     /// The product code of the line item, such as an SKU. Required for L3 rates. At most 12 characters long.
     #[serde(default)]
     pub product_code: ::core::option::Option<String>,
-    /// The product name of the line item. Required for L3 rates. At most 1024 characters long.
+    /// The product name of the line item. Required for L3 rates. At most 1024 characters long.  For Cards, this field is truncated to 26 alphanumeric characters before being sent to the card networks. For PayPal, this field is truncated to 127 characters.
     pub product_name: String,
     /// The quantity of items. Required for L3 rates. An integer greater than 0.
     pub quantity: i64,
     /// Contains information about the tax on the item.
     #[serde(default)]
     pub tax: ::core::option::Option<serde_json::Value>,
-    /// The unit cost of the line item represented in the [smallest currency unit](https://docs.stripe.com/currencies#zero-decimal). Required for L3 rates. An integer greater than or equal to 0.
+    /// The unit cost of the line item represented in the [smallest currency unit](<https://docs.stripe.`com/currencies`#zero-decimal>). Required for L3 rates. An integer greater than or equal to 0.
     pub unit_cost: i64,
     /// A unit of measure for the line item, such as gallons, feet, meters, etc. Required for L3 rates. At most 12 alphanumeric characters long.
     #[serde(default)]
@@ -5460,7 +5206,7 @@ pub struct PaymentIntentPaymentMethodOptionsAcssDebit {
     #[serde(default)]
     pub mandate_options:
         ::core::option::Option<PaymentIntentPaymentMethodOptionsMandateOptionsAcssDebit>,
-    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.
+    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.  If you provide a Customer with the PaymentIntent, you can use this parameter to [attach the payment method](/`payments/save-during-payment`) to the Customer after the PaymentIntent is confirmed and the customer completes any required actions. If you don''t provide a Customer, you can still [attach](/`api/payment_methods/attach`) the payment method to a Customer after the transaction completes.  If the payment method is card_present and isn''t a digital wallet, Stripe creates and attaches a [generated_card](/`api/charges/object`#charge_object-payment_method_details-card_present-generated_card) payment method representing the card to the Customer instead.  When processing card payments, Stripe uses setup_future_usage to help you comply with regional legislation and network rules, such as [SCA](/strong-customer-authentication). // TODO: enum values: ["none", "off_session", "on_session"]
     #[serde(default)]
     pub setup_future_usage: ::core::option::Option<String>,
     /// Controls when Stripe will attempt to debit the funds from the customer''s account. The date must be a string in YYYY-MM-DD format. The date must be in the future and between 3 and 15 calendar days from now.
@@ -5473,7 +5219,7 @@ pub struct PaymentIntentPaymentMethodOptionsAcssDebit {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentIntentPaymentMethodOptionsAuBecsDebit {
-    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.
+    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.  If you provide a Customer with the PaymentIntent, you can use this parameter to [attach the payment method](/`payments/save-during-payment`) to the Customer after the PaymentIntent is confirmed and the customer completes any required actions. If you don''t provide a Customer, you can still [attach](/`api/payment_methods/attach`) the payment method to a Customer after the transaction completes.  If the payment method is card_present and isn''t a digital wallet, Stripe creates and attaches a [generated_card](/`api/charges/object`#charge_object-payment_method_details-card_present-generated_card) payment method representing the card to the Customer instead.  When processing card payments, Stripe uses setup_future_usage to help you comply with regional legislation and network rules, such as [SCA](/strong-customer-authentication). // TODO: enum values: ["none", "off_session", "on_session"]
     #[serde(default)]
     pub setup_future_usage: ::core::option::Option<String>,
     /// Controls when Stripe will attempt to debit the funds from the customer''s account. The date must be a string in YYYY-MM-DD format. The date must be in the future and between 3 and 15 calendar days from now.
@@ -5486,7 +5232,7 @@ pub struct PaymentIntentPaymentMethodOptionsBacsDebit {
     #[serde(default)]
     pub mandate_options:
         ::core::option::Option<PaymentIntentPaymentMethodOptionsMandateOptionsBacsDebit>,
-    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.
+    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.  If you provide a Customer with the PaymentIntent, you can use this parameter to [attach the payment method](/`payments/save-during-payment`) to the Customer after the PaymentIntent is confirmed and the customer completes any required actions. If you don''t provide a Customer, you can still [attach](/`api/payment_methods/attach`) the payment method to a Customer after the transaction completes.  If the payment method is card_present and isn''t a digital wallet, Stripe creates and attaches a [generated_card](/`api/charges/object`#charge_object-payment_method_details-card_present-generated_card) payment method representing the card to the Customer instead.  When processing card payments, Stripe uses setup_future_usage to help you comply with regional legislation and network rules, such as [SCA](/strong-customer-authentication). // TODO: enum values: ["none", "off_session", "on_session"]
     #[serde(default)]
     pub setup_future_usage: ::core::option::Option<String>,
     /// Controls when Stripe will attempt to debit the funds from the customer''s account. The date must be a string in YYYY-MM-DD format. The date must be in the future and between 3 and 15 calendar days from now.
@@ -5496,7 +5242,7 @@ pub struct PaymentIntentPaymentMethodOptionsBacsDebit {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentIntentPaymentMethodOptionsBlik {
-    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.
+    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.  If you provide a Customer with the PaymentIntent, you can use this parameter to [attach the payment method](/`payments/save-during-payment`) to the Customer after the PaymentIntent is confirmed and the customer completes any required actions. If you don''t provide a Customer, you can still [attach](/`api/payment_methods/attach`) the payment method to a Customer after the transaction completes.  If the payment method is card_present and isn''t a digital wallet, Stripe creates and attaches a [generated_card](/`api/charges/object`#charge_object-payment_method_details-card_present-generated_card) payment method representing the card to the Customer instead.  When processing card payments, Stripe uses setup_future_usage to help you comply with regional legislation and network rules, such as [SCA](/strong-customer-authentication). // TODO: enum values: ["none"]
     #[serde(default)]
     pub setup_future_usage: ::core::option::Option<String>,
 }
@@ -5506,7 +5252,7 @@ pub struct PaymentIntentPaymentMethodOptionsCard {
     /// Controls when the funds will be captured from the customer''s account. // TODO: enum values: ["manual"]
     #[serde(default)]
     pub capture_method: ::core::option::Option<String>,
-    /// Installment details for this payment.
+    /// Installment details for this payment.  For more information, see the [installments integration guide](<https://docs.stripe.`com/payments/installments`>).
     #[serde(default)]
     pub installments: ::core::option::Option<serde_json::Value>,
     /// Configuration options for setting up an eMandate for cards issued in India.
@@ -5515,25 +5261,25 @@ pub struct PaymentIntentPaymentMethodOptionsCard {
     /// Selected network to process this payment intent on. Depends on the available networks of the card attached to the payment intent. Can be only set confirm-time. // TODO: enum values: ["amex", "cartes_bancaires", "diners", "discover", "eftpos_au", "girocard", "interac", "jcb", "link", "mastercard", "unionpay", "unknown", "visa"]
     #[serde(default)]
     pub network: ::core::option::Option<String>,
-    /// Request ability to [capture beyond the standard authorization validity window](https://docs.stripe.com/payments/extended-authorization) for this PaymentIntent. // TODO: enum values: ["if_available", "never"]
+    /// Request ability to [capture beyond the standard authorization validity window](<https://docs.stripe.`com/payments/extended-authorization`>) for this PaymentIntent. // TODO: enum values: ["if_available", "never"]
     #[serde(default)]
     pub request_extended_authorization: ::core::option::Option<String>,
-    /// Request ability to [increment the authorization](https://docs.stripe.com/payments/incremental-authorization) for this PaymentIntent. // TODO: enum values: ["if_available", "never"]
+    /// Request ability to [increment the authorization](<https://docs.stripe.`com/payments/incremental-authorization`>) for this PaymentIntent. // TODO: enum values: ["if_available", "never"]
     #[serde(default)]
     pub request_incremental_authorization: ::core::option::Option<String>,
-    /// Request ability to make [multiple captures](https://docs.stripe.com/payments/multicapture) for this PaymentIntent. // TODO: enum values: ["if_available", "never"]
+    /// Request ability to make [multiple captures](<https://docs.stripe.`com/payments/multicapture`>) for this PaymentIntent. // TODO: enum values: ["if_available", "never"]
     #[serde(default)]
     pub request_multicapture: ::core::option::Option<String>,
-    /// Request ability to [overcapture](https://docs.stripe.com/payments/overcapture) for this PaymentIntent. // TODO: enum values: ["if_available", "never"]
+    /// Request ability to [overcapture](<https://docs.stripe.`com/payments/overcapture`>) for this PaymentIntent. // TODO: enum values: ["if_available", "never"]
     #[serde(default)]
     pub request_overcapture: ::core::option::Option<String>,
-    /// We strongly recommend that you rely on our SCA Engine to automatically prompt your customers for authentication based on risk level and [other requirements](https://docs.stripe.com/strong-customer-authentication). However, if you wish to request 3D Secure based on logic from your own fraud engine, provide this option. If not provided, this value defaults to automatic. Read our guide on [manually requesting 3D Secure](https://docs.stripe.com/payments/3d-secure/authentication-flow#manual-three-ds) for more information on how this configuration interacts with Radar and our SCA Engine. // TODO: enum values: ["any", "automatic", "challenge"]
+    /// We strongly recommend that you rely on our SCA Engine to automatically prompt your customers for authentication based on risk level and [other requirements](<https://docs.stripe.`com/strong-customer-authentication`>). However, if you wish to request 3D Secure based on logic from your own fraud engine, provide this option. If not provided, this value defaults to automatic. Read our guide on [manually requesting 3D Secure](<https://docs.stripe.`com/payments/3d-secure/authentication-flow`#manual-three-ds>) for more information on how this configuration interacts with Radar and our SCA Engine. // TODO: enum values: ["any", "automatic", "challenge"]
     #[serde(default)]
     pub request_three_d_secure: ::core::option::Option<String>,
     /// When enabled, using a card that is attached to a customer will require the CVC to be provided again (i.e. using the cvc_token parameter).
     #[serde(default)]
     pub require_cvc_recollection: ::core::option::Option<bool>,
-    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.
+    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.  If you provide a Customer with the PaymentIntent, you can use this parameter to [attach the payment method](/`payments/save-during-payment`) to the Customer after the PaymentIntent is confirmed and the customer completes any required actions. If you don''t provide a Customer, you can still [attach](/`api/payment_methods/attach`) the payment method to a Customer after the transaction completes.  If the payment method is card_present and isn''t a digital wallet, Stripe creates and attaches a [generated_card](/`api/charges/object`#charge_object-payment_method_details-card_present-generated_card) payment method representing the card to the Customer instead.  When processing card payments, Stripe uses setup_future_usage to help you comply with regional legislation and network rules, such as [SCA](/strong-customer-authentication). // TODO: enum values: ["none", "off_session", "on_session"]
     #[serde(default)]
     pub setup_future_usage: ::core::option::Option<String>,
     /// Provides information about a card payment that customers see on their statements. Concatenated with the Kana prefix (shortened Kana descriptor) or Kana statement descriptor that’s set on the account to form the complete statement descriptor. Maximum 22 characters. On card statements, the *concatenation* of both prefix and suffix (including separators) will appear truncated to 22 characters.
@@ -5546,7 +5292,7 @@ pub struct PaymentIntentPaymentMethodOptionsCard {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentIntentPaymentMethodOptionsEps {
-    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.
+    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.  If you provide a Customer with the PaymentIntent, you can use this parameter to [attach the payment method](/`payments/save-during-payment`) to the Customer after the PaymentIntent is confirmed and the customer completes any required actions. If you don''t provide a Customer, you can still [attach](/`api/payment_methods/attach`) the payment method to a Customer after the transaction completes.  If the payment method is card_present and isn''t a digital wallet, Stripe creates and attaches a [generated_card](/`api/charges/object`#charge_object-payment_method_details-card_present-generated_card) payment method representing the card to the Customer instead.  When processing card payments, Stripe uses setup_future_usage to help you comply with regional legislation and network rules, such as [SCA](/strong-customer-authentication). // TODO: enum values: ["none"]
     #[serde(default)]
     pub setup_future_usage: ::core::option::Option<String>,
 }
@@ -5556,7 +5302,7 @@ pub struct PaymentIntentPaymentMethodOptionsLink {
     /// Controls when the funds will be captured from the customer''s account. // TODO: enum values: ["manual"]
     #[serde(default)]
     pub capture_method: ::core::option::Option<String>,
-    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.
+    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.  If you provide a Customer with the PaymentIntent, you can use this parameter to [attach the payment method](/`payments/save-during-payment`) to the Customer after the PaymentIntent is confirmed and the customer completes any required actions. If you don''t provide a Customer, you can still [attach](/`api/payment_methods/attach`) the payment method to a Customer after the transaction completes.  If the payment method is card_present and isn''t a digital wallet, Stripe creates and attaches a [generated_card](/`api/charges/object`#charge_object-payment_method_details-card_present-generated_card) payment method representing the card to the Customer instead.  When processing card payments, Stripe uses setup_future_usage to help you comply with regional legislation and network rules, such as [SCA](/strong-customer-authentication). // TODO: enum values: ["none", "off_session"]
     #[serde(default)]
     pub setup_future_usage: ::core::option::Option<String>,
 }
@@ -5566,14 +5312,14 @@ pub struct PaymentIntentPaymentMethodOptionsMobilepay {
     /// Controls when the funds will be captured from the customer''s account. // TODO: enum values: ["manual"]
     #[serde(default)]
     pub capture_method: ::core::option::Option<String>,
-    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.
+    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.  If you provide a Customer with the PaymentIntent, you can use this parameter to [attach the payment method](/`payments/save-during-payment`) to the Customer after the PaymentIntent is confirmed and the customer completes any required actions. If you don''t provide a Customer, you can still [attach](/`api/payment_methods/attach`) the payment method to a Customer after the transaction completes.  If the payment method is card_present and isn''t a digital wallet, Stripe creates and attaches a [generated_card](/`api/charges/object`#charge_object-payment_method_details-card_present-generated_card) payment method representing the card to the Customer instead.  When processing card payments, Stripe uses setup_future_usage to help you comply with regional legislation and network rules, such as [SCA](/strong-customer-authentication). // TODO: enum values: ["none"]
     #[serde(default)]
     pub setup_future_usage: ::core::option::Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentIntentPaymentMethodOptionsNzBankAccount {
-    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.
+    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.  If you provide a Customer with the PaymentIntent, you can use this parameter to [attach the payment method](/`payments/save-during-payment`) to the Customer after the PaymentIntent is confirmed and the customer completes any required actions. If you don''t provide a Customer, you can still [attach](/`api/payment_methods/attach`) the payment method to a Customer after the transaction completes.  If the payment method is card_present and isn''t a digital wallet, Stripe creates and attaches a [generated_card](/`api/charges/object`#charge_object-payment_method_details-card_present-generated_card) payment method representing the card to the Customer instead.  When processing card payments, Stripe uses setup_future_usage to help you comply with regional legislation and network rules, such as [SCA](/strong-customer-authentication). // TODO: enum values: ["none", "off_session", "on_session"]
     #[serde(default)]
     pub setup_future_usage: ::core::option::Option<String>,
     /// Controls when Stripe will attempt to debit the funds from the customer''s account. The date must be a string in YYYY-MM-DD format. The date must be in the future and between 3 and 15 calendar days from now.
@@ -5586,7 +5332,7 @@ pub struct PaymentIntentPaymentMethodOptionsPayto {
     #[serde(default)]
     pub mandate_options:
         ::core::option::Option<PaymentIntentPaymentMethodOptionsMandateOptionsPayto>,
-    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.
+    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.  If you provide a Customer with the PaymentIntent, you can use this parameter to [attach the payment method](/`payments/save-during-payment`) to the Customer after the PaymentIntent is confirmed and the customer completes any required actions. If you don''t provide a Customer, you can still [attach](/`api/payment_methods/attach`) the payment method to a Customer after the transaction completes.  If the payment method is card_present and isn''t a digital wallet, Stripe creates and attaches a [generated_card](/`api/charges/object`#charge_object-payment_method_details-card_present-generated_card) payment method representing the card to the Customer instead.  When processing card payments, Stripe uses setup_future_usage to help you comply with regional legislation and network rules, such as [SCA](/strong-customer-authentication). // TODO: enum values: ["none", "off_session"]
     #[serde(default)]
     pub setup_future_usage: ::core::option::Option<String>,
 }
@@ -5596,7 +5342,7 @@ pub struct PaymentIntentPaymentMethodOptionsSepaDebit {
     #[serde(default)]
     pub mandate_options:
         ::core::option::Option<PaymentIntentPaymentMethodOptionsMandateOptionsSepaDebit>,
-    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.
+    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.  If you provide a Customer with the PaymentIntent, you can use this parameter to [attach the payment method](/`payments/save-during-payment`) to the Customer after the PaymentIntent is confirmed and the customer completes any required actions. If you don''t provide a Customer, you can still [attach](/`api/payment_methods/attach`) the payment method to a Customer after the transaction completes.  If the payment method is card_present and isn''t a digital wallet, Stripe creates and attaches a [generated_card](/`api/charges/object`#charge_object-payment_method_details-card_present-generated_card) payment method representing the card to the Customer instead.  When processing card payments, Stripe uses setup_future_usage to help you comply with regional legislation and network rules, such as [SCA](/strong-customer-authentication). // TODO: enum values: ["none", "off_session", "on_session"]
     #[serde(default)]
     pub setup_future_usage: ::core::option::Option<String>,
     /// Controls when Stripe will attempt to debit the funds from the customer''s account. The date must be a string in YYYY-MM-DD format. The date must be in the future and between 3 and 15 calendar days from now.
@@ -5609,7 +5355,7 @@ pub struct PaymentIntentPaymentMethodOptionsSwish {
     /// A reference for this payment to be displayed in the Swish app.
     #[serde(default)]
     pub reference: ::core::option::Option<String>,
-    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.
+    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.  If you provide a Customer with the PaymentIntent, you can use this parameter to [attach the payment method](/`payments/save-during-payment`) to the Customer after the PaymentIntent is confirmed and the customer completes any required actions. If you don''t provide a Customer, you can still [attach](/`api/payment_methods/attach`) the payment method to a Customer after the transaction completes.  If the payment method is card_present and isn''t a digital wallet, Stripe creates and attaches a [generated_card](/`api/charges/object`#charge_object-payment_method_details-card_present-generated_card) payment method representing the card to the Customer instead.  When processing card payments, Stripe uses setup_future_usage to help you comply with regional legislation and network rules, such as [SCA](/strong-customer-authentication). // TODO: enum values: ["none"]
     #[serde(default)]
     pub setup_future_usage: ::core::option::Option<String>,
 }
@@ -5620,7 +5366,7 @@ pub struct PaymentIntentPaymentMethodOptionsUsBankAccount {
     pub financial_connections: ::core::option::Option<LinkedAccountOptionsCommon>,
     #[serde(default)]
     pub mandate_options: ::core::option::Option<PaymentMethodOptionsUsBankAccountMandateOptions>,
-    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.
+    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.  If you provide a Customer with the PaymentIntent, you can use this parameter to [attach the payment method](/`payments/save-during-payment`) to the Customer after the PaymentIntent is confirmed and the customer completes any required actions. If you don''t provide a Customer, you can still [attach](/`api/payment_methods/attach`) the payment method to a Customer after the transaction completes.  If the payment method is card_present and isn''t a digital wallet, Stripe creates and attaches a [generated_card](/`api/charges/object`#charge_object-payment_method_details-card_present-generated_card) payment method representing the card to the Customer instead.  When processing card payments, Stripe uses setup_future_usage to help you comply with regional legislation and network rules, such as [SCA](/strong-customer-authentication). // TODO: enum values: ["none", "off_session", "on_session"]
     #[serde(default)]
     pub setup_future_usage: ::core::option::Option<String>,
     /// Controls when Stripe will attempt to debit the funds from the customer''s account. The date must be a string in YYYY-MM-DD format. The date must be in the future and between 3 and 15 calendar days from now.
@@ -5653,7 +5399,7 @@ pub struct PaymentIntentTypeSpecificPaymentMethodOptionsClient {
     #[serde(default)]
     pub mandate_options:
         ::core::option::Option<PaymentIntentPaymentMethodOptionsMandateOptionsPayto>,
-    /// Request ability to [increment](https://docs.stripe.com/terminal/features/incremental-authorizations) this PaymentIntent if the combination of MCC and card brand is eligible. Check [incremental_authorization_supported](https://docs.stripe.com/api/charges/object#charge_object-payment_method_details-card_present-incremental_authorization_supported) in the [Confirm](https://docs.stripe.com/api/payment_intents/confirm) response to verify support.
+    /// Request ability to [increment](<https://docs.stripe.`com/terminal/features/incremental-authorizations`>) this PaymentIntent if the combination of MCC and card brand is eligible. Check [incremental_authorization_supported](<https://docs.stripe.`com/api/charges/object`#charge_object-payment_method_details-card_present-incremental_authorization_supported>) in the [Confirm](<https://docs.stripe.`com/api/payment_intents/confirm`>) response to verify support.
     #[serde(default)]
     pub request_incremental_authorization_support: ::core::option::Option<bool>,
     /// When enabled, using a card that is attached to a customer will require the CVC to be provided again (i.e. using the cvc_token parameter).
@@ -5661,7 +5407,7 @@ pub struct PaymentIntentTypeSpecificPaymentMethodOptionsClient {
     pub require_cvc_recollection: ::core::option::Option<bool>,
     #[serde(default)]
     pub routing: ::core::option::Option<PaymentMethodOptionsCardPresentRouting>,
-    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.
+    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.  If you provide a Customer with the PaymentIntent, you can use this parameter to [attach the payment method](/`payments/save-during-payment`) to the Customer after the PaymentIntent is confirmed and the customer completes any required actions. If you don''t provide a Customer, you can still [attach](/`api/payment_methods/attach`) the payment method to a Customer after the transaction completes.  If the payment method is card_present and isn''t a digital wallet, Stripe creates and attaches a [generated_card](/`api/charges/object`#charge_object-payment_method_details-card_present-generated_card) payment method representing the card to the Customer instead.  When processing card payments, Stripe uses setup_future_usage to help you comply with regional legislation and network rules, such as [SCA](/strong-customer-authentication). // TODO: enum values: ["none", "off_session", "on_session"]
     #[serde(default)]
     pub setup_future_usage: ::core::option::Option<String>,
     /// Bank account verification method. The default value is automatic. // TODO: enum values: ["automatic", "instant", "microdeposits"]
@@ -5670,13 +5416,9 @@ pub struct PaymentIntentTypeSpecificPaymentMethodOptionsClient {
 }
 
 /// A payment link is a shareable URL that will take your customers to a hosted payment page. A payment link can be shared and used multiple times.
-///
-/// When a customer opens a payment link it will open a new [checkout session](https://docs.stripe.com/api/checkout/sessions) to render the payment page. You can use [checkout session events](https://docs.stripe.com/api/events/types#event_types-checkout.session.completed) to track payments through payment links.
-///
-/// Related guide: [Payment Links API](https://docs.stripe.com/payment-links)
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentLink {
-    /// Whether the payment link''s url is active. If false, customers visiting the URL will be shown a page saying that the link has been deactivated.
+    /// Whether the payment link''s url is active. If `false`, customers visiting the URL will be shown a page saying that the link has been deactivated.
     pub active: bool,
     pub after_completion: PaymentLinksResourceAfterCompletion,
     /// Whether user redeemable promotion codes are enabled.
@@ -5696,7 +5438,7 @@ pub struct PaymentLink {
     /// When set, provides configuration to gather active consent from customers.
     #[serde(default)]
     pub consent_collection: ::core::option::Option<serde_json::Value>,
-    /// Three-letter [ISO currency code](https://www.iso.org/iso-4217-currency-codes.html), in lowercase. Must be a [supported currency](https://stripe.com/docs/currencies).
+    /// Three-letter [ISO currency code](<https://www.iso.`org/iso-4217-currency-codes`.html>), in lowercase. Must be a [supported currency](<https://stripe.`com/docs/currencies`>).
     pub currency: String,
     /// Collect additional information from your customer using custom fields. Up to 3 fields are supported. You can''t set this parameter if ui_mode is custom.
     pub custom_fields: ::std::vec::Vec<PaymentLinksResourceCustomFields>,
@@ -5714,15 +5456,15 @@ pub struct PaymentLink {
     /// The line items representing what is being sold.
     #[serde(default)]
     pub line_items: ::core::option::Option<serde_json::Value>,
-    /// If the object exists in live mode, the value is true. If the object exists in test mode, the value is false.
+    /// If the object exists in live mode, the value is `true`. If the object exists in test mode, the value is `false`.
     pub livemode: bool,
-    /// Set of [key-value pairs](https://docs.stripe.com/api/metadata) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
+    /// Set of [key-value pairs](<https://docs.stripe.`com/api/metadata`>) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
     pub metadata: serde_json::Value,
     #[serde(default)]
     pub name_collection: ::core::option::Option<PaymentLinksResourceNameCollection>,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["payment_link"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["payment_link"]
     pub object: String,
-    /// The account on behalf of which to charge. See the [Connect documentation](https://support.stripe.com/questions/sending-invoices-on-behalf-of-connected-accounts) for details.
+    /// The account on behalf of which to charge. See the [Connect documentation](<https://support.stripe.`com/questions/sending-invoices-on-behalf-of-connected-accounts`>) for details.
     #[serde(default)]
     pub on_behalf_of: ::core::option::Option<serde_json::Value>,
     /// The optional items presented to the customer at checkout.
@@ -5733,7 +5475,7 @@ pub struct PaymentLink {
     pub payment_intent_data: ::core::option::Option<serde_json::Value>,
     /// Configuration for collecting a payment method during checkout. Defaults to always. // TODO: enum values: ["always", "if_required"]
     pub payment_method_collection: String,
-    /// The list of payment method types that customers can use. When null, Stripe will dynamically show relevant payment methods you''ve enabled in your [payment method settings](https://dashboard.stripe.com/settings/payment_methods).
+    /// The list of payment method types that customers can use. When `null`, Stripe will dynamically show relevant payment methods you''ve enabled in your [payment method settings](<https://dashboard.stripe.`com/settings/payment_methods`>).
     #[serde(default)]
     pub payment_method_types: ::core::option::Option<::std::vec::Vec<String>>,
     pub phone_number_collection: PaymentLinksResourcePhoneNumberCollection,
@@ -5803,7 +5545,7 @@ pub struct PaymentLinksResourceInvoiceSettings {
     /// The connected account that issues the invoice. The invoice is presented with the branding and support information of the specified account.
     #[serde(default)]
     pub issuer: ::core::option::Option<serde_json::Value>,
-    /// Set of [key-value pairs](https://docs.stripe.com/api/metadata) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
+    /// Set of [key-value pairs](<https://docs.stripe.`com/api/metadata`>) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
     #[serde(default)]
     pub metadata: ::core::option::Option<serde_json::Value>,
     /// Options for invoice PDF rendering.
@@ -5813,7 +5555,7 @@ pub struct PaymentLinksResourceInvoiceSettings {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentLinksResourceOptionalItemAdjustableQuantity {
-    /// Set to true if the quantity can be adjusted to any non-negative integer.
+    /// Set to `true` if the quantity can be adjusted to any non-negative integer.
     pub enabled: bool,
     /// The maximum quantity of this item the customer can purchase. By default this value is 99.
     #[serde(default)]
@@ -5831,7 +5573,7 @@ pub struct PaymentLinksResourcePaymentIntentData {
     /// An arbitrary string attached to the object. Often useful for displaying to users.
     #[serde(default)]
     pub description: ::core::option::Option<String>,
-    /// Set of [key-value pairs](https://docs.stripe.com/api/metadata) that will set metadata on [Payment Intents](https://docs.stripe.com/api/payment_intents) generated from this payment link.
+    /// Set of [key-value pairs](<https://docs.stripe.`com/api/metadata`>) that will set metadata on [Payment Intents](<https://docs.stripe.`com/api/payment_intents`>) generated from this payment link.
     pub metadata: serde_json::Value,
     /// Indicates that you intend to make future payments with the payment method collected during checkout. // TODO: enum values: ["off_session", "on_session"]
     #[serde(default)]
@@ -5842,14 +5584,14 @@ pub struct PaymentLinksResourcePaymentIntentData {
     /// For a card payment, information about the charge that appears on the customer''s statement when this payment succeeds in creating a charge. Concatenated with the account''s statement descriptor prefix to form the complete statement descriptor.
     #[serde(default)]
     pub statement_descriptor_suffix: ::core::option::Option<String>,
-    /// A string that identifies the resulting payment as part of a group. See the PaymentIntents [use case for connected accounts](https://docs.stripe.com/connect/separate-charges-and-transfers) for details.
+    /// A string that identifies the resulting payment as part of a group. See the PaymentIntents [use case for connected accounts](<https://docs.stripe.`com/connect/separate-charges-and-transfers`>) for details.
     #[serde(default)]
     pub transfer_group: ::core::option::Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentLinksResourcePaymentMethodReuseAgreement {
-    /// Determines the position and visibility of the payment method reuse agreement in the UI. When set to auto, Stripe''s defaults will be used.
+    /// Determines the position and visibility of the payment method reuse agreement in the UI. When set to auto, Stripe''s defaults will be used.  When set to hidden, the payment method reuse agreement text will always be hidden in the UI. // TODO: enum values: ["auto", "hidden"]
     pub position: String,
 }
 
@@ -5870,7 +5612,7 @@ pub struct PaymentLinksResourceSubscriptionData {
     #[serde(default)]
     pub description: ::core::option::Option<String>,
     pub invoice_settings: PaymentLinksResourceSubscriptionDataInvoiceSettings,
-    /// Set of [key-value pairs](https://docs.stripe.com/api/metadata) that will set metadata on [Subscriptions](https://docs.stripe.com/api/subscriptions) generated from this payment link.
+    /// Set of [key-value pairs](<https://docs.stripe.`com/api/metadata`>) that will set metadata on [Subscriptions](<https://docs.stripe.`com/api/subscriptions`>) generated from this payment link.
     pub metadata: serde_json::Value,
     /// Integer representing the number of trial period days before the customer is charged for the first time.
     #[serde(default)]
@@ -5917,7 +5659,7 @@ pub struct PaymentMethodCardGeneratedCard {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodCardPresentNetworks {
-    /// All networks available for selection via [payment_method_options.card.network](/api/payment_intents/confirm#confirm_payment_intent-payment_method_options-card-network).
+    /// All networks available for selection via [payment_method_options.card.network](/`api/payment_intents/confirm`#confirm_payment_intent-payment_method_options-card-network).
     pub available: ::std::vec::Vec<String>,
     /// The preferred network for the card.
     #[serde(default)]
@@ -5958,19 +5700,6 @@ pub struct PaymentMethodConfigBizPaymentMethodConfigurationDetails {
 }
 
 /// PaymentMethodConfigurations control which payment methods are displayed to your customers when you don''t explicitly specify payment method types. You can have multiple configurations with different sets of payment methods for different scenarios.
-///
-/// There are two types of PaymentMethodConfigurations. Which is used depends on the [charge type](https://docs.stripe.com/connect/charges):
-///
-/// **Direct** configurations apply to payments created on your account, including Connect destination charges, Connect separate charges and transfers, and payments not involving Connect.
-///
-/// **Child** configurations apply to payments created on your connected accounts using direct charges, and charges with the on_behalf_of parameter.
-///
-/// Child configurations have a parent that sets default values and controls which settings connected accounts may override. You can specify a parent ID at payment time, and Stripe will automatically resolve the connected account’s associated child configuration. Parent configurations are [managed in the dashboard](https://dashboard.stripe.com/settings/payment_methods/connected_accounts) and are not available in this API.
-///
-/// Related guides:
-/// - [Payment Method Configurations API](https://docs.stripe.com/connect/payment-method-configurations)
-/// - [Multiple configurations on dynamic payment methods](https://docs.stripe.com/payments/multiple-payment-method-configs)
-/// - [Multiple configurations for your Connect accounts](https://docs.stripe.com/connect/multiple-payment-method-configurations)
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodConfiguration {
     #[serde(default)]
@@ -6045,7 +5774,7 @@ pub struct PaymentMethodConfiguration {
     pub kr_card: ::core::option::Option<PaymentMethodConfigResourcePaymentMethodProperties>,
     #[serde(default)]
     pub link: ::core::option::Option<PaymentMethodConfigResourcePaymentMethodProperties>,
-    /// If the object exists in live mode, the value is true. If the object exists in test mode, the value is false.
+    /// If the object exists in live mode, the value is `true`. If the object exists in test mode, the value is `false`.
     pub livemode: bool,
     #[serde(default)]
     pub mb_way: ::core::option::Option<PaymentMethodConfigResourcePaymentMethodProperties>,
@@ -6059,7 +5788,7 @@ pub struct PaymentMethodConfiguration {
     pub naver_pay: ::core::option::Option<PaymentMethodConfigResourcePaymentMethodProperties>,
     #[serde(default)]
     pub nz_bank_account: ::core::option::Option<PaymentMethodConfigResourcePaymentMethodProperties>,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["payment_method_configuration"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["payment_method_configuration"]
     pub object: String,
     #[serde(default)]
     pub oxxo: ::core::option::Option<PaymentMethodConfigResourcePaymentMethodProperties>,
@@ -6212,7 +5941,7 @@ pub struct PaymentMethodDetails {
     pub swish: ::core::option::Option<PaymentMethodDetailsSwish>,
     #[serde(default)]
     pub twint: ::core::option::Option<PaymentMethodDetailsTwint>,
-    /// The type of transaction-specific details of the payment method used in the payment. See [PaymentMethod.type](https://docs.stripe.com/api/payment_methods/object#payment_method_object-type) for the full list of possible types.
+    /// The type of transaction-specific details of the payment method used in the payment. See [PaymentMethod.type](<https://docs.stripe.`com/api/payment_methods/object`#payment_method_object-type>) for the full list of possible types. An additional hash is included on payment_method_details with a name matching this value. It contains information specific to the payment method.
     #[serde(rename = "type")]
     pub type_: String,
     #[serde(default)]
@@ -6358,9 +6087,6 @@ pub struct PaymentMethodDetailsKonbiniStore {
 }
 
 /// A payment method domain represents a web domain that you have registered with Stripe.
-/// Stripe Elements use registered payment method domains to control where certain payment methods are shown.
-///
-/// Related guide: [Payment method domains](https://docs.stripe.com/payments/payment-methods/pmd-registration).
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodDomain {
     pub amazon_pay: PaymentMethodDomainResourcePaymentMethodStatus,
@@ -6376,9 +6102,9 @@ pub struct PaymentMethodDomain {
     pub id: String,
     pub klarna: PaymentMethodDomainResourcePaymentMethodStatus,
     pub link: PaymentMethodDomainResourcePaymentMethodStatus,
-    /// If the object exists in live mode, the value is true. If the object exists in test mode, the value is false.
+    /// If the object exists in live mode, the value is `true`. If the object exists in test mode, the value is `false`.
     pub livemode: bool,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["payment_method_domain"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["payment_method_domain"]
     pub object: String,
     pub paypal: PaymentMethodDomainResourcePaymentMethodStatus,
 }
@@ -6391,7 +6117,7 @@ pub struct PaymentMethodOptionsAffirm {
     /// Preferred language of the Affirm authorization page that the customer is redirected to.
     #[serde(default)]
     pub preferred_locale: ::core::option::Option<String>,
-    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.
+    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.  If you provide a Customer with the PaymentIntent, you can use this parameter to [attach the payment method](/`payments/save-during-payment`) to the Customer after the PaymentIntent is confirmed and the customer completes any required actions. If you don''t provide a Customer, you can still [attach](/`api/payment_methods/attach`) the payment method to a Customer after the transaction completes.  If the payment method is card_present and isn''t a digital wallet, Stripe creates and attaches a [generated_card](/`api/charges/object`#charge_object-payment_method_details-card_present-generated_card) payment method representing the card to the Customer instead.  When processing card payments, Stripe uses setup_future_usage to help you comply with regional legislation and network rules, such as [SCA](/strong-customer-authentication). // TODO: enum values: ["none"]
     #[serde(default)]
     pub setup_future_usage: ::core::option::Option<String>,
 }
@@ -6401,17 +6127,17 @@ pub struct PaymentMethodOptionsAfterpayClearpay {
     /// Controls when the funds will be captured from the customer''s account. // TODO: enum values: ["manual"]
     #[serde(default)]
     pub capture_method: ::core::option::Option<String>,
-    /// An internal identifier or reference that this payment corresponds to. You must limit the identifier to 128 characters, and it can only contain letters, numbers, underscores, backslashes, and dashes.
+    /// An internal identifier or reference that this payment corresponds to. You must limit the identifier to 128 characters, and it can only contain letters, numbers, underscores, backslashes, and dashes. This field differs from the statement descriptor and item name.
     #[serde(default)]
     pub reference: ::core::option::Option<String>,
-    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.
+    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.  If you provide a Customer with the PaymentIntent, you can use this parameter to [attach the payment method](/`payments/save-during-payment`) to the Customer after the PaymentIntent is confirmed and the customer completes any required actions. If you don''t provide a Customer, you can still [attach](/`api/payment_methods/attach`) the payment method to a Customer after the transaction completes.  If the payment method is card_present and isn''t a digital wallet, Stripe creates and attaches a [generated_card](/`api/charges/object`#charge_object-payment_method_details-card_present-generated_card) payment method representing the card to the Customer instead.  When processing card payments, Stripe uses setup_future_usage to help you comply with regional legislation and network rules, such as [SCA](/strong-customer-authentication). // TODO: enum values: ["none"]
     #[serde(default)]
     pub setup_future_usage: ::core::option::Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodOptionsAlipay {
-    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.
+    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.  If you provide a Customer with the PaymentIntent, you can use this parameter to [attach the payment method](/`payments/save-during-payment`) to the Customer after the PaymentIntent is confirmed and the customer completes any required actions. If you don''t provide a Customer, you can still [attach](/`api/payment_methods/attach`) the payment method to a Customer after the transaction completes.  If the payment method is card_present and isn''t a digital wallet, Stripe creates and attaches a [generated_card](/`api/charges/object`#charge_object-payment_method_details-card_present-generated_card) payment method representing the card to the Customer instead.  When processing card payments, Stripe uses setup_future_usage to help you comply with regional legislation and network rules, such as [SCA](/strong-customer-authentication). // TODO: enum values: ["none", "off_session"]
     #[serde(default)]
     pub setup_future_usage: ::core::option::Option<String>,
 }
@@ -6428,7 +6154,7 @@ pub struct PaymentMethodOptionsAmazonPay {
     /// Controls when the funds will be captured from the customer''s account. // TODO: enum values: ["manual"]
     #[serde(default)]
     pub capture_method: ::core::option::Option<String>,
-    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.
+    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.  If you provide a Customer with the PaymentIntent, you can use this parameter to [attach the payment method](/`payments/save-during-payment`) to the Customer after the PaymentIntent is confirmed and the customer completes any required actions. If you don''t provide a Customer, you can still [attach](/`api/payment_methods/attach`) the payment method to a Customer after the transaction completes.  If the payment method is card_present and isn''t a digital wallet, Stripe creates and attaches a [generated_card](/`api/charges/object`#charge_object-payment_method_details-card_present-generated_card) payment method representing the card to the Customer instead.  When processing card payments, Stripe uses setup_future_usage to help you comply with regional legislation and network rules, such as [SCA](/strong-customer-authentication). // TODO: enum values: ["none", "off_session"]
     #[serde(default)]
     pub setup_future_usage: ::core::option::Option<String>,
 }
@@ -6437,7 +6163,7 @@ pub struct PaymentMethodOptionsAmazonPay {
 pub struct PaymentMethodOptionsBancontact {
     /// Preferred language of the Bancontact authorization page that the customer is redirected to. // TODO: enum values: ["de", "en", "fr", "nl"]
     pub preferred_language: String,
-    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.
+    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.  If you provide a Customer with the PaymentIntent, you can use this parameter to [attach the payment method](/`payments/save-during-payment`) to the Customer after the PaymentIntent is confirmed and the customer completes any required actions. If you don''t provide a Customer, you can still [attach](/`api/payment_methods/attach`) the payment method to a Customer after the transaction completes.  If the payment method is card_present and isn''t a digital wallet, Stripe creates and attaches a [generated_card](/`api/charges/object`#charge_object-payment_method_details-card_present-generated_card) payment method representing the card to the Customer instead.  When processing card payments, Stripe uses setup_future_usage to help you comply with regional legislation and network rules, such as [SCA](/strong-customer-authentication). // TODO: enum values: ["none", "off_session"]
     #[serde(default)]
     pub setup_future_usage: ::core::option::Option<String>,
 }
@@ -6451,9 +6177,9 @@ pub struct PaymentMethodOptionsBillie {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodOptionsBoleto {
-    /// The number of calendar days before a Boleto voucher expires. For example, if you create a Boleto voucher on Monday and you set expires_after_days to 2, the Boleto voucher will expire on Wednesday at 23:59 America/Sao_Paulo time.
+    /// The number of calendar days before a Boleto voucher expires. For example, if you create a Boleto voucher on Monday and you set expires_after_days to 2, the Boleto voucher will expire on Wednesday at 23:59 A`merica/Sao_Paulo` time.
     pub expires_after_days: i64,
-    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.
+    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.  If you provide a Customer with the PaymentIntent, you can use this parameter to [attach the payment method](/`payments/save-during-payment`) to the Customer after the PaymentIntent is confirmed and the customer completes any required actions. If you don''t provide a Customer, you can still [attach](/`api/payment_methods/attach`) the payment method to a Customer after the transaction completes.  If the payment method is card_present and isn''t a digital wallet, Stripe creates and attaches a [generated_card](/`api/charges/object`#charge_object-payment_method_details-card_present-generated_card) payment method representing the card to the Customer instead.  When processing card payments, Stripe uses setup_future_usage to help you comply with regional legislation and network rules, such as [SCA](/strong-customer-authentication). // TODO: enum values: ["none", "off_session", "on_session"]
     #[serde(default)]
     pub setup_future_usage: ::core::option::Option<String>,
 }
@@ -6502,10 +6228,10 @@ pub struct PaymentMethodOptionsCardPresent {
     /// Controls when the funds will be captured from the customer''s account. // TODO: enum values: ["manual", "manual_preferred"]
     #[serde(default)]
     pub capture_method: ::core::option::Option<String>,
-    /// Request ability to capture this payment beyond the standard [authorization validity window](https://docs.stripe.com/terminal/features/extended-authorizations#authorization-validity)
+    /// Request ability to capture this payment beyond the standard [authorization validity window](<https://docs.stripe.`com/terminal/features/extended-authorizations`#authorization-validity>)
     #[serde(default)]
     pub request_extended_authorization: ::core::option::Option<bool>,
-    /// Request ability to [increment](https://docs.stripe.com/terminal/features/incremental-authorizations) this PaymentIntent if the combination of MCC and card brand is eligible. Check [incremental_authorization_supported](https://docs.stripe.com/api/charges/object#charge_object-payment_method_details-card_present-incremental_authorization_supported) in the [Confirm](https://docs.stripe.com/api/payment_intents/confirm) response to verify support.
+    /// Request ability to [increment](<https://docs.stripe.`com/terminal/features/incremental-authorizations`>) this PaymentIntent if the combination of MCC and card brand is eligible. Check [incremental_authorization_supported](<https://docs.stripe.`com/api/charges/object`#charge_object-payment_method_details-card_present-incremental_authorization_supported>) in the [Confirm](<https://docs.stripe.`com/api/payment_intents/confirm`>) response to verify support.
     #[serde(default)]
     pub request_incremental_authorization_support: ::core::option::Option<bool>,
     #[serde(default)]
@@ -6517,14 +6243,14 @@ pub struct PaymentMethodOptionsCashapp {
     /// Controls when the funds will be captured from the customer''s account. // TODO: enum values: ["manual"]
     #[serde(default)]
     pub capture_method: ::core::option::Option<String>,
-    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.
+    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.  If you provide a Customer with the PaymentIntent, you can use this parameter to [attach the payment method](/`payments/save-during-payment`) to the Customer after the PaymentIntent is confirmed and the customer completes any required actions. If you don''t provide a Customer, you can still [attach](/`api/payment_methods/attach`) the payment method to a Customer after the transaction completes.  If the payment method is card_present and isn''t a digital wallet, Stripe creates and attaches a [generated_card](/`api/charges/object`#charge_object-payment_method_details-card_present-generated_card) payment method representing the card to the Customer instead.  When processing card payments, Stripe uses setup_future_usage to help you comply with regional legislation and network rules, such as [SCA](/strong-customer-authentication). // TODO: enum values: ["none", "off_session", "on_session"]
     #[serde(default)]
     pub setup_future_usage: ::core::option::Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodOptionsCrypto {
-    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.
+    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.  If you provide a Customer with the PaymentIntent, you can use this parameter to [attach the payment method](/`payments/save-during-payment`) to the Customer after the PaymentIntent is confirmed and the customer completes any required actions. If you don''t provide a Customer, you can still [attach](/`api/payment_methods/attach`) the payment method to a Customer after the transaction completes.  If the payment method is card_present and isn''t a digital wallet, Stripe creates and attaches a [generated_card](/`api/charges/object`#charge_object-payment_method_details-card_present-generated_card) payment method representing the card to the Customer instead.  When processing card payments, Stripe uses setup_future_usage to help you comply with regional legislation and network rules, such as [SCA](/strong-customer-authentication). // TODO: enum values: ["none"]
     #[serde(default)]
     pub setup_future_usage: ::core::option::Option<String>,
 }
@@ -6536,35 +6262,35 @@ pub struct PaymentMethodOptionsCustomerBalance {
     /// The funding method type to be used when there are not enough funds in the customer balance. Permitted values include: bank_transfer. // TODO: enum values: ["bank_transfer"]
     #[serde(default)]
     pub funding_type: ::core::option::Option<String>,
-    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.
+    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.  If you provide a Customer with the PaymentIntent, you can use this parameter to [attach the payment method](/`payments/save-during-payment`) to the Customer after the PaymentIntent is confirmed and the customer completes any required actions. If you don''t provide a Customer, you can still [attach](/`api/payment_methods/attach`) the payment method to a Customer after the transaction completes.  If the payment method is card_present and isn''t a digital wallet, Stripe creates and attaches a [generated_card](/`api/charges/object`#charge_object-payment_method_details-card_present-generated_card) payment method representing the card to the Customer instead.  When processing card payments, Stripe uses setup_future_usage to help you comply with regional legislation and network rules, such as [SCA](/strong-customer-authentication). // TODO: enum values: ["none"]
     #[serde(default)]
     pub setup_future_usage: ::core::option::Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodOptionsFpx {
-    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.
+    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.  If you provide a Customer with the PaymentIntent, you can use this parameter to [attach the payment method](/`payments/save-during-payment`) to the Customer after the PaymentIntent is confirmed and the customer completes any required actions. If you don''t provide a Customer, you can still [attach](/`api/payment_methods/attach`) the payment method to a Customer after the transaction completes.  If the payment method is card_present and isn''t a digital wallet, Stripe creates and attaches a [generated_card](/`api/charges/object`#charge_object-payment_method_details-card_present-generated_card) payment method representing the card to the Customer instead.  When processing card payments, Stripe uses setup_future_usage to help you comply with regional legislation and network rules, such as [SCA](/strong-customer-authentication). // TODO: enum values: ["none"]
     #[serde(default)]
     pub setup_future_usage: ::core::option::Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodOptionsGiropay {
-    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.
+    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.  If you provide a Customer with the PaymentIntent, you can use this parameter to [attach the payment method](/`payments/save-during-payment`) to the Customer after the PaymentIntent is confirmed and the customer completes any required actions. If you don''t provide a Customer, you can still [attach](/`api/payment_methods/attach`) the payment method to a Customer after the transaction completes.  If the payment method is card_present and isn''t a digital wallet, Stripe creates and attaches a [generated_card](/`api/charges/object`#charge_object-payment_method_details-card_present-generated_card) payment method representing the card to the Customer instead.  When processing card payments, Stripe uses setup_future_usage to help you comply with regional legislation and network rules, such as [SCA](/strong-customer-authentication). // TODO: enum values: ["none"]
     #[serde(default)]
     pub setup_future_usage: ::core::option::Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodOptionsGrabpay {
-    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.
+    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.  If you provide a Customer with the PaymentIntent, you can use this parameter to [attach the payment method](/`payments/save-during-payment`) to the Customer after the PaymentIntent is confirmed and the customer completes any required actions. If you don''t provide a Customer, you can still [attach](/`api/payment_methods/attach`) the payment method to a Customer after the transaction completes.  If the payment method is card_present and isn''t a digital wallet, Stripe creates and attaches a [generated_card](/`api/charges/object`#charge_object-payment_method_details-card_present-generated_card) payment method representing the card to the Customer instead.  When processing card payments, Stripe uses setup_future_usage to help you comply with regional legislation and network rules, such as [SCA](/strong-customer-authentication). // TODO: enum values: ["none"]
     #[serde(default)]
     pub setup_future_usage: ::core::option::Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodOptionsIdeal {
-    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.
+    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.  If you provide a Customer with the PaymentIntent, you can use this parameter to [attach the payment method](/`payments/save-during-payment`) to the Customer after the PaymentIntent is confirmed and the customer completes any required actions. If you don''t provide a Customer, you can still [attach](/`api/payment_methods/attach`) the payment method to a Customer after the transaction completes.  If the payment method is card_present and isn''t a digital wallet, Stripe creates and attaches a [generated_card](/`api/charges/object`#charge_object-payment_method_details-card_present-generated_card) payment method representing the card to the Customer instead.  When processing card payments, Stripe uses setup_future_usage to help you comply with regional legislation and network rules, such as [SCA](/strong-customer-authentication). // TODO: enum values: ["none", "off_session"]
     #[serde(default)]
     pub setup_future_usage: ::core::option::Option<String>,
 }
@@ -6582,7 +6308,7 @@ pub struct PaymentMethodOptionsKlarna {
     /// Preferred locale of the Klarna checkout page that the customer is redirected to.
     #[serde(default)]
     pub preferred_locale: ::core::option::Option<String>,
-    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.
+    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.  If you provide a Customer with the PaymentIntent, you can use this parameter to [attach the payment method](/`payments/save-during-payment`) to the Customer after the PaymentIntent is confirmed and the customer completes any required actions. If you don''t provide a Customer, you can still [attach](/`api/payment_methods/attach`) the payment method to a Customer after the transaction completes.  If the payment method is card_present and isn''t a digital wallet, Stripe creates and attaches a [generated_card](/`api/charges/object`#charge_object-payment_method_details-card_present-generated_card) payment method representing the card to the Customer instead.  When processing card payments, Stripe uses setup_future_usage to help you comply with regional legislation and network rules, such as [SCA](/strong-customer-authentication). // TODO: enum values: ["none", "off_session", "on_session"]
     #[serde(default)]
     pub setup_future_usage: ::core::option::Option<String>,
 }
@@ -6601,7 +6327,7 @@ pub struct PaymentMethodOptionsKonbini {
     /// A product descriptor of up to 22 characters, which will appear to customers at the convenience store.
     #[serde(default)]
     pub product_description: ::core::option::Option<String>,
-    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.
+    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.  If you provide a Customer with the PaymentIntent, you can use this parameter to [attach the payment method](/`payments/save-during-payment`) to the Customer after the PaymentIntent is confirmed and the customer completes any required actions. If you don''t provide a Customer, you can still [attach](/`api/payment_methods/attach`) the payment method to a Customer after the transaction completes.  If the payment method is card_present and isn''t a digital wallet, Stripe creates and attaches a [generated_card](/`api/charges/object`#charge_object-payment_method_details-card_present-generated_card) payment method representing the card to the Customer instead.  When processing card payments, Stripe uses setup_future_usage to help you comply with regional legislation and network rules, such as [SCA](/strong-customer-authentication). // TODO: enum values: ["none"]
     #[serde(default)]
     pub setup_future_usage: ::core::option::Option<String>,
 }
@@ -6611,37 +6337,37 @@ pub struct PaymentMethodOptionsKrCard {
     /// Controls when the funds will be captured from the customer''s account. // TODO: enum values: ["manual"]
     #[serde(default)]
     pub capture_method: ::core::option::Option<String>,
-    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.
+    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.  If you provide a Customer with the PaymentIntent, you can use this parameter to [attach the payment method](/`payments/save-during-payment`) to the Customer after the PaymentIntent is confirmed and the customer completes any required actions. If you don''t provide a Customer, you can still [attach](/`api/payment_methods/attach`) the payment method to a Customer after the transaction completes.  If the payment method is card_present and isn''t a digital wallet, Stripe creates and attaches a [generated_card](/`api/charges/object`#charge_object-payment_method_details-card_present-generated_card) payment method representing the card to the Customer instead.  When processing card payments, Stripe uses setup_future_usage to help you comply with regional legislation and network rules, such as [SCA](/strong-customer-authentication). // TODO: enum values: ["none", "off_session"]
     #[serde(default)]
     pub setup_future_usage: ::core::option::Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodOptionsMbWay {
-    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.
+    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.  If you provide a Customer with the PaymentIntent, you can use this parameter to [attach the payment method](/`payments/save-during-payment`) to the Customer after the PaymentIntent is confirmed and the customer completes any required actions. If you don''t provide a Customer, you can still [attach](/`api/payment_methods/attach`) the payment method to a Customer after the transaction completes.  If the payment method is card_present and isn''t a digital wallet, Stripe creates and attaches a [generated_card](/`api/charges/object`#charge_object-payment_method_details-card_present-generated_card) payment method representing the card to the Customer instead.  When processing card payments, Stripe uses setup_future_usage to help you comply with regional legislation and network rules, such as [SCA](/strong-customer-authentication). // TODO: enum values: ["none"]
     #[serde(default)]
     pub setup_future_usage: ::core::option::Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodOptionsMultibanco {
-    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.
+    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.  If you provide a Customer with the PaymentIntent, you can use this parameter to [attach the payment method](/`payments/save-during-payment`) to the Customer after the PaymentIntent is confirmed and the customer completes any required actions. If you don''t provide a Customer, you can still [attach](/`api/payment_methods/attach`) the payment method to a Customer after the transaction completes.  If the payment method is card_present and isn''t a digital wallet, Stripe creates and attaches a [generated_card](/`api/charges/object`#charge_object-payment_method_details-card_present-generated_card) payment method representing the card to the Customer instead.  When processing card payments, Stripe uses setup_future_usage to help you comply with regional legislation and network rules, such as [SCA](/strong-customer-authentication). // TODO: enum values: ["none"]
     #[serde(default)]
     pub setup_future_usage: ::core::option::Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodOptionsOxxo {
-    /// The number of calendar days before an OXXO invoice expires. For example, if you create an OXXO invoice on Monday and you set expires_after_days to 2, the OXXO invoice will expire on Wednesday at 23:59 America/Mexico_City time.
+    /// The number of calendar days before an OXXO invoice expires. For example, if you create an OXXO invoice on Monday and you set expires_after_days to 2, the OXXO invoice will expire on Wednesday at 23:59 A`merica/Mexico_City` time.
     pub expires_after_days: i64,
-    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.
+    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.  If you provide a Customer with the PaymentIntent, you can use this parameter to [attach the payment method](/`payments/save-during-payment`) to the Customer after the PaymentIntent is confirmed and the customer completes any required actions. If you don''t provide a Customer, you can still [attach](/`api/payment_methods/attach`) the payment method to a Customer after the transaction completes.  If the payment method is card_present and isn''t a digital wallet, Stripe creates and attaches a [generated_card](/`api/charges/object`#charge_object-payment_method_details-card_present-generated_card) payment method representing the card to the Customer instead.  When processing card payments, Stripe uses setup_future_usage to help you comply with regional legislation and network rules, such as [SCA](/strong-customer-authentication). // TODO: enum values: ["none"]
     #[serde(default)]
     pub setup_future_usage: ::core::option::Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodOptionsP24 {
-    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.
+    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.  If you provide a Customer with the PaymentIntent, you can use this parameter to [attach the payment method](/`payments/save-during-payment`) to the Customer after the PaymentIntent is confirmed and the customer completes any required actions. If you don''t provide a Customer, you can still [attach](/`api/payment_methods/attach`) the payment method to a Customer after the transaction completes.  If the payment method is card_present and isn''t a digital wallet, Stripe creates and attaches a [generated_card](/`api/charges/object`#charge_object-payment_method_details-card_present-generated_card) payment method representing the card to the Customer instead.  When processing card payments, Stripe uses setup_future_usage to help you comply with regional legislation and network rules, such as [SCA](/strong-customer-authentication). // TODO: enum values: ["none"]
     #[serde(default)]
     pub setup_future_usage: ::core::option::Option<String>,
 }
@@ -6653,7 +6379,7 @@ pub struct PaymentMethodOptionsPayByBank {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodOptionsPaynow {
-    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.
+    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.  If you provide a Customer with the PaymentIntent, you can use this parameter to [attach the payment method](/`payments/save-during-payment`) to the Customer after the PaymentIntent is confirmed and the customer completes any required actions. If you don''t provide a Customer, you can still [attach](/`api/payment_methods/attach`) the payment method to a Customer after the transaction completes.  If the payment method is card_present and isn''t a digital wallet, Stripe creates and attaches a [generated_card](/`api/charges/object`#charge_object-payment_method_details-card_present-generated_card) payment method representing the card to the Customer instead.  When processing card payments, Stripe uses setup_future_usage to help you comply with regional legislation and network rules, such as [SCA](/strong-customer-authentication). // TODO: enum values: ["none"]
     #[serde(default)]
     pub setup_future_usage: ::core::option::Option<String>,
 }
@@ -6669,7 +6395,7 @@ pub struct PaymentMethodOptionsPaypal {
     /// A reference of the PayPal transaction visible to customer which is mapped to PayPal''s invoice ID. This must be a globally unique ID if you have configured in your PayPal settings to block multiple payments per invoice ID.
     #[serde(default)]
     pub reference: ::core::option::Option<String>,
-    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.
+    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.  If you provide a Customer with the PaymentIntent, you can use this parameter to [attach the payment method](/`payments/save-during-payment`) to the Customer after the PaymentIntent is confirmed and the customer completes any required actions. If you don''t provide a Customer, you can still [attach](/`api/payment_methods/attach`) the payment method to a Customer after the transaction completes.  If the payment method is card_present and isn''t a digital wallet, Stripe creates and attaches a [generated_card](/`api/charges/object`#charge_object-payment_method_details-card_present-generated_card) payment method representing the card to the Customer instead.  When processing card payments, Stripe uses setup_future_usage to help you comply with regional legislation and network rules, such as [SCA](/strong-customer-authentication). // TODO: enum values: ["none", "off_session"]
     #[serde(default)]
     pub setup_future_usage: ::core::option::Option<String>,
 }
@@ -6685,14 +6411,14 @@ pub struct PaymentMethodOptionsPix {
     /// The timestamp at which the Pix expires.
     #[serde(default)]
     pub expires_at: ::core::option::Option<i64>,
-    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.
+    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.  If you provide a Customer with the PaymentIntent, you can use this parameter to [attach the payment method](/`payments/save-during-payment`) to the Customer after the PaymentIntent is confirmed and the customer completes any required actions. If you don''t provide a Customer, you can still [attach](/`api/payment_methods/attach`) the payment method to a Customer after the transaction completes.  If the payment method is card_present and isn''t a digital wallet, Stripe creates and attaches a [generated_card](/`api/charges/object`#charge_object-payment_method_details-card_present-generated_card) payment method representing the card to the Customer instead.  When processing card payments, Stripe uses setup_future_usage to help you comply with regional legislation and network rules, such as [SCA](/strong-customer-authentication). // TODO: enum values: ["none"]
     #[serde(default)]
     pub setup_future_usage: ::core::option::Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodOptionsPromptpay {
-    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.
+    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.  If you provide a Customer with the PaymentIntent, you can use this parameter to [attach the payment method](/`payments/save-during-payment`) to the Customer after the PaymentIntent is confirmed and the customer completes any required actions. If you don''t provide a Customer, you can still [attach](/`api/payment_methods/attach`) the payment method to a Customer after the transaction completes.  If the payment method is card_present and isn''t a digital wallet, Stripe creates and attaches a [generated_card](/`api/charges/object`#charge_object-payment_method_details-card_present-generated_card) payment method representing the card to the Customer instead.  When processing card payments, Stripe uses setup_future_usage to help you comply with regional legislation and network rules, such as [SCA](/strong-customer-authentication). // TODO: enum values: ["none"]
     #[serde(default)]
     pub setup_future_usage: ::core::option::Option<String>,
 }
@@ -6702,7 +6428,7 @@ pub struct PaymentMethodOptionsRevolutPay {
     /// Controls when the funds will be captured from the customer''s account. // TODO: enum values: ["manual"]
     #[serde(default)]
     pub capture_method: ::core::option::Option<String>,
-    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.
+    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.  If you provide a Customer with the PaymentIntent, you can use this parameter to [attach the payment method](/`payments/save-during-payment`) to the Customer after the PaymentIntent is confirmed and the customer completes any required actions. If you don''t provide a Customer, you can still [attach](/`api/payment_methods/attach`) the payment method to a Customer after the transaction completes.  If the payment method is card_present and isn''t a digital wallet, Stripe creates and attaches a [generated_card](/`api/charges/object`#charge_object-payment_method_details-card_present-generated_card) payment method representing the card to the Customer instead.  When processing card payments, Stripe uses setup_future_usage to help you comply with regional legislation and network rules, such as [SCA](/strong-customer-authentication). // TODO: enum values: ["none", "off_session"]
     #[serde(default)]
     pub setup_future_usage: ::core::option::Option<String>,
 }
@@ -6719,21 +6445,21 @@ pub struct PaymentMethodOptionsSofort {
     /// Preferred language of the SOFORT authorization page that the customer is redirected to. // TODO: enum values: ["de", "en", "es", "fr", "it", "nl", "pl"]
     #[serde(default)]
     pub preferred_language: ::core::option::Option<String>,
-    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.
+    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.  If you provide a Customer with the PaymentIntent, you can use this parameter to [attach the payment method](/`payments/save-during-payment`) to the Customer after the PaymentIntent is confirmed and the customer completes any required actions. If you don''t provide a Customer, you can still [attach](/`api/payment_methods/attach`) the payment method to a Customer after the transaction completes.  If the payment method is card_present and isn''t a digital wallet, Stripe creates and attaches a [generated_card](/`api/charges/object`#charge_object-payment_method_details-card_present-generated_card) payment method representing the card to the Customer instead.  When processing card payments, Stripe uses setup_future_usage to help you comply with regional legislation and network rules, such as [SCA](/strong-customer-authentication). // TODO: enum values: ["none", "off_session"]
     #[serde(default)]
     pub setup_future_usage: ::core::option::Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodOptionsTwint {
-    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.
+    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.  If you provide a Customer with the PaymentIntent, you can use this parameter to [attach the payment method](/`payments/save-during-payment`) to the Customer after the PaymentIntent is confirmed and the customer completes any required actions. If you don''t provide a Customer, you can still [attach](/`api/payment_methods/attach`) the payment method to a Customer after the transaction completes.  If the payment method is card_present and isn''t a digital wallet, Stripe creates and attaches a [generated_card](/`api/charges/object`#charge_object-payment_method_details-card_present-generated_card) payment method representing the card to the Customer instead.  When processing card payments, Stripe uses setup_future_usage to help you comply with regional legislation and network rules, such as [SCA](/strong-customer-authentication). // TODO: enum values: ["none"]
     #[serde(default)]
     pub setup_future_usage: ::core::option::Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodOptionsUpi {
-    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.
+    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.  If you provide a Customer with the PaymentIntent, you can use this parameter to [attach the payment method](/`payments/save-during-payment`) to the Customer after the PaymentIntent is confirmed and the customer completes any required actions. If you don''t provide a Customer, you can still [attach](/`api/payment_methods/attach`) the payment method to a Customer after the transaction completes.  If the payment method is card_present and isn''t a digital wallet, Stripe creates and attaches a [generated_card](/`api/charges/object`#charge_object-payment_method_details-card_present-generated_card) payment method representing the card to the Customer instead.  When processing card payments, Stripe uses setup_future_usage to help you comply with regional legislation and network rules, such as [SCA](/strong-customer-authentication). // TODO: enum values: ["off_session", "on_session"]
     #[serde(default)]
     pub setup_future_usage: ::core::option::Option<String>,
 }
@@ -6746,14 +6472,14 @@ pub struct PaymentMethodOptionsWechatPay {
     /// The client type that the end customer will pay from // TODO: enum values: ["android", "ios", "web"]
     #[serde(default)]
     pub client: ::core::option::Option<String>,
-    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.
+    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.  If you provide a Customer with the PaymentIntent, you can use this parameter to [attach the payment method](/`payments/save-during-payment`) to the Customer after the PaymentIntent is confirmed and the customer completes any required actions. If you don''t provide a Customer, you can still [attach](/`api/payment_methods/attach`) the payment method to a Customer after the transaction completes.  If the payment method is card_present and isn''t a digital wallet, Stripe creates and attaches a [generated_card](/`api/charges/object`#charge_object-payment_method_details-card_present-generated_card) payment method representing the card to the Customer instead.  When processing card payments, Stripe uses setup_future_usage to help you comply with regional legislation and network rules, such as [SCA](/strong-customer-authentication). // TODO: enum values: ["none"]
     #[serde(default)]
     pub setup_future_usage: ::core::option::Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodOptionsZip {
-    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.
+    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.  If you provide a Customer with the PaymentIntent, you can use this parameter to [attach the payment method](/`payments/save-during-payment`) to the Customer after the PaymentIntent is confirmed and the customer completes any required actions. If you don''t provide a Customer, you can still [attach](/`api/payment_methods/attach`) the payment method to a Customer after the transaction completes.  If the payment method is card_present and isn''t a digital wallet, Stripe creates and attaches a [generated_card](/`api/charges/object`#charge_object-payment_method_details-card_present-generated_card) payment method representing the card to the Customer instead.  When processing card payments, Stripe uses setup_future_usage to help you comply with regional legislation and network rules, such as [SCA](/strong-customer-authentication). // TODO: enum values: ["none"]
     #[serde(default)]
     pub setup_future_usage: ::core::option::Option<String>,
 }
@@ -6766,7 +6492,7 @@ pub struct PaymentMethodUsBankAccountStatusDetails {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentPagesCheckoutSessionAdaptivePricing {
-    /// If enabled, Adaptive Pricing is available on [eligible sessions](https://docs.stripe.com/payments/currencies/localize-prices/adaptive-pricing?payment-ui=stripe-hosted#restrictions).
+    /// If enabled, Adaptive Pricing is available on [eligible sessions](<https://docs.stripe.`com/payments/currencies/localize-prices/adaptive-pricing`?payment-ui=stripe-hosted#restrictions>).
     pub enabled: bool,
 }
 
@@ -6779,9 +6505,9 @@ pub struct PaymentPagesCheckoutSessionAfterExpiration {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentPagesCheckoutSessionAfterExpirationRecovery {
-    /// Enables user redeemable promotion codes on the recovered Checkout Sessions. Defaults to false
+    /// Enables user redeemable promotion codes on the recovered Checkout Sessions. Defaults to `false`
     pub allow_promotion_codes: bool,
-    /// If true, a recovery url will be generated to recover this Checkout Session if it
+    /// If `true`, a recovery url will be generated to recover this Checkout Session if it expires before a transaction is completed. It will be attached to the Checkout Session object upon expiration.
     pub enabled: bool,
     /// The timestamp at which the recovery URL will expire.
     #[serde(default)]
@@ -6793,7 +6519,7 @@ pub struct PaymentPagesCheckoutSessionAfterExpirationRecovery {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentPagesCheckoutSessionBrandingSettingsIcon {
-    /// The ID of a [File upload](https://stripe.com/docs/api/files) representing the icon. Purpose must be business_icon. Required if type is file and disallowed otherwise.
+    /// The ID of a [File upload](<https://stripe.`com/docs/api/files`>) representing the icon. Purpose must be business_icon. Required if type is file and disallowed otherwise.
     #[serde(default)]
     pub file: ::core::option::Option<String>,
     /// The type of image for the icon. Must be one of file or url. // TODO: enum values: ["file", "url"]
@@ -6806,7 +6532,7 @@ pub struct PaymentPagesCheckoutSessionBrandingSettingsIcon {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentPagesCheckoutSessionBrandingSettingsLogo {
-    /// The ID of a [File upload](https://stripe.com/docs/api/files) representing the logo. Purpose must be business_logo. Required if type is file and disallowed otherwise.
+    /// The ID of a [File upload](<https://stripe.`com/docs/api/files`>) representing the logo. Purpose must be business_logo. Required if type is file and disallowed otherwise.
     #[serde(default)]
     pub file: ::core::option::Option<String>,
     /// The type of image for the logo. Must be one of file or url. // TODO: enum values: ["file", "url"]
@@ -6839,7 +6565,7 @@ pub struct PaymentPagesCheckoutSessionCollectedInformation {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentPagesCheckoutSessionConsent {
-    /// If opt_in, the customer consents to receiving promotional communications
+    /// If opt_in, the customer consents to receiving promotional communications from the merchant about this Checkout Session. // TODO: enum values: ["opt_in", "opt_out"]
     #[serde(default)]
     pub promotions: ::core::option::Option<String>,
     /// If accepted, the customer in this Checkout Session has agreed to the merchant''s terms of service. // TODO: enum values: ["accepted"]
@@ -6852,7 +6578,7 @@ pub struct PaymentPagesCheckoutSessionConsentCollection {
     /// If set to hidden, it will hide legal text related to the reuse of a payment method.
     #[serde(default)]
     pub payment_method_reuse_agreement: ::core::option::Option<serde_json::Value>,
-    /// If set to auto, enables the collection of customer consent for promotional communications. The Checkout
+    /// If set to auto, enables the collection of customer consent for promotional communications. The Checkout Session will determine whether to display an option to opt into promotional communication from the merchant depending on the customer''s locale. Only available to US merchants. // TODO: enum values: ["auto", "none"]
     #[serde(default)]
     pub promotions: ::core::option::Option<String>,
     /// If set to required, it requires customers to accept the terms of service before being able to pay. // TODO: enum values: ["none", "required"]
@@ -6886,7 +6612,7 @@ pub struct PaymentPagesCheckoutSessionCustomerDetails {
     /// The customer''s business name after a completed Checkout Session.
     #[serde(default)]
     pub business_name: ::core::option::Option<String>,
-    /// The email associated with the Customer, if one exists, on the Checkout Session after a completed Checkout Session or at time of session expiry.
+    /// The email associated with the Customer, if one exists, on the Checkout Session after a completed Checkout Session or at time of session expiry. Otherwise, if the customer has consented to promotional content, this value is the most recent valid email provided by the customer on the Checkout form.
     #[serde(default)]
     pub email: ::core::option::Option<String>,
     /// The customer''s individual name after a completed Checkout Session.
@@ -6915,7 +6641,7 @@ pub struct PaymentPagesCheckoutSessionInvoiceCreation {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentPagesCheckoutSessionOptionalItemAdjustableQuantity {
-    /// Set to true if the quantity can be adjusted to any non-negative integer.
+    /// Set to `true` if the quantity can be adjusted to any non-negative integer.
     pub enabled: bool,
     /// The maximum quantity of this item the customer can purchase. By default this value is 99. You can specify a value up to 999999.
     #[serde(default)]
@@ -6927,13 +6653,13 @@ pub struct PaymentPagesCheckoutSessionOptionalItemAdjustableQuantity {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentPagesCheckoutSessionPaymentMethodReuseAgreement {
-    /// Determines the position and visibility of the payment method reuse agreement in the UI. When set to auto, Stripe''s defaults will be used.
+    /// Determines the position and visibility of the payment method reuse agreement in the UI. When set to auto, Stripe''s defaults will be used.  When set to hidden, the payment method reuse agreement text will always be hidden in the UI. // TODO: enum values: ["auto", "hidden"]
     pub position: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentPagesCheckoutSessionPermissions {
-    /// Determines which entity is allowed to update the shipping details.
+    /// Determines which entity is allowed to update the shipping details.  Default is client_only. Stripe Checkout client will automatically update the shipping details. If set to server_only, only your server is allowed to update the shipping details.  When set to server_only, you must add the `onShippingDetailsChange` event handler when initializing the Stripe Checkout client and manually update the shipping details from your server using the Stripe API. // TODO: enum values: ["client_only", "server_only"]
     #[serde(default)]
     pub update_shipping_details: ::core::option::Option<String>,
 }
@@ -6953,7 +6679,7 @@ pub struct PaymentPagesCheckoutSessionSavedPaymentMethodOptions {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentPagesCheckoutSessionShippingAddressCollection {
-    /// An array of two-letter ISO country codes representing which countries Checkout should provide as options for
+    /// An array of two-letter ISO country codes representing which countries Checkout should provide as options for shipping locations. Unsupported country codes: AS, CX, CC, CU, HM, IR, KP, MH, FM, NF, MP, PW, SY, UM, VI.
     pub allowed_countries: ::std::vec::Vec<String>,
 }
 
@@ -6987,9 +6713,6 @@ pub struct PaymentPagesCheckoutSessionTotalDetails {
 }
 
 /// A Payment Record is a resource that allows you to represent payments that occur on- or off-Stripe.
-/// For example, you can create a Payment Record to model a payment made on a different payment processor,
-/// in order to mark an Invoice as paid and a Subscription as active. Payment Records consist of one or
-/// more Payment Attempt Records, which represent individual attempts made on a payment network.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentRecord {
     pub amount: PaymentsPrimitivesPaymentRecordsResourceAmount,
@@ -7018,11 +6741,11 @@ pub struct PaymentRecord {
     /// ID of the latest Payment Attempt Record attached to this Payment Record.
     #[serde(default)]
     pub latest_payment_attempt_record: ::core::option::Option<String>,
-    /// If the object exists in live mode, the value is true. If the object exists in test mode, the value is false.
+    /// If the object exists in live mode, the value is `true`. If the object exists in test mode, the value is `false`.
     pub livemode: bool,
-    /// Set of [key-value pairs](https://docs.stripe.com/api/metadata) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
+    /// Set of [key-value pairs](<https://docs.stripe.`com/api/metadata`>) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
     pub metadata: serde_json::Value,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["payment_record"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["payment_record"]
     pub object: String,
     /// Information about the Payment Method debited for this payment.
     #[serde(default)]
@@ -7272,7 +6995,7 @@ pub struct PaymentsPrimitivesPaymentRecordsResourcePaymentMethodDetails {
     pub swish: ::core::option::Option<PaymentMethodDetailsPaymentRecordSwish>,
     #[serde(default)]
     pub twint: ::core::option::Option<PaymentMethodDetailsPaymentRecordTwint>,
-    /// The type of transaction-specific details of the payment method used in the payment. See [PaymentMethod.type](https://docs.stripe.com/api/payment_methods/object#payment_method_object-type) for the full list of possible types.
+    /// The type of transaction-specific details of the payment method used in the payment. See [PaymentMethod.type](<https://docs.stripe.`com/api/payment_methods/object`#payment_method_object-type>) for the full list of possible types. An additional hash is included on payment_method_details with a name matching this value. It contains information specific to the payment method.
     #[serde(rename = "type")]
     pub type_: String,
     #[serde(default)]
@@ -7423,14 +7146,7 @@ pub struct PersonUsCfpbData {
     pub self_identified_gender: ::core::option::Option<String>,
 }
 
-/// You can now model subscriptions more flexibly using the [Prices API](https://api.stripe.com#prices). It replaces the Plans API and is backwards compatible to simplify your migration.
-///
-/// Plans define the base price, currency, and billing cycle for recurring purchases of products.
-/// [Products](https://api.stripe.com#products) help you track inventory or provisioning, and plans help you track pricing. Different physical goods or levels of service should be represented by products, and pricing options should be represented by plans. This approach lets you change prices without having to change your provisioning scheme.
-///
-/// For example, you might have a single "gold" product that has plans for $10/month, $100/year, €9/month, and €90/year.
-///
-/// Related guides: [Set up a subscription](https://docs.stripe.com/billing/subscriptions/set-up-subscription) and more about [products and prices](https://docs.stripe.com/products-prices/overview).
+/// You can now model subscriptions more flexibly using the [Prices API](<https://api.stripe.com#prices>). It replaces the Plans API and is backwards compatible to simplify your migration.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Plan {
     /// Whether the plan can be used for new purchases.
@@ -7445,7 +7161,7 @@ pub struct Plan {
     pub billing_scheme: String,
     /// Time at which the object was created. Measured in seconds since the Unix epoch.
     pub created: i64,
-    /// Three-letter [ISO currency code](https://www.iso.org/iso-4217-currency-codes.html), in lowercase. Must be a [supported currency](https://stripe.com/docs/currencies).
+    /// Three-letter [ISO currency code](<https://www.iso.`org/iso-4217-currency-codes`.html>), in lowercase. Must be a [supported currency](<https://stripe.`com/docs/currencies`>).
     pub currency: String,
     /// Unique identifier for the object.
     pub id: String,
@@ -7453,9 +7169,9 @@ pub struct Plan {
     pub interval: String,
     /// The number of intervals (specified in the interval attribute) between subscription billings. For example, interval=month and interval_count=3 bills every 3 months.
     pub interval_count: i64,
-    /// If the object exists in live mode, the value is true. If the object exists in test mode, the value is false.
+    /// If the object exists in live mode, the value is `true`. If the object exists in test mode, the value is `false`.
     pub livemode: bool,
-    /// Set of [key-value pairs](https://docs.stripe.com/api/metadata) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
+    /// Set of [key-value pairs](<https://docs.stripe.`com/api/metadata`>) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
     #[serde(default)]
     pub metadata: ::core::option::Option<serde_json::Value>,
     /// The meter tracking the usage of a metered price
@@ -7464,7 +7180,7 @@ pub struct Plan {
     /// A brief description of the plan, hidden from customers.
     #[serde(default)]
     pub nickname: ::core::option::Option<String>,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["plan"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["plan"]
     pub object: String,
     /// The product whose pricing this plan determines.
     #[serde(default)]
@@ -7478,7 +7194,7 @@ pub struct Plan {
     /// Apply a transformation to the reported usage or set quantity before computing the amount billed. Cannot be combined with tiers.
     #[serde(default)]
     pub transform_usage: ::core::option::Option<serde_json::Value>,
-    /// Default number of trial days when subscribing a customer to this plan using [trial_from_plan=true](https://docs.stripe.com/api#create_subscription-trial_from_plan).
+    /// Default number of trial days when subscribing a customer to this plan using [trial_from_plan=`true`](<https://docs.stripe.`com/api`#create_subscription-trial_from_plan>).
     #[serde(default)]
     pub trial_period_days: ::core::option::Option<i64>,
     /// Configures how the quantity per period should be determined. Can be either metered or licensed. licensed automatically bills the quantity set when adding it to a subscription. metered aggregates the total usage based on usage records. Defaults to licensed. // TODO: enum values: ["licensed", "metered"]
@@ -7555,7 +7271,7 @@ pub struct PortalFlowsFlowSubscriptionUpdateConfirm {
     #[serde(default)]
     pub discounts:
         ::core::option::Option<::std::vec::Vec<PortalFlowsSubscriptionUpdateConfirmDiscount>>,
-    /// The [subscription item](https://docs.stripe.com/api/subscription_items) to be updated through this flow. Currently, only up to one may be specified and subscriptions with multiple items are not updatable.
+    /// The [subscription item](<https://docs.stripe.`com/api/subscription_items`>) to be updated through this flow. Currently, only up to one may be specified and subscriptions with multiple items are not updatable.
     pub items: ::std::vec::Vec<PortalFlowsSubscriptionUpdateConfirmItem>,
     /// The ID of the subscription to be updated.
     pub subscription: String,
@@ -7572,20 +7288,13 @@ pub struct PortalFlowsRetention {
 }
 
 /// Products describe the specific goods or services you offer to your customers.
-/// For example, you might offer a Standard and Premium version of your goods or service; each version would be a separate Product.
-/// They can be used in conjunction with [Prices](https://api.stripe.com#prices) to configure pricing in Payment Links, Checkout, and Subscriptions.
-///
-/// Related guides: [Set up a subscription](https://docs.stripe.com/billing/subscriptions/set-up-subscription),
-/// [share a Payment Link](https://docs.stripe.com/payment-links),
-/// [accept payments with Checkout](https://docs.stripe.com/payments/accept-a-payment#create-product-prices-upfront),
-/// and more about [Products and Prices](https://docs.stripe.com/products-prices/overview)
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Product {
     /// Whether the product is currently available for purchase.
     pub active: bool,
     /// Time at which the object was created. Measured in seconds since the Unix epoch.
     pub created: i64,
-    /// The ID of the [Price](https://docs.stripe.com/api/prices) object that is the default price for this product.
+    /// The ID of the [Price](<https://docs.stripe.`com/api/prices`>) object that is the default price for this product.
     #[serde(default)]
     pub default_price: ::core::option::Option<serde_json::Value>,
     /// The product''s description, meant to be displayable to the customer. Use this field to optionally store a long form explanation of the product being sold for your own rendering purposes.
@@ -7595,15 +7304,15 @@ pub struct Product {
     pub id: String,
     /// A list of up to 8 URLs of images for this product, meant to be displayable to the customer.
     pub images: ::std::vec::Vec<String>,
-    /// If the object exists in live mode, the value is true. If the object exists in test mode, the value is false.
+    /// If the object exists in live mode, the value is `true`. If the object exists in test mode, the value is `false`.
     pub livemode: bool,
-    /// A list of up to 15 marketing features for this product. These are displayed in [pricing tables](https://docs.stripe.com/payments/checkout/pricing-table).
+    /// A list of up to 15 marketing features for this product. These are displayed in [pricing tables](<https://docs.stripe.`com/payments/checkout/pricing-table`>).
     pub marketing_features: ::std::vec::Vec<ProductMarketingFeature>,
-    /// Set of [key-value pairs](https://docs.stripe.com/api/metadata) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
+    /// Set of [key-value pairs](<https://docs.stripe.`com/api/metadata`>) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
     pub metadata: serde_json::Value,
     /// The product''s name, meant to be displayable to the customer.
     pub name: String,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["product"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["product"]
     pub object: String,
     /// The dimensions of this product for shipping purposes.
     #[serde(default)]
@@ -7614,7 +7323,7 @@ pub struct Product {
     /// Extra information about a product which will appear on your customer''s credit card statement. In the case that multiple products are billed at once, the first statement descriptor will be used. Only used for subscription payments.
     #[serde(default)]
     pub statement_descriptor: ::core::option::Option<String>,
-    /// A [tax code](https://docs.stripe.com/tax/tax-categories) ID.
+    /// A [tax code](<https://docs.stripe.`com/tax/tax-categories`>) ID.
     #[serde(default)]
     pub tax_code: ::core::option::Option<serde_json::Value>,
     /// A label that represents units of this product. When set, this will be included in customers'' receipts, invoices, Checkout, and the customer portal.
@@ -7628,23 +7337,18 @@ pub struct Product {
 }
 
 /// A product_feature represents an attachment between a feature and a product.
-/// When a product is purchased that has a feature attached, Stripe will create an entitlement to the feature for the purchasing customer.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProductFeature {
     pub entitlement_feature: EntitlementsFeature,
     /// Unique identifier for the object.
     pub id: String,
-    /// If the object exists in live mode, the value is true. If the object exists in test mode, the value is false.
+    /// If the object exists in live mode, the value is `true`. If the object exists in test mode, the value is `false`.
     pub livemode: bool,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["product_feature"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["product_feature"]
     pub object: String,
 }
 
 /// A Promotion Code represents a customer-redeemable code for an underlying promotion.
-/// You can create multiple codes for a single promotion.
-///
-/// If you enable promotion codes in your [customer portal configuration](https://docs.stripe.com/customer-management/configure-portal), then customers can redeem a code themselves when updating a subscription in the portal.
-/// Customers can also view the currently active promotion codes and coupons on each of their subscriptions in the portal.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PromotionCode {
     /// Whether the promotion code is currently active. A promotion code is only active if the coupon is also valid.
@@ -7664,15 +7368,15 @@ pub struct PromotionCode {
     pub expires_at: ::core::option::Option<i64>,
     /// Unique identifier for the object.
     pub id: String,
-    /// If the object exists in live mode, the value is true. If the object exists in test mode, the value is false.
+    /// If the object exists in live mode, the value is `true`. If the object exists in test mode, the value is `false`.
     pub livemode: bool,
     /// Maximum number of times this promotion code can be redeemed.
     #[serde(default)]
     pub max_redemptions: ::core::option::Option<i64>,
-    /// Set of [key-value pairs](https://docs.stripe.com/api/metadata) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
+    /// Set of [key-value pairs](<https://docs.stripe.`com/api/metadata`>) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
     #[serde(default)]
     pub metadata: ::core::option::Option<serde_json::Value>,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["promotion_code"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["promotion_code"]
     pub object: String,
     pub promotion: PromotionCodesResourcePromotion,
     pub restrictions: PromotionCodesResourceRestrictions,
@@ -7687,7 +7391,6 @@ pub struct PromotionCodeCurrencyOption {
 }
 
 /// A Quote is a way to model prices that you''d like to provide to a customer.
-/// Once accepted, it will automatically create an invoice, subscription or subscription schedule.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Quote {
     /// Total before any discounts or taxes are applied.
@@ -7709,7 +7412,7 @@ pub struct Quote {
     pub computed: QuotesResourceComputed,
     /// Time at which the object was created. Measured in seconds since the Unix epoch.
     pub created: i64,
-    /// Three-letter [ISO currency code](https://www.iso.org/iso-4217-currency-codes.html), in lowercase. Must be a [supported currency](https://stripe.com/docs/currencies).
+    /// Three-letter [ISO currency code](<https://www.iso.`org/iso-4217-currency-codes`.html>), in lowercase. Must be a [supported currency](<https://stripe.`com/docs/currencies`>).
     #[serde(default)]
     pub currency: ::core::option::Option<String>,
     /// The customer who received this quote. A customer is required to finalize the quote. Once specified, you can''t change it.
@@ -7731,7 +7434,7 @@ pub struct Quote {
     /// A footer that will be displayed on the quote PDF.
     #[serde(default)]
     pub footer: ::core::option::Option<String>,
-    /// Details of the quote that was cloned. See the [cloning documentation](https://docs.stripe.com/quotes/clone) for more details.
+    /// Details of the quote that was cloned. See the [cloning documentation](<https://docs.stripe.`com/quotes/clone`>) for more details.
     #[serde(default)]
     pub from_quote: ::core::option::Option<serde_json::Value>,
     /// A header that will be displayed on the quote PDF.
@@ -7746,16 +7449,16 @@ pub struct Quote {
     /// A list of items the customer is being quoted for.
     #[serde(default)]
     pub line_items: ::core::option::Option<serde_json::Value>,
-    /// If the object exists in live mode, the value is true. If the object exists in test mode, the value is false.
+    /// If the object exists in live mode, the value is `true`. If the object exists in test mode, the value is `false`.
     pub livemode: bool,
-    /// Set of [key-value pairs](https://docs.stripe.com/api/metadata) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
+    /// Set of [key-value pairs](<https://docs.stripe.`com/api/metadata`>) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
     pub metadata: serde_json::Value,
-    /// A unique number that identifies this particular quote. This number is assigned once the quote is [finalized](https://docs.stripe.com/quotes/overview#finalize).
+    /// A unique number that identifies this particular quote. This number is assigned once the quote is [finalized](<https://docs.stripe.`com/quotes/overview`#finalize>).
     #[serde(default)]
     pub number: ::core::option::Option<String>,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["quote"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["quote"]
     pub object: String,
-    /// The account on behalf of which to charge. See the [Connect documentation](https://support.stripe.com/questions/sending-invoices-on-behalf-of-connected-accounts) for details.
+    /// The account on behalf of which to charge. See the [Connect documentation](<https://support.stripe.`com/questions/sending-invoices-on-behalf-of-connected-accounts`>) for details.
     #[serde(default)]
     pub on_behalf_of: ::core::option::Option<serde_json::Value>,
     /// The status of the quote. // TODO: enum values: ["accepted", "canceled", "draft", "open"]
@@ -7811,9 +7514,6 @@ pub struct QuotesResourceTransferData {
 }
 
 /// An early fraud warning indicates that the card issuer has notified us that a
-/// charge may be fraudulent.
-///
-/// Related guide: [Early fraud warnings](https://docs.stripe.com/disputes/measuring#early-fraud-warnings)
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RadarEarlyFraudWarning {
     /// An EFW is actionable if it has not received a dispute and has not been fully refunded. You may wish to proactively refund a charge that receives an EFW, in order to avoid receiving a dispute later.
@@ -7826,16 +7526,16 @@ pub struct RadarEarlyFraudWarning {
     pub fraud_type: String,
     /// Unique identifier for the object.
     pub id: String,
-    /// If the object exists in live mode, the value is true. If the object exists in test mode, the value is false.
+    /// If the object exists in live mode, the value is `true`. If the object exists in test mode, the value is `false`.
     pub livemode: bool,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["radar.early_fraud_warning"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["radar.early_fraud_warning"]
     pub object: String,
     /// ID of the Payment Intent this early fraud warning is for, optionally expanded.
     #[serde(default)]
     pub payment_intent: ::core::option::Option<serde_json::Value>,
 }
 
-/// Payment Evaluations represent the risk lifecycle of an externally processed payment. It includes the Radar risk score from Stripe, payment outcome taken by the merchant or processor, and any post transaction events, such as refunds or disputes. See the [Radar API guide](/radar/multiprocessor) for integration steps.
+/// Payment Evaluations represent the risk lifecycle of an externally processed payment. It includes the Radar risk score from Stripe, payment outcome taken by the merchant or processor, and any post transaction events, such as refunds or disputes. See the [Radar API guide](/`radar/multiprocessor`) for integration steps.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RadarPaymentEvaluation {
     #[serde(default)]
@@ -7849,12 +7549,12 @@ pub struct RadarPaymentEvaluation {
     pub events: ::std::vec::Vec<InsightsResourcesPaymentEvaluationEvent>,
     /// Unique identifier for the object.
     pub id: String,
-    /// If the object exists in live mode, the value is true. If the object exists in test mode, the value is false.
+    /// If the object exists in live mode, the value is `true`. If the object exists in test mode, the value is `false`.
     pub livemode: bool,
-    /// Set of [key-value pairs](https://docs.stripe.com/api/metadata) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
+    /// Set of [key-value pairs](<https://docs.stripe.`com/api/metadata`>) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
     #[serde(default)]
     pub metadata: ::core::option::Option<serde_json::Value>,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["radar.payment_evaluation"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["radar.payment_evaluation"]
     pub object: String,
     /// Indicates the final outcome for the payment evaluation.
     #[serde(default)]
@@ -7867,8 +7567,6 @@ pub struct RadarPaymentEvaluation {
 }
 
 /// Value lists allow you to group values together which can then be referenced in rules.
-///
-/// Related guide: [Default Stripe lists](https://docs.stripe.com/radar/lists#managing-list-items)
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RadarValueList {
     /// The name of the value list for use in rules.
@@ -7883,19 +7581,17 @@ pub struct RadarValueList {
     pub item_type: String,
     /// List of items contained within this value list.
     pub list_items: serde_json::Value,
-    /// If the object exists in live mode, the value is true. If the object exists in test mode, the value is false.
+    /// If the object exists in live mode, the value is `true`. If the object exists in test mode, the value is `false`.
     pub livemode: bool,
-    /// Set of [key-value pairs](https://docs.stripe.com/api/metadata) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
+    /// Set of [key-value pairs](<https://docs.stripe.`com/api/metadata`>) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
     pub metadata: serde_json::Value,
     /// The name of the value list.
     pub name: String,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["radar.value_list"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["radar.value_list"]
     pub object: String,
 }
 
 /// Value list items allow you to add specific values to a given Radar value list, which can then be used in rules.
-///
-/// Related guide: [Managing list items](https://docs.stripe.com/radar/lists#managing-list-items)
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RadarValueListItem {
     /// Time at which the object was created. Measured in seconds since the Unix epoch.
@@ -7904,9 +7600,9 @@ pub struct RadarValueListItem {
     pub created_by: String,
     /// Unique identifier for the object.
     pub id: String,
-    /// If the object exists in live mode, the value is true. If the object exists in test mode, the value is false.
+    /// If the object exists in live mode, the value is `true`. If the object exists in test mode, the value is `false`.
     pub livemode: bool,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["radar.value_list_item"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["radar.value_list_item"]
     pub object: String,
     /// The value of the item.
     pub value: String,
@@ -7928,7 +7624,7 @@ pub struct RadarReviewResourceLocation {
     /// The geographic longitude where the payment originated.
     #[serde(default)]
     pub longitude: ::core::option::Option<f64>,
-    /// The state/county/province/region where the payment originated.
+    /// The `state/county/province/region` where the payment originated.
     #[serde(default)]
     pub region: ::core::option::Option<String>,
 }
@@ -7963,10 +7659,6 @@ pub struct Recurring {
 }
 
 /// Refund objects allow you to refund a previously created charge that isn''t
-/// refunded yet. Funds are refunded to the credit or debit card that''s
-/// initially charged.
-///
-/// Related guide: [Refunds](https://docs.stripe.com/refunds)
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Refund {
     /// Amount, in cents (or local equivalent).
@@ -7979,7 +7671,7 @@ pub struct Refund {
     pub charge: ::core::option::Option<serde_json::Value>,
     /// Time at which the object was created. Measured in seconds since the Unix epoch.
     pub created: i64,
-    /// Three-letter [ISO currency code](https://www.iso.org/iso-4217-currency-codes.html), in lowercase. Must be a [supported currency](https://stripe.com/docs/currencies).
+    /// Three-letter [ISO currency code](<https://www.iso.`org/iso-4217-currency-codes`.html>), in lowercase. Must be a [supported currency](<https://stripe.`com/docs/currencies`>).
     pub currency: String,
     /// An arbitrary string attached to the object. You can use this for displaying to users (available on non-card refunds only).
     #[serde(default)]
@@ -7997,12 +7689,12 @@ pub struct Refund {
     /// For payment methods without native refund support (for example, Konbini, PromptPay), provide an email address for the customer to receive refund instructions.
     #[serde(default)]
     pub instructions_email: ::core::option::Option<String>,
-    /// Set of [key-value pairs](https://docs.stripe.com/api/metadata) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
+    /// Set of [key-value pairs](<https://docs.stripe.`com/api/metadata`>) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
     #[serde(default)]
     pub metadata: ::core::option::Option<serde_json::Value>,
     #[serde(default)]
     pub next_action: ::core::option::Option<RefundNextAction>,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["refund"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["refund"]
     pub object: String,
     /// ID of the PaymentIntent that''s refunded.
     #[serde(default)]
@@ -8021,7 +7713,7 @@ pub struct Refund {
     /// The transfer reversal that''s associated with the refund. Only present if the charge came from another Stripe account.
     #[serde(default)]
     pub source_transfer_reversal: ::core::option::Option<serde_json::Value>,
-    /// Status of the refund. This can be pending, requires_action, succeeded, failed, or canceled. Learn more about [failed refunds](https://docs.stripe.com/refunds#failed-refunds).
+    /// Status of the refund. This can be pending, requires_action, succeeded, failed, or canceled. Learn more about [failed refunds](<https://docs.stripe.`com/refunds`#failed-refunds>).
     #[serde(default)]
     pub status: ::core::option::Option<String>,
     /// This refers to the transfer reversal object if the accompanying transfer reverses. This is only applicable if the charge was created using the destination parameter.
@@ -8030,63 +7722,49 @@ pub struct Refund {
 }
 
 /// The Report Run object represents an instance of a report type generated with
-/// specific run parameters. Once the object is created, Stripe begins processing the report.
-/// When the report has finished running, it will give you a reference to a file
-/// where you can retrieve your results. For an overview, see
-/// [API Access to Reports](https://docs.stripe.com/reporting/statements/api).
-///
-/// Note that certain report types can only be run based on your live-mode data (not test-mode
-/// data), and will error when queried without a [live-mode API key](https://docs.stripe.com/keys#test-live-modes).
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReportingReportRun {
     /// Time at which the object was created. Measured in seconds since the Unix epoch.
     pub created: i64,
-    /// If something should go wrong during the run, a message about the failure (populated when
+    /// If something should go wrong during the run, a message about the failure (populated when status=failed).
     #[serde(default)]
     pub error: ::core::option::Option<String>,
     /// Unique identifier for the object.
     pub id: String,
-    /// true if the report is run on live mode data and false if it is run on test mode data.
+    /// `true` if the report is run on live mode data and `false` if it is run on test mode data.
     pub livemode: bool,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["reporting.report_run"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["reporting.report_run"]
     pub object: String,
     pub parameters: FinancialReportingFinanceReportRunRunParameters,
-    /// The ID of the [report type](https://docs.stripe.com/reports/report-types) to run, such as "balance.summary.1".
+    /// The ID of the [report type](<https://docs.stripe.`com/reports/report-types`>) to run, such as "balance.summary.1".
     pub report_type: String,
-    /// The file object representing the result of the report run (populated when
+    /// The file object representing the result of the report run (populated when status=succeeded).
     #[serde(default)]
     pub result: ::core::option::Option<serde_json::Value>,
-    /// Status of this report run. This will be pending when the run is initially created.
+    /// Status of this report run. This will be pending when the run is initially created. When the run finishes, this will be set to succeeded and the result field will be populated. Rarely, we may encounter an error, at which point this will be set to failed and the error field will be populated.
     pub status: String,
-    /// Timestamp at which this run successfully finished (populated when
+    /// Timestamp at which this run successfully finished (populated when status=succeeded). Measured in seconds since the Unix epoch.
     #[serde(default)]
     pub succeeded_at: ::core::option::Option<i64>,
 }
 
 /// The Report Type resource corresponds to a particular type of report, such as
-/// the "Activity summary" or "Itemized payouts" reports. These objects are
-/// identified by an ID belonging to a set of enumerated values. See
-/// [API Access to Reports documentation](https://docs.stripe.com/reporting/statements/api)
-/// for those Report Type IDs, along with required and optional parameters.
-///
-/// Note that certain report types can only be run based on your live-mode data (not test-mode
-/// data), and will error when queried without a [live-mode API key](https://docs.stripe.com/keys#test-live-modes).
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReportingReportType {
     /// Most recent time for which this Report Type is available. Measured in seconds since the Unix epoch.
     pub data_available_end: i64,
     /// Earliest time for which this Report Type is available. Measured in seconds since the Unix epoch.
     pub data_available_start: i64,
-    /// List of column names that are included by default when this Report Type gets run. (If the Report Type doesn''t support the columns parameter, this will be null.)
+    /// List of column names that are included by default when this Report Type gets run. (If the Report Type doesn''t support the columns parameter, this will be `null`.)
     #[serde(default)]
     pub default_columns: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The [ID of the Report Type](https://docs.stripe.com/reporting/statements/api#available-report-types), such as balance.summary.1.
+    /// The [ID of the Report Type](<https://docs.stripe.`com/reporting/statements/api`#available-report-types>), such as balance.summary.1.
     pub id: String,
-    /// If the object exists in live mode, the value is true. If the object exists in test mode, the value is false.
+    /// If the object exists in live mode, the value is `true`. If the object exists in test mode, the value is `false`.
     pub livemode: bool,
     /// Human-readable name of the Report Type
     pub name: String,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["reporting.report_type"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["reporting.report_type"]
     pub object: String,
     /// When this Report Type was latest updated. Measured in seconds since the Unix epoch.
     pub updated: i64,
@@ -8097,21 +7775,18 @@ pub struct ReportingReportType {
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReserveTransaction {
     pub amount: i64,
-    /// Three-letter [ISO currency code](https://www.iso.org/iso-4217-currency-codes.html), in lowercase. Must be a [supported currency](https://stripe.com/docs/currencies).
+    /// Three-letter [ISO currency code](<https://www.iso.`org/iso-4217-currency-codes`.html>), in lowercase. Must be a [supported currency](<https://stripe.`com/docs/currencies`>).
     pub currency: String,
     /// An arbitrary string attached to the object. Often useful for displaying to users.
     #[serde(default)]
     pub description: ::core::option::Option<String>,
     /// Unique identifier for the object.
     pub id: String,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["reserve_transaction"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["reserve_transaction"]
     pub object: String,
 }
 
 /// Reviews can be used to supplement automated fraud detection with human expertise.
-///
-/// Learn more about [Radar](/radar) and reviewing payments
-/// [here](https://docs.stripe.com/radar/reviews).
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Review {
     /// The ZIP or postal code of the card used, if applicable.
@@ -8120,7 +7795,7 @@ pub struct Review {
     /// The charge associated with this review.
     #[serde(default)]
     pub charge: ::core::option::Option<serde_json::Value>,
-    /// The reason the review was closed, or null if it has not yet been closed. One of approved, refunded, refunded_as_fraud, disputed, redacted, canceled, payment_never_settled, or acknowledged. // TODO: enum values: ["acknowledged", "approved", "canceled", "disputed", "payment_never_settled", "redacted", "refunded", "refunded_as_fraud"]
+    /// The reason the review was closed, or `null` if it has not yet been closed. One of approved, refunded, refunded_as_fraud, disputed, redacted, canceled, payment_never_settled, or acknowledged. // TODO: enum values: ["acknowledged", "approved", "canceled", "disputed", "payment_never_settled", "redacted", "refunded", "refunded_as_fraud"]
     #[serde(default)]
     pub closed_reason: ::core::option::Option<String>,
     /// Time at which the object was created. Measured in seconds since the Unix epoch.
@@ -8133,11 +7808,11 @@ pub struct Review {
     /// Information related to the location of the payment. Note that this information is an approximation and attempts to locate the nearest population center - it should not be used to determine a specific address.
     #[serde(default)]
     pub ip_address_location: ::core::option::Option<serde_json::Value>,
-    /// If the object exists in live mode, the value is true. If the object exists in test mode, the value is false.
+    /// If the object exists in live mode, the value is `true`. If the object exists in test mode, the value is `false`.
     pub livemode: bool,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["review"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["review"]
     pub object: String,
-    /// If true, the review needs action.
+    /// If `true`, the review needs action.
     pub open: bool,
     /// The reason the review was opened. One of rule or manual. // TODO: enum values: ["manual", "rule"]
     pub opened_reason: String,
@@ -8161,10 +7836,7 @@ pub struct Rule {
     pub predicate: String,
 }
 
-/// If you have [scheduled a Sigma query](https://docs.stripe.com/sigma/scheduled-queries), you''ll
-/// receive a sigma.scheduled_query_run.created webhook each time the query
-/// runs. The webhook contains a ScheduledQueryRun object, which you can use to
-/// retrieve the query results.
+/// If you have [scheduled a Sigma query](<https://docs.stripe.`com/sigma/scheduled-queries`>), you''ll
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ScheduledQueryRun {
     /// Time at which the object was created. Measured in seconds since the Unix epoch.
@@ -8178,9 +7850,9 @@ pub struct ScheduledQueryRun {
     pub file: ::core::option::Option<serde_json::Value>,
     /// Unique identifier for the object.
     pub id: String,
-    /// If the object exists in live mode, the value is true. If the object exists in test mode, the value is false.
+    /// If the object exists in live mode, the value is `true`. If the object exists in test mode, the value is `false`.
     pub livemode: bool,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["scheduled_query_run"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["scheduled_query_run"]
     pub object: String,
     /// Time at which the result expires and is no longer available for download.
     pub result_available_until: i64,
@@ -8203,35 +7875,32 @@ pub struct SepaDebitGeneratedFrom {
 }
 
 /// A SetupAttempt describes one attempted confirmation of a SetupIntent,
-/// whether that confirmation is successful or unsuccessful. You can use
-/// SetupAttempts to inspect details of a specific attempt at setting up a
-/// payment method using a SetupIntent.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetupAttempt {
-    /// The value of [application](https://docs.stripe.com/api/setup_intents/object#setup_intent_object-application) on the SetupIntent at the time of this confirmation.
+    /// The value of [application](<https://docs.stripe.`com/api/setup_intents/object`#setup_intent_object-application>) on the SetupIntent at the time of this confirmation.
     #[serde(default)]
     pub application: ::core::option::Option<serde_json::Value>,
-    /// If present, the SetupIntent''s payment method will be attached to the in-context Stripe Account.
+    /// If present, the SetupIntent''s payment method will be attached to the in-context Stripe Account.  It can only be used for this Stripe Account’s own money movement flows like InboundTransfer and OutboundTransfers. It cannot be set to `true` when setting up a PaymentMethod for a Customer, and defaults to `false` when attaching a PaymentMethod to a Customer.
     #[serde(default)]
     pub attach_to_self: ::core::option::Option<bool>,
     /// Time at which the object was created. Measured in seconds since the Unix epoch.
     pub created: i64,
-    /// The value of [customer](https://docs.stripe.com/api/setup_intents/object#setup_intent_object-customer) on the SetupIntent at the time of this confirmation.
+    /// The value of [customer](<https://docs.stripe.`com/api/setup_intents/object`#setup_intent_object-customer>) on the SetupIntent at the time of this confirmation.
     #[serde(default)]
     pub customer: ::core::option::Option<serde_json::Value>,
-    /// The value of [customer_account](https://docs.stripe.com/api/setup_intents/object#setup_intent_object-customer_account) on the SetupIntent at the time of this confirmation.
+    /// The value of [customer_account](<https://docs.stripe.`com/api/setup_intents/object`#setup_intent_object-customer_account>) on the SetupIntent at the time of this confirmation.
     #[serde(default)]
     pub customer_account: ::core::option::Option<String>,
-    /// Indicates the directions of money movement for which this payment method is intended to be used.
+    /// Indicates the directions of money movement for which this payment method is intended to be used.  Include inbound if you intend to use the payment method as the origin to pull funds from. Include outbound if you intend to use the payment method as the destination to send funds to. You can include both if you intend to use the payment method for both purposes.
     #[serde(default)]
     pub flow_directions: ::core::option::Option<::std::vec::Vec<String>>,
     /// Unique identifier for the object.
     pub id: String,
-    /// If the object exists in live mode, the value is true. If the object exists in test mode, the value is false.
+    /// If the object exists in live mode, the value is `true`. If the object exists in test mode, the value is `false`.
     pub livemode: bool,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["setup_attempt"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["setup_attempt"]
     pub object: String,
-    /// The value of [on_behalf_of](https://docs.stripe.com/api/setup_intents/object#setup_intent_object-on_behalf_of) on the SetupIntent at the time of this confirmation.
+    /// The value of [on_behalf_of](<https://docs.stripe.`com/api/setup_intents/object`#setup_intent_object-on_behalf_of>) on the SetupIntent at the time of this confirmation.
     #[serde(default)]
     pub on_behalf_of: ::core::option::Option<serde_json::Value>,
     /// ID of the payment method used with this SetupAttempt.
@@ -8244,7 +7913,7 @@ pub struct SetupAttempt {
     pub setup_intent: serde_json::Value,
     /// Status of this SetupAttempt, one of requires_confirmation, requires_action, processing, succeeded, failed, or abandoned.
     pub status: String,
-    /// The value of [usage](https://docs.stripe.com/api/setup_intents/object#setup_intent_object-usage) on the SetupIntent at the time of this confirmation, one of off_session or on_session.
+    /// The value of [usage](<https://docs.stripe.`com/api/setup_intents/object`#setup_intent_object-usage>) on the SetupIntent at the time of this confirmation, one of off_session or on_session.
     pub usage: String,
 }
 
@@ -8354,7 +8023,7 @@ pub struct SetupIntentPaymentMethodOptionsCard {
     /// Selected network to process this SetupIntent on. Depends on the available networks of the card attached to the setup intent. Can be only set confirm-time. // TODO: enum values: ["amex", "cartes_bancaires", "diners", "discover", "eftpos_au", "girocard", "interac", "jcb", "link", "mastercard", "unionpay", "unknown", "visa"]
     #[serde(default)]
     pub network: ::core::option::Option<String>,
-    /// We strongly recommend that you rely on our SCA Engine to automatically prompt your customers for authentication based on risk level and [other requirements](https://docs.stripe.com/strong-customer-authentication). However, if you wish to request 3D Secure based on logic from your own fraud engine, provide this option. If not provided, this value defaults to automatic. Read our guide on [manually requesting 3D Secure](https://docs.stripe.com/payments/3d-secure/authentication-flow#manual-three-ds) for more information on how this configuration interacts with Radar and our SCA Engine. // TODO: enum values: ["any", "automatic", "challenge"]
+    /// We strongly recommend that you rely on our SCA Engine to automatically prompt your customers for authentication based on risk level and [other requirements](<https://docs.stripe.`com/strong-customer-authentication`>). However, if you wish to request 3D Secure based on logic from your own fraud engine, provide this option. If not provided, this value defaults to automatic. Read our guide on [manually requesting 3D Secure](<https://docs.stripe.`com/payments/3d-secure/authentication-flow`#manual-three-ds>) for more information on how this configuration interacts with Radar and our SCA Engine. // TODO: enum values: ["any", "automatic", "challenge"]
     #[serde(default)]
     pub request_three_d_secure: ::core::option::Option<String>,
 }
@@ -8365,7 +8034,7 @@ pub struct SetupIntentPaymentMethodOptionsCardMandateOptions {
     pub amount: i64,
     /// One of fixed or maximum. If fixed, the amount param refers to the exact amount to be charged in future payments. If maximum, the amount charged can be up to the value passed for the amount param. // TODO: enum values: ["fixed", "maximum"]
     pub amount_type: String,
-    /// Three-letter [ISO currency code](https://www.iso.org/iso-4217-currency-codes.html), in lowercase. Must be a [supported currency](https://stripe.com/docs/currencies).
+    /// Three-letter [ISO currency code](<https://www.iso.`org/iso-4217-currency-codes`.html>), in lowercase. Must be a [supported currency](<https://stripe.`com/docs/currencies`>).
     pub currency: String,
     /// A description of the mandate or subscription that is meant to be displayed to the customer.
     #[serde(default)]
@@ -8454,10 +8123,9 @@ pub struct SetupIntentTypeSpecificPaymentMethodOptionsClient {
 }
 
 /// Shipping rates describe the price of shipping presented to your customers and
-/// applied to a purchase. For more information, see [Charge for shipping](https://docs.stripe.com/payments/during-payment/charge-shipping).
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ShippingRate {
-    /// Whether the shipping rate can be used for new purchases. Defaults to true.
+    /// Whether the shipping rate can be used for new purchases. Defaults to `true`.
     pub active: bool,
     /// Time at which the object was created. Measured in seconds since the Unix epoch.
     pub created: i64,
@@ -8471,16 +8139,16 @@ pub struct ShippingRate {
     pub fixed_amount: ::core::option::Option<ShippingRateFixedAmount>,
     /// Unique identifier for the object.
     pub id: String,
-    /// If the object exists in live mode, the value is true. If the object exists in test mode, the value is false.
+    /// If the object exists in live mode, the value is `true`. If the object exists in test mode, the value is `false`.
     pub livemode: bool,
-    /// Set of [key-value pairs](https://docs.stripe.com/api/metadata) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
+    /// Set of [key-value pairs](<https://docs.stripe.`com/api/metadata`>) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
     pub metadata: serde_json::Value,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["shipping_rate"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["shipping_rate"]
     pub object: String,
     /// Specifies whether the rate is considered inclusive of taxes or exclusive of taxes. One of inclusive, exclusive, or unspecified. // TODO: enum values: ["exclusive", "inclusive", "unspecified"]
     #[serde(default)]
     pub tax_behavior: ::core::option::Option<String>,
-    /// A [tax code](https://docs.stripe.com/tax/tax-categories) ID. The Shipping tax code is txcd_92010001.
+    /// A [tax code](<https://docs.stripe.`com/tax/tax-categories`>) ID. The Shipping tax code is txcd_92010001.
     #[serde(default)]
     pub tax_code: ::core::option::Option<serde_json::Value>,
     /// The type of calculation to use on the shipping rate. // TODO: enum values: ["fixed_amount"]
@@ -8521,19 +8189,17 @@ pub struct SigmaSigmaApiQuery {
     pub created: i64,
     /// Unique identifier for the object.
     pub id: String,
-    /// If the object exists in live mode, the value is true. If the object exists in test mode, the value is false.
+    /// If the object exists in live mode, the value is `true`. If the object exists in test mode, the value is `false`.
     pub livemode: bool,
     /// The name of the query.
     pub name: String,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["sigma.sigma_api_query"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["sigma.sigma_api_query"]
     pub object: String,
     /// The sql statement for the query.
     pub sql: String,
 }
 
 /// Source mandate notifications should be created when a notification related to
-/// a source mandate must be sent to the payer. They will trigger a webhook or
-/// deliver an email to the customer.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SourceMandateNotification {
     #[serde(default)]
@@ -8547,9 +8213,9 @@ pub struct SourceMandateNotification {
     pub created: i64,
     /// Unique identifier for the object.
     pub id: String,
-    /// If the object exists in live mode, the value is true. If the object exists in test mode, the value is false.
+    /// If the object exists in live mode, the value is `true`. If the object exists in test mode, the value is `false`.
     pub livemode: bool,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["source_mandate_notification"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["source_mandate_notification"]
     pub object: String,
     /// The reason of the mandate notification. Valid reasons are mandate_confirmed or debit_initiated.
     pub reason: String,
@@ -8592,9 +8258,6 @@ pub struct SourceOwner {
 }
 
 /// Some payment methods have no required amount that a customer must send.
-/// Customers can be instructed to send any amount, and it can be made up of
-/// multiple transactions. As such, sources can have multiple associated
-/// transactions.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SourceTransaction {
     #[serde(default)]
@@ -8605,15 +8268,15 @@ pub struct SourceTransaction {
     pub chf_credit_transfer: ::core::option::Option<SourceTransactionChfCreditTransferData>,
     /// Time at which the object was created. Measured in seconds since the Unix epoch.
     pub created: i64,
-    /// Three-letter [ISO currency code](https://www.iso.org/iso-4217-currency-codes.html), in lowercase. Must be a [supported currency](https://stripe.com/docs/currencies).
+    /// Three-letter [ISO currency code](<https://www.iso.`org/iso-4217-currency-codes`.html>), in lowercase. Must be a [supported currency](<https://stripe.`com/docs/currencies`>).
     pub currency: String,
     #[serde(default)]
     pub gbp_credit_transfer: ::core::option::Option<SourceTransactionGbpCreditTransferData>,
     /// Unique identifier for the object.
     pub id: String,
-    /// If the object exists in live mode, the value is true. If the object exists in test mode, the value is false.
+    /// If the object exists in live mode, the value is `true`. If the object exists in test mode, the value is `false`.
     pub livemode: bool,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["source_transaction"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["source_transaction"]
     pub object: String,
     #[serde(default)]
     pub paper_check: ::core::option::Option<SourceTransactionPaperCheckData>,
@@ -8629,8 +8292,6 @@ pub struct SourceTransaction {
 }
 
 /// Subscriptions allow you to charge a customer on a recurring basis.
-///
-/// Related guide: [Creating subscriptions](https://docs.stripe.com/billing/subscriptions/creating)
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Subscription {
     /// ID of the Connect Application that created the subscription.
@@ -8640,7 +8301,7 @@ pub struct Subscription {
     #[serde(default)]
     pub application_fee_percent: ::core::option::Option<f64>,
     pub automatic_tax: SubscriptionAutomaticTax,
-    /// The reference point that aligns future [billing cycle](https://docs.stripe.com/subscriptions/billing-cycle) dates. It sets the day of week for week intervals, the day of month for month and year intervals, and the month of year for year intervals. The timestamp is in UTC format.
+    /// The reference point that aligns future [billing cycle](<https://docs.stripe.`com/subscriptions/billing-cycle`>) dates. It sets the day of week for week intervals, the day of month for month and year intervals, and the month of year for year intervals. The timestamp is in UTC format.
     pub billing_cycle_anchor: i64,
     /// The fixed values used to calculate the billing_cycle_anchor.
     #[serde(default)]
@@ -8664,20 +8325,20 @@ pub struct Subscription {
     pub collection_method: String,
     /// Time at which the object was created. Measured in seconds since the Unix epoch.
     pub created: i64,
-    /// Three-letter [ISO currency code](https://www.iso.org/iso-4217-currency-codes.html), in lowercase. Must be a [supported currency](https://stripe.com/docs/currencies).
+    /// Three-letter [ISO currency code](<https://www.iso.`org/iso-4217-currency-codes`.html>), in lowercase. Must be a [supported currency](<https://stripe.`com/docs/currencies`>).
     pub currency: String,
     /// ID of the customer who owns the subscription.
     pub customer: serde_json::Value,
     /// ID of the account representing the customer who owns the subscription.
     #[serde(default)]
     pub customer_account: ::core::option::Option<String>,
-    /// Number of days a customer has to pay invoices generated by this subscription. This value will be null for subscriptions where collection_method=charge_automatically.
+    /// Number of days a customer has to pay invoices generated by this subscription. This value will be `null` for subscriptions where collection_method=charge_automatically.
     #[serde(default)]
     pub days_until_due: ::core::option::Option<i64>,
-    /// ID of the default payment method for the subscription. It must belong to the customer associated with the subscription. This takes precedence over default_source. If neither are set, invoices will use the customer''s [invoice_settings.default_payment_method](https://docs.stripe.com/api/customers/object#customer_object-invoice_settings-default_payment_method) or [default_source](https://docs.stripe.com/api/customers/object#customer_object-default_source).
+    /// ID of the default payment method for the subscription. It must belong to the customer associated with the subscription. This takes precedence over default_source. If neither are set, invoices will use the customer''s [invoice_settings.default_payment_method](<https://docs.stripe.`com/api/customers/object`#customer_object-invoice_settings-default_payment_method>) or [default_source](<https://docs.stripe.`com/api/customers/object`#customer_object-default_source>).
     #[serde(default)]
     pub default_payment_method: ::core::option::Option<serde_json::Value>,
-    /// ID of the default payment source for the subscription. It must belong to the customer associated with the subscription and be in a chargeable state. If default_payment_method is also set, default_payment_method will take precedence. If neither are set, invoices will use the customer''s [invoice_settings.default_payment_method](https://docs.stripe.com/api/customers/object#customer_object-invoice_settings-default_payment_method) or [default_source](https://docs.stripe.com/api/customers/object#customer_object-default_source).
+    /// ID of the default payment source for the subscription. It must belong to the customer associated with the subscription and be in a chargeable state. If default_payment_method is also set, default_payment_method will take precedence. If neither are set, invoices will use the customer''s [invoice_settings.default_payment_method](<https://docs.stripe.`com/api/customers/object`#customer_object-invoice_settings-default_payment_method>) or [default_source](<https://docs.stripe.`com/api/customers/object`#customer_object-default_source>).
     #[serde(default)]
     pub default_source: ::core::option::Option<serde_json::Value>,
     /// The tax rates that will apply to any subscription item that does not have tax_rates set. Invoices created will have their default_tax_rates populated from the subscription.
@@ -8699,31 +8360,31 @@ pub struct Subscription {
     /// The most recent invoice this subscription has generated over its lifecycle (for example, when it cycles or is updated).
     #[serde(default)]
     pub latest_invoice: ::core::option::Option<serde_json::Value>,
-    /// If the object exists in live mode, the value is true. If the object exists in test mode, the value is false.
+    /// If the object exists in live mode, the value is `true`. If the object exists in test mode, the value is `false`.
     pub livemode: bool,
-    /// Set of [key-value pairs](https://docs.stripe.com/api/metadata) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
+    /// Set of [key-value pairs](<https://docs.stripe.`com/api/metadata`>) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
     pub metadata: serde_json::Value,
     /// Specifies the approximate timestamp on which any pending invoice items will be billed according to the schedule provided at pending_invoice_item_interval.
     #[serde(default)]
     pub next_pending_invoice_item_invoice: ::core::option::Option<i64>,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["subscription"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["subscription"]
     pub object: String,
-    /// The account (if any) the charge was made on behalf of for charges associated with this subscription. See the [Connect documentation](https://docs.stripe.com/connect/subscriptions#on-behalf-of) for details.
+    /// The account (if any) the charge was made on behalf of for charges associated with this subscription. See the [Connect documentation](<https://docs.stripe.`com/connect/subscriptions`#on-behalf-of>) for details.
     #[serde(default)]
     pub on_behalf_of: ::core::option::Option<serde_json::Value>,
-    /// If specified, payment collection for this subscription will be paused. Note that the subscription status will be unchanged and will not be updated to paused. Learn more about [pausing collection](https://docs.stripe.com/billing/subscriptions/pause-payment).
+    /// If specified, payment collection for this subscription will be paused. Note that the subscription status will be unchanged and will not be updated to paused. Learn more about [pausing collection](<https://docs.stripe.`com/billing/subscriptions/pause-payment`>).
     #[serde(default)]
     pub pause_collection: ::core::option::Option<serde_json::Value>,
     /// Payment settings passed on to invoices created by the subscription.
     #[serde(default)]
     pub payment_settings: ::core::option::Option<serde_json::Value>,
-    /// Specifies an interval for how often to bill for any pending invoice items. It is analogous to calling [Create an invoice](/api/invoices/create) for the given subscription at the specified interval.
+    /// Specifies an interval for how often to bill for any pending invoice items. It is analogous to calling [Create an invoice](/`api/invoices/create`) for the given subscription at the specified interval.
     #[serde(default)]
     pub pending_invoice_item_interval: ::core::option::Option<serde_json::Value>,
-    /// You can use this [SetupIntent](https://docs.stripe.com/api/setup_intents) to collect user authentication when creating a subscription without immediate payment or updating a subscription''s payment method, allowing you to optimize for off-session payments. Learn more in the [SCA Migration Guide](https://docs.stripe.com/billing/migration/strong-customer-authentication#scenario-2).
+    /// You can use this [SetupIntent](<https://docs.stripe.`com/api/setup_intents`>) to collect user authentication when creating a subscription without immediate payment or updating a subscription''s payment method, allowing you to optimize for off-session payments. Learn more in the [SCA Migration Guide](<https://docs.stripe.`com/billing/migration/strong-customer-authentication`#scenario-2>).
     #[serde(default)]
     pub pending_setup_intent: ::core::option::Option<serde_json::Value>,
-    /// If specified, [pending updates](https://docs.stripe.com/billing/subscriptions/pending-updates) that will be applied to the subscription once the latest_invoice has been paid.
+    /// If specified, [pending updates](<https://docs.stripe.`com/billing/subscriptions/pending-updates`>) that will be applied to the subscription once the latest_invoice has been paid.
     #[serde(default)]
     pub pending_update: ::core::option::Option<serde_json::Value>,
     #[serde(default)]
@@ -8734,7 +8395,7 @@ pub struct Subscription {
     pub schedule: ::core::option::Option<serde_json::Value>,
     /// Date when the subscription was first created. The date might differ from the created date due to backdating.
     pub start_date: i64,
-    /// Possible values are incomplete, incomplete_expired, trialing, active, past_due, canceled, unpaid, or paused.
+    /// Possible values are incomplete, incomplete_expired, trialing, active, past_due, canceled, unpaid, or paused.  For collection_method=charge_automatically a subscription moves into incomplete if the initial payment attempt fails. A subscription in this status can only have metadata and default_source updated. Once the first invoice is paid, the subscription moves into an active status. If the first invoice is not paid within 23 hours, the subscription transitions to incomplete_expired. This is a terminal status, the open invoice will be voided and no further invoices will be generated.  A subscription that is currently in a trial period is trialing and moves to active when the trial period is over.  A subscription can only enter a paused status [when a trial ends without a payment method](<https://docs.stripe.`com/billing/subscriptions/trials`#create-free-trials-without-payment>). A paused subscription doesn''t generate invoices and can be resumed after your customer adds their payment method. The paused status is different from [pausing collection](<https://docs.stripe.`com/billing/subscriptions/pause-payment`>), which still generates invoices and leaves the subscription''s status unchanged.  If subscription collection_method=charge_automatically, it becomes past_due when payment is required but cannot be paid (due to failed payment or awaiting additional user actions). Once Stripe has exhausted all payment retry attempts, the subscription will become canceled or unpaid (depending on your subscriptions settings).  If subscription collection_method=send_invoice it becomes past_due when its invoice is not paid by the due date, and canceled or unpaid if it is still not paid by an additional deadline after that. Note that when a subscription has a status of unpaid, no subsequent invoices will be attempted (invoices will be created, but then immediately automatically closed). After receiving updated payment information from a customer, you may choose to reopen and pay their closed invoices. // TODO: enum values: ["active", "canceled", "incomplete", "incomplete_expired", "past_due", "paused", "trialing", "unpaid"]
     pub status: String,
     /// ID of the test clock this subscription belongs to.
     #[serde(default)]
@@ -8758,7 +8419,7 @@ pub struct SubscriptionBillingThresholds {
     /// Monetary threshold that triggers the subscription to create an invoice
     #[serde(default)]
     pub amount_gte: ::core::option::Option<i64>,
-    /// Indicates if the billing_cycle_anchor should be reset when a threshold is reached. If true, billing_cycle_anchor will be updated to the date/time the threshold was last reached; otherwise, the value will remain unchanged. This value may not be true if the subscription contains items with plans that have aggregate_usage=last_ever.
+    /// Indicates if the billing_cycle_anchor should be reset when a threshold is reached. If `true`, billing_cycle_anchor will be updated to the `date/time` the threshold was last reached; otherwise, the value will remain unchanged. This value may not be `true` if the subscription contains items with plans that have aggregate_usage=last_ever.
     #[serde(default)]
     pub reset_billing_cycle_anchor: ::core::option::Option<bool>,
 }
@@ -8777,7 +8438,7 @@ pub struct SubscriptionPaymentMethodOptionsCard {
     /// Selected network to process this Subscription on. Depends on the available networks of the card attached to the Subscription. Can be only set confirm-time. // TODO: enum values: ["amex", "cartes_bancaires", "diners", "discover", "eftpos_au", "girocard", "interac", "jcb", "link", "mastercard", "unionpay", "unknown", "visa"]
     #[serde(default)]
     pub network: ::core::option::Option<String>,
-    /// We strongly recommend that you rely on our SCA Engine to automatically prompt your customers for authentication based on risk level and [other requirements](https://docs.stripe.com/strong-customer-authentication). However, if you wish to request 3D Secure based on logic from your own fraud engine, provide this option. Read our guide on [manually requesting 3D Secure](https://docs.stripe.com/payments/3d-secure/authentication-flow#manual-three-ds) for more information on how this configuration interacts with Radar and our SCA Engine. // TODO: enum values: ["any", "automatic", "challenge"]
+    /// We strongly recommend that you rely on our SCA Engine to automatically prompt your customers for authentication based on risk level and [other requirements](<https://docs.stripe.`com/strong-customer-authentication`>). However, if you wish to request 3D Secure based on logic from your own fraud engine, provide this option. Read our guide on [manually requesting 3D Secure](<https://docs.stripe.`com/payments/3d-secure/authentication-flow`#manual-three-ds>) for more information on how this configuration interacts with Radar and our SCA Engine. // TODO: enum values: ["any", "automatic", "challenge"]
     #[serde(default)]
     pub request_three_d_secure: ::core::option::Option<String>,
 }
@@ -8791,8 +8452,6 @@ pub struct SubscriptionPendingInvoiceItemInterval {
 }
 
 /// A subscription schedule allows you to create and manage the lifecycle of a subscription by predefining expected changes.
-///
-/// Related guide: [Subscription schedules](https://docs.stripe.com/billing/subscriptions/subscription-schedules)
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SubscriptionSchedule {
     /// ID of the Connect Application that created the schedule.
@@ -8820,12 +8479,12 @@ pub struct SubscriptionSchedule {
     pub end_behavior: String,
     /// Unique identifier for the object.
     pub id: String,
-    /// If the object exists in live mode, the value is true. If the object exists in test mode, the value is false.
+    /// If the object exists in live mode, the value is `true`. If the object exists in test mode, the value is `false`.
     pub livemode: bool,
-    /// Set of [key-value pairs](https://docs.stripe.com/api/metadata) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
+    /// Set of [key-value pairs](<https://docs.stripe.`com/api/metadata`>) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
     #[serde(default)]
     pub metadata: ::core::option::Option<serde_json::Value>,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["subscription_schedule"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["subscription_schedule"]
     pub object: String,
     /// Configuration for the subscription schedule''s phases.
     pub phases: ::std::vec::Vec<SubscriptionSchedulePhaseConfiguration>,
@@ -8835,7 +8494,7 @@ pub struct SubscriptionSchedule {
     /// ID of the subscription once managed by the subscription schedule (if it is released).
     #[serde(default)]
     pub released_subscription: ::core::option::Option<String>,
-    /// The present status of the subscription schedule. Possible values are not_started, active, completed, released, and canceled. You can read more about the different states in our [behavior guide](https://docs.stripe.com/billing/subscriptions/subscription-schedules). // TODO: enum values: ["active", "canceled", "completed", "not_started", "released"]
+    /// The present status of the subscription schedule. Possible values are not_started, active, completed, released, and canceled. You can read more about the different states in our [behavior guide](<https://docs.stripe.`com/billing/subscriptions/subscription-schedules`>). // TODO: enum values: ["active", "canceled", "completed", "not_started", "released"]
     pub status: String,
     /// ID of the subscription managed by the subscription schedule.
     #[serde(default)]
@@ -8881,7 +8540,6 @@ pub struct SubscriptionsResourceBillingCycleAnchorConfig {
 }
 
 /// The Pause Collection settings determine how we will pause collection for this subscription and for how long the subscription
-/// should be paused.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SubscriptionsResourcePauseCollection {
     /// The payment collection behavior for this subscription while paused. // TODO: enum values: ["keep_as_draft", "mark_uncollectible", "void"]
@@ -8924,7 +8582,7 @@ pub struct SubscriptionsResourcePaymentSettings {
     /// Payment-method-specific configuration to provide to invoices created by the subscription.
     #[serde(default)]
     pub payment_method_options: ::core::option::Option<serde_json::Value>,
-    /// The list of payment method types to provide to every invoice created by the subscription. If not set, Stripe attempts to automatically determine the types to use by looking at the invoice’s default payment method, the subscription’s default payment method, the customer’s default payment method, and your [invoice template settings](https://dashboard.stripe.com/settings/billing/invoice).
+    /// The list of payment method types to provide to every invoice created by the subscription. If not set, Stripe attempts to automatically determine the types to use by looking at the invoice’s default payment method, the subscription’s default payment method, the customer’s default payment method, and your [invoice template settings](<https://dashboard.stripe.`com/settings/billing/invoice`>).
     #[serde(default)]
     pub payment_method_types: ::core::option::Option<::std::vec::Vec<String>>,
     /// Configure whether Stripe updates subscription.default_payment_method when payment succeeds. Defaults to off. // TODO: enum values: ["off", "on_subscription"]
@@ -8933,7 +8591,6 @@ pub struct SubscriptionsResourcePaymentSettings {
 }
 
 /// Pending Updates store the changes pending from a previous update that will be applied
-/// to the Subscription upon successful payment.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SubscriptionsResourcePendingUpdate {
     /// If the update is applied, determines the date of the first full invoice, and, for plans with month or year intervals, the day of the month for subsequent invoices. The timestamp is in UTC format.
@@ -8947,7 +8604,7 @@ pub struct SubscriptionsResourcePendingUpdate {
     /// Unix timestamp representing the end of the trial period the customer will get before being charged for the first time, if the update is applied.
     #[serde(default)]
     pub trial_end: ::core::option::Option<i64>,
-    /// Indicates if a plan''s trial_period_days should be applied to the subscription. Setting trial_end per subscription is preferred, and this defaults to false. Setting this flag to true together with trial_end is not allowed. See [Using trial periods on subscriptions](https://docs.stripe.com/billing/subscriptions/trials) to learn more.
+    /// Indicates if a plan''s trial_period_days should be applied to the subscription. Setting trial_end per subscription is preferred, and this defaults to `false`. Setting this flag to `true` together with trial_end is not allowed. See [Using trial periods on subscriptions](<https://docs.stripe.`com/billing/subscriptions/trials`>) to learn more.
     #[serde(default)]
     pub trial_from_plan: ::core::option::Option<bool>,
 }
@@ -8967,13 +8624,13 @@ pub struct SubscriptionsTrialsResourceTrialSettings {
 /// A Tax Association exposes the Tax Transactions that Stripe attempted to create on your behalf based on the PaymentIntent input
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TaxAssociation {
-    /// The [Tax Calculation](https://docs.stripe.com/api/tax/calculations/object) that was included in PaymentIntent.
+    /// The [Tax Calculation](<https://docs.stripe.`com/api/tax/calculations/object`>) that was included in PaymentIntent.
     pub calculation: String,
     /// Unique identifier for the object.
     pub id: String,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["tax.association"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["tax.association"]
     pub object: String,
-    /// The [PaymentIntent](https://docs.stripe.com/api/payment_intents/object) that this Tax Association is tracking.
+    /// The [PaymentIntent](<https://docs.stripe.`com/api/payment_intents/object`>) that this Tax Association is tracking.
     pub payment_intent: String,
     /// Information about the tax transactions linked to this payment intent
     #[serde(default)]
@@ -8983,15 +8640,13 @@ pub struct TaxAssociation {
 }
 
 /// A Tax Calculation allows you to calculate the tax to collect from your customer.
-///
-/// Related guide: [Calculate tax in your custom payment flow](https://docs.stripe.com/tax/custom)
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TaxCalculation {
-    /// Total amount after taxes in the [smallest currency unit](https://docs.stripe.com/currencies#minor-units).
+    /// Total amount after taxes in the [smallest currency unit](<https://docs.stripe.`com/currencies`#minor-units>).
     pub amount_total: i64,
-    /// Three-letter [ISO currency code](https://www.iso.org/iso-4217-currency-codes.html), in lowercase. Must be a [supported currency](https://stripe.com/docs/currencies).
+    /// Three-letter [ISO currency code](<https://www.iso.`org/iso-4217-currency-codes`.html>), in lowercase. Must be a [supported currency](<https://stripe.`com/docs/currencies`>).
     pub currency: String,
-    /// The ID of an existing [Customer](https://docs.stripe.com/api/customers/object) used for the resource.
+    /// The ID of an existing [Customer](<https://docs.stripe.`com/api/customers/object`>) used for the resource.
     #[serde(default)]
     pub customer: ::core::option::Option<String>,
     pub customer_details: TaxProductResourceCustomerDetails,
@@ -9004,9 +8659,9 @@ pub struct TaxCalculation {
     /// The list of items the customer is purchasing.
     #[serde(default)]
     pub line_items: ::core::option::Option<serde_json::Value>,
-    /// If the object exists in live mode, the value is true. If the object exists in test mode, the value is false.
+    /// If the object exists in live mode, the value is `true`. If the object exists in test mode, the value is `false`.
     pub livemode: bool,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["tax.calculation"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["tax.calculation"]
     pub object: String,
     /// The details of the ship from location, such as the address.
     #[serde(default)]
@@ -9026,20 +8681,20 @@ pub struct TaxCalculation {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TaxCalculationLineItem {
-    /// The line item amount in the [smallest currency unit](https://docs.stripe.com/currencies#minor-units). If tax_behavior=inclusive, then this amount includes taxes. Otherwise, taxes were calculated on top of this amount.
+    /// The line item amount in the [smallest currency unit](<https://docs.stripe.`com/currencies`#minor-units>). If tax_behavior=inclusive, then this amount includes taxes. Otherwise, taxes were calculated on top of this amount.
     pub amount: i64,
-    /// The amount of tax calculated for this line item, in the [smallest currency unit](https://docs.stripe.com/currencies#minor-units).
+    /// The amount of tax calculated for this line item, in the [smallest currency unit](<https://docs.stripe.`com/currencies`#minor-units>).
     pub amount_tax: i64,
     /// Unique identifier for the object.
     pub id: String,
-    /// If the object exists in live mode, the value is true. If the object exists in test mode, the value is false.
+    /// If the object exists in live mode, the value is `true`. If the object exists in test mode, the value is `false`.
     pub livemode: bool,
-    /// Set of [key-value pairs](https://docs.stripe.com/api/metadata) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
+    /// Set of [key-value pairs](<https://docs.stripe.`com/api/metadata`>) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
     #[serde(default)]
     pub metadata: ::core::option::Option<serde_json::Value>,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["tax.calculation_line_item"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["tax.calculation_line_item"]
     pub object: String,
-    /// The ID of an existing [Product](https://docs.stripe.com/api/products/object).
+    /// The ID of an existing [Product](<https://docs.stripe.`com/api/products/object`>).
     #[serde(default)]
     pub product: ::core::option::Option<String>,
     /// The number of units of the item being purchased. For reversals, this is the quantity reversed.
@@ -9052,20 +8707,16 @@ pub struct TaxCalculationLineItem {
     #[serde(default)]
     pub tax_breakdown:
         ::core::option::Option<::std::vec::Vec<TaxProductResourceLineItemTaxBreakdown>>,
-    /// The [tax code](https://docs.stripe.com/tax/tax-categories) ID used for this resource.
+    /// The [tax code](<https://docs.stripe.`com/tax/tax-categories`>) ID used for this resource.
     pub tax_code: String,
 }
 
-/// A Tax Registration lets us know that your business is registered to collect tax on payments within a region, enabling you to [automatically collect tax](https://docs.stripe.com/tax).
-///
-/// Stripe doesn''t register on your behalf with the relevant authorities when you create a Tax Registration object. For more information on how to register to collect tax, see [our guide](https://docs.stripe.com/tax/registering).
-///
-/// Related guide: [Using the Registrations API](https://docs.stripe.com/tax/registrations-api)
+/// A Tax Registration lets us know that your business is registered to collect tax on payments within a region, enabling you to [automatically collect tax](<https://docs.stripe.`com/tax`>).
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TaxRegistration {
     /// Time at which the registration becomes active. Measured in seconds since the Unix epoch.
     pub active_from: i64,
-    /// Two-letter country code ([ISO 3166-1 alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2)).
+    /// Two-letter country code ([ISO 3166-1 alpha-2](<https://en.wikipedia.`org/wiki/ISO_3166-1_alpha-2`>)).
     pub country: String,
     pub country_options: TaxProductRegistrationsResourceCountryOptions,
     /// Time at which the object was created. Measured in seconds since the Unix epoch.
@@ -9075,26 +8726,24 @@ pub struct TaxRegistration {
     pub expires_at: ::core::option::Option<i64>,
     /// Unique identifier for the object.
     pub id: String,
-    /// If the object exists in live mode, the value is true. If the object exists in test mode, the value is false.
+    /// If the object exists in live mode, the value is `true`. If the object exists in test mode, the value is `false`.
     pub livemode: bool,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["tax.registration"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["tax.registration"]
     pub object: String,
     /// The status of the registration. This field is present for convenience and can be deduced from active_from and expires_at. // TODO: enum values: ["active", "expired", "scheduled"]
     pub status: String,
 }
 
 /// You can use Tax Settings to manage configurations used by Stripe Tax calculations.
-///
-/// Related guide: [Using the Settings API](https://docs.stripe.com/tax/settings-api)
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TaxSettings {
     pub defaults: TaxProductResourceTaxSettingsDefaults,
     /// The place where your business is located.
     #[serde(default)]
     pub head_office: ::core::option::Option<serde_json::Value>,
-    /// If the object exists in live mode, the value is true. If the object exists in test mode, the value is false.
+    /// If the object exists in live mode, the value is `true`. If the object exists in test mode, the value is `false`.
     pub livemode: bool,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["tax.settings"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["tax.settings"]
     pub object: String,
     /// The status of the Tax Settings. // TODO: enum values: ["active", "pending"]
     pub status: String,
@@ -9102,15 +8751,13 @@ pub struct TaxSettings {
 }
 
 /// A Tax Transaction records the tax collected from or refunded to your customer.
-///
-/// Related guide: [Calculate tax in your custom payment flow](https://docs.stripe.com/tax/custom#tax-transaction)
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TaxTransaction {
     /// Time at which the object was created. Measured in seconds since the Unix epoch.
     pub created: i64,
-    /// Three-letter [ISO currency code](https://www.iso.org/iso-4217-currency-codes.html), in lowercase. Must be a [supported currency](https://stripe.com/docs/currencies).
+    /// Three-letter [ISO currency code](<https://www.iso.`org/iso-4217-currency-codes`.html>), in lowercase. Must be a [supported currency](<https://stripe.`com/docs/currencies`>).
     pub currency: String,
-    /// The ID of an existing [Customer](https://docs.stripe.com/api/customers/object) used for the resource.
+    /// The ID of an existing [Customer](<https://docs.stripe.`com/api/customers/object`>) used for the resource.
     #[serde(default)]
     pub customer: ::core::option::Option<String>,
     pub customer_details: TaxProductResourceCustomerDetails,
@@ -9119,12 +8766,12 @@ pub struct TaxTransaction {
     /// The tax collected or refunded, by line item.
     #[serde(default)]
     pub line_items: ::core::option::Option<serde_json::Value>,
-    /// If the object exists in live mode, the value is true. If the object exists in test mode, the value is false.
+    /// If the object exists in live mode, the value is `true`. If the object exists in test mode, the value is `false`.
     pub livemode: bool,
-    /// Set of [key-value pairs](https://docs.stripe.com/api/metadata) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
+    /// Set of [key-value pairs](<https://docs.stripe.`com/api/metadata`>) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
     #[serde(default)]
     pub metadata: ::core::option::Option<serde_json::Value>,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["tax.transaction"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["tax.transaction"]
     pub object: String,
     /// The Unix timestamp representing when the tax liability is assumed or reduced.
     pub posted_at: i64,
@@ -9148,20 +8795,20 @@ pub struct TaxTransaction {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TaxTransactionLineItem {
-    /// The line item amount in the [smallest currency unit](https://docs.stripe.com/currencies#minor-units). If tax_behavior=inclusive, then this amount includes taxes. Otherwise, taxes were calculated on top of this amount.
+    /// The line item amount in the [smallest currency unit](<https://docs.stripe.`com/currencies`#minor-units>). If tax_behavior=inclusive, then this amount includes taxes. Otherwise, taxes were calculated on top of this amount.
     pub amount: i64,
-    /// The amount of tax calculated for this line item, in the [smallest currency unit](https://docs.stripe.com/currencies#minor-units).
+    /// The amount of tax calculated for this line item, in the [smallest currency unit](<https://docs.stripe.`com/currencies`#minor-units>).
     pub amount_tax: i64,
     /// Unique identifier for the object.
     pub id: String,
-    /// If the object exists in live mode, the value is true. If the object exists in test mode, the value is false.
+    /// If the object exists in live mode, the value is `true`. If the object exists in test mode, the value is `false`.
     pub livemode: bool,
-    /// Set of [key-value pairs](https://docs.stripe.com/api/metadata) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
+    /// Set of [key-value pairs](<https://docs.stripe.`com/api/metadata`>) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
     #[serde(default)]
     pub metadata: ::core::option::Option<serde_json::Value>,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["tax.transaction_line_item"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["tax.transaction_line_item"]
     pub object: String,
-    /// The ID of an existing [Product](https://docs.stripe.com/api/products/object).
+    /// The ID of an existing [Product](<https://docs.stripe.`com/api/products/object`>).
     #[serde(default)]
     pub product: ::core::option::Option<String>,
     /// The number of units of the item being purchased. For reversals, this is the quantity reversed.
@@ -9173,14 +8820,14 @@ pub struct TaxTransactionLineItem {
     pub reversal: ::core::option::Option<serde_json::Value>,
     /// Specifies whether the amount includes taxes. If tax_behavior=inclusive, then the amount includes taxes. // TODO: enum values: ["exclusive", "inclusive"]
     pub tax_behavior: String,
-    /// The [tax code](https://docs.stripe.com/tax/tax-categories) ID used for this resource.
+    /// The [tax code](<https://docs.stripe.`com/tax/tax-categories`>) ID used for this resource.
     pub tax_code: String,
     /// If reversal, this line item reverses an earlier transaction. // TODO: enum values: ["reversal", "transaction"]
     #[serde(rename = "type")]
     pub type_: String,
 }
 
-/// [Tax codes](https://stripe.com/docs/tax/tax-categories) classify goods and services for tax purposes.
+/// [Tax codes](<https://stripe.`com/docs/tax/tax-categories`>) classify goods and services for tax purposes.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TaxCode {
     /// A detailed description of which types of products the tax code represents.
@@ -9189,7 +8836,7 @@ pub struct TaxCode {
     pub id: String,
     /// A short name for the tax code.
     pub name: String,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["tax_code"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["tax_code"]
     pub object: String,
 }
 
@@ -9197,7 +8844,7 @@ pub struct TaxCode {
 pub struct TaxDeductedAtSource {
     /// Unique identifier for the object.
     pub id: String,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["tax_deducted_at_source"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["tax_deducted_at_source"]
     pub object: String,
     /// The end of the invoicing period. This TDS applies to Stripe fees collected during this invoicing period.
     pub period_end: i64,
@@ -9226,10 +8873,7 @@ pub struct TaxIDsOwner {
     pub type_: String,
 }
 
-/// You can add one or multiple tax IDs to a [customer](https://docs.stripe.com/api/customers) or account.
-/// Customer and account tax IDs get displayed on related invoices and credit notes.
-///
-/// Related guides: [Customer tax identification numbers](https://docs.stripe.com/billing/taxes/tax-ids), [Account tax IDs](https://docs.stripe.com/invoicing/connect#account-tax-ids)
+/// You can add one or multiple tax IDs to a [customer](<https://docs.stripe.`com/api/customers`>) or account.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TaxId {
     /// Two-letter ISO code representing the country of the tax ID.
@@ -9245,9 +8889,9 @@ pub struct TaxId {
     pub customer_account: ::core::option::Option<String>,
     /// Unique identifier for the object.
     pub id: String,
-    /// If the object exists in live mode, the value is true. If the object exists in test mode, the value is false.
+    /// If the object exists in live mode, the value is `true`. If the object exists in test mode, the value is `false`.
     pub livemode: bool,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["tax_id"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["tax_id"]
     pub object: String,
     /// The account or customer the tax ID belongs to.
     #[serde(default)]
@@ -9291,11 +8935,11 @@ pub struct TaxProductResourceShipFromDetails {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TaxProductResourceTaxCalculationShippingCost {
-    /// The shipping amount in the [smallest currency unit](https://docs.stripe.com/currencies#minor-units). If tax_behavior=inclusive, then this amount includes taxes. Otherwise, taxes were calculated on top of this amount.
+    /// The shipping amount in the [smallest currency unit](<https://docs.stripe.`com/currencies`#minor-units>). If tax_behavior=inclusive, then this amount includes taxes. Otherwise, taxes were calculated on top of this amount.
     pub amount: i64,
-    /// The amount of tax calculated for shipping, in the [smallest currency unit](https://docs.stripe.com/currencies#minor-units).
+    /// The amount of tax calculated for shipping, in the [smallest currency unit](<https://docs.stripe.`com/currencies`#minor-units>).
     pub amount_tax: i64,
-    /// The ID of an existing [ShippingRate](https://docs.stripe.com/api/shipping_rates/object).
+    /// The ID of an existing [ShippingRate](<https://docs.stripe.`com/api/shipping_rates/object`>).
     #[serde(default)]
     pub shipping_rate: ::core::option::Option<String>,
     /// Specifies whether the amount includes taxes. If tax_behavior=inclusive, then the amount includes taxes. // TODO: enum values: ["exclusive", "inclusive"]
@@ -9304,7 +8948,7 @@ pub struct TaxProductResourceTaxCalculationShippingCost {
     #[serde(default)]
     pub tax_breakdown:
         ::core::option::Option<::std::vec::Vec<TaxProductResourceLineItemTaxBreakdown>>,
-    /// The [tax code](https://docs.stripe.com/tax/tax-categories) ID used for shipping.
+    /// The [tax code](<https://docs.stripe.`com/tax/tax-categories`>) ID used for shipping.
     pub tax_code: String,
 }
 
@@ -9328,20 +8972,20 @@ pub struct TaxProductResourceTaxTransactionResourceReversal {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TaxProductResourceTaxTransactionShippingCost {
-    /// The shipping amount in the [smallest currency unit](https://docs.stripe.com/currencies#minor-units). If tax_behavior=inclusive, then this amount includes taxes. Otherwise, taxes were calculated on top of this amount.
+    /// The shipping amount in the [smallest currency unit](<https://docs.stripe.`com/currencies`#minor-units>). If tax_behavior=inclusive, then this amount includes taxes. Otherwise, taxes were calculated on top of this amount.
     pub amount: i64,
-    /// The amount of tax calculated for shipping, in the [smallest currency unit](https://docs.stripe.com/currencies#minor-units).
+    /// The amount of tax calculated for shipping, in the [smallest currency unit](<https://docs.stripe.`com/currencies`#minor-units>).
     pub amount_tax: i64,
-    /// The ID of an existing [ShippingRate](https://docs.stripe.com/api/shipping_rates/object).
+    /// The ID of an existing [ShippingRate](<https://docs.stripe.`com/api/shipping_rates/object`>).
     #[serde(default)]
     pub shipping_rate: ::core::option::Option<String>,
     /// Specifies whether the amount includes taxes. If tax_behavior=inclusive, then the amount includes taxes. // TODO: enum values: ["exclusive", "inclusive"]
     pub tax_behavior: String,
-    /// The [tax code](https://docs.stripe.com/tax/tax-categories) ID used for shipping.
+    /// The [tax code](<https://docs.stripe.`com/tax/tax-categories`>) ID used for shipping.
     pub tax_code: String,
 }
 
-/// The amount of the tax rate when the rate_type is flat_amount. Tax rates with rate_type percentage can vary based on the transaction, resulting in this field being null. This field exposes the amount and currency of the flat tax rate.
+/// The amount of the tax rate when the rate_type is flat_amount. Tax rates with rate_type percentage can vary based on the transaction, resulting in this field being `null`. This field exposes the amount and currency of the flat tax rate.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TaxRateFlatAmount {
     /// Amount of the tax when the rate_type is flat_amount. This positive integer represents how much to charge in the smallest currency unit (e.g., 100 cents to charge $1.00 or 100 to charge ¥100, a zero-decimal currency). The amount value supports up to eight digits (e.g., a value of 99999999 for a USD charge of $999,999.99).
@@ -9351,7 +8995,6 @@ pub struct TaxRateFlatAmount {
 }
 
 /// A Configurations object represents how features should be configured for terminal readers.
-/// For information about how to use it, see the [Terminal configurations documentation](https://docs.stripe.com/terminal/fleet/configurations-overview).
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TerminalConfiguration {
     #[serde(default)]
@@ -9367,12 +9010,12 @@ pub struct TerminalConfiguration {
     /// Whether this Configuration is the default for your account
     #[serde(default)]
     pub is_account_default: ::core::option::Option<bool>,
-    /// If the object exists in live mode, the value is true. If the object exists in test mode, the value is false.
+    /// If the object exists in live mode, the value is `true`. If the object exists in test mode, the value is `false`.
     pub livemode: bool,
-    /// String indicating the name of the Configuration object, set by the user
+    /// `String` indicating the name of the Configuration object, set by the user
     #[serde(default)]
     pub name: ::core::option::Option<String>,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["terminal.configuration"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["terminal.configuration"]
     pub object: String,
     #[serde(default)]
     pub offline: ::core::option::Option<TerminalConfigurationConfigurationResourceOfflineConfig>,
@@ -9395,22 +9038,18 @@ pub struct TerminalConfiguration {
 }
 
 /// A Connection Token is used by the Stripe Terminal SDK to connect to a reader.
-///
-/// Related guide: [Fleet management](https://docs.stripe.com/terminal/fleet/locations)
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TerminalConnectionToken {
-    /// The id of the location that this connection token is scoped to. Note that location scoping only applies to internet-connected readers. For more details, see [the docs on scoping connection tokens](https://docs.stripe.com/terminal/fleet/locations-and-zones?dashboard-or-api=api#connection-tokens).
+    /// The id of the location that this connection token is scoped to. Note that location scoping only applies to internet-connected readers. For more details, see [the docs on scoping connection tokens](<https://docs.stripe.`com/terminal/fleet/locations-and-zones`?dashboard-or-api=api#connection-tokens>).
     #[serde(default)]
     pub location: ::core::option::Option<String>,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["terminal.connection_token"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["terminal.connection_token"]
     pub object: String,
     /// Your application should pass this token to the Stripe Terminal SDK.
     pub secret: String,
 }
 
 /// A Location represents a grouping of readers.
-///
-/// Related guide: [Fleet management](https://docs.stripe.com/terminal/fleet/locations)
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TerminalLocation {
     pub address: Address,
@@ -9431,11 +9070,11 @@ pub struct TerminalLocation {
     pub display_name_kanji: ::core::option::Option<String>,
     /// Unique identifier for the object.
     pub id: String,
-    /// If the object exists in live mode, the value is true. If the object exists in test mode, the value is false.
+    /// If the object exists in live mode, the value is `true`. If the object exists in test mode, the value is `false`.
     pub livemode: bool,
-    /// Set of [key-value pairs](https://docs.stripe.com/api/metadata) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
+    /// Set of [key-value pairs](<https://docs.stripe.`com/api/metadata`>) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
     pub metadata: serde_json::Value,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["terminal.location"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["terminal.location"]
     pub object: String,
     /// The phone number of the location.
     #[serde(default)]
@@ -9458,8 +9097,6 @@ pub struct TerminalOnboardingLink {
 }
 
 /// A Reader represents a physical device for accepting payment details.
-///
-/// Related guide: [Connecting to a reader](https://docs.stripe.com/terminal/payments/connect-reader)
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TerminalReader {
     /// The most recent action performed by the reader.
@@ -9480,14 +9117,14 @@ pub struct TerminalReader {
     /// The last time this reader reported to Stripe backend. Timestamp is measured in milliseconds since the Unix epoch. Unlike most other Stripe timestamp fields which use seconds, this field uses milliseconds.
     #[serde(default)]
     pub last_seen_at: ::core::option::Option<i64>,
-    /// If the object exists in live mode, the value is true. If the object exists in test mode, the value is false.
+    /// If the object exists in live mode, the value is `true`. If the object exists in test mode, the value is `false`.
     pub livemode: bool,
     /// The location identifier of the reader.
     #[serde(default)]
     pub location: ::core::option::Option<serde_json::Value>,
-    /// Set of [key-value pairs](https://docs.stripe.com/api/metadata) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
+    /// Set of [key-value pairs](<https://docs.stripe.`com/api/metadata`>) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
     pub metadata: serde_json::Value,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["terminal.reader"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["terminal.reader"]
     pub object: String,
     /// Serial number of the reader.
     pub serial_number: String,
@@ -9515,14 +9152,14 @@ pub struct TerminalOnboardingLinkAppleTermsAndConditions {
 /// Represents a cart to be displayed on the reader
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TerminalReaderReaderResourceCart {
-    /// Three-letter [ISO currency code](https://www.iso.org/iso-4217-currency-codes.html), in lowercase. Must be a [supported currency](https://stripe.com/docs/currencies).
+    /// Three-letter [ISO currency code](<https://www.iso.`org/iso-4217-currency-codes`.html>), in lowercase. Must be a [supported currency](<https://stripe.`com/docs/currencies`>).
     pub currency: String,
     /// List of line items in the cart.
     pub line_items: ::std::vec::Vec<TerminalReaderReaderResourceLineItem>,
-    /// Tax amount for the entire cart. A positive integer in the [smallest currency unit](https://docs.stripe.com/currencies#zero-decimal).
+    /// Tax amount for the entire cart. A positive integer in the [smallest currency unit](<https://docs.stripe.`com/currencies`#zero-decimal>).
     #[serde(default)]
     pub tax: ::core::option::Option<i64>,
-    /// Total amount for the entire cart, including tax. A positive integer in the [smallest currency unit](https://docs.stripe.com/currencies#zero-decimal).
+    /// Total amount for the entire cart, including tax. A positive integer in the [smallest currency unit](<https://docs.stripe.`com/currencies`#zero-decimal>).
     pub total: i64,
 }
 
@@ -9579,8 +9216,6 @@ pub struct TerminalReaderReaderResourceReaderAction {
 }
 
 /// A test clock enables deterministic control over objects in testmode. With a test clock, you can create
-/// objects at a frozen time in the past or future, and advance to a specific future time to observe webhooks and state changes. After the clock advances,
-/// you can either validate the current state of your scenario (and test your assumptions), change the current state of your scenario (and test more complex scenarios), or keep advancing forward in time.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TestHelpersTestClock {
     /// Time at which the object was created. Measured in seconds since the Unix epoch.
@@ -9591,12 +9226,12 @@ pub struct TestHelpersTestClock {
     pub frozen_time: i64,
     /// Unique identifier for the object.
     pub id: String,
-    /// If the object exists in live mode, the value is true. If the object exists in test mode, the value is false.
+    /// If the object exists in live mode, the value is `true`. If the object exists in test mode, the value is `false`.
     pub livemode: bool,
     /// The custom name supplied at creation.
     #[serde(default)]
     pub name: ::core::option::Option<String>,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["test_helpers.test_clock"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["test_helpers.test_clock"]
     pub object: String,
     /// The status of the Test Clock. // TODO: enum values: ["advancing", "internal_failure", "ready"]
     pub status: String,
@@ -9605,19 +9240,19 @@ pub struct TestHelpersTestClock {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ThreeDSecureDetails {
-    /// For authenticated transactions: how the customer was authenticated by
+    /// For authenticated transactions: how the customer was authenticated by the issuing bank. // TODO: enum values: ["challenge", "frictionless"]
     #[serde(default)]
     pub authentication_flow: ::core::option::Option<String>,
-    /// The Electronic Commerce Indicator (ECI). A protocol-level field
+    /// The Electronic Commerce Indicator (ECI). A protocol-level field indicating what degree of authentication was performed. // TODO: enum values: ["01", "02", "05", "06", "07"]
     #[serde(default)]
     pub electronic_commerce_indicator: ::core::option::Option<String>,
     /// Indicates the outcome of 3D Secure authentication. // TODO: enum values: ["attempt_acknowledged", "authenticated", "exempted", "failed", "not_supported", "processing_error"]
     #[serde(default)]
     pub result: ::core::option::Option<String>,
-    /// Additional information about why 3D Secure succeeded or failed based
+    /// Additional information about why 3D Secure succeeded or failed based on the result. // TODO: enum values: ["abandoned", "bypassed", "canceled", "card_not_enrolled", "network_not_supported", "protocol_error", "rejected"]
     #[serde(default)]
     pub result_reason: ::core::option::Option<String>,
-    /// The 3D Secure 1 XID or 3D Secure 2 Directory Server Transaction ID
+    /// The 3D Secure 1 XID or 3D Secure 2 Directory Server Transaction ID (`dsTransId`) for this payment.
     #[serde(default)]
     pub transaction_id: ::core::option::Option<String>,
     /// The version of 3D Secure that was used. // TODO: enum values: ["1.0.2", "2.1.0", "2.2.0", "2.3.0", "2.3.1"]
@@ -9627,25 +9262,25 @@ pub struct ThreeDSecureDetails {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ThreeDSecureDetailsCharge {
-    /// For authenticated transactions: how the customer was authenticated by
+    /// For authenticated transactions: how the customer was authenticated by the issuing bank. // TODO: enum values: ["challenge", "frictionless"]
     #[serde(default)]
     pub authentication_flow: ::core::option::Option<String>,
-    /// The Electronic Commerce Indicator (ECI). A protocol-level field
+    /// The Electronic Commerce Indicator (ECI). A protocol-level field indicating what degree of authentication was performed. // TODO: enum values: ["01", "02", "05", "06", "07"]
     #[serde(default)]
     pub electronic_commerce_indicator: ::core::option::Option<String>,
     /// The exemption requested via 3DS and accepted by the issuer at authentication time. // TODO: enum values: ["low_risk", "none"]
     #[serde(default)]
     pub exemption_indicator: ::core::option::Option<String>,
-    /// Whether Stripe requested the value of exemption_indicator in the transaction. This will depend on
+    /// Whether Stripe requested the value of exemption_indicator in the transaction. This will depend on the outcome of Stripe''s internal risk assessment.
     #[serde(default)]
     pub exemption_indicator_applied: ::core::option::Option<bool>,
     /// Indicates the outcome of 3D Secure authentication. // TODO: enum values: ["attempt_acknowledged", "authenticated", "exempted", "failed", "not_supported", "processing_error"]
     #[serde(default)]
     pub result: ::core::option::Option<String>,
-    /// Additional information about why 3D Secure succeeded or failed based
+    /// Additional information about why 3D Secure succeeded or failed based on the result. // TODO: enum values: ["abandoned", "bypassed", "canceled", "card_not_enrolled", "network_not_supported", "protocol_error", "rejected"]
     #[serde(default)]
     pub result_reason: ::core::option::Option<String>,
-    /// The 3D Secure 1 XID or 3D Secure 2 Directory Server Transaction ID
+    /// The 3D Secure 1 XID or 3D Secure 2 Directory Server Transaction ID (`dsTransId`) for this payment.
     #[serde(default)]
     pub transaction_id: ::core::option::Option<String>,
     /// The version of 3D Secure that was used. // TODO: enum values: ["1.0.2", "2.1.0", "2.2.0", "2.3.0", "2.3.1"]
@@ -9667,32 +9302,13 @@ pub struct ThresholdsResourceUsageThresholdConfig {
     pub filters: ::core::option::Option<::std::vec::Vec<ThresholdsResourceUsageAlertFilter>>,
     /// The value at which this alert will trigger.
     pub gte: i64,
-    /// The [Billing Meter](/api/billing/meter) ID whose usage is monitored.
+    /// The [Billing Meter](/`api/billing/meter`) ID whose usage is monitored.
     pub meter: serde_json::Value,
     /// Defines how the alert will behave. // TODO: enum values: ["one_time"]
     pub recurrence: String,
 }
 
 /// Tokenization is the process Stripe uses to collect sensitive card or bank
-/// account details, or personally identifiable information (PII), directly from
-/// your customers in a secure manner. A token representing this information is
-/// returned to your server to use. Use our
-/// [recommended payments integrations](https://docs.stripe.com/payments) to perform this process
-/// on the client-side. This guarantees that no sensitive card data touches your server,
-/// and allows your integration to operate in a PCI-compliant way.
-///
-/// If you can''t use client-side tokenization, you can also create tokens using
-/// the API with either your publishable or secret API key. If
-/// your integration uses this method, you''re responsible for any PCI compliance
-/// that it might require, and you must keep your secret API key safe. Unlike with
-/// client-side tokenization, your customer''s information isn''t sent directly to
-/// Stripe, so we can''t determine how it''s handled or stored.
-///
-/// You can''t store or use tokens more than once. To store card or bank account
-/// information for later use, create [Customer](https://docs.stripe.com/api#customers)
-/// objects or [External accounts](/api#external_accounts).
-/// [Radar](https://docs.stripe.com/radar), our integrated solution for automatic fraud protection,
-/// performs best with integrations that use client-side tokenization.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Token {
     #[serde(default)]
@@ -9706,9 +9322,9 @@ pub struct Token {
     pub created: i64,
     /// Unique identifier for the object.
     pub id: String,
-    /// If the object exists in live mode, the value is true. If the object exists in test mode, the value is false.
+    /// If the object exists in live mode, the value is `true`. If the object exists in test mode, the value is `false`.
     pub livemode: bool,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["token"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["token"]
     pub object: String,
     /// Type of the token: account, bank_account, card, or pii.
     #[serde(rename = "type")]
@@ -9718,10 +9334,6 @@ pub struct Token {
 }
 
 /// To top up your Stripe balance, you create a top-up object. You can retrieve
-/// individual top-ups, as well as list all top-ups. Top-ups are identified by a
-/// unique, random ID.
-///
-/// Related guide: [Topping up your platform account](https://docs.stripe.com/connect/top-ups)
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Topup {
     /// Amount transferred.
@@ -9731,7 +9343,7 @@ pub struct Topup {
     pub balance_transaction: ::core::option::Option<serde_json::Value>,
     /// Time at which the object was created. Measured in seconds since the Unix epoch.
     pub created: i64,
-    /// Three-letter [ISO currency code](https://www.iso.org/iso-4217-currency-codes.html), in lowercase. Must be a [supported currency](https://stripe.com/docs/currencies).
+    /// Three-letter [ISO currency code](<https://www.iso.`org/iso-4217-currency-codes`.html>), in lowercase. Must be a [supported currency](<https://stripe.`com/docs/currencies`>).
     pub currency: String,
     /// An arbitrary string attached to the object. Often useful for displaying to users.
     #[serde(default)]
@@ -9739,7 +9351,7 @@ pub struct Topup {
     /// Date the funds are expected to arrive in your Stripe account for payouts. This factors in delays like weekends or bank holidays. May not be specified depending on status of top-up.
     #[serde(default)]
     pub expected_availability_date: ::core::option::Option<i64>,
-    /// Error code explaining reason for top-up failure if available (see [the errors section](/api/errors) for a list of codes).
+    /// Error code explaining reason for top-up failure if available (see [the errors section](/`api/errors`) for a list of codes).
     #[serde(default)]
     pub failure_code: ::core::option::Option<String>,
     /// Message to user further explaining reason for top-up failure if available.
@@ -9747,11 +9359,11 @@ pub struct Topup {
     pub failure_message: ::core::option::Option<String>,
     /// Unique identifier for the object.
     pub id: String,
-    /// If the object exists in live mode, the value is true. If the object exists in test mode, the value is false.
+    /// If the object exists in live mode, the value is `true`. If the object exists in test mode, the value is `false`.
     pub livemode: bool,
-    /// Set of [key-value pairs](https://docs.stripe.com/api/metadata) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
+    /// Set of [key-value pairs](<https://docs.stripe.`com/api/metadata`>) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
     pub metadata: serde_json::Value,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["topup"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["topup"]
     pub object: String,
     /// The source field is deprecated. It might not always be present in the API response.
     #[serde(default)]
@@ -9767,15 +9379,6 @@ pub struct Topup {
 }
 
 /// A Transfer object is created when you move funds between Stripe accounts as
-/// part of Connect.
-///
-/// Before April 6, 2017, transfers also represented movement of funds from a
-/// Stripe account to a card or bank account. This behavior has since been split
-/// out into a [Payout](https://api.stripe.com#payout_object) object, with corresponding payout endpoints. For more
-/// information, read about the
-/// [transfer/payout split](https://docs.stripe.com/transfer-payout-split).
-///
-/// Related guide: [Creating separate charges and transfers](https://docs.stripe.com/connect/separate-charges-and-transfers)
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Transfer {
     /// Amount in cents (or local equivalent) to be transferred.
@@ -9787,7 +9390,7 @@ pub struct Transfer {
     pub balance_transaction: ::core::option::Option<serde_json::Value>,
     /// Time that this record of the transfer was first created.
     pub created: i64,
-    /// Three-letter [ISO currency code](https://www.iso.org/iso-4217-currency-codes.html), in lowercase. Must be a [supported currency](https://stripe.com/docs/currencies).
+    /// Three-letter [ISO currency code](<https://www.iso.`org/iso-4217-currency-codes`.html>), in lowercase. Must be a [supported currency](<https://stripe.`com/docs/currencies`>).
     pub currency: String,
     /// An arbitrary string attached to the object. Often useful for displaying to users.
     #[serde(default)]
@@ -9800,49 +9403,37 @@ pub struct Transfer {
     pub destination_payment: ::core::option::Option<serde_json::Value>,
     /// Unique identifier for the object.
     pub id: String,
-    /// If the object exists in live mode, the value is true. If the object exists in test mode, the value is false.
+    /// If the object exists in live mode, the value is `true`. If the object exists in test mode, the value is `false`.
     pub livemode: bool,
-    /// Set of [key-value pairs](https://docs.stripe.com/api/metadata) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
+    /// Set of [key-value pairs](<https://docs.stripe.`com/api/metadata`>) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
     pub metadata: serde_json::Value,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["transfer"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["transfer"]
     pub object: String,
     /// A list of reversals that have been applied to the transfer.
     pub reversals: serde_json::Value,
-    /// Whether the transfer has been fully reversed. If the transfer is only partially reversed, this attribute will still be false.
+    /// Whether the transfer has been fully reversed. If the transfer is only partially reversed, this attribute will still be `false`.
     pub reversed: bool,
-    /// ID of the charge that was used to fund the transfer. If null, the transfer was funded from the available balance.
+    /// ID of the charge that was used to fund the transfer. If `null`, the transfer was funded from the available balance.
     #[serde(default)]
     pub source_transaction: ::core::option::Option<serde_json::Value>,
     /// The source balance this transfer came from. One of card, fpx, or bank_account.
     #[serde(default)]
     pub source_type: ::core::option::Option<String>,
-    /// A string that identifies this transaction as part of a group. See the [Connect documentation](https://docs.stripe.com/connect/separate-charges-and-transfers#transfer-options) for details.
+    /// A string that identifies this transaction as part of a group. See the [Connect documentation](<https://docs.stripe.`com/connect/separate-charges-and-transfers`#transfer-options>) for details.
     #[serde(default)]
     pub transfer_group: ::core::option::Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TransferData {
-    /// The amount transferred to the destination account. This transfer will occur automatically after the payment succeeds. If no amount is specified, by default the entire payment amount is transferred to the destination account.
+    /// The amount transferred to the destination account. This transfer will occur automatically after the payment succeeds. If no amount is specified, by default the entire payment amount is transferred to the destination account. The amount must be less than or equal to the [amount](<https://docs.stripe.`com/api/payment_intents/object`#payment_intent_object-amount>), and must be a positive integer representing how much to transfer in the smallest currency unit (e.g., 100 cents to charge $1.00).
     #[serde(default)]
     pub amount: ::core::option::Option<i64>,
     /// The account (if any) that the payment is attributed to for tax reporting, and where funds from the payment are transferred to after payment success.
     pub destination: serde_json::Value,
 }
 
-/// [Stripe Connect](https://docs.stripe.com/connect) platforms can reverse transfers made to a
-/// connected account, either entirely or partially, and can also specify whether
-/// to refund any related application fees. Transfer reversals add to the
-/// platform''s balance and subtract from the destination account''s balance.
-///
-/// Reversing a transfer that was made for a [destination
-/// charge](/docs/connect/destination-charges) is allowed only up to the amount of
-/// the charge. It is possible to reverse a
-/// [transfer_group](https://docs.stripe.com/connect/separate-charges-and-transfers#transfer-options)
-/// transfer only if the destination account has enough balance to cover the
-/// reversal.
-///
-/// Related guide: [Reverse transfers](https://docs.stripe.com/connect/separate-charges-and-transfers#reverse-transfers)
+/// [Stripe Connect](<https://docs.stripe.`com/connect`>) platforms can reverse transfers made to a
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TransferReversal {
     /// Amount, in cents (or local equivalent).
@@ -9852,17 +9443,17 @@ pub struct TransferReversal {
     pub balance_transaction: ::core::option::Option<serde_json::Value>,
     /// Time at which the object was created. Measured in seconds since the Unix epoch.
     pub created: i64,
-    /// Three-letter [ISO currency code](https://www.iso.org/iso-4217-currency-codes.html), in lowercase. Must be a [supported currency](https://stripe.com/docs/currencies).
+    /// Three-letter [ISO currency code](<https://www.iso.`org/iso-4217-currency-codes`.html>), in lowercase. Must be a [supported currency](<https://stripe.`com/docs/currencies`>).
     pub currency: String,
     /// Linked payment refund for the transfer reversal.
     #[serde(default)]
     pub destination_payment_refund: ::core::option::Option<serde_json::Value>,
     /// Unique identifier for the object.
     pub id: String,
-    /// Set of [key-value pairs](https://docs.stripe.com/api/metadata) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
+    /// Set of [key-value pairs](<https://docs.stripe.`com/api/metadata`>) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
     #[serde(default)]
     pub metadata: ::core::option::Option<serde_json::Value>,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["transfer_reversal"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["transfer_reversal"]
     pub object: String,
     /// ID of the refund responsible for the transfer reversal.
     #[serde(default)]
@@ -9888,14 +9479,13 @@ pub struct TransformUsage {
 }
 
 /// Stripe Treasury provides users with a container for money called a FinancialAccount that is separate from their Payments balance.
-/// FinancialAccounts serve as the source and destination of Treasury’s money movement APIs.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TreasuryFinancialAccount {
     /// The array of paths to active Features in the Features hash.
     #[serde(default)]
     pub active_features: ::core::option::Option<::std::vec::Vec<String>>,
     pub balance: TreasuryFinancialAccountsResourceBalance,
-    /// Two-letter country code ([ISO 3166-1 alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2)).
+    /// Two-letter country code ([ISO 3166-1 alpha-2](<https://en.wikipedia.`org/wiki/ISO_3166-1_alpha-2`>)).
     pub country: String,
     /// Time at which the object was created. Measured in seconds since the Unix epoch.
     pub created: i64,
@@ -9907,15 +9497,15 @@ pub struct TreasuryFinancialAccount {
     pub id: String,
     #[serde(default)]
     pub is_default: ::core::option::Option<bool>,
-    /// If the object exists in live mode, the value is true. If the object exists in test mode, the value is false.
+    /// If the object exists in live mode, the value is `true`. If the object exists in test mode, the value is `false`.
     pub livemode: bool,
-    /// Set of [key-value pairs](https://docs.stripe.com/api/metadata) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
+    /// Set of [key-value pairs](<https://docs.stripe.`com/api/metadata`>) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
     #[serde(default)]
     pub metadata: ::core::option::Option<serde_json::Value>,
     /// The nickname for the FinancialAccount.
     #[serde(default)]
     pub nickname: ::core::option::Option<String>,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["treasury.financial_account"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["treasury.financial_account"]
     pub object: String,
     /// The array of paths to pending Features in the Features hash.
     #[serde(default)]
@@ -9929,11 +9519,11 @@ pub struct TreasuryFinancialAccount {
     /// Status of this FinancialAccount. // TODO: enum values: ["closed", "open"]
     pub status: String,
     pub status_details: TreasuryFinancialAccountsResourceStatusDetails,
-    /// The currencies the FinancialAccount can hold a balance in. Three-letter [ISO currency code](https://www.iso.org/iso-4217-currency-codes.html), in lowercase.
+    /// The currencies the FinancialAccount can hold a balance in. Three-letter [ISO currency code](<https://www.iso.`org/iso-4217-currency-codes`.html>), in lowercase.
     pub supported_currencies: ::std::vec::Vec<String>,
 }
 
-/// Transactions represent changes to a [FinancialAccount''s](https://api.stripe.com#financial_accounts) balance.
+/// Transactions represent changes to a [FinancialAccount''s](<https://api.stripe.com#financial_accounts>) balance.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TreasuryTransaction {
     /// Amount (in cents) transferred.
@@ -9941,7 +9531,7 @@ pub struct TreasuryTransaction {
     pub balance_impact: TreasuryTransactionsResourceBalanceImpact,
     /// Time at which the object was created. Measured in seconds since the Unix epoch.
     pub created: i64,
-    /// Three-letter [ISO currency code](https://www.iso.org/iso-4217-currency-codes.html), in lowercase. Must be a [supported currency](https://stripe.com/docs/currencies).
+    /// Three-letter [ISO currency code](<https://www.iso.`org/iso-4217-currency-codes`.html>), in lowercase. Must be a [supported currency](<https://stripe.`com/docs/currencies`>).
     pub currency: String,
     /// An arbitrary string attached to the object. Often useful for displaying to users.
     pub description: String,
@@ -9960,9 +9550,9 @@ pub struct TreasuryTransaction {
     pub flow_type: String,
     /// Unique identifier for the object.
     pub id: String,
-    /// If the object exists in live mode, the value is true. If the object exists in test mode, the value is false.
+    /// If the object exists in live mode, the value is `true`. If the object exists in test mode, the value is `false`.
     pub livemode: bool,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["treasury.transaction"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["treasury.transaction"]
     pub object: String,
     /// Status of the Transaction. // TODO: enum values: ["open", "posted", "void"]
     pub status: String,
@@ -9970,13 +9560,13 @@ pub struct TreasuryTransaction {
         TreasuryTransactionsResourceAbstractTransactionResourceStatusTransitions,
 }
 
-/// TransactionEntries represent individual units of money movements within a single [Transaction](https://api.stripe.com#transactions).
+/// TransactionEntries represent individual units of money movements within a single [Transaction](<https://api.stripe.com#transactions>).
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TreasuryTransactionEntry {
     pub balance_impact: TreasuryTransactionsResourceBalanceImpact,
     /// Time at which the object was created. Measured in seconds since the Unix epoch.
     pub created: i64,
-    /// Three-letter [ISO currency code](https://www.iso.org/iso-4217-currency-codes.html), in lowercase. Must be a [supported currency](https://stripe.com/docs/currencies).
+    /// Three-letter [ISO currency code](<https://www.iso.`org/iso-4217-currency-codes`.html>), in lowercase. Must be a [supported currency](<https://stripe.`com/docs/currencies`>).
     pub currency: String,
     /// When the TransactionEntry will impact the FinancialAccount''s balance.
     pub effective_at: i64,
@@ -9992,9 +9582,9 @@ pub struct TreasuryTransactionEntry {
     pub flow_type: String,
     /// Unique identifier for the object.
     pub id: String,
-    /// If the object exists in live mode, the value is true. If the object exists in test mode, the value is false.
+    /// If the object exists in live mode, the value is `true`. If the object exists in test mode, the value is `false`.
     pub livemode: bool,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["treasury.transaction_entry"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["treasury.transaction_entry"]
     pub object: String,
     /// The Transaction associated with this object.
     pub transaction: serde_json::Value,
@@ -10028,10 +9618,10 @@ pub struct TreasuryInboundTransfersResourceFailureDetails {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TreasuryOutboundPaymentsResourceOutboundPaymentResourceEndUserDetails {
-    /// IP address of the user initiating the OutboundPayment. Set if present is set to true. IP address collection is required for risk and compliance reasons. This will be used to help determine if the OutboundPayment is authorized or should be blocked.
+    /// IP address of the user initiating the OutboundPayment. Set if present is set to `true`. IP address collection is required for risk and compliance reasons. This will be used to help determine if the OutboundPayment is authorized or should be blocked.
     #[serde(default)]
     pub ip_address: ::core::option::Option<String>,
-    /// true if the OutboundPayment creation request is being made on behalf of an end user by a platform. Otherwise, false.
+    /// `true` if the OutboundPayment creation request is being made on behalf of an end user by a platform. Otherwise, `false`.
     pub present: bool,
 }
 
@@ -10155,13 +9745,7 @@ pub struct VerificationSessionRedaction {
     pub status: String,
 }
 
-/// You can configure [webhook endpoints](https://docs.stripe.com/webhooks/) via the API to be
-/// notified about events that happen in your Stripe account or connected
-/// accounts.
-///
-/// Most users configure webhooks from [the dashboard](https://dashboard.stripe.com/webhooks), which provides a user interface for registering and testing your webhook endpoints.
-///
-/// Related guide: [Setting up webhooks](https://docs.stripe.com/webhooks/configure)
+/// You can configure [webhook endpoints](<https://docs.stripe.`com/webhooks/`>) via the API to be
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WebhookEndpoint {
     /// The API version events are rendered as for this webhook endpoint.
@@ -10179,13 +9763,13 @@ pub struct WebhookEndpoint {
     pub enabled_events: ::std::vec::Vec<String>,
     /// Unique identifier for the object.
     pub id: String,
-    /// If the object exists in live mode, the value is true. If the object exists in test mode, the value is false.
+    /// If the object exists in live mode, the value is `true`. If the object exists in test mode, the value is `false`.
     pub livemode: bool,
-    /// Set of [key-value pairs](https://docs.stripe.com/api/metadata) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
+    /// Set of [key-value pairs](<https://docs.stripe.`com/api/metadata`>) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
     pub metadata: serde_json::Value,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["webhook_endpoint"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["webhook_endpoint"]
     pub object: String,
-    /// The endpoint''s secret, used to generate [webhook signatures](https://docs.stripe.com/webhooks/signatures). Only returned at creation.
+    /// The endpoint''s secret, used to generate [webhook signatures](<https://docs.stripe.`com/webhooks/signatures`>). Only returned at creation.
     #[serde(default)]
     pub secret: ::core::option::Option<String>,
     /// The status of the webhook. It can be enabled or disabled.
@@ -10262,7 +9846,7 @@ pub struct AccountCapabilities {
     /// The status of the GrabPay payments capability of the account, or whether the account can directly process GrabPay charges. // TODO: enum values: ["active", "inactive", "pending"]
     #[serde(default)]
     pub grabpay_payments: ::core::option::Option<String>,
-    /// The status of the iDEAL payments capability of the account, or whether the account can directly process iDEAL charges. // TODO: enum values: ["active", "inactive", "pending"]
+    /// The status of the `iDEAL` payments capability of the account, or whether the account can directly process `iDEAL` charges. // TODO: enum values: ["active", "inactive", "pending"]
     #[serde(default)]
     pub ideal_payments: ::core::option::Option<String>,
     /// The status of the india_international_payments capability of the account, or whether the account can process international charges (non INR) in India. // TODO: enum values: ["active", "inactive", "pending"]
@@ -10394,13 +9978,13 @@ pub struct LegalEntityCompany {
     /// The Kanji variation of the company''s primary address (Japan only).
     #[serde(default)]
     pub address_kanji: ::core::option::Option<serde_json::Value>,
-    /// Whether the company''s directors have been provided. This Boolean will be true if you''ve manually indicated that all directors are provided via [the directors_provided parameter](https://docs.stripe.com/api/accounts/update#update_account-company-directors_provided).
+    /// Whether the company''s directors have been provided. This Boolean will be `true` if you''ve manually indicated that all directors are provided via [the directors_provided parameter](<https://docs.stripe.`com/api/accounts/update`#update_account-company-directors_provided>).
     #[serde(default)]
     pub directors_provided: ::core::option::Option<bool>,
     /// This hash is used to attest that the director information provided to Stripe is both current and correct.
     #[serde(default)]
     pub directorship_declaration: ::core::option::Option<serde_json::Value>,
-    /// Whether the company''s executives have been provided. This Boolean will be true if you''ve manually indicated that all executives are provided via [the executives_provided parameter](https://docs.stripe.com/api/accounts/update#update_account-company-executives_provided), or if Stripe determined that sufficient executives were provided.
+    /// Whether the company''s executives have been provided. This Boolean will be `true` if you''ve manually indicated that all executives are provided via [the executives_provided parameter](<https://docs.stripe.`com/api/accounts/update`#update_account-company-executives_provided>), or if Stripe determined that sufficient executives were provided.
     #[serde(default)]
     pub executives_provided: ::core::option::Option<bool>,
     /// The export license ID number of the company, also referred as Import Export Code (India only).
@@ -10409,22 +9993,22 @@ pub struct LegalEntityCompany {
     /// The purpose code to use for export transactions (India only).
     #[serde(default)]
     pub export_purpose_code: ::core::option::Option<String>,
-    /// The company''s legal name. Also available for accounts where [controller.requirement_collection](/api/accounts/object#account_object-controller-requirement_collection) is stripe.
+    /// The company''s legal name. Also available for accounts where [controller.requirement_collection](/`api/accounts/object`#account_object-controller-requirement_collection) is stripe.
     #[serde(default)]
     pub name: ::core::option::Option<String>,
-    /// The Kana variation of the company''s legal name (Japan only). Also available for accounts where [controller.requirement_collection](/api/accounts/object#account_object-controller-requirement_collection) is stripe.
+    /// The Kana variation of the company''s legal name (Japan only). Also available for accounts where [controller.requirement_collection](/`api/accounts/object`#account_object-controller-requirement_collection) is stripe.
     #[serde(default)]
     pub name_kana: ::core::option::Option<String>,
-    /// The Kanji variation of the company''s legal name (Japan only). Also available for accounts where [controller.requirement_collection](/api/accounts/object#account_object-controller-requirement_collection) is stripe.
+    /// The Kanji variation of the company''s legal name (Japan only). Also available for accounts where [controller.requirement_collection](/`api/accounts/object`#account_object-controller-requirement_collection) is stripe.
     #[serde(default)]
     pub name_kanji: ::core::option::Option<String>,
-    /// Whether the company''s owners have been provided. This Boolean will be true if you''ve manually indicated that all owners are provided via [the owners_provided parameter](https://docs.stripe.com/api/accounts/update#update_account-company-owners_provided), or if Stripe determined that sufficient owners were provided. Stripe determines ownership requirements using both the number of owners provided and their total percent ownership (calculated by adding the percent_ownership of each owner together).
+    /// Whether the company''s owners have been provided. This Boolean will be `true` if you''ve manually indicated that all owners are provided via [the owners_provided parameter](<https://docs.stripe.`com/api/accounts/update`#update_account-company-owners_provided>), or if Stripe determined that sufficient owners were provided. Stripe determines ownership requirements using both the number of owners provided and their total percent ownership (calculated by adding the percent_ownership of each owner together).
     #[serde(default)]
     pub owners_provided: ::core::option::Option<bool>,
     /// This hash is used to attest that the beneficial owner information provided to Stripe is both current and correct.
     #[serde(default)]
     pub ownership_declaration: ::core::option::Option<serde_json::Value>,
-    /// This value is used to determine if a business is exempt from providing ultimate beneficial owners. See [this support article](https://support.stripe.com/questions/exemption-from-providing-ownership-details) and [changelog](https://docs.stripe.com/changelog/acacia/2025-01-27/ownership-exemption-reason-accounts-api) for more details. // TODO: enum values: ["qualified_entity_exceeds_ownership_threshold", "qualifies_as_financial_institution"]
+    /// This value is used to determine if a business is exempt from providing ultimate beneficial owners. See [this support article](<https://support.stripe.`com/questions/exemption-from-providing-ownership-details`>) and [changelog](<https://docs.stripe.`com/changelog/acacia/2025-01-27/ownership-exemption-reason-accounts-api`>) for more details. // TODO: enum values: ["qualified_entity_exceeds_ownership_threshold", "qualifies_as_financial_institution"]
     #[serde(default)]
     pub ownership_exemption_reason: ::core::option::Option<String>,
     /// The company''s phone number (used for verification).
@@ -10435,7 +10019,7 @@ pub struct LegalEntityCompany {
     /// This hash is used to attest that the representative is authorized to act as the representative of their legal entity.
     #[serde(default)]
     pub representative_declaration: ::core::option::Option<serde_json::Value>,
-    /// The category identifying the legal structure of the company or legal entity. Also available for accounts where [controller.requirement_collection](/api/accounts/object#account_object-controller-requirement_collection) is stripe. See [Business structure](https://docs.stripe.com/connect/identity-verification#business-structure) for more details. // TODO: enum values: ["free_zone_establishment", "free_zone_llc", "government_instrumentality", "governmental_unit", "incorporated_non_profit", "incorporated_partnership", "limited_liability_partnership", "llc", "multi_member_llc", "private_company", "private_corporation", "private_partnership", "public_company", "public_corporation", "public_partnership", "registered_charity", "single_member_llc", "sole_establishment", "sole_proprietorship", "tax_exempt_government_instrumentality", "unincorporated_association", "unincorporated_non_profit", "unincorporated_partnership"]
+    /// The category identifying the legal structure of the company or legal entity. Also available for accounts where [controller.requirement_collection](/`api/accounts/object`#account_object-controller-requirement_collection) is stripe. See [Business structure](<https://docs.stripe.`com/connect/identity-verification`#business-structure>) for more details. // TODO: enum values: ["free_zone_establishment", "free_zone_llc", "government_instrumentality", "governmental_unit", "incorporated_non_profit", "incorporated_partnership", "limited_liability_partnership", "llc", "multi_member_llc", "private_company", "private_corporation", "private_partnership", "public_company", "public_corporation", "public_partnership", "registered_charity", "single_member_llc", "sole_establishment", "sole_proprietorship", "tax_exempt_government_instrumentality", "unincorporated_association", "unincorporated_non_profit", "unincorporated_partnership"]
     #[serde(default)]
     pub structure: ::core::option::Option<String>,
     /// Whether the company''s business ID number was provided.
@@ -10456,7 +10040,7 @@ pub struct LegalEntityCompany {
 pub struct AccountUnificationAccountController {
     #[serde(default)]
     pub fees: ::core::option::Option<AccountUnificationAccountControllerFees>,
-    /// true if the Connect application retrieving the resource controls the account and can therefore exercise [platform controls](https://docs.stripe.com/connect/platform-controls-for-standard-accounts). Otherwise, this field is null.
+    /// `true` if the Connect application retrieving the resource controls the account and can therefore exercise [platform controls](<https://docs.stripe.`com/connect/platform-controls-for-standard-accounts`>). Otherwise, this field is `null`.
     #[serde(default)]
     pub is_controller: ::core::option::Option<bool>,
     #[serde(default)]
@@ -10501,10 +10085,6 @@ pub struct AccountFutureRequirements {
 }
 
 /// This is an object representing a person associated with a Stripe account.
-///
-/// A platform can only access a subset of data in a person for an account where [account.controller.requirement_collection](/api/accounts/object#account_object-controller-requirement_collection) is stripe, which includes Standard and Express accounts, after creating an Account Link or Account Session to start Connect onboarding.
-///
-/// See the [Standard onboarding](/connect/standard-accounts) or [Express onboarding](/connect/express-accounts) documentation for information about prefilling information and account onboarding steps. Learn more about [handling identity verification with the API](/connect/handling-api-verification#person-information).
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Person {
     /// The account the person is associated with.
@@ -10521,19 +10101,19 @@ pub struct Person {
     pub created: i64,
     #[serde(default)]
     pub dob: ::core::option::Option<LegalEntityDob>,
-    /// The person''s email address. Also available for accounts where [controller.requirement_collection](/api/accounts/object#account_object-controller-requirement_collection) is stripe.
+    /// The person''s email address. Also available for accounts where [controller.requirement_collection](/`api/accounts/object`#account_object-controller-requirement_collection) is stripe.
     #[serde(default)]
     pub email: ::core::option::Option<String>,
-    /// The person''s first name. Also available for accounts where [controller.requirement_collection](/api/accounts/object#account_object-controller-requirement_collection) is stripe.
+    /// The person''s first name. Also available for accounts where [controller.requirement_collection](/`api/accounts/object`#account_object-controller-requirement_collection) is stripe.
     #[serde(default)]
     pub first_name: ::core::option::Option<String>,
-    /// The Kana variation of the person''s first name (Japan only). Also available for accounts where [controller.requirement_collection](/api/accounts/object#account_object-controller-requirement_collection) is stripe.
+    /// The Kana variation of the person''s first name (Japan only). Also available for accounts where [controller.requirement_collection](/`api/accounts/object`#account_object-controller-requirement_collection) is stripe.
     #[serde(default)]
     pub first_name_kana: ::core::option::Option<String>,
-    /// The Kanji variation of the person''s first name (Japan only). Also available for accounts where [controller.requirement_collection](/api/accounts/object#account_object-controller-requirement_collection) is stripe.
+    /// The Kanji variation of the person''s first name (Japan only). Also available for accounts where [controller.requirement_collection](/`api/accounts/object`#account_object-controller-requirement_collection) is stripe.
     #[serde(default)]
     pub first_name_kanji: ::core::option::Option<String>,
-    /// A list of alternate names or aliases that the person is known by. Also available for accounts where [controller.requirement_collection](/api/accounts/object#account_object-controller-requirement_collection) is stripe.
+    /// A list of alternate names or aliases that the person is known by. Also available for accounts where [controller.requirement_collection](/`api/accounts/object`#account_object-controller-requirement_collection) is stripe.
     #[serde(default)]
     pub full_name_aliases: ::core::option::Option<::std::vec::Vec<String>>,
     #[serde(default)]
@@ -10549,25 +10129,25 @@ pub struct Person {
     /// Whether the person''s id_number_secondary was provided.
     #[serde(default)]
     pub id_number_secondary_provided: ::core::option::Option<bool>,
-    /// The person''s last name. Also available for accounts where [controller.requirement_collection](/api/accounts/object#account_object-controller-requirement_collection) is stripe.
+    /// The person''s last name. Also available for accounts where [controller.requirement_collection](/`api/accounts/object`#account_object-controller-requirement_collection) is stripe.
     #[serde(default)]
     pub last_name: ::core::option::Option<String>,
-    /// The Kana variation of the person''s last name (Japan only). Also available for accounts where [controller.requirement_collection](/api/accounts/object#account_object-controller-requirement_collection) is stripe.
+    /// The Kana variation of the person''s last name (Japan only). Also available for accounts where [controller.requirement_collection](/`api/accounts/object`#account_object-controller-requirement_collection) is stripe.
     #[serde(default)]
     pub last_name_kana: ::core::option::Option<String>,
-    /// The Kanji variation of the person''s last name (Japan only). Also available for accounts where [controller.requirement_collection](/api/accounts/object#account_object-controller-requirement_collection) is stripe.
+    /// The Kanji variation of the person''s last name (Japan only). Also available for accounts where [controller.requirement_collection](/`api/accounts/object`#account_object-controller-requirement_collection) is stripe.
     #[serde(default)]
     pub last_name_kanji: ::core::option::Option<String>,
     /// The person''s maiden name.
     #[serde(default)]
     pub maiden_name: ::core::option::Option<String>,
-    /// Set of [key-value pairs](https://docs.stripe.com/api/metadata) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
+    /// Set of [key-value pairs](<https://docs.stripe.`com/api/metadata`>) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
     #[serde(default)]
     pub metadata: ::core::option::Option<serde_json::Value>,
     /// The country where the person is a national.
     #[serde(default)]
     pub nationality: ::core::option::Option<String>,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["person"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["person"]
     pub object: String,
     /// The person''s phone number.
     #[serde(default)]
@@ -10602,7 +10182,7 @@ pub struct AccountRequirements {
     /// Fields that need to be resolved to keep the account enabled. If not resolved by current_deadline, these fields will appear in past_due as well, and the account is disabled.
     #[serde(default)]
     pub currently_due: ::core::option::Option<::std::vec::Vec<String>>,
-    /// If the account is disabled, this enum describes why. [Learn more about handling verification issues](https://docs.stripe.com/connect/handling-api-verification). // TODO: enum values: ["action_required.requested_capabilities", "listed", "other", "platform_paused", "rejected.fraud", "rejected.incomplete_verification", "rejected.listed", "rejected.other", "rejected.platform_fraud", "rejected.platform_other", "rejected.platform_terms_of_service", "rejected.terms_of_service", "requirements.past_due", "requirements.pending_verification", "under_review"]
+    /// If the account is disabled, this enum describes why. [Learn more about handling verification issues](<https://docs.stripe.`com/connect/handling-api-verification`>). // TODO: enum values: ["action_required.requested_capabilities", "listed", "other", "platform_paused", "rejected.fraud", "rejected.incomplete_verification", "rejected.listed", "rejected.other", "rejected.platform_fraud", "rejected.platform_other", "rejected.platform_terms_of_service", "rejected.terms_of_service", "requirements.past_due", "requirements.pending_verification", "under_review"]
     #[serde(default)]
     pub disabled_reason: ::core::option::Option<String>,
     /// Details about validation and verification failures for due requirements that must be resolved.
@@ -10639,7 +10219,7 @@ pub struct AccountTosAcceptance {
 pub struct AccountMonthlyEstimatedRevenue {
     /// A non-negative integer representing how much to charge in the [smallest currency unit](/currencies#zero-decimal).
     pub amount: i64,
-    /// Three-letter [ISO currency code](https://www.iso.org/iso-4217-currency-codes.html), in lowercase. Must be a [supported currency](https://stripe.com/docs/currencies).
+    /// Three-letter [ISO currency code](<https://www.iso.`org/iso-4217-currency-codes`.html>), in lowercase. Must be a [supported currency](<https://stripe.`com/docs/currencies`>).
     pub currency: String,
 }
 
@@ -10678,10 +10258,10 @@ pub struct AccountBacsDebitPaymentsSettings {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccountBrandingSettings {
-    /// (ID of a [file upload](https://stripe.com/docs/guides/file-upload)) An icon for the account. Must be square and at least 128px x 128px.
+    /// (ID of a [file upload](<https://stripe.`com/docs/guides/file-upload`>)) An icon for the account. Must be square and at least 128px x 128px.
     #[serde(default)]
     pub icon: ::core::option::Option<serde_json::Value>,
-    /// (ID of a [file upload](https://stripe.com/docs/guides/file-upload)) A logo for the account that will be used in Checkout instead of the icon and without the account''s name next to it if provided. Must be at least 128px x 128px.
+    /// (ID of a [file upload](<https://stripe.`com/docs/guides/file-upload`>)) A logo for the account that will be used in Checkout instead of the icon and without the account''s name next to it if provided. Must be at least 128px x 128px.
     #[serde(default)]
     pub logo: ::core::option::Option<serde_json::Value>,
     /// A CSS hex color value representing the primary branding color for this account
@@ -10718,7 +10298,7 @@ pub struct AccountDashboardSettings {
     /// The display name for this account. This is used on the Stripe Dashboard to differentiate between accounts.
     #[serde(default)]
     pub display_name: ::core::option::Option<String>,
-    /// The timezone used in the Stripe Dashboard for this account. A list of possible time zone values is maintained at the [IANA Time Zone Database](http://www.iana.org/time-zones).
+    /// The timezone used in the Stripe Dashboard for this account. A list of possible time zone values is maintained at the [IANA Time Zone Database](<http://www.iana.`org/time-zones`>).
     #[serde(default)]
     pub timezone: ::core::option::Option<String>,
 }
@@ -10738,17 +10318,17 @@ pub struct AccountPaymentsSettings {
     /// The default text that appears on credit card statements when a charge is made. This field prefixes any dynamic statement_descriptor specified on the charge.
     #[serde(default)]
     pub statement_descriptor: ::core::option::Option<String>,
-    /// The Kana variation of statement_descriptor used for charges in Japan. Japanese statement descriptors have [special requirements](https://docs.stripe.com/get-started/account/statement-descriptors#set-japanese-statement-descriptors).
+    /// The Kana variation of statement_descriptor used for charges in Japan. Japanese statement descriptors have [special requirements](<https://docs.stripe.`com/get-started/account/statement-descriptors`#set-japanese-statement-descriptors>).
     #[serde(default)]
     pub statement_descriptor_kana: ::core::option::Option<String>,
-    /// The Kanji variation of statement_descriptor used for charges in Japan. Japanese statement descriptors have [special requirements](https://docs.stripe.com/get-started/account/statement-descriptors#set-japanese-statement-descriptors).
+    /// The Kanji variation of statement_descriptor used for charges in Japan. Japanese statement descriptors have [special requirements](<https://docs.stripe.`com/get-started/account/statement-descriptors`#set-japanese-statement-descriptors>).
     #[serde(default)]
     pub statement_descriptor_kanji: ::core::option::Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccountPayoutSettings {
-    /// A Boolean indicating if Stripe should try to reclaim negative balances from an attached bank account. See [Understanding Connect account balances](/connect/account-balances) for details. The default value is false when [controller.requirement_collection](/api/accounts/object#account_object-controller-requirement_collection) is application, which includes Custom accounts, otherwise true.
+    /// A Boolean indicating if Stripe should try to reclaim negative balances from an attached bank account. See [Understanding Connect account balances](/`connect/account-balances`) for details. The default value is `false` when [controller.requirement_collection](/`api/accounts/object`#account_object-controller-requirement_collection) is application, which includes Custom accounts, otherwise `true`.
     pub debit_negative_balances: bool,
     pub schedule: TransferSchedule,
     /// The text that appears on the bank account statement for payouts. If not set, this defaults to the platform''s bank descriptor as set in the Dashboard.
@@ -10783,7 +10363,7 @@ pub struct SecretServiceResourceScope {
 pub struct BalanceAmountNet {
     /// Balance amount.
     pub amount: i64,
-    /// Three-letter [ISO currency code](https://www.iso.org/iso-4217-currency-codes.html), in lowercase. Must be a [supported currency](https://stripe.com/docs/currencies).
+    /// Three-letter [ISO currency code](<https://www.iso.`org/iso-4217-currency-codes`.html>), in lowercase. Must be a [supported currency](<https://stripe.`com/docs/currencies`>).
     pub currency: String,
     /// Breakdown of balance by destination.
     #[serde(default)]
@@ -10808,7 +10388,7 @@ pub struct BalanceDetailUngated {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BalanceSettingsResourcePayments {
-    /// A Boolean indicating if Stripe should try to reclaim negative balances from an attached bank account. See [Understanding Connect account balances](/connect/account-balances) for details. The default value is false when [controller.requirement_collection](/api/accounts/object#account_object-controller-requirement_collection) is application, which includes Custom accounts, otherwise true.
+    /// A Boolean indicating if Stripe should try to reclaim negative balances from an attached bank account. See [Understanding Connect account balances](/`connect/account-balances`) for details. The default value is `false` when [controller.requirement_collection](/`api/accounts/object`#account_object-controller-requirement_collection) is application, which includes Custom accounts, otherwise `true`.
     #[serde(default)]
     pub debit_negative_balances: ::core::option::Option<bool>,
     /// Settings specific to the account''s payouts.
@@ -10819,14 +10399,14 @@ pub struct BalanceSettingsResourcePayments {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BankConnectionsResourceBalanceApiResourceCashBalance {
-    /// The funds available to the account holder. Typically this is the current balance after subtracting any outbound pending transactions and adding any inbound pending transactions.
+    /// The funds available to the account holder. Typically this is the current balance after subtracting any outbound pending transactions and adding any inbound pending transactions.  Each key is a three-letter [ISO currency code](<https://www.iso.`org/iso-4217-currency-codes`.html>), in lowercase.  Each value is a integer amount. A positive amount indicates money owed to the account holder. A negative amount indicates money owed by the account holder.
     #[serde(default)]
     pub available: ::core::option::Option<serde_json::Value>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BankConnectionsResourceBalanceApiResourceCreditBalance {
-    /// The credit that has been used by the account holder.
+    /// The credit that has been used by the account holder.  Each key is a three-letter [ISO currency code](<https://www.iso.`org/iso-4217-currency-codes`.html>), in lowercase.  Each value is a integer amount. A positive amount indicates money owed to the account holder. A negative amount indicates money owed by the account holder.
     #[serde(default)]
     pub used: ::core::option::Option<serde_json::Value>,
 }
@@ -10902,9 +10482,9 @@ pub struct PortalFeatures {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PortalLoginPage {
-    /// If true, a shareable url will be generated that will take your customers to a hosted login page for the customer portal.
+    /// If `true`, a shareable url will be generated that will take your customers to a hosted login page for the customer portal.  If `false`, the previously generated url, if any, will be deactivated.
     pub enabled: bool,
-    /// A shareable URL to the hosted portal login page. Your customers will be able to log in with their [email](https://docs.stripe.com/api/customers/object#customer_object-email) and receive a link to their customer portal.
+    /// A shareable URL to the hosted portal login page. Your customers will be able to log in with their [email](<https://docs.stripe.`com/api/customers/object`#customer_object-email>) and receive a link to their customer portal.
     #[serde(default)]
     pub url: ::core::option::Option<String>,
 }
@@ -10919,7 +10499,7 @@ pub struct AccountCapabilityFutureRequirements {
     pub current_deadline: ::core::option::Option<i64>,
     /// Fields that need to be resolved to keep the capability enabled. If not resolved by future_requirements[current_deadline], these fields will transition to the main requirements hash.
     pub currently_due: ::std::vec::Vec<String>,
-    /// This is typed as an enum for consistency with requirements.disabled_reason, but it safe to assume future_requirements.disabled_reason is null because fields in future_requirements will never disable the account. // TODO: enum values: ["other", "paused.inactivity", "pending.onboarding", "pending.review", "platform_disabled", "platform_paused", "rejected.inactivity", "rejected.other", "rejected.unsupported_business", "requirements.fields_needed"]
+    /// This is typed as an enum for consistency with requirements.disabled_reason, but it safe to assume future_requirements.disabled_reason is `null` because fields in future_requirements will never disable the account. // TODO: enum values: ["other", "paused.inactivity", "pending.onboarding", "pending.review", "platform_disabled", "platform_paused", "rejected.inactivity", "rejected.other", "rejected.unsupported_business", "requirements.fields_needed"]
     #[serde(default)]
     pub disabled_reason: ::core::option::Option<String>,
     /// Details about validation and verification failures for due requirements that must be resolved.
@@ -10942,7 +10522,7 @@ pub struct AccountCapabilityRequirements {
     pub current_deadline: ::core::option::Option<i64>,
     /// Fields that need to be resolved to keep the capability enabled. If not resolved by current_deadline, these fields will appear in past_due as well, and the capability is disabled.
     pub currently_due: ::std::vec::Vec<String>,
-    /// Description of why the capability is disabled. [Learn more about handling verification issues](https://docs.stripe.com/connect/handling-api-verification). // TODO: enum values: ["other", "paused.inactivity", "pending.onboarding", "pending.review", "platform_disabled", "platform_paused", "rejected.inactivity", "rejected.other", "rejected.unsupported_business", "requirements.fields_needed"]
+    /// Description of why the capability is disabled. [Learn more about handling verification issues](<https://docs.stripe.`com/connect/handling-api-verification`>). // TODO: enum values: ["other", "paused.inactivity", "pending.onboarding", "pending.review", "platform_disabled", "platform_paused", "rejected.inactivity", "rejected.other", "rejected.unsupported_business", "requirements.fields_needed"]
     #[serde(default)]
     pub disabled_reason: ::core::option::Option<String>,
     /// Details about validation and verification failures for due requirements that must be resolved.
@@ -10988,7 +10568,7 @@ pub struct PaymentPagesCheckoutSessionBrandingSettings {
     pub button_color: String,
     /// The display name shown on the Checkout Session.
     pub display_name: String,
-    /// The font family for the Checkout Session. Must be one of the [supported font families](https://docs.stripe.com/payments/checkout/customization/appearance?payment-ui=stripe-hosted#font-compatibility).
+    /// The font family for the Checkout Session. Must be one of the [supported font families](<https://docs.stripe.`com/payments/checkout/customization/appearance`?payment-ui=stripe-hosted#font-compatibility>).
     pub font_family: String,
     /// The icon for the Checkout Session. You cannot set both logo and icon.
     #[serde(default)]
@@ -11002,12 +10582,12 @@ pub struct PaymentPagesCheckoutSessionBrandingSettings {
 pub struct PaymentPagesCheckoutSessionCustomFields {
     #[serde(default)]
     pub dropdown: ::core::option::Option<PaymentPagesCheckoutSessionCustomFieldsDropdown>,
-    /// String of your choice that your integration can use to reconcile this field. Must be unique to this field, alphanumeric, and up to 200 characters.
+    /// `String` of your choice that your integration can use to reconcile this field. Must be unique to this field, alphanumeric, and up to 200 characters.
     pub key: String,
     pub label: PaymentPagesCheckoutSessionCustomFieldsLabel,
     #[serde(default)]
     pub numeric: ::core::option::Option<PaymentPagesCheckoutSessionCustomFieldsNumeric>,
-    /// Whether the customer is required to complete the field before completing the Checkout Session. Defaults to false.
+    /// Whether the customer is required to complete the field before completing the Checkout Session. Defaults to `false`.
     pub optional: bool,
     #[serde(default)]
     pub text: ::core::option::Option<PaymentPagesCheckoutSessionCustomFieldsText>,
@@ -11087,7 +10667,7 @@ pub struct CheckoutAcssDebitPaymentMethodOptions {
     pub currency: ::core::option::Option<String>,
     #[serde(default)]
     pub mandate_options: ::core::option::Option<CheckoutAcssDebitMandateOptions>,
-    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.
+    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.  If you provide a Customer with the PaymentIntent, you can use this parameter to [attach the payment method](/`payments/save-during-payment`) to the Customer after the PaymentIntent is confirmed and the customer completes any required actions. If you don''t provide a Customer, you can still [attach](/`api/payment_methods/attach`) the payment method to a Customer after the transaction completes.  If the payment method is card_present and isn''t a digital wallet, Stripe creates and attaches a [generated_card](/`api/charges/object`#charge_object-payment_method_details-card_present-generated_card) payment method representing the card to the Customer instead.  When processing card payments, Stripe uses setup_future_usage to help you comply with regional legislation and network rules, such as [SCA](/strong-customer-authentication). // TODO: enum values: ["none", "off_session", "on_session"]
     #[serde(default)]
     pub setup_future_usage: ::core::option::Option<String>,
     /// Controls when Stripe will attempt to debit the funds from the customer''s account. The date must be a string in YYYY-MM-DD format. The date must be in the future and between 3 and 15 calendar days from now.
@@ -11103,7 +10683,7 @@ pub struct CheckoutAffirmPaymentMethodOptions {
     /// Controls when the funds will be captured from the customer''s account. // TODO: enum values: ["manual"]
     #[serde(default)]
     pub capture_method: ::core::option::Option<String>,
-    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.
+    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.  If you provide a Customer with the PaymentIntent, you can use this parameter to [attach the payment method](/`payments/save-during-payment`) to the Customer after the PaymentIntent is confirmed and the customer completes any required actions. If you don''t provide a Customer, you can still [attach](/`api/payment_methods/attach`) the payment method to a Customer after the transaction completes.  If the payment method is card_present and isn''t a digital wallet, Stripe creates and attaches a [generated_card](/`api/charges/object`#charge_object-payment_method_details-card_present-generated_card) payment method representing the card to the Customer instead.  When processing card payments, Stripe uses setup_future_usage to help you comply with regional legislation and network rules, such as [SCA](/strong-customer-authentication). // TODO: enum values: ["none"]
     #[serde(default)]
     pub setup_future_usage: ::core::option::Option<String>,
 }
@@ -11113,14 +10693,14 @@ pub struct CheckoutAfterpayClearpayPaymentMethodOptions {
     /// Controls when the funds will be captured from the customer''s account. // TODO: enum values: ["manual"]
     #[serde(default)]
     pub capture_method: ::core::option::Option<String>,
-    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.
+    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.  If you provide a Customer with the PaymentIntent, you can use this parameter to [attach the payment method](/`payments/save-during-payment`) to the Customer after the PaymentIntent is confirmed and the customer completes any required actions. If you don''t provide a Customer, you can still [attach](/`api/payment_methods/attach`) the payment method to a Customer after the transaction completes.  If the payment method is card_present and isn''t a digital wallet, Stripe creates and attaches a [generated_card](/`api/charges/object`#charge_object-payment_method_details-card_present-generated_card) payment method representing the card to the Customer instead.  When processing card payments, Stripe uses setup_future_usage to help you comply with regional legislation and network rules, such as [SCA](/strong-customer-authentication). // TODO: enum values: ["none"]
     #[serde(default)]
     pub setup_future_usage: ::core::option::Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CheckoutAlipayPaymentMethodOptions {
-    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.
+    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.  If you provide a Customer with the PaymentIntent, you can use this parameter to [attach the payment method](/`payments/save-during-payment`) to the Customer after the PaymentIntent is confirmed and the customer completes any required actions. If you don''t provide a Customer, you can still [attach](/`api/payment_methods/attach`) the payment method to a Customer after the transaction completes.  If the payment method is card_present and isn''t a digital wallet, Stripe creates and attaches a [generated_card](/`api/charges/object`#charge_object-payment_method_details-card_present-generated_card) payment method representing the card to the Customer instead.  When processing card payments, Stripe uses setup_future_usage to help you comply with regional legislation and network rules, such as [SCA](/strong-customer-authentication). // TODO: enum values: ["none"]
     #[serde(default)]
     pub setup_future_usage: ::core::option::Option<String>,
 }
@@ -11137,14 +10717,14 @@ pub struct CheckoutAmazonPayPaymentMethodOptions {
     /// Controls when the funds will be captured from the customer''s account. // TODO: enum values: ["manual"]
     #[serde(default)]
     pub capture_method: ::core::option::Option<String>,
-    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.
+    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.  If you provide a Customer with the PaymentIntent, you can use this parameter to [attach the payment method](/`payments/save-during-payment`) to the Customer after the PaymentIntent is confirmed and the customer completes any required actions. If you don''t provide a Customer, you can still [attach](/`api/payment_methods/attach`) the payment method to a Customer after the transaction completes.  If the payment method is card_present and isn''t a digital wallet, Stripe creates and attaches a [generated_card](/`api/charges/object`#charge_object-payment_method_details-card_present-generated_card) payment method representing the card to the Customer instead.  When processing card payments, Stripe uses setup_future_usage to help you comply with regional legislation and network rules, such as [SCA](/strong-customer-authentication). // TODO: enum values: ["none", "off_session"]
     #[serde(default)]
     pub setup_future_usage: ::core::option::Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CheckoutAuBecsDebitPaymentMethodOptions {
-    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.
+    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.  If you provide a Customer with the PaymentIntent, you can use this parameter to [attach the payment method](/`payments/save-during-payment`) to the Customer after the PaymentIntent is confirmed and the customer completes any required actions. If you don''t provide a Customer, you can still [attach](/`api/payment_methods/attach`) the payment method to a Customer after the transaction completes.  If the payment method is card_present and isn''t a digital wallet, Stripe creates and attaches a [generated_card](/`api/charges/object`#charge_object-payment_method_details-card_present-generated_card) payment method representing the card to the Customer instead.  When processing card payments, Stripe uses setup_future_usage to help you comply with regional legislation and network rules, such as [SCA](/strong-customer-authentication). // TODO: enum values: ["none"]
     #[serde(default)]
     pub setup_future_usage: ::core::option::Option<String>,
     /// Controls when Stripe will attempt to debit the funds from the customer''s account. The date must be a string in YYYY-MM-DD format. The date must be in the future and between 3 and 15 calendar days from now.
@@ -11157,7 +10737,7 @@ pub struct CheckoutBacsDebitPaymentMethodOptions {
     #[serde(default)]
     pub mandate_options:
         ::core::option::Option<CheckoutPaymentMethodOptionsMandateOptionsBacsDebit>,
-    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.
+    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.  If you provide a Customer with the PaymentIntent, you can use this parameter to [attach the payment method](/`payments/save-during-payment`) to the Customer after the PaymentIntent is confirmed and the customer completes any required actions. If you don''t provide a Customer, you can still [attach](/`api/payment_methods/attach`) the payment method to a Customer after the transaction completes.  If the payment method is card_present and isn''t a digital wallet, Stripe creates and attaches a [generated_card](/`api/charges/object`#charge_object-payment_method_details-card_present-generated_card) payment method representing the card to the Customer instead.  When processing card payments, Stripe uses setup_future_usage to help you comply with regional legislation and network rules, such as [SCA](/strong-customer-authentication). // TODO: enum values: ["none", "off_session", "on_session"]
     #[serde(default)]
     pub setup_future_usage: ::core::option::Option<String>,
     /// Controls when Stripe will attempt to debit the funds from the customer''s account. The date must be a string in YYYY-MM-DD format. The date must be in the future and between 3 and 15 calendar days from now.
@@ -11167,7 +10747,7 @@ pub struct CheckoutBacsDebitPaymentMethodOptions {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CheckoutBancontactPaymentMethodOptions {
-    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.
+    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.  If you provide a Customer with the PaymentIntent, you can use this parameter to [attach the payment method](/`payments/save-during-payment`) to the Customer after the PaymentIntent is confirmed and the customer completes any required actions. If you don''t provide a Customer, you can still [attach](/`api/payment_methods/attach`) the payment method to a Customer after the transaction completes.  If the payment method is card_present and isn''t a digital wallet, Stripe creates and attaches a [generated_card](/`api/charges/object`#charge_object-payment_method_details-card_present-generated_card) payment method representing the card to the Customer instead.  When processing card payments, Stripe uses setup_future_usage to help you comply with regional legislation and network rules, such as [SCA](/strong-customer-authentication). // TODO: enum values: ["none"]
     #[serde(default)]
     pub setup_future_usage: ::core::option::Option<String>,
 }
@@ -11181,9 +10761,9 @@ pub struct CheckoutBilliePaymentMethodOptions {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CheckoutBoletoPaymentMethodOptions {
-    /// The number of calendar days before a Boleto voucher expires. For example, if you create a Boleto voucher on Monday and you set expires_after_days to 2, the Boleto voucher will expire on Wednesday at 23:59 America/Sao_Paulo time.
+    /// The number of calendar days before a Boleto voucher expires. For example, if you create a Boleto voucher on Monday and you set expires_after_days to 2, the Boleto voucher will expire on Wednesday at 23:59 A`merica/Sao_Paulo` time.
     pub expires_after_days: i64,
-    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.
+    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.  If you provide a Customer with the PaymentIntent, you can use this parameter to [attach the payment method](/`payments/save-during-payment`) to the Customer after the PaymentIntent is confirmed and the customer completes any required actions. If you don''t provide a Customer, you can still [attach](/`api/payment_methods/attach`) the payment method to a Customer after the transaction completes.  If the payment method is card_present and isn''t a digital wallet, Stripe creates and attaches a [generated_card](/`api/charges/object`#charge_object-payment_method_details-card_present-generated_card) payment method representing the card to the Customer instead.  When processing card payments, Stripe uses setup_future_usage to help you comply with regional legislation and network rules, such as [SCA](/strong-customer-authentication). // TODO: enum values: ["none", "off_session", "on_session"]
     #[serde(default)]
     pub setup_future_usage: ::core::option::Option<String>,
 }
@@ -11195,24 +10775,24 @@ pub struct CheckoutCardPaymentMethodOptions {
     pub capture_method: ::core::option::Option<String>,
     #[serde(default)]
     pub installments: ::core::option::Option<CheckoutCardInstallmentsOptions>,
-    /// Request ability to [capture beyond the standard authorization validity window](/payments/extended-authorization) for this CheckoutSession. // TODO: enum values: ["if_available", "never"]
+    /// Request ability to [capture beyond the standard authorization validity window](/`payments/extended-authorization`) for this CheckoutSession. // TODO: enum values: ["if_available", "never"]
     #[serde(default)]
     pub request_extended_authorization: ::core::option::Option<String>,
-    /// Request ability to [increment the authorization](/payments/incremental-authorization) for this CheckoutSession. // TODO: enum values: ["if_available", "never"]
+    /// Request ability to [increment the authorization](/`payments/incremental-authorization`) for this CheckoutSession. // TODO: enum values: ["if_available", "never"]
     #[serde(default)]
     pub request_incremental_authorization: ::core::option::Option<String>,
-    /// Request ability to make [multiple captures](/payments/multicapture) for this CheckoutSession. // TODO: enum values: ["if_available", "never"]
+    /// Request ability to make [multiple captures](/`payments/multicapture`) for this CheckoutSession. // TODO: enum values: ["if_available", "never"]
     #[serde(default)]
     pub request_multicapture: ::core::option::Option<String>,
-    /// Request ability to [overcapture](/payments/overcapture) for this CheckoutSession. // TODO: enum values: ["if_available", "never"]
+    /// Request ability to [overcapture](/`payments/overcapture`) for this CheckoutSession. // TODO: enum values: ["if_available", "never"]
     #[serde(default)]
     pub request_overcapture: ::core::option::Option<String>,
-    /// We strongly recommend that you rely on our SCA Engine to automatically prompt your customers for authentication based on risk level and [other requirements](https://docs.stripe.com/strong-customer-authentication). However, if you wish to request 3D Secure based on logic from your own fraud engine, provide this option. If not provided, this value defaults to automatic. Read our guide on [manually requesting 3D Secure](https://docs.stripe.com/payments/3d-secure/authentication-flow#manual-three-ds) for more information on how this configuration interacts with Radar and our SCA Engine. // TODO: enum values: ["any", "automatic", "challenge"]
+    /// We strongly recommend that you rely on our SCA Engine to automatically prompt your customers for authentication based on risk level and [other requirements](<https://docs.stripe.`com/strong-customer-authentication`>). However, if you wish to request 3D Secure based on logic from your own fraud engine, provide this option. If not provided, this value defaults to automatic. Read our guide on [manually requesting 3D Secure](<https://docs.stripe.`com/payments/3d-secure/authentication-flow`#manual-three-ds>) for more information on how this configuration interacts with Radar and our SCA Engine. // TODO: enum values: ["any", "automatic", "challenge"]
     pub request_three_d_secure: String,
     #[serde(default)]
     pub restrictions:
         ::core::option::Option<PaymentPagesPrivateCardPaymentMethodOptionsResourceRestrictions>,
-    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.
+    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.  If you provide a Customer with the PaymentIntent, you can use this parameter to [attach the payment method](/`payments/save-during-payment`) to the Customer after the PaymentIntent is confirmed and the customer completes any required actions. If you don''t provide a Customer, you can still [attach](/`api/payment_methods/attach`) the payment method to a Customer after the transaction completes.  If the payment method is card_present and isn''t a digital wallet, Stripe creates and attaches a [generated_card](/`api/charges/object`#charge_object-payment_method_details-card_present-generated_card) payment method representing the card to the Customer instead.  When processing card payments, Stripe uses setup_future_usage to help you comply with regional legislation and network rules, such as [SCA](/strong-customer-authentication). // TODO: enum values: ["none", "off_session", "on_session"]
     #[serde(default)]
     pub setup_future_usage: ::core::option::Option<String>,
     /// Provides information about a card payment that customers see on their statements. Concatenated with the Kana prefix (shortened Kana descriptor) or Kana statement descriptor that’s set on the account to form the complete statement descriptor. Maximum 22 characters. On card statements, the *concatenation* of both prefix and suffix (including separators) will appear truncated to 22 characters.
@@ -11228,7 +10808,7 @@ pub struct CheckoutCashappPaymentMethodOptions {
     /// Controls when the funds will be captured from the customer''s account. // TODO: enum values: ["manual"]
     #[serde(default)]
     pub capture_method: ::core::option::Option<String>,
-    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.
+    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.  If you provide a Customer with the PaymentIntent, you can use this parameter to [attach the payment method](/`payments/save-during-payment`) to the Customer after the PaymentIntent is confirmed and the customer completes any required actions. If you don''t provide a Customer, you can still [attach](/`api/payment_methods/attach`) the payment method to a Customer after the transaction completes.  If the payment method is card_present and isn''t a digital wallet, Stripe creates and attaches a [generated_card](/`api/charges/object`#charge_object-payment_method_details-card_present-generated_card) payment method representing the card to the Customer instead.  When processing card payments, Stripe uses setup_future_usage to help you comply with regional legislation and network rules, such as [SCA](/strong-customer-authentication). // TODO: enum values: ["none"]
     #[serde(default)]
     pub setup_future_usage: ::core::option::Option<String>,
 }
@@ -11241,42 +10821,42 @@ pub struct CheckoutCustomerBalancePaymentMethodOptions {
     /// The funding method type to be used when there are not enough funds in the customer balance. Permitted values include: bank_transfer. // TODO: enum values: ["bank_transfer"]
     #[serde(default)]
     pub funding_type: ::core::option::Option<String>,
-    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.
+    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.  If you provide a Customer with the PaymentIntent, you can use this parameter to [attach the payment method](/`payments/save-during-payment`) to the Customer after the PaymentIntent is confirmed and the customer completes any required actions. If you don''t provide a Customer, you can still [attach](/`api/payment_methods/attach`) the payment method to a Customer after the transaction completes.  If the payment method is card_present and isn''t a digital wallet, Stripe creates and attaches a [generated_card](/`api/charges/object`#charge_object-payment_method_details-card_present-generated_card) payment method representing the card to the Customer instead.  When processing card payments, Stripe uses setup_future_usage to help you comply with regional legislation and network rules, such as [SCA](/strong-customer-authentication). // TODO: enum values: ["none"]
     #[serde(default)]
     pub setup_future_usage: ::core::option::Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CheckoutEpsPaymentMethodOptions {
-    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.
+    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.  If you provide a Customer with the PaymentIntent, you can use this parameter to [attach the payment method](/`payments/save-during-payment`) to the Customer after the PaymentIntent is confirmed and the customer completes any required actions. If you don''t provide a Customer, you can still [attach](/`api/payment_methods/attach`) the payment method to a Customer after the transaction completes.  If the payment method is card_present and isn''t a digital wallet, Stripe creates and attaches a [generated_card](/`api/charges/object`#charge_object-payment_method_details-card_present-generated_card) payment method representing the card to the Customer instead.  When processing card payments, Stripe uses setup_future_usage to help you comply with regional legislation and network rules, such as [SCA](/strong-customer-authentication). // TODO: enum values: ["none"]
     #[serde(default)]
     pub setup_future_usage: ::core::option::Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CheckoutFpxPaymentMethodOptions {
-    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.
+    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.  If you provide a Customer with the PaymentIntent, you can use this parameter to [attach the payment method](/`payments/save-during-payment`) to the Customer after the PaymentIntent is confirmed and the customer completes any required actions. If you don''t provide a Customer, you can still [attach](/`api/payment_methods/attach`) the payment method to a Customer after the transaction completes.  If the payment method is card_present and isn''t a digital wallet, Stripe creates and attaches a [generated_card](/`api/charges/object`#charge_object-payment_method_details-card_present-generated_card) payment method representing the card to the Customer instead.  When processing card payments, Stripe uses setup_future_usage to help you comply with regional legislation and network rules, such as [SCA](/strong-customer-authentication). // TODO: enum values: ["none"]
     #[serde(default)]
     pub setup_future_usage: ::core::option::Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CheckoutGiropayPaymentMethodOptions {
-    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.
+    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.  If you provide a Customer with the PaymentIntent, you can use this parameter to [attach the payment method](/`payments/save-during-payment`) to the Customer after the PaymentIntent is confirmed and the customer completes any required actions. If you don''t provide a Customer, you can still [attach](/`api/payment_methods/attach`) the payment method to a Customer after the transaction completes.  If the payment method is card_present and isn''t a digital wallet, Stripe creates and attaches a [generated_card](/`api/charges/object`#charge_object-payment_method_details-card_present-generated_card) payment method representing the card to the Customer instead.  When processing card payments, Stripe uses setup_future_usage to help you comply with regional legislation and network rules, such as [SCA](/strong-customer-authentication). // TODO: enum values: ["none"]
     #[serde(default)]
     pub setup_future_usage: ::core::option::Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CheckoutGrabPayPaymentMethodOptions {
-    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.
+    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.  If you provide a Customer with the PaymentIntent, you can use this parameter to [attach the payment method](/`payments/save-during-payment`) to the Customer after the PaymentIntent is confirmed and the customer completes any required actions. If you don''t provide a Customer, you can still [attach](/`api/payment_methods/attach`) the payment method to a Customer after the transaction completes.  If the payment method is card_present and isn''t a digital wallet, Stripe creates and attaches a [generated_card](/`api/charges/object`#charge_object-payment_method_details-card_present-generated_card) payment method representing the card to the Customer instead.  When processing card payments, Stripe uses setup_future_usage to help you comply with regional legislation and network rules, such as [SCA](/strong-customer-authentication). // TODO: enum values: ["none"]
     #[serde(default)]
     pub setup_future_usage: ::core::option::Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CheckoutIdealPaymentMethodOptions {
-    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.
+    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.  If you provide a Customer with the PaymentIntent, you can use this parameter to [attach the payment method](/`payments/save-during-payment`) to the Customer after the PaymentIntent is confirmed and the customer completes any required actions. If you don''t provide a Customer, you can still [attach](/`api/payment_methods/attach`) the payment method to a Customer after the transaction completes.  If the payment method is card_present and isn''t a digital wallet, Stripe creates and attaches a [generated_card](/`api/charges/object`#charge_object-payment_method_details-card_present-generated_card) payment method representing the card to the Customer instead.  When processing card payments, Stripe uses setup_future_usage to help you comply with regional legislation and network rules, such as [SCA](/strong-customer-authentication). // TODO: enum values: ["none"]
     #[serde(default)]
     pub setup_future_usage: ::core::option::Option<String>,
 }
@@ -11286,7 +10866,7 @@ pub struct CheckoutKakaoPayPaymentMethodOptions {
     /// Controls when the funds will be captured from the customer''s account. // TODO: enum values: ["manual"]
     #[serde(default)]
     pub capture_method: ::core::option::Option<String>,
-    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.
+    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.  If you provide a Customer with the PaymentIntent, you can use this parameter to [attach the payment method](/`payments/save-during-payment`) to the Customer after the PaymentIntent is confirmed and the customer completes any required actions. If you don''t provide a Customer, you can still [attach](/`api/payment_methods/attach`) the payment method to a Customer after the transaction completes.  If the payment method is card_present and isn''t a digital wallet, Stripe creates and attaches a [generated_card](/`api/charges/object`#charge_object-payment_method_details-card_present-generated_card) payment method representing the card to the Customer instead.  When processing card payments, Stripe uses setup_future_usage to help you comply with regional legislation and network rules, such as [SCA](/strong-customer-authentication). // TODO: enum values: ["none", "off_session"]
     #[serde(default)]
     pub setup_future_usage: ::core::option::Option<String>,
 }
@@ -11296,7 +10876,7 @@ pub struct CheckoutKlarnaPaymentMethodOptions {
     /// Controls when the funds will be captured from the customer''s account. // TODO: enum values: ["manual"]
     #[serde(default)]
     pub capture_method: ::core::option::Option<String>,
-    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.
+    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.  If you provide a Customer with the PaymentIntent, you can use this parameter to [attach the payment method](/`payments/save-during-payment`) to the Customer after the PaymentIntent is confirmed and the customer completes any required actions. If you don''t provide a Customer, you can still [attach](/`api/payment_methods/attach`) the payment method to a Customer after the transaction completes.  If the payment method is card_present and isn''t a digital wallet, Stripe creates and attaches a [generated_card](/`api/charges/object`#charge_object-payment_method_details-card_present-generated_card) payment method representing the card to the Customer instead.  When processing card payments, Stripe uses setup_future_usage to help you comply with regional legislation and network rules, such as [SCA](/strong-customer-authentication). // TODO: enum values: ["none", "off_session", "on_session"]
     #[serde(default)]
     pub setup_future_usage: ::core::option::Option<String>,
 }
@@ -11306,7 +10886,7 @@ pub struct CheckoutKonbiniPaymentMethodOptions {
     /// The number of calendar days (between 1 and 60) after which Konbini payment instructions will expire. For example, if a PaymentIntent is confirmed with Konbini and expires_after_days set to 2 on Monday JST, the instructions will expire on Wednesday 23:59:59 JST.
     #[serde(default)]
     pub expires_after_days: ::core::option::Option<i64>,
-    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.
+    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.  If you provide a Customer with the PaymentIntent, you can use this parameter to [attach the payment method](/`payments/save-during-payment`) to the Customer after the PaymentIntent is confirmed and the customer completes any required actions. If you don''t provide a Customer, you can still [attach](/`api/payment_methods/attach`) the payment method to a Customer after the transaction completes.  If the payment method is card_present and isn''t a digital wallet, Stripe creates and attaches a [generated_card](/`api/charges/object`#charge_object-payment_method_details-card_present-generated_card) payment method representing the card to the Customer instead.  When processing card payments, Stripe uses setup_future_usage to help you comply with regional legislation and network rules, such as [SCA](/strong-customer-authentication). // TODO: enum values: ["none"]
     #[serde(default)]
     pub setup_future_usage: ::core::option::Option<String>,
 }
@@ -11316,7 +10896,7 @@ pub struct CheckoutKrCardPaymentMethodOptions {
     /// Controls when the funds will be captured from the customer''s account. // TODO: enum values: ["manual"]
     #[serde(default)]
     pub capture_method: ::core::option::Option<String>,
-    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.
+    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.  If you provide a Customer with the PaymentIntent, you can use this parameter to [attach the payment method](/`payments/save-during-payment`) to the Customer after the PaymentIntent is confirmed and the customer completes any required actions. If you don''t provide a Customer, you can still [attach](/`api/payment_methods/attach`) the payment method to a Customer after the transaction completes.  If the payment method is card_present and isn''t a digital wallet, Stripe creates and attaches a [generated_card](/`api/charges/object`#charge_object-payment_method_details-card_present-generated_card) payment method representing the card to the Customer instead.  When processing card payments, Stripe uses setup_future_usage to help you comply with regional legislation and network rules, such as [SCA](/strong-customer-authentication). // TODO: enum values: ["none", "off_session"]
     #[serde(default)]
     pub setup_future_usage: ::core::option::Option<String>,
 }
@@ -11326,7 +10906,7 @@ pub struct CheckoutLinkPaymentMethodOptions {
     /// Controls when the funds will be captured from the customer''s account. // TODO: enum values: ["manual"]
     #[serde(default)]
     pub capture_method: ::core::option::Option<String>,
-    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.
+    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.  If you provide a Customer with the PaymentIntent, you can use this parameter to [attach the payment method](/`payments/save-during-payment`) to the Customer after the PaymentIntent is confirmed and the customer completes any required actions. If you don''t provide a Customer, you can still [attach](/`api/payment_methods/attach`) the payment method to a Customer after the transaction completes.  If the payment method is card_present and isn''t a digital wallet, Stripe creates and attaches a [generated_card](/`api/charges/object`#charge_object-payment_method_details-card_present-generated_card) payment method representing the card to the Customer instead.  When processing card payments, Stripe uses setup_future_usage to help you comply with regional legislation and network rules, such as [SCA](/strong-customer-authentication). // TODO: enum values: ["none", "off_session"]
     #[serde(default)]
     pub setup_future_usage: ::core::option::Option<String>,
 }
@@ -11336,14 +10916,14 @@ pub struct CheckoutMobilepayPaymentMethodOptions {
     /// Controls when the funds will be captured from the customer''s account. // TODO: enum values: ["manual"]
     #[serde(default)]
     pub capture_method: ::core::option::Option<String>,
-    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.
+    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.  If you provide a Customer with the PaymentIntent, you can use this parameter to [attach the payment method](/`payments/save-during-payment`) to the Customer after the PaymentIntent is confirmed and the customer completes any required actions. If you don''t provide a Customer, you can still [attach](/`api/payment_methods/attach`) the payment method to a Customer after the transaction completes.  If the payment method is card_present and isn''t a digital wallet, Stripe creates and attaches a [generated_card](/`api/charges/object`#charge_object-payment_method_details-card_present-generated_card) payment method representing the card to the Customer instead.  When processing card payments, Stripe uses setup_future_usage to help you comply with regional legislation and network rules, such as [SCA](/strong-customer-authentication). // TODO: enum values: ["none"]
     #[serde(default)]
     pub setup_future_usage: ::core::option::Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CheckoutMultibancoPaymentMethodOptions {
-    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.
+    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.  If you provide a Customer with the PaymentIntent, you can use this parameter to [attach the payment method](/`payments/save-during-payment`) to the Customer after the PaymentIntent is confirmed and the customer completes any required actions. If you don''t provide a Customer, you can still [attach](/`api/payment_methods/attach`) the payment method to a Customer after the transaction completes.  If the payment method is card_present and isn''t a digital wallet, Stripe creates and attaches a [generated_card](/`api/charges/object`#charge_object-payment_method_details-card_present-generated_card) payment method representing the card to the Customer instead.  When processing card payments, Stripe uses setup_future_usage to help you comply with regional legislation and network rules, such as [SCA](/strong-customer-authentication). // TODO: enum values: ["none"]
     #[serde(default)]
     pub setup_future_usage: ::core::option::Option<String>,
 }
@@ -11353,23 +10933,23 @@ pub struct CheckoutNaverPayPaymentMethodOptions {
     /// Controls when the funds will be captured from the customer''s account. // TODO: enum values: ["manual"]
     #[serde(default)]
     pub capture_method: ::core::option::Option<String>,
-    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.
+    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.  If you provide a Customer with the PaymentIntent, you can use this parameter to [attach the payment method](/`payments/save-during-payment`) to the Customer after the PaymentIntent is confirmed and the customer completes any required actions. If you don''t provide a Customer, you can still [attach](/`api/payment_methods/attach`) the payment method to a Customer after the transaction completes.  If the payment method is card_present and isn''t a digital wallet, Stripe creates and attaches a [generated_card](/`api/charges/object`#charge_object-payment_method_details-card_present-generated_card) payment method representing the card to the Customer instead.  When processing card payments, Stripe uses setup_future_usage to help you comply with regional legislation and network rules, such as [SCA](/strong-customer-authentication). // TODO: enum values: ["none", "off_session"]
     #[serde(default)]
     pub setup_future_usage: ::core::option::Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CheckoutOxxoPaymentMethodOptions {
-    /// The number of calendar days before an OXXO invoice expires. For example, if you create an OXXO invoice on Monday and you set expires_after_days to 2, the OXXO invoice will expire on Wednesday at 23:59 America/Mexico_City time.
+    /// The number of calendar days before an OXXO invoice expires. For example, if you create an OXXO invoice on Monday and you set expires_after_days to 2, the OXXO invoice will expire on Wednesday at 23:59 A`merica/Mexico_City` time.
     pub expires_after_days: i64,
-    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.
+    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.  If you provide a Customer with the PaymentIntent, you can use this parameter to [attach the payment method](/`payments/save-during-payment`) to the Customer after the PaymentIntent is confirmed and the customer completes any required actions. If you don''t provide a Customer, you can still [attach](/`api/payment_methods/attach`) the payment method to a Customer after the transaction completes.  If the payment method is card_present and isn''t a digital wallet, Stripe creates and attaches a [generated_card](/`api/charges/object`#charge_object-payment_method_details-card_present-generated_card) payment method representing the card to the Customer instead.  When processing card payments, Stripe uses setup_future_usage to help you comply with regional legislation and network rules, such as [SCA](/strong-customer-authentication). // TODO: enum values: ["none"]
     #[serde(default)]
     pub setup_future_usage: ::core::option::Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CheckoutP24PaymentMethodOptions {
-    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.
+    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.  If you provide a Customer with the PaymentIntent, you can use this parameter to [attach the payment method](/`payments/save-during-payment`) to the Customer after the PaymentIntent is confirmed and the customer completes any required actions. If you don''t provide a Customer, you can still [attach](/`api/payment_methods/attach`) the payment method to a Customer after the transaction completes.  If the payment method is card_present and isn''t a digital wallet, Stripe creates and attaches a [generated_card](/`api/charges/object`#charge_object-payment_method_details-card_present-generated_card) payment method representing the card to the Customer instead.  When processing card payments, Stripe uses setup_future_usage to help you comply with regional legislation and network rules, such as [SCA](/strong-customer-authentication). // TODO: enum values: ["none"]
     #[serde(default)]
     pub setup_future_usage: ::core::option::Option<String>,
 }
@@ -11383,7 +10963,7 @@ pub struct CheckoutPaycoPaymentMethodOptions {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CheckoutPaynowPaymentMethodOptions {
-    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.
+    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.  If you provide a Customer with the PaymentIntent, you can use this parameter to [attach the payment method](/`payments/save-during-payment`) to the Customer after the PaymentIntent is confirmed and the customer completes any required actions. If you don''t provide a Customer, you can still [attach](/`api/payment_methods/attach`) the payment method to a Customer after the transaction completes.  If the payment method is card_present and isn''t a digital wallet, Stripe creates and attaches a [generated_card](/`api/charges/object`#charge_object-payment_method_details-card_present-generated_card) payment method representing the card to the Customer instead.  When processing card payments, Stripe uses setup_future_usage to help you comply with regional legislation and network rules, such as [SCA](/strong-customer-authentication). // TODO: enum values: ["none"]
     #[serde(default)]
     pub setup_future_usage: ::core::option::Option<String>,
 }
@@ -11399,7 +10979,7 @@ pub struct CheckoutPaypalPaymentMethodOptions {
     /// A reference of the PayPal transaction visible to customer which is mapped to PayPal''s invoice ID. This must be a globally unique ID if you have configured in your PayPal settings to block multiple payments per invoice ID.
     #[serde(default)]
     pub reference: ::core::option::Option<String>,
-    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.
+    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.  If you provide a Customer with the PaymentIntent, you can use this parameter to [attach the payment method](/`payments/save-during-payment`) to the Customer after the PaymentIntent is confirmed and the customer completes any required actions. If you don''t provide a Customer, you can still [attach](/`api/payment_methods/attach`) the payment method to a Customer after the transaction completes.  If the payment method is card_present and isn''t a digital wallet, Stripe creates and attaches a [generated_card](/`api/charges/object`#charge_object-payment_method_details-card_present-generated_card) payment method representing the card to the Customer instead.  When processing card payments, Stripe uses setup_future_usage to help you comply with regional legislation and network rules, such as [SCA](/strong-customer-authentication). // TODO: enum values: ["none", "off_session"]
     #[serde(default)]
     pub setup_future_usage: ::core::option::Option<String>,
 }
@@ -11408,7 +10988,7 @@ pub struct CheckoutPaypalPaymentMethodOptions {
 pub struct CheckoutPaytoPaymentMethodOptions {
     #[serde(default)]
     pub mandate_options: ::core::option::Option<MandateOptionsPayto>,
-    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.
+    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.  If you provide a Customer with the PaymentIntent, you can use this parameter to [attach the payment method](/`payments/save-during-payment`) to the Customer after the PaymentIntent is confirmed and the customer completes any required actions. If you don''t provide a Customer, you can still [attach](/`api/payment_methods/attach`) the payment method to a Customer after the transaction completes.  If the payment method is card_present and isn''t a digital wallet, Stripe creates and attaches a [generated_card](/`api/charges/object`#charge_object-payment_method_details-card_present-generated_card) payment method representing the card to the Customer instead.  When processing card payments, Stripe uses setup_future_usage to help you comply with regional legislation and network rules, such as [SCA](/strong-customer-authentication). // TODO: enum values: ["none", "off_session"]
     #[serde(default)]
     pub setup_future_usage: ::core::option::Option<String>,
 }
@@ -11421,7 +11001,7 @@ pub struct CheckoutPixPaymentMethodOptions {
     /// The number of seconds after which Pix payment will expire.
     #[serde(default)]
     pub expires_after_seconds: ::core::option::Option<i64>,
-    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.
+    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.  If you provide a Customer with the PaymentIntent, you can use this parameter to [attach the payment method](/`payments/save-during-payment`) to the Customer after the PaymentIntent is confirmed and the customer completes any required actions. If you don''t provide a Customer, you can still [attach](/`api/payment_methods/attach`) the payment method to a Customer after the transaction completes.  If the payment method is card_present and isn''t a digital wallet, Stripe creates and attaches a [generated_card](/`api/charges/object`#charge_object-payment_method_details-card_present-generated_card) payment method representing the card to the Customer instead.  When processing card payments, Stripe uses setup_future_usage to help you comply with regional legislation and network rules, such as [SCA](/strong-customer-authentication). // TODO: enum values: ["none"]
     #[serde(default)]
     pub setup_future_usage: ::core::option::Option<String>,
 }
@@ -11431,7 +11011,7 @@ pub struct CheckoutRevolutPayPaymentMethodOptions {
     /// Controls when the funds will be captured from the customer''s account. // TODO: enum values: ["manual"]
     #[serde(default)]
     pub capture_method: ::core::option::Option<String>,
-    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.
+    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.  If you provide a Customer with the PaymentIntent, you can use this parameter to [attach the payment method](/`payments/save-during-payment`) to the Customer after the PaymentIntent is confirmed and the customer completes any required actions. If you don''t provide a Customer, you can still [attach](/`api/payment_methods/attach`) the payment method to a Customer after the transaction completes.  If the payment method is card_present and isn''t a digital wallet, Stripe creates and attaches a [generated_card](/`api/charges/object`#charge_object-payment_method_details-card_present-generated_card) payment method representing the card to the Customer instead.  When processing card payments, Stripe uses setup_future_usage to help you comply with regional legislation and network rules, such as [SCA](/strong-customer-authentication). // TODO: enum values: ["none", "off_session"]
     #[serde(default)]
     pub setup_future_usage: ::core::option::Option<String>,
 }
@@ -11455,7 +11035,7 @@ pub struct CheckoutSepaDebitPaymentMethodOptions {
     #[serde(default)]
     pub mandate_options:
         ::core::option::Option<CheckoutPaymentMethodOptionsMandateOptionsSepaDebit>,
-    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.
+    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.  If you provide a Customer with the PaymentIntent, you can use this parameter to [attach the payment method](/`payments/save-during-payment`) to the Customer after the PaymentIntent is confirmed and the customer completes any required actions. If you don''t provide a Customer, you can still [attach](/`api/payment_methods/attach`) the payment method to a Customer after the transaction completes.  If the payment method is card_present and isn''t a digital wallet, Stripe creates and attaches a [generated_card](/`api/charges/object`#charge_object-payment_method_details-card_present-generated_card) payment method representing the card to the Customer instead.  When processing card payments, Stripe uses setup_future_usage to help you comply with regional legislation and network rules, such as [SCA](/strong-customer-authentication). // TODO: enum values: ["none", "off_session", "on_session"]
     #[serde(default)]
     pub setup_future_usage: ::core::option::Option<String>,
     /// Controls when Stripe will attempt to debit the funds from the customer''s account. The date must be a string in YYYY-MM-DD format. The date must be in the future and between 3 and 15 calendar days from now.
@@ -11465,7 +11045,7 @@ pub struct CheckoutSepaDebitPaymentMethodOptions {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CheckoutSofortPaymentMethodOptions {
-    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.
+    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.  If you provide a Customer with the PaymentIntent, you can use this parameter to [attach the payment method](/`payments/save-during-payment`) to the Customer after the PaymentIntent is confirmed and the customer completes any required actions. If you don''t provide a Customer, you can still [attach](/`api/payment_methods/attach`) the payment method to a Customer after the transaction completes.  If the payment method is card_present and isn''t a digital wallet, Stripe creates and attaches a [generated_card](/`api/charges/object`#charge_object-payment_method_details-card_present-generated_card) payment method representing the card to the Customer instead.  When processing card payments, Stripe uses setup_future_usage to help you comply with regional legislation and network rules, such as [SCA](/strong-customer-authentication). // TODO: enum values: ["none"]
     #[serde(default)]
     pub setup_future_usage: ::core::option::Option<String>,
 }
@@ -11479,7 +11059,7 @@ pub struct CheckoutSwishPaymentMethodOptions {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CheckoutTwintPaymentMethodOptions {
-    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.
+    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.  If you provide a Customer with the PaymentIntent, you can use this parameter to [attach the payment method](/`payments/save-during-payment`) to the Customer after the PaymentIntent is confirmed and the customer completes any required actions. If you don''t provide a Customer, you can still [attach](/`api/payment_methods/attach`) the payment method to a Customer after the transaction completes.  If the payment method is card_present and isn''t a digital wallet, Stripe creates and attaches a [generated_card](/`api/charges/object`#charge_object-payment_method_details-card_present-generated_card) payment method representing the card to the Customer instead.  When processing card payments, Stripe uses setup_future_usage to help you comply with regional legislation and network rules, such as [SCA](/strong-customer-authentication). // TODO: enum values: ["none"]
     #[serde(default)]
     pub setup_future_usage: ::core::option::Option<String>,
 }
@@ -11488,7 +11068,7 @@ pub struct CheckoutTwintPaymentMethodOptions {
 pub struct CheckoutUpiPaymentMethodOptions {
     #[serde(default)]
     pub mandate_options: ::core::option::Option<MandateOptionsUpi>,
-    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.
+    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.  If you provide a Customer with the PaymentIntent, you can use this parameter to [attach the payment method](/`payments/save-during-payment`) to the Customer after the PaymentIntent is confirmed and the customer completes any required actions. If you don''t provide a Customer, you can still [attach](/`api/payment_methods/attach`) the payment method to a Customer after the transaction completes.  If the payment method is card_present and isn''t a digital wallet, Stripe creates and attaches a [generated_card](/`api/charges/object`#charge_object-payment_method_details-card_present-generated_card) payment method representing the card to the Customer instead.  When processing card payments, Stripe uses setup_future_usage to help you comply with regional legislation and network rules, such as [SCA](/strong-customer-authentication). // TODO: enum values: ["none", "off_session", "on_session"]
     #[serde(default)]
     pub setup_future_usage: ::core::option::Option<String>,
 }
@@ -11497,7 +11077,7 @@ pub struct CheckoutUpiPaymentMethodOptions {
 pub struct CheckoutUsBankAccountPaymentMethodOptions {
     #[serde(default)]
     pub financial_connections: ::core::option::Option<LinkedAccountOptionsCommon>,
-    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.
+    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.  If you provide a Customer with the PaymentIntent, you can use this parameter to [attach the payment method](/`payments/save-during-payment`) to the Customer after the PaymentIntent is confirmed and the customer completes any required actions. If you don''t provide a Customer, you can still [attach](/`api/payment_methods/attach`) the payment method to a Customer after the transaction completes.  If the payment method is card_present and isn''t a digital wallet, Stripe creates and attaches a [generated_card](/`api/charges/object`#charge_object-payment_method_details-card_present-generated_card) payment method representing the card to the Customer instead.  When processing card payments, Stripe uses setup_future_usage to help you comply with regional legislation and network rules, such as [SCA](/strong-customer-authentication). // TODO: enum values: ["none", "off_session", "on_session"]
     #[serde(default)]
     pub setup_future_usage: ::core::option::Option<String>,
     /// Controls when Stripe will attempt to debit the funds from the customer''s account. The date must be a string in YYYY-MM-DD format. The date must be in the future and between 3 and 15 calendar days from now.
@@ -11622,21 +11202,21 @@ pub struct CustomerTax {
     /// The identified tax location of the customer.
     #[serde(default)]
     pub location: ::core::option::Option<serde_json::Value>,
-    /// The tax calculation provider used for location resolution. Defaults to stripe when not using a [third-party provider](/tax/third-party-apps). // TODO: enum values: ["anrok", "avalara", "sphere", "stripe"]
+    /// The tax calculation provider used for location resolution. Defaults to stripe when not using a [third-party provider](/`tax/third-party-apps`). // TODO: enum values: ["anrok", "avalara", "sphere", "stripe"]
     pub provider: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomerBalanceResourceCashBalanceTransactionResourceAdjustedForOverdraft {
-    /// The [Balance Transaction](https://docs.stripe.com/api/balance_transactions/object) that corresponds to funds taken out of your Stripe balance.
+    /// The [Balance Transaction](<https://docs.stripe.`com/api/balance_transactions/object`>) that corresponds to funds taken out of your Stripe balance.
     pub balance_transaction: serde_json::Value,
-    /// The [Cash Balance Transaction](https://docs.stripe.com/api/cash_balance_transactions/object) that brought the customer balance negative, triggering the clawback of funds.
+    /// The [Cash Balance Transaction](<https://docs.stripe.`com/api/cash_balance_transactions/object`>) that brought the customer balance negative, triggering the clawback of funds.
     pub linked_transaction: serde_json::Value,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomerBalanceResourceCashBalanceTransactionResourceAppliedToPaymentTransaction {
-    /// The [Payment Intent](https://docs.stripe.com/api/payment_intents/object) that funds were applied to.
+    /// The [Payment Intent](<https://docs.stripe.`com/api/payment_intents/object`>) that funds were applied to.
     pub payment_intent: serde_json::Value,
 }
 
@@ -11648,19 +11228,19 @@ pub struct CustomerBalanceResourceCashBalanceTransactionResourceFundedTransactio
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomerBalanceResourceCashBalanceTransactionResourceRefundedFromPaymentTransaction {
-    /// The [Refund](https://docs.stripe.com/api/refunds/object) that moved these funds into the customer''s cash balance.
+    /// The [Refund](<https://docs.stripe.`com/api/refunds/object`>) that moved these funds into the customer''s cash balance.
     pub refund: serde_json::Value,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomerBalanceResourceCashBalanceTransactionResourceTransferredToBalance {
-    /// The [Balance Transaction](https://docs.stripe.com/api/balance_transactions/object) that corresponds to funds transferred to your Stripe balance.
+    /// The [Balance Transaction](<https://docs.stripe.`com/api/balance_transactions/object`>) that corresponds to funds transferred to your Stripe balance.
     pub balance_transaction: serde_json::Value,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomerBalanceResourceCashBalanceTransactionResourceUnappliedFromPaymentTransaction {
-    /// The [Payment Intent](https://docs.stripe.com/api/payment_intents/object) that funds were unapplied from.
+    /// The [Payment Intent](<https://docs.stripe.`com/api/payment_intents/object`>) that funds were unapplied from.
     pub payment_intent: serde_json::Value,
 }
 
@@ -11682,7 +11262,7 @@ pub struct DisputeEvidence {
     /// The billing address provided by the customer.
     #[serde(default)]
     pub billing_address: ::core::option::Option<String>,
-    /// (ID of a [file upload](https://stripe.com/docs/guides/file-upload)) Your subscription cancellation policy, as shown to the customer.
+    /// (ID of a [file upload](<https://stripe.`com/docs/guides/file-upload`>)) Your subscription cancellation policy, as shown to the customer.
     #[serde(default)]
     pub cancellation_policy: ::core::option::Option<serde_json::Value>,
     /// An explanation of how and when the customer was shown your refund policy prior to purchase.
@@ -11691,7 +11271,7 @@ pub struct DisputeEvidence {
     /// A justification for why the customer''s subscription was not canceled.
     #[serde(default)]
     pub cancellation_rebuttal: ::core::option::Option<String>,
-    /// (ID of a [file upload](https://stripe.com/docs/guides/file-upload)) Any communication with the customer that you feel is relevant to your case. Examples include emails proving that the customer received the product or service, or demonstrating their use of or satisfaction with the product or service.
+    /// (ID of a [file upload](<https://stripe.`com/docs/guides/file-upload`>)) Any communication with the customer that you feel is relevant to your case. Examples include emails proving that the customer received the product or service, or demonstrating their use of or satisfaction with the product or service.
     #[serde(default)]
     pub customer_communication: ::core::option::Option<serde_json::Value>,
     /// The email address of the customer.
@@ -11703,10 +11283,10 @@ pub struct DisputeEvidence {
     /// The IP address that the customer used when making the purchase.
     #[serde(default)]
     pub customer_purchase_ip: ::core::option::Option<String>,
-    /// (ID of a [file upload](https://stripe.com/docs/guides/file-upload)) A relevant document or contract showing the customer''s signature.
+    /// (ID of a [file upload](<https://stripe.`com/docs/guides/file-upload`>)) A relevant document or contract showing the customer''s signature.
     #[serde(default)]
     pub customer_signature: ::core::option::Option<serde_json::Value>,
-    /// (ID of a [file upload](https://stripe.com/docs/guides/file-upload)) Documentation for the prior charge that can uniquely identify the charge, such as a receipt, shipping label, work order, etc. This document should be paired with a similar document from the disputed payment that proves the two payments are separate.
+    /// (ID of a [file upload](<https://stripe.`com/docs/guides/file-upload`>)) Documentation for the prior charge that can uniquely identify the charge, such as a receipt, shipping label, work order, etc. This document should be paired with a similar document from the disputed payment that proves the two payments are separate.
     #[serde(default)]
     pub duplicate_charge_documentation: ::core::option::Option<serde_json::Value>,
     /// An explanation of the difference between the disputed charge versus the prior charge that appears to be a duplicate.
@@ -11719,10 +11299,10 @@ pub struct DisputeEvidence {
     /// A description of the product or service that was sold.
     #[serde(default)]
     pub product_description: ::core::option::Option<String>,
-    /// (ID of a [file upload](https://stripe.com/docs/guides/file-upload)) Any receipt or message sent to the customer notifying them of the charge.
+    /// (ID of a [file upload](<https://stripe.`com/docs/guides/file-upload`>)) Any receipt or message sent to the customer notifying them of the charge.
     #[serde(default)]
     pub receipt: ::core::option::Option<serde_json::Value>,
-    /// (ID of a [file upload](https://stripe.com/docs/guides/file-upload)) Your refund policy, as shown to the customer.
+    /// (ID of a [file upload](<https://stripe.`com/docs/guides/file-upload`>)) Your refund policy, as shown to the customer.
     #[serde(default)]
     pub refund_policy: ::core::option::Option<serde_json::Value>,
     /// Documentation demonstrating that the customer was shown your refund policy prior to purchase.
@@ -11734,7 +11314,7 @@ pub struct DisputeEvidence {
     /// The date on which the customer received or began receiving the purchased service, in a clear human-readable format.
     #[serde(default)]
     pub service_date: ::core::option::Option<String>,
-    /// (ID of a [file upload](https://stripe.com/docs/guides/file-upload)) Documentation showing proof that a service was provided to the customer. This could include a copy of a signed contract, work order, or other form of written agreement.
+    /// (ID of a [file upload](<https://stripe.`com/docs/guides/file-upload`>)) Documentation showing proof that a service was provided to the customer. This could include a copy of a signed contract, work order, or other form of written agreement.
     #[serde(default)]
     pub service_documentation: ::core::option::Option<serde_json::Value>,
     /// The address to which a physical product was shipped. You should try to include as complete address information as possible.
@@ -11746,13 +11326,13 @@ pub struct DisputeEvidence {
     /// The date on which a physical product began its route to the shipping address, in a clear human-readable format.
     #[serde(default)]
     pub shipping_date: ::core::option::Option<String>,
-    /// (ID of a [file upload](https://stripe.com/docs/guides/file-upload)) Documentation showing proof that a product was shipped to the customer at the same address the customer provided to you. This could include a copy of the shipment receipt, shipping label, etc. It should show the customer''s full shipping address, if possible.
+    /// (ID of a [file upload](<https://stripe.`com/docs/guides/file-upload`>)) Documentation showing proof that a product was shipped to the customer at the same address the customer provided to you. This could include a copy of the shipment receipt, shipping label, etc. It should show the customer''s full shipping address, if possible.
     #[serde(default)]
     pub shipping_documentation: ::core::option::Option<serde_json::Value>,
     /// The tracking number for a physical product, obtained from the delivery service. If multiple tracking numbers were generated for this purchase, please separate them with commas.
     #[serde(default)]
     pub shipping_tracking_number: ::core::option::Option<String>,
-    /// (ID of a [file upload](https://stripe.com/docs/guides/file-upload)) Any additional evidence or statements.
+    /// (ID of a [file upload](<https://stripe.`com/docs/guides/file-upload`>)) Any additional evidence or statements.
     #[serde(default)]
     pub uncategorized_file: ::core::option::Option<serde_json::Value>,
     /// Any additional evidence or statements.
@@ -11768,7 +11348,7 @@ pub struct DisputeEvidenceDetails {
     pub enhanced_eligibility: DisputeEnhancedEligibility,
     /// Whether evidence has been staged for this dispute.
     pub has_evidence: bool,
-    /// Whether the last evidence submission was submitted past the due date. Defaults to false if no evidence submissions have occurred. If true, then delivery of the latest evidence is *not* guaranteed.
+    /// Whether the last evidence submission was submitted past the due date. Defaults to `false` if no evidence submissions have occurred. If `true`, then delivery of the latest evidence is *not* guaranteed.
     pub past_due: bool,
     /// The number of times evidence has been submitted. Typically, you may only submit evidence once.
     pub submission_count: i64,
@@ -11791,19 +11371,19 @@ pub struct DisputePaymentMethodDetails {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ApiErrors {
-    /// For card errors resulting from a card issuer decline, a short string indicating [how to proceed with an error](https://docs.stripe.com/declines#retrying-issuer-declines) if they provide one.
+    /// For card errors resulting from a card issuer decline, a short string indicating [how to proceed with an error](<https://docs.stripe.`com/declines`#retrying-issuer-declines>) if they provide one.
     #[serde(default)]
     pub advice_code: ::core::option::Option<String>,
     /// For card errors, the ID of the failed charge.
     #[serde(default)]
     pub charge: ::core::option::Option<String>,
-    /// For some errors that could be handled programmatically, a short string indicating the [error code](https://docs.stripe.com/error-codes) reported.
+    /// For some errors that could be handled programmatically, a short string indicating the [error code](<https://docs.stripe.`com/error-codes`>) reported.
     #[serde(default)]
     pub code: ::core::option::Option<String>,
-    /// For card errors resulting from a card issuer decline, a short string indicating the [card issuer''s reason for the decline](https://docs.stripe.com/declines#issuer-declines) if they provide one.
+    /// For card errors resulting from a card issuer decline, a short string indicating the [card issuer''s reason for the decline](<https://docs.stripe.`com/declines`#issuer-declines>) if they provide one.
     #[serde(default)]
     pub decline_code: ::core::option::Option<String>,
-    /// A URL to more information about the [error code](https://docs.stripe.com/error-codes) reported.
+    /// A URL to more information about the [error code](<https://docs.stripe.`com/error-codes`>) reported.
     #[serde(default)]
     pub doc_url: ::core::option::Option<String>,
     /// A human-readable message providing more details about the error. For card errors, these messages can be shown to your users.
@@ -11830,7 +11410,7 @@ pub struct ApiErrors {
     pub request_log_url: ::core::option::Option<String>,
     #[serde(default)]
     pub setup_intent: ::core::option::Option<SetupIntent>,
-    /// The [source object](https://docs.stripe.com/api/sources/object) for errors returned on a request involving a source.
+    /// The [source object](<https://docs.stripe.`com/api/sources/object`>) for errors returned on a request involving a source.
     #[serde(default)]
     pub source: ::core::option::Option<serde_json::Value>,
     /// The type of error returned. One of api_error, card_error, idempotency_error, or invalid_request_error // TODO: enum values: ["api_error", "card_error", "idempotency_error", "invalid_request_error"]
@@ -11840,7 +11420,7 @@ pub struct ApiErrors {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NotificationEventData {
-    /// Object containing the API resource relevant to the event. For example, an invoice.created event will have a full [invoice object](https://api.stripe.com#invoice_object) as the value of the object key.
+    /// Object containing the API resource relevant to the event. For example, an invoice.created event will have a full [invoice object](<https://api.stripe.com#invoice_object>) as the value of the object key.
     pub object: serde_json::Value,
     /// Object containing the names of the updated attributes and their values prior to the event (only included in events of type *.updated). If an array attribute has any updated elements, this object contains the entire array. In Stripe API versions 2017-04-06 or earlier, an updated array attribute in this object includes only the updated array elements.
     #[serde(default)]
@@ -11905,13 +11485,13 @@ pub struct GelatoSessionDocumentOptions {
     /// Array of strings of allowed identity document types. If the provided identity document isn’t one of the allowed types, the verification check will fail with a document_type_not_allowed error code.
     #[serde(default)]
     pub allowed_types: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Collect an ID number and perform an [ID number check](https://docs.stripe.com/identity/verification-checks?type=id-number) with the document’s extracted name and date of birth.
+    /// Collect an ID number and perform an [ID number check](<https://docs.stripe.`com/identity/verification-checks`?type=id-number>) with the document’s extracted name and date of birth.
     #[serde(default)]
     pub require_id_number: ::core::option::Option<bool>,
     /// Disable image uploads, identity document images have to be captured using the device’s camera.
     #[serde(default)]
     pub require_live_capture: ::core::option::Option<bool>,
-    /// Capture a face image and perform a [selfie check](https://docs.stripe.com/identity/verification-checks?type=selfie) comparing a photo ID and a picture of your user’s face. [Learn more](https://docs.stripe.com/identity/selfie).
+    /// Capture a face image and perform a [selfie check](<https://docs.stripe.`com/identity/verification-checks`?type=selfie>) comparing a photo ID and a picture of your user’s face. [Learn more](<https://docs.stripe.`com/identity/selfie`>).
     #[serde(default)]
     pub require_matching_selfie: ::core::option::Option<bool>,
 }
@@ -11960,7 +11540,7 @@ pub struct GelatoDocumentReport {
     /// Expiration date of the document.
     #[serde(default)]
     pub expiration_date: ::core::option::Option<serde_json::Value>,
-    /// Array of [File](https://docs.stripe.com/api/files) ids containing images for this document.
+    /// Array of [File](<https://docs.stripe.`com/api/files`>) ids containing images for this document.
     #[serde(default)]
     pub files: ::core::option::Option<::std::vec::Vec<String>>,
     /// First name as it appears in the document.
@@ -12056,13 +11636,13 @@ pub struct GelatoPhoneReport {
 /// Result from a selfie check
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GelatoSelfieReport {
-    /// ID of the [File](https://docs.stripe.com/api/files) holding the image of the identity document used in this check.
+    /// ID of the [File](<https://docs.stripe.`com/api/files`>) holding the image of the identity document used in this check.
     #[serde(default)]
     pub document: ::core::option::Option<String>,
     /// Details on the verification error. Present when status is unverified.
     #[serde(default)]
     pub error: ::core::option::Option<serde_json::Value>,
-    /// ID of the [File](https://docs.stripe.com/api/files) holding the image of the selfie used in this check.
+    /// ID of the [File](<https://docs.stripe.`com/api/files`>) holding the image of the selfie used in this check.
     #[serde(default)]
     pub selfie: ::core::option::Option<String>,
     /// Status of this selfie check. // TODO: enum values: ["unverified", "verified"]
@@ -12097,7 +11677,7 @@ pub struct InboundTransfersPaymentMethodDetailsUsBankAccount {
     /// ID of the mandate used to make this payment.
     #[serde(default)]
     pub mandate: ::core::option::Option<serde_json::Value>,
-    /// The network rails used. See the [docs](https://docs.stripe.com/treasury/money-movement/timelines) to learn more about money movement timelines for each network type. // TODO: enum values: ["ach"]
+    /// The network rails used. See the [docs](<https://docs.stripe.`com/treasury/money-movement/timelines`>) to learn more about money movement timelines for each network type. // TODO: enum values: ["ach"]
     pub network: String,
     /// Routing number of the bank account.
     #[serde(default)]
@@ -12131,7 +11711,7 @@ pub struct InsightsResourcesPaymentEvaluationAddress {
     /// City, district, suburb, town, or village.
     #[serde(default)]
     pub city: ::core::option::Option<String>,
-    /// Two-letter country code ([ISO 3166-1 alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2)).
+    /// Two-letter country code ([ISO 3166-1 alpha-2](<https://en.wikipedia.`org/wiki/ISO_3166-1_alpha-2`>)).
     #[serde(default)]
     pub country: ::core::option::Option<String>,
     /// Address line 1, such as the street, PO Box, or company name.
@@ -12143,7 +11723,7 @@ pub struct InsightsResourcesPaymentEvaluationAddress {
     /// ZIP or postal code.
     #[serde(default)]
     pub postal_code: ::core::option::Option<String>,
-    /// State, county, province, or region ([ISO 3166-2](https://en.wikipedia.org/wiki/ISO_3166-2)).
+    /// State, county, province, or region ([ISO 3166-2](<https://en.wikipedia.`org/wiki/ISO_3166-2`>)).
     #[serde(default)]
     pub state: ::core::option::Option<String>,
 }
@@ -12153,7 +11733,7 @@ pub struct AutomaticTax {
     /// If Stripe disabled automatic tax, this enum describes why. // TODO: enum values: ["finalization_requires_location_inputs", "finalization_system_error"]
     #[serde(default)]
     pub disabled_reason: ::core::option::Option<String>,
-    /// Whether Stripe automatically computes tax on this invoice. Note that incompatible invoice items (invoice items with manually specified [tax rates](https://docs.stripe.com/api/tax_rates), negative amounts, or tax_behavior=unspecified) cannot be added to automatic tax invoices.
+    /// Whether Stripe automatically computes tax on this invoice. Note that incompatible invoice items (invoice items with manually specified [tax rates](<https://docs.stripe.`com/api/tax_rates`>), negative amounts, or tax_behavior=unspecified) cannot be added to automatic tax invoices.
     pub enabled: bool,
     /// The account that''s liable for tax. If set, the business address and tax registrations required to perform the tax calculation are loaded from this account. The tax transaction is returned in the report of the connected account.
     #[serde(default)]
@@ -12184,7 +11764,7 @@ pub struct InvoicesPaymentSettings {
     /// Payment-method-specific configuration to provide to the invoice’s PaymentIntent.
     #[serde(default)]
     pub payment_method_options: ::core::option::Option<serde_json::Value>,
-    /// The list of payment method types (e.g. card) to provide to the invoice’s PaymentIntent. If not set, Stripe attempts to automatically determine the types to use by looking at the invoice’s default payment method, the subscription’s default payment method, the customer’s default payment method, and your [invoice template settings](https://dashboard.stripe.com/settings/billing/invoice).
+    /// The list of payment method types (e.g. card) to provide to the invoice’s PaymentIntent. If not set, Stripe attempts to automatically determine the types to use by looking at the invoice’s default payment method, the subscription’s default payment method, the customer’s default payment method, and your [invoice template settings](<https://dashboard.stripe.`com/settings/billing/invoice`>).
     #[serde(default)]
     pub payment_method_types: ::core::option::Option<::std::vec::Vec<String>>,
 }
@@ -12391,9 +11971,9 @@ pub struct IssuingCardGooglePay {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IssuingCardholderSpendingLimit {
-    /// Maximum amount allowed to spend per interval. This amount is in the card''s currency and in the [smallest currency unit](https://docs.stripe.com/currencies#zero-decimal).
+    /// Maximum amount allowed to spend per interval. This amount is in the card''s currency and in the [smallest currency unit](<https://docs.stripe.`com/currencies`#zero-decimal>).
     pub amount: i64,
-    /// Array of strings containing [categories](https://docs.stripe.com/api#issuing_authorization_object-merchant_data-category) this limit applies to. Omitting this field will apply the limit to all categories.
+    /// Array of strings containing [categories](<https://docs.stripe.`com/api`#issuing_authorization_object-merchant_data-category>) this limit applies to. Omitting this field will apply the limit to all categories.
     #[serde(default)]
     pub categories: ::core::option::Option<::std::vec::Vec<String>>,
     /// Interval (or event) to which the amount applies. // TODO: enum values: ["all_time", "daily", "monthly", "per_authorization", "weekly", "yearly"]
@@ -12440,7 +12020,7 @@ pub struct IssuingTransactionReceiptData {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LegalEntityCompanyVerificationDocument {
-    /// The back of a document returned by a [file upload](https://api.stripe.com#create_file) with a purpose value of additional_verification. Note that additional_verification files are [not downloadable](/file-upload#uploading-a-file).
+    /// The back of a document returned by a [file upload](<https://api.stripe.com#create_file>) with a purpose value of additional_verification. Note that additional_verification files are [not downloadable](/file-upload#uploading-a-file).
     #[serde(default)]
     pub back: ::core::option::Option<serde_json::Value>,
     /// A user-displayable string describing the verification state of this document.
@@ -12449,7 +12029,7 @@ pub struct LegalEntityCompanyVerificationDocument {
     /// One of document_corrupt, document_expired, document_failed_copy, document_failed_greyscale, document_failed_other, document_failed_test_mode, document_fraudulent, document_incomplete, document_invalid, document_manipulated, document_not_readable, document_not_uploaded, document_type_not_supported, or document_too_large. A machine-readable code specifying the verification state for this document.
     #[serde(default)]
     pub details_code: ::core::option::Option<String>,
-    /// The front of a document returned by a [file upload](https://api.stripe.com#create_file) with a purpose value of additional_verification. Note that additional_verification files are [not downloadable](/file-upload#uploading-a-file).
+    /// The front of a document returned by a [file upload](<https://api.stripe.com#create_file>) with a purpose value of additional_verification. Note that additional_verification files are [not downloadable](/file-upload#uploading-a-file).
     #[serde(default)]
     pub front: ::core::option::Option<serde_json::Value>,
 }
@@ -12594,7 +12174,7 @@ pub struct OutboundPaymentsPaymentMethodDetailsUsBankAccount {
     /// ID of the mandate used to make this payment.
     #[serde(default)]
     pub mandate: ::core::option::Option<serde_json::Value>,
-    /// The network rails used. See the [docs](https://docs.stripe.com/treasury/money-movement/timelines) to learn more about money movement timelines for each network type. // TODO: enum values: ["ach", "us_domestic_wire"]
+    /// The network rails used. See the [docs](<https://docs.stripe.`com/treasury/money-movement/timelines`>) to learn more about money movement timelines for each network type. // TODO: enum values: ["ach", "us_domestic_wire"]
     pub network: String,
     /// Routing number of the bank account.
     #[serde(default)]
@@ -12613,7 +12193,7 @@ pub struct PaymentFlowsAmountDetailsResourceError {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentFlowsAmountDetailsResourceShipping {
-    /// If a physical good is being shipped, the cost of shipping represented in the [smallest currency unit](https://docs.stripe.com/currencies#zero-decimal). An integer greater than or equal to 0.
+    /// If a physical good is being shipped, the cost of shipping represented in the [smallest currency unit](<https://docs.stripe.`com/currencies`#zero-decimal>). An integer greater than or equal to 0.
     #[serde(default)]
     pub amount: ::core::option::Option<i64>,
     /// If a physical good is being shipped, the postal code of where it is being shipped from. At most 10 alphanumeric characters long, hyphens are allowed.
@@ -12626,7 +12206,7 @@ pub struct PaymentFlowsAmountDetailsResourceShipping {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentFlowsAmountDetailsResourceTax {
-    /// The total amount of tax on the transaction represented in the [smallest currency unit](https://docs.stripe.com/currencies#zero-decimal). Required for L2 rates. An integer greater than or equal to 0.
+    /// The total amount of tax on the transaction represented in the [smallest currency unit](<https://docs.stripe.`com/currencies`#zero-decimal>). Required for L2 rates. An integer greater than or equal to 0.  This field is mutually exclusive with the amount_details[line_items][#][tax][total_tax_amount] field.
     #[serde(default)]
     pub total_tax_amount: ::core::option::Option<i64>,
 }
@@ -12672,7 +12252,7 @@ pub struct PaymentFlowsPrivatePaymentMethodsPaypalAmountDetailsLineItemPaymentMe
     /// Description of the line item.
     #[serde(default)]
     pub description: ::core::option::Option<String>,
-    /// The Stripe account ID of the connected account that sells the item. This is only needed when using [Separate Charges and Transfers](https://docs.stripe.com/connect/separate-charges-and-transfers).
+    /// The Stripe account ID of the connected account that sells the item. This is only needed when using [Separate Charges and Transfers](<https://docs.stripe.`com/connect/separate-charges-and-transfers`>).
     #[serde(default)]
     pub sold_by: ::core::option::Option<String>,
 }
@@ -12724,7 +12304,7 @@ pub struct PaymentIntentNextActionDisplayBankTransferInstructions {
     /// The remaining amount that needs to be transferred to complete the payment.
     #[serde(default)]
     pub amount_remaining: ::core::option::Option<i64>,
-    /// Three-letter [ISO currency code](https://www.iso.org/iso-4217-currency-codes.html), in lowercase. Must be a [supported currency](https://stripe.com/docs/currencies).
+    /// Three-letter [ISO currency code](<https://www.iso.`org/iso-4217-currency-codes`.html>), in lowercase. Must be a [supported currency](<https://stripe.`com/docs/currencies`>).
     #[serde(default)]
     pub currency: ::core::option::Option<String>,
     /// A list of financial addresses that can be used to fund the customer balance
@@ -12970,7 +12550,7 @@ pub struct PaymentLinksResourceAfterCompletion {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentLinksResourceAutomaticTax {
-    /// If true, tax will be calculated automatically using the customer''s location.
+    /// If `true`, tax will be calculated automatically using the customer''s location.
     pub enabled: bool,
     /// The account that''s liable for tax. If set, the business address and tax registrations required to perform the tax calculation are loaded from this account. The tax transaction is returned in the report of the connected account.
     #[serde(default)]
@@ -12981,12 +12561,12 @@ pub struct PaymentLinksResourceAutomaticTax {
 pub struct PaymentLinksResourceCustomFields {
     #[serde(default)]
     pub dropdown: ::core::option::Option<PaymentLinksResourceCustomFieldsDropdown>,
-    /// String of your choice that your integration can use to reconcile this field. Must be unique to this field, alphanumeric, and up to 200 characters.
+    /// `String` of your choice that your integration can use to reconcile this field. Must be unique to this field, alphanumeric, and up to 200 characters.
     pub key: String,
     pub label: PaymentLinksResourceCustomFieldsLabel,
     #[serde(default)]
     pub numeric: ::core::option::Option<PaymentLinksResourceCustomFieldsNumeric>,
-    /// Whether the customer is required to complete the field before completing the Checkout Session. Defaults to false.
+    /// Whether the customer is required to complete the field before completing the Checkout Session. Defaults to `false`.
     pub optional: bool,
     #[serde(default)]
     pub text: ::core::option::Option<PaymentLinksResourceCustomFieldsText>,
@@ -13029,7 +12609,7 @@ pub struct PaymentLinksResourceOptionalItem {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentLinksResourcePhoneNumberCollection {
-    /// If true, a phone number will be collected during checkout.
+    /// If `true`, a phone number will be collected during checkout.
     pub enabled: bool,
 }
 
@@ -13128,10 +12708,10 @@ pub struct PaymentMethodConfigResourcePaymentMethodProperties {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodDetailsAffirm {
-    /// ID of the [location](https://docs.stripe.com/api/terminal/locations) that this transaction''s reader is assigned to.
+    /// ID of the [location](<https://docs.stripe.`com/api/terminal/locations`>) that this transaction''s reader is assigned to.
     #[serde(default)]
     pub location: ::core::option::Option<String>,
-    /// ID of the [reader](https://docs.stripe.com/api/terminal/readers) this transaction was made on.
+    /// ID of the [reader](<https://docs.stripe.`com/api/terminal/readers`>) this transaction was made on.
     #[serde(default)]
     pub reader: ::core::option::Option<String>,
     /// The Affirm transaction ID associated with this payment.
@@ -13169,10 +12749,10 @@ pub struct PaymentMethodDetailsBancontact {
     /// Last four characters of the IBAN.
     #[serde(default)]
     pub iban_last4: ::core::option::Option<String>,
-    /// Preferred language of the Bancontact authorization page that the customer is redirected to.
+    /// Preferred language of the Bancontact authorization page that the customer is redirected to. Can be one of en, de, fr, or nl // TODO: enum values: ["de", "en", "fr", "nl"]
     #[serde(default)]
     pub preferred_language: ::core::option::Option<String>,
-    /// Owner''s verified full name. Values are verified or provided by Bancontact directly
+    /// Owner''s verified full name. Values are verified or provided by Bancontact directly (if supported) at the time of authorization or settlement. They cannot be set or mutated.
     #[serde(default)]
     pub verified_name: ::core::option::Option<String>,
 }
@@ -13209,7 +12789,7 @@ pub struct PaymentMethodDetailsCard {
     pub exp_year: i64,
     #[serde(default)]
     pub extended_authorization: ::core::option::Option<PaymentFlowsPrivatePaymentMethodsCardDetailsApiResourceEnterpriseFeaturesExtendedAuthorizationExtendedAuthorization>,
-    /// Uniquely identifies this particular card number. You can use this attribute to check whether two customers who’ve signed up with you are using the same card number, for example. For payment methods that tokenize card information (Apple Pay, Google Pay), the tokenized number might be provided instead of the underlying card number.
+    /// Uniquely identifies this particular card number. You can use this attribute to check whether two customers who’ve signed up with you are using the same card number, for example. For payment methods that tokenize card information (Apple Pay, Google Pay), the tokenized number might be provided instead of the underlying card number.  *As of May 1, 2021, card fingerprint in India for Connect changed to allow two fingerprints for the same card---one for India and one for the rest of the world.*
     #[serde(default)]
     pub fingerprint: ::core::option::Option<String>,
     /// Card funding type. Can be credit, debit, prepaid, or unknown.
@@ -13217,7 +12797,7 @@ pub struct PaymentMethodDetailsCard {
     pub funding: ::core::option::Option<String>,
     #[serde(default)]
     pub incremental_authorization: ::core::option::Option<PaymentFlowsPrivatePaymentMethodsCardDetailsApiResourceEnterpriseFeaturesIncrementalAuthorizationIncrementalAuthorization>,
-    /// Installment details for this payment.
+    /// Installment details for this payment.  For more information, see the [installments integration guide](<https://docs.stripe.`com/payments/installments`>).
     #[serde(default)]
     pub installments: ::core::option::Option<serde_json::Value>,
     /// The last four digits of the card.
@@ -13234,7 +12814,7 @@ pub struct PaymentMethodDetailsCard {
     /// If this card has network token credentials, this contains the details of the network token credentials.
     #[serde(default)]
     pub network_token: ::core::option::Option<serde_json::Value>,
-    /// This is used by the financial networks to identify a transaction. Visa calls this the Transaction ID, Mastercard calls this the Trace ID, and American Express calls this the Acquirer Reference Data. This value will be present if it is returned by the financial network in the authorization response, and null otherwise.
+    /// This is used by the financial networks to identify a transaction. Visa calls this the Transaction ID, Mastercard calls this the Trace ID, and American Express calls this the Acquirer Reference Data. This value will be present if it is returned by the financial network in the authorization response, and `null` otherwise.
     #[serde(default)]
     pub network_transaction_id: ::core::option::Option<String>,
     #[serde(default)]
@@ -13274,7 +12854,7 @@ pub struct PaymentMethodDetailsGiropay {
     /// Bank Identifier Code of the bank associated with the bank account.
     #[serde(default)]
     pub bic: ::core::option::Option<String>,
-    /// Owner''s verified full name. Values are verified or provided by Giropay directly
+    /// Owner''s verified full name. Values are verified or provided by Giropay directly (if supported) at the time of authorization or settlement. They cannot be set or mutated. Giropay rarely provides this information so the attribute is usually empty.
     #[serde(default)]
     pub verified_name: ::core::option::Option<String>,
 }
@@ -13296,10 +12876,10 @@ pub struct PaymentMethodDetailsIdeal {
     /// Last four characters of the IBAN.
     #[serde(default)]
     pub iban_last4: ::core::option::Option<String>,
-    /// Unique transaction ID generated by iDEAL.
+    /// Unique transaction ID generated by `iDEAL`.
     #[serde(default)]
     pub transaction_id: ::core::option::Option<String>,
-    /// Owner''s verified full name. Values are verified or provided by iDEAL directly
+    /// Owner''s verified full name. Values are verified or provided by `iDEAL` directly (if supported) at the time of authorization or settlement. They cannot be set or mutated.
     #[serde(default)]
     pub verified_name: ::core::option::Option<String>,
 }
@@ -13372,10 +12952,10 @@ pub struct PaymentMethodDetailsPayco {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodDetailsPaynow {
-    /// ID of the [location](https://docs.stripe.com/api/terminal/locations) that this transaction''s reader is assigned to.
+    /// ID of the [location](<https://docs.stripe.`com/api/terminal/locations`>) that this transaction''s reader is assigned to.
     #[serde(default)]
     pub location: ::core::option::Option<String>,
-    /// ID of the [reader](https://docs.stripe.com/api/terminal/readers) this transaction was made on.
+    /// ID of the [reader](<https://docs.stripe.`com/api/terminal/readers`>) this transaction was made on.
     #[serde(default)]
     pub reader: ::core::option::Option<String>,
     /// Reference number associated with this PayNow payment
@@ -13427,7 +13007,7 @@ pub struct PaymentMethodDetailsSepaDebit {
     /// Last four characters of the IBAN.
     #[serde(default)]
     pub last4: ::core::option::Option<String>,
-    /// Find the ID of the mandate used for this payment under the [payment_method_details.sepa_debit.mandate](https://docs.stripe.com/api/charges/object#charge_object-payment_method_details-sepa_debit-mandate) property on the Charge. Use this mandate ID to [retrieve the Mandate](https://docs.stripe.com/api/mandates/retrieve).
+    /// Find the ID of the mandate used for this payment under the [payment_method_details.sepa_debit.mandate](<https://docs.stripe.`com/api/charges/object`#charge_object-payment_method_details-sepa_debit-mandate>) property on the Charge. Use this mandate ID to [retrieve the Mandate](<https://docs.stripe.`com/api/mandates/retrieve`>).
     #[serde(default)]
     pub mandate: ::core::option::Option<String>,
 }
@@ -13455,10 +13035,10 @@ pub struct PaymentMethodDetailsSofort {
     /// Last four characters of the IBAN.
     #[serde(default)]
     pub iban_last4: ::core::option::Option<String>,
-    /// Preferred language of the SOFORT authorization page that the customer is redirected to.
+    /// Preferred language of the SOFORT authorization page that the customer is redirected to. Can be one of de, en, es, fr, it, nl, or pl // TODO: enum values: ["de", "en", "es", "fr", "it", "nl", "pl"]
     #[serde(default)]
     pub preferred_language: ::core::option::Option<String>,
-    /// Owner''s verified full name. Values are verified or provided by SOFORT directly
+    /// Owner''s verified full name. Values are verified or provided by SOFORT directly (if supported) at the time of authorization or settlement. They cannot be set or mutated.
     #[serde(default)]
     pub verified_name: ::core::option::Option<String>,
 }
@@ -13517,10 +13097,10 @@ pub struct PaymentMethodDetailsWechatPay {
     /// Uniquely identifies this particular WeChat Pay account. You can use this attribute to check whether two WeChat accounts are the same.
     #[serde(default)]
     pub fingerprint: ::core::option::Option<String>,
-    /// ID of the [location](https://docs.stripe.com/api/terminal/locations) that this transaction''s reader is assigned to.
+    /// ID of the [location](<https://docs.stripe.`com/api/terminal/locations`>) that this transaction''s reader is assigned to.
     #[serde(default)]
     pub location: ::core::option::Option<String>,
-    /// ID of the [reader](https://docs.stripe.com/api/terminal/readers) this transaction was made on.
+    /// ID of the [reader](<https://docs.stripe.`com/api/terminal/readers`>) this transaction was made on.
     #[serde(default)]
     pub reader: ::core::option::Option<String>,
     /// Transaction ID of this particular WeChat Pay transaction.
@@ -13601,7 +13181,7 @@ pub struct PaymentMethodOptionsCardPresentRouting {
 pub struct PaymentMethodOptionsCustomerBalanceBankTransfer {
     #[serde(default)]
     pub eu_bank_transfer: ::core::option::Option<PaymentMethodOptionsCustomerBalanceEuBankAccount>,
-    /// List of address types that should be returned in the financial_addresses response. If not specified, all valid types will be returned.
+    /// List of address types that should be returned in the financial_addresses response. If not specified, all valid types will be returned.  Permitted values include: sort_code, zengin, iban, or spei.
     #[serde(default)]
     pub requested_address_types: ::core::option::Option<::std::vec::Vec<String>>,
     /// The bank transfer type that this PaymentIntent is allowed to use for funding Permitted values include: eu_bank_transfer, gb_bank_transfer, jp_bank_transfer, mx_bank_transfer, or us_bank_transfer. // TODO: enum values: ["eu_bank_transfer", "gb_bank_transfer", "jp_bank_transfer", "mx_bank_transfer", "us_bank_transfer"]
@@ -13646,7 +13226,7 @@ pub struct PaymentPagesCheckoutSessionInvoiceSettings {
     /// The connected account that issues the invoice. The invoice is presented with the branding and support information of the specified account.
     #[serde(default)]
     pub issuer: ::core::option::Option<serde_json::Value>,
-    /// Set of [key-value pairs](https://docs.stripe.com/api/metadata) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
+    /// Set of [key-value pairs](<https://docs.stripe.`com/api/metadata`>) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
     #[serde(default)]
     pub metadata: ::core::option::Option<serde_json::Value>,
     /// Options for invoice PDF rendering.
@@ -13665,9 +13245,9 @@ pub struct PaymentPagesCheckoutSessionTotalDetailsResourceBreakdown {
 /// A representation of an amount of money, consisting of an amount and a currency.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentsPrimitivesPaymentRecordsResourceAmount {
-    /// Three-letter [ISO currency code](https://www.iso.org/iso-4217-currency-codes.html), in lowercase. Must be a [supported currency](https://stripe.com/docs/currencies).
+    /// Three-letter [ISO currency code](<https://www.iso.`org/iso-4217-currency-codes`.html>), in lowercase. Must be a [supported currency](<https://stripe.`com/docs/currencies`>).
     pub currency: String,
-    /// A positive integer representing the amount in the currency''s [minor unit](https://docs.stripe.com/currencies#zero-decimal). For example, 100 can represent 1 USD or 100 JPY.
+    /// A positive integer representing the amount in the currency''s [minor unit](<https://docs.stripe.`com/currencies`#zero-decimal>). For example, 100 can represent 1 USD or 100 JPY.
     pub value: i64,
 }
 
@@ -13928,7 +13508,7 @@ pub struct PaymentsPrimitivesPaymentRecordsResourcePaymentMethodCardDetails {
     /// Four-digit number representing the card''s expiration year.
     #[serde(default)]
     pub exp_year: ::core::option::Option<i64>,
-    /// Uniquely identifies this particular card number. You can use this attribute to check whether two customers who’ve signed up with you are using the same card number, for example. For payment methods that tokenize card information (Apple Pay, Google Pay), the tokenized number might be provided instead of the underlying card number.
+    /// Uniquely identifies this particular card number. You can use this attribute to check whether two customers who’ve signed up with you are using the same card number, for example. For payment methods that tokenize card information (Apple Pay, Google Pay), the tokenized number might be provided instead of the underlying card number.  *As of May 1, 2021, card fingerprint in India for Connect changed to allow two fingerprints for the same card---one for India and one for the rest of the world.*
     #[serde(default)]
     pub fingerprint: ::core::option::Option<String>,
     /// Card funding type. Can be credit, debit, prepaid, or unknown. // TODO: enum values: ["credit", "debit", "prepaid", "unknown"]
@@ -13958,7 +13538,7 @@ pub struct PaymentsPrimitivesPaymentRecordsResourcePaymentMethodCardDetails {
     /// If this card has network token credentials, this contains the details of the network token credentials.
     #[serde(default)]
     pub network_token: ::core::option::Option<serde_json::Value>,
-    /// This is used by the financial networks to identify a transaction. Visa calls this the Transaction ID, Mastercard calls this the Trace ID, and American Express calls this the Acquirer Reference Data. This value will be present if it is returned by the financial network in the authorization response, and null otherwise.
+    /// This is used by the financial networks to identify a transaction. Visa calls this the Transaction ID, Mastercard calls this the Trace ID, and American Express calls this the Acquirer Reference Data. This value will be present if it is returned by the financial network in the authorization response, and `null` otherwise.
     #[serde(default)]
     pub network_transaction_id: ::core::option::Option<String>,
     /// The transaction type that was passed for an off-session, Merchant-Initiated transaction, one of recurring or unscheduled. // TODO: enum values: ["recurring", "unscheduled"]
@@ -13980,13 +13560,13 @@ pub struct PaymentMethodDetailsCardPresent {
     /// Card brand. Can be amex, cartes_bancaires, diners, discover, eftpos_au, jcb, link, mastercard, unionpay, visa or unknown.
     #[serde(default)]
     pub brand: ::core::option::Option<String>,
-    /// The [product code](https://stripe.com/docs/card-product-codes) that identifies the specific program or product associated with a card.
+    /// The [product code](<https://stripe.`com/docs/card-product-codes`>) that identifies the specific program or product associated with a card.
     #[serde(default)]
     pub brand_product: ::core::option::Option<String>,
     /// When using manual capture, a future timestamp after which the charge will be automatically refunded if uncaptured.
     #[serde(default)]
     pub capture_before: ::core::option::Option<i64>,
-    /// The cardholder name as read from the card, in [ISO 7813](https://en.wikipedia.org/wiki/ISO/IEC_7813) format. May include alphanumeric characters, special characters and first/last name separator (/). In some cases, the cardholder name may not be available depending on how the issuer has configured the card. Cardholder name is typically not available on swipe or contactless payments, such as those made with Apple Pay and Google Pay.
+    /// The cardholder name as read from the card, in [ISO 7813](<https://en.wikipedia.`org/wiki/ISO/IEC_7813`>) format. May include alphanumeric characters, special characters and `first/last` name separator (/). In some cases, the cardholder name may not be available depending on how the issuer has configured the card. Cardholder name is typically not available on swipe or contactless payments, such as those made with Apple Pay and Google Pay.
     #[serde(default)]
     pub cardholder_name: ::core::option::Option<String>,
     /// Two-letter ISO code representing the country of the card. You could use this attribute to get a sense of the international breakdown of cards you''ve collected.
@@ -14002,7 +13582,7 @@ pub struct PaymentMethodDetailsCardPresent {
     pub exp_month: i64,
     /// Four-digit number representing the card''s expiration year.
     pub exp_year: i64,
-    /// Uniquely identifies this particular card number. You can use this attribute to check whether two customers who’ve signed up with you are using the same card number, for example. For payment methods that tokenize card information (Apple Pay, Google Pay), the tokenized number might be provided instead of the underlying card number.
+    /// Uniquely identifies this particular card number. You can use this attribute to check whether two customers who’ve signed up with you are using the same card number, for example. For payment methods that tokenize card information (Apple Pay, Google Pay), the tokenized number might be provided instead of the underlying card number.  *As of May 1, 2021, card fingerprint in India for Connect changed to allow two fingerprints for the same card---one for India and one for the rest of the world.*
     #[serde(default)]
     pub fingerprint: ::core::option::Option<String>,
     /// Card funding type. Can be credit, debit, prepaid, or unknown.
@@ -14011,7 +13591,7 @@ pub struct PaymentMethodDetailsCardPresent {
     /// ID of a card PaymentMethod generated from the card_present PaymentMethod that may be attached to a Customer for future transactions. Only present if it was possible to generate a card PaymentMethod.
     #[serde(default)]
     pub generated_card: ::core::option::Option<String>,
-    /// Whether this [PaymentIntent](https://docs.stripe.com/api/payment_intents) is eligible for incremental authorizations. Request support using [request_incremental_authorization_support](https://docs.stripe.com/api/payment_intents/create#create_payment_intent-payment_method_options-card_present-request_incremental_authorization_support).
+    /// Whether this [PaymentIntent](<https://docs.stripe.`com/api/payment_intents`>) is eligible for incremental authorizations. Request support using [request_incremental_authorization_support](<https://docs.stripe.`com/api/payment_intents/create`#create_payment_intent-payment_method_options-card_present-request_incremental_authorization_support>).
     pub incremental_authorization_supported: bool,
     /// The name of the card''s issuing bank.
     #[serde(default)]
@@ -14019,13 +13599,13 @@ pub struct PaymentMethodDetailsCardPresent {
     /// The last four digits of the card.
     #[serde(default)]
     pub last4: ::core::option::Option<String>,
-    /// ID of the [location](https://docs.stripe.com/api/terminal/locations) that this transaction''s reader is assigned to.
+    /// ID of the [location](<https://docs.stripe.`com/api/terminal/locations`>) that this transaction''s reader is assigned to.
     #[serde(default)]
     pub location: ::core::option::Option<String>,
     /// Identifies which network this charge was processed on. Can be amex, cartes_bancaires, diners, discover, eftpos_au, interac, jcb, link, mastercard, unionpay, visa, or unknown.
     #[serde(default)]
     pub network: ::core::option::Option<String>,
-    /// This is used by the financial networks to identify a transaction. Visa calls this the Transaction ID, Mastercard calls this the Trace ID, and American Express calls this the Acquirer Reference Data. This value will be present if it is returned by the financial network in the authorization response, and null otherwise.
+    /// This is used by the financial networks to identify a transaction. Visa calls this the Transaction ID, Mastercard calls this the Trace ID, and American Express calls this the Acquirer Reference Data. This value will be present if it is returned by the financial network in the authorization response, and `null` otherwise.
     #[serde(default)]
     pub network_transaction_id: ::core::option::Option<String>,
     /// Details about payments collected offline.
@@ -14039,7 +13619,7 @@ pub struct PaymentMethodDetailsCardPresent {
     /// How card details were read in this transaction. // TODO: enum values: ["contact_emv", "contactless_emv", "contactless_magstripe_mode", "magnetic_stripe_fallback", "magnetic_stripe_track2"]
     #[serde(default)]
     pub read_method: ::core::option::Option<String>,
-    /// ID of the [reader](https://docs.stripe.com/api/terminal/readers) this transaction was made on.
+    /// ID of the [reader](<https://docs.stripe.`com/api/terminal/readers`>) this transaction was made on.
     #[serde(default)]
     pub reader: ::core::option::Option<String>,
     /// A collection of fields required to be displayed on receipts. Only required for EMV transactions.
@@ -14079,8 +13659,6 @@ pub struct PaymentMethodDetailsCrypto {
 }
 
 /// Custom Payment Methods represent Payment Method types not modeled directly in
-/// the Stripe API. This resource consists of details about the custom payment method
-/// used for this payment attempt.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentsPrimitivesPaymentRecordsResourcePaymentMethodCustomDetails {
     /// Display name for the custom (user-defined) payment method type used to make this payment.
@@ -14100,7 +13678,7 @@ pub struct PaymentMethodDetailsEps {
     /// The customer''s bank. Should be one of arzte_und_apotheker_bank, austrian_anadi_bank_ag, bank_austria, bankhaus_carl_spangler, bankhaus_schelhammer_und_schattera_ag, bawag_psk_ag, bks_bank_ag, brull_kallmus_bank_ag, btv_vier_lander_bank, capital_bank_grawe_gruppe_ag, deutsche_bank_ag, dolomitenbank, easybank_ag, erste_bank_und_sparkassen, hypo_alpeadriabank_international_ag, hypo_noe_lb_fur_niederosterreich_u_wien, hypo_oberosterreich_salzburg_steiermark, hypo_tirol_bank_ag, hypo_vorarlberg_bank_ag, hypo_bank_burgenland_aktiengesellschaft, marchfelder_bank, oberbank_ag, raiffeisen_bankengruppe_osterreich, schoellerbank_ag, sparda_bank_wien, volksbank_gruppe, volkskreditbank_ag, or vr_bank_braunau. // TODO: enum values: ["arzte_und_apotheker_bank", "austrian_anadi_bank_ag", "bank_austria", "bankhaus_carl_spangler", "bankhaus_schelhammer_und_schattera_ag", "bawag_psk_ag", "bks_bank_ag", "brull_kallmus_bank_ag", "btv_vier_lander_bank", "capital_bank_grawe_gruppe_ag", "deutsche_bank_ag", "dolomitenbank", "easybank_ag", "erste_bank_und_sparkassen", "hypo_alpeadriabank_international_ag", "hypo_bank_burgenland_aktiengesellschaft", "hypo_noe_lb_fur_niederosterreich_u_wien", "hypo_oberosterreich_salzburg_steiermark", "hypo_tirol_bank_ag", "hypo_vorarlberg_bank_ag", "marchfelder_bank", "oberbank_ag", "raiffeisen_bankengruppe_osterreich", "schoellerbank_ag", "sparda_bank_wien", "volksbank_gruppe", "volkskreditbank_ag", "vr_bank_braunau"]
     #[serde(default)]
     pub bank: ::core::option::Option<String>,
-    /// Owner''s verified full name. Values are verified or provided by EPS directly
+    /// Owner''s verified full name. Values are verified or provided by EPS directly (if supported) at the time of authorization or settlement. They cannot be set or mutated. EPS rarely provides this information so the attribute is usually empty.
     #[serde(default)]
     pub verified_name: ::core::option::Option<String>,
 }
@@ -14154,10 +13732,10 @@ pub struct PaymentMethodDetailsPaymentRecordIdeal {
     /// Last four characters of the IBAN.
     #[serde(default)]
     pub iban_last4: ::core::option::Option<String>,
-    /// Unique transaction ID generated by iDEAL.
+    /// Unique transaction ID generated by `iDEAL`.
     #[serde(default)]
     pub transaction_id: ::core::option::Option<String>,
-    /// Owner''s verified full name. Values are verified or provided by iDEAL directly (if supported) at the time of authorization or settlement. They cannot be set or mutated.
+    /// Owner''s verified full name. Values are verified or provided by `iDEAL` directly (if supported) at the time of authorization or settlement. They cannot be set or mutated.
     #[serde(default)]
     pub verified_name: ::core::option::Option<String>,
 }
@@ -14167,7 +13745,7 @@ pub struct PaymentMethodDetailsInteracPresent {
     /// Card brand. Can be interac, mastercard or visa.
     #[serde(default)]
     pub brand: ::core::option::Option<String>,
-    /// The cardholder name as read from the card, in [ISO 7813](https://en.wikipedia.org/wiki/ISO/IEC_7813) format. May include alphanumeric characters, special characters and first/last name separator (/). In some cases, the cardholder name may not be available depending on how the issuer has configured the card. Cardholder name is typically not available on swipe or contactless payments, such as those made with Apple Pay and Google Pay.
+    /// The cardholder name as read from the card, in [ISO 7813](<https://en.wikipedia.`org/wiki/ISO/IEC_7813`>) format. May include alphanumeric characters, special characters and `first/last` name separator (/). In some cases, the cardholder name may not be available depending on how the issuer has configured the card. Cardholder name is typically not available on swipe or contactless payments, such as those made with Apple Pay and Google Pay.
     #[serde(default)]
     pub cardholder_name: ::core::option::Option<String>,
     /// Two-letter ISO code representing the country of the card. You could use this attribute to get a sense of the international breakdown of cards you''ve collected.
@@ -14183,7 +13761,7 @@ pub struct PaymentMethodDetailsInteracPresent {
     pub exp_month: i64,
     /// Four-digit number representing the card''s expiration year.
     pub exp_year: i64,
-    /// Uniquely identifies this particular card number. You can use this attribute to check whether two customers who’ve signed up with you are using the same card number, for example. For payment methods that tokenize card information (Apple Pay, Google Pay), the tokenized number might be provided instead of the underlying card number.
+    /// Uniquely identifies this particular card number. You can use this attribute to check whether two customers who’ve signed up with you are using the same card number, for example. For payment methods that tokenize card information (Apple Pay, Google Pay), the tokenized number might be provided instead of the underlying card number.  *As of May 1, 2021, card fingerprint in India for Connect changed to allow two fingerprints for the same card---one for India and one for the rest of the world.*
     #[serde(default)]
     pub fingerprint: ::core::option::Option<String>,
     /// Card funding type. Can be credit, debit, prepaid, or unknown.
@@ -14198,13 +13776,13 @@ pub struct PaymentMethodDetailsInteracPresent {
     /// The last four digits of the card.
     #[serde(default)]
     pub last4: ::core::option::Option<String>,
-    /// ID of the [location](https://docs.stripe.com/api/terminal/locations) that this transaction''s reader is assigned to.
+    /// ID of the [location](<https://docs.stripe.`com/api/terminal/locations`>) that this transaction''s reader is assigned to.
     #[serde(default)]
     pub location: ::core::option::Option<String>,
     /// Identifies which network this charge was processed on. Can be amex, cartes_bancaires, diners, discover, eftpos_au, interac, jcb, link, mastercard, unionpay, visa, or unknown.
     #[serde(default)]
     pub network: ::core::option::Option<String>,
-    /// This is used by the financial networks to identify a transaction. Visa calls this the Transaction ID, Mastercard calls this the Trace ID, and American Express calls this the Acquirer Reference Data. This value will be present if it is returned by the financial network in the authorization response, and null otherwise.
+    /// This is used by the financial networks to identify a transaction. Visa calls this the Transaction ID, Mastercard calls this the Trace ID, and American Express calls this the Acquirer Reference Data. This value will be present if it is returned by the financial network in the authorization response, and `null` otherwise.
     #[serde(default)]
     pub network_transaction_id: ::core::option::Option<String>,
     /// The languages that the issuing bank recommends using for localizing any customer-facing text, as read from the card. Referenced from EMV tag 5F2D, data encoded on the card''s chip.
@@ -14213,7 +13791,7 @@ pub struct PaymentMethodDetailsInteracPresent {
     /// How card details were read in this transaction. // TODO: enum values: ["contact_emv", "contactless_emv", "contactless_magstripe_mode", "magnetic_stripe_fallback", "magnetic_stripe_track2"]
     #[serde(default)]
     pub read_method: ::core::option::Option<String>,
-    /// ID of the [reader](https://docs.stripe.com/api/terminal/readers) this transaction was made on.
+    /// ID of the [reader](<https://docs.stripe.`com/api/terminal/readers`>) this transaction was made on.
     #[serde(default)]
     pub reader: ::core::option::Option<String>,
     /// A collection of fields required to be displayed on receipts. Only required for EMV transactions.
@@ -14236,10 +13814,10 @@ pub struct PaymentMethodDetailsKlarna {
     /// The payer details for this transaction.
     #[serde(default)]
     pub payer_details: ::core::option::Option<serde_json::Value>,
-    /// The Klarna payment method used for this transaction.
+    /// The Klarna payment method used for this transaction. Can be one of pay_later, pay_now, pay_with_financing, or pay_in_installments
     #[serde(default)]
     pub payment_method_category: ::core::option::Option<String>,
-    /// Preferred language of the Klarna authorization page that the customer is redirected to.
+    /// Preferred language of the Klarna authorization page that the customer is redirected to. Can be one of de-AT, en-AT, nl-BE, fr-BE, en-BE, de-DE, en-DE, da-DK, en-DK, es-ES, en-ES, fi-FI, sv-FI, en-FI, en-GB, en-IE, it-IT, en-IT, nl-NL, en-NL, nb-NO, en-NO, sv-SE, en-SE, en-US, es-US, fr-FR, en-FR, cs-CZ, en-CZ, ro-RO, en-RO, el-GR, en-GR, en-AU, en-NZ, en-CA, fr-CA, pl-PL, en-PL, pt-PT, en-PT, de-CH, fr-CH, it-CH, or en-CH
     #[serde(default)]
     pub preferred_locale: ::core::option::Option<String>,
 }
@@ -14269,7 +13847,7 @@ pub struct PaymentMethodDetailsKrCard {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodDetailsLink {
-    /// Two-letter ISO code representing the funding source country beneath the Link payment.
+    /// Two-letter ISO code representing the funding source country beneath the Link payment. You could use this attribute to get a sense of international fees.
     #[serde(default)]
     pub country: ::core::option::Option<String>,
 }
@@ -14342,7 +13920,7 @@ pub struct PaymentMethodDetailsP24 {
     /// Unique reference for this Przelewy24 payment.
     #[serde(default)]
     pub reference: ::core::option::Option<String>,
-    /// Owner''s verified full name. Values are verified or provided by Przelewy24 directly
+    /// Owner''s verified full name. Values are verified or provided by Przelewy24 directly (if supported) at the time of authorization or settlement. They cannot be set or mutated. Przelewy24 rarely provides this information so the attribute is usually empty.
     #[serde(default)]
     pub verified_name: ::core::option::Option<String>,
 }
@@ -14364,10 +13942,10 @@ pub struct PaymentMethodDetailsPaymentRecordPayco {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodDetailsPaymentRecordPaynow {
-    /// ID of the [location](https://docs.stripe.com/api/terminal/locations) that this transaction''s reader is assigned to.
+    /// ID of the [location](<https://docs.stripe.`com/api/terminal/locations`>) that this transaction''s reader is assigned to.
     #[serde(default)]
     pub location: ::core::option::Option<String>,
-    /// ID of the [reader](https://docs.stripe.com/api/terminal/readers) this transaction was made on.
+    /// ID of the [reader](<https://docs.stripe.`com/api/terminal/readers`>) this transaction was made on.
     #[serde(default)]
     pub reader: ::core::option::Option<String>,
     /// Reference number associated with this PayNow payment
@@ -14380,13 +13958,13 @@ pub struct PaymentMethodDetailsPaypal {
     /// Two-letter ISO code representing the buyer''s country. Values are provided by PayPal directly (if supported) at the time of authorization or settlement. They cannot be set or mutated.
     #[serde(default)]
     pub country: ::core::option::Option<String>,
-    /// Owner''s email. Values are provided by PayPal directly
+    /// Owner''s email. Values are provided by PayPal directly (if supported) at the time of authorization or settlement. They cannot be set or mutated.
     #[serde(default)]
     pub payer_email: ::core::option::Option<String>,
     /// PayPal account PayerID. This identifier uniquely identifies the PayPal customer.
     #[serde(default)]
     pub payer_id: ::core::option::Option<String>,
-    /// Owner''s full name. Values provided by PayPal directly
+    /// Owner''s full name. Values provided by PayPal directly (if supported) at the time of authorization or settlement. They cannot be set or mutated.
     #[serde(default)]
     pub payer_name: ::core::option::Option<String>,
     /// The level of protection offered as defined by PayPal Seller Protection for Merchants, for this transaction.
@@ -14473,7 +14051,7 @@ pub struct PaymentMethodDetailsPaymentRecordSepaDebit {
     /// Last four characters of the IBAN.
     #[serde(default)]
     pub last4: ::core::option::Option<String>,
-    /// Find the ID of the mandate used for this payment under the [payment_method_details.sepa_debit.mandate](https://docs.stripe.com/api/charges/object#charge_object-payment_method_details-sepa_debit-mandate) property on the Charge. Use this mandate ID to [retrieve the Mandate](https://docs.stripe.com/api/mandates/retrieve).
+    /// Find the ID of the mandate used for this payment under the [payment_method_details.sepa_debit.mandate](<https://docs.stripe.`com/api/charges/object`#charge_object-payment_method_details-sepa_debit-mandate>) property on the Charge. Use this mandate ID to [retrieve the Mandate](<https://docs.stripe.`com/api/mandates/retrieve`>).
     #[serde(default)]
     pub mandate: ::core::option::Option<String>,
 }
@@ -14580,10 +14158,10 @@ pub struct PaymentMethodDetailsPaymentRecordWechatPay {
     /// Uniquely identifies this particular WeChat Pay account. You can use this attribute to check whether two WeChat accounts are the same.
     #[serde(default)]
     pub fingerprint: ::core::option::Option<String>,
-    /// ID of the [location](https://docs.stripe.com/api/terminal/locations) that this transaction''s reader is assigned to.
+    /// ID of the [location](<https://docs.stripe.`com/api/terminal/locations`>) that this transaction''s reader is assigned to.
     #[serde(default)]
     pub location: ::core::option::Option<String>,
-    /// ID of the [reader](https://docs.stripe.com/api/terminal/readers) this transaction was made on.
+    /// ID of the [reader](<https://docs.stripe.`com/api/terminal/readers`>) this transaction was made on.
     #[serde(default)]
     pub reader: ::core::option::Option<String>,
     /// Transaction ID of this particular WeChat Pay transaction.
@@ -14602,7 +14180,7 @@ pub struct PaymentsPrimitivesPaymentRecordsResourceAddress {
     /// City, district, suburb, town, or village.
     #[serde(default)]
     pub city: ::core::option::Option<String>,
-    /// Two-letter country code ([ISO 3166-1 alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2)).
+    /// Two-letter country code ([ISO 3166-1 alpha-2](<https://en.wikipedia.`org/wiki/ISO_3166-1_alpha-2`>)).
     #[serde(default)]
     pub country: ::core::option::Option<String>,
     /// Address line 1, such as the street, PO Box, or company name.
@@ -14614,7 +14192,7 @@ pub struct PaymentsPrimitivesPaymentRecordsResourceAddress {
     /// ZIP or postal code.
     #[serde(default)]
     pub postal_code: ::core::option::Option<String>,
-    /// State, county, province, or region ([ISO 3166-2](https://en.wikipedia.org/wiki/ISO_3166-2)).
+    /// State, county, province, or region ([ISO 3166-2](<https://en.wikipedia.`org/wiki/ISO_3166-2`>)).
     #[serde(default)]
     pub state: ::core::option::Option<String>,
 }
@@ -14663,13 +14241,13 @@ pub struct PortalFlowsSubscriptionUpdateConfirmDiscount {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PortalFlowsSubscriptionUpdateConfirmItem {
-    /// The ID of the [subscription item](https://docs.stripe.com/api/subscriptions/object#subscription_object-items-data-id) to be updated.
+    /// The ID of the [subscription item](<https://docs.stripe.`com/api/subscriptions/object`#subscription_object-items-data-id>) to be updated.
     #[serde(default)]
     pub id: ::core::option::Option<String>,
-    /// The price the customer should subscribe to through this flow. The price must also be included in the configuration''s [features.subscription_update.products](https://docs.stripe.com/api/customer_portal/configuration#portal_configuration_object-features-subscription_update-products).
+    /// The price the customer should subscribe to through this flow. The price must also be included in the configuration''s [features.subscription_update.products](<https://docs.stripe.`com/api/customer_portal/configuration`#portal_configuration_object-features-subscription_update-products>).
     #[serde(default)]
     pub price: ::core::option::Option<String>,
-    /// [Quantity](https://docs.stripe.com/subscriptions/quantities) for this item that the customer should subscribe to through this flow.
+    /// [Quantity](<https://docs.stripe.`com/subscriptions/quantities`>) for this item that the customer should subscribe to through this flow.
     #[serde(default)]
     pub quantity: ::core::option::Option<i64>,
 }
@@ -14682,14 +14260,13 @@ pub struct ProductMarketingFeature {
 }
 
 /// A feature represents a monetizable ability or functionality in your system.
-/// Features can be assigned to products, and when those products are purchased, Stripe will create an entitlement to the feature for the purchasing customer.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EntitlementsFeature {
     /// Inactive features cannot be attached to new products and will not be returned from the features list endpoint.
     pub active: bool,
     /// Unique identifier for the object.
     pub id: String,
-    /// If the object exists in live mode, the value is true. If the object exists in test mode, the value is false.
+    /// If the object exists in live mode, the value is `true`. If the object exists in test mode, the value is `false`.
     pub livemode: bool,
     /// A unique key you provide as your own system identifier. This may be up to 80 characters.
     pub lookup_key: String,
@@ -14697,7 +14274,7 @@ pub struct EntitlementsFeature {
     pub metadata: serde_json::Value,
     /// The feature''s name, for your own purpose, not meant to be displayable to the customer.
     pub name: String,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["entitlements.feature"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["entitlements.feature"]
     pub object: String,
 }
 
@@ -14713,7 +14290,7 @@ pub struct PromotionCodesResourcePromotion {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PromotionCodesResourceRestrictions {
-    /// Promotion code restrictions defined in each available currency option. Each key must be a three-letter [ISO currency code](https://www.iso.org/iso-4217-currency-codes.html) and a [supported currency](https://stripe.com/docs/currencies).
+    /// Promotion code restrictions defined in each available currency option. Each key must be a three-letter [ISO currency code](<https://www.iso.`org/iso-4217-currency-codes`.html>) and a [supported currency](<https://stripe.`com/docs/currencies`>).
     #[serde(default)]
     pub currency_options: ::core::option::Option<serde_json::Value>,
     /// A Boolean indicating if the Promotion Code should only be redeemed for Customers without any successful payments or invoices
@@ -14721,7 +14298,7 @@ pub struct PromotionCodesResourceRestrictions {
     /// Minimum amount required to redeem this Promotion Code into a Coupon (e.g., a purchase must be $100 or more to work).
     #[serde(default)]
     pub minimum_amount: ::core::option::Option<i64>,
-    /// Three-letter [ISO code](https://stripe.com/docs/currencies) for minimum_amount
+    /// Three-letter [ISO code](<https://stripe.`com/docs/currencies`>) for minimum_amount
     #[serde(default)]
     pub minimum_amount_currency: ::core::option::Option<String>,
 }
@@ -14743,7 +14320,7 @@ pub struct QuotesResourceAutomaticTax {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct QuotesResourceComputed {
-    /// The definitive totals and line items the customer will be charged on a recurring basis. Takes into account the line items with recurring prices and discounts with duration=forever coupons only. Defaults to null if no inputted line items with recurring prices.
+    /// The definitive totals and line items the customer will be charged on a recurring basis. Takes into account the line items with recurring prices and discounts with duration=forever coupons only. Defaults to `null` if no inputted line items with recurring prices.
     #[serde(default)]
     pub recurring: ::core::option::Option<serde_json::Value>,
     pub upfront: QuotesResourceUpfront,
@@ -14751,7 +14328,7 @@ pub struct QuotesResourceComputed {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InvoiceSettingQuoteSetting {
-    /// Number of days within which a customer must pay invoices generated by this quote. This value will be null for quotes where collection_method=charge_automatically.
+    /// Number of days within which a customer must pay invoices generated by this quote. This value will be `null` for quotes where collection_method=charge_automatically.
     #[serde(default)]
     pub days_until_due: ::core::option::Option<i64>,
     pub issuer: ConnectAccountReference,
@@ -14779,7 +14356,7 @@ pub struct QuotesResourceSubscriptionDataSubscriptionData {
     /// When creating a new subscription, the date of which the subscription schedule will start after the quote is accepted. This date is ignored if it is in the past when the quote is accepted. Measured in seconds since the Unix epoch.
     #[serde(default)]
     pub effective_date: ::core::option::Option<i64>,
-    /// Set of [key-value pairs](https://docs.stripe.com/api/metadata) that will set metadata on the subscription or subscription schedule when the quote is accepted. If a recurring price is included in line_items, this field will be passed to the resulting subscription''s metadata field. If subscription_data.effective_date is used, this field will be passed to the resulting subscription schedule''s phases.metadata field. Unlike object-level metadata, this field is declarative. Updates will clear prior values.
+    /// Set of [key-value pairs](<https://docs.stripe.`com/api/metadata`>) that will set metadata on the subscription or subscription schedule when the quote is accepted. If a recurring price is included in line_items, this field will be passed to the resulting subscription''s metadata field. If subscription_data.effective_date is used, this field will be passed to the resulting subscription schedule''s phases.metadata field. Unlike object-level metadata, this field is declarative. Updates will clear prior values.
     #[serde(default)]
     pub metadata: ::core::option::Option<serde_json::Value>,
     /// Integer representing the number of trial period days before the customer is charged for the first time.
@@ -14790,7 +14367,7 @@ pub struct QuotesResourceSubscriptionDataSubscriptionData {
 /// Client device metadata attached to this payment evaluation.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InsightsResourcesPaymentEvaluationClientDeviceMetadata {
-    /// ID for the Radar Session associated with the payment evaluation. A [Radar Session](https://docs.stripe.com/radar/radar-session) is a snapshot of the browser metadata and device details that help Radar make more accurate predictions on your payments.
+    /// ID for the Radar Session associated with the payment evaluation. A [Radar Session](<https://docs.stripe.`com/radar/radar-session`>) is a snapshot of the browser metadata and device details that help Radar make more accurate predictions on your payments.
     pub radar_session: String,
 }
 
@@ -14840,9 +14417,9 @@ pub struct InsightsResourcesPaymentEvaluationEvent {
 /// Payment details attached to this payment evaluation.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InsightsResourcesPaymentEvaluationPaymentDetails {
-    /// Amount intended to be collected by this payment. A positive integer representing how much to charge in the [smallest currency unit](https://docs.stripe.com/currencies#zero-decimal) (e.g., 100 cents to charge $1.00 or 100 to charge ¥100, a zero-decimal currency). The minimum amount is $0.50 US or [equivalent in charge currency](https://docs.stripe.com/currencies#minimum-and-maximum-charge-amounts). The amount value supports up to eight digits (e.g., a value of 99999999 for a USD charge of $999,999.99).
+    /// Amount intended to be collected by this payment. A positive integer representing how much to charge in the [smallest currency unit](<https://docs.stripe.`com/currencies`#zero-decimal>) (e.g., 100 cents to charge $1.00 or 100 to charge ¥100, a zero-decimal currency). The minimum amount is $0.50 US or [equivalent in charge currency](<https://docs.stripe.`com/currencies`#minimum-and-maximum-charge-amounts>). The amount value supports up to eight digits (e.g., a value of 99999999 for a USD charge of $999,999.99).
     pub amount: i64,
-    /// Three-letter [ISO currency code](https://www.iso.org/iso-4217-currency-codes.html), in lowercase. Must be a [supported currency](https://stripe.com/docs/currencies).
+    /// Three-letter [ISO currency code](<https://www.iso.`org/iso-4217-currency-codes`.html>), in lowercase. Must be a [supported currency](<https://stripe.`com/docs/currencies`>).
     pub currency: String,
     /// An arbitrary string attached to the object. Often useful for displaying to users.
     #[serde(default)]
@@ -14976,7 +14553,7 @@ pub struct FinancialReportingFinanceReportRunRunParameters {
     /// Category of balance transactions to be included in the report run.
     #[serde(default)]
     pub reporting_category: ::core::option::Option<String>,
-    /// Defaults to Etc/UTC. The output timezone for all timestamps in the report. A list of possible time zone values is maintained at the [IANA Time Zone Database](http://www.iana.org/time-zones). Has no effect on interval_start or interval_end.
+    /// Defaults to E`tc/UTC`. The output timezone for all timestamps in the report. A list of possible time zone values is maintained at the [IANA Time Zone Database](<http://www.iana.`org/time-zones`>). Has no effect on interval_start or interval_end.
     #[serde(default)]
     pub timezone: ::core::option::Option<String>,
 }
@@ -15172,9 +14749,9 @@ pub struct SetupIntentPaymentMethodOptionsMandateOptionsPayto {
 pub struct ShippingRateFixedAmount {
     /// A non-negative integer in cents representing how much to charge.
     pub amount: i64,
-    /// Three-letter [ISO currency code](https://www.iso.org/iso-4217-currency-codes.html), in lowercase. Must be a [supported currency](https://stripe.com/docs/currencies).
+    /// Three-letter [ISO currency code](<https://www.iso.`org/iso-4217-currency-codes`.html>), in lowercase. Must be a [supported currency](<https://stripe.`com/docs/currencies`>).
     pub currency: String,
-    /// Shipping rates defined in each available currency option. Each key must be a three-letter [ISO currency code](https://www.iso.org/iso-4217-currency-codes.html) and a [supported currency](https://stripe.com/docs/currencies).
+    /// Shipping rates defined in each available currency option. Each key must be a three-letter [ISO currency code](<https://www.iso.`org/iso-4217-currency-codes`.html>) and a [supported currency](<https://stripe.`com/docs/currencies`>).
     #[serde(default)]
     pub currency_options: ::core::option::Option<serde_json::Value>,
 }
@@ -15207,15 +14784,6 @@ pub struct SourceMandateNotificationSepaDebitData {
 }
 
 /// Source objects allow you to accept a variety of payment methods. They
-/// represent a customer''s payment instrument, and can be used with the Stripe API
-/// just like a Card object: once chargeable, they can be charged, or can be
-/// attached to customers.
-///
-/// Stripe doesn''t recommend using the deprecated [Sources API](https://docs.stripe.com/api/sources).
-/// We recommend that you adopt the [PaymentMethods API](https://docs.stripe.com/api/payment_methods).
-/// This newer API provides access to our latest features and payment method types.
-///
-/// Related guides: [Sources API](https://docs.stripe.com/sources) and [Sources & Customers](https://docs.stripe.com/sources/customers).
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Source {
     #[serde(default)]
@@ -15246,7 +14814,7 @@ pub struct Source {
     pub code_verification: ::core::option::Option<SourceCodeVerificationFlow>,
     /// Time at which the object was created. Measured in seconds since the Unix epoch.
     pub created: i64,
-    /// Three-letter [ISO code for the currency](https://stripe.com/docs/currencies) associated with the source. This is the currency for which the source will be chargeable once ready. Required for single_use sources.
+    /// Three-letter [ISO code for the currency](<https://stripe.`com/docs/currencies`>) associated with the source. This is the currency for which the source will be chargeable once ready. Required for single_use sources.
     #[serde(default)]
     pub currency: ::core::option::Option<String>,
     /// The ID of the customer to which this source is attached. This will not be present when the source has not been attached to a customer.
@@ -15264,14 +14832,14 @@ pub struct Source {
     pub ideal: ::core::option::Option<SourceTypeIdeal>,
     #[serde(default)]
     pub klarna: ::core::option::Option<SourceTypeKlarna>,
-    /// If the object exists in live mode, the value is true. If the object exists in test mode, the value is false.
+    /// If the object exists in live mode, the value is `true`. If the object exists in test mode, the value is `false`.
     pub livemode: bool,
-    /// Set of [key-value pairs](https://docs.stripe.com/api/metadata) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
+    /// Set of [key-value pairs](<https://docs.stripe.`com/api/metadata`>) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
     #[serde(default)]
     pub metadata: ::core::option::Option<serde_json::Value>,
     #[serde(default)]
     pub multibanco: ::core::option::Option<SourceTypeMultibanco>,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["source"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["source"]
     pub object: String,
     /// Information about the owner of the payment instrument that may be used or required by particular source types.
     #[serde(default)]
@@ -15295,7 +14863,7 @@ pub struct Source {
     pub status: String,
     #[serde(default)]
     pub three_d_secure: ::core::option::Option<SourceTypeThreeDSecure>,
-    /// The type of the source. The type is a payment method, one of ach_credit_transfer, ach_debit, alipay, bancontact, card, card_present, eps, giropay, ideal, multibanco, klarna, p24, sepa_debit, sofort, three_d_secure, or wechat. An additional hash is included on the source with a name matching this value. It contains additional information specific to the [payment method](https://docs.stripe.com/sources) used. // TODO: enum values: ["ach_credit_transfer", "ach_debit", "acss_debit", "alipay", "au_becs_debit", "bancontact", "card", "card_present", "eps", "giropay", "ideal", "klarna", "multibanco", "p24", "sepa_debit", "sofort", "three_d_secure", "wechat"]
+    /// The type of the source. The type is a payment method, one of ach_credit_transfer, ach_debit, alipay, bancontact, card, card_present, eps, giropay, ideal, multibanco, klarna, p24, sepa_debit, sofort, three_d_secure, or wechat. An additional hash is included on the source with a name matching this value. It contains additional information specific to the [payment method](<https://docs.stripe.`com/sources`>) used. // TODO: enum values: ["ach_credit_transfer", "ach_debit", "acss_debit", "alipay", "au_becs_debit", "bancontact", "card", "card_present", "eps", "giropay", "ideal", "klarna", "multibanco", "p24", "sepa_debit", "sofort", "three_d_secure", "wechat"]
     #[serde(rename = "type")]
     pub type_: String,
     /// Either reusable or single_use. Whether this source should be reusable or not. Some source types may or may not be reusable by construction, while others may leave the option at creation. If an incompatible value is passed, an error will be returned.
@@ -15449,7 +15017,7 @@ pub struct SubscriptionSchedulesResourceDefaultSettings {
     #[serde(default)]
     pub automatic_tax:
         ::core::option::Option<SubscriptionSchedulesResourceDefaultSettingsAutomaticTax>,
-    /// Possible values are phase_start or automatic. If phase_start then billing cycle anchor of the subscription is set to the start of the phase when entering the phase. If automatic then the billing cycle anchor is automatically modified as needed when entering the phase. For more information, see the billing cycle [documentation](https://docs.stripe.com/billing/subscriptions/billing-cycle). // TODO: enum values: ["automatic", "phase_start"]
+    /// Possible values are phase_start or automatic. If phase_start then billing cycle anchor of the subscription is set to the start of the phase when entering the phase. If automatic then the billing cycle anchor is automatically modified as needed when entering the phase. For more information, see the billing cycle [documentation](<https://docs.stripe.`com/billing/subscriptions/billing-cycle`>). // TODO: enum values: ["automatic", "phase_start"]
     pub billing_cycle_anchor: String,
     /// Define thresholds at which an invoice will be sent, and the subscription advanced to a new billing period
     #[serde(default)]
@@ -15482,7 +15050,7 @@ pub struct SubscriptionSchedulePhaseConfiguration {
     pub application_fee_percent: ::core::option::Option<f64>,
     #[serde(default)]
     pub automatic_tax: ::core::option::Option<SchedulesPhaseAutomaticTax>,
-    /// Possible values are phase_start or automatic. If phase_start then billing cycle anchor of the subscription is set to the start of the phase when entering the phase. If automatic then the billing cycle anchor is automatically modified as needed when entering the phase. For more information, see the billing cycle [documentation](https://docs.stripe.com/billing/subscriptions/billing-cycle). // TODO: enum values: ["automatic", "phase_start"]
+    /// Possible values are phase_start or automatic. If phase_start then billing cycle anchor of the subscription is set to the start of the phase when entering the phase. If automatic then the billing cycle anchor is automatically modified as needed when entering the phase. For more information, see the billing cycle [documentation](<https://docs.stripe.`com/billing/subscriptions/billing-cycle`>). // TODO: enum values: ["automatic", "phase_start"]
     #[serde(default)]
     pub billing_cycle_anchor: ::core::option::Option<String>,
     /// Define thresholds at which an invoice will be sent, and the subscription advanced to a new billing period
@@ -15491,7 +15059,7 @@ pub struct SubscriptionSchedulePhaseConfiguration {
     /// Either charge_automatically, or send_invoice. When charging automatically, Stripe will attempt to pay the underlying subscription at the end of each billing cycle using the default source attached to the customer. When sending an invoice, Stripe will email your customer an invoice with payment instructions and mark the subscription as active. // TODO: enum values: ["charge_automatically", "send_invoice"]
     #[serde(default)]
     pub collection_method: ::core::option::Option<String>,
-    /// Three-letter [ISO currency code](https://www.iso.org/iso-4217-currency-codes.html), in lowercase. Must be a [supported currency](https://stripe.com/docs/currencies).
+    /// Three-letter [ISO currency code](<https://www.iso.`org/iso-4217-currency-codes`.html>), in lowercase. Must be a [supported currency](<https://stripe.`com/docs/currencies`>).
     pub currency: String,
     /// ID of the default payment method for the subscription schedule. It must belong to the customer associated with the subscription schedule. If not set, invoices will use the default payment method in the customer''s invoice settings.
     #[serde(default)]
@@ -15511,7 +15079,7 @@ pub struct SubscriptionSchedulePhaseConfiguration {
     pub invoice_settings: ::core::option::Option<serde_json::Value>,
     /// Subscription items to configure the subscription to during this phase of the subscription schedule.
     pub items: ::std::vec::Vec<SubscriptionScheduleConfigurationItem>,
-    /// Set of [key-value pairs](https://docs.stripe.com/api/metadata) that you can attach to a phase. Metadata on a schedule''s phase will update the underlying subscription''s metadata when the phase is entered. Updating the underlying subscription''s metadata directly will not affect the current phase''s metadata.
+    /// Set of [key-value pairs](<https://docs.stripe.`com/api/metadata`>) that you can attach to a phase. Metadata on a schedule''s phase will update the underlying subscription''s metadata when the phase is entered. Updating the underlying subscription''s metadata directly will not affect the current phase''s metadata.
     #[serde(default)]
     pub metadata: ::core::option::Option<serde_json::Value>,
     /// The account (if any) the charge was made on behalf of for charges associated with the schedule''s subscription. See the Connect documentation for details.
@@ -15530,7 +15098,6 @@ pub struct SubscriptionSchedulePhaseConfiguration {
 }
 
 /// Subscription items allow you to create customer subscriptions with more than
-/// one plan, making it easy to represent complex billing relationships.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SubscriptionItem {
     /// Define thresholds at which an invoice will be sent, and the related subscription advanced to a new billing period
@@ -15546,12 +15113,12 @@ pub struct SubscriptionItem {
     pub discounts: ::std::vec::Vec<serde_json::Value>,
     /// Unique identifier for the object.
     pub id: String,
-    /// Set of [key-value pairs](https://docs.stripe.com/api/metadata) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
+    /// Set of [key-value pairs](<https://docs.stripe.`com/api/metadata`>) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
     pub metadata: serde_json::Value,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["subscription_item"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["subscription_item"]
     pub object: String,
     pub price: Price,
-    /// The [quantity](https://docs.stripe.com/subscriptions/quantities) of the plan to which the customer should be subscribed.
+    /// The [quantity](<https://docs.stripe.`com/subscriptions/quantities`>) of the plan to which the customer should be subscribed.
     #[serde(default)]
     pub quantity: ::core::option::Option<i64>,
     /// The subscription this subscription_item belongs to.
@@ -15592,14 +15159,14 @@ pub struct TaxProductResourceTaxAssociationTransactionAttempts {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TaxProductResourceTaxBreakdown {
-    /// The amount of tax, in the [smallest currency unit](https://docs.stripe.com/currencies#minor-units).
+    /// The amount of tax, in the [smallest currency unit](<https://docs.stripe.`com/currencies`#minor-units>).
     pub amount: i64,
     /// Specifies whether the tax amount is included in the line item amount.
     pub inclusive: bool,
     pub tax_rate_details: TaxProductResourceTaxRateDetails,
     /// The reasoning behind this tax, for example, if the product is tax exempt. We might extend the possible values for this field to support new tax rules. // TODO: enum values: ["customer_exempt", "not_collecting", "not_subject_to_tax", "not_supported", "portion_product_exempt", "portion_reduced_rated", "portion_standard_rated", "product_exempt", "product_exempt_holiday", "proportionally_rated", "reduced_rated", "reverse_charge", "standard_rated", "taxable_basis_reduced", "zero_rated"]
     pub taxability_reason: String,
-    /// The amount on which tax is calculated, in the [smallest currency unit](https://docs.stripe.com/currencies#minor-units).
+    /// The amount on which tax is calculated, in the [smallest currency unit](<https://docs.stripe.`com/currencies`#minor-units>).
     pub taxable_amount: i64,
 }
 
@@ -15819,12 +15386,12 @@ pub struct TaxProductRegistrationsResourceCountryOptions {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TaxProductResourceTaxSettingsDefaults {
-    /// The tax calculation provider this account uses. Defaults to stripe when not using a [third-party provider](/tax/third-party-apps). // TODO: enum values: ["anrok", "avalara", "sphere", "stripe"]
+    /// The tax calculation provider this account uses. Defaults to stripe when not using a [third-party provider](/`tax/third-party-apps`). // TODO: enum values: ["anrok", "avalara", "sphere", "stripe"]
     pub provider: String,
-    /// Default [tax behavior](https://stripe.com/docs/tax/products-prices-tax-categories-tax-behavior#tax-behavior) used to specify whether the price is considered inclusive of taxes or exclusive of taxes. If the item''s price has a tax behavior set, it will take precedence over the default tax behavior. // TODO: enum values: ["exclusive", "inclusive", "inferred_by_currency"]
+    /// Default [tax behavior](<https://stripe.`com/docs/tax/products-prices-tax-categories-tax-behavior`#tax-behavior>) used to specify whether the price is considered inclusive of taxes or exclusive of taxes. If the item''s price has a tax behavior set, it will take precedence over the default tax behavior. // TODO: enum values: ["exclusive", "inclusive", "inferred_by_currency"]
     #[serde(default)]
     pub tax_behavior: ::core::option::Option<String>,
-    /// Default [tax code](https://stripe.com/docs/tax/tax-categories) used to classify your products and prices.
+    /// Default [tax code](<https://stripe.`com/docs/tax/tax-categories`>) used to classify your products and prices.
     #[serde(default)]
     pub tax_code: ::core::option::Option<String>,
 }
@@ -15859,7 +15426,7 @@ pub struct TaxProductResourcePostalAddress {
     /// City, district, suburb, town, or village.
     #[serde(default)]
     pub city: ::core::option::Option<String>,
-    /// Two-letter country code ([ISO 3166-1 alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2)).
+    /// Two-letter country code ([ISO 3166-1 alpha-2](<https://en.wikipedia.`org/wiki/ISO_3166-1_alpha-2`>)).
     pub country: String,
     /// Address line 1, such as the street, PO Box, or company name.
     #[serde(default)]
@@ -15870,24 +15437,24 @@ pub struct TaxProductResourcePostalAddress {
     /// ZIP or postal code.
     #[serde(default)]
     pub postal_code: ::core::option::Option<String>,
-    /// State/province as an [ISO 3166-2](https://en.wikipedia.org/wiki/ISO_3166-2) subdivision code, without country prefix, such as "NY" or "TX".
+    /// S`tate/province` as an [ISO 3166-2](<https://en.wikipedia.`org/wiki/ISO_3166-2`>) subdivision code, without country prefix, such as "NY" or "TX".
     #[serde(default)]
     pub state: ::core::option::Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TaxProductResourceLineItemTaxBreakdown {
-    /// The amount of tax, in the [smallest currency unit](https://docs.stripe.com/currencies#minor-units).
+    /// The amount of tax, in the [smallest currency unit](<https://docs.stripe.`com/currencies`#minor-units>).
     pub amount: i64,
     pub jurisdiction: TaxProductResourceJurisdiction,
     /// Indicates whether the jurisdiction was determined by the origin (merchant''s address) or destination (customer''s address). // TODO: enum values: ["destination", "origin"]
     pub sourcing: String,
-    /// Details regarding the rate for this tax. This field will be null when the tax is not imposed, for example if the product is exempt from tax.
+    /// Details regarding the rate for this tax. This field will be `null` when the tax is not imposed, for example if the product is exempt from tax.
     #[serde(default)]
     pub tax_rate_details: ::core::option::Option<serde_json::Value>,
     /// The reasoning behind this tax, for example, if the product is tax exempt. The possible values for this field may be extended as new tax rules are supported. // TODO: enum values: ["customer_exempt", "not_collecting", "not_subject_to_tax", "not_supported", "portion_product_exempt", "portion_reduced_rated", "portion_standard_rated", "product_exempt", "product_exempt_holiday", "proportionally_rated", "reduced_rated", "reverse_charge", "standard_rated", "taxable_basis_reduced", "zero_rated"]
     pub taxability_reason: String,
-    /// The amount on which tax is calculated, in the [smallest currency unit](https://docs.stripe.com/currencies#minor-units).
+    /// The amount on which tax is calculated, in the [smallest currency unit](<https://docs.stripe.`com/currencies`#minor-units>).
     pub taxable_amount: i64,
 }
 
@@ -15906,7 +15473,7 @@ pub struct TerminalConfigurationConfigurationResourceCellularConfig {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TerminalConfigurationConfigurationResourceOfflineConfig {
-    /// Determines whether to allow transactions to be collected while reader is offline. Defaults to false.
+    /// Determines whether to allow transactions to be collected while reader is offline. Defaults to `false`.
     #[serde(default)]
     pub enabled: ::core::option::Option<bool>,
 }
@@ -16004,13 +15571,13 @@ pub struct TerminalConfigurationConfigurationResourceWifiConfig {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LegalEntityJapanAddress {
-    /// City/Ward.
+    /// C`ity/Ward`.
     #[serde(default)]
     pub city: ::core::option::Option<String>,
-    /// Two-letter country code ([ISO 3166-1 alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2)).
+    /// Two-letter country code ([ISO 3166-1 alpha-2](<https://en.wikipedia.`org/wiki/ISO_3166-1_alpha-2`>)).
     #[serde(default)]
     pub country: ::core::option::Option<String>,
-    /// Block/Building number.
+    /// B`lock/Building` number.
     #[serde(default)]
     pub line1: ::core::option::Option<String>,
     /// Building details.
@@ -16022,7 +15589,7 @@ pub struct LegalEntityJapanAddress {
     /// Prefecture.
     #[serde(default)]
     pub state: ::core::option::Option<String>,
-    /// Town/cho-me.
+    /// T`own/cho-me`.
     #[serde(default)]
     pub town: ::core::option::Option<String>,
 }
@@ -16038,7 +15605,7 @@ pub struct TerminalOnboardingLinkLinkOptions {
 /// Represents a line item to be displayed on the reader
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TerminalReaderReaderResourceLineItem {
-    /// The amount of the line item. A positive integer in the [smallest currency unit](https://docs.stripe.com/currencies#zero-decimal).
+    /// The amount of the line item. A positive integer in the [smallest currency unit](<https://docs.stripe.`com/currencies`#zero-decimal>).
     pub amount: i64,
     /// Description of the line item.
     pub description: String,
@@ -16051,7 +15618,7 @@ pub struct TerminalReaderReaderResourceLineItem {
 pub struct TerminalReaderReaderResourceCollectInputsAction {
     /// List of inputs to be collected.
     pub inputs: ::std::vec::Vec<TerminalReaderReaderResourceInput>,
-    /// Set of [key-value pairs](https://docs.stripe.com/api/metadata) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
+    /// Set of [key-value pairs](<https://docs.stripe.`com/api/metadata`>) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
     #[serde(default)]
     pub metadata: ::core::option::Option<serde_json::Value>,
 }
@@ -16106,7 +15673,7 @@ pub struct TerminalReaderReaderResourceRefundPaymentAction {
     /// Charge that is being refunded.
     #[serde(default)]
     pub charge: ::core::option::Option<serde_json::Value>,
-    /// Set of [key-value pairs](https://docs.stripe.com/api/metadata) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
+    /// Set of [key-value pairs](<https://docs.stripe.`com/api/metadata`>) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
     #[serde(default)]
     pub metadata: ::core::option::Option<serde_json::Value>,
     /// Payment intent that is being refunded.
@@ -16157,15 +15724,9 @@ pub struct ThresholdsResourceUsageAlertFilter {
 }
 
 /// These bank accounts are payment methods on Customer objects.
-///
-/// On the other hand [External Accounts](/api#external_accounts) are transfer
-/// destinations on Account objects for connected accounts.
-/// They can be bank accounts or debit cards as well, and are documented in the links above.
-///
-/// Related guide: [Bank debits and transfers](/payments/bank-debits-transfers)
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BankAccount {
-    /// The account this bank account belongs to. Only applicable on Accounts (not customers or recipients) This property is only available when returned as an [External Account](/api/external_account_bank_accounts/object) where [controller.is_controller](/api/accounts/object#account_object-controller-is_controller) is true.
+    /// The account this bank account belongs to. Only applicable on Accounts (not customers or recipients) This property is only available when returned as an [External Account](/`api/external_account_bank_accounts/object`) where [controller.is_controller](/`api/accounts/object`#account_object-controller-is_controller) is `true`.
     #[serde(default)]
     pub account: ::core::option::Option<serde_json::Value>,
     /// The name of the person or business that owns the bank account.
@@ -16185,7 +15746,7 @@ pub struct BankAccount {
     pub bank_name: ::core::option::Option<String>,
     /// Two-letter ISO code representing the country the bank account is located in.
     pub country: String,
-    /// Three-letter [ISO code for the currency](https://stripe.com/docs/payouts) paid out to the bank account.
+    /// Three-letter [ISO code for the currency](<https://stripe.`com/docs/payouts`>) paid out to the bank account.
     pub currency: String,
     /// The ID of the customer that the bank account is associated with.
     #[serde(default)]
@@ -16196,17 +15757,17 @@ pub struct BankAccount {
     /// Uniquely identifies this particular bank account. You can use this attribute to check whether two bank accounts are the same.
     #[serde(default)]
     pub fingerprint: ::core::option::Option<String>,
-    /// Information about the [upcoming new requirements for the bank account](https://docs.stripe.com/connect/custom-accounts/future-requirements), including what information needs to be collected, and by when.
+    /// Information about the [upcoming new requirements for the bank account](<https://docs.stripe.`com/connect/custom-accounts/future-requirements`>), including what information needs to be collected, and by when.
     #[serde(default)]
     pub future_requirements: ::core::option::Option<serde_json::Value>,
     /// Unique identifier for the object.
     pub id: String,
     /// The last four digits of the bank account number.
     pub last4: String,
-    /// Set of [key-value pairs](https://docs.stripe.com/api/metadata) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
+    /// Set of [key-value pairs](<https://docs.stripe.`com/api/metadata`>) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
     #[serde(default)]
     pub metadata: ::core::option::Option<serde_json::Value>,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["bank_account"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["bank_account"]
     pub object: String,
     /// Information about the requirements for the bank account, including what information needs to be collected.
     #[serde(default)]
@@ -16214,35 +15775,31 @@ pub struct BankAccount {
     /// The routing transit number for the bank account.
     #[serde(default)]
     pub routing_number: ::core::option::Option<String>,
-    /// For bank accounts, possible values are new, validated, verified, verification_failed, tokenized_account_number_deactivated or errored. A bank account that hasn''t had any activity or validation performed is new. If Stripe can determine that the bank account exists, its status will be validated. Note that there often isn’t enough information to know (e.g., for smaller credit unions), and the validation is not always run. If customer bank account verification has succeeded, the bank account status will be verified. If the verification failed for any reason, such as microdeposit failure, the status will be verification_failed. If the status is tokenized_account_number_deactivated, the account utilizes a tokenized account number which has been deactivated due to expiration or revocation. This account will need to be reverified to continue using it for money movement. If a payout sent to this bank account fails, we''ll set the status to errored and will not continue to send [scheduled payouts](https://stripe.com/docs/payouts#payout-schedule) until the bank details are updated.
+    /// For bank accounts, possible values are new, validated, verified, verification_failed, tokenized_account_number_deactivated or errored. A bank account that hasn''t had any activity or validation performed is new. If Stripe can determine that the bank account exists, its status will be validated. Note that there often isn’t enough information to know (e.g., for smaller credit unions), and the validation is not always run. If customer bank account verification has succeeded, the bank account status will be verified. If the verification failed for any reason, such as microdeposit failure, the status will be verification_failed. If the status is tokenized_account_number_deactivated, the account utilizes a tokenized account number which has been deactivated due to expiration or revocation. This account will need to be reverified to continue using it for money movement. If a payout sent to this bank account fails, we''ll set the status to errored and will not continue to send [scheduled payouts](<https://stripe.`com/docs/payouts`#payout-schedule>) until the bank details are updated.  For external accounts, possible values are new, errored, verification_failed, and tokenized_account_number_deactivated. If a payout fails, the status is set to errored and scheduled payouts are stopped until account details are updated. In the US and India, if we can''t [verify the owner of the bank account](<https://support.stripe.`com/questions/bank-account-ownership-verification`>), we''ll set the status to verification_failed. Other validations aren''t run against external accounts because they''re only used for payouts. This means the other statuses don''t apply.
     pub status: String,
 }
 
 /// You can store multiple cards on a customer in order to charge the customer
-/// later. You can also store multiple debit cards on a recipient in order to
-/// transfer to those cards later.
-///
-/// Related guide: [Card payments with Sources](https://docs.stripe.com/sources/cards)
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Card {
     #[serde(default)]
     pub account: ::core::option::Option<serde_json::Value>,
-    /// City/District/Suburb/Town/Village.
+    /// C`ity/District/Suburb/Town/Village`.
     #[serde(default)]
     pub address_city: ::core::option::Option<String>,
     /// Billing address country, if provided when creating card.
     #[serde(default)]
     pub address_country: ::core::option::Option<String>,
-    /// Address line 1 (Street address/PO Box/Company name).
+    /// Address line 1 (Street `address/PO` B`ox/Company` name).
     #[serde(default)]
     pub address_line1: ::core::option::Option<String>,
     /// If address_line1 was provided, results of the check: pass, fail, unavailable, or unchecked.
     #[serde(default)]
     pub address_line1_check: ::core::option::Option<String>,
-    /// Address line 2 (Apartment/Suite/Unit/Building).
+    /// Address line 2 (A`partment/Suite/Unit/Building`).
     #[serde(default)]
     pub address_line2: ::core::option::Option<String>,
-    /// State/County/Province/Region.
+    /// S`tate/County/Province/Region`.
     #[serde(default)]
     pub address_state: ::core::option::Option<String>,
     /// ZIP or postal code.
@@ -16262,16 +15819,16 @@ pub struct Card {
     /// Two-letter ISO code representing the country of the card. You could use this attribute to get a sense of the international breakdown of cards you''ve collected.
     #[serde(default)]
     pub country: ::core::option::Option<String>,
-    /// Three-letter [ISO code for currency](https://www.iso.org/iso-4217-currency-codes.html) in lowercase. Must be a [supported currency](https://docs.stripe.com/currencies). Only applicable on accounts (not customers or recipients). The card can be used as a transfer destination for funds in this currency. This property is only available when returned as an [External Account](/api/external_account_cards/object) where [controller.is_controller](/api/accounts/object#account_object-controller-is_controller) is true.
+    /// Three-letter [ISO code for currency](<https://www.iso.`org/iso-4217-currency-codes`.html>) in lowercase. Must be a [supported currency](<https://docs.stripe.`com/currencies`>). Only applicable on accounts (not customers or recipients). The card can be used as a transfer destination for funds in this currency. This property is only available when returned as an [External Account](/`api/external_account_cards/object`) where [controller.is_controller](/`api/accounts/object`#account_object-controller-is_controller) is `true`.
     #[serde(default)]
     pub currency: ::core::option::Option<String>,
     /// The customer that this card belongs to. This attribute will not be in the card object if the card belongs to an account or recipient instead.
     #[serde(default)]
     pub customer: ::core::option::Option<serde_json::Value>,
-    /// If a CVC was provided, results of the check: pass, fail, unavailable, or unchecked. A result of unchecked indicates that CVC was provided but hasn''t been checked yet. Checks are typically performed when attaching a card to a Customer object, or when creating a charge. For more details, see [Check if a card is valid without a charge](https://support.stripe.com/questions/check-if-a-card-is-valid-without-a-charge).
+    /// If a CVC was provided, results of the check: pass, fail, unavailable, or unchecked. A result of unchecked indicates that CVC was provided but hasn''t been checked yet. Checks are typically performed when attaching a card to a Customer object, or when creating a charge. For more details, see [Check if a card is valid without a charge](<https://support.stripe.`com/questions/check-if-a-card-is-valid-without-a-charge`>).
     #[serde(default)]
     pub cvc_check: ::core::option::Option<String>,
-    /// Whether this card is the default external account for its currency. This property is only available for accounts where [controller.requirement_collection](/api/accounts/object#account_object-controller-requirement_collection) is application, which includes Custom accounts.
+    /// Whether this card is the default external account for its currency. This property is only available for accounts where [controller.requirement_collection](/`api/accounts/object`#account_object-controller-requirement_collection) is application, which includes Custom accounts.
     #[serde(default)]
     pub default_for_currency: ::core::option::Option<bool>,
     /// (For tokenized numbers only.) The last four digits of the device account number.
@@ -16281,7 +15838,7 @@ pub struct Card {
     pub exp_month: i64,
     /// Four-digit number representing the card''s expiration year.
     pub exp_year: i64,
-    /// Uniquely identifies this particular card number. You can use this attribute to check whether two customers who’ve signed up with you are using the same card number, for example. For payment methods that tokenize card information (Apple Pay, Google Pay), the tokenized number might be provided instead of the underlying card number.
+    /// Uniquely identifies this particular card number. You can use this attribute to check whether two customers who’ve signed up with you are using the same card number, for example. For payment methods that tokenize card information (Apple Pay, Google Pay), the tokenized number might be provided instead of the underlying card number.  *As of May 1, 2021, card fingerprint in India for Connect changed to allow two fingerprints for the same card---one for India and one for the rest of the world.*
     #[serde(default)]
     pub fingerprint: ::core::option::Option<String>,
     /// Card funding type. Can be credit, debit, prepaid, or unknown.
@@ -16293,7 +15850,7 @@ pub struct Card {
     pub iin: ::core::option::Option<String>,
     /// The last four digits of the card.
     pub last4: String,
-    /// Set of [key-value pairs](https://docs.stripe.com/api/metadata) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
+    /// Set of [key-value pairs](<https://docs.stripe.`com/api/metadata`>) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
     #[serde(default)]
     pub metadata: ::core::option::Option<serde_json::Value>,
     /// Cardholder name.
@@ -16301,15 +15858,15 @@ pub struct Card {
     pub name: ::core::option::Option<String>,
     #[serde(default)]
     pub networks: ::core::option::Option<TokenCardNetworks>,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["card"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["card"]
     pub object: String,
     /// Status of a card based on the card issuer. // TODO: enum values: ["regulated", "unregulated"]
     #[serde(default)]
     pub regulated_status: ::core::option::Option<String>,
-    /// For external accounts that are cards, possible values are new and errored. If a payout fails, the status is set to errored and [scheduled payouts](https://stripe.com/docs/payouts#payout-schedule) are stopped until account details are updated.
+    /// For external accounts that are cards, possible values are new and errored. If a payout fails, the status is set to errored and [scheduled payouts](<https://stripe.`com/docs/payouts`#payout-schedule>) are stopped until account details are updated.
     #[serde(default)]
     pub status: ::core::option::Option<String>,
-    /// If the card number is tokenized, this is the method that was used. Can be android_pay (includes Google Pay), apple_pay, masterpass, visa_checkout, or null.
+    /// If the card number is tokenized, this is the method that was used. Can be android_pay (includes Google Pay), apple_pay, masterpass, visa_checkout, or `null`.
     #[serde(default)]
     pub tokenization_method: ::core::option::Option<String>,
 }
@@ -16326,7 +15883,6 @@ pub struct TreasuryFinancialAccountsResourceBalance {
 }
 
 /// Encodes whether a FinancialAccount has access to a particular Feature, with a status enum and associated status_details.
-/// Stripe or the platform can control Features via the requested field.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TreasuryFinancialAccountFeatures {
     #[serde(default)]
@@ -16341,7 +15897,7 @@ pub struct TreasuryFinancialAccountFeatures {
         ::core::option::Option<TreasuryFinancialAccountsResourceInboundTransfers>,
     #[serde(default)]
     pub intra_stripe_flows: ::core::option::Option<TreasuryFinancialAccountsResourceToggleSettings>,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["treasury.financial_account_features"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["treasury.financial_account_features"]
     pub object: String,
     #[serde(default)]
     pub outbound_payments:
@@ -16431,33 +15987,26 @@ pub struct TreasuryOutboundTransfersResourceUsDomesticWireTrackingDetails {
 }
 
 /// A Payout object is created when you receive funds from Stripe, or when you
-/// initiate a payout to either a bank account or debit card of a [connected
-/// Stripe account](/docs/connect/bank-debit-card-payouts). You can retrieve individual payouts,
-/// and list all payouts. Payouts are made on [varying
-/// schedules](/docs/connect/manage-payout-schedule), depending on your country and
-/// industry.
-///
-/// Related guide: [Receiving payouts](https://docs.stripe.com/payouts)
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Payout {
     /// The amount (in cents (or local equivalent)) that transfers to your bank account or debit card.
     pub amount: i64,
-    /// The application fee (if any) for the payout. [See the Connect documentation](https://docs.stripe.com/connect/instant-payouts#monetization-and-fees) for details.
+    /// The application fee (if any) for the payout. [See the Connect documentation](<https://docs.stripe.`com/connect/instant-payouts`#monetization-and-fees>) for details.
     #[serde(default)]
     pub application_fee: ::core::option::Option<serde_json::Value>,
-    /// The amount of the application fee (if any) requested for the payout. [See the Connect documentation](https://docs.stripe.com/connect/instant-payouts#monetization-and-fees) for details.
+    /// The amount of the application fee (if any) requested for the payout. [See the Connect documentation](<https://docs.stripe.`com/connect/instant-payouts`#monetization-and-fees>) for details.
     #[serde(default)]
     pub application_fee_amount: ::core::option::Option<i64>,
     /// Date that you can expect the payout to arrive in the bank. This factors in delays to account for weekends or bank holidays.
     pub arrival_date: i64,
-    /// Returns true if the payout is created by an [automated payout schedule](https://docs.stripe.com/payouts#payout-schedule) and false if it''s [requested manually](https://stripe.com/docs/payouts#manual-payouts).
+    /// Returns `true` if the payout is created by an [automated payout schedule](<https://docs.stripe.`com/payouts`#payout-schedule>) and `false` if it''s [requested manually](<https://stripe.`com/docs/payouts`#manual-payouts>).
     pub automatic: bool,
     /// ID of the balance transaction that describes the impact of this payout on your account balance.
     #[serde(default)]
     pub balance_transaction: ::core::option::Option<serde_json::Value>,
     /// Time at which the object was created. Measured in seconds since the Unix epoch.
     pub created: i64,
-    /// Three-letter [ISO currency code](https://www.iso.org/iso-4217-currency-codes.html), in lowercase. Must be a [supported currency](https://stripe.com/docs/currencies).
+    /// Three-letter [ISO currency code](<https://www.iso.`org/iso-4217-currency-codes`.html>), in lowercase. Must be a [supported currency](<https://stripe.`com/docs/currencies`>).
     pub currency: String,
     /// An arbitrary string attached to the object. Often useful for displaying to users.
     #[serde(default)]
@@ -16468,7 +16017,7 @@ pub struct Payout {
     /// If the payout fails or cancels, this is the ID of the balance transaction that reverses the initial balance transaction and returns the funds from the failed payout back in your balance.
     #[serde(default)]
     pub failure_balance_transaction: ::core::option::Option<serde_json::Value>,
-    /// Error code that provides a reason for a payout failure, if available. View our [list of failure codes](https://docs.stripe.com/api#payout_failures).
+    /// Error code that provides a reason for a payout failure, if available. View our [list of failure codes](<https://docs.stripe.`com/api`#payout_failures>).
     #[serde(default)]
     pub failure_code: ::core::option::Option<String>,
     /// Message that provides the reason for a payout failure, if available.
@@ -16476,14 +16025,14 @@ pub struct Payout {
     pub failure_message: ::core::option::Option<String>,
     /// Unique identifier for the object.
     pub id: String,
-    /// If the object exists in live mode, the value is true. If the object exists in test mode, the value is false.
+    /// If the object exists in live mode, the value is `true`. If the object exists in test mode, the value is `false`.
     pub livemode: bool,
-    /// Set of [key-value pairs](https://docs.stripe.com/api/metadata) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
+    /// Set of [key-value pairs](<https://docs.stripe.`com/api/metadata`>) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
     #[serde(default)]
     pub metadata: ::core::option::Option<serde_json::Value>,
-    /// The method used to send this payout, which can be standard or instant. instant is supported for payouts to debit cards and bank accounts in certain countries. Learn more about [bank support for Instant Payouts](https://stripe.com/docs/payouts/instant-payouts-banks).
+    /// The method used to send this payout, which can be standard or instant. instant is supported for payouts to debit cards and bank accounts in certain countries. Learn more about [bank support for Instant Payouts](<https://stripe.`com/docs/payouts/instant-payouts-banks`>).
     pub method: String,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["payout"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["payout"]
     pub object: String,
     /// If the payout reverses another, this is the ID of the original payout.
     #[serde(default)]
@@ -16491,7 +16040,7 @@ pub struct Payout {
     /// ID of the v2 FinancialAccount the funds are sent to.
     #[serde(default)]
     pub payout_method: ::core::option::Option<String>,
-    /// If completed, you can use the [Balance Transactions API](https://docs.stripe.com/api/balance_transactions/list#balance_transaction_list-payout) to list all balance transactions that are paid out in this payout. // TODO: enum values: ["completed", "in_progress", "not_applicable"]
+    /// If completed, you can use the [Balance Transactions API](<https://docs.stripe.`com/api/balance_transactions/list`#balance_transaction_list-payout>) to list all balance transactions that are paid out in this payout. // TODO: enum values: ["completed", "in_progress", "not_applicable"]
     pub reconciliation_status: String,
     /// If the payout reverses, this is the ID of the payout that reverses this payout.
     #[serde(default)]
@@ -16511,29 +16060,29 @@ pub struct Payout {
     pub type_: String,
 }
 
-/// You can reverse some [ReceivedCredits](https://api.stripe.com#received_credits) depending on their network and source flow. Reversing a ReceivedCredit leads to the creation of a new object known as a CreditReversal.
+/// You can reverse some [ReceivedCredits](<https://api.stripe.com#received_credits>) depending on their network and source flow. Reversing a ReceivedCredit leads to the creation of a new object known as a CreditReversal.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TreasuryCreditReversal {
     /// Amount (in cents) transferred.
     pub amount: i64,
     /// Time at which the object was created. Measured in seconds since the Unix epoch.
     pub created: i64,
-    /// Three-letter [ISO currency code](https://www.iso.org/iso-4217-currency-codes.html), in lowercase. Must be a [supported currency](https://stripe.com/docs/currencies).
+    /// Three-letter [ISO currency code](<https://www.iso.`org/iso-4217-currency-codes`.html>), in lowercase. Must be a [supported currency](<https://stripe.`com/docs/currencies`>).
     pub currency: String,
     /// The FinancialAccount to reverse funds from.
     pub financial_account: String,
-    /// A [hosted transaction receipt](https://docs.stripe.com/treasury/moving-money/regulatory-receipts) URL that is provided when money movement is considered regulated under Stripe''s money transmission licenses.
+    /// A [hosted transaction receipt](<https://docs.stripe.`com/treasury/moving-money/regulatory-receipts`>) URL that is provided when money movement is considered regulated under Stripe''s money transmission licenses.
     #[serde(default)]
     pub hosted_regulatory_receipt_url: ::core::option::Option<String>,
     /// Unique identifier for the object.
     pub id: String,
-    /// If the object exists in live mode, the value is true. If the object exists in test mode, the value is false.
+    /// If the object exists in live mode, the value is `true`. If the object exists in test mode, the value is `false`.
     pub livemode: bool,
-    /// Set of [key-value pairs](https://docs.stripe.com/api/metadata) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
+    /// Set of [key-value pairs](<https://docs.stripe.`com/api/metadata`>) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
     pub metadata: serde_json::Value,
     /// The rails used to reverse the funds. // TODO: enum values: ["ach", "stripe"]
     pub network: String,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["treasury.credit_reversal"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["treasury.credit_reversal"]
     pub object: String,
     /// The ReceivedCredit being reversed.
     pub received_credit: String,
@@ -16545,19 +16094,19 @@ pub struct TreasuryCreditReversal {
     pub transaction: ::core::option::Option<serde_json::Value>,
 }
 
-/// You can reverse some [ReceivedDebits](https://api.stripe.com#received_debits) depending on their network and source flow. Reversing a ReceivedDebit leads to the creation of a new object known as a DebitReversal.
+/// You can reverse some [ReceivedDebits](<https://api.stripe.com#received_debits>) depending on their network and source flow. Reversing a ReceivedDebit leads to the creation of a new object known as a DebitReversal.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TreasuryDebitReversal {
     /// Amount (in cents) transferred.
     pub amount: i64,
     /// Time at which the object was created. Measured in seconds since the Unix epoch.
     pub created: i64,
-    /// Three-letter [ISO currency code](https://www.iso.org/iso-4217-currency-codes.html), in lowercase. Must be a [supported currency](https://stripe.com/docs/currencies).
+    /// Three-letter [ISO currency code](<https://www.iso.`org/iso-4217-currency-codes`.html>), in lowercase. Must be a [supported currency](<https://stripe.`com/docs/currencies`>).
     pub currency: String,
     /// The FinancialAccount to reverse funds from.
     #[serde(default)]
     pub financial_account: ::core::option::Option<String>,
-    /// A [hosted transaction receipt](https://docs.stripe.com/treasury/moving-money/regulatory-receipts) URL that is provided when money movement is considered regulated under Stripe''s money transmission licenses.
+    /// A [hosted transaction receipt](<https://docs.stripe.`com/treasury/moving-money/regulatory-receipts`>) URL that is provided when money movement is considered regulated under Stripe''s money transmission licenses.
     #[serde(default)]
     pub hosted_regulatory_receipt_url: ::core::option::Option<String>,
     /// Unique identifier for the object.
@@ -16565,13 +16114,13 @@ pub struct TreasuryDebitReversal {
     /// Other flows linked to a DebitReversal.
     #[serde(default)]
     pub linked_flows: ::core::option::Option<serde_json::Value>,
-    /// If the object exists in live mode, the value is true. If the object exists in test mode, the value is false.
+    /// If the object exists in live mode, the value is `true`. If the object exists in test mode, the value is `false`.
     pub livemode: bool,
-    /// Set of [key-value pairs](https://docs.stripe.com/api/metadata) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
+    /// Set of [key-value pairs](<https://docs.stripe.`com/api/metadata`>) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
     pub metadata: serde_json::Value,
     /// The rails used to reverse the funds. // TODO: enum values: ["ach", "card"]
     pub network: String,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["treasury.debit_reversal"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["treasury.debit_reversal"]
     pub object: String,
     /// The ReceivedDebit being reversed.
     pub received_debit: String,
@@ -16583,18 +16132,16 @@ pub struct TreasuryDebitReversal {
     pub transaction: ::core::option::Option<serde_json::Value>,
 }
 
-/// Use [InboundTransfers](https://docs.stripe.com/docs/treasury/moving-money/financial-accounts/into/inbound-transfers) to add funds to your [FinancialAccount](https://api.stripe.com#financial_accounts) via a PaymentMethod that is owned by you. The funds will be transferred via an ACH debit.
-///
-/// Related guide: [Moving money with Treasury using InboundTransfer objects](https://docs.stripe.com/docs/treasury/moving-money/financial-accounts/into/inbound-transfers)
+/// Use [InboundTransfers](<https://docs.stripe.`com/docs/treasury/moving-money/financial-accounts/into/inbound-transfers`>) to add funds to your [FinancialAccount](<https://api.stripe.com#financial_accounts>) via a PaymentMethod that is owned by you. The funds will be transferred via an ACH debit.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TreasuryInboundTransfer {
     /// Amount (in cents) transferred.
     pub amount: i64,
-    /// Returns true if the InboundTransfer is able to be canceled.
+    /// Returns `true` if the InboundTransfer is able to be canceled.
     pub cancelable: bool,
     /// Time at which the object was created. Measured in seconds since the Unix epoch.
     pub created: i64,
-    /// Three-letter [ISO currency code](https://www.iso.org/iso-4217-currency-codes.html), in lowercase. Must be a [supported currency](https://stripe.com/docs/currencies).
+    /// Three-letter [ISO currency code](<https://www.iso.`org/iso-4217-currency-codes`.html>), in lowercase. Must be a [supported currency](<https://stripe.`com/docs/currencies`>).
     pub currency: String,
     /// An arbitrary string attached to the object. Often useful for displaying to users.
     #[serde(default)]
@@ -16604,17 +16151,17 @@ pub struct TreasuryInboundTransfer {
     pub failure_details: ::core::option::Option<serde_json::Value>,
     /// The FinancialAccount that received the funds.
     pub financial_account: String,
-    /// A [hosted transaction receipt](https://docs.stripe.com/treasury/moving-money/regulatory-receipts) URL that is provided when money movement is considered regulated under Stripe''s money transmission licenses.
+    /// A [hosted transaction receipt](<https://docs.stripe.`com/treasury/moving-money/regulatory-receipts`>) URL that is provided when money movement is considered regulated under Stripe''s money transmission licenses.
     #[serde(default)]
     pub hosted_regulatory_receipt_url: ::core::option::Option<String>,
     /// Unique identifier for the object.
     pub id: String,
     pub linked_flows: TreasuryInboundTransfersResourceInboundTransferResourceLinkedFlows,
-    /// If the object exists in live mode, the value is true. If the object exists in test mode, the value is false.
+    /// If the object exists in live mode, the value is `true`. If the object exists in test mode, the value is `false`.
     pub livemode: bool,
-    /// Set of [key-value pairs](https://docs.stripe.com/api/metadata) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
+    /// Set of [key-value pairs](<https://docs.stripe.`com/api/metadata`>) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
     pub metadata: serde_json::Value,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["treasury.inbound_transfer"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["treasury.inbound_transfer"]
     pub object: String,
     /// The origin payment method to be debited for an InboundTransfer.
     #[serde(default)]
@@ -16622,7 +16169,7 @@ pub struct TreasuryInboundTransfer {
     /// Details about the PaymentMethod for an InboundTransfer.
     #[serde(default)]
     pub origin_payment_method_details: ::core::option::Option<serde_json::Value>,
-    /// Returns true if the funds for an InboundTransfer were returned after the InboundTransfer went to the succeeded state.
+    /// Returns `true` if the funds for an InboundTransfer were returned after the InboundTransfer went to the succeeded state.
     #[serde(default)]
     pub returned: ::core::option::Option<bool>,
     /// Statement descriptor shown when funds are debited from the source. Not all payment networks support statement_descriptor.
@@ -16636,16 +16183,12 @@ pub struct TreasuryInboundTransfer {
     pub transaction: ::core::option::Option<serde_json::Value>,
 }
 
-/// When an [issued card](https://docs.stripe.com/issuing) is used to make a purchase, an Issuing Authorization
-/// object is created. [Authorizations](https://docs.stripe.com/issuing/purchases/authorizations) must be approved for the
-/// purchase to be completed successfully.
-///
-/// Related guide: [Issued card authorizations](https://docs.stripe.com/issuing/purchases/authorizations)
+/// When an [issued card](<https://docs.stripe.`com/issuing`>) is used to make a purchase, an Issuing Authorization
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IssuingAuthorization {
-    /// The total amount that was authorized or rejected. This amount is in currency and in the [smallest currency unit](https://stripe.com/docs/currencies#zero-decimal). amount should be the same as merchant_amount, unless currency and merchant_currency are different.
+    /// The total amount that was authorized or rejected. This amount is in currency and in the [smallest currency unit](<https://stripe.`com/docs/currencies`#zero-decimal>). amount should be the same as merchant_amount, unless currency and merchant_currency are different.
     pub amount: i64,
-    /// Detailed breakdown of amount components. These amounts are denominated in currency and in the [smallest currency unit](https://docs.stripe.com/currencies#zero-decimal).
+    /// Detailed breakdown of amount components. These amounts are denominated in currency and in the [smallest currency unit](<https://docs.stripe.`com/currencies`#zero-decimal>).
     #[serde(default)]
     pub amount_details: ::core::option::Option<serde_json::Value>,
     /// Whether the authorization has been approved.
@@ -16660,7 +16203,7 @@ pub struct IssuingAuthorization {
     pub cardholder: ::core::option::Option<serde_json::Value>,
     /// Time at which the object was created. Measured in seconds since the Unix epoch.
     pub created: i64,
-    /// The currency of the cardholder. This currency can be different from the currency presented at authorization and the merchant_currency field on this authorization. Three-letter [ISO currency code](https://www.iso.org/iso-4217-currency-codes.html), in lowercase. Must be a [supported currency](https://stripe.com/docs/currencies).
+    /// The currency of the cardholder. This currency can be different from the currency presented at authorization and the merchant_currency field on this authorization. Three-letter [ISO currency code](<https://www.iso.`org/iso-4217-currency-codes`.html>), in lowercase. Must be a [supported currency](<https://stripe.`com/docs/currencies`>).
     pub currency: String,
     /// Fleet-specific information for authorizations using Fleet cards.
     #[serde(default)]
@@ -16674,60 +16217,56 @@ pub struct IssuingAuthorization {
     pub fuel: ::core::option::Option<serde_json::Value>,
     /// Unique identifier for the object.
     pub id: String,
-    /// If the object exists in live mode, the value is true. If the object exists in test mode, the value is false.
+    /// If the object exists in live mode, the value is `true`. If the object exists in test mode, the value is `false`.
     pub livemode: bool,
-    /// The total amount that was authorized or rejected. This amount is in the merchant_currency and in the [smallest currency unit](https://stripe.com/docs/currencies#zero-decimal). merchant_amount should be the same as amount, unless merchant_currency and currency are different.
+    /// The total amount that was authorized or rejected. This amount is in the merchant_currency and in the [smallest currency unit](<https://stripe.`com/docs/currencies`#zero-decimal>). merchant_amount should be the same as amount, unless merchant_currency and currency are different.
     pub merchant_amount: i64,
-    /// The local currency that was presented to the cardholder for the authorization. This currency can be different from the cardholder currency and the currency field on this authorization. Three-letter [ISO currency code](https://www.iso.org/iso-4217-currency-codes.html), in lowercase. Must be a [supported currency](https://stripe.com/docs/currencies).
+    /// The local currency that was presented to the cardholder for the authorization. This currency can be different from the cardholder currency and the currency field on this authorization. Three-letter [ISO currency code](<https://www.iso.`org/iso-4217-currency-codes`.html>), in lowercase. Must be a [supported currency](<https://stripe.`com/docs/currencies`>).
     pub merchant_currency: String,
     pub merchant_data: IssuingAuthorizationMerchantData,
-    /// Set of [key-value pairs](https://docs.stripe.com/api/metadata) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
+    /// Set of [key-value pairs](<https://docs.stripe.`com/api/metadata`>) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
     pub metadata: serde_json::Value,
     /// Details about the authorization, such as identifiers, set by the card network.
     #[serde(default)]
     pub network_data: ::core::option::Option<serde_json::Value>,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["issuing.authorization"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["issuing.authorization"]
     pub object: String,
-    /// The pending authorization request. This field will only be non-null during an issuing_authorization.request webhook.
+    /// The pending authorization request. This field will only be non-`null` during an issuing_authorization.request webhook.
     #[serde(default)]
     pub pending_request: ::core::option::Option<serde_json::Value>,
-    /// History of every time a pending_request authorization was approved/declined, either by you directly or by Stripe (e.g. based on your spending_controls). If the merchant changes the authorization by performing an incremental authorization, you can look at this field to see the previous requests for the authorization. This field can be helpful in determining why a given authorization was approved/declined.
+    /// History of every time a pending_request authorization was `approved/declined`, either by you directly or by Stripe (e.g. based on your spending_controls). If the merchant changes the authorization by performing an incremental authorization, you can look at this field to see the previous requests for the authorization. This field can be helpful in determining why a given authorization was `approved/declined`.
     pub request_history: ::std::vec::Vec<IssuingAuthorizationRequest>,
     /// The current status of the authorization in its lifecycle. // TODO: enum values: ["closed", "expired", "pending", "reversed"]
     pub status: String,
-    /// [Token](https://docs.stripe.com/api/issuing/tokens/object) object used for this authorization. If a network token was not used for this authorization, this field will be null.
+    /// [Token](<https://docs.stripe.`com/api/issuing/tokens/object`>) object used for this authorization. If a network token was not used for this authorization, this field will be `null`.
     #[serde(default)]
     pub token: ::core::option::Option<serde_json::Value>,
-    /// List of [transactions](https://docs.stripe.com/api/issuing/transactions) associated with this authorization.
+    /// List of [transactions](<https://docs.stripe.`com/api/issuing/transactions`>) associated with this authorization.
     pub transactions: ::std::vec::Vec<IssuingTransaction>,
-    /// [Treasury](https://docs.stripe.com/api/treasury) details related to this authorization if it was created on a [FinancialAccount](https://docs.stripe.com/api/treasury/financial_accounts).
+    /// [Treasury](<https://docs.stripe.`com/api/treasury`>) details related to this authorization if it was created on a [FinancialAccount](<https://docs.stripe.`com/api/treasury/financial_accounts`>).
     #[serde(default)]
     pub treasury: ::core::option::Option<serde_json::Value>,
     pub verification_data: IssuingAuthorizationVerificationData,
     /// Whether the authorization bypassed fraud risk checks because the cardholder has previously completed a fraud challenge on a similar high-risk authorization from the same merchant.
     #[serde(default)]
     pub verified_by_fraud_challenge: ::core::option::Option<bool>,
-    /// The digital wallet used for this transaction. One of apple_pay, google_pay, or samsung_pay. Will populate as null when no digital wallet was utilized.
+    /// The digital wallet used for this transaction. One of apple_pay, google_pay, or samsung_pay. Will populate as `null` when no digital wallet was utilized.
     #[serde(default)]
     pub wallet: ::core::option::Option<String>,
 }
 
-/// Use [OutboundPayments](https://docs.stripe.com/docs/treasury/moving-money/financial-accounts/out-of/outbound-payments) to send funds to another party''s external bank account or [FinancialAccount](https://api.stripe.com#financial_accounts). To send money to an account belonging to the same user, use an [OutboundTransfer](https://api.stripe.com#outbound_transfers).
-///
-/// Simulate OutboundPayment state changes with the /v1/test_helpers/treasury/outbound_payments endpoints. These methods can only be called on test mode objects.
-///
-/// Related guide: [Moving money with Treasury using OutboundPayment objects](https://docs.stripe.com/docs/treasury/moving-money/financial-accounts/out-of/outbound-payments)
+/// Use [OutboundPayments](<https://docs.stripe.`com/docs/treasury/moving-money/financial-accounts/out-of/outbound-payments`>) to send funds to another party''s external bank account or [FinancialAccount](<https://api.stripe.com#financial_accounts>). To send money to an account belonging to the same user, use an [OutboundTransfer](<https://api.stripe.com#outbound_transfers>).
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TreasuryOutboundPayment {
     /// Amount (in cents) transferred.
     pub amount: i64,
-    /// Returns true if the object can be canceled, and false otherwise.
+    /// Returns `true` if the object can be canceled, and `false` otherwise.
     pub cancelable: bool,
     /// Time at which the object was created. Measured in seconds since the Unix epoch.
     pub created: i64,
-    /// Three-letter [ISO currency code](https://www.iso.org/iso-4217-currency-codes.html), in lowercase. Must be a [supported currency](https://stripe.com/docs/currencies).
+    /// Three-letter [ISO currency code](<https://www.iso.`org/iso-4217-currency-codes`.html>), in lowercase. Must be a [supported currency](<https://stripe.`com/docs/currencies`>).
     pub currency: String,
-    /// ID of the [customer](https://docs.stripe.com/api/customers) to whom an OutboundPayment is sent.
+    /// ID of the [customer](<https://docs.stripe.`com/api/customers`>) to whom an OutboundPayment is sent.
     #[serde(default)]
     pub customer: ::core::option::Option<String>,
     /// An arbitrary string attached to the object. Often useful for displaying to users.
@@ -16746,16 +16285,16 @@ pub struct TreasuryOutboundPayment {
     pub expected_arrival_date: i64,
     /// The FinancialAccount that funds were pulled from.
     pub financial_account: String,
-    /// A [hosted transaction receipt](https://docs.stripe.com/treasury/moving-money/regulatory-receipts) URL that is provided when money movement is considered regulated under Stripe''s money transmission licenses.
+    /// A [hosted transaction receipt](<https://docs.stripe.`com/treasury/moving-money/regulatory-receipts`>) URL that is provided when money movement is considered regulated under Stripe''s money transmission licenses.
     #[serde(default)]
     pub hosted_regulatory_receipt_url: ::core::option::Option<String>,
     /// Unique identifier for the object.
     pub id: String,
-    /// If the object exists in live mode, the value is true. If the object exists in test mode, the value is false.
+    /// If the object exists in live mode, the value is `true`. If the object exists in test mode, the value is `false`.
     pub livemode: bool,
-    /// Set of [key-value pairs](https://docs.stripe.com/api/metadata) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
+    /// Set of [key-value pairs](<https://docs.stripe.`com/api/metadata`>) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
     pub metadata: serde_json::Value,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["treasury.outbound_payment"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["treasury.outbound_payment"]
     pub object: String,
     /// Details about a returned OutboundPayment. Only set when the status is returned.
     #[serde(default)]
@@ -16773,20 +16312,16 @@ pub struct TreasuryOutboundPayment {
     pub transaction: serde_json::Value,
 }
 
-/// Use [OutboundTransfers](https://docs.stripe.com/docs/treasury/moving-money/financial-accounts/out-of/outbound-transfers) to transfer funds from a [FinancialAccount](https://api.stripe.com#financial_accounts) to a PaymentMethod belonging to the same entity. To send funds to a different party, use [OutboundPayments](https://api.stripe.com#outbound_payments) instead. You can send funds over ACH rails or through a domestic wire transfer to a user''s own external bank account.
-///
-/// Simulate OutboundTransfer state changes with the /v1/test_helpers/treasury/outbound_transfers endpoints. These methods can only be called on test mode objects.
-///
-/// Related guide: [Moving money with Treasury using OutboundTransfer objects](https://docs.stripe.com/docs/treasury/moving-money/financial-accounts/out-of/outbound-transfers)
+/// Use [OutboundTransfers](<https://docs.stripe.`com/docs/treasury/moving-money/financial-accounts/out-of/outbound-transfers`>) to transfer funds from a [FinancialAccount](<https://api.stripe.com#financial_accounts>) to a PaymentMethod belonging to the same entity. To send funds to a different party, use [OutboundPayments](<https://api.stripe.com#outbound_payments>) instead. You can send funds over ACH rails or through a domestic wire transfer to a user''s own external bank account.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TreasuryOutboundTransfer {
     /// Amount (in cents) transferred.
     pub amount: i64,
-    /// Returns true if the object can be canceled, and false otherwise.
+    /// Returns `true` if the object can be canceled, and `false` otherwise.
     pub cancelable: bool,
     /// Time at which the object was created. Measured in seconds since the Unix epoch.
     pub created: i64,
-    /// Three-letter [ISO currency code](https://www.iso.org/iso-4217-currency-codes.html), in lowercase. Must be a [supported currency](https://stripe.com/docs/currencies).
+    /// Three-letter [ISO currency code](<https://www.iso.`org/iso-4217-currency-codes`.html>), in lowercase. Must be a [supported currency](<https://stripe.`com/docs/currencies`>).
     pub currency: String,
     /// An arbitrary string attached to the object. Often useful for displaying to users.
     #[serde(default)]
@@ -16799,16 +16334,16 @@ pub struct TreasuryOutboundTransfer {
     pub expected_arrival_date: i64,
     /// The FinancialAccount that funds were pulled from.
     pub financial_account: String,
-    /// A [hosted transaction receipt](https://docs.stripe.com/treasury/moving-money/regulatory-receipts) URL that is provided when money movement is considered regulated under Stripe''s money transmission licenses.
+    /// A [hosted transaction receipt](<https://docs.stripe.`com/treasury/moving-money/regulatory-receipts`>) URL that is provided when money movement is considered regulated under Stripe''s money transmission licenses.
     #[serde(default)]
     pub hosted_regulatory_receipt_url: ::core::option::Option<String>,
     /// Unique identifier for the object.
     pub id: String,
-    /// If the object exists in live mode, the value is true. If the object exists in test mode, the value is false.
+    /// If the object exists in live mode, the value is `true`. If the object exists in test mode, the value is `false`.
     pub livemode: bool,
-    /// Set of [key-value pairs](https://docs.stripe.com/api/metadata) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
+    /// Set of [key-value pairs](<https://docs.stripe.`com/api/metadata`>) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
     pub metadata: serde_json::Value,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["treasury.outbound_transfer"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["treasury.outbound_transfer"]
     pub object: String,
     /// Details about a returned OutboundTransfer. Only set when the status is returned.
     #[serde(default)]
@@ -16825,14 +16360,14 @@ pub struct TreasuryOutboundTransfer {
     pub transaction: serde_json::Value,
 }
 
-/// ReceivedCredits represent funds sent to a [FinancialAccount](https://api.stripe.com#financial_accounts) (for example, via ACH or wire). These money movements are not initiated from the FinancialAccount.
+/// ReceivedCredits represent funds sent to a [FinancialAccount](<https://api.stripe.com#financial_accounts>) (for example, via ACH or wire). These money movements are not initiated from the FinancialAccount.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TreasuryReceivedCredit {
     /// Amount (in cents) transferred.
     pub amount: i64,
     /// Time at which the object was created. Measured in seconds since the Unix epoch.
     pub created: i64,
-    /// Three-letter [ISO currency code](https://www.iso.org/iso-4217-currency-codes.html), in lowercase. Must be a [supported currency](https://stripe.com/docs/currencies).
+    /// Three-letter [ISO currency code](<https://www.iso.`org/iso-4217-currency-codes`.html>), in lowercase. Must be a [supported currency](<https://stripe.`com/docs/currencies`>).
     pub currency: String,
     /// An arbitrary string attached to the object. Often useful for displaying to users.
     pub description: String,
@@ -16842,7 +16377,7 @@ pub struct TreasuryReceivedCredit {
     /// The FinancialAccount that received the funds.
     #[serde(default)]
     pub financial_account: ::core::option::Option<String>,
-    /// A [hosted transaction receipt](https://docs.stripe.com/treasury/moving-money/regulatory-receipts) URL that is provided when money movement is considered regulated under Stripe''s money transmission licenses.
+    /// A [hosted transaction receipt](<https://docs.stripe.`com/treasury/moving-money/regulatory-receipts`>) URL that is provided when money movement is considered regulated under Stripe''s money transmission licenses.
     #[serde(default)]
     pub hosted_regulatory_receipt_url: ::core::option::Option<String>,
     /// Unique identifier for the object.
@@ -16850,11 +16385,11 @@ pub struct TreasuryReceivedCredit {
     pub initiating_payment_method_details:
         TreasurySharedResourceInitiatingPaymentMethodDetailsInitiatingPaymentMethodDetails,
     pub linked_flows: TreasuryReceivedCreditsResourceLinkedFlows,
-    /// If the object exists in live mode, the value is true. If the object exists in test mode, the value is false.
+    /// If the object exists in live mode, the value is `true`. If the object exists in test mode, the value is `false`.
     pub livemode: bool,
     /// The rails used to send the funds. // TODO: enum values: ["ach", "card", "stripe", "us_domestic_wire"]
     pub network: String,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["treasury.received_credit"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["treasury.received_credit"]
     pub object: String,
     /// Details describing when a ReceivedCredit may be reversed.
     #[serde(default)]
@@ -16866,14 +16401,14 @@ pub struct TreasuryReceivedCredit {
     pub transaction: ::core::option::Option<serde_json::Value>,
 }
 
-/// ReceivedDebits represent funds pulled from a [FinancialAccount](https://api.stripe.com#financial_accounts). These are not initiated from the FinancialAccount.
+/// ReceivedDebits represent funds pulled from a [FinancialAccount](<https://api.stripe.com#financial_accounts>). These are not initiated from the FinancialAccount.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TreasuryReceivedDebit {
     /// Amount (in cents) transferred.
     pub amount: i64,
     /// Time at which the object was created. Measured in seconds since the Unix epoch.
     pub created: i64,
-    /// Three-letter [ISO currency code](https://www.iso.org/iso-4217-currency-codes.html), in lowercase. Must be a [supported currency](https://stripe.com/docs/currencies).
+    /// Three-letter [ISO currency code](<https://www.iso.`org/iso-4217-currency-codes`.html>), in lowercase. Must be a [supported currency](<https://stripe.`com/docs/currencies`>).
     pub currency: String,
     /// An arbitrary string attached to the object. Often useful for displaying to users.
     pub description: String,
@@ -16883,7 +16418,7 @@ pub struct TreasuryReceivedDebit {
     /// The FinancialAccount that funds were pulled from.
     #[serde(default)]
     pub financial_account: ::core::option::Option<String>,
-    /// A [hosted transaction receipt](https://docs.stripe.com/treasury/moving-money/regulatory-receipts) URL that is provided when money movement is considered regulated under Stripe''s money transmission licenses.
+    /// A [hosted transaction receipt](<https://docs.stripe.`com/treasury/moving-money/regulatory-receipts`>) URL that is provided when money movement is considered regulated under Stripe''s money transmission licenses.
     #[serde(default)]
     pub hosted_regulatory_receipt_url: ::core::option::Option<String>,
     /// Unique identifier for the object.
@@ -16893,11 +16428,11 @@ pub struct TreasuryReceivedDebit {
         TreasurySharedResourceInitiatingPaymentMethodDetailsInitiatingPaymentMethodDetails,
     >,
     pub linked_flows: TreasuryReceivedDebitsResourceLinkedFlows,
-    /// If the object exists in live mode, the value is true. If the object exists in test mode, the value is false.
+    /// If the object exists in live mode, the value is `true`. If the object exists in test mode, the value is `false`.
     pub livemode: bool,
     /// The network used for the ReceivedDebit. // TODO: enum values: ["ach", "card", "stripe"]
     pub network: String,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["treasury.received_debit"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["treasury.received_debit"]
     pub object: String,
     /// Details describing when a ReceivedDebit might be reversed.
     #[serde(default)]
@@ -16924,7 +16459,7 @@ pub struct LegalEntityRegistrationDate {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccountUnificationAccountControllerFees {
-    /// A value indicating the responsible payer of a bundle of Stripe fees for pricing-control eligible products on this account. Learn more about [fee behavior on connected accounts](https://docs.stripe.com/connect/direct-charges-fee-payer-behavior). // TODO: enum values: ["account", "application", "application_custom", "application_express"]
+    /// A value indicating the responsible payer of a bundle of Stripe fees for pricing-control eligible products on this account. Learn more about [fee behavior on connected accounts](<https://docs.stripe.`com/connect/direct-charges-fee-payer-behavior`>). // TODO: enum values: ["account", "application", "application_custom", "application_express"]
     pub payer: String,
 }
 
@@ -17002,7 +16537,7 @@ pub struct LegalEntityPersonVerification {
     pub details_code: ::core::option::Option<String>,
     #[serde(default)]
     pub document: ::core::option::Option<LegalEntityPersonVerificationDocument>,
-    /// The state of verification for the person. Possible values are unverified, pending, or verified. Please refer [guide](https://docs.stripe.com/connect/handling-api-verification) to handle verification updates.
+    /// The state of verification for the person. Possible values are unverified, pending, or verified. Please refer [guide](<https://docs.stripe.`com/connect/handling-api-verification`>) to handle verification updates.
     pub status: String,
 }
 
@@ -17151,7 +16686,7 @@ pub struct BalanceNetAvailable {
 pub struct BalanceAmount {
     /// Balance amount.
     pub amount: i64,
-    /// Three-letter [ISO currency code](https://www.iso.org/iso-4217-currency-codes.html), in lowercase. Must be a [supported currency](https://stripe.com/docs/currencies).
+    /// Three-letter [ISO currency code](<https://www.iso.`org/iso-4217-currency-codes`.html>), in lowercase. Must be a [supported currency](<https://stripe.`com/docs/currencies`>).
     pub currency: String,
     #[serde(default)]
     pub source_types: ::core::option::Option<BalanceAmountBySourceType>,
@@ -17178,10 +16713,10 @@ pub struct BillingCreditGrantsResourceAmount {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BillingCreditGrantsResourceScope {
-    /// The price type that credit grants can apply to. We currently only support the metered price type. This refers to prices that have a [Billing Meter](https://docs.stripe.com/api/billing/meter) attached to them. Cannot be used in combination with prices. // TODO: enum values: ["metered"]
+    /// The price type that credit grants can apply to. We currently only support the metered price type. This refers to prices that have a [Billing Meter](<https://docs.stripe.`com/api/billing/meter`>) attached to them. Cannot be used in combination with prices. // TODO: enum values: ["metered"]
     #[serde(default)]
     pub price_type: ::core::option::Option<String>,
-    /// The prices that credit grants can apply to. We currently only support metered prices. This refers to prices that have a [Billing Meter](https://docs.stripe.com/api/billing/meter) attached to them. Cannot be used in combination with price_type.
+    /// The prices that credit grants can apply to. We currently only support metered prices. This refers to prices that have a [Billing Meter](<https://docs.stripe.`com/api/billing/meter`>) attached to them. Cannot be used in combination with price_type.
     #[serde(default)]
     pub prices: ::core::option::Option<::std::vec::Vec<BillingCreditGrantsResourceApplicablePrice>>,
 }
@@ -17204,7 +16739,7 @@ pub struct PortalInvoiceList {
 pub struct PortalPaymentMethodUpdate {
     /// Whether the feature is enabled.
     pub enabled: bool,
-    /// The [Payment Method Configuration](/api/payment_method_configurations) to use for this portal session. When specified, customers will be able to update their payment method to one of the options specified by the payment method configuration. If not set, the default payment method configuration is used.
+    /// The [Payment Method Configuration](/`api/payment_method_configurations`) to use for this portal session. When specified, customers will be able to update their payment method to one of the options specified by the payment method configuration. If not set, the default payment method configuration is used.
     #[serde(default)]
     pub payment_method_configuration: ::core::option::Option<String>,
 }
@@ -17222,7 +16757,7 @@ pub struct PortalSubscriptionCancel {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PortalSubscriptionUpdate {
-    /// Determines the value to use for the billing cycle anchor on subscription updates. Valid values are now or unchanged, and the default value is unchanged. Setting the value to now resets the subscription''s billing cycle anchor to the current time (in UTC). For more information, see the billing cycle [documentation](https://docs.stripe.com/billing/subscriptions/billing-cycle). // TODO: enum values: ["now", "unchanged"]
+    /// Determines the value to use for the billing cycle anchor on subscription updates. Valid values are now or unchanged, and the default value is unchanged. Setting the value to now resets the subscription''s billing cycle anchor to the current time (in UTC). For more information, see the billing cycle [documentation](<https://docs.stripe.`com/billing/subscriptions/billing-cycle`>). // TODO: enum values: ["now", "unchanged"]
     #[serde(default)]
     pub billing_cycle_anchor: ::core::option::Option<String>,
     /// The types of subscription updates that are supported for items listed in the products attribute. When empty, subscriptions are not updateable.
@@ -17315,7 +16850,7 @@ pub struct PaymentPagesCheckoutSessionCustomFieldsText {
 pub struct PaymentPagesCheckoutSessionBusinessName {
     /// Indicates whether business name collection is enabled for the session
     pub enabled: bool,
-    /// Whether the customer is required to complete the field before completing the Checkout Session. Defaults to false.
+    /// Whether the customer is required to complete the field before completing the Checkout Session. Defaults to `false`.
     pub optional: bool,
 }
 
@@ -17323,7 +16858,7 @@ pub struct PaymentPagesCheckoutSessionBusinessName {
 pub struct PaymentPagesCheckoutSessionIndividualName {
     /// Indicates whether individual name collection is enabled for the session
     pub enabled: bool,
-    /// Whether the customer is required to complete the field before completing the Checkout Session. Defaults to false.
+    /// Whether the customer is required to complete the field before completing the Checkout Session. Defaults to `false`.
     pub optional: bool,
 }
 
@@ -17371,7 +16906,7 @@ pub struct PaymentPagesPrivateCardPaymentMethodOptionsResourceRestrictions {
 pub struct CheckoutCustomerBalanceBankTransferPaymentMethodOptions {
     #[serde(default)]
     pub eu_bank_transfer: ::core::option::Option<PaymentMethodOptionsCustomerBalanceEuBankAccount>,
-    /// List of address types that should be returned in the financial_addresses response. If not specified, all valid types will be returned.
+    /// List of address types that should be returned in the financial_addresses response. If not specified, all valid types will be returned.  Permitted values include: sort_code, zengin, iban, or spei.
     #[serde(default)]
     pub requested_address_types: ::core::option::Option<::std::vec::Vec<String>>,
     /// The bank transfer type that this PaymentIntent is allowed to use for funding Permitted values include: eu_bank_transfer, gb_bank_transfer, jp_bank_transfer, mx_bank_transfer, or us_bank_transfer. // TODO: enum values: ["eu_bank_transfer", "gb_bank_transfer", "jp_bank_transfer", "mx_bank_transfer", "us_bank_transfer"]
@@ -17451,13 +16986,13 @@ pub struct ClimateSupplier {
     pub id: String,
     /// Link to a webpage to learn more about the supplier.
     pub info_url: String,
-    /// Has the value true if the object exists in live mode or the value false if the object exists in test mode.
+    /// Has the value `true` if the object exists in live mode or the value `false` if the object exists in test mode.
     pub livemode: bool,
     /// The locations in which this supplier operates.
     pub locations: ::std::vec::Vec<ClimateRemovalsLocation>,
     /// Name of this carbon removal supplier.
     pub name: String,
-    /// String representing the object’s type. Objects of the same type share the same value. // TODO: enum values: ["climate.supplier"]
+    /// `String` representing the object’s type. Objects of the same type share the same value. // TODO: enum values: ["climate.supplier"]
     pub object: String,
     /// The scientific pathway used for carbon removal. // TODO: enum values: ["biomass_carbon_removal_and_storage", "direct_air_capture", "enhanced_weathering", "marine_carbon_removal"]
     pub removal_pathway: String,
@@ -17564,7 +17099,7 @@ pub struct DisputePaymentMethodDetailsCard {
     pub brand: String,
     /// The type of dispute opened. Different case types may have varying fees and financial impact. // TODO: enum values: ["block", "chargeback", "compliance", "inquiry", "resolution"]
     pub case_type: String,
-    /// The card network''s specific dispute reason code, which maps to one of Stripe''s primary dispute categories to simplify response guidance. The [Network code map](https://stripe.com/docs/disputes/categories#network-code-map) lists all available dispute reason codes by network.
+    /// The card network''s specific dispute reason code, which maps to one of Stripe''s primary dispute categories to simplify response guidance. The [Network code map](<https://stripe.`com/docs/disputes/categories`#network-code-map>) lists all available dispute reason codes by network.
     #[serde(default)]
     pub network_reason_code: ::core::option::Option<String>,
 }
@@ -17590,19 +17125,9 @@ pub struct DisputePaymentMethodDetailsPaypal {
 }
 
 /// A PaymentIntent guides you through the process of collecting a payment from your customer.
-/// We recommend that you create exactly one PaymentIntent for each order or
-/// customer session in your system. You can reference the PaymentIntent later to
-/// see the history of payment attempts for a particular session.
-///
-/// A PaymentIntent transitions through
-/// [multiple statuses](/payments/paymentintents/lifecycle)
-/// throughout its lifetime as it interfaces with Stripe.js to perform
-/// authentication flows and ultimately creates at most one successful charge.
-///
-/// Related guide: [Payment Intents API](https://docs.stripe.com/payments/payment-intents)
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentIntent {
-    /// Amount intended to be collected by this PaymentIntent. A positive integer representing how much to charge in the [smallest currency unit](https://docs.stripe.com/currencies#zero-decimal) (e.g., 100 cents to charge $1.00 or 100 to charge ¥100, a zero-decimal currency). The minimum amount is $0.50 US or [equivalent in charge currency](https://docs.stripe.com/currencies#minimum-and-maximum-charge-amounts). The amount value supports up to eight digits (e.g., a value of 99999999 for a USD charge of $999,999.99).
+    /// Amount intended to be collected by this PaymentIntent. A positive integer representing how much to charge in the [smallest currency unit](<https://docs.stripe.`com/currencies`#zero-decimal>) (e.g., 100 cents to charge $1.00 or 100 to charge ¥100, a zero-decimal currency). The minimum amount is $0.50 US or [equivalent in charge currency](<https://docs.stripe.`com/currencies`#minimum-and-maximum-charge-amounts>). The amount value supports up to eight digits (e.g., a value of 99999999 for a USD charge of $999,999.99).
     #[serde(default)]
     pub amount: ::core::option::Option<i64>,
     /// Amount that can be captured from this PaymentIntent.
@@ -17616,10 +17141,10 @@ pub struct PaymentIntent {
     /// ID of the Connect application that created the PaymentIntent.
     #[serde(default)]
     pub application: ::core::option::Option<serde_json::Value>,
-    /// The amount of the application fee (if any) that will be requested to be applied to the payment and transferred to the application owner''s Stripe account. The amount of the application fee collected will be capped at the total amount captured. For more information, see the PaymentIntents [use case for connected accounts](https://docs.stripe.com/payments/connected-accounts).
+    /// The amount of the application fee (if any) that will be requested to be applied to the payment and transferred to the application owner''s Stripe account. The amount of the application fee collected will be capped at the total amount captured. For more information, see the PaymentIntents [use case for connected accounts](<https://docs.stripe.`com/payments/connected-accounts`>).
     #[serde(default)]
     pub application_fee_amount: ::core::option::Option<i64>,
-    /// Settings to configure compatible payment methods from the [Stripe Dashboard](https://dashboard.stripe.com/settings/payment_methods)
+    /// Settings to configure compatible payment methods from the [Stripe Dashboard](<https://dashboard.stripe.`com/settings/payment_methods`>)
     #[serde(default)]
     pub automatic_payment_methods: ::core::option::Option<serde_json::Value>,
     /// Populated when status is canceled, this is the time at which the PaymentIntent was canceled. Measured in seconds since the Unix epoch.
@@ -17631,7 +17156,7 @@ pub struct PaymentIntent {
     /// Controls when the funds will be captured from the customer''s account. // TODO: enum values: ["automatic", "automatic_async", "manual"]
     #[serde(default)]
     pub capture_method: ::core::option::Option<String>,
-    /// The client secret of this PaymentIntent. Used for client-side retrieval using a publishable key.
+    /// The client secret of this PaymentIntent. Used for client-side retrieval using a publishable key.  The client secret can be used to complete a payment from your frontend. It should not be stored, logged, or exposed to anyone other than the customer. Make sure that you have TLS enabled on any page that includes the client secret.  Refer to our docs to [accept a payment](<https://docs.stripe.`com/payments/accept-a-payment`?ui=elements>) and learn about how client_secret should be handled.
     #[serde(default)]
     pub client_secret: ::core::option::Option<String>,
     /// Describes whether we can confirm this PaymentIntent automatically, or if it requires customer action to confirm the payment. // TODO: enum values: ["automatic", "manual"]
@@ -17639,13 +17164,13 @@ pub struct PaymentIntent {
     pub confirmation_method: ::core::option::Option<String>,
     /// Time at which the object was created. Measured in seconds since the Unix epoch.
     pub created: i64,
-    /// Three-letter [ISO currency code](https://www.iso.org/iso-4217-currency-codes.html), in lowercase. Must be a [supported currency](https://stripe.com/docs/currencies).
+    /// Three-letter [ISO currency code](<https://www.iso.`org/iso-4217-currency-codes`.html>), in lowercase. Must be a [supported currency](<https://stripe.`com/docs/currencies`>).
     #[serde(default)]
     pub currency: ::core::option::Option<String>,
-    /// ID of the Customer this PaymentIntent belongs to, if one exists.
+    /// ID of the Customer this PaymentIntent belongs to, if one exists.  Payment methods attached to other Customers cannot be used with this PaymentIntent.  If [setup_future_usage](<https://api.stripe.com#payment_intent_object-setup_future_usage>) is set and this PaymentIntent''s payment method is not card_present, then the payment method attaches to the Customer after the PaymentIntent has been confirmed and any required actions from the user are complete. If the payment method is card_present and isn''t a digital wallet, then a [generated_card](<https://docs.stripe.`com/api/charges/object`#charge_object-payment_method_details-card_present-generated_card>) payment method representing the card is created and attached to the Customer instead.
     #[serde(default)]
     pub customer: ::core::option::Option<serde_json::Value>,
-    /// ID of the Account representing the customer that this PaymentIntent belongs to, if one exists.
+    /// ID of the Account representing the customer that this PaymentIntent belongs to, if one exists.  Payment methods attached to other Accounts cannot be used with this PaymentIntent.  If [setup_future_usage](<https://api.stripe.com#payment_intent_object-setup_future_usage>) is set and this PaymentIntent''s payment method is not card_present, then the payment method attaches to the Account after the PaymentIntent has been confirmed and any required actions from the user are complete. If the payment method is card_present and isn''t a digital wallet, then a [generated_card](<https://docs.stripe.`com/api/charges/object`#charge_object-payment_method_details-card_present-generated_card>) payment method representing the card is created and attached to the Account instead.
     #[serde(default)]
     pub customer_account: ::core::option::Option<String>,
     /// An arbitrary string attached to the object. Often useful for displaying to users.
@@ -17661,20 +17186,20 @@ pub struct PaymentIntent {
     /// The payment error encountered in the previous PaymentIntent confirmation. It will be cleared if the PaymentIntent is later updated for any reason.
     #[serde(default)]
     pub last_payment_error: ::core::option::Option<serde_json::Value>,
-    /// ID of the latest [Charge object](https://docs.stripe.com/api/charges) created by this PaymentIntent. This property is null until PaymentIntent confirmation is attempted.
+    /// ID of the latest [Charge object](<https://docs.stripe.`com/api/charges`>) created by this PaymentIntent. This property is `null` until PaymentIntent confirmation is attempted.
     #[serde(default)]
     pub latest_charge: ::core::option::Option<serde_json::Value>,
-    /// If the object exists in live mode, the value is true. If the object exists in test mode, the value is false.
+    /// If the object exists in live mode, the value is `true`. If the object exists in test mode, the value is `false`.
     pub livemode: bool,
-    /// Set of [key-value pairs](https://docs.stripe.com/api/metadata) that you can attach to an object. This can be useful for storing additional information about the object in a structured format. Learn more about [storing information in metadata](https://docs.stripe.com/payments/payment-intents/creating-payment-intents#storing-information-in-metadata).
+    /// Set of [key-value pairs](<https://docs.stripe.`com/api/metadata`>) that you can attach to an object. This can be useful for storing additional information about the object in a structured format. Learn more about [storing information in metadata](<https://docs.stripe.`com/payments/payment-intents/creating-payment-intents`#storing-information-in-metadata>).
     #[serde(default)]
     pub metadata: ::core::option::Option<serde_json::Value>,
     /// If present, this property tells you what actions you need to take in order for your customer to fulfill a payment using the provided source.
     #[serde(default)]
     pub next_action: ::core::option::Option<serde_json::Value>,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["payment_intent"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["payment_intent"]
     pub object: String,
-    /// You can specify the settlement merchant as the
+    /// You can specify the settlement merchant as the connected account using the on_behalf_of attribute on the charge. See the PaymentIntents [use case for connected accounts](/`payments/connected-accounts`) for details.
     #[serde(default)]
     pub on_behalf_of: ::core::option::Option<serde_json::Value>,
     #[serde(default)]
@@ -17682,13 +17207,13 @@ pub struct PaymentIntent {
     /// ID of the payment method used in this PaymentIntent.
     #[serde(default)]
     pub payment_method: ::core::option::Option<serde_json::Value>,
-    /// Information about the [payment method configuration](https://docs.stripe.com/api/payment_method_configurations) used for this PaymentIntent.
+    /// Information about the [payment method configuration](<https://docs.stripe.`com/api/payment_method_configurations`>) used for this PaymentIntent.
     #[serde(default)]
     pub payment_method_configuration_details: ::core::option::Option<serde_json::Value>,
     /// Payment-method-specific configuration for this PaymentIntent.
     #[serde(default)]
     pub payment_method_options: ::core::option::Option<serde_json::Value>,
-    /// The list of payment method types (e.g. card) that this PaymentIntent is allowed to use. A comprehensive list of valid payment method types can be found [here](https://docs.stripe.com/api/payment_methods/object#payment_method_object-type).
+    /// The list of payment method types (e.g. card) that this PaymentIntent is allowed to use. A comprehensive list of valid payment method types can be found [here](<https://docs.stripe.`com/api/payment_methods/object`#payment_method_object-type>).
     #[serde(default)]
     pub payment_method_types: ::core::option::Option<::std::vec::Vec<String>>,
     #[serde(default)]
@@ -17696,61 +17221,41 @@ pub struct PaymentIntent {
     /// If present, this property tells you about the processing state of the payment.
     #[serde(default)]
     pub processing: ::core::option::Option<serde_json::Value>,
-    /// Email address that the receipt for the resulting payment will be sent to. If receipt_email is specified for a payment in live mode, a receipt will be sent regardless of your [email settings](https://dashboard.stripe.com/account/emails).
+    /// Email address that the receipt for the resulting payment will be sent to. If receipt_email is specified for a payment in live mode, a receipt will be sent regardless of your [email settings](<https://dashboard.stripe.`com/account/emails`>).
     #[serde(default)]
     pub receipt_email: ::core::option::Option<String>,
     /// ID of the review associated with this PaymentIntent, if any.
     #[serde(default)]
     pub review: ::core::option::Option<serde_json::Value>,
-    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.
+    /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.  If you provide a Customer with the PaymentIntent, you can use this parameter to [attach the payment method](/`payments/save-during-payment`) to the Customer after the PaymentIntent is confirmed and the customer completes any required actions. If you don''t provide a Customer, you can still [attach](/`api/payment_methods/attach`) the payment method to a Customer after the transaction completes.  If the payment method is card_present and isn''t a digital wallet, Stripe creates and attaches a [generated_card](/`api/charges/object`#charge_object-payment_method_details-card_present-generated_card) payment method representing the card to the Customer instead.  When processing card payments, Stripe uses setup_future_usage to help you comply with regional legislation and network rules, such as [SCA](/strong-customer-authentication). // TODO: enum values: ["off_session", "on_session"]
     #[serde(default)]
     pub setup_future_usage: ::core::option::Option<String>,
     /// Shipping information for this PaymentIntent.
     #[serde(default)]
     pub shipping: ::core::option::Option<serde_json::Value>,
-    /// Text that appears on the customer''s statement as the statement descriptor for a non-card charge. This value overrides the account''s default statement descriptor. For information about requirements, including the 22-character limit, see [the Statement Descriptor docs](https://docs.stripe.com/get-started/account/statement-descriptors).
+    /// Text that appears on the customer''s statement as the statement descriptor for a non-card charge. This value overrides the account''s default statement descriptor. For information about requirements, including the 22-character limit, see [the Statement Descriptor docs](<https://docs.stripe.`com/get-started/account/statement-descriptors`>).  Setting this value for a card charge returns an error. For card charges, set the [statement_descriptor_suffix](<https://docs.stripe.`com/get-started/account/statement-descriptors`#dynamic>) instead.
     #[serde(default)]
     pub statement_descriptor: ::core::option::Option<String>,
-    /// Provides information about a card charge. Concatenated to the account''s [statement descriptor prefix](https://docs.stripe.com/get-started/account/statement-descriptors#static) to form the complete statement descriptor that appears on the customer''s statement.
+    /// Provides information about a card charge. Concatenated to the account''s [statement descriptor prefix](<https://docs.stripe.`com/get-started/account/statement-descriptors`#static>) to form the complete statement descriptor that appears on the customer''s statement.
     #[serde(default)]
     pub statement_descriptor_suffix: ::core::option::Option<String>,
-    /// Status of this PaymentIntent, one of requires_payment_method, requires_confirmation, requires_action, processing, requires_capture, canceled, or succeeded. Read more about each PaymentIntent [status](https://docs.stripe.com/payments/intents#intent-statuses). // TODO: enum values: ["canceled", "processing", "requires_action", "requires_capture", "requires_confirmation", "requires_payment_method", "succeeded"]
+    /// Status of this PaymentIntent, one of requires_payment_method, requires_confirmation, requires_action, processing, requires_capture, canceled, or succeeded. Read more about each PaymentIntent [status](<https://docs.stripe.`com/payments/intents`#intent-statuses>). // TODO: enum values: ["canceled", "processing", "requires_action", "requires_capture", "requires_confirmation", "requires_payment_method", "succeeded"]
     pub status: String,
-    /// The data that automatically creates a Transfer after the payment finalizes. Learn more about the [use case for connected accounts](https://docs.stripe.com/payments/connected-accounts).
+    /// The data that automatically creates a Transfer after the payment finalizes. Learn more about the [use case for connected accounts](<https://docs.stripe.`com/payments/connected-accounts`>).
     #[serde(default)]
     pub transfer_data: ::core::option::Option<serde_json::Value>,
-    /// A string that identifies the resulting payment as part of a group. Learn more about the [use case for connected accounts](https://docs.stripe.com/connect/separate-charges-and-transfers).
+    /// A string that identifies the resulting payment as part of a group. Learn more about the [use case for connected accounts](<https://docs.stripe.`com/connect/separate-charges-and-transfers`>).
     #[serde(default)]
     pub transfer_group: ::core::option::Option<String>,
 }
 
 /// A SetupIntent guides you through the process of setting up and saving a customer''s payment credentials for future payments.
-/// For example, you can use a SetupIntent to set up and save your customer''s card without immediately collecting a payment.
-/// Later, you can use [PaymentIntents](https://api.stripe.com#payment_intents) to drive the payment flow.
-///
-/// Create a SetupIntent when you''re ready to collect your customer''s payment credentials.
-/// Don''t maintain long-lived, unconfirmed SetupIntents because they might not be valid.
-/// The SetupIntent transitions through multiple [statuses](https://docs.stripe.com/payments/intents#intent-statuses) as it guides
-/// you through the setup process.
-///
-/// Successful SetupIntents result in payment credentials that are optimized for future payments.
-/// For example, cardholders in [certain regions](https://stripe.com/guides/strong-customer-authentication) might need to be run through
-/// [Strong Customer Authentication](https://docs.stripe.com/strong-customer-authentication) during payment method collection
-/// to streamline later [off-session payments](https://docs.stripe.com/payments/setup-intents).
-/// If you use the SetupIntent with a [Customer](https://api.stripe.com#setup_intent_object-customer),
-/// it automatically attaches the resulting payment method to that Customer after successful setup.
-/// We recommend using SetupIntents or [setup_future_usage](https://api.stripe.com#payment_intent_object-setup_future_usage) on
-/// PaymentIntents to save payment methods to prevent saving invalid or unoptimized payment methods.
-///
-/// By using SetupIntents, you can reduce friction for your customers, even as regulations change over time.
-///
-/// Related guide: [Setup Intents API](https://docs.stripe.com/payments/setup-intents)
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetupIntent {
     /// ID of the Connect application that created the SetupIntent.
     #[serde(default)]
     pub application: ::core::option::Option<serde_json::Value>,
-    /// If present, the SetupIntent''s payment method will be attached to the in-context Stripe Account.
+    /// If present, the SetupIntent''s payment method will be attached to the in-context Stripe Account.  It can only be used for this Stripe Account’s own money movement flows like InboundTransfer and OutboundTransfers. It cannot be set to `true` when setting up a PaymentMethod for a Customer, and defaults to `false` when attaching a PaymentMethod to a Customer.
     #[serde(default)]
     pub attach_to_self: ::core::option::Option<bool>,
     /// Settings for dynamic payment methods compatible with this Setup Intent
@@ -17759,15 +17264,15 @@ pub struct SetupIntent {
     /// Reason for cancellation of this SetupIntent, one of abandoned, requested_by_customer, or duplicate. // TODO: enum values: ["abandoned", "duplicate", "requested_by_customer"]
     #[serde(default)]
     pub cancellation_reason: ::core::option::Option<String>,
-    /// The client secret of this SetupIntent. Used for client-side retrieval using a publishable key.
+    /// The client secret of this SetupIntent. Used for client-side retrieval using a publishable key.  The client secret can be used to complete payment setup from your frontend. It should not be stored, logged, or exposed to anyone other than the customer. Make sure that you have TLS enabled on any page that includes the client secret.
     #[serde(default)]
     pub client_secret: ::core::option::Option<String>,
     /// Time at which the object was created. Measured in seconds since the Unix epoch.
     pub created: i64,
-    /// ID of the Customer this SetupIntent belongs to, if one exists.
+    /// ID of the Customer this SetupIntent belongs to, if one exists.  If present, the SetupIntent''s payment method will be attached to the Customer on successful setup. Payment methods attached to other Customers cannot be used with this SetupIntent.
     #[serde(default)]
     pub customer: ::core::option::Option<serde_json::Value>,
-    /// ID of the Account this SetupIntent belongs to, if one exists.
+    /// ID of the Account this SetupIntent belongs to, if one exists.  If present, the SetupIntent''s payment method will be attached to the Account on successful setup. Payment methods attached to other Accounts cannot be used with this SetupIntent.
     #[serde(default)]
     pub customer_account: ::core::option::Option<String>,
     /// An arbitrary string attached to the object. Often useful for displaying to users.
@@ -17776,7 +17281,7 @@ pub struct SetupIntent {
     /// Payment method types that are excluded from this SetupIntent.
     #[serde(default)]
     pub excluded_payment_method_types: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Indicates the directions of money movement for which this payment method is intended to be used.
+    /// Indicates the directions of money movement for which this payment method is intended to be used.  Include inbound if you intend to use the payment method as the origin to pull funds from. Include outbound if you intend to use the payment method as the destination to send funds to. You can include both if you intend to use the payment method for both purposes.
     #[serde(default)]
     pub flow_directions: ::core::option::Option<::std::vec::Vec<String>>,
     /// Unique identifier for the object.
@@ -17787,39 +17292,39 @@ pub struct SetupIntent {
     /// The most recent SetupAttempt for this SetupIntent.
     #[serde(default)]
     pub latest_attempt: ::core::option::Option<serde_json::Value>,
-    /// If the object exists in live mode, the value is true. If the object exists in test mode, the value is false.
+    /// If the object exists in live mode, the value is `true`. If the object exists in test mode, the value is `false`.
     pub livemode: bool,
     /// ID of the multi use Mandate generated by the SetupIntent.
     #[serde(default)]
     pub mandate: ::core::option::Option<serde_json::Value>,
-    /// Set of [key-value pairs](https://docs.stripe.com/api/metadata) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
+    /// Set of [key-value pairs](<https://docs.stripe.`com/api/metadata`>) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
     #[serde(default)]
     pub metadata: ::core::option::Option<serde_json::Value>,
     /// If present, this property tells you what actions you need to take in order for your customer to continue payment setup.
     #[serde(default)]
     pub next_action: ::core::option::Option<serde_json::Value>,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["setup_intent"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["setup_intent"]
     pub object: String,
     /// The account (if any) for which the setup is intended.
     #[serde(default)]
     pub on_behalf_of: ::core::option::Option<serde_json::Value>,
-    /// ID of the payment method used with this SetupIntent. If the payment method is card_present and isn''t a digital wallet, then the [generated_card](https://docs.stripe.com/api/setup_attempts/object#setup_attempt_object-payment_method_details-card_present-generated_card) associated with the latest_attempt is attached to the Customer instead.
+    /// ID of the payment method used with this SetupIntent. If the payment method is card_present and isn''t a digital wallet, then the [generated_card](<https://docs.stripe.`com/api/setup_attempts/object`#setup_attempt_object-payment_method_details-card_present-generated_card>) associated with the latest_attempt is attached to the Customer instead.
     #[serde(default)]
     pub payment_method: ::core::option::Option<serde_json::Value>,
-    /// Information about the [payment method configuration](https://docs.stripe.com/api/payment_method_configurations) used for this Setup Intent.
+    /// Information about the [payment method configuration](<https://docs.stripe.`com/api/payment_method_configurations`>) used for this Setup Intent.
     #[serde(default)]
     pub payment_method_configuration_details: ::core::option::Option<serde_json::Value>,
     /// Payment method-specific configuration for this SetupIntent.
     #[serde(default)]
     pub payment_method_options: ::core::option::Option<serde_json::Value>,
-    /// The list of payment method types (e.g. card) that this SetupIntent is allowed to set up. A list of valid payment method types can be found [here](https://docs.stripe.com/api/payment_methods/object#payment_method_object-type).
+    /// The list of payment method types (e.g. card) that this SetupIntent is allowed to set up. A list of valid payment method types can be found [here](<https://docs.stripe.`com/api/payment_methods/object`#payment_method_object-type>).
     pub payment_method_types: ::std::vec::Vec<String>,
     /// ID of the single_use Mandate generated by the SetupIntent.
     #[serde(default)]
     pub single_use_mandate: ::core::option::Option<serde_json::Value>,
-    /// [Status](https://docs.stripe.com/payments/intents#intent-statuses) of this SetupIntent, one of requires_payment_method, requires_confirmation, requires_action, processing, canceled, or succeeded. // TODO: enum values: ["canceled", "processing", "requires_action", "requires_confirmation", "requires_payment_method", "succeeded"]
+    /// [Status](<https://docs.stripe.`com/payments/intents`#intent-statuses>) of this SetupIntent, one of requires_payment_method, requires_confirmation, requires_action, processing, canceled, or succeeded. // TODO: enum values: ["canceled", "processing", "requires_action", "requires_confirmation", "requires_payment_method", "succeeded"]
     pub status: String,
-    /// Indicates how the payment method is intended to be used in the future.
+    /// Indicates how the payment method is intended to be used in the future.  Use on_session if you intend to only reuse the payment method when the customer is in your checkout flow. Use off_session if your customer may or may not be in your checkout flow. If not provided, this value defaults to off_session.
     pub usage: String,
 }
 
@@ -17828,13 +17333,13 @@ pub struct GelatoReportDocumentOptions {
     /// Array of strings of allowed identity document types. If the provided identity document isn’t one of the allowed types, the verification check will fail with a document_type_not_allowed error code.
     #[serde(default)]
     pub allowed_types: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Collect an ID number and perform an [ID number check](https://docs.stripe.com/identity/verification-checks?type=id-number) with the document’s extracted name and date of birth.
+    /// Collect an ID number and perform an [ID number check](<https://docs.stripe.`com/identity/verification-checks`?type=id-number>) with the document’s extracted name and date of birth.
     #[serde(default)]
     pub require_id_number: ::core::option::Option<bool>,
     /// Disable image uploads, identity document images have to be captured using the device’s camera.
     #[serde(default)]
     pub require_live_capture: ::core::option::Option<bool>,
-    /// Capture a face image and perform a [selfie check](https://docs.stripe.com/identity/verification-checks?type=selfie) comparing a photo ID and a picture of your user’s face. [Learn more](https://docs.stripe.com/identity/selfie).
+    /// Capture a face image and perform a [selfie check](<https://docs.stripe.`com/identity/verification-checks`?type=selfie>) comparing a photo ID and a picture of your user’s face. [Learn more](<https://docs.stripe.`com/identity/selfie`>).
     #[serde(default)]
     pub require_matching_selfie: ::core::option::Option<bool>,
 }
@@ -17899,7 +17404,7 @@ pub struct DiscountsResourceDiscountAmount {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IssuingDisputeCanceledEvidence {
-    /// (ID of a [file upload](https://stripe.com/docs/guides/file-upload)) Additional documentation supporting the dispute.
+    /// (ID of a [file upload](<https://stripe.`com/docs/guides/file-upload`>)) Additional documentation supporting the dispute.
     #[serde(default)]
     pub additional_documentation: ::core::option::Option<serde_json::Value>,
     /// Date when order was canceled.
@@ -17933,16 +17438,16 @@ pub struct IssuingDisputeCanceledEvidence {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IssuingDisputeDuplicateEvidence {
-    /// (ID of a [file upload](https://stripe.com/docs/guides/file-upload)) Additional documentation supporting the dispute.
+    /// (ID of a [file upload](<https://stripe.`com/docs/guides/file-upload`>)) Additional documentation supporting the dispute.
     #[serde(default)]
     pub additional_documentation: ::core::option::Option<serde_json::Value>,
-    /// (ID of a [file upload](https://stripe.com/docs/guides/file-upload)) Copy of the card statement showing that the product had already been paid for.
+    /// (ID of a [file upload](<https://stripe.`com/docs/guides/file-upload`>)) Copy of the card statement showing that the product had already been paid for.
     #[serde(default)]
     pub card_statement: ::core::option::Option<serde_json::Value>,
-    /// (ID of a [file upload](https://stripe.com/docs/guides/file-upload)) Copy of the receipt showing that the product had been paid for in cash.
+    /// (ID of a [file upload](<https://stripe.`com/docs/guides/file-upload`>)) Copy of the receipt showing that the product had been paid for in cash.
     #[serde(default)]
     pub cash_receipt: ::core::option::Option<serde_json::Value>,
-    /// (ID of a [file upload](https://stripe.com/docs/guides/file-upload)) Image of the front and back of the check that was used to pay for the product.
+    /// (ID of a [file upload](<https://stripe.`com/docs/guides/file-upload`>)) Image of the front and back of the check that was used to pay for the product.
     #[serde(default)]
     pub check_image: ::core::option::Option<serde_json::Value>,
     /// Explanation of why the cardholder is disputing this transaction.
@@ -17955,7 +17460,7 @@ pub struct IssuingDisputeDuplicateEvidence {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IssuingDisputeFraudulentEvidence {
-    /// (ID of a [file upload](https://stripe.com/docs/guides/file-upload)) Additional documentation supporting the dispute.
+    /// (ID of a [file upload](<https://stripe.`com/docs/guides/file-upload`>)) Additional documentation supporting the dispute.
     #[serde(default)]
     pub additional_documentation: ::core::option::Option<serde_json::Value>,
     /// Explanation of why the cardholder is disputing this transaction.
@@ -17965,7 +17470,7 @@ pub struct IssuingDisputeFraudulentEvidence {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IssuingDisputeMerchandiseNotAsDescribedEvidence {
-    /// (ID of a [file upload](https://stripe.com/docs/guides/file-upload)) Additional documentation supporting the dispute.
+    /// (ID of a [file upload](<https://stripe.`com/docs/guides/file-upload`>)) Additional documentation supporting the dispute.
     #[serde(default)]
     pub additional_documentation: ::core::option::Option<serde_json::Value>,
     /// Explanation of why the cardholder is disputing this transaction.
@@ -17987,7 +17492,7 @@ pub struct IssuingDisputeMerchandiseNotAsDescribedEvidence {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IssuingDisputeNoValidAuthorizationEvidence {
-    /// (ID of a [file upload](https://stripe.com/docs/guides/file-upload)) Additional documentation supporting the dispute.
+    /// (ID of a [file upload](<https://stripe.`com/docs/guides/file-upload`>)) Additional documentation supporting the dispute.
     #[serde(default)]
     pub additional_documentation: ::core::option::Option<serde_json::Value>,
     /// Explanation of why the cardholder is disputing this transaction.
@@ -17997,7 +17502,7 @@ pub struct IssuingDisputeNoValidAuthorizationEvidence {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IssuingDisputeNotReceivedEvidence {
-    /// (ID of a [file upload](https://stripe.com/docs/guides/file-upload)) Additional documentation supporting the dispute.
+    /// (ID of a [file upload](<https://stripe.`com/docs/guides/file-upload`>)) Additional documentation supporting the dispute.
     #[serde(default)]
     pub additional_documentation: ::core::option::Option<serde_json::Value>,
     /// Date when the cardholder expected to receive the product.
@@ -18016,7 +17521,7 @@ pub struct IssuingDisputeNotReceivedEvidence {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IssuingDisputeOtherEvidence {
-    /// (ID of a [file upload](https://stripe.com/docs/guides/file-upload)) Additional documentation supporting the dispute.
+    /// (ID of a [file upload](<https://stripe.`com/docs/guides/file-upload`>)) Additional documentation supporting the dispute.
     #[serde(default)]
     pub additional_documentation: ::core::option::Option<serde_json::Value>,
     /// Explanation of why the cardholder is disputing this transaction.
@@ -18032,7 +17537,7 @@ pub struct IssuingDisputeOtherEvidence {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IssuingDisputeServiceNotAsDescribedEvidence {
-    /// (ID of a [file upload](https://stripe.com/docs/guides/file-upload)) Additional documentation supporting the dispute.
+    /// (ID of a [file upload](<https://stripe.`com/docs/guides/file-upload`>)) Additional documentation supporting the dispute.
     #[serde(default)]
     pub additional_documentation: ::core::option::Option<serde_json::Value>,
     /// Date when order was canceled.
@@ -18057,7 +17562,7 @@ pub struct IssuingNetworkTokenDevice {
     /// The IP address of the device at provisioning time.
     #[serde(default)]
     pub ip_address: ::core::option::Option<String>,
-    /// The geographic latitude/longitude coordinates of the device at provisioning time. The format is [+-]decimal/[+-]decimal.
+    /// The geographic `latitude/longitude` coordinates of the device at provisioning time. The format is [+-]decimal/[+-]decimal.
     #[serde(default)]
     pub location: ::core::option::Option<String>,
     /// The name of the device used for tokenization.
@@ -18364,7 +17869,7 @@ pub struct PaymentMethodDetailsCardInstallmentsPlan {
     /// For fixed_count installment plans, this is the number of installment payments your customer will make to their credit card.
     #[serde(default)]
     pub count: ::core::option::Option<i64>,
-    /// For fixed_count installment plans, this is the interval between installment payments your customer will make to their credit card.
+    /// For fixed_count installment plans, this is the interval between installment payments your customer will make to their credit card. One of month. // TODO: enum values: ["month"]
     #[serde(default)]
     pub interval: ::core::option::Option<String>,
     /// Type of installment plan, one of fixed_count, bonus, or revolving. // TODO: enum values: ["bonus", "fixed_count", "revolving"]
@@ -18434,7 +17939,7 @@ pub struct PaymentLinksResourceCustomFieldsText {
 pub struct PaymentLinksResourceBusinessName {
     /// Indicates whether business name collection is enabled for the payment link.
     pub enabled: bool,
-    /// Whether the customer is required to complete the field before checking out. Defaults to false.
+    /// Whether the customer is required to complete the field before checking out. Defaults to `false`.
     pub optional: bool,
 }
 
@@ -18442,13 +17947,13 @@ pub struct PaymentLinksResourceBusinessName {
 pub struct PaymentLinksResourceIndividualName {
     /// Indicates whether individual name collection is enabled for the payment link.
     pub enabled: bool,
-    /// Whether the customer is required to complete the field before checking out. Defaults to false.
+    /// Whether the customer is required to complete the field before checking out. Defaults to `false`.
     pub optional: bool,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodConfigResourceDisplayPreference {
-    /// For child configs, whether or not the account''s preference will be observed. If false, the parent configuration''s default is used.
+    /// For child configs, whether or not the account''s preference will be observed. If `false`, the parent configuration''s default is used.
     #[serde(default)]
     pub overridable: ::core::option::Option<bool>,
     /// The account''s display preference. // TODO: enum values: ["none", "off", "on"]
@@ -18502,8 +18007,6 @@ pub struct InvoiceSettingCustomField {
 }
 
 /// Custom processors represent payment processors not modeled directly in
-/// the Stripe API. This resource consists of details about the custom processor
-/// used for this payment attempt.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentsPrimitivesPaymentRecordsResourceProcessorDetailsResourceCustomDetails {
     /// An opaque string for manual reconciliation of this payment, for example a check number or a payment processor ID.
@@ -18560,9 +18063,9 @@ pub struct QuotesResourceSubscriptionDataBillingMode {
 /// Dispute opened event details attached to this payment evaluation.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InsightsResourcesPaymentEvaluationDisputeOpened {
-    /// Amount to dispute for this payment. A positive integer representing how much to charge in [the smallest currency unit](https://docs.stripe.com/currencies#zero-decimal) (for example, 100 cents to charge 1.00 USD or 100 to charge 100 Yen, a zero-decimal currency).
+    /// Amount to dispute for this payment. A positive integer representing how much to charge in [the smallest currency unit](<https://docs.stripe.`com/currencies`#zero-decimal>) (for example, 100 cents to charge 1.00 USD or 100 to charge 100 Yen, a zero-decimal currency).
     pub amount: i64,
-    /// Three-letter [ISO currency code](https://www.iso.org/iso-4217-currency-codes.html), in lowercase. Must be a [supported currency](https://stripe.com/docs/currencies).
+    /// Three-letter [ISO currency code](<https://www.iso.`org/iso-4217-currency-codes`.html>), in lowercase. Must be a [supported currency](<https://stripe.`com/docs/currencies`>).
     pub currency: String,
     /// Reason given by cardholder for dispute. // TODO: enum values: ["account_not_available", "credit_not_processed", "customer_initiated", "duplicate", "fraudulent", "general", "noncompliant", "product_not_received", "product_unacceptable", "subscription_canceled", "unrecognized"]
     pub reason: String,
@@ -18578,9 +18081,9 @@ pub struct InsightsResourcesPaymentEvaluationEarlyFraudWarningReceived {
 /// Refunded Event details attached to this payment evaluation.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InsightsResourcesPaymentEvaluationRefunded {
-    /// Amount refunded for this payment. A positive integer representing how much to charge in [the smallest currency unit](https://docs.stripe.com/currencies#zero-decimal) (for example, 100 cents to charge 1.00 USD or 100 to charge 100 Yen, a zero-decimal currency).
+    /// Amount refunded for this payment. A positive integer representing how much to charge in [the smallest currency unit](<https://docs.stripe.`com/currencies`#zero-decimal>) (for example, 100 cents to charge 1.00 USD or 100 to charge 100 Yen, a zero-decimal currency).
     pub amount: i64,
-    /// Three-letter [ISO currency code](https://www.iso.org/iso-4217-currency-codes.html), in lowercase. Must be a [supported currency](https://stripe.com/docs/currencies).
+    /// Three-letter [ISO currency code](<https://www.iso.`org/iso-4217-currency-codes`.html>), in lowercase. Must be a [supported currency](<https://stripe.`com/docs/currencies`>).
     pub currency: String,
     /// Indicates the reason for the refund. // TODO: enum values: ["duplicate", "fraudulent", "other", "requested_by_customer"]
     pub reason: String,
@@ -18616,7 +18119,7 @@ pub struct InsightsResourcesPaymentEvaluationSignalV2 {
     pub evaluated_at: i64,
     /// Risk level of this signal, based on the score. // TODO: enum values: ["elevated", "highest", "normal"]
     pub risk_level: String,
-    /// Score for this insight. Possible values for evaluated payments are -1 and any value between 0 and 100. The value is returned with two decimal places. A score of -1 indicates a test integration and higher scores indicate a higher likelihood of the signal being true.
+    /// Score for this insight. Possible values for evaluated payments are -1 and any value between 0 and 100. The value is returned with two decimal places. A score of -1 indicates a test integration and higher scores indicate a higher likelihood of the signal being `true`.
     pub score: f64,
 }
 
@@ -18828,10 +18331,10 @@ pub struct SetupAttemptPaymentMethodDetailsBancontact {
     /// Last four characters of the IBAN.
     #[serde(default)]
     pub iban_last4: ::core::option::Option<String>,
-    /// Preferred language of the Bancontact authorization page that the customer is redirected to.
+    /// Preferred language of the Bancontact authorization page that the customer is redirected to. Can be one of en, de, fr, or nl // TODO: enum values: ["de", "en", "fr", "nl"]
     #[serde(default)]
     pub preferred_language: ::core::option::Option<String>,
-    /// Owner''s verified full name. Values are verified or provided by Bancontact directly
+    /// Owner''s verified full name. Values are verified or provided by Bancontact directly (if supported) at the time of authorization or settlement. They cannot be set or mutated.
     #[serde(default)]
     pub verified_name: ::core::option::Option<String>,
 }
@@ -18858,7 +18361,7 @@ pub struct SetupAttemptPaymentMethodDetailsCard {
     /// Four-digit number representing the card''s expiration year.
     #[serde(default)]
     pub exp_year: ::core::option::Option<i64>,
-    /// Uniquely identifies this particular card number. You can use this attribute to check whether two customers who’ve signed up with you are using the same card number, for example. For payment methods that tokenize card information (Apple Pay, Google Pay), the tokenized number might be provided instead of the underlying card number.
+    /// Uniquely identifies this particular card number. You can use this attribute to check whether two customers who’ve signed up with you are using the same card number, for example. For payment methods that tokenize card information (Apple Pay, Google Pay), the tokenized number might be provided instead of the underlying card number.  *As of May 1, 2021, card fingerprint in India for Connect changed to allow two fingerprints for the same card---one for India and one for the rest of the world.*
     #[serde(default)]
     pub fingerprint: ::core::option::Option<String>,
     /// Card funding type. Can be credit, debit, prepaid, or unknown.
@@ -18910,7 +18413,7 @@ pub struct SetupAttemptPaymentMethodDetailsIdeal {
     /// Last four characters of the IBAN.
     #[serde(default)]
     pub iban_last4: ::core::option::Option<String>,
-    /// Owner''s verified full name. Values are verified or provided by iDEAL directly
+    /// Owner''s verified full name. Values are verified or provided by `iDEAL` directly (if supported) at the time of authorization or settlement. They cannot be set or mutated.
     #[serde(default)]
     pub verified_name: ::core::option::Option<String>,
 }
@@ -18987,10 +18490,10 @@ pub struct SetupAttemptPaymentMethodDetailsSofort {
     /// Last four characters of the IBAN.
     #[serde(default)]
     pub iban_last4: ::core::option::Option<String>,
-    /// Preferred language of the Sofort authorization page that the customer is redirected to.
+    /// Preferred language of the Sofort authorization page that the customer is redirected to. Can be one of en, de, fr, or nl // TODO: enum values: ["de", "en", "fr", "nl"]
     #[serde(default)]
     pub preferred_language: ::core::option::Option<String>,
-    /// Owner''s verified full name. Values are verified or provided by Sofort directly
+    /// Owner''s verified full name. Values are verified or provided by Sofort directly (if supported) at the time of authorization or settlement. They cannot be set or mutated.
     #[serde(default)]
     pub verified_name: ::core::option::Option<String>,
 }
@@ -19350,7 +18853,7 @@ pub struct SourceReceiverFlow {
     pub address: ::core::option::Option<String>,
     /// The total amount that was moved to your balance. This is almost always equal to the amount charged. In rare cases when customers deposit excess funds and we are unable to refund those, those funds get moved to your balance and show up in amount_charged as well. The amount charged is expressed in the source''s currency.
     pub amount_charged: i64,
-    /// The total amount received by the receiver source. amount_received = amount_returned + amount_charged should be true for consumed sources unless customers deposit excess funds. The amount received is expressed in the source''s currency.
+    /// The total amount received by the receiver source. amount_received = amount_returned + amount_charged should be `true` for consumed sources unless customers deposit excess funds. The amount received is expressed in the source''s currency.
     pub amount_received: i64,
     /// The total amount that was returned to the customer. The amount returned is expressed in the source''s currency.
     pub amount_returned: i64,
@@ -19415,7 +18918,7 @@ pub struct SourceTypeSofort {
 pub struct SourceOrder {
     /// A positive integer in the smallest currency unit (that is, 100 cents for $1.00, or 1 for ¥1, Japanese Yen being a zero-decimal currency) representing the total amount for the order.
     pub amount: i64,
-    /// Three-letter [ISO currency code](https://www.iso.org/iso-4217-currency-codes.html), in lowercase. Must be a [supported currency](https://stripe.com/docs/currencies).
+    /// Three-letter [ISO currency code](<https://www.iso.`org/iso-4217-currency-codes`.html>), in lowercase. Must be a [supported currency](<https://stripe.`com/docs/currencies`>).
     pub currency: String,
     /// The email address of the customer placing the order.
     #[serde(default)]
@@ -19494,7 +18997,7 @@ pub struct InvoiceSettingSubscriptionScheduleSetting {
     /// The account tax IDs associated with the subscription schedule. Will be set on invoices generated by the subscription schedule.
     #[serde(default)]
     pub account_tax_ids: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
-    /// Number of days within which a customer must pay invoices generated by this subscription schedule. This value will be null for subscription schedules where billing=charge_automatically.
+    /// Number of days within which a customer must pay invoices generated by this subscription schedule. This value will be `null` for subscription schedules where billing=charge_automatically.
     #[serde(default)]
     pub days_until_due: ::core::option::Option<i64>,
     pub issuer: ConnectAccountReference,
@@ -19505,7 +19008,7 @@ pub struct InvoiceSettingSubscriptionScheduleSetting {
 pub struct SubscriptionScheduleAddInvoiceItem {
     /// The stackable discounts that will be applied to the item.
     pub discounts: ::std::vec::Vec<DiscountsResourceStackableDiscountWithDiscountEnd>,
-    /// Set of [key-value pairs](https://docs.stripe.com/api/metadata) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
+    /// Set of [key-value pairs](<https://docs.stripe.`com/api/metadata`>) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
     #[serde(default)]
     pub metadata: ::core::option::Option<serde_json::Value>,
     pub period: SubscriptionScheduleAddInvoiceItemPeriod,
@@ -19552,7 +19055,7 @@ pub struct SubscriptionScheduleConfigurationItem {
     pub billing_thresholds: ::core::option::Option<serde_json::Value>,
     /// The discounts applied to the subscription item. Subscription item discounts are applied before subscription discounts. Use expand[]=discounts to expand each discount.
     pub discounts: ::std::vec::Vec<StackableDiscountWithDiscountSettings>,
-    /// Set of [key-value pairs](https://docs.stripe.com/api/metadata) that you can attach to an item. Metadata on this item will update the underlying subscription item''s metadata when the phase is entered.
+    /// Set of [key-value pairs](<https://docs.stripe.`com/api/metadata`>) that you can attach to an item. Metadata on this item will update the underlying subscription item''s metadata when the phase is entered.
     #[serde(default)]
     pub metadata: ::core::option::Option<serde_json::Value>,
     /// ID of the price to which the customer should be subscribed.
@@ -19566,11 +19069,6 @@ pub struct SubscriptionScheduleConfigurationItem {
 }
 
 /// Prices define the unit cost, currency, and (optional) billing cycle for both recurring and one-time purchases of products.
-/// [Products](https://api.stripe.com#products) help you track inventory or provisioning, and prices help you track payment terms. Different physical goods or levels of service should be represented by products, and pricing options should be represented by prices. This approach lets you change prices without having to change your provisioning scheme.
-///
-/// For example, you might have a single "gold" product that has prices for $10/month, $100/year, and €9 once.
-///
-/// Related guides: [Set up a subscription](https://docs.stripe.com/billing/subscriptions/set-up-subscription), [create an invoice](https://docs.stripe.com/billing/invoices/create), and more about [products and prices](https://docs.stripe.com/products-prices/overview).
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Price {
     /// Whether the price can be used for new purchases.
@@ -19579,9 +19077,9 @@ pub struct Price {
     pub billing_scheme: String,
     /// Time at which the object was created. Measured in seconds since the Unix epoch.
     pub created: i64,
-    /// Three-letter [ISO currency code](https://www.iso.org/iso-4217-currency-codes.html), in lowercase. Must be a [supported currency](https://stripe.com/docs/currencies).
+    /// Three-letter [ISO currency code](<https://www.iso.`org/iso-4217-currency-codes`.html>), in lowercase. Must be a [supported currency](<https://stripe.`com/docs/currencies`>).
     pub currency: String,
-    /// Prices defined in each available currency option. Each key must be a three-letter [ISO currency code](https://www.iso.org/iso-4217-currency-codes.html) and a [supported currency](https://stripe.com/docs/currencies).
+    /// Prices defined in each available currency option. Each key must be a three-letter [ISO currency code](<https://www.iso.`org/iso-4217-currency-codes`.html>) and a [supported currency](<https://stripe.`com/docs/currencies`>).
     #[serde(default)]
     pub currency_options: ::core::option::Option<serde_json::Value>,
     /// When set, provides configuration for the amount to be adjusted by the customer during Checkout Sessions and Payment Links.
@@ -19589,24 +19087,24 @@ pub struct Price {
     pub custom_unit_amount: ::core::option::Option<serde_json::Value>,
     /// Unique identifier for the object.
     pub id: String,
-    /// If the object exists in live mode, the value is true. If the object exists in test mode, the value is false.
+    /// If the object exists in live mode, the value is `true`. If the object exists in test mode, the value is `false`.
     pub livemode: bool,
     /// A lookup key used to retrieve prices dynamically from a static string. This may be up to 200 characters.
     #[serde(default)]
     pub lookup_key: ::core::option::Option<String>,
-    /// Set of [key-value pairs](https://docs.stripe.com/api/metadata) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
+    /// Set of [key-value pairs](<https://docs.stripe.`com/api/metadata`>) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
     pub metadata: serde_json::Value,
     /// A brief description of the price, hidden from customers.
     #[serde(default)]
     pub nickname: ::core::option::Option<String>,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["price"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["price"]
     pub object: String,
     /// The ID of the product this price is associated with.
     pub product: serde_json::Value,
     /// The recurring components of a price such as interval and usage_type.
     #[serde(default)]
     pub recurring: ::core::option::Option<serde_json::Value>,
-    /// Only required if a [default tax behavior](https://docs.stripe.com/tax/products-prices-tax-categories-tax-behavior#setting-a-default-tax-behavior-(recommended)) was not provided in the Stripe Tax settings. Specifies whether the price is considered inclusive of taxes or exclusive of taxes. One of inclusive, exclusive, or unspecified. Once specified as either inclusive or exclusive, it cannot be changed. // TODO: enum values: ["exclusive", "inclusive", "unspecified"]
+    /// Only required if a [default tax behavior](<https://docs.stripe.`com/tax/products-prices-tax-categories-tax-behavior`#setting-a-default-tax-behavior->(recommended)) was not provided in the Stripe Tax settings. Specifies whether the price is considered inclusive of taxes or exclusive of taxes. One of inclusive, exclusive, or unspecified. Once specified as either inclusive or exclusive, it cannot be changed. // TODO: enum values: ["exclusive", "inclusive", "unspecified"]
     #[serde(default)]
     pub tax_behavior: ::core::option::Option<String>,
     /// Each element represents a pricing tier. This parameter requires billing_scheme to be set to tiered. See also the documentation for billing_scheme.
@@ -19631,7 +19129,7 @@ pub struct Price {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TaxProductResourceTaxAssociationTransactionAttemptsResourceCommitted {
-    /// The [Tax Transaction](https://docs.stripe.com/api/tax/transaction/object)
+    /// The [Tax Transaction](<https://docs.stripe.`com/api/tax/transaction/object`>)
     pub transaction: String,
 }
 
@@ -19643,18 +19141,18 @@ pub struct TaxProductResourceTaxAssociationTransactionAttemptsResourceErrored {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TaxProductResourceTaxRateDetails {
-    /// Two-letter country code ([ISO 3166-1 alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2)).
+    /// Two-letter country code ([ISO 3166-1 alpha-2](<https://en.wikipedia.`org/wiki/ISO_3166-1_alpha-2`>)).
     #[serde(default)]
     pub country: ::core::option::Option<String>,
-    /// The amount of the tax rate when the rate_type is flat_amount. Tax rates with rate_type percentage can vary based on the transaction, resulting in this field being null. This field exposes the amount and currency of the flat tax rate.
+    /// The amount of the tax rate when the rate_type is flat_amount. Tax rates with rate_type percentage can vary based on the transaction, resulting in this field being `null`. This field exposes the amount and currency of the flat tax rate.
     #[serde(default)]
     pub flat_amount: ::core::option::Option<serde_json::Value>,
     /// The tax rate percentage as a string. For example, 8.5% is represented as "8.5".
     pub percentage_decimal: String,
-    /// Indicates the type of tax rate applied to the taxable amount. This value can be null when no tax applies to the location. This field is only present for TaxRates created by Stripe Tax. // TODO: enum values: ["flat_amount", "percentage"]
+    /// Indicates the type of tax rate applied to the taxable amount. This value can be `null` when no tax applies to the location. This field is only present for TaxRates created by Stripe Tax. // TODO: enum values: ["flat_amount", "percentage"]
     #[serde(default)]
     pub rate_type: ::core::option::Option<String>,
-    /// State, county, province, or region ([ISO 3166-2](https://en.wikipedia.org/wiki/ISO_3166-2)).
+    /// State, county, province, or region ([ISO 3166-2](<https://en.wikipedia.`org/wiki/ISO_3166-2`>)).
     #[serde(default)]
     pub state: ::core::option::Option<String>,
     /// The tax type, such as vat or sales_tax. // TODO: enum values: ["amusement_tax", "communications_tax", "gst", "hst", "igst", "jct", "lease_tax", "pst", "qst", "retail_delivery_fee", "rst", "sales_tax", "service_tax", "vat"]
@@ -19720,7 +19218,7 @@ pub struct TaxProductRegistrationsResourceCountryOptionsUnitedStates {
     #[serde(default)]
     pub local_lease_tax:
         ::core::option::Option<TaxProductRegistrationsResourceCountryOptionsUsLocalLeaseTax>,
-    /// Two-letter US state code ([ISO 3166-2](https://en.wikipedia.org/wiki/ISO_3166-2)).
+    /// Two-letter US state code ([ISO 3166-2](<https://en.wikipedia.`org/wiki/ISO_3166-2`>)).
     pub state: String,
     #[serde(default)]
     pub state_sales_tax:
@@ -19753,13 +19251,13 @@ pub struct TaxProductResourceCustomerDetailsResourceTaxId {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TaxProductResourceJurisdiction {
-    /// Two-letter country code ([ISO 3166-1 alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2)).
+    /// Two-letter country code ([ISO 3166-1 alpha-2](<https://en.wikipedia.`org/wiki/ISO_3166-1_alpha-2`>)).
     pub country: String,
     /// A human-readable name for the jurisdiction imposing the tax.
     pub display_name: String,
     /// Indicates the level of the jurisdiction imposing the tax. // TODO: enum values: ["city", "country", "county", "district", "state"]
     pub level: String,
-    /// [ISO 3166-2 subdivision code](https://en.wikipedia.org/wiki/ISO_3166-2), without country prefix. For example, "NY" for New York, United States.
+    /// [ISO 3166-2 subdivision code](<https://en.wikipedia.`org/wiki/ISO_3166-2`>), without country prefix. For example, "NY" for New York, United States.
     #[serde(default)]
     pub state: ::core::option::Option<String>,
 }
@@ -19860,10 +19358,6 @@ pub struct TerminalReaderReaderResourceCollectConfig {
 }
 
 /// PaymentMethod objects represent your customer''s payment instruments.
-/// You can use them with [PaymentIntents](https://docs.stripe.com/payments/payment-intents) to collect payments or save them to
-/// Customer objects to store instrument details for future payments.
-///
-/// Related guides: [Payment Methods](https://docs.stripe.com/payments/payment-methods) and [More Payment Scenarios](https://docs.stripe.com/payments/more-payment-scenarios).
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethod {
     #[serde(default)]
@@ -19937,11 +19431,11 @@ pub struct PaymentMethod {
     pub kr_card: ::core::option::Option<PaymentMethodKrCard>,
     #[serde(default)]
     pub link: ::core::option::Option<PaymentMethodLink>,
-    /// If the object exists in live mode, the value is true. If the object exists in test mode, the value is false.
+    /// If the object exists in live mode, the value is `true`. If the object exists in test mode, the value is `false`.
     pub livemode: bool,
     #[serde(default)]
     pub mb_way: ::core::option::Option<PaymentMethodMbWay>,
-    /// Set of [key-value pairs](https://docs.stripe.com/api/metadata) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
+    /// Set of [key-value pairs](<https://docs.stripe.`com/api/metadata`>) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
     #[serde(default)]
     pub metadata: ::core::option::Option<serde_json::Value>,
     #[serde(default)]
@@ -19952,7 +19446,7 @@ pub struct PaymentMethod {
     pub naver_pay: ::core::option::Option<PaymentMethodNaverPay>,
     #[serde(default)]
     pub nz_bank_account: ::core::option::Option<PaymentMethodNzBankAccount>,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["payment_method"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["payment_method"]
     pub object: String,
     #[serde(default)]
     pub oxxo: ::core::option::Option<PaymentMethodOxxo>,
@@ -20137,9 +19631,6 @@ pub struct TreasuryInboundTransfersResourceInboundTransferResourceStatusTransiti
 }
 
 /// Balance transactions represent funds moving through your Stripe account.
-/// Stripe creates them for every type of transaction that enters or leaves your Stripe account balance.
-///
-/// Related guide: [Balance transaction types](https://docs.stripe.com/reports/balance-transaction-types)
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BalanceTransaction {
     /// Gross amount of this transaction (in cents (or local equivalent)). A positive value represents funds charged to another party, and a negative value represents funds sent to another party.
@@ -20150,7 +19641,7 @@ pub struct BalanceTransaction {
     pub balance_type: String,
     /// Time at which the object was created. Measured in seconds since the Unix epoch.
     pub created: i64,
-    /// Three-letter [ISO currency code](https://www.iso.org/iso-4217-currency-codes.html), in lowercase. Must be a [supported currency](https://stripe.com/docs/currencies).
+    /// Three-letter [ISO currency code](<https://www.iso.`org/iso-4217-currency-codes`.html>), in lowercase. Must be a [supported currency](<https://stripe.`com/docs/currencies`>).
     pub currency: String,
     /// An arbitrary string attached to the object. Often useful for displaying to users.
     #[serde(default)]
@@ -20166,21 +19657,21 @@ pub struct BalanceTransaction {
     pub id: String,
     /// Net impact to a Stripe balance (in cents (or local equivalent)). A positive value represents incrementing a Stripe balance, and a negative value decrementing a Stripe balance. You can calculate the net impact of a transaction on a balance by amount - fee
     pub net: i64,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["balance_transaction"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["balance_transaction"]
     pub object: String,
-    /// Learn more about how [reporting categories](https://stripe.com/docs/reports/reporting-categories) can help you understand balance transactions from an accounting perspective.
+    /// Learn more about how [reporting categories](<https://stripe.`com/docs/reports/reporting-categories`>) can help you understand balance transactions from an accounting perspective.
     pub reporting_category: String,
     /// This transaction relates to the Stripe object.
     #[serde(default)]
     pub source: ::core::option::Option<serde_json::Value>,
     /// The transaction''s net funds status in the Stripe balance, which are either available or pending.
     pub status: String,
-    /// Transaction type: adjustment, advance, advance_funding, anticipation_repayment, application_fee, application_fee_refund, charge, climate_order_purchase, climate_order_refund, connect_collection_transfer, contribution, issuing_authorization_hold, issuing_authorization_release, issuing_dispute, issuing_transaction, obligation_outbound, obligation_reversal_inbound, payment, payment_failure_refund, payment_network_reserve_hold, payment_network_reserve_release, payment_refund, payment_reversal, payment_unreconciled, payout, payout_cancel, payout_failure, payout_minimum_balance_hold, payout_minimum_balance_release, refund, refund_failure, reserve_transaction, reserved_funds, reserve_hold, reserve_release, stripe_fee, stripe_fx_fee, stripe_balance_payment_debit, stripe_balance_payment_debit_reversal, tax_fee, topup, topup_reversal, transfer, transfer_cancel, transfer_failure, or transfer_refund. Learn more about [balance transaction types and what they represent](https://stripe.com/docs/reports/balance-transaction-types). To classify transactions for accounting purposes, consider reporting_category instead. // TODO: enum values: ["adjustment", "advance", "advance_funding", "anticipation_repayment", "application_fee", "application_fee_refund", "charge", "climate_order_purchase", "climate_order_refund", "connect_collection_transfer", "contribution", "issuing_authorization_hold", "issuing_authorization_release", "issuing_dispute", "issuing_transaction", "obligation_outbound", "obligation_reversal_inbound", "payment", "payment_failure_refund", "payment_network_reserve_hold", "payment_network_reserve_release", "payment_refund", "payment_reversal", "payment_unreconciled", "payout", "payout_cancel", "payout_failure", "payout_minimum_balance_hold", "payout_minimum_balance_release", "refund", "refund_failure", "reserve_hold", "reserve_release", "reserve_transaction", "reserved_funds", "stripe_balance_payment_debit", "stripe_balance_payment_debit_reversal", "stripe_fee", "stripe_fx_fee", "tax_fee", "topup", "topup_reversal", "transfer", "transfer_cancel", "transfer_failure", "transfer_refund"]
+    /// Transaction type: adjustment, advance, advance_funding, anticipation_repayment, application_fee, application_fee_refund, charge, climate_order_purchase, climate_order_refund, connect_collection_transfer, contribution, issuing_authorization_hold, issuing_authorization_release, issuing_dispute, issuing_transaction, obligation_outbound, obligation_reversal_inbound, payment, payment_failure_refund, payment_network_reserve_hold, payment_network_reserve_release, payment_refund, payment_reversal, payment_unreconciled, payout, payout_cancel, payout_failure, payout_minimum_balance_hold, payout_minimum_balance_release, refund, refund_failure, reserve_transaction, reserved_funds, reserve_hold, reserve_release, stripe_fee, stripe_fx_fee, stripe_balance_payment_debit, stripe_balance_payment_debit_reversal, tax_fee, topup, topup_reversal, transfer, transfer_cancel, transfer_failure, or transfer_refund. Learn more about [balance transaction types and what they represent](<https://stripe.`com/docs/reports/balance-transaction-types`>). To classify transactions for accounting purposes, consider reporting_category instead. // TODO: enum values: ["adjustment", "advance", "advance_funding", "anticipation_repayment", "application_fee", "application_fee_refund", "charge", "climate_order_purchase", "climate_order_refund", "connect_collection_transfer", "contribution", "issuing_authorization_hold", "issuing_authorization_release", "issuing_dispute", "issuing_transaction", "obligation_outbound", "obligation_reversal_inbound", "payment", "payment_failure_refund", "payment_network_reserve_hold", "payment_network_reserve_release", "payment_refund", "payment_reversal", "payment_unreconciled", "payout", "payout_cancel", "payout_failure", "payout_minimum_balance_hold", "payout_minimum_balance_release", "refund", "refund_failure", "reserve_hold", "reserve_release", "reserve_transaction", "reserved_funds", "stripe_balance_payment_debit", "stripe_balance_payment_debit_reversal", "stripe_fee", "stripe_fx_fee", "tax_fee", "topup", "topup_reversal", "transfer", "transfer_cancel", "transfer_failure", "transfer_refund"]
     #[serde(rename = "type")]
     pub type_: String,
 }
 
-/// You can [create physical or virtual cards](https://docs.stripe.com/issuing) that are issued to cardholders.
+/// You can [create physical or virtual cards](<https://docs.stripe.`com/issuing`>) that are issued to cardholders.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IssuingCard {
     /// The brand of the card.
@@ -20191,9 +19682,9 @@ pub struct IssuingCard {
     pub cardholder: IssuingCardholder,
     /// Time at which the object was created. Measured in seconds since the Unix epoch.
     pub created: i64,
-    /// Three-letter [ISO currency code](https://www.iso.org/iso-4217-currency-codes.html), in lowercase. Supported currencies are usd in the US, eur in the EU, and gbp in the UK.
+    /// Three-letter [ISO currency code](<https://www.iso.`org/iso-4217-currency-codes`.html>), in lowercase. Supported currencies are usd in the US, eur in the EU, and gbp in the UK.
     pub currency: String,
-    /// The card''s CVC. For security reasons, this is only available for virtual cards, and will be omitted unless you explicitly request it with [the expand parameter](https://docs.stripe.com/api/expanding_objects). Additionally, it''s only available via the ["Retrieve a card" endpoint](https://docs.stripe.com/api/issuing/cards/retrieve), not via "List all cards" or any other endpoint.
+    /// The card''s CVC. For security reasons, this is only available for virtual cards, and will be omitted unless you explicitly request it with [the expand parameter](<https://docs.stripe.`com/api/expanding_objects`>). Additionally, it''s only available via the ["Retrieve a card" endpoint](<https://docs.stripe.`com/api/issuing/cards/retrieve`>), not via "List all cards" or any other endpoint.
     #[serde(default)]
     pub cvc: ::core::option::Option<String>,
     /// The expiration month of the card.
@@ -20207,20 +19698,20 @@ pub struct IssuingCard {
     pub id: String,
     /// The last 4 digits of the card number.
     pub last4: String,
-    /// Stripe’s assessment of whether this card’s details have been compromised. If this property isn''t null, cancel and reissue the card to prevent fraudulent activity risk.
+    /// Stripe’s assessment of whether this card’s details have been compromised. If this property isn''t `null`, cancel and reissue the card to prevent fraudulent activity risk.
     #[serde(default)]
     pub latest_fraud_warning: ::core::option::Option<serde_json::Value>,
-    /// Rules that control the lifecycle of this card, such as automatic cancellation. Refer to our [documentation](/issuing/controls/lifecycle-controls) for more details.
+    /// Rules that control the lifecycle of this card, such as automatic cancellation. Refer to our [documentation](/`issuing/controls/lifecycle-controls`) for more details.
     #[serde(default)]
     pub lifecycle_controls: ::core::option::Option<serde_json::Value>,
-    /// If the object exists in live mode, the value is true. If the object exists in test mode, the value is false.
+    /// If the object exists in live mode, the value is `true`. If the object exists in test mode, the value is `false`.
     pub livemode: bool,
-    /// Set of [key-value pairs](https://docs.stripe.com/api/metadata) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
+    /// Set of [key-value pairs](<https://docs.stripe.`com/api/metadata`>) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
     pub metadata: serde_json::Value,
-    /// The full unredacted card number. For security reasons, this is only available for virtual cards, and will be omitted unless you explicitly request it with [the expand parameter](https://docs.stripe.com/api/expanding_objects). Additionally, it''s only available via the ["Retrieve a card" endpoint](https://docs.stripe.com/api/issuing/cards/retrieve), not via "List all cards" or any other endpoint.
+    /// The full unredacted card number. For security reasons, this is only available for virtual cards, and will be omitted unless you explicitly request it with [the expand parameter](<https://docs.stripe.`com/api/expanding_objects`>). Additionally, it''s only available via the ["Retrieve a card" endpoint](<https://docs.stripe.`com/api/issuing/cards/retrieve`>), not via "List all cards" or any other endpoint.
     #[serde(default)]
     pub number: ::core::option::Option<String>,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["issuing.card"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["issuing.card"]
     pub object: String,
     /// The personalization design object belonging to this card.
     #[serde(default)]
@@ -20264,9 +19755,9 @@ pub struct IssuingAuthorizationFraudChallenge {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IssuingAuthorizationRequest {
-    /// The pending_request.amount at the time of the request, presented in your card''s currency and in the [smallest currency unit](https://docs.stripe.com/currencies#zero-decimal). Stripe held this amount from your account to fund the authorization if the request was approved.
+    /// The pending_request.amount at the time of the request, presented in your card''s currency and in the [smallest currency unit](<https://docs.stripe.`com/currencies`#zero-decimal>). Stripe held this amount from your account to fund the authorization if the request was approved.
     pub amount: i64,
-    /// Detailed breakdown of amount components. These amounts are denominated in currency and in the [smallest currency unit](https://docs.stripe.com/currencies#zero-decimal).
+    /// Detailed breakdown of amount components. These amounts are denominated in currency and in the [smallest currency unit](<https://docs.stripe.`com/currencies`#zero-decimal>).
     #[serde(default)]
     pub amount_details: ::core::option::Option<serde_json::Value>,
     /// Whether this request was approved.
@@ -20276,11 +19767,11 @@ pub struct IssuingAuthorizationRequest {
     pub authorization_code: ::core::option::Option<String>,
     /// Time at which the object was created. Measured in seconds since the Unix epoch.
     pub created: i64,
-    /// Three-letter [ISO currency code](https://www.iso.org/iso-4217-currency-codes.html), in lowercase. Must be a [supported currency](https://stripe.com/docs/currencies).
+    /// Three-letter [ISO currency code](<https://www.iso.`org/iso-4217-currency-codes`.html>), in lowercase. Must be a [supported currency](<https://stripe.`com/docs/currencies`>).
     pub currency: String,
-    /// The pending_request.merchant_amount at the time of the request, presented in the merchant_currency and in the [smallest currency unit](https://docs.stripe.com/currencies#zero-decimal).
+    /// The pending_request.merchant_amount at the time of the request, presented in the merchant_currency and in the [smallest currency unit](<https://docs.stripe.`com/currencies`#zero-decimal>).
     pub merchant_amount: i64,
-    /// The currency that was collected by the merchant and presented to the cardholder for the authorization. Three-letter [ISO currency code](https://www.iso.org/iso-4217-currency-codes.html), in lowercase. Must be a [supported currency](https://stripe.com/docs/currencies).
+    /// The currency that was collected by the merchant and presented to the cardholder for the authorization. Three-letter [ISO currency code](<https://www.iso.`org/iso-4217-currency-codes`.html>), in lowercase. Must be a [supported currency](<https://stripe.`com/docs/currencies`>).
     pub merchant_currency: String,
     /// The card network''s estimate of the likelihood that an authorization is fraudulent. Takes on values between 1 and 99.
     #[serde(default)]
@@ -20295,22 +19786,18 @@ pub struct IssuingAuthorizationRequest {
     pub requested_at: ::core::option::Option<i64>,
 }
 
-/// Any use of an [issued card](https://docs.stripe.com/issuing) that results in funds entering or leaving
-/// your Stripe account, such as a completed purchase or refund, is represented by an Issuing
-/// Transaction object.
-///
-/// Related guide: [Issued card transactions](https://docs.stripe.com/issuing/purchases/transactions)
+/// Any use of an [issued card](<https://docs.stripe.`com/issuing`>) that results in funds entering or leaving
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IssuingTransaction {
-    /// The transaction amount, which will be reflected in your balance. This amount is in your currency and in the [smallest currency unit](https://docs.stripe.com/currencies#zero-decimal).
+    /// The transaction amount, which will be reflected in your balance. This amount is in your currency and in the [smallest currency unit](<https://docs.stripe.`com/currencies`#zero-decimal>).
     pub amount: i64,
-    /// Detailed breakdown of amount components. These amounts are denominated in currency and in the [smallest currency unit](https://docs.stripe.com/currencies#zero-decimal).
+    /// Detailed breakdown of amount components. These amounts are denominated in currency and in the [smallest currency unit](<https://docs.stripe.`com/currencies`#zero-decimal>).
     #[serde(default)]
     pub amount_details: ::core::option::Option<serde_json::Value>,
     /// The Authorization object that led to this transaction.
     #[serde(default)]
     pub authorization: ::core::option::Option<serde_json::Value>,
-    /// ID of the [balance transaction](https://docs.stripe.com/api/balance_transactions) associated with this transaction.
+    /// ID of the [balance transaction](<https://docs.stripe.`com/api/balance_transactions`>) associated with this transaction.
     #[serde(default)]
     pub balance_transaction: ::core::option::Option<serde_json::Value>,
     /// The card used to make this transaction.
@@ -20320,34 +19807,34 @@ pub struct IssuingTransaction {
     pub cardholder: ::core::option::Option<serde_json::Value>,
     /// Time at which the object was created. Measured in seconds since the Unix epoch.
     pub created: i64,
-    /// Three-letter [ISO currency code](https://www.iso.org/iso-4217-currency-codes.html), in lowercase. Must be a [supported currency](https://stripe.com/docs/currencies).
+    /// Three-letter [ISO currency code](<https://www.iso.`org/iso-4217-currency-codes`.html>), in lowercase. Must be a [supported currency](<https://stripe.`com/docs/currencies`>).
     pub currency: String,
     /// If you''ve disputed the transaction, the ID of the dispute.
     #[serde(default)]
     pub dispute: ::core::option::Option<serde_json::Value>,
     /// Unique identifier for the object.
     pub id: String,
-    /// If the object exists in live mode, the value is true. If the object exists in test mode, the value is false.
+    /// If the object exists in live mode, the value is `true`. If the object exists in test mode, the value is `false`.
     pub livemode: bool,
-    /// The amount that the merchant will receive, denominated in merchant_currency and in the [smallest currency unit](https://docs.stripe.com/currencies#zero-decimal). It will be different from amount if the merchant is taking payment in a different currency.
+    /// The amount that the merchant will receive, denominated in merchant_currency and in the [smallest currency unit](<https://docs.stripe.`com/currencies`#zero-decimal>). It will be different from amount if the merchant is taking payment in a different currency.
     pub merchant_amount: i64,
     /// The currency with which the merchant is taking payment.
     pub merchant_currency: String,
     pub merchant_data: IssuingAuthorizationMerchantData,
-    /// Set of [key-value pairs](https://docs.stripe.com/api/metadata) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
+    /// Set of [key-value pairs](<https://docs.stripe.`com/api/metadata`>) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
     pub metadata: serde_json::Value,
     /// Details about the transaction, such as processing dates, set by the card network.
     #[serde(default)]
     pub network_data: ::core::option::Option<serde_json::Value>,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["issuing.transaction"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["issuing.transaction"]
     pub object: String,
     /// Additional purchase information that is optionally provided by the merchant.
     #[serde(default)]
     pub purchase_details: ::core::option::Option<serde_json::Value>,
-    /// [Token](https://docs.stripe.com/api/issuing/tokens/object) object used for this transaction. If a network token was not used for this transaction, this field will be null.
+    /// [Token](<https://docs.stripe.`com/api/issuing/tokens/object`>) object used for this transaction. If a network token was not used for this transaction, this field will be `null`.
     #[serde(default)]
     pub token: ::core::option::Option<serde_json::Value>,
-    /// [Treasury](https://docs.stripe.com/api/treasury) details related to this transaction if it was created on a [FinancialAccount](/docs/api/treasury/financial_accounts
+    /// [Treasury](<https://docs.stripe.`com/api/treasury`>) details related to this transaction if it was created on a [FinancialAccount](/`docs/api/treasury/financial_accounts`
     #[serde(default)]
     pub treasury: ::core::option::Option<serde_json::Value>,
     /// The nature of the transaction. // TODO: enum values: ["capture", "refund"]
@@ -20429,10 +19916,10 @@ pub struct TreasuryReceivedCreditsResourceLinkedFlows {
     /// The CreditReversal created as a result of this ReceivedCredit being reversed.
     #[serde(default)]
     pub credit_reversal: ::core::option::Option<String>,
-    /// Set if the ReceivedCredit was created due to an [Issuing Authorization](https://api.stripe.com#issuing_authorizations) object.
+    /// Set if the ReceivedCredit was created due to an [Issuing Authorization](<https://api.stripe.com#issuing_authorizations>) object.
     #[serde(default)]
     pub issuing_authorization: ::core::option::Option<String>,
-    /// Set if the ReceivedCredit is also viewable as an [Issuing transaction](https://api.stripe.com#issuing_transactions) object.
+    /// Set if the ReceivedCredit is also viewable as an [Issuing transaction](<https://api.stripe.com#issuing_transactions>) object.
     #[serde(default)]
     pub issuing_transaction: ::core::option::Option<String>,
     /// ID of the source flow. Set if network is stripe and the source flow is visible to the user. Examples of source flows include OutboundPayments, payouts, or CreditReversals.
@@ -20454,7 +19941,7 @@ pub struct TreasurySharedResourceInitiatingPaymentMethodDetailsInitiatingPayment
     pub billing_details: TreasurySharedResourceBillingDetails,
     #[serde(default)]
     pub financial_account: ::core::option::Option<ReceivedPaymentMethodDetailsFinancialAccount>,
-    /// Set when type is issuing_card. This is an [Issuing Card](https://api.stripe.com#issuing_cards) ID.
+    /// Set when type is issuing_card. This is an [Issuing Card](<https://api.stripe.com#issuing_cards>) ID.
     #[serde(default)]
     pub issuing_card: ::core::option::Option<String>,
     /// Polymorphic type matching the originating money movement''s source. This can be an external account, a Stripe balance, or a FinancialAccount. // TODO: enum values: ["balance", "financial_account", "issuing_card", "stripe", "us_bank_account"]
@@ -20473,23 +19960,23 @@ pub struct TreasuryReceivedDebitsResourceLinkedFlows {
     /// Set if the ReceivedDebit is associated with an InboundTransfer''s return of funds.
     #[serde(default)]
     pub inbound_transfer: ::core::option::Option<String>,
-    /// Set if the ReceivedDebit was created due to an [Issuing Authorization](https://api.stripe.com#issuing_authorizations) object.
+    /// Set if the ReceivedDebit was created due to an [Issuing Authorization](<https://api.stripe.com#issuing_authorizations>) object.
     #[serde(default)]
     pub issuing_authorization: ::core::option::Option<String>,
-    /// Set if the ReceivedDebit is also viewable as an [Issuing Dispute](https://api.stripe.com#issuing_disputes) object.
+    /// Set if the ReceivedDebit is also viewable as an [Issuing Dispute](<https://api.stripe.com#issuing_disputes>) object.
     #[serde(default)]
     pub issuing_transaction: ::core::option::Option<String>,
-    /// Set if the ReceivedDebit was created due to a [Payout](https://api.stripe.com#payouts) object.
+    /// Set if the ReceivedDebit was created due to a [Payout](<https://api.stripe.com#payouts>) object.
     #[serde(default)]
     pub payout: ::core::option::Option<String>,
-    /// Set if the ReceivedDebit was created due to a [Topup](https://api.stripe.com#topups) object.
+    /// Set if the ReceivedDebit was created due to a [Topup](<https://api.stripe.com#topups>) object.
     #[serde(default)]
     pub topup: ::core::option::Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LegalEntityPersonVerificationDocument {
-    /// The back of an ID returned by a [file upload](https://api.stripe.com#create_file) with a purpose value of identity_document.
+    /// The back of an ID returned by a [file upload](<https://api.stripe.com#create_file>) with a purpose value of identity_document.
     #[serde(default)]
     pub back: ::core::option::Option<serde_json::Value>,
     /// A user-displayable string describing the verification state of this document. For example, if a document is uploaded and the picture is too fuzzy, this may say "Identity document is too unclear to read".
@@ -20498,42 +19985,42 @@ pub struct LegalEntityPersonVerificationDocument {
     /// One of document_corrupt, document_country_not_supported, document_expired, document_failed_copy, document_failed_other, document_failed_test_mode, document_fraudulent, document_failed_greyscale, document_incomplete, document_invalid, document_manipulated, document_missing_back, document_missing_front, document_not_readable, document_not_uploaded, document_photo_mismatch, document_too_large, or document_type_not_supported. A machine-readable code specifying the verification state for this document.
     #[serde(default)]
     pub details_code: ::core::option::Option<String>,
-    /// The front of an ID returned by a [file upload](https://api.stripe.com#create_file) with a purpose value of identity_document.
+    /// The front of an ID returned by a [file upload](<https://api.stripe.com#create_file>) with a purpose value of identity_document.
     #[serde(default)]
     pub front: ::core::option::Option<serde_json::Value>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConnectEmbeddedAccountFeaturesClaim {
-    /// Whether Stripe user authentication is disabled. This value can only be true for accounts where controller.requirement_collection is application for the account. The default value is the opposite of the external_account_collection value. For example, if you don''t set external_account_collection, it defaults to true and disable_stripe_user_authentication defaults to false.
+    /// Whether Stripe user authentication is disabled. This value can only be `true` for accounts where controller.requirement_collection is application for the account. The default value is the opposite of the external_account_collection value. For example, if you don''t set external_account_collection, it defaults to `true` and disable_stripe_user_authentication defaults to `false`.
     pub disable_stripe_user_authentication: bool,
-    /// Whether external account collection is enabled. This feature can only be false for accounts where you’re responsible for collecting updated information when requirements are due or change, like Custom accounts. The default value for this feature is true.
+    /// Whether external account collection is enabled. This feature can only be `false` for accounts where you’re responsible for collecting updated information when requirements are due or change, like Custom accounts. The default value for this feature is `true`.
     pub external_account_collection: bool,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConnectEmbeddedPayoutsFeatures {
-    /// Whether Stripe user authentication is disabled. This value can only be true for accounts where controller.requirement_collection is application for the account. The default value is the opposite of the external_account_collection value. For example, if you don''t set external_account_collection, it defaults to true and disable_stripe_user_authentication defaults to false.
+    /// Whether Stripe user authentication is disabled. This value can only be `true` for accounts where controller.requirement_collection is application for the account. The default value is the opposite of the external_account_collection value. For example, if you don''t set external_account_collection, it defaults to `true` and disable_stripe_user_authentication defaults to `false`.
     pub disable_stripe_user_authentication: bool,
-    /// Whether to allow payout schedule to be changed. Defaults to true when controller.losses.payments is set to stripe for the account, otherwise false.
+    /// Whether to allow payout schedule to be changed. Defaults to `true` when controller.losses.payments is set to stripe for the account, otherwise `false`.
     pub edit_payout_schedule: bool,
-    /// Whether external account collection is enabled. This feature can only be false for accounts where you’re responsible for collecting updated information when requirements are due or change, like Custom accounts. The default value for this feature is true.
+    /// Whether external account collection is enabled. This feature can only be `false` for accounts where you’re responsible for collecting updated information when requirements are due or change, like Custom accounts. The default value for this feature is `true`.
     pub external_account_collection: bool,
     /// Whether to allow creation of instant payouts. The default value is enabled when Stripe is responsible for negative account balances, and use_dashboard_rules otherwise.
     pub instant_payouts: bool,
-    /// Whether to allow creation of standard payouts. Defaults to true when controller.losses.payments is set to stripe for the account, otherwise false.
+    /// Whether to allow creation of standard payouts. Defaults to `true` when controller.losses.payments is set to stripe for the account, otherwise `false`.
     pub standard_payouts: bool,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConnectEmbeddedDisputesListFeatures {
-    /// Whether to allow capturing and cancelling payment intents. This is true by default.
+    /// Whether to allow capturing and cancelling payment intents. This is `true` by default.
     pub capture_payments: bool,
-    /// Whether connected accounts can manage destination charges that are created on behalf of them. This is false by default.
+    /// Whether connected accounts can manage destination charges that are created on behalf of them. This is `false` by default.
     pub destination_on_behalf_of_charge_management: bool,
-    /// Whether responding to disputes is enabled, including submitting evidence and accepting disputes. This is true by default.
+    /// Whether responding to disputes is enabled, including submitting evidence and accepting disputes. This is `true` by default.
     pub dispute_management: bool,
-    /// Whether sending refunds is enabled. This is true by default.
+    /// Whether sending refunds is enabled. This is `true` by default.
     pub refund_management: bool,
 }
 
@@ -20544,9 +20031,9 @@ pub struct ConnectEmbeddedBaseFeatures {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConnectEmbeddedFinancialAccountFeatures {
-    /// Whether Stripe user authentication is disabled. This value can only be true for accounts where controller.requirement_collection is application for the account. The default value is the opposite of the external_account_collection value. For example, if you don''t set external_account_collection, it defaults to true and disable_stripe_user_authentication defaults to false.
+    /// Whether Stripe user authentication is disabled. This value can only be `true` for accounts where controller.requirement_collection is application for the account. The default value is the opposite of the external_account_collection value. For example, if you don''t set external_account_collection, it defaults to `true` and disable_stripe_user_authentication defaults to `false`.
     pub disable_stripe_user_authentication: bool,
-    /// Whether external account collection is enabled. This feature can only be false for accounts where you’re responsible for collecting updated information when requirements are due or change, like Custom accounts. The default value for this feature is true.
+    /// Whether external account collection is enabled. This feature can only be `false` for accounts where you’re responsible for collecting updated information when requirements are due or change, like Custom accounts. The default value for this feature is `true`.
     pub external_account_collection: bool,
     /// Whether to allow sending money.
     pub send_money: bool,
@@ -20562,9 +20049,9 @@ pub struct ConnectEmbeddedFinancialAccountTransactionsFeatures {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConnectEmbeddedInstantPayoutsPromotionFeatures {
-    /// Whether Stripe user authentication is disabled. This value can only be true for accounts where controller.requirement_collection is application for the account. The default value is the opposite of the external_account_collection value. For example, if you don''t set external_account_collection, it defaults to true and disable_stripe_user_authentication defaults to false.
+    /// Whether Stripe user authentication is disabled. This value can only be `true` for accounts where controller.requirement_collection is application for the account. The default value is the opposite of the external_account_collection value. For example, if you don''t set external_account_collection, it defaults to `true` and disable_stripe_user_authentication defaults to `false`.
     pub disable_stripe_user_authentication: bool,
-    /// Whether external account collection is enabled. This feature can only be false for accounts where you’re responsible for collecting updated information when requirements are due or change, like Custom accounts. The default value for this feature is true.
+    /// Whether external account collection is enabled. This feature can only be `false` for accounts where you’re responsible for collecting updated information when requirements are due or change, like Custom accounts. The default value for this feature is `true`.
     pub external_account_collection: bool,
     /// Whether to allow creation of instant payouts. The default value is enabled when Stripe is responsible for negative account balances, and use_dashboard_rules otherwise.
     pub instant_payouts: bool,
@@ -20590,7 +20077,7 @@ pub struct ConnectEmbeddedIssuingCardsListFeatures {
     pub card_spend_dispute_management: bool,
     /// Whether to allow cardholder management features.
     pub cardholder_management: bool,
-    /// Whether Stripe user authentication is disabled. This value can only be true for accounts where controller.requirement_collection is application for the account. The default value is the opposite of the external_account_collection value. For example, if you don''t set external_account_collection, it defaults to true and disable_stripe_user_authentication defaults to false.
+    /// Whether Stripe user authentication is disabled. This value can only be `true` for accounts where controller.requirement_collection is application for the account. The default value is the opposite of the external_account_collection value. For example, if you don''t set external_account_collection, it defaults to `true` and disable_stripe_user_authentication defaults to `false`.
     pub disable_stripe_user_authentication: bool,
     /// Whether to allow spend control management features.
     pub spend_control_management: bool,
@@ -20598,35 +20085,35 @@ pub struct ConnectEmbeddedIssuingCardsListFeatures {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConnectEmbeddedPaymentsFeatures {
-    /// Whether to allow capturing and cancelling payment intents. This is true by default.
+    /// Whether to allow capturing and cancelling payment intents. This is `true` by default.
     pub capture_payments: bool,
-    /// Whether connected accounts can manage destination charges that are created on behalf of them. This is false by default.
+    /// Whether connected accounts can manage destination charges that are created on behalf of them. This is `false` by default.
     pub destination_on_behalf_of_charge_management: bool,
-    /// Whether responding to disputes is enabled, including submitting evidence and accepting disputes. This is true by default.
+    /// Whether responding to disputes is enabled, including submitting evidence and accepting disputes. This is `true` by default.
     pub dispute_management: bool,
-    /// Whether sending refunds is enabled. This is true by default.
+    /// Whether sending refunds is enabled. This is `true` by default.
     pub refund_management: bool,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConnectEmbeddedPaymentDisputesFeatures {
-    /// Whether connected accounts can manage destination charges that are created on behalf of them. This is false by default.
+    /// Whether connected accounts can manage destination charges that are created on behalf of them. This is `false` by default.
     pub destination_on_behalf_of_charge_management: bool,
-    /// Whether responding to disputes is enabled, including submitting evidence and accepting disputes. This is true by default.
+    /// Whether responding to disputes is enabled, including submitting evidence and accepting disputes. This is `true` by default.
     pub dispute_management: bool,
-    /// Whether sending refunds is enabled. This is true by default.
+    /// Whether sending refunds is enabled. This is `true` by default.
     pub refund_management: bool,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BalanceAmountBySourceType {
-    /// Amount coming from [legacy US ACH payments](https://docs.stripe.com/ach-deprecated).
+    /// Amount coming from [legacy US ACH payments](<https://docs.stripe.`com/ach-deprecated`>).
     #[serde(default)]
     pub bank_account: ::core::option::Option<i64>,
-    /// Amount coming from most payment methods, including cards as well as [non-legacy bank debits](https://docs.stripe.com/payments/bank-debits).
+    /// Amount coming from most payment methods, including cards as well as [non-legacy bank debits](<https://docs.stripe.`com/payments/bank-debits`>).
     #[serde(default)]
     pub card: ::core::option::Option<i64>,
-    /// Amount coming from [FPX](https://docs.stripe.com/payments/fpx), a Malaysian payment method.
+    /// Amount coming from [FPX](<https://docs.stripe.`com/payments/fpx`>), a Malaysian payment method.
     #[serde(default)]
     pub fpx: ::core::option::Option<i64>,
 }
@@ -20657,7 +20144,7 @@ pub struct PortalSubscriptionUpdateProduct {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PortalResourceScheduleUpdateAtPeriodEnd {
-    /// List of conditions. When any condition is true, an update will be scheduled at the end of the current period.
+    /// List of conditions. When any condition is `true`, an update will be scheduled at the end of the current period.
     pub conditions: ::std::vec::Vec<PortalResourceScheduleUpdateAtPeriodEndCondition>,
 }
 
@@ -20695,7 +20182,7 @@ pub struct ClimateRemovalsLocation {
     /// The geographic longitude where the supplier is located.
     #[serde(default)]
     pub longitude: ::core::option::Option<f64>,
-    /// The state/county/province/region where the supplier is located.
+    /// The `state/county/province/region` where the supplier is located.
     #[serde(default)]
     pub region: ::core::option::Option<String>,
 }
@@ -20765,7 +20252,7 @@ pub struct DisputeEnhancedEvidenceVisaCompellingEvidence3 {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DisputeEnhancedEvidenceVisaCompliance {
-    /// A field acknowledging the fee incurred when countering a Visa compliance dispute. If this field is set to true, evidence can be submitted for the compliance dispute. Stripe collects a 500 USD (or local equivalent) amount to cover the network costs associated with resolving compliance disputes. Stripe refunds the 500 USD network fee if you win the dispute.
+    /// A field acknowledging the fee incurred when countering a Visa compliance dispute. If this field is set to `true`, evidence can be submitted for the compliance dispute. Stripe collects a 500 USD (or local equivalent) amount to cover the network costs associated with resolving compliance disputes. Stripe refunds the 500 USD network fee if you win the dispute.
     pub fee_acknowledged: bool,
 }
 
@@ -20791,10 +20278,10 @@ pub struct PaymentFlowsPaymentIntentAsyncWorkflows {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentFlowsPaymentDetails {
-    /// A unique value to identify the customer. This field is available only for card payments.
+    /// A unique value to identify the customer. This field is available only for card payments.  This field is truncated to 25 alphanumeric characters, excluding spaces, before being sent to card networks.
     #[serde(default)]
     pub customer_reference: ::core::option::Option<String>,
-    /// A unique value assigned by the business to identify the transaction. Required for L2 and L3 rates.
+    /// A unique value assigned by the business to identify the transaction. Required for L2 and L3 rates.  For Cards, this field is truncated to 25 alphanumeric characters, excluding spaces, before being sent to card networks. For Klarna, this field is truncated to 255 characters and is visible to customers when they view the order in the Klarna app.
     #[serde(default)]
     pub order_reference: ::core::option::Option<String>,
 }
@@ -20841,7 +20328,7 @@ pub struct FundingInstructionsBankTransferIbanRecord {
     pub bank_address: Address,
     /// The BIC/SWIFT code of the account.
     pub bic: String,
-    /// Two-letter country code ([ISO 3166-1 alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2)).
+    /// Two-letter country code ([ISO 3166-1 alpha-2](<https://en.wikipedia.`org/wiki/ISO_3166-1_alpha-2`>)).
     pub country: String,
     /// The IBAN of the account.
     pub iban: String,
@@ -20997,7 +20484,7 @@ pub struct SourceOrderItem {
     /// Human-readable description for this order item.
     #[serde(default)]
     pub description: ::core::option::Option<String>,
-    /// The ID of the associated object for this line item. Expandable if not null (e.g., expandable to a SKU).
+    /// The ID of the associated object for this line item. Expandable if not `null` (e.g., expandable to a SKU).
     #[serde(default)]
     pub parent: ::core::option::Option<String>,
     /// The quantity of this order item. When type is sku, this is the number of instances of the SKU to be ordered.
@@ -21101,19 +20588,19 @@ pub struct TaxProductRegistrationsResourceCountryOptionsEuStandard {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TaxProductRegistrationsResourceCountryOptionsCaProvinceStandard {
-    /// Two-letter CA province code ([ISO 3166-2](https://en.wikipedia.org/wiki/ISO_3166-2)).
+    /// Two-letter CA province code ([ISO 3166-2](<https://en.wikipedia.`org/wiki/ISO_3166-2`>)).
     pub province: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TaxProductRegistrationsResourceCountryOptionsUsLocalAmusementTax {
-    /// A [FIPS code](https://www.census.gov/library/reference/code-lists/ansi.html) representing the local jurisdiction.
+    /// A [FIPS code](<https://www.census.`gov/library/reference/code-lists/ansi`.html>) representing the local jurisdiction.
     pub jurisdiction: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TaxProductRegistrationsResourceCountryOptionsUsLocalLeaseTax {
-    /// A [FIPS code](https://www.census.gov/library/reference/code-lists/ansi.html) representing the local jurisdiction.
+    /// A [FIPS code](<https://www.census.`gov/library/reference/code-lists/ansi`.html>) representing the local jurisdiction.
     pub jurisdiction: String,
 }
 
@@ -21323,7 +20810,7 @@ pub struct PaymentMethodCard {
     pub exp_month: i64,
     /// Four-digit number representing the card''s expiration year.
     pub exp_year: i64,
-    /// Uniquely identifies this particular card number. You can use this attribute to check whether two customers who’ve signed up with you are using the same card number, for example. For payment methods that tokenize card information (Apple Pay, Google Pay), the tokenized number might be provided instead of the underlying card number.
+    /// Uniquely identifies this particular card number. You can use this attribute to check whether two customers who’ve signed up with you are using the same card number, for example. For payment methods that tokenize card information (Apple Pay, Google Pay), the tokenized number might be provided instead of the underlying card number.  *As of May 1, 2021, card fingerprint in India for Connect changed to allow two fingerprints for the same card---one for India and one for the rest of the world.*
     #[serde(default)]
     pub fingerprint: ::core::option::Option<String>,
     /// Card funding type. Can be credit, debit, prepaid, or unknown.
@@ -21352,10 +20839,10 @@ pub struct PaymentMethodCardPresent {
     /// Card brand. Can be amex, cartes_bancaires, diners, discover, eftpos_au, jcb, link, mastercard, unionpay, visa or unknown.
     #[serde(default)]
     pub brand: ::core::option::Option<String>,
-    /// The [product code](https://stripe.com/docs/card-product-codes) that identifies the specific program or product associated with a card.
+    /// The [product code](<https://stripe.`com/docs/card-product-codes`>) that identifies the specific program or product associated with a card.
     #[serde(default)]
     pub brand_product: ::core::option::Option<String>,
-    /// The cardholder name as read from the card, in [ISO 7813](https://en.wikipedia.org/wiki/ISO/IEC_7813) format. May include alphanumeric characters, special characters and first/last name separator (/). In some cases, the cardholder name may not be available depending on how the issuer has configured the card. Cardholder name is typically not available on swipe or contactless payments, such as those made with Apple Pay and Google Pay.
+    /// The cardholder name as read from the card, in [ISO 7813](<https://en.wikipedia.`org/wiki/ISO/IEC_7813`>) format. May include alphanumeric characters, special characters and `first/last` name separator (/). In some cases, the cardholder name may not be available depending on how the issuer has configured the card. Cardholder name is typically not available on swipe or contactless payments, such as those made with Apple Pay and Google Pay.
     #[serde(default)]
     pub cardholder_name: ::core::option::Option<String>,
     /// Two-letter ISO code representing the country of the card. You could use this attribute to get a sense of the international breakdown of cards you''ve collected.
@@ -21368,7 +20855,7 @@ pub struct PaymentMethodCardPresent {
     pub exp_month: i64,
     /// Four-digit number representing the card''s expiration year.
     pub exp_year: i64,
-    /// Uniquely identifies this particular card number. You can use this attribute to check whether two customers who’ve signed up with you are using the same card number, for example. For payment methods that tokenize card information (Apple Pay, Google Pay), the tokenized number might be provided instead of the underlying card number.
+    /// Uniquely identifies this particular card number. You can use this attribute to check whether two customers who’ve signed up with you are using the same card number, for example. For payment methods that tokenize card information (Apple Pay, Google Pay), the tokenized number might be provided instead of the underlying card number.  *As of May 1, 2021, card fingerprint in India for Connect changed to allow two fingerprints for the same card---one for India and one for the rest of the world.*
     #[serde(default)]
     pub fingerprint: ::core::option::Option<String>,
     /// Card funding type. Can be credit, debit, prepaid, or unknown.
@@ -21467,7 +20954,7 @@ pub struct PaymentMethodInteracPresent {
     /// Card brand. Can be interac, mastercard or visa.
     #[serde(default)]
     pub brand: ::core::option::Option<String>,
-    /// The cardholder name as read from the card, in [ISO 7813](https://en.wikipedia.org/wiki/ISO/IEC_7813) format. May include alphanumeric characters, special characters and first/last name separator (/). In some cases, the cardholder name may not be available depending on how the issuer has configured the card. Cardholder name is typically not available on swipe or contactless payments, such as those made with Apple Pay and Google Pay.
+    /// The cardholder name as read from the card, in [ISO 7813](<https://en.wikipedia.`org/wiki/ISO/IEC_7813`>) format. May include alphanumeric characters, special characters and `first/last` name separator (/). In some cases, the cardholder name may not be available depending on how the issuer has configured the card. Cardholder name is typically not available on swipe or contactless payments, such as those made with Apple Pay and Google Pay.
     #[serde(default)]
     pub cardholder_name: ::core::option::Option<String>,
     /// Two-letter ISO code representing the country of the card. You could use this attribute to get a sense of the international breakdown of cards you''ve collected.
@@ -21480,7 +20967,7 @@ pub struct PaymentMethodInteracPresent {
     pub exp_month: i64,
     /// Four-digit number representing the card''s expiration year.
     pub exp_year: i64,
-    /// Uniquely identifies this particular card number. You can use this attribute to check whether two customers who’ve signed up with you are using the same card number, for example. For payment methods that tokenize card information (Apple Pay, Google Pay), the tokenized number might be provided instead of the underlying card number.
+    /// Uniquely identifies this particular card number. You can use this attribute to check whether two customers who’ve signed up with you are using the same card number, for example. For payment methods that tokenize card information (Apple Pay, Google Pay), the tokenized number might be provided instead of the underlying card number.  *As of May 1, 2021, card fingerprint in India for Connect changed to allow two fingerprints for the same card---one for India and one for the rest of the world.*
     #[serde(default)]
     pub fingerprint: ::core::option::Option<String>,
     /// Card funding type. Can be credit, debit, prepaid, or unknown.
@@ -21611,7 +21098,7 @@ pub struct PaymentMethodPaypal {
     /// Two-letter ISO code representing the buyer''s country. Values are provided by PayPal directly (if supported) at the time of authorization or settlement. They cannot be set or mutated.
     #[serde(default)]
     pub country: ::core::option::Option<String>,
-    /// Owner''s email. Values are provided by PayPal directly
+    /// Owner''s email. Values are provided by PayPal directly (if supported) at the time of authorization or settlement. They cannot be set or mutated.
     #[serde(default)]
     pub payer_email: ::core::option::Option<String>,
     /// PayPal account PayerID. This identifier uniquely identifies the PayPal customer.
@@ -21642,10 +21129,10 @@ pub struct PaymentMethodPromptpay {
     pub value: serde_json::Value,
 }
 
-/// Options to configure Radar. See [Radar Session](https://docs.stripe.com/radar/radar-session) for more information.
+/// Options to configure Radar. See [Radar Session](<https://docs.stripe.`com/radar/radar-session`>) for more information.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RadarRadarOptions {
-    /// A [Radar Session](https://docs.stripe.com/radar/radar-session) is a snapshot of the browser metadata and device details that help Radar make more accurate predictions on your payments.
+    /// A [Radar Session](<https://docs.stripe.`com/radar/radar-session`>) is a snapshot of the browser metadata and device details that help Radar make more accurate predictions on your payments.
     #[serde(default)]
     pub session: ::core::option::Option<String>,
 }
@@ -21760,7 +21247,7 @@ pub struct TerminalReaderReaderResourceTippingConfig {
     pub amount_eligible: ::core::option::Option<i64>,
 }
 
-/// Toggle settings for enabling/disabling the ABA address feature
+/// Toggle settings for `enabling/disabling` the ABA address feature
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TreasuryFinancialAccountsResourceAbaToggleSettings {
     /// Whether the FinancialAccount should have the Feature.
@@ -21772,7 +21259,7 @@ pub struct TreasuryFinancialAccountsResourceAbaToggleSettings {
         ::std::vec::Vec<TreasuryFinancialAccountsResourceTogglesSettingStatusDetails>,
 }
 
-/// Toggle settings for enabling/disabling an inbound ACH specific feature
+/// Toggle settings for `enabling/disabling` an inbound ACH specific feature
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TreasuryFinancialAccountsResourceInboundAchToggleSettings {
     /// Whether the FinancialAccount should have the Feature.
@@ -21784,7 +21271,7 @@ pub struct TreasuryFinancialAccountsResourceInboundAchToggleSettings {
         ::std::vec::Vec<TreasuryFinancialAccountsResourceTogglesSettingStatusDetails>,
 }
 
-/// Toggle settings for enabling/disabling an outbound ACH specific feature
+/// Toggle settings for `enabling/disabling` an outbound ACH specific feature
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TreasuryFinancialAccountsResourceOutboundAchToggleSettings {
     /// Whether the FinancialAccount should have the Feature.
@@ -21796,7 +21283,7 @@ pub struct TreasuryFinancialAccountsResourceOutboundAchToggleSettings {
         ::std::vec::Vec<TreasuryFinancialAccountsResourceTogglesSettingStatusDetails>,
 }
 
-/// Toggle settings for enabling/disabling a feature
+/// Toggle settings for `enabling/disabling` a feature
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TreasuryFinancialAccountsResourceToggleSettings {
     /// Whether the FinancialAccount should have the Feature.
@@ -21815,7 +21302,7 @@ pub struct Fee {
     /// ID of the Connect application that earned the fee.
     #[serde(default)]
     pub application: ::core::option::Option<String>,
-    /// Three-letter [ISO currency code](https://www.iso.org/iso-4217-currency-codes.html), in lowercase. Must be a [supported currency](https://stripe.com/docs/currencies).
+    /// Three-letter [ISO currency code](<https://www.iso.`org/iso-4217-currency-codes`.html>), in lowercase. Must be a [supported currency](<https://stripe.`com/docs/currencies`>).
     pub currency: String,
     /// An arbitrary string attached to the object. Often useful for displaying to users.
     #[serde(default)]
@@ -21825,9 +21312,7 @@ pub struct Fee {
     pub type_: String,
 }
 
-/// An Issuing Cardholder object represents an individual or business entity who is [issued](https://docs.stripe.com/issuing) cards.
-///
-/// Related guide: [How to create a cardholder](https://docs.stripe.com/issuing/cards/virtual/issue-cards#create-cardholder)
+/// An Issuing Cardholder object represents an individual or business entity who is [issued](<https://docs.stripe.`com/issuing`>) cards.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IssuingCardholder {
     pub billing: IssuingCardholderAddress,
@@ -21844,40 +21329,40 @@ pub struct IssuingCardholder {
     /// Additional information about an individual cardholder.
     #[serde(default)]
     pub individual: ::core::option::Option<serde_json::Value>,
-    /// If the object exists in live mode, the value is true. If the object exists in test mode, the value is false.
+    /// If the object exists in live mode, the value is `true`. If the object exists in test mode, the value is `false`.
     pub livemode: bool,
-    /// Set of [key-value pairs](https://docs.stripe.com/api/metadata) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
+    /// Set of [key-value pairs](<https://docs.stripe.`com/api/metadata`>) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
     pub metadata: serde_json::Value,
     /// The cardholder''s name. This will be printed on cards issued to them.
     pub name: String,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["issuing.cardholder"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["issuing.cardholder"]
     pub object: String,
-    /// The cardholder''s phone number. This is required for all cardholders who will be creating EU cards. See the [3D Secure documentation](https://docs.stripe.com/issuing/3d-secure#when-is-3d-secure-applied) for more details.
+    /// The cardholder''s phone number. This is required for all cardholders who will be creating EU cards. See the [3D Secure documentation](<https://docs.stripe.`com/issuing/3d-secure`#when-is-3d-secure-applied>) for more details.
     #[serde(default)]
     pub phone_number: ::core::option::Option<String>,
-    /// The cardholder’s preferred locales (languages), ordered by preference. Locales can be da, de, en, es, fr, it, pl, or sv.
+    /// The cardholder’s preferred locales (languages), ordered by preference. Locales can be da, de, en, es, fr, it, pl, or sv. This changes the language of the [3D Secure flow](<https://docs.stripe.`com/issuing/3d-secure`>) and one-time password messages sent to the cardholder.
     #[serde(default)]
     pub preferred_locales: ::core::option::Option<::std::vec::Vec<String>>,
     pub requirements: IssuingCardholderRequirements,
-    /// Rules that control spending across this cardholder''s cards. Refer to our [documentation](https://docs.stripe.com/issuing/controls/spending-controls) for more details.
+    /// Rules that control spending across this cardholder''s cards. Refer to our [documentation](<https://docs.stripe.`com/issuing/controls/spending-controls`>) for more details.
     #[serde(default)]
     pub spending_controls: ::core::option::Option<serde_json::Value>,
     /// Specifies whether to permit authorizations on this cardholder''s cards. // TODO: enum values: ["active", "blocked", "inactive"]
     pub status: String,
-    /// One of individual or company. See [Choose a cardholder type](https://docs.stripe.com/issuing/other/choose-cardholder) for more details. // TODO: enum values: ["company", "individual"]
+    /// One of individual or company. See [Choose a cardholder type](<https://docs.stripe.`com/issuing/other/choose-cardholder`>) for more details. // TODO: enum values: ["company", "individual"]
     #[serde(rename = "type")]
     pub type_: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IssuingCardAuthorizationControls {
-    /// Array of strings containing [categories](https://docs.stripe.com/api#issuing_authorization_object-merchant_data-category) of authorizations to allow. All other categories will be blocked. Cannot be set with blocked_categories.
+    /// Array of strings containing [categories](<https://docs.stripe.`com/api`#issuing_authorization_object-merchant_data-category>) of authorizations to allow. All other categories will be blocked. Cannot be set with blocked_categories.
     #[serde(default)]
     pub allowed_categories: ::core::option::Option<::std::vec::Vec<String>>,
     /// Array of strings containing representing countries from which authorizations will be allowed. Authorizations from merchants in all other countries will be declined. Country codes should be ISO 3166 alpha-2 country codes (e.g. US). Cannot be set with blocked_merchant_countries. Provide an empty value to unset this control.
     #[serde(default)]
     pub allowed_merchant_countries: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Array of strings containing [categories](https://docs.stripe.com/api#issuing_authorization_object-merchant_data-category) of authorizations to decline. All other categories will be allowed. Cannot be set with allowed_categories.
+    /// Array of strings containing [categories](<https://docs.stripe.`com/api`#issuing_authorization_object-merchant_data-category>) of authorizations to decline. All other categories will be allowed. Cannot be set with allowed_categories.
     #[serde(default)]
     pub blocked_categories: ::core::option::Option<::std::vec::Vec<String>>,
     /// Array of strings containing representing countries from which authorizations will be declined. Country codes should be ISO 3166 alpha-2 country codes (e.g. US). Cannot be set with allowed_merchant_countries. Provide an empty value to unset this control.
@@ -21893,7 +21378,7 @@ pub struct IssuingCardAuthorizationControls {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IssuingAuthorizationMerchantData {
-    /// A categorization of the seller''s type of business. See our [merchant categories guide](https://docs.stripe.com/issuing/merchant-categories) for a list of possible values.
+    /// A categorization of the seller''s type of business. See our [merchant categories guide](<https://docs.stripe.`com/issuing/merchant-categories`>) for a list of possible values.
     pub category: String,
     /// The merchant category code for the seller’s business
     pub category_code: String,
@@ -21953,7 +21438,7 @@ pub struct OutboundTransfersPaymentMethodDetailsUsBankAccount {
     /// ID of the mandate used to make this payment.
     #[serde(default)]
     pub mandate: ::core::option::Option<serde_json::Value>,
-    /// The network rails used. See the [docs](https://docs.stripe.com/treasury/money-movement/timelines) to learn more about money movement timelines for each network type. // TODO: enum values: ["ach", "us_domestic_wire"]
+    /// The network rails used. See the [docs](<https://docs.stripe.`com/treasury/money-movement/timelines`>) to learn more about money movement timelines for each network type. // TODO: enum values: ["ach", "us_domestic_wire"]
     pub network: String,
     /// Routing number of the bank account.
     #[serde(default)]
@@ -21994,7 +21479,7 @@ pub struct TreasurySharedResourceInitiatingPaymentMethodDetailsUsBankAccount {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PortalSubscriptionUpdateProductAdjustableQuantity {
-    /// If true, the quantity can be adjusted to any non-negative integer.
+    /// If `true`, the quantity can be adjusted to any non-negative integer.
     pub enabled: bool,
     /// The maximum quantity that can be set for the product.
     #[serde(default)]
@@ -22074,7 +21559,7 @@ pub struct SubscriptionSchedulesResourceInvoiceItemPeriodResourcePeriodStart {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TaxProductRegistrationsResourceCountryOptionsUsStateSalesTaxElection {
-    /// A [FIPS code](https://www.census.gov/library/reference/code-lists/ansi.html) representing the local jurisdiction.
+    /// A [FIPS code](<https://www.census.`gov/library/reference/code-lists/ansi`.html>) representing the local jurisdiction.
     #[serde(default)]
     pub jurisdiction: ::core::option::Option<String>,
     /// The type of the election for the state sales tax registration. // TODO: enum values: ["local_use_tax", "simplified_sellers_use_tax", "single_local_use_tax"]
@@ -22132,9 +21617,9 @@ pub struct IssuingCardholderRequirements {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IssuingCardSpendingLimit {
-    /// Maximum amount allowed to spend per interval. This amount is in the card''s currency and in the [smallest currency unit](https://docs.stripe.com/currencies#zero-decimal).
+    /// Maximum amount allowed to spend per interval. This amount is in the card''s currency and in the [smallest currency unit](<https://docs.stripe.`com/currencies`#zero-decimal>).
     pub amount: i64,
-    /// Array of strings containing [categories](https://docs.stripe.com/api#issuing_authorization_object-merchant_data-category) this limit applies to. Omitting this field will apply the limit to all categories.
+    /// Array of strings containing [categories](<https://docs.stripe.`com/api`#issuing_authorization_object-merchant_data-category>) this limit applies to. Omitting this field will apply the limit to all categories.
     #[serde(default)]
     pub categories: ::core::option::Option<::std::vec::Vec<String>>,
     /// Interval (or event) to which the amount applies. // TODO: enum values: ["all_time", "daily", "monthly", "per_authorization", "weekly", "yearly"]
@@ -22143,7 +21628,7 @@ pub struct IssuingCardSpendingLimit {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentFlowsPaymentIntentAsyncWorkflowsResourceInputsResourceTax {
-    /// The [TaxCalculation](https://docs.stripe.com/api/tax/calculations) id
+    /// The [TaxCalculation](<https://docs.stripe.`com/api/tax/calculations`>) id
     pub calculation: String,
 }
 
@@ -22172,7 +21657,7 @@ pub struct Address {
     /// City, district, suburb, town, or village.
     #[serde(default)]
     pub city: ::core::option::Option<String>,
-    /// Two-letter country code ([ISO 3166-1 alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2)).
+    /// Two-letter country code ([ISO 3166-1 alpha-2](<https://en.wikipedia.`org/wiki/ISO_3166-1_alpha-2`>)).
     #[serde(default)]
     pub country: ::core::option::Option<String>,
     /// Address line 1, such as the street, PO Box, or company name.
@@ -22184,15 +21669,12 @@ pub struct Address {
     /// ZIP or postal code.
     #[serde(default)]
     pub postal_code: ::core::option::Option<String>,
-    /// State, county, province, or region ([ISO 3166-2](https://en.wikipedia.org/wiki/ISO_3166-2)).
+    /// State, county, province, or region ([ISO 3166-2](<https://en.wikipedia.`org/wiki/ISO_3166-2`>)).
     #[serde(default)]
     pub state: ::core::option::Option<String>,
 }
 
-/// A discount represents the actual application of a [coupon](https://api.stripe.com#coupons) or [promotion code](https://api.stripe.com#promotion_codes).
-/// It contains information about when the discount began, when it will end, and what it is applied to.
-///
-/// Related guide: [Applying discounts to subscriptions](https://docs.stripe.com/billing/subscriptions/discounts)
+/// A discount represents the actual application of a [coupon](<https://api.stripe.com#coupons>) or [promotion code](<https://api.stripe.com#promotion_codes>).
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Discount {
     /// The Checkout session that this coupon is applied to, if it is applied to a particular session in payment mode. Will not be present for subscription mode.
@@ -22204,7 +21686,7 @@ pub struct Discount {
     /// The ID of the account representing the customer associated with this discount.
     #[serde(default)]
     pub customer_account: ::core::option::Option<String>,
-    /// If the coupon has a duration of repeating, the date that this discount will end. If the coupon has a duration of once or forever, this attribute will be null.
+    /// If the coupon has a duration of repeating, the date that this discount will end. If the coupon has a duration of once or forever, this attribute will be `null`.
     #[serde(default)]
     pub end: ::core::option::Option<i64>,
     /// The ID of the discount object. Discounts cannot be fetched by ID. Use expand[]=discounts in API calls to expand discount IDs in an array.
@@ -22215,7 +21697,7 @@ pub struct Discount {
     /// The invoice item id (or invoice line item id for invoice line items of type=''subscription'') that the discount''s coupon was applied to, if it was applied directly to a particular invoice item or invoice line item.
     #[serde(default)]
     pub invoice_item: ::core::option::Option<String>,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["discount"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["discount"]
     pub object: String,
     /// The promotion code applied to create this discount.
     #[serde(default)]
@@ -22231,14 +21713,12 @@ pub struct Discount {
     pub subscription_item: ::core::option::Option<String>,
 }
 
-/// Tax rates can be applied to [invoices](/invoicing/taxes/tax-rates), [subscriptions](/billing/taxes/tax-rates) and [Checkout Sessions](/payments/checkout/use-manual-tax-rates) to collect tax.
-///
-/// Related guide: [Tax rates](/billing/taxes/tax-rates)
+/// Tax rates can be applied to [invoices](/`invoicing/taxes/tax-rates`), [subscriptions](/`billing/taxes/tax-rates`) and [Checkout Sessions](/`payments/checkout/use-manual-tax-rates`) to collect tax.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TaxRate {
-    /// Defaults to true. When set to false, this tax rate cannot be used with new applications or Checkout Sessions, but will still work for subscriptions and invoices that already have it set.
+    /// Defaults to `true`. When set to `false`, this tax rate cannot be used with new applications or Checkout Sessions, but will still work for subscriptions and invoices that already have it set.
     pub active: bool,
-    /// Two-letter country code ([ISO 3166-1 alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2)).
+    /// Two-letter country code ([ISO 3166-1 alpha-2](<https://en.wikipedia.`org/wiki/ISO_3166-1_alpha-2`>)).
     #[serde(default)]
     pub country: ::core::option::Option<String>,
     /// Time at which the object was created. Measured in seconds since the Unix epoch.
@@ -22248,10 +21728,10 @@ pub struct TaxRate {
     pub description: ::core::option::Option<String>,
     /// The display name of the tax rates as it will appear to your customer on their receipt email, PDF, and the hosted invoice page.
     pub display_name: String,
-    /// Actual/effective tax rate percentage out of 100. For tax calculations with automatic_tax[enabled]=true,
+    /// A`ctual/effective` tax rate percentage out of 100. For tax calculations with automatic_tax[enabled]=`true`, this percentage reflects the rate actually used to calculate tax based on the product''s taxability and whether the user is registered to collect taxes in the corresponding jurisdiction.
     #[serde(default)]
     pub effective_percentage: ::core::option::Option<f64>,
-    /// The amount of the tax rate when the rate_type is flat_amount. Tax rates with rate_type percentage can vary based on the transaction, resulting in this field being null. This field exposes the amount and currency of the flat tax rate.
+    /// The amount of the tax rate when the rate_type is flat_amount. Tax rates with rate_type percentage can vary based on the transaction, resulting in this field being `null`. This field exposes the amount and currency of the flat tax rate.
     #[serde(default)]
     pub flat_amount: ::core::option::Option<serde_json::Value>,
     /// Unique identifier for the object.
@@ -22261,22 +21741,22 @@ pub struct TaxRate {
     /// The jurisdiction for the tax rate. You can use this label field for tax reporting purposes. It also appears on your customer’s invoice.
     #[serde(default)]
     pub jurisdiction: ::core::option::Option<String>,
-    /// The level of the jurisdiction that imposes this tax rate. Will be null for manually defined tax rates. // TODO: enum values: ["city", "country", "county", "district", "multiple", "state"]
+    /// The level of the jurisdiction that imposes this tax rate. Will be `null` for manually defined tax rates. // TODO: enum values: ["city", "country", "county", "district", "multiple", "state"]
     #[serde(default)]
     pub jurisdiction_level: ::core::option::Option<String>,
-    /// If the object exists in live mode, the value is true. If the object exists in test mode, the value is false.
+    /// If the object exists in live mode, the value is `true`. If the object exists in test mode, the value is `false`.
     pub livemode: bool,
-    /// Set of [key-value pairs](https://docs.stripe.com/api/metadata) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
+    /// Set of [key-value pairs](<https://docs.stripe.`com/api/metadata`>) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
     #[serde(default)]
     pub metadata: ::core::option::Option<serde_json::Value>,
-    /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["tax_rate"]
+    /// `String` representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["tax_rate"]
     pub object: String,
-    /// Tax rate percentage out of 100. For tax calculations with automatic_tax[enabled]=true, this percentage includes the statutory tax rate of non-taxable jurisdictions.
+    /// Tax rate percentage out of 100. For tax calculations with automatic_tax[enabled]=`true`, this percentage includes the statutory tax rate of non-taxable jurisdictions.
     pub percentage: f64,
-    /// Indicates the type of tax rate applied to the taxable amount. This value can be null when no tax applies to the location. This field is only present for TaxRates created by Stripe Tax. // TODO: enum values: ["flat_amount", "percentage"]
+    /// Indicates the type of tax rate applied to the taxable amount. This value can be `null` when no tax applies to the location. This field is only present for TaxRates created by Stripe Tax. // TODO: enum values: ["flat_amount", "percentage"]
     #[serde(default)]
     pub rate_type: ::core::option::Option<String>,
-    /// [ISO 3166-2 subdivision code](https://en.wikipedia.org/wiki/ISO_3166-2), without country prefix. For example, "NY" for New York, United States.
+    /// [ISO 3166-2 subdivision code](<https://en.wikipedia.`org/wiki/ISO_3166-2`>), without country prefix. For example, "NY" for New York, United States.
     #[serde(default)]
     pub state: ::core::option::Option<String>,
     /// The high-level tax type, such as vat or sales_tax. // TODO: enum values: ["amusement_tax", "communications_tax", "gst", "hst", "igst", "jct", "lease_tax", "pst", "qst", "retail_delivery_fee", "rst", "sales_tax", "service_tax", "vat"]

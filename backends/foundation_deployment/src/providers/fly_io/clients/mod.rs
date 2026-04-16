@@ -7,6 +7,8 @@
 
 #![cfg(feature = "fly_io")]
 
+pub mod types;
+
 use crate::providers::fly_io::clients::types::*;
 use crate::providers::fly_io::resources::*;
 use foundation_core::valtron::{
@@ -29,8 +31,8 @@ use serde::Serialize;
 
 pub fn apps_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    org_slug: &Option<Option<String>>,
-    app_role: &Option<Option<String>>,
+    org_slug: &Option<String>,
+    app_role: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -170,9 +172,9 @@ pub fn apps_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AppsListArgs {
     /// Query parameter: org_slug
-    pub org_slug: Option<Option<String>>,
+    pub org_slug: Option<String>,
     /// Query parameter: app_role
-    pub app_role: Option<Option<String>>,
+    pub app_role: Option<String>,
 }
 
 /// GET /apps
@@ -675,9 +677,9 @@ pub fn apps_delete(
 pub fn app_certificates_list_builder<R>(
     client: &SimpleHttpClient<R>,
     app_name: &String,
-    filter: &Option<Option<String>>,
-    cursor: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
+    filter: &Option<String>,
+    cursor: &Option<String>,
+    limit: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -822,11 +824,11 @@ pub struct AppCertificatesListArgs {
     /// Path parameter: app_name
     pub app_name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: cursor
-    pub cursor: Option<Option<String>>,
+    pub cursor: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
 }
 
 /// GET /apps/{app_name}/certificates
@@ -2697,10 +2699,10 @@ pub fn app_ipassignments_delete(
 pub fn machines_list_builder<R>(
     client: &SimpleHttpClient<R>,
     app_name: &String,
-    include_deleted: &Option<Option<String>>,
-    region: &Option<Option<String>>,
-    state: &Option<Option<String>>,
-    summary: &Option<Option<String>>,
+    include_deleted: &Option<String>,
+    region: &Option<String>,
+    state: &Option<String>,
+    summary: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2848,13 +2850,13 @@ pub struct MachinesListArgs {
     /// Path parameter: app_name
     pub app_name: String,
     /// Query parameter: include_deleted
-    pub include_deleted: Option<Option<String>>,
+    pub include_deleted: Option<String>,
     /// Query parameter: region
-    pub region: Option<Option<String>>,
+    pub region: Option<String>,
     /// Query parameter: state
-    pub state: Option<Option<String>>,
+    pub state: Option<String>,
     /// Query parameter: summary
-    pub summary: Option<Option<String>>,
+    pub summary: Option<String>,
 }
 
 /// GET /apps/{app_name}/machines
@@ -3391,7 +3393,7 @@ pub fn machines_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     app_name: &String,
     machine_id: &String,
-    force: &Option<Option<String>>,
+    force: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3530,7 +3532,7 @@ pub struct MachinesDeleteArgs {
     /// Path parameter: machine_id
     pub machine_id: String,
     /// Query parameter: force
-    pub force: Option<Option<String>>,
+    pub force: Option<String>,
 }
 
 /// DELETE /apps/{app_name}/machines/{machine_id}
@@ -3725,7 +3727,7 @@ pub fn machines_list_events_builder<R>(
     client: &SimpleHttpClient<R>,
     app_name: &String,
     machine_id: &String,
-    limit: &Option<Option<String>>,
+    limit: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3869,7 +3871,7 @@ pub struct MachinesListEventsArgs {
     /// Path parameter: machine_id
     pub machine_id: String,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
 }
 
 /// GET /apps/{app_name}/machines/{machine_id}/events
@@ -5926,8 +5928,8 @@ pub fn machines_list_processes_builder<R>(
     client: &SimpleHttpClient<R>,
     app_name: &String,
     machine_id: &String,
-    sort_by: &Option<Option<String>>,
-    order: &Option<Option<String>>,
+    sort_by: &Option<String>,
+    order: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6074,9 +6076,9 @@ pub struct MachinesListProcessesArgs {
     /// Path parameter: machine_id
     pub machine_id: String,
     /// Query parameter: sort_by
-    pub sort_by: Option<Option<String>>,
+    pub sort_by: Option<String>,
     /// Query parameter: order
-    pub order: Option<Option<String>>,
+    pub order: Option<String>,
 }
 
 /// GET /apps/{app_name}/machines/{machine_id}/ps
@@ -6119,8 +6121,8 @@ pub fn machines_restart_builder<R>(
     client: &SimpleHttpClient<R>,
     app_name: &String,
     machine_id: &String,
-    timeout: &Option<Option<String>>,
-    signal: &Option<Option<String>>,
+    timeout: &Option<String>,
+    signal: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6262,9 +6264,9 @@ pub struct MachinesRestartArgs {
     /// Path parameter: machine_id
     pub machine_id: String,
     /// Query parameter: timeout
-    pub timeout: Option<Option<String>>,
+    pub timeout: Option<String>,
     /// Query parameter: signal
-    pub signal: Option<Option<String>>,
+    pub signal: Option<String>,
 }
 
 /// POST /apps/{app_name}/machines/{machine_id}/restart
@@ -7282,11 +7284,11 @@ pub fn machines_wait_builder<R>(
     client: &SimpleHttpClient<R>,
     app_name: &String,
     machine_id: &String,
-    version: &Option<Option<String>>,
-    instance_id: &Option<Option<String>>,
-    from_event_id: &Option<Option<String>>,
-    timeout: &Option<Option<String>>,
-    state: &Option<Option<String>>,
+    version: &Option<String>,
+    instance_id: &Option<String>,
+    from_event_id: &Option<String>,
+    timeout: &Option<String>,
+    state: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7442,15 +7444,15 @@ pub struct MachinesWaitArgs {
     /// Path parameter: machine_id
     pub machine_id: String,
     /// Query parameter: version
-    pub version: Option<Option<String>>,
+    pub version: Option<String>,
     /// Query parameter: instance_id
-    pub instance_id: Option<Option<String>>,
+    pub instance_id: Option<String>,
     /// Query parameter: from_event_id
-    pub from_event_id: Option<Option<String>>,
+    pub from_event_id: Option<String>,
     /// Query parameter: timeout
-    pub timeout: Option<Option<String>>,
+    pub timeout: Option<String>,
     /// Query parameter: state
-    pub state: Option<Option<String>>,
+    pub state: Option<String>,
 }
 
 /// GET /apps/{app_name}/machines/{machine_id}/wait
@@ -7495,8 +7497,8 @@ pub fn machines_wait(
 pub fn secretkeys_list_builder<R>(
     client: &SimpleHttpClient<R>,
     app_name: &String,
-    min_version: &Option<Option<String>>,
-    types: &Option<Option<String>>,
+    min_version: &Option<String>,
+    types: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7636,9 +7638,9 @@ pub struct SecretkeysListArgs {
     /// Path parameter: app_name
     pub app_name: String,
     /// Query parameter: min_version
-    pub min_version: Option<Option<String>>,
+    pub min_version: Option<String>,
     /// Query parameter: types
-    pub types: Option<Option<String>>,
+    pub types: Option<String>,
 }
 
 /// GET /apps/{app_name}/secretkeys
@@ -7673,7 +7675,7 @@ pub fn secretkey_get_builder<R>(
     client: &SimpleHttpClient<R>,
     app_name: &String,
     secret_name: &String,
-    min_version: &Option<Option<String>>,
+    min_version: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7815,7 +7817,7 @@ pub struct SecretkeyGetArgs {
     /// Path parameter: secret_name
     pub secret_name: String,
     /// Query parameter: min_version
-    pub min_version: Option<Option<String>>,
+    pub min_version: Option<String>,
 }
 
 /// GET /apps/{app_name}/secretkeys/{secret_name}
@@ -8190,7 +8192,7 @@ pub fn secretkey_decrypt_builder<R>(
     client: &SimpleHttpClient<R>,
     app_name: &String,
     secret_name: &String,
-    min_version: &Option<Option<String>>,
+    min_version: &Option<String>,
     body: &DecryptSecretkeyRequest,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
@@ -8337,7 +8339,7 @@ pub struct SecretkeyDecryptArgs {
     /// Path parameter: secret_name
     pub secret_name: String,
     /// Query parameter: min_version
-    pub min_version: Option<Option<String>>,
+    pub min_version: Option<String>,
     /// Request body.
     pub body: DecryptSecretkeyRequest,
 }
@@ -8382,7 +8384,7 @@ pub fn secretkey_encrypt_builder<R>(
     client: &SimpleHttpClient<R>,
     app_name: &String,
     secret_name: &String,
-    min_version: &Option<Option<String>>,
+    min_version: &Option<String>,
     body: &EncryptSecretkeyRequest,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
@@ -8529,7 +8531,7 @@ pub struct SecretkeyEncryptArgs {
     /// Path parameter: secret_name
     pub secret_name: String,
     /// Query parameter: min_version
-    pub min_version: Option<Option<String>>,
+    pub min_version: Option<String>,
     /// Request body.
     pub body: EncryptSecretkeyRequest,
 }
@@ -8747,7 +8749,7 @@ pub fn secretkey_sign_builder<R>(
     client: &SimpleHttpClient<R>,
     app_name: &String,
     secret_name: &String,
-    min_version: &Option<Option<String>>,
+    min_version: &Option<String>,
     body: &SignSecretkeyRequest,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
@@ -8894,7 +8896,7 @@ pub struct SecretkeySignArgs {
     /// Path parameter: secret_name
     pub secret_name: String,
     /// Query parameter: min_version
-    pub min_version: Option<Option<String>>,
+    pub min_version: Option<String>,
     /// Request body.
     pub body: SignSecretkeyRequest,
 }
@@ -8939,7 +8941,7 @@ pub fn secretkey_verify_builder<R>(
     client: &SimpleHttpClient<R>,
     app_name: &String,
     secret_name: &String,
-    min_version: &Option<Option<String>>,
+    min_version: &Option<String>,
     body: &VerifySecretkeyRequest,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
@@ -9081,7 +9083,7 @@ pub struct SecretkeyVerifyArgs {
     /// Path parameter: secret_name
     pub secret_name: String,
     /// Query parameter: min_version
-    pub min_version: Option<Option<String>>,
+    pub min_version: Option<String>,
     /// Request body.
     pub body: VerifySecretkeyRequest,
 }
@@ -9123,8 +9125,8 @@ pub fn secretkey_verify(
 pub fn secrets_list_builder<R>(
     client: &SimpleHttpClient<R>,
     app_name: &String,
-    min_version: &Option<Option<String>>,
-    show_secrets: &Option<Option<String>>,
+    min_version: &Option<String>,
+    show_secrets: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9264,9 +9266,9 @@ pub struct SecretsListArgs {
     /// Path parameter: app_name
     pub app_name: String,
     /// Query parameter: min_version
-    pub min_version: Option<Option<String>>,
+    pub min_version: Option<String>,
     /// Query parameter: show_secrets
-    pub show_secrets: Option<Option<String>>,
+    pub show_secrets: Option<String>,
 }
 
 /// GET /apps/{app_name}/secrets
@@ -9472,8 +9474,8 @@ pub fn secret_get_builder<R>(
     client: &SimpleHttpClient<R>,
     app_name: &String,
     secret_name: &String,
-    min_version: &Option<Option<String>>,
-    show_secrets: &Option<Option<String>>,
+    min_version: &Option<String>,
+    show_secrets: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9618,9 +9620,9 @@ pub struct SecretGetArgs {
     /// Path parameter: secret_name
     pub secret_name: String,
     /// Query parameter: min_version
-    pub min_version: Option<Option<String>>,
+    pub min_version: Option<String>,
     /// Query parameter: show_secrets
-    pub show_secrets: Option<Option<String>>,
+    pub show_secrets: Option<String>,
 }
 
 /// GET /apps/{app_name}/secrets/{secret_name}
@@ -9999,7 +10001,7 @@ pub fn secret_delete(
 pub fn volumes_list_builder<R>(
     client: &SimpleHttpClient<R>,
     app_name: &String,
-    summary: &Option<Option<String>>,
+    summary: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10138,7 +10140,7 @@ pub struct VolumesListArgs {
     /// Path parameter: app_name
     pub app_name: String,
     /// Query parameter: summary
-    pub summary: Option<Option<String>>,
+    pub summary: Option<String>,
 }
 
 /// GET /apps/{app_name}/volumes
@@ -11329,13 +11331,13 @@ pub fn create_volume_snapshot(
 pub fn machines_org_list_builder<R>(
     client: &SimpleHttpClient<R>,
     org_slug: &String,
-    include_deleted: &Option<Option<String>>,
-    region: &Option<Option<String>>,
-    state: &Option<Option<String>>,
-    summary: &Option<Option<String>>,
-    updated_after: &Option<Option<String>>,
-    cursor: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
+    include_deleted: &Option<String>,
+    region: &Option<String>,
+    state: &Option<String>,
+    summary: &Option<String>,
+    updated_after: &Option<String>,
+    cursor: &Option<String>,
+    limit: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -11492,19 +11494,19 @@ pub struct MachinesOrgListArgs {
     /// Path parameter: org_slug
     pub org_slug: String,
     /// Query parameter: include_deleted
-    pub include_deleted: Option<Option<String>>,
+    pub include_deleted: Option<String>,
     /// Query parameter: region
-    pub region: Option<Option<String>>,
+    pub region: Option<String>,
     /// Query parameter: state
-    pub state: Option<Option<String>>,
+    pub state: Option<String>,
     /// Query parameter: summary
-    pub summary: Option<Option<String>>,
+    pub summary: Option<String>,
     /// Query parameter: updated_after
-    pub updated_after: Option<Option<String>>,
+    pub updated_after: Option<String>,
     /// Query parameter: cursor
-    pub cursor: Option<Option<String>>,
+    pub cursor: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
 }
 
 /// GET /orgs/{org_slug}/machines
@@ -11550,13 +11552,13 @@ pub fn machines_org_list(
 pub fn volumes_org_list_builder<R>(
     client: &SimpleHttpClient<R>,
     org_slug: &String,
-    include_deleted: &Option<Option<String>>,
-    region: &Option<Option<String>>,
-    state: &Option<Option<String>>,
-    summary: &Option<Option<String>>,
-    updated_after: &Option<Option<String>>,
-    cursor: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
+    include_deleted: &Option<String>,
+    region: &Option<String>,
+    state: &Option<String>,
+    summary: &Option<String>,
+    updated_after: &Option<String>,
+    cursor: &Option<String>,
+    limit: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -11713,19 +11715,19 @@ pub struct VolumesOrgListArgs {
     /// Path parameter: org_slug
     pub org_slug: String,
     /// Query parameter: include_deleted
-    pub include_deleted: Option<Option<String>>,
+    pub include_deleted: Option<String>,
     /// Query parameter: region
-    pub region: Option<Option<String>>,
+    pub region: Option<String>,
     /// Query parameter: state
-    pub state: Option<Option<String>>,
+    pub state: Option<String>,
     /// Query parameter: summary
-    pub summary: Option<Option<String>>,
+    pub summary: Option<String>,
     /// Query parameter: updated_after
-    pub updated_after: Option<Option<String>>,
+    pub updated_after: Option<String>,
     /// Query parameter: cursor
-    pub cursor: Option<Option<String>>,
+    pub cursor: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
 }
 
 /// GET /orgs/{org_slug}/volumes
@@ -13934,52 +13936,6 @@ impl ResourceIdentifier<PlatformPlacementsPostArgs> for MainGetPlacementsRespons
 }
 
 // =============================================================================
-// ResourceIdentifier implementation for MainRegionResponse
-// =============================================================================
-
-/// ResourceIdentifier implementation for MainRegionResponse with PlatformRegionsGetArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<PlatformRegionsGetArgs> for MainRegionResponse {
-    fn generate_resource_id(&self, input: &PlatformRegionsGetArgs) -> String {
-        "fly_io::MainRegionResponse".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "fly_io::MainRegionResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "fly_io"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for serde_json::Value
-// =============================================================================
-
-/// ResourceIdentifier implementation for serde_json::Value with TokensRequestKmsArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<TokensRequestKmsArgs> for serde_json::Value {
-    fn generate_resource_id(&self, input: &TokensRequestKmsArgs) -> String {
-        "fly_io::serde_json::Value".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "fly_io::serde_json::Value"
-    }
-
-    fn provider(&self) -> &'static str {
-        "fly_io"
-    }
-}
-
-// =============================================================================
 // ResourceIdentifier implementation for serde_json::Value
 // =============================================================================
 
@@ -13995,29 +13951,6 @@ impl ResourceIdentifier<TokensRequestOidcArgs> for serde_json::Value {
 
     fn resource_kind(&self) -> &'static str {
         "fly_io::serde_json::Value"
-    }
-
-    fn provider(&self) -> &'static str {
-        "fly_io"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for CurrentTokenResponse
-// =============================================================================
-
-/// ResourceIdentifier implementation for CurrentTokenResponse with CurrentTokenShowArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<CurrentTokenShowArgs> for CurrentTokenResponse {
-    fn generate_resource_id(&self, input: &CurrentTokenShowArgs) -> String {
-        "fly_io::CurrentTokenResponse".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "fly_io::CurrentTokenResponse"
     }
 
     fn provider(&self) -> &'static str {
